@@ -20,6 +20,7 @@ import {
     numeric,
     quirkAddEndpointCluster,
     deviceEndpoints,
+    commandsOnOff,
 } from '../lib/modernExtend';
 
 const switchTypesList = {
@@ -201,19 +202,29 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     }
     if (endpoint.supportsInputCluster('msTemperatureMeasurement')) {
         expose.push(e.temperature().withEndpoint(epName));
-        options['exposed_temperature'] = true;
     }
     if (endpoint.supportsInputCluster('msRelativeHumidity')) {
         expose.push(e.humidity().withEndpoint(epName));
-        options['exposed_humidity'] = true;
     }
     if (endpoint.supportsInputCluster('msPressureMeasurement')) {
         expose.push(e.pressure().withEndpoint(epName));
-        options['exposed_pressure'] = true;
     }
     if (endpoint.supportsInputCluster('msIlluminanceMeasurement')) {
         expose.push(e.illuminance().withEndpoint(epName));
-        options['exposed_illuminance'] = true;
+    }
+    if (endpoint.supportsInputCluster('msCO2')) {
+        expose.push(e.co2().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster('pm25Measurement')) {
+        expose.push(e.pm25().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster('haElectricalMeasurement')) {
+        expose.push(e.voltage().withEndpoint(epName));
+        expose.push(e.current().withEndpoint(epName));
+        expose.push(e.power().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster('seMetering')) {
+        expose.push(e.energy().withEndpoint(epName));
     }
     if (endpoint.supportsInputCluster('genPowerCfg')) {
         deviceOptions['expose_battery'] = true;
@@ -275,7 +286,7 @@ const definitions: Definition[] = [
         description: 'Multi-functional device',
         fromZigbee: [fz.battery, fz.on_off, fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report, fz.temperature,
-            fzLocal.humidity2, fzLocal.pressure2, fzLocal.illuminance2],
+            fzLocal.humidity2, fzLocal.pressure2, fzLocal.illuminance2, fz.electrical_measurement, fz.metering, fz.co2],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tzLocal.ptvo_on_off],
         exposes: (device, options) => {
             const expose: Expose[] = [];
@@ -487,6 +498,17 @@ const definitions: Definition[] = [
                             device.save();
                         }
                     } catch (err) {/* do nothing */}
+                }
+                for (const endpoint of device.endpoints) {
+                    if (endpoint.supportsInputCluster('haElectricalMeasurement')) {
+                        endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {dcCurrentDivisor: 1000, dcCurrentMultiplier: 1,
+                            dcPowerDivisor: 10, dcPowerMultiplier: 1, dcVoltageDivisor: 100, dcVoltageMultiplier: 1,
+                            acVoltageDivisor: 100, acVoltageMultiplier: 1, acCurrentDivisor: 1000, acCurrentMultiplier: 1,
+                            acPowerDivisor: 10, acPowerMultiplier: 1});
+                    }
+                    if (endpoint.supportsInputCluster('seMetering')) {
+                        endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
+                    }
                 }
             }
         },
@@ -896,6 +918,30 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l3: 3, l5: 5, l6: 6};
         },
+    },
+    {
+        zigbeeModel: ['alab.switch'],
+        model: 'alab.switch',
+        vendor: 'Alab',
+        description: 'Four channel relay board with four inputs',
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'in1': 5, 'in2': 6, 'in3': 7, 'in4': 8}}),
+            onOff({
+                powerOnBehavior: false,
+                configureReporting: false,
+                endpointNames: ['l1', 'l2', 'l3', 'l4']},
+            ),
+            commandsOnOff({endpointNames: ['l1', 'l2', 'l3', 'l4']}),
+            numeric({
+                name: 'input_state',
+                valueMin: 0,
+                valueMax: 1,
+                cluster: 'genAnalogInput',
+                attribute: 'presentValue',
+                description: 'Input state',
+                endpointNames: ['in1', 'in2', 'in3', 'in4'],
+            }),
+        ],
     },
 ];
 

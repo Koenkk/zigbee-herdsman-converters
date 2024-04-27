@@ -1004,7 +1004,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {multiEndpoint: true, publishDuplicateTransaction: true},
+        meta: {multiEndpoint: true, publishDuplicateTransaction: true, multiEndpointSkip: ['power', 'energy']},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -1033,7 +1033,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['4512770', '4512771', 'HK-SENSOR-4IN1-A'],
+        zigbeeModel: ['4512770', '4512771'],
         model: '4512770',
         vendor: 'Namron',
         description: 'Zigbee multisensor (white)',

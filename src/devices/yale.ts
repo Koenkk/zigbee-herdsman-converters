@@ -20,7 +20,7 @@ const lockExtend = (meta={}, lockStateOptions: Reporting.Override=null, binds=['
         meta: {pinCodeCount: 250, ...meta},
         exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
             e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume(), e.battery_low()],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: [async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.lockState(endpoint, lockStateOptions);
@@ -30,7 +30,7 @@ const lockExtend = (meta={}, lockStateOptions: Reporting.Override=null, binds=['
             } catch (e) {
                 // Fails for some: https://github.com/Koenkk/zigbee-herdsman-converters/pull/5414
             }
-        },
+        }],
         isModernExtend: true,
     };
 };
@@ -358,7 +358,7 @@ const definitions: Definition[] = [
         extend: [lockExtend({battery: {dontDividePercentage: true}}, {max: 900}, ['closuresDoorLock'])],
     },
     {
-        zigbeeModel: ['06ffff2027'],
+        zigbeeModel: ['06ffff2027', '06e01d220c'],
         model: 'YMF40A RL',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',

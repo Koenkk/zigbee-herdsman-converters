@@ -5,12 +5,12 @@ import {
     getFromLookup, mapNumberRange, getEndpointName,
 } from '../lib/utils';
 import {
-    LightArgs, light as lightDontUse, ota, setupAttributes, ReportingConfigWithoutAttribute,
+    LightArgs, light as lightDontUse, ota, ReportingConfigWithoutAttribute,
     timeLookup, numeric, NumericArgs, setupConfigureForBinding,
+    setupConfigureForReporting,
 } from '../lib/modernExtend';
 import {tradfri as ikea} from '../lib/ota';
 
-import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
@@ -127,26 +127,26 @@ export function ikeaBattery(): ModernExtend {
 
     const defaultReporting: ReportingConfigWithoutAttribute = {min: '1_HOUR', max: 'MAX', change: 10};
 
-    const configure: Configure = async (device, coordinatorEndpoint) => {
-        await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
-            {attribute: 'batteryPercentageRemaining', ...defaultReporting},
-        ]);
-    };
+    const configure: Configure[] = [
+        setupConfigureForReporting('genPowerCfg', 'batteryPercentageRemaining', defaultReporting, access.STATE_GET),
+    ];
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export function ikeaConfigureRemote(): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
-        // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
-        // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-        // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
-        const endpoint = device.getEndpoint(1);
-        const version = device.softwareBuildID.split('.').map((n) => Number(n));
-        const bindTarget = version[0] > 2 || (version[0] == 2 && version[1] > 3) || (version[0] == 2 && version[1] == 3 && version[2] >= 75) ?
-            coordinatorEndpoint : constants.defaultBindGroup;
-        await endpoint.bind('genOnOff', bindTarget);
-    };
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
+            // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
+            // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
+            const endpoint = device.getEndpoint(1);
+            const version = device.softwareBuildID.split('.').map((n) => Number(n));
+            const bindTarget = version[0] > 2 || (version[0] == 2 && version[1] > 3) || (version[0] == 2 && version[1] == 3 && version[2] >= 75) ?
+                coordinatorEndpoint : constants.defaultBindGroup;
+            await endpoint.bind('genOnOff', bindTarget);
+        },
+    ];
 
     return {configure, isModernExtend: true};
 }
@@ -324,25 +324,27 @@ export function ikeaAirPurifier(): ModernExtend {
         },
     ];
 
-    const configure: Configure = async (device, coordinatorEndpoint) => {
-        const endpoint = device.getEndpoint(1);
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(1);
 
-        await reporting.bind(endpoint, coordinatorEndpoint, ['manuSpecificIkeaAirPurifier']);
-        await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'particulateMatter25Measurement',
-            minimumReportInterval: timeLookup['1_MINUTE'], maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 1}],
-        manufacturerOptions);
-        await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'filterRunTime',
-            minimumReportInterval: timeLookup['1_HOUR'], maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 0}],
-        manufacturerOptions);
-        await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanMode',
-            minimumReportInterval: 0, maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 1}],
-        manufacturerOptions);
-        await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanSpeed',
-            minimumReportInterval: 0, maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 1}],
-        manufacturerOptions);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['manuSpecificIkeaAirPurifier']);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'particulateMatter25Measurement',
+                minimumReportInterval: timeLookup['1_MINUTE'], maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 1}],
+            manufacturerOptions);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'filterRunTime',
+                minimumReportInterval: timeLookup['1_HOUR'], maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 0}],
+            manufacturerOptions);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanMode',
+                minimumReportInterval: 0, maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 1}],
+            manufacturerOptions);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanSpeed',
+                minimumReportInterval: 0, maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 1}],
+            manufacturerOptions);
 
-        await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock', 'filterRunTime']);
-    };
+            await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock', 'filterRunTime']);
+        },
+    ];
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -362,12 +364,14 @@ export function ikeaVoc(args?: Partial<NumericArgs>) {
 
 export function ikeaConfigureGenPollCtrl(args?: {endpointId: number}): ModernExtend {
     args = {endpointId: 1, ...args};
-    const configure: Configure = async (device, coordinatorEndpoint) => {
-        const endpoint = device.getEndpoint(args.endpointId);
-        if (Number(device?.softwareBuildID?.split('.')[0]) >= 24) {
-            await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
-        }
-    };
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(args.endpointId);
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 24) {
+                await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
+            }
+        },
+    ];
 
     return {configure, isModernExtend: true};
 }
@@ -542,7 +546,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue, dotsPrefix?: boole
         },
     ];
 
-    const configure: Configure = setupConfigureForBinding('tradfriButton', args.endpointNames);
+    const configure: Configure[] = [setupConfigureForBinding('tradfriButton', 'output', args.endpointNames)];
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
@@ -587,7 +591,7 @@ export function ikeaArrowClick(args?: {styrbar: boolean}): ModernExtend {
         },
     ];
 
-    const configure: Configure = setupConfigureForBinding('genScenes');
+    const configure: Configure[] = [setupConfigureForBinding('genScenes', 'output')];
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
@@ -627,7 +631,7 @@ export function ikeaMediaCommands(): ModernExtend {
         },
     ];
 
-    const configure: Configure = setupConfigureForBinding('genLevelCtrl');
+    const configure: Configure[] = [setupConfigureForBinding('genLevelCtrl', 'output')];
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
@@ -639,11 +643,8 @@ export const legacy = {
             type: 'commandToggle',
             options: [options.legacy()],
             convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
                 if (isLegacyEnabled(options)) {
                     return {action: 'play_pause'};
-                } else {
-                    return fz.command_toggle.convert(model, msg, publish, options, meta);
                 }
             },
         } satisfies Fz.Converter,
@@ -652,7 +653,6 @@ export const legacy = {
             type: 'commandStep',
             options: [options.legacy()],
             convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
                 if (isLegacyEnabled(options)) {
                     const direction = msg.data.stepmode === 1 ? 'backward' : 'forward';
                     return {
@@ -660,8 +660,6 @@ export const legacy = {
                         step_size: msg.data.stepsize,
                         transition_time: msg.data.transtime,
                     };
-                } else {
-                    return fz.command_step.convert(model, msg, publish, options, meta);
                 }
             },
         } satisfies Fz.Converter,

@@ -1215,7 +1215,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ['LCT024', '440400982841', '440400982842', 'PCM002'],
+        zigbeeModel: ['LCT024', '440400982841', '440400982842', '440400982843', 'PCM002'],
         model: '915005733701',
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
@@ -3051,7 +3051,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['LTF002'],
+        zigbeeModel: ['LTF002', 'LTC010'],
         model: '6109331C5',
         vendor: 'Philips',
         description: 'Hue white ambiance Apogee round',
@@ -3573,6 +3573,13 @@ const definitions: Definition[] = [
         model: '442296118491',
         vendor: 'Philips',
         description: 'Hue Secure Camera Floodlight',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ['929003555701'],
+        model: '929003555701',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance Play Gradient Light Tube Compact',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
 ];

@@ -115,6 +115,13 @@ const definitions: Definition[] = [
         description: 'Eria tunable white A19/BR30 smart bulb',
         extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs']}})],
     },
+    {
+        zigbeeModel: ['ONOFFRELAY'],
+        model: '81898',
+        vendor: 'AduroSmart',
+        description: 'AduroSmart on/off relay',
+        extend: [onOff({powerOnBehavior: false})],
+    },
 ];
 
 export default definitions;

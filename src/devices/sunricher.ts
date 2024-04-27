@@ -8,7 +8,18 @@ import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
 import * as utils from '../lib/utils';
 import {Definition, Fz, Zh} from '../lib/types';
-import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
+import {
+    deviceEndpoints,
+    electricityMeter,
+    light,
+    onOff,
+    battery,
+    identify,
+    occupancy,
+    temperature,
+    humidity,
+    illuminance,
+} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
 
 const NS = 'zhc:sunricher';
@@ -57,6 +68,20 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['HK-SL-DIM-US-A'],
+        model: 'HK-SL-DIM-US-A',
+        vendor: 'Sunricher',
+        description: 'Keypad smart dimmer',
+        extend: [light({configureReporting: true}), electricityMeter()],
+    },
+    {
+        zigbeeModel: ['HK-SENSOR-4IN1-A'],
+        model: 'HK-SENSOR-4IN1-A',
+        vendor: 'Sunricher',
+        description: '4IN1 Sensor',
+        extend: [battery(), identify(), occupancy(), temperature(), humidity(), illuminance()],
+    },
+    {
         zigbeeModel: ['SR-ZG9023A-EU'],
         model: 'SR-ZG9023A-EU',
         vendor: 'Sunricher',
@@ -88,7 +113,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy', 'voltage', 'current']},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);

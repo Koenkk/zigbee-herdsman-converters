@@ -1,8 +1,16 @@
 import {Definition, ModernExtend, Fz, Expose, Configure, OnEvent} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as globalStore from '../lib/store';
-import * as reporting from '../lib/reporting';
-import {battery, electricityMeter, iasZoneAlarm, light, onOff} from '../lib/modernExtend';
+import {
+    battery,
+    electricityMeter,
+    iasZoneAlarm,
+    light,
+    onOff,
+    setupConfigureForBinding,
+    setupConfigureForReading,
+    setupConfigureForReporting,
+} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -25,13 +33,19 @@ function airQuality(): ModernExtend {
 }
 
 function electricityMeterPoll(): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
-        const endpoint = device.getEndpoint(1);
-        await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
-        await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-        await reporting.readMeteringMultiplierDivisor(endpoint);
-        await reporting.currentSummDelivered(endpoint);
-    };
+    const configure: Configure[] = [
+        setupConfigureForBinding('haElectricalMeasurement', 'input'),
+        setupConfigureForReading('haElectricalMeasurement', [
+            'acVoltageMultiplier',
+            'acVoltageDivisor',
+            'acCurrentMultiplier',
+            'acCurrentDivisor',
+            'acPowerMultiplier',
+            'acPowerDivisor',
+        ]),
+        setupConfigureForReading('seMetering', ['multiplier', 'divisor']),
+        setupConfigureForReporting('seMetering', 'currentSummDelivered', {min: '5_SECONDS', max: '1_HOUR', change: [1, 1]}, exposes.access.STATE_GET),
+    ];
 
     const onEvent: OnEvent = async (type, data, device) => {
         // This device doesn't support reporting correctly.

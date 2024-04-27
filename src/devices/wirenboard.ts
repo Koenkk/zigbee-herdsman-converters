@@ -429,11 +429,7 @@ const sprutModernExtend = {
                 }
             },
         }];
-        const configure: Configure = async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['sprutIrBlaster']);
-            device.save();
-        };
+        const configure: Configure[] = [modernExtend.setupConfigureForBinding('sprutIrBlaster', 'input')];
         return {toZigbee, configure, isModernExtend: true};
     },
 };

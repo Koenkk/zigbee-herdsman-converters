@@ -563,6 +563,7 @@ export const valueConverter = {
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
     switchType: valueConverterBasic.lookup({'momentary': new Enum(0), 'toggle': new Enum(1), 'state': new Enum(2)}),
+    switchType2: valueConverterBasic.lookup({'toggle': new Enum(0), 'state': new Enum(1), 'momentary': new Enum(2)}),
     backlightModeOffNormalInverted: valueConverterBasic.lookup({'off': new Enum(0), 'normal': new Enum(1), 'inverted': new Enum(2)}),
     backlightModeOffLowMediumHigh: valueConverterBasic.lookup({'off': new Enum(0), 'low': new Enum(1), 'medium': new Enum(2), 'high': new Enum(3)}),
     lightType: valueConverterBasic.lookup({'led': 0, 'incandescent': 1, 'halogen': 2}),
@@ -1196,7 +1197,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('61440')) {
                 const property = utils.postfixWithEndpointName('brightness', msg, model, meta);
-                return {[property]: msg.data['61440']};
+                return {[property]: utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255)};
             }
         },
     } satisfies Fz.Converter,
@@ -1337,6 +1338,19 @@ const tuyaFz = {
                 }
             }
             return result;
+        },
+    } satisfies Fz.Converter,
+    on_off_action: {
+        cluster: 'genOnOff',
+        type: 'commandTuyaAction',
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
+            const buttonMapping: KeyValueNumberString = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'};
+            // TS004F has single endpoint, TS0041A/TS0041 can have multiple but have just one button
+            const button = msg.device.endpoints.length == 1 || ['TS0041A', 'TS0041'].includes(msg.device.modelID) ?
+                '' : `${buttonMapping[msg.endpoint.ID]}_`;
+            return {action: `${button}${clickMapping[msg.data.value]}`};
         },
     } satisfies Fz.Converter,
 };
@@ -1766,7 +1780,22 @@ const tuyaModernExtend = {
         return {exposes: [exp], toZigbee, fromZigbee, isModernExtend: true};
     },
     tuyaMagicPacket(): ModernExtend {
-        return {configure: configureMagicPacket, isModernExtend: true};
+        return {configure: [configureMagicPacket], isModernExtend: true};
+    },
+    tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs>): ModernExtend {
+        return modernExtend.actionEnumLookup({
+            actionLookup: {0: 'single', 1: 'double', 2: 'hold'},
+            cluster: 'genOnOff',
+            commands: ['commandTuyaAction'],
+            attribute: 'value',
+        });
+    },
+    tuyaOnOffActionLegacy(args: {actions: ('single' | 'double' | 'hold')[], endpointNames?: string[]}): ModernExtend {
+        // For new devices use tuyaOnOffAction instead
+        const actions = args.actions.map((a) => args.endpointNames ? args.endpointNames.map((e) => `${e}_${a}`) : [a]).flat();
+        const exposes: Expose[] = [e.action(actions)];
+        const fromZigbee: Fz.Converter[] = [tuyaFz.on_off_action];
+        return {exposes, fromZigbee, isModernExtend: true};
     },
 };
 export {tuyaModernExtend as modernExtend};

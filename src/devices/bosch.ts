@@ -102,11 +102,22 @@ const displayedTemperature = {
 };
 
 // Smoke detector II bsd-2
-const smokeDetectorAlarmState = {
-    smoke_on: 46080,
-    smoke_off: 0,
-    intruder_on: 46081,
-    intruder_off: 1,
+const smokeAlarmState: KeyValue = {
+    'OFF': 0x0000,
+    'ON': 0x3c00, // 15360 or 46080 works
+};
+
+// Smoke detector II bsd-2
+const burglarAlarmState: KeyValue = {
+    'OFF': 0x0001,
+    'ON': 0xb401, // 46081
+};
+
+// Smoke detector II bsd-2
+const smokeDetectorSensitivity: KeyValue = {
+    'low': 0x0,
+    'medium': 0x1,
+    'high': 0x2,
 };
 
 // Radiator Thermostat II
@@ -163,58 +174,37 @@ Example: 30ff00000102010001`;
 
 
 const tzLocal = {
-    alarm_state: {
-        key: ['intruder_alarm_state', 'smoke_alarm_state'],
+    bsd2: {
+        key: ['alarm_smoke', 'alarm_burglar', 'sensitivity'],
         convertSet: async (entity, key, value: string, meta) => {
-            const dataToSend = {cluster: 'ssIasZone', command: 128, payload: {data: ''}};
-            if (key === 'smoke_alarm_state' || key==='intruder_alarm_state') {
-                let convertedValue='';
-                if (key === 'smoke_alarm_state') {
-                    if (value==='ON') {
-                        convertedValue=smokeDetectorAlarmState.smoke_on.toString();
-                    }
-                    if (value==='OFF') {
-                        convertedValue=smokeDetectorAlarmState.smoke_off.toString();
-                    }
-                }
-                if (key === 'intruder_alarm_state') {
-                    if (value==='ON') {
-                        convertedValue=smokeDetectorAlarmState.intruder_on.toString();
-                    }
-                    if (value==='OFF') {
-                        convertedValue=smokeDetectorAlarmState.intruder_off.toString();
-                    }
-                }
-                dataToSend.payload.data = convertedValue;
+            if (key === 'alarm_smoke') {
+                const index = utils.getFromLookup(value, smokeAlarmState);
+                await entity.command('ssIasZone', 'boschSmokeDetectorSiren', {data: index}, manufacturerOptions);
+                return {state: {alarm_smoke: value}};
             }
-
-            //
-            // the data of the payload can either be decimal:
-            // 1: this disables the intruder alarm state
-            // 46081: this enables the intruder alert siren
-            // 256: this enables the smoke test alarm siren
-            const endpoint = meta.device.getEndpoint(1);
-            await endpoint.command(
-                dataToSend.cluster,
-                dataToSend.command,
-                dataToSend.payload,
-                {
-                    ...manufacturerOptions,
-                    ...utils.getOptions(meta.mapped, entity),
-                },
-            );
-            return {state: {alarm_state: dataToSend.payload.data}};
+            if (key === 'alarm_burglar') {
+                const index = utils.getFromLookup(value, burglarAlarmState);
+                await entity.command('ssIasZone', 'boschSmokeDetectorSiren', {data: index}, manufacturerOptions);
+                return {state: {alarm_burglar: value}};
+            }
+            if (key === 'sensitivity') {
+                const index = utils.getFromLookup(value, smokeDetectorSensitivity);
+                await entity.write('ssIasZone', {currentZoneSensitivityLevel: index});
+                return {state: {sensitivity: value}};
+            }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
-            case 'smoke_alarm_state':
-                await entity.read('ssIasZone', [0xf0], manufacturerOptions);
+            case 'alarm_smoke':
+            case 'alarm_burglar':
+            case 'zone_status':
+                await entity.read('ssIasZone', ['zoneStatus']);
                 break;
-            case 'intruder_alarm_state':
-                await entity.read('ssIasZone', [0xf0], manufacturerOptions);
+            case 'sensitivity':
+                await entity.read('ssIasZone', ['currentZoneSensitivityLevel']);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bsd2.convertGet ${key}`);
             }
         },
     } satisfies Tz.Converter,
@@ -377,22 +367,22 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    bwa1: {
-        key: ['alarm_on_motion', 'test'],
+    bwa1_alarm_on_motion: {
+        key: ['alarm_on_motion'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'alarm_on_motion') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write(0xFCAC, {0x0003: {value: index, type: 0x10}}, manufacturerOptions);
+                await entity.write('manuSpecificBosch11', {alarmOnMotion: index}, manufacturerOptions);
                 return {state: {alarm_on_motion: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'alarm_on_motion':
-                await entity.read(0xFCAC, [0x0003], manufacturerOptions);
+                await entity.read('manuSpecificBosch11', ['alarmOnMotion'], manufacturerOptions);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_bwa1.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bwa1_alarm_on_motion.convertGet ${key}`);
             }
         },
     } satisfies Tz.Converter,
@@ -494,10 +484,10 @@ const tzLocal = {
                 return {state: {display_orientation: value}};
             }
             if (key === 'display_ontime') {
-                let onTime = utils.toNumber(value, key);
-                onTime = utils.numberWithinRange(onTime, 5, 30);
-                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: onTime, type: Zcl.DataType.enum8}}, manufacturerOptions);
-                return {state: {display_onTime: onTime}};
+                let ontime = utils.toNumber(value, key);
+                ontime = utils.numberWithinRange(ontime, 5, 30);
+                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: ontime, type: Zcl.DataType.enum8}}, manufacturerOptions);
+                return {state: {display_ontime: ontime}};
             }
             if (key === 'display_brightness') {
                 let brightness = utils.toNumber(value, key);
@@ -543,18 +533,18 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'sensitivity') {
                 const index = utils.getFromLookup(value, smokeSensitivity);
-                await entity.write('manuSpecificBosch', {0x4003: {value: index, type: 0x21}}, manufacturerOptions);
+                await entity.write('manuSpecificBosch', {sensitivity: index}, manufacturerOptions);
                 return {state: {sensitivity: value}};
             }
             if (key === 'pre_alarm') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('manuSpecificBosch5', {0x4001: {value: index, type: 0x18}}, manufacturerOptions);
+                await entity.write('manuSpecificBosch5', {pre_alarm: index}, manufacturerOptions);
                 return {state: {pre_alarm: value}};
             }
             if (key === 'heartbeat') {
                 const endpoint = meta.device.getEndpoint(12);
                 const index = utils.getFromLookup(value, stateOffOn);
-                await endpoint.write('manuSpecificBosch7', {0x5005: {value: index, type: 0x18}}, manufacturerOptions);
+                await endpoint.write('manuSpecificBosch7', {heartbeat: index}, manufacturerOptions);
                 return {state: {heartbeat: value}};
             }
             if (key === 'self_test') {
@@ -584,17 +574,17 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'sensitivity':
-                await entity.read('manuSpecificBosch', [0x4003], manufacturerOptions);
+                await entity.read('manuSpecificBosch', ['sensitivity'], manufacturerOptions);
                 break;
             case 'pre_alarm':
-                await entity.read('manuSpecificBosch5', [0x4001], manufacturerOptions);
+                await entity.read('manuSpecificBosch5', ['pre_alarm'], manufacturerOptions);
                 break;
             case 'heartbeat':
-                await meta.device.getEndpoint(12).read('manuSpecificBosch7', [0x5005], manufacturerOptions);
+                await meta.device.getEndpoint(12).read('manuSpecificBosch7', ['heartbeat'], manufacturerOptions);
                 break;
             case 'alarm':
             case 'self_test':
-                await meta.device.getEndpoint(12).read('manuSpecificBosch8', [0x5000], manufacturerOptions);
+                await meta.device.getEndpoint(12).read('manuSpecificBosch8', ['alarm_status'], manufacturerOptions);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
@@ -630,6 +620,31 @@ const tzLocal = {
 
 
 const fzLocal = {
+    bsd2: {
+        cluster: 'ssIasZone',
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data;
+            const lookup: KeyValue = {0: 'low', 1: 'medium', 2: 'high'};
+            if (data.hasOwnProperty('zoneStatus') || data.hasOwnProperty('zonestatus')) {
+                const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+                return {
+                    smoke: (zoneStatus & 1) > 0,
+                    alarm_smoke: (zoneStatus & 1<<1) > 0,
+                    battery_low: (zoneStatus & 1<<3) > 0,
+                    supervision_reports: (zoneStatus & 1<<4) > 0,
+                    restore_reports: (zoneStatus & 1<<5) > 0,
+                    alarm_burglar: (zoneStatus & 1<<7) > 0,
+                    test: (zoneStatus & 1<<8) > 0,
+                    alarm_silenced: (zoneStatus & 1<<11) > 0,
+                };
+            }
+            if (data.hasOwnProperty('currentZoneSensitivityLevel')) {
+                const value = data.currentZoneSensitivityLevel;
+                return {sensitivity: lookup[value]};
+            }
+        },
+    } satisfies Fz.Converter,
     bmct: {
         cluster: 'manuSpecificBosch10',
         type: ['attributeReport', 'readResponse'],
@@ -664,13 +679,12 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     bwa1_alarm_on_motion: {
-        cluster: '64684',
+        cluster: 'manuSpecificBosch11',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            const data = msg.data;
-            if (data.hasOwnProperty(0x0003)) {
-                result.alarm_on_motion = (Object.keys(stateOffOn)[msg.data[0x0003]]);
+            if (msg.data.hasOwnProperty('alarmOnMotion')) {
+                result.alarm_on_motion = (Object.keys(stateOffOn)[msg.data['alarmOnMotion']]);
             }
             return result;
         },
@@ -774,8 +788,8 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty(0x4003)) {
-                result.sensitivity = (Object.keys(smokeSensitivity)[msg.data[0x4003]]);
+            if (msg.data.hasOwnProperty('sensitivity')) {
+                result.sensitivity = (Object.keys(smokeSensitivity)[msg.data['sensitivity']]);
             }
             return result;
         },
@@ -856,7 +870,6 @@ const fzLocal = {
                 0x00200081: 'fire',
                 0x00200040: 'silenced',
             };
-
             if (msg.data.hasOwnProperty('alarm_status')) {
                 result.self_test = (msg.data['alarm_status'] & 1<<24) > 0;
                 result.smoke = (msg.data['alarm_status'] & 1<<7) > 0;
@@ -987,23 +1000,28 @@ const definitions: Definition[] = [
         model: 'BWA-1',
         vendor: 'Bosch',
         description: 'Zigbee smart water leak detector',
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fzLocal.bwa1_alarm_on_motion],
-        toZigbee: [tzLocal.bwa1],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        fromZigbee: [
+            fz.battery,
+            fz.ias_water_leak_alarm_1,
+            fzLocal.bwa1_alarm_on_motion,
+        ],
+        toZigbee: [
+            tzLocal.bwa1_alarm_on_motion,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 64684]);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg',
+                'genPollCtrl',
+            ]);
             await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.batteryVoltage(endpoint);
-            await endpoint.configureReporting(0xFCAC, [{
-                attribute: {ID: 0x0003, type: Zcl.DataType.boolean},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], manufacturerOptions);
+            await endpoint.read('manuSpecificBosch11', ['alarmOnMotion'], manufacturerOptions);
         },
         exposes: [
-            e.water_leak(), e.battery(), e.tamper(),
+            e.water_leak(),
+            e.tamper(),
+            e.battery(),
+            e.battery_low(),
             e.binary('alarm_on_motion', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable sound alarm on motion'),
         ],
     },
@@ -1012,18 +1030,30 @@ const definitions: Definition[] = [
         model: 'BSD-2',
         vendor: 'Bosch',
         description: 'Smoke alarm detector',
-        fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
-        toZigbee: [tzLocal.alarm_state],
+        fromZigbee: [
+            fz.battery,
+            fzLocal.bsd2,
+        ],
+        toZigbee: [
+            tzLocal.bsd2,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 64684]);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg',
+                'genPollCtrl',
+            ]);
             await reporting.batteryPercentageRemaining(endpoint);
-            device.save();
-            await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            await endpoint.read('ssIasZone', ['zoneStatus']);
         },
-        exposes: [e.smoke(), e.battery(), e.battery_low(), e.test(),
-            e.binary('intruder_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
-            e.binary('smoke_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
+        exposes: [
+            e.smoke(),
+            e.battery(),
+            e.battery_low(),
+            e.test(),
+            e.binary('alarm_burglar', ea.ALL, 'ON', 'OFF').withDescription('Toggle the burglar alarm on or off'),
+            e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
+            e.enum('sensitivity', ea.ALL, Object.keys(smokeDetectorSensitivity)).withDescription('Sensitivity of the smoke alarm'),
         ],
     },
     {
@@ -1317,14 +1347,20 @@ const definitions: Definition[] = [
         model: '8750001213',
         vendor: 'Bosch',
         description: 'Twinguard',
-        fromZigbee: [fzLocal.bosch_twinguard_measurements, fzLocal.bosch_twinguard_sensitivity,
-            fzLocal.bosch_twinguard_pre_alarm, fzLocal.bosch_twinguard_alarm_state, fzLocal.bosch_twinguard_smoke_alarm_state,
-            fzLocal.bosch_twinguard_heartbeat],
-        toZigbee: [tzLocal.bosch_twinguard],
+        fromZigbee: [
+            fzLocal.bosch_twinguard_measurements,
+            fzLocal.bosch_twinguard_sensitivity,
+            fzLocal.bosch_twinguard_pre_alarm,
+            fzLocal.bosch_twinguard_alarm_state,
+            fzLocal.bosch_twinguard_smoke_alarm_state,
+            fzLocal.bosch_twinguard_heartbeat,
+        ],
+        toZigbee: [
+            tzLocal.bosch_twinguard,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const coordinatorEndpointB = coordinatorEndpoint.getDevice().getEndpoint(1);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, ['genAlarms']);
-            await reporting.bind(device.getEndpoint(7), coordinatorEndpointB, ['genOta']);
             await reporting.bind(device.getEndpoint(7), coordinatorEndpointB, ['genPollCtrl']);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, ['manuSpecificBosch']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpointB, ['manuSpecificBosch3']);
@@ -1333,12 +1369,9 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, ['manuSpecificBosch8']);
             await device.getEndpoint(1).read('manuSpecificBosch5', ['unknown_attribute'], manufacturerOptions); // Needed for pairing
             await device.getEndpoint(12).command('manuSpecificBosch7', 'pairingCompleted', manufacturerOptions); // Needed for pairing
-            await device.getEndpoint(1).write('manuSpecificBosch',
-                {0x4003: {value: 0x0002, type: 0x21}}, manufacturerOptions); // Setting defaults
-            await device.getEndpoint(1).write('manuSpecificBosch5',
-                {0x4001: {value: 0x01, type: 0x18}}, manufacturerOptions); // Setting defaults
-            await device.getEndpoint(12).write('manuSpecificBosch7',
-                {0x5005: {value: 0x01, type: 0x18}}, manufacturerOptions); // Setting defaults
+            await device.getEndpoint(1).write('manuSpecificBosch', {sensitivity: 0x0002}, manufacturerOptions); // Setting defaults
+            await device.getEndpoint(1).write('manuSpecificBosch5', {pre_alarm: 0x01}, manufacturerOptions); // Setting defaults
+            await device.getEndpoint(12).write('manuSpecificBosch7', {heartbeat: 0x01}, manufacturerOptions); // Setting defaults
             await device.getEndpoint(1).read('manuSpecificBosch', ['sensitivity'], manufacturerOptions);
             await device.getEndpoint(1).read('manuSpecificBosch5', ['pre_alarm'], manufacturerOptions);
             await device.getEndpoint(12).read('manuSpecificBosch7', ['heartbeat'], manufacturerOptions);
@@ -1350,13 +1383,14 @@ const definitions: Definition[] = [
             e.voc().withValueMin(0).withValueMax(35610).withValueStep(1),
             e.co2().withValueMin(500).withValueMax(5500).withValueStep(1),
             e.aqi().withValueMin(0).withValueMax(500).withValueStep(1),
-            e.illuminance_lux(), e.battery(),
+            e.illuminance_lux(),
+            e.battery(),
             e.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
             e.text('siren_state', ea.STATE).withDescription('Siren state'),
             e.binary('self_test', ea.ALL, true, false).withDescription('Initiate self-test'),
             e.enum('sensitivity', ea.ALL, Object.keys(smokeSensitivity)).withDescription('Sensitivity of the smoke alarm'),
-            e.enum('pre_alarm', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable pre-alarm'),
-            e.enum('heartbeat', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable heartbeat'),
+            e.binary('pre_alarm', ea.ALL, 'ON', 'OFF').withDescription('Enable/disable pre-alarm'),
+            e.binary('heartbeat', ea.ALL, 'ON', 'OFF').withDescription('Enable/disable heartbeat'),
         ],
     },
     {
@@ -1405,18 +1439,51 @@ const definitions: Definition[] = [
         model: 'BSEN-C2',
         vendor: 'Bosch',
         description: 'Door/window contact II',
-        fromZigbee: [fzLocal.bosch_contact],
+        fromZigbee: [
+            fz.battery,
+            fzLocal.bosch_contact,
+        ],
         toZigbee: [],
-        exposes: [e.battery_low(), e.contact(), e.action(['single', 'long'])],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg',
+                'genPollCtrl',
+            ]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [
+            e.battery(),
+            e.battery_low(),
+            e.contact(),
+            e.action(['single', 'long']),
+        ],
     },
     {
         zigbeeModel: ['RBSH-SWDV-ZB'],
         model: 'BSEN-CV',
         vendor: 'Bosch',
         description: 'Door/window contact II plus',
-        fromZigbee: [fzLocal.bosch_contact],
+        fromZigbee: [
+            fz.battery,
+            fzLocal.bosch_contact,
+        ],
         toZigbee: [],
-        exposes: [e.battery_low(), e.contact(), e.vibration(), e.action(['single', 'long'])],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg',
+                'genPollCtrl',
+            ]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [
+            e.battery(),
+            e.battery_low(),
+            e.contact(),
+            e.vibration(),
+            e.action(['single', 'long']),
+        ],
     },
     {
         zigbeeModel: ['RBSH-MMD-ZB-EU'],

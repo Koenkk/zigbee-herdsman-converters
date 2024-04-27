@@ -11,7 +11,8 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm} from '../lib/modernExtend';
+import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify,
+    actionEnumLookup, commandsOnOff, commandsLevelCtrl} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
 
 const NS = 'zhc:tuya';
@@ -343,7 +344,7 @@ const tzLocal = {
 const fzLocal = {
     TS0726_action: {
         cluster: 'genOnOff',
-        type: ['raw'],
+        type: ['commandTuyaAction'],
         convert: (model, msg, publish, options, meta) => {
             return {action: `scene_${msg.endpoint.ID}`};
         },
@@ -583,7 +584,6 @@ const definitions: Definition[] = [
             {vendor: 'Tesla Smart', model: 'TSL-SEN-DOOR'},
             {vendor: 'Cleverio', model: 'SS100'},
             tuya.whitelabel('Niceboy', 'ORBIS Windows & Door Sensor', 'Door sensor', ['_TZ3000_qrldbmfn']),
-            tuya.whitelabel('Sber', 'SBDV-00030', 'Door sensor', ['_TYZB01_epni2jgy']),
             tuya.whitelabel('TuYa', 'ZD08', 'Door sensor', ['_TZ3000_7d8yme6f']),
             tuya.whitelabel('TuYa', 'MC500A', 'Door sensor', ['_TZ3000_2mbfxlzr']),
             tuya.whitelabel('TuYa', '19DZT', 'Door sensor', ['_TZ3000_n2egfsli']),
@@ -704,60 +704,79 @@ const definitions: Definition[] = [
         model: 'F00MB00-04-1',
         vendor: 'FORIA',
         description: '4 scenes switch',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4'])],
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, 'action', tuya.valueConverter.static('scene_1')],
-                [2, 'action', tuya.valueConverter.static('scene_2')],
-                [3, 'action', tuya.valueConverter.static('scene_3')],
-                [4, 'action', tuya.valueConverter.static('scene_4')],
-            ],
-        },
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.combineActions([
+                tuya.modernExtend.dpAction({dp: 1, lookup: {'scene_1': 0}}),
+                tuya.modernExtend.dpAction({dp: 2, lookup: {'scene_2': 0}}),
+                tuya.modernExtend.dpAction({dp: 3, lookup: {'scene_3': 0}}),
+                tuya.modernExtend.dpAction({dp: 4, lookup: {'scene_4': 0}}),
+            ]),
+            tuya.modernExtend.dpBinary({
+                name: 'vibration',
+                dp: 0x6c, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable vibration',
+            }),
+            tuya.modernExtend.dpBinary({
+                name: 'approach',
+                dp: 0x6b, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable approach detection',
+            }),
+            tuya.modernExtend.dpBinary({
+                name: 'illumination',
+                dp: 0x6a, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable illumination detection',
+            }),
+            tuya.modernExtend.dpBinary({
+                name: 'backlight',
+                dp: 0x69, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable backlight',
+            }),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dhke3p9w']),
         model: 'F00YK04-18-1',
         vendor: 'FORIA',
         description: '18 scenes remote',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6',
-            'scene_7', 'scene_8', 'scene_9', 'scene_10', 'scene_11', 'scene_12', 'scene_13', 'scene_14', 'scene_15', 'scene_16',
-            'scene_17', 'scene_18']),
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.combineActions([
+                tuya.modernExtend.dpAction({dp: 1, lookup: {'scene_1': 0}}),
+                tuya.modernExtend.dpAction({dp: 2, lookup: {'scene_2': 0}}),
+                tuya.modernExtend.dpAction({dp: 3, lookup: {'scene_3': 0}}),
+                tuya.modernExtend.dpAction({dp: 4, lookup: {'scene_4': 0}}),
+                tuya.modernExtend.dpAction({dp: 5, lookup: {'scene_5': 0}}),
+                tuya.modernExtend.dpAction({dp: 6, lookup: {'scene_6': 0}}),
+                tuya.modernExtend.dpAction({dp: 7, lookup: {'scene_7': 0}}),
+                tuya.modernExtend.dpAction({dp: 8, lookup: {'scene_8': 0}}),
+                tuya.modernExtend.dpAction({dp: 9, lookup: {'scene_9': 0}}),
+                tuya.modernExtend.dpAction({dp: 10, lookup: {'scene_10': 0}}),
+                tuya.modernExtend.dpAction({dp: 11, lookup: {'scene_11': 0}}),
+                tuya.modernExtend.dpAction({dp: 12, lookup: {'scene_12': 0}}),
+                tuya.modernExtend.dpAction({dp: 13, lookup: {'scene_13': 0}}),
+                tuya.modernExtend.dpAction({dp: 14, lookup: {'scene_14': 0}}),
+                tuya.modernExtend.dpAction({dp: 15, lookup: {'scene_15': 0}}),
+                tuya.modernExtend.dpAction({dp: 16, lookup: {'scene_16': 0}}),
+                tuya.modernExtend.dpAction({dp: 101, lookup: {'scene_17': 0}}),
+                tuya.modernExtend.dpAction({dp: 102, lookup: {'scene_18': 0}}),
+            ]),
         ],
-
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, 'action', tuya.valueConverter.static('scene_1')],
-                [2, 'action', tuya.valueConverter.static('scene_2')],
-                [3, 'action', tuya.valueConverter.static('scene_3')],
-                [4, 'action', tuya.valueConverter.static('scene_4')],
-                [5, 'action', tuya.valueConverter.static('scene_5')],
-                [6, 'action', tuya.valueConverter.static('scene_6')],
-                [7, 'action', tuya.valueConverter.static('scene_7')],
-                [8, 'action', tuya.valueConverter.static('scene_8')],
-                [9, 'action', tuya.valueConverter.static('scene_9')],
-                [10, 'action', tuya.valueConverter.static('scene_10')],
-                [11, 'action', tuya.valueConverter.static('scene_11')],
-                [12, 'action', tuya.valueConverter.static('scene_12')],
-                [13, 'action', tuya.valueConverter.static('scene_13')],
-                [14, 'action', tuya.valueConverter.static('scene_14')],
-                [15, 'action', tuya.valueConverter.static('scene_15')],
-                [16, 'action', tuya.valueConverter.static('scene_16')],
-                [101, 'action', tuya.valueConverter.static('scene_17')],
-                [102, 'action', tuya.valueConverter.static('scene_18')],
-            ],
-        },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq', '_TZE200_9yapgbuv', '_TZE200_utkemkbs', '_TZE204_utkemkbs', '_TZE204_9yapgbuv',
-            '_TZE204_upagmta9', '_TZE200_cirvgep4', '_TZE200_upagmta9', '_TZE204_yjjdcqsq']),
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_yjjdcqsq', '_TZE200_9yapgbuv', '_TZE200_utkemkbs', '_TZE204_utkemkbs',
+            '_TZE204_9yapgbuv', '_TZE204_upagmta9', '_TZE200_cirvgep4', '_TZE200_upagmta9',
+            '_TZE204_yjjdcqsq', '_TZE204_cirvgep4',
+        ]),
         model: 'TS0601_temperature_humidity_sensor_2',
         vendor: 'TuYa',
         description: 'Temperature and humidity sensor',
@@ -783,7 +802,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'SZTH02', 'Temperature and humidity sensor', ['_TZE200_utkemkbs', '_TZE204_utkemkbs']),
             tuya.whitelabel('TuYa', 'ZTH02', 'Temperature and humidity sensor', ['_TZE200_9yapgbuv', '_TZE204_9yapgbuv']),
             tuya.whitelabel('TuYa', 'ZTH05', 'Temperature and humidity sensor', ['_TZE204_upagmta9', '_TZE200_upagmta9']),
-            tuya.whitelabel('TuYa', 'ZTH08-E', 'Temperature and humidity sensor', ['_TZE200_cirvgep4']),
+            tuya.whitelabel('TuYa', 'ZTH08-E', 'Temperature and humidity sensor', ['_TZE200_cirvgep4', '_TZE204_cirvgep4']),
         ],
     },
     {
@@ -984,7 +1003,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nus5kk3n7']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nus5kk3n']),
         model: 'TS0601_gas_sensor_3',
         vendor: 'TuYa',
         description: 'Gas sensor',
@@ -997,6 +1016,33 @@ const definitions: Definition[] = [
                 [1, 'gas', tuya.valueConverter.trueFalse0],
                 [9, 'self_test_result', tuya.valueConverter.selfTestResult],
                 [11, 'fault_alarm', tuya.valueConverter.trueFalse1],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mby4kbtq']),
+        model: 'TS0601_gas_sensor_4', // _TZE200_mby4kbtq looks like TS0601_gas_sensor_2
+        vendor: 'TuYa',
+        description: 'Gas sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.gas(),
+            tuya.exposes.gasValue().withUnit('LEL'),
+            e.binary('preheat', ea.STATE, true, false).withDescription('Indicates sensor preheat is active'),
+            tuya.exposes.faultAlarm(),
+            e.binary('alarm_switch', ea.STATE_SET, true, false),
+            tuya.exposes.silence(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'gas', tuya.valueConverter.trueFalse0],
+                [2, 'gas_value', tuya.valueConverter.divideBy10],
+                [10, 'preheat', tuya.valueConverter.raw],
+                [11, 'fault_alarm', tuya.valueConverter.trueFalse1],
+                [13, 'alarm_switch', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.raw],
             ],
         },
     },
@@ -1128,7 +1174,6 @@ const definitions: Definition[] = [
             tuya.whitelabel('Lidl', 'HG08008', 'Livarno Home LED ceiling light', ['_TZ3210_p9ao60da']),
             tuya.whitelabel('Lidl', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
             tuya.whitelabel('Lidl', '399629_2110', 'Livarno Lux Ceiling Panel RGB+CCT', ['_TZ3210_c0s1xloa', '_TZ3210_x13bu7za']),
-            tuya.whitelabel('Skydance', 'WZ5_dim_2', 'Zigbee & RF 5 in 1 LED controller (DIM mode)', ['_TZB210_3zfp8mki']),
             tuya.whitelabel('TuYa', 'TS0505B_1_3', 'Zigbee 10W Downlight RGB CCW', ['_TZ3210_it1u8ahz']),
             tuya.whitelabel('Nous', 'P3Z', 'Smart light bulb', ['_TZ3210_cieijuw1']),
             tuya.whitelabel('Moes', 'ZLD-RCW_1', 'RGB+CCT Zigbee LED controller', ['_TZ3000_7hcgjxpc']),
@@ -1158,6 +1203,19 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
         exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature('color_temp_startup'), tuya.exposes.doNotDisturb()],
+        configure: async (device, coordinatorEndpoint) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZB210_3zfp8mki']),
+        model: 'TS0505B_3',
+        vendor: 'TuYa',
+        description: 'Zigbee RGB+CCT light',
+        whiteLabel: [
+            tuya.whitelabel('Skydance', 'WZ5_dim_2', 'Zigbee & RF 5 in 1 LED controller (DIM mode)', ['_TZB210_3zfp8mki']),
+        ],
+        extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['hs'], applyRedFix: true, enhancedHue: false}})],
         configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
@@ -1476,7 +1534,7 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems', '_TZE200_la2c2uo9', '_TZE200_579lguh2',
             '_TZE200_vucankjx', '_TZE200_4mh6tyyo', '_TZE204_hlx9tnzb', '_TZE204_n9ctkb6j', '_TZE204_9qhuzgo0', '_TZE200_9cxuhakf',
             '_TZE200_a0syesf5', '_TZE200_3p5ydos3', '_TZE200_swaamsoy', '_TZE200_ojzhk75b', '_TZE200_w4cryh2i', '_TZE200_dfxkcots',
-            '_TZE200_9i9dt8is', '_TZE200_ctq0k47x', '_TZE200_ebwgzdqq', '_TZE200_whpb9yts']),
+            '_TZE200_9i9dt8is', '_TZE200_ctq0k47x', '_TZE200_ebwgzdqq', '_TZE200_whpb9yts', '_TZE204_vevc4c6g', '_TZE200_0nauxa0p']),
         model: 'TS0601_dimmer_1',
         vendor: 'TuYa',
         description: '1 gang smart dimmer',
@@ -1512,6 +1570,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Moes', 'MS-105Z', 'Smart Dimmer module', ['_TZE200_la2c2uo9']),
             tuya.whitelabel('Mercator Ikuü', 'SSWM-DIMZ', 'Switch Mechanism', ['_TZE200_9cxuhakf']),
             tuya.whitelabel('Mercator Ikuü', 'SSWRM-ZB', 'Rotary dimmer mechanism', ['_TZE200_a0syesf5']),
+            tuya.whitelabel('Lonsonho', 'EDM-1ZBB-EU', 'Smart Dimmer Switch', ['_TZE200_0nauxa0p']),
         ],
     },
     {
@@ -1654,7 +1713,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dcnsggvz', '_TZE204_5cuocqty']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dcnsggvz']),
         model: 'TS0601_dimmer_5',
         vendor: 'TuYa',
         description: '1 gang smart dimmer module',
@@ -1682,6 +1741,81 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'Moes', model: 'MS-105-M'},
         ],
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_5cuocqty',
+            },
+        ],
+        model: 'ZDMS16-1',
+        vendor: 'Avatto',
+        description: 'Zigbee 1 channel Dimmer',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.lightBrightnessWithMinMax(),
+            tuya.exposes.countdown(),
+            tuya.exposes.switchType(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
+                [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
+                [4, 'switch_type', tuya.valueConverter.switchType2],
+                [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
+                [6, 'countdown', tuya.valueConverter.countdown],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
+            ],
+        },
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_o9gyszw2',
+            },
+        ],
+        model: 'ZDMS16-2',
+        vendor: 'Avatto',
+        description: 'Zigbee 2 channels Dimmer',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l1'),
+            tuya.exposes.countdown().withEndpoint('l1'),
+            tuya.exposes.switchType().withEndpoint('l1'),
+            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l2'),
+            tuya.exposes.countdown().withEndpoint('l2'),
+            tuya.exposes.switchType().withEndpoint('l2'),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, 'brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [3, 'min_brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [4, 'switch_type_l1', tuya.valueConverter.switchType2],
+                [5, 'max_brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [6, 'countdown_l1', tuya.valueConverter.countdown],
+                [7, 'state_l2', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [8, 'brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [9, 'min_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [10, 'switch_type_l2', tuya.valueConverter.switchType2],
+                [11, 'max_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [12, 'countdown_l2', tuya.valueConverter.countdown],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
+            ],
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1};
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_p0gzbqct']),
@@ -2242,17 +2376,16 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['TS0041'],
-        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}, {modelID: 'TS0041A', manufacturerName: '_TYZB01_ub7urdza'}],
+        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}],
         model: 'TS0041',
         vendor: 'TuYa',
         description: 'Wireless switch with 1 button',
         whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'},
-            tuya.whitelabel('Sber', 'SBDV-00032', 'Wireless switch with 1 button', ['_TYZB01_ub7urdza']),
             tuya.whitelabel('TuYa', 'SH-SC07', 'Button scene switch', ['_TZ3000_mrpevh8p']),
             tuya.whitelabel('TuYa', 'MINI-ZSB', 'Smart button', ['_TZ3000_qgwcxxws']),
         ],
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         /*
@@ -2270,7 +2403,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0042'},
             {vendor: 'ClickSmart+', model: 'CSPGM2075PW'}],
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         /*
@@ -2288,7 +2421,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0043'}, {vendor: 'LoraTap', model: 'SS600ZB'}],
         exposes: [e.battery(),
             e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold', '3_single', '3_double', '3_hold'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         /*
@@ -2308,10 +2441,10 @@ const definitions: Definition[] = [
             {vendor: 'LoraTap', model: 'SS6400ZB'}, {vendor: 'Moes', model: 'ZT-SY-EU-G-4S-WH-MS'},
             tuya.whitelabel('Moes', 'ZT-SR-EU4', 'Star Ring 4 Gang Scene Switch', ['_TZ3000_a4xycprs']),
             tuya.whitelabel('TuYa', 'TS0044_1', 'Zigbee 4 button remote - 12 scene',
-                ['_TZ3000_dziaict4', '_TZ3000_mh9px7cq', '_TZ3000_wkai4ga5', '_TZ3000_uaa99arv']),
+                ['_TZ3000_dziaict4', '_TZ3000_mh9px7cq']),
             tuya.whitelabel('TuYa', 'TM-YKQ004', 'Zigbee 4 button remote - 12 scene', ['_TZ3000_u3nv1jwk']),
         ],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
             '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold'])],
         toZigbee: [],
@@ -2336,7 +2469,7 @@ const definitions: Definition[] = [
             e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
                 'brightness_move_down', '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
                 '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold'])],
-        fromZigbee: [fz.battery, fz.tuya_on_off_action, fz.tuya_operation_mode,
+        fromZigbee: [fz.battery, tuya.fz.on_off_action, fz.tuya_operation_mode,
             fz.command_on, fz.command_off, fz.command_step, fz.command_move],
         toZigbee: [tz.tuya_operation_mode],
         configure: async (device, coordinatorEndpoint) => {
@@ -2372,7 +2505,7 @@ const definitions: Definition[] = [
                 'brightness_move_down', '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
                 '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold',
                 '5_single', '5_double', '5_hold', '6_single', '6_double', '6_hold'])],
-        fromZigbee: [fz.battery, fz.tuya_on_off_action, fz.tuya_operation_mode,
+        fromZigbee: [fz.battery, tuya.fz.on_off_action, fz.tuya_operation_mode,
             fz.command_on, fz.command_off, fz.command_step, fz.command_move],
         toZigbee: [tz.tuya_operation_mode],
         configure: async (device, coordinatorEndpoint) => {
@@ -3020,7 +3153,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_r0jdjrvi']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_r0jdjrvi', '_TZE200_g5xqosu7']),
         model: 'TS0601_cover_8',
         vendor: 'TuYa',
         description: 'Cover motor',
@@ -3660,6 +3793,65 @@ const definitions: Definition[] = [
                 [23, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [101, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
                 [102, 'position', tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE204_rtrmfadk'},
+        ],
+        model: 'TRV601',
+        vendor: 'TuYa',
+        description: 'Thermostatic radiator valve.',
+        onEvent: tuya.onEventSetLocalTime,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.battery(), e.child_lock(), e.max_temperature(), e.min_temperature(),
+            e.position(), e.window_detection(),
+            e.binary('window', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status closed or open '),
+            e.binary('alarm_switch', ea.STATE, 'ON', 'OFF').withDescription('Thermostat in error state'),
+            e.climate()
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                .withPreset(['auto', 'manual', 'off', 'on'],
+                    'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. ' +
+                    'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
+                    'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
+                    'ON - In this mode, the thermostat stays open ' +
+                    'OFF - In this mode, the thermostat stays closed')
+                .withSystemMode(['auto', 'heat', 'off'], ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            e.enum('mode', ea.STATE_SET, ['comfort', 'eco']).withDescription('Hysteresis - comfort > switches off/on exactly at reached ' +
+                'temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset(null)],
+                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset('system_mode')],
+                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset('preset')],
+                [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [3, 'local_temperature', tuya.valueConverter.divideBy10],
+                [6, 'running_state', tuya.valueConverterBasic.lookup({'heat': 1, 'idle': 0})],
+                [7, 'window', tuya.valueConverterBasic.lookup({'OPEN': 1, 'CLOSE': 0})],
+                [8, 'window_detection', tuya.valueConverter.onOff],
+                [12, 'child_lock', tuya.valueConverter.lockUnlock],
+                [13, 'battery', tuya.valueConverter.raw],
+                [14, 'alarm_switch', tuya.valueConverter.onOff],
+                [15, 'min_temperature', tuya.valueConverter.divideBy10],
+                [16, 'max_temperature', tuya.valueConverter.divideBy10],
+                [17, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [18, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [19, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [20, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [21, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [22, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [23, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [101, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [108, 'position', tuya.valueConverter.divideBy10],
+                [114, 'mode', tuya.valueConverterBasic.lookup({'comfort': tuya.enum(0), 'eco': tuya.enum(1)})],
             ],
         },
     },
@@ -5139,7 +5331,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Wireless switch with 6 buttons',
         whiteLabel: [{vendor: 'LoraTap', model: 'SS9600ZB'}],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
             '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold',
             '5_single', '5_double', '5_hold', '6_single', '6_double', '6_hold'])],
@@ -5163,7 +5355,7 @@ const definitions: Definition[] = [
                 'Operation mode: "command" - for group control, "event" - for clicks'),
         ],
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop,
-            fz.command_step_color_temperature, fz.tuya_on_off_action, fz.tuya_operation_mode],
+            fz.command_step_color_temperature, tuya.fz.on_off_action, fz.tuya_operation_mode],
         toZigbee: [tz.tuya_operation_mode],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint) => {
@@ -5853,6 +6045,24 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ysfo0wla']),
+        model: 'EKAC-T3095Z',
+        vendor: 'Ekaza',
+        description: '1 channel dimmer',
+        fromZigbee: [fzLocal.TS110E, tuya.fz.power_on_behavior_1, fz.on_off],
+        toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
+        exposes: [
+            e.light_brightness().withMinBrightness().withMaxBrightness(),
+            e.power_on_behavior().withAccess(ea.ALL),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_wdexaypg'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_3mpwqzuu'}],
         model: 'TS110E_2gang_1',
         vendor: 'TuYa',
@@ -5915,6 +6125,7 @@ const definitions: Definition[] = [
             tuya.exposes.powerFactorWithPhase('a'), tuya.exposes.powerFactorWithPhase('b'), tuya.exposes.powerFactorWithPhase('c'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [132, 'ac_frequency', tuya.valueConverter.raw],
                 [133, 'temperature', tuya.valueConverter.divideBy10],
@@ -5985,7 +6196,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_r32ctezx', '_TZE200_lawxy9e2']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_r32ctezx']),
         model: 'TS0601_fan_switch',
         vendor: 'TuYa',
         description: 'Fan switch',
@@ -6038,6 +6249,34 @@ const definitions: Definition[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lawxy9e2']),
+        model: 'TS0601_fan_5_levels_and_light_switch',
+        vendor: 'TuYa',
+        description: 'Fan with 5 levels & light switch',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('status_indication', ea.STATE_SET, 'ON', 'OFF').withDescription('Light switch'),
+            tuya.exposes.switch(),
+            e.power_on_behavior(['OFF', 'ON']).withAccess(ea.STATE_SET).withDescription('Fan On Off'),
+            e.numeric('fan_speed', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1)
+                .withDescription('Speed off the fan'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [3, 'fan_speed', tuya.valueConverterBasic
+                    .lookup({'1': tuya.enum(0), '2': tuya.enum(1), '3': tuya.enum(2), '4': tuya.enum(3), '5': tuya.enum(4)})],
+                [11, 'power_on_behavior', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
+                [5, 'status_indication', tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [
+            {vendor: 'Liwokit', model: 'Fan+Light-01'},
+        ],
+    },
+    {
         zigbeeModel: ['TS0224'],
         model: 'TS0224',
         vendor: 'TuYa',
@@ -6058,7 +6297,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Smart button',
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
     },
@@ -6147,6 +6386,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_bmqxalil'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_w1tcofu8'},
         ],
         model: 'TS0001_switch_1_gang',
         vendor: 'TuYa',
@@ -6158,11 +6398,13 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('Homeetec', '37022454', '1 Gang switch with backlight', ['_TZ3000_bmqxalil']),
+            tuya.whitelabel('RoomsAI', '37022454', '1 Gang switch with backlight', ['_TZ3000_w1tcofu8']),
         ],
     },
     {
         fingerprint: [
             {modelID: 'TS0002', manufacturerName: '_TZ3000_in5qxhtt'},
+            {modelID: 'TS0002', manufacturerName: '_TZ3000_ogpla3lh'},
         ],
         model: 'TS0002_switch_2_gang',
         vendor: 'TuYa',
@@ -6179,11 +6421,13 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('Homeetec', '37022463', '2 Gang switch with backlight', ['_TZ3000_in5qxhtt']),
+            tuya.whitelabel('RoomsAI', '37022463', '2 Gang switch with backlight', ['_TZ3000_ogpla3lh']),
         ],
     },
     {
         fingerprint: [
             {modelID: 'TS0003', manufacturerName: '_TZ3000_pv4puuxi'},
+            {modelID: 'TS0003', manufacturerName: '_TZ3000_avky2mvc'},
         ],
         model: 'TS0003_switch_3_gang',
         vendor: 'TuYa',
@@ -6201,6 +6445,7 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('Homeetec', '37022474', '3 Gang switch with backlight', ['_TZ3000_pv4puuxi']),
+            tuya.whitelabel('RoomsAI', '37022474', '3 Gang switch with backlight', ['_TZ3000_avky2mvc']),
         ],
     },
     {
@@ -6494,6 +6739,54 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ugekduaj'}, {modelID: 'TS0601', manufacturerName: '_TZE200_ugekduaj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_iwn0gpzz'}, {modelID: 'TS0601', manufacturerName: '_TZE200_iwn0gpzz'}],
+        model: 'SDM01',
+        vendor: 'TuYa',
+        description: 'Smart energy monitor for 3P+N system',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.voltageWithPhase('a'), tuya.exposes.voltageWithPhase('b'), tuya.exposes.voltageWithPhase('c'),
+            tuya.exposes.powerWithPhase('a'), tuya.exposes.powerWithPhase('b'), tuya.exposes.powerWithPhase('c'),
+            tuya.exposes.currentWithPhase('a'), tuya.exposes.currentWithPhase('b'), tuya.exposes.currentWithPhase('c'),
+            e.energy().withDescription('Total forward active energy'),
+            e.produced_energy().withDescription('Total reverse active energy'),
+            e.power_factor().withUnit('%').withDescription('Total power factor'), e.power().withDescription('Total active power'),
+            e.ac_frequency(),
+            tuya.exposes.energyWithPhase('a'), tuya.exposes.energyWithPhase('b'), tuya.exposes.energyWithPhase('c'),
+            tuya.exposes.energyProducedWithPhase('a'), tuya.exposes.energyProducedWithPhase('b'), tuya.exposes.energyProducedWithPhase('c'),
+            tuya.exposes.powerFactorWithPhase('a'), tuya.exposes.powerFactorWithPhase('b'), tuya.exposes.powerFactorWithPhase('c'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'energy', tuya.valueConverter.divideBy100],
+                [2, 'produced_energy', tuya.valueConverter.divideBy100],
+                [15, 'power_factor', tuya.valueConverter.raw],
+                [101, 'ac_frequency', tuya.valueConverter.divideBy100],
+                [102, 'voltage_a', tuya.valueConverter.divideBy10],
+                [103, 'current_a', tuya.valueConverter.divideBy1000],
+                [104, 'power_a', tuya.valueConverter.raw],
+                [105, 'voltage_b', tuya.valueConverter.divideBy10],
+                [106, 'current_b', tuya.valueConverter.divideBy1000],
+                [107, 'power_b', tuya.valueConverter.raw],
+                [108, 'voltage_c', tuya.valueConverter.divideBy10],
+                [109, 'current_c', tuya.valueConverter.divideBy1000],
+                [110, 'power_c', tuya.valueConverter.raw],
+                [111, 'power', tuya.valueConverter.raw],
+                [112, 'energy_a', tuya.valueConverter.divideBy100],
+                [114, 'energy_b', tuya.valueConverter.divideBy100],
+                [116, 'energy_c', tuya.valueConverter.divideBy100],
+                [113, 'energy_produced_a', tuya.valueConverter.divideBy100],
+                [115, 'energy_produced_b', tuya.valueConverter.divideBy100],
+                [117, 'energy_produced_c', tuya.valueConverter.divideBy100],
+                [118, 'power_factor_a', tuya.valueConverter.raw],
+                [119, 'power_factor_b', tuya.valueConverter.raw],
+                [120, 'power_factor_c', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ac0fhfiq']),
         model: 'TS0601_bidirectional_energy meter',
         vendor: 'TuYa',
@@ -6742,7 +7035,6 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Cleverio', 'SS200', 'Motion sensor', ['_TYZB01_z2umiwvq']),
             tuya.whitelabel('Marmitek', 'SM0202_1', 'Motion sensor', ['_TYZB01_yr95mpib']),
-            tuya.whitelabel('Sber', 'SBDV-00029', 'Motion sensor', ['_TYZB01_2jzbhomb']),
         ],
     },
     {
@@ -7100,16 +7392,17 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_86nbew0j', '_TZE200_io0zdqh1', '_TZE200_drs6j6m5', '_TZE200_ywe90lt0']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_86nbew0j', '_TZE200_io0zdqh1', '_TZE200_drs6j6m5', '_TZE200_ywe90lt0', '_TZE200_qyss8gjy']),
         model: 'TS0601_light',
         vendor: 'TuYa',
         description: 'Light',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        exposes: [tuya.exposes.lightBrightness()],
+        exposes: [tuya.exposes.lightBrightness(), e.power_on_behavior().withAccess(ea.STATE_SET)],
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
                 [3, 'brightness', tuya.valueConverter.scale0_254to0_1000],
             ],
         },
@@ -7392,6 +7685,7 @@ const definitions: Definition[] = [
             e.numeric('update_frequency', ea.STATE).withUnit('s').withDescription('Update frequency'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [111, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [101, 'power_a', tuya.valueConverter.divideBy10],
@@ -7430,6 +7724,7 @@ const definitions: Definition[] = [
             tuya.exposes.energyProducedWithPhase('a'), tuya.exposes.energyProducedWithPhase('b'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [113, 'ac_frequency', tuya.valueConverter.raw],
                 [108, 'power_a', tuya.valueConverter.raw],
@@ -7751,21 +8046,21 @@ const definitions: Definition[] = [
         model: 'F00XN00-04-1',
         vendor: 'FORIA',
         description: 'Dimmer 4 scenes',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp,
-            fz.command_step_color_temperature, fz.command_step],
-        toZigbee: [],
-        exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.command('genGroups', 'miboxerSetZones', {zones: [
-                {zoneNum: 1, groupId: 101},
-                {zoneNum: 2, groupId: 102},
-                {zoneNum: 3, groupId: 103},
-                {zoneNum: 4, groupId: 104},
-            ]});
-            await endpoint.command('genBasic', 'tuyaSetup', {}, {disableDefaultResponse: true});
-        },
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            battery({voltage: true}),
+            tuya.modernExtend.combineActions([
+                actionEnumLookup({
+                    actionLookup: {'scene_1': 1, 'scene_2': 2, 'scene_3': 3, 'scene_4': 4},
+                    cluster: 'genOnOff',
+                    commands: ['commandTuyaAction'],
+                    attribute: 'data',
+                    parse: (msg, attr) => msg.data[attr][1],
+                }),
+                commandsOnOff(),
+                commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
+            ]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_l6llgoxq']),
@@ -7796,6 +8091,108 @@ const definitions: Definition[] = [
                 [24, null, null], // Forward Energy T4 - don't know what this
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZ3000_kkerjand']),
+        model: 'SZT06 V2.0',
+        vendor: 'TuYa',
+        description: 'Smart mini temperature and humidity sensor',
+        extend: [
+            temperature(),
+            humidity(),
+            identify({isSleepy: true}),
+            battery({voltage: true}),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_pl31aqf5']),
+        model: 'ZR360CDB',
+        vendor: 'Zorro Alert',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        description: 'Multifunctional CO2 detector',
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.humidity(),
+            e.temperature(),
+            e.co2(),
+            e.enum('alarm_ringtone', ea.STATE_SET, ['melody_1', 'melody_2', 'OFF']).withDescription('Ringtone of the alarm'),
+            e.numeric('backlight_mode', ea.STATE_SET).withValueMin(1).withValueMax(3).withValueStep(1).withDescription('Backlight'),
+            tuya.exposes.batteryState(),
+            e.enum('air_quality', ea.STATE_GET, ['excellent', 'moderate', 'poor']),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'air_quality', tuya.valueConverterBasic.lookup({'excellent': tuya.enum(0), 'moderate': tuya.enum(1), 'poor': tuya.enum(2)})],
+                [2, 'co2', tuya.valueConverter.raw],
+                [5, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'melody_1': tuya.enum(0), 'melody_2': tuya.enum(1), 'OFF': tuya.enum(2)})],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
+                [17, 'backlight_mode', tuya.valueConverter.raw],
+                [18, 'temperature', tuya.valueConverter.raw],
+                [19, 'humidity', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_guijtl8k']),
+        model: 'QS-Zigbee-D04',
+        vendor: 'LEDRON',
+        description: '0-10v dimmer',
+        fromZigbee: [fzLocal.TS110E, fz.on_off],
+        toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tz.light_brightness_move],
+        exposes: [
+            e.light_brightness().withMinBrightness().withMaxBrightness(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_edl8pz1k', '_TZE204_edl8pz1k']),
+        model: 'TS0601_floor_thermostat',
+        vendor: 'TuYa',
+        description: 'Zigbee thermostat for electric floors',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.climate()
+                .withSystemMode(['off', 'heat'], ea.STATE_SET)
+                .withPreset(['manual', 'auto'])
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withDescription('Floor temperature')
+                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET).withDescription('Calibration floor temperature sensor'),
+            e.deadzone_temperature().withValueMin(0).withValueMax(5).withValueStep(1).withDescription('Floor temperature'),
+            e.child_lock(),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({'heat': true, 'off': false})],
+                [2, 'preset', tuya.valueConverter.tv02Preset()],
+                [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [24, 'device_temperature', tuya.valueConverter.divideBy10],
+                [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration2],
+                [36, 'running_state', tuya.valueConverterBasic.lookup({'heat': tuya.enum(0), 'idle': tuya.enum(1)})],
+                [40, 'child_lock', tuya.valueConverter.lockUnlock],
+                [102, 'local_temperature', tuya.valueConverter.divideBy10],
+                [103, 'deadzone_temperature', tuya.valueConverter.raw],
+                [110, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [109, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [108, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [107, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [106, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [105, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [101, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+            ],
+        },
+        whiteLabel: [{vendor: 'ELECTSMART', model: 'EST-120Z'}],
     },
 ];
 

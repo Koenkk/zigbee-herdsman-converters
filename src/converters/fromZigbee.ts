@@ -719,7 +719,8 @@ const converters1 = {
                 if (factor != null) {
                     power = (power * factor) * 1000; // kWh to Watt
                 }
-                payload.power = power;
+                const property = postfixWithEndpointName('power', msg, model, meta);
+                payload[property] = power;
             }
 
             if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
@@ -727,12 +728,14 @@ const converters1 = {
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
                     const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    payload.energy = value * factor;
+                    const property = postfixWithEndpointName('energy', msg, model, meta);
+                    payload[property] = value * factor;
                 }
                 if (msg.data.hasOwnProperty('currentSummReceived')) {
                     const data = msg.data['currentSummReceived'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    payload.produced_energy = value * factor;
+                    const property = postfixWithEndpointName('produced_energy', msg, model, meta);
+                    payload[property] = value * factor;
                 }
             }
 
@@ -772,6 +775,9 @@ const converters1 = {
                 {key: 'rmsVoltagePhB', name: 'voltage_phase_b', factor: 'acVoltage'},
                 {key: 'rmsVoltagePhC', name: 'voltage_phase_c', factor: 'acVoltage'},
                 {key: 'acFrequency', name: 'ac_frequency', factor: 'acFrequency'},
+                {key: 'dcPower', name: 'power', factor: 'dcPower'},
+                {key: 'dcCurrent', name: 'current', factor: 'dcCurrent'},
+                {key: 'dcVoltage', name: 'voltage', factor: 'dcVoltage'},
             ];
 
             const payload: KeyValueAny = {};
@@ -784,13 +790,16 @@ const converters1 = {
                 }
             }
             if (msg.data.hasOwnProperty('powerFactor')) {
-                payload.power_factor = precisionRound(msg.data['powerFactor'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactor'] / 100, 2);
             }
             if (msg.data.hasOwnProperty('powerFactorPhB')) {
-                payload.power_factor_phase_b = precisionRound(msg.data['powerFactorPhB'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor_phase_b', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactorPhB'] / 100, 2);
             }
             if (msg.data.hasOwnProperty('powerFactorPhC')) {
-                payload.power_factor_phase_c = precisionRound(msg.data['powerFactorPhC'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor_phase_c', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactorPhC'] / 100, 2);
             }
             return payload;
         },
@@ -2175,19 +2184,6 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const clickMapping: KeyValueNumberString = {0: 'release', 1: 'single', 2: 'double', 3: 'hold'};
             return {action: `${clickMapping[msg.data[6]]}`};
-        },
-    } satisfies Fz.Converter,
-    tuya_on_off_action: {
-        cluster: 'genOnOff',
-        type: 'commandTuyaAction',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
-            const buttonMapping: KeyValueNumberString = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'};
-            // TS004F has single endpoint, TS0041A/TS0041 can have multiple but have just one button
-            const button = msg.device.endpoints.length == 1 || ['TS0041A', 'TS0041'].includes(msg.device.modelID) ?
-                '' : `${buttonMapping[msg.endpoint.ID]}_`;
-            return {action: `${button}${clickMapping[msg.data.value]}`};
         },
     } satisfies Fz.Converter,
     tuya_switch_scene: {

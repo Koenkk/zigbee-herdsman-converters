@@ -80,13 +80,13 @@ export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolea
                     .withLengthMax(9)
                     .withDescription('List of RGB HEX colors'),
             );
-            const configure = result.configure;
-            result.configure = async (device, coordinatorEndpoint) => {
-                await configure(device, coordinatorEndpoint);
-                for (const ep of device.endpoints) {
-                    await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
-                }
-            };
+            result.configure.push(
+                async (device, coordinatorEndpoint, definition) => {
+                    for (const ep of device.endpoints) {
+                        await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
+                    }
+                },
+            );
         }
         effects.push('finish_effect', 'stop_effect', 'stop_hue_effect');
         result.exposes.push(e.enum('effect', ea.SET, effects));
