@@ -68,6 +68,13 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['HK-SL-DIM-US-A'],
+        model: 'HK-SL-DIM-US-A',
+        vendor: 'Sunricher',
+        description: 'Keypad smart dimmer',
+        extend: [light({configureReporting: true}), electricityMeter()],
+    },
+    {
         zigbeeModel: ['HK-SENSOR-4IN1-A'],
         model: 'HK-SENSOR-4IN1-A',
         vendor: 'Sunricher',
@@ -106,7 +113,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy', 'voltage', 'current']},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
