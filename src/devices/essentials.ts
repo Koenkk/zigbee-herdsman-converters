@@ -1,17 +1,8 @@
-import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
-import * as tuya from '../lib/tuya';
-import * as ota from '../lib/ota';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import * as libColor from '../lib/color';
-import * as utils from '../lib/utils';
-import * as zosung from '../lib/zosung';
-import * as globalStore from '../lib/store';
-import { ColorMode, colorModeLookup } from '../lib/constants';
 import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import { KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueNumberString, KeyValueString } from '../lib/types';
+import * as exposes from '../lib/exposes';
+import * as ota from '../lib/ota';
+import * as tuya from '../lib/tuya';
+import {Definition, Fz, KeyValue, Tz} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -72,7 +63,7 @@ const essentialsValueConverter = {
             output[5] = Math.round(value.away_preset_temperature * 2);
             output[7] = value.away_preset_days & 0xFF;
             output[6] = value.away_preset_days >> 8;
-            meta.logger.debug(JSON.stringify({ 'send to tuya': output, 'value was': value }));
+            meta.logger.debug(JSON.stringify({'send to tuya': output, 'value was': value}));
         },
     },
     day_schedule: (day: string, index: number) => {
@@ -95,9 +86,9 @@ const essentialsValueConverter = {
                         datapoints[`setpoint_${i + 1}_minute`] = (value[timeIdx] % 4) * 15;
                     }
                 }
-                return { [day]: datapoints };
+                return {[day]: datapoints};
             },
-            to: (value: { [x: string]: KeyValue }, meta: Tz.Meta) => {
+            to: (value: KeyValue, meta: Tz.Meta) => {
                 // byte 0 - Day of Week (0~7 = Mon ~ Sun) <- redundant?
                 // byte 1 - 1st period Temperature (1~59 = 0.5~29.5°C (0.5 step))
                 // byte 2 - 1st period end time (1~96 = 0:15 ~ 24:00 (15 min increment, i.e. 2 = 0:30, 3 = 0:45, ...))
@@ -121,23 +112,23 @@ const essentialsValueConverter = {
                     const hourProp: string = `setpoint_${i + 1}_hour`;
                     const minuteProp: string = `setpoint_${i + 1}_minute`;
 
-                    let state = meta.state[day] as KeyValue
+                    const state = meta.state[day] as KeyValue;
 
-                    const temperature = (value.hasOwnProperty(temperatureProp) ?
-                        value[temperatureProp] :
-                        (meta.state[day].hasOwnProperty(temperatureProp) ?
-                            state[temperatureProp] :
-                            17)) as number; // default temperature if for some reason state and value are empty
-                    const hour = (value.hasOwnProperty(hourProp) ?
-                        (i < 9 ? value[hourProp] : -1) : // no time 9th temperature, is until midnight
-                        (meta.state[day].hasOwnProperty(hourProp) ?
-                            state[hourProp] :
-                            24)) as number; // no schedule after this point, last temperature for the rest of the day
-                    const minute = (value.hasOwnProperty(minuteProp) ?
-                        (i < 9 ? value[minuteProp] : -1) : // no time for 9th temperature, is until midnight
-                        (meta.state[day].hasOwnProperty(minuteProp) ?
-                            state[minuteProp] :
-                            0)) as number; // no schedule after this point, last temperature for the rest of the day
+                    const temperature = value.hasOwnProperty(temperatureProp) ?
+                        value[temperatureProp] as number :
+                        (state.hasOwnProperty(temperatureProp) ?
+                            state[temperatureProp] as number :
+                            17); // default temperature if for some reason state and value are empty
+                    const hour = value.hasOwnProperty(hourProp) ?
+                        (i < 9 ? value[hourProp] as number : -1) : // no time 9th temperature, is until midnight
+                        (state.hasOwnProperty(hourProp) ?
+                            state[hourProp] as number :
+                            24); // no schedule after this point, last temperature for the rest of the day
+                    const minute = value.hasOwnProperty(minuteProp) ?
+                        (i < 9 ? value[minuteProp] as number : -1) : // no time for 9th temperature, is until midnight
+                        (state.hasOwnProperty(minuteProp) ?
+                            state[minuteProp] as number :
+                            0); // no schedule after this point, last temperature for the rest of the day
 
                     meta.logger.debug(`setpoint_${i + 1} temperature:${temperature} hour:${hour} minute:${minute})`);
 
@@ -167,7 +158,7 @@ const essentialsValueConverter = {
 };
 
 const essentialsThermostat: Definition = {
-    fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE200_i48qyn9s' }],
+    fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_i48qyn9s'}],
     model: 'Essentials Zigbee Radiator Thermostat',
     vendor: 'TuYa',
     description: 'Thermostat radiator valve',
@@ -239,7 +230,7 @@ const essentialsThermostat: Definition = {
     ],
     meta: {
         tuyaDatapoints: [
-            [2, 'system_mode', tuya.valueConverterBasic.lookup({ 'auto': tuya.enum(0), 'heat': tuya.enum(1), 'off': tuya.enum(2) })],
+            [2, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'heat': tuya.enum(1), 'off': tuya.enum(2)})],
             [16, 'current_heating_setpoint', tuya.valueConverterBasic.divideBy(2)],
             [24, 'local_temperature', tuya.valueConverter.divideBy10],
             [30, 'child_lock', tuya.valueConverter.lockUnlock],
@@ -251,7 +242,7 @@ const essentialsThermostat: Definition = {
             [104, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
             [105, 'schedule_override_setpoint', tuya.valueConverter.divideBy10],
             [106, null, null], // TODO rapid heating
-            [107, 'window_open', tuya.valueConverterBasic.lookup({ 'YES': true, 'NO': false })],
+            [107, 'window_open', tuya.valueConverterBasic.lookup({'YES': true, 'NO': false})],
             [108, null, null], // TODO hibernate
             [109, 'monday', essentialsValueConverter.day_schedule('monday', 1)],
             [110, 'tuesday', essentialsValueConverter.day_schedule('tuesday', 2)],
