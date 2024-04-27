@@ -262,5 +262,6 @@ const essentialsThermostat: Definition = {
     },
 };
 
-module.exports = [essentialsThermostat];
-
+const definitions = [essentialsThermostat]
+export default definitions;
+module.exports = definitions;
