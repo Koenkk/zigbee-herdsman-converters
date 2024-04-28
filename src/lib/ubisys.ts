@@ -1,13 +1,13 @@
 import {Fz, Tz, ModernExtend, Configure} from './types';
 import {presets as e, access as ea} from './exposes';
-import {numeric, NumericArgs, deviceAddCluster, setupConfigureForReporting} from './modernExtend';
+import {numeric, NumericArgs, deviceAddCustomCluster, setupConfigureForReporting} from './modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import {logger} from './logger';
 
 const NS = 'zhc:ubisys';
 
 export const ubisysModernExtend = {
-    addClusterHvacThermostat: () => deviceAddCluster(
+    addCustomClusterHvacThermostat: () => deviceAddCustomCluster(
         'hvacThermostat',
         {
             ID: 0x0201,
@@ -51,7 +51,7 @@ export const ubisysModernExtend = {
             commandsResponse: {},
         },
     ),
-    addClusterGenLevelCtrl: () => deviceAddCluster(
+    addCustomClusterGenLevelCtrl: () => deviceAddCustomCluster(
         'genLevelCtrl',
         {
             ID: 0x0008,
@@ -91,7 +91,7 @@ export const ubisysModernExtend = {
             commandsResponse: {},
         },
     ),
-    addClusterClosuresWindowCovering: () => deviceAddCluster(
+    addCustomClusterClosuresWindowCovering: () => deviceAddCustomCluster(
         'closuresWindowCovering',
         {
             ID: 0x0102,
@@ -118,7 +118,7 @@ export const ubisysModernExtend = {
             commandsResponse: {},
         },
     ),
-    addClusterManuSpecificUbisysDeviceSetup: () => deviceAddCluster(
+    addCustomClusterManuSpecificUbisysDeviceSetup: () => deviceAddCustomCluster(
         'manuSpecificUbisysDeviceSetup',
         {
             ID: 0xfc00,
@@ -132,7 +132,7 @@ export const ubisysModernExtend = {
             commandsResponse: {},
         },
     ),
-    addClusterManuSpecificUbisysDimmerSetup: () => deviceAddCluster(
+    addCustomClusterManuSpecificUbisysDimmerSetup: () => deviceAddCustomCluster(
         'manuSpecificUbisysDimmerSetup',
         {
             ID: 0xfc00,

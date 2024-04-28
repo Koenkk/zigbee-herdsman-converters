@@ -617,7 +617,7 @@ const definitions: Definition[] = [
         },
         meta: {multiEndpointEnforce: {'power': 3, 'energy': 3}},
         extend: [
-            ubisysModernExtend.addClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
@@ -669,7 +669,7 @@ const definitions: Definition[] = [
             return {'l1': 1, 's1': 2, 'meter': 4};
         },
         extend: [
-            ubisysModernExtend.addClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
@@ -722,7 +722,7 @@ const definitions: Definition[] = [
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy'], multiEndpointEnforce: {'power': 5, 'energy': 5}},
         extend: [
-            ubisysModernExtend.addClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
@@ -829,9 +829,9 @@ const definitions: Definition[] = [
             e.enum('mode_phase_control', ea.ALL, ['automatic', 'forward', 'reverse'])
                 .withDescription('Configures the dimming technique.')],
         extend: [
-            ubisysModernExtend.addClusterManuSpecificUbisysDeviceSetup(),
-            ubisysModernExtend.addClusterManuSpecificUbisysDimmerSetup(),
-            ubisysModernExtend.addClusterGenLevelCtrl(),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDimmerSetup(),
+            ubisysModernExtend.addCustomClusterGenLevelCtrl(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
@@ -900,8 +900,8 @@ const definitions: Definition[] = [
             ];
         },
         extend: [
-            ubisysModernExtend.addClusterManuSpecificUbisysDeviceSetup(),
-            ubisysModernExtend.addClusterClosuresWindowCovering(),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.addCustomClusterClosuresWindowCovering(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -953,7 +953,7 @@ const definitions: Definition[] = [
             ]),
         ],
         extend: [
-            ubisysModernExtend.addClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             for (const ep of [1, 2, 3, 4]) {
@@ -995,7 +995,7 @@ const definitions: Definition[] = [
                 .withWeeklySchedule(['heat']),
         ],
         extend: [
-            ubisysModernExtend.addClusterHvacThermostat(),
+            ubisysModernExtend.addCustomClusterHvacThermostat(),
             ubisysModernExtend.vacationMode(),
             ubisysModernExtend.localTemperatureOffset(),
             ubisysModernExtend.occupiedHeatingSetpointDefault(),
@@ -1067,8 +1067,8 @@ const definitions: Definition[] = [
             e.switch().withEndpoint('l9'), e.switch().withEndpoint('l10'),
         ],
         extend: [
-            ubisysModernExtend.addClusterHvacThermostat(),
-            ubisysModernExtend.addClusterGenLevelCtrl(),
+            ubisysModernExtend.addCustomClusterHvacThermostat(),
+            ubisysModernExtend.addCustomClusterGenLevelCtrl(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             // setup ep 11-20 as on/off switches
