@@ -614,8 +614,11 @@ const converters2 = {
                 isPosition ? {percentageliftvalue: position} : {percentagetiltvalue: position},
                 utils.getOptions(meta.mapped, entity),
             );
-
-            return {state: {[isPosition ? 'position' : 'tilt']: value}};
+            if (utils.getMetaValue(entity, meta.mapped, 'coverPositionTiltDisableReport', 'allEqual', true)) {
+                return;
+            } else {
+                return {state: {[isPosition ? 'position' : 'tilt']: value}};
+            }
         },
         convertGet: async (entity, key, meta) => {
             const isPosition = (key === 'position');

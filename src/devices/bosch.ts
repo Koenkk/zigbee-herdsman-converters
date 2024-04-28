@@ -1530,9 +1530,21 @@ const definitions: Definition[] = [
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
         description: 'Light/shutter control unit II',
-        fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.on_off, fz.power_on_behavior],
-        toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.power_on_behavior],
-        meta: {multiEndpoint: true},
+        fromZigbee: [
+            fz.on_off,
+            fz.power_on_behavior,
+            fz.cover_position_tilt,
+            fzLocal.bmct,
+        ],
+        toZigbee: [
+            tz.power_on_behavior,
+            tz.cover_position_tilt,
+            tzLocal.bmct,
+        ],
+        meta: {
+            multiEndpoint: true,
+            coverPositionTiltDisableReport: false,
+        },
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
         },
