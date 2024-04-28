@@ -191,7 +191,7 @@ const tzLocal = {
                 await entity.zclCommandBroadcast(
                     255, ZSpec.BroadcastAddress.SLEEPY,
                     Zcl.Clusters.ssIasZone.ID, 'boschSmokeDetectorSiren',
-                    {data: index}, manufacturerOptions
+                    {data: index}, manufacturerOptions,
                 );
                 return;
             }
