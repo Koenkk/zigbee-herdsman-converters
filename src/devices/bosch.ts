@@ -1067,7 +1067,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'msIlluminanceMeasurement']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
             await reporting.illuminance(endpoint);
