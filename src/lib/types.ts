@@ -192,6 +192,10 @@ export type DefinitionOta = {
     updateToLatest: (device: Zh.Device, onProgress: Ota.OnProgress) => Promise<number>;
 }
 
+export type DefinitionExposesFunction = (device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[];
+
+export type DefinitionExposes = Expose[] | DefinitionExposesFunction;
+
 export type Definition = {
     model: string;
     vendor: string;
@@ -209,11 +213,11 @@ export type Definition = {
         extend: ModernExtend[];
         fromZigbee?: Fz.Converter[];
         toZigbee?: Tz.Converter[];
-        exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]));
+        exposes?: DefinitionExposes;
     } | {
         fromZigbee: Fz.Converter[];
         toZigbee: Tz.Converter[];
-        exposes: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]));
+        exposes: DefinitionExposes;
     });
 
 export namespace Fz {

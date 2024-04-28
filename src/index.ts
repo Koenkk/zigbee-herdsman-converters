@@ -8,7 +8,7 @@ import assert from 'assert';
 import * as ota from './lib/ota';
 import allDefinitions from './devices';
 import * as utils from './lib/utils';
-import {Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, OnEvent} from './lib/types';
+import {Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, OnEvent, DefinitionExposes, DefinitionExposesFunction} from './lib/types';
 import {generateDefinition} from './lib/generateDefinition';
 import {Zcl} from 'zigbee-herdsman';
 import * as logger from './lib/logger';
@@ -101,12 +101,24 @@ function processExtensions(definition: Definition): Definition {
             assert.fail(`'${definition.model}' has legacy extend which is not supported anymore`);
         }
         // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
-        let {extend, toZigbee, fromZigbee, exposes, meta, endpoint, configure: definitionConfigure, onEvent: definitionOnEvent, ota, ...definitionWithoutExtend} = definition;
-        if (typeof exposes === 'function') {
-            assert.fail(`'${definition.model}' has function exposes which is not allowed`);
+        let {
+            extend, toZigbee, fromZigbee, exposes: definitionExposes, meta, endpoint, ota,
+            configure: definitionConfigure, 
+            onEvent: definitionOnEvent,
+            ...definitionWithoutExtend
+        } = definition;
+
+        // Exposes can be an Expose[] or DefinitionExposesFunction. In case it's only Expose[] we return an array
+        // Otherwise return a DefinitionExposesFunction.
+        const allExposesIsExposeOnly = (allExposes: (Expose | DefinitionExposesFunction)[]): allExposes is Expose[] => {
+            return !allExposes.find((e) => typeof e === 'function');
+        }
+        let allExposes: (Expose | DefinitionExposesFunction)[] = [];
+        const addToAllExposes = (expose: Expose[] | DefinitionExposesFunction) => {
+            typeof expose === 'function' ? allExposes.push(expose) : allExposes.push(...expose);
         }
 
-        exposes = [...exposes ?? []]
+        if (definitionExposes) addToAllExposes(definitionExposes);
         toZigbee = [...toZigbee ?? []];
         fromZigbee = [...fromZigbee ?? []];
 
@@ -119,7 +131,7 @@ function processExtensions(definition: Definition): Definition {
             }
             if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
             if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
-            if (ext.exposes) exposes.push(...ext.exposes);
+            if (ext.exposes) addToAllExposes(ext.exposes);
             if (ext.meta) meta = {...ext.meta, ...meta};
             if (ext.configure) configures.push(...ext.configure);
             if (ext.onEvent) onEvents.push(ext.onEvent);
@@ -138,8 +150,8 @@ function processExtensions(definition: Definition): Definition {
         }
 
         // Filtering out action exposes to combine them one
-        const actionExposes = exposes.filter((e) => e.name === 'action');
-        exposes = exposes.filter((e) => e.name !== 'action');
+        const actionExposes = allExposes.filter((e) => typeof e !== 'function' && e.name === 'action');
+        allExposes = allExposes.filter((e) => e.name !== 'action');
         if (actionExposes.length > 0) {
             const actions: string[] = [];
             for (const expose of actionExposes) {
@@ -150,7 +162,7 @@ function processExtensions(definition: Definition): Definition {
                 }
             } 
             const uniqueActions = actions.filter((value, index, array) => array.indexOf(value) === index);
-            exposes.push(exposesLib.presets.action(uniqueActions));
+            allExposes.push(exposesLib.presets.action(uniqueActions));
         }
 
         let configure: Configure = null;
@@ -169,6 +181,25 @@ function processExtensions(definition: Definition): Definition {
                 }
             }
         }
+
+        // In case there is a function in allExposes, return a function, otherwise just an array.
+        let exposes: DefinitionExposes;
+        if (allExposesIsExposeOnly(allExposes)) {
+            exposes = allExposes;
+        } else {
+            exposes = (device: Zh.Device | undefined, options: KeyValue | undefined) => {
+                let result: Expose[] = [];
+                for (const item of allExposes) {
+                    if (typeof item === 'function') {
+                        result.push(...item(device, options));
+                    } else {
+                        result.push(item);
+                    }
+                }
+                return result;
+            }
+        }
+
         definition = {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
     }
 
