@@ -532,6 +532,7 @@ const definitions: Definition[] = [
         exposes: (device, options) => {
             let endpoint: Zh.Endpoint;
             const exposes: any[] = [];
+            exposes.push(e.linkquality());
 
             let current_contract: any = '';
             let current_elec: any = '';
@@ -539,7 +540,7 @@ const definitions: Definition[] = [
             let current_producer: any = '';
 
             if (device == null) {
-                return [];
+                return exposes;
             }
 
             try {
@@ -701,7 +702,6 @@ const definitions: Definition[] = [
             });
             logger.debug(`Exposes ${exposes.length} attributes`, 'TICMeter');
 
-            exposes.push(e.linkquality());
             return exposes;
         },
         configure: async (device, coordinatorEndpoint) => {
