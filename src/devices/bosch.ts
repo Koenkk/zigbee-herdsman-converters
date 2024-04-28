@@ -1,5 +1,5 @@
 import {identify, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
-import {Zcl, Zspec} from 'zigbee-herdsman';
+import {Zcl, ZSpec} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -189,7 +189,7 @@ const tzLocal = {
                 const index = utils.getFromLookup(value, broadcastAlarmState);
                 utils.assertEndpoint(entity);
                 await entity.zclCommandBroadcast(
-                    255, Zspec.BroadcastAddress.SLEEPY,
+                    255, ZSpec.BroadcastAddress.SLEEPY,
                     Zcl.Clusters.ssIasZone.ID, 'boschSmokeDetectorSiren',
                     {data: index}, manufacturerOptions
                 );
