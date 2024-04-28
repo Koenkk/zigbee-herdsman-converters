@@ -4,7 +4,10 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import {binary, enumLookup, forcePowerSource, numeric, onOff, customTimeResponse, battery, ota} from '../lib/modernExtend';
+import {
+    binary, enumLookup, forcePowerSource, numeric, onOff,
+    customTimeResponse, battery, ota, deviceAddCustomCluster,
+} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 import {logger} from '../lib/logger';
@@ -803,6 +806,28 @@ const definitions: Definition[] = [
             tz.thermostat_running_state,
         ],
         extend: [
+            deviceAddCustomCluster(
+                'customSonoffTrvzb',
+                {
+                    ID: 0xfc11,
+                    attributes: {
+                        childLock: {ID: 0x0000, type: Zcl.DataType.boolean},
+                        tamper: {ID: 0x2000, type: Zcl.DataType.uint8},
+                        illumination: {ID: 0x2001, type: Zcl.DataType.uint8},
+                        openWindow: {ID: 0x6000, type: Zcl.DataType.boolean},
+                        frostProtectionTemperature: {ID: 0x6002, type: Zcl.DataType.int16},
+                        idleSteps: {ID: 0x6003, type: Zcl.DataType.uint16},
+                        closingSteps: {ID: 0x6004, type: Zcl.DataType.uint16},
+                        valveOpeningLimitVoltage: {ID: 0x6005, type: Zcl.DataType.uint16},
+                        valveClosingLimitVoltage: {ID: 0x6006, type: Zcl.DataType.uint16},
+                        valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.uint16},
+                        valveOpeningDegree: {ID: 0x600B, type: Zcl.DataType.uint8},
+                        valveClosingDegree: {ID: 0x600C, type: Zcl.DataType.uint8},
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                },
+            ),
             binary({
                 name: 'child_lock',
                 cluster: 'customSonoffTrvzb',
@@ -909,30 +934,6 @@ const definitions: Definition[] = [
             await reporting.thermostatSystemMode(endpoint);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007]);
-        },
-        onEvent: async (type, data, device, settings, state) => {
-            const name = 'customSonoffTrvzb';
-            if (!device.customClusters[name]) {
-                device.addCustomCluster(name, {
-                    ID: 0xfc11,
-                    attributes: {
-                        childLock: {ID: 0x0000, type: Zcl.DataType.boolean},
-                        tamper: {ID: 0x2000, type: Zcl.DataType.uint8},
-                        illumination: {ID: 0x2001, type: Zcl.DataType.uint8},
-                        openWindow: {ID: 0x6000, type: Zcl.DataType.boolean},
-                        frostProtectionTemperature: {ID: 0x6002, type: Zcl.DataType.int16},
-                        idleSteps: {ID: 0x6003, type: Zcl.DataType.uint16},
-                        closingSteps: {ID: 0x6004, type: Zcl.DataType.uint16},
-                        valveOpeningLimitVoltage: {ID: 0x6005, type: Zcl.DataType.uint16},
-                        valveClosingLimitVoltage: {ID: 0x6006, type: Zcl.DataType.uint16},
-                        valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.uint16},
-                        valveOpeningDegree: {ID: 0x600B, type: Zcl.DataType.uint8},
-                        valveClosingDegree: {ID: 0x600C, type: Zcl.DataType.uint8},
-                    },
-                    commands: {},
-                    commandsResponse: {},
-                });
-            }
         },
     },
     {
