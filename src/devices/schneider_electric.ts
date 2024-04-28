@@ -377,6 +377,23 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
     },
     {
+        zigbeeModel: ['PUCK/UNIDIM/1'],
+        model: 'CCT5010-0003',
+        vendor: 'Schneider Electric',
+        description: 'Micro module dimmer with neutral lead',
+        ota: ota.zigbeeOTA,
+        extend: [light({configureReporting: true, levelConfig: {}})],
+        fromZigbee: [fz.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
+        exposes: [
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
+            e.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
+                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
+    },
+    {
         zigbeeModel: ['CCTFR6730'],
         model: 'CCTFR6730',
         vendor: 'Schneider Electric',
