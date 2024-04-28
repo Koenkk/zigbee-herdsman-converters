@@ -1,4 +1,4 @@
-import {Fz, Tz, ModernExtend} from './types';
+import {Fz, Tz, ModernExtend, Configure} from './types';
 import {presets as e, access as ea} from './exposes';
 import {numeric, NumericArgs, setupConfigureForReporting} from './modernExtend';
 import {Zcl} from 'zigbee-herdsman';
@@ -79,7 +79,7 @@ export const ubisysModernExtend = {
             },
         }];
 
-        const configure = setupConfigureForReporting(clusterName, readableAttributeName, {min: 0, max: '1_HOUR', change: 0}, access);
+        const configure: Configure[] = [setupConfigureForReporting(clusterName, readableAttributeName, {min: 0, max: '1_HOUR', change: 0}, access)];
 
         return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
     },
