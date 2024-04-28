@@ -73,6 +73,10 @@ export const onOff = async (endpoint: Zh.Endpoint, overrides?: Reporting.Overrid
     const p = payload('onOff', 0, repInterval.HOUR, 0, overrides);
     await endpoint.configureReporting('genOnOff', p);
 };
+export const onTime = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+    const p = payload('onTime', 0, repInterval.HOUR, 40, overrides);
+    await endpoint.configureReporting('genOnOff', p);
+};
 export const lockState = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
     const p = payload('lockState', 0, repInterval.HOUR, 0, overrides);
     await endpoint.configureReporting('closuresDoorLock', p);
@@ -246,6 +250,7 @@ exports.batteryPercentageRemaining = batteryPercentageRemaining;
 exports.batteryVoltage = batteryVoltage;
 exports.batteryAlarmState = batteryAlarmState;
 exports.onOff = onOff;
+exports.onTime = onTime;
 exports.lockState = lockState;
 exports.doorState = doorState;
 exports.brightness = brightness;

@@ -1187,6 +1187,44 @@ const tuyaTz = {
             return {state: {do_not_disturb: value}};
         },
     } satisfies Tz.Converter,
+    on_off_countdown_12h: {
+        key: ['state', 'countdown'],
+        convertSet: async (entity, key, value, meta) => {
+            const state = meta.message.hasOwnProperty('state') ?
+                ( utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : null ) :
+                undefined;
+            const countdown = meta.message.hasOwnProperty('countdown') ? meta.message.countdown : undefined;
+            let result = {};
+            if ( countdown !== undefined ) {
+                // Might work up to 0xFFFF seconds but the Tuya documentation says 43200 (so 12 hours).
+                // @ts-expect-error
+                if ( !Number.isInteger(countdown) || countdown < 0 || countdown > 12*3600 ) {
+                    throw Error('countdown must be an integer between 1 and 43200 (12 hours) or 0 to cancel' );
+                }
+            }
+            // The order of the commands matters: 'on/off/toggle' and then 'onWithTimedOff'.
+            if (state !== undefined) {
+                utils.validateValue(state, ['toggle', 'off', 'on']);
+                await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
+                if (state === 'toggle') {
+                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+                    result = currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
+                } else {
+                    result = {state: {state: state.toUpperCase()}};
+                }
+            }
+            if (countdown !== undefined) {
+                // offwaittime may not be used but according to the Tuya documentation, it must be set
+                // to the same value than ontime
+                const payload = {ctrlbits: 0, ontime: countdown, offwaittime: countdown};
+                await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
+            }
+            return result;
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    } satisfies Tz.Converter,
 };
 export {tuyaTz as tz};
 
@@ -1351,6 +1389,19 @@ const tuyaFz = {
             const button = msg.device.endpoints.length == 1 || ['TS0041A', 'TS0041'].includes(msg.device.modelID) ?
                 '' : `${buttonMapping[msg.endpoint.ID]}_`;
             return {action: `${button}${clickMapping[msg.data.value]}`};
+        },
+    } satisfies Fz.Converter,
+    on_off_countdown_12h: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onTime')) {
+                const payload: KeyValue = {};
+                const property = utils.postfixWithEndpointName('countdown', msg, model, meta);
+                const countdown = msg.data['onTime'];
+                payload[property] = countdown;
+                return payload;
+            }
         },
     } satisfies Fz.Converter,
 };
@@ -1658,11 +1709,22 @@ const tuyaModernExtend = {
     tuyaOnOff: (args: {
         endpoints?: string[], powerOutageMemory?: boolean, powerOnBehavior2?: boolean, switchType?: boolean, backlightModeLowMediumHigh?: boolean,
         indicatorMode?: boolean, backlightModeOffNormalInverted?: boolean, backlightModeOffOn?: boolean, electricalMeasurements?: boolean,
-        electricalMeasurementsFzConverter?: Fz.Converter, childLock?: boolean, switchMode?: boolean,
+        electricalMeasurementsFzConverter?: Fz.Converter, childLock?: boolean, switchMode?: boolean, onOffCountdown?: number =0,
     }={}): ModernExtend => {
         const exposes: Expose[] = args.endpoints ? args.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
         const fromZigbee: Fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
-        const toZigbee: Tz.Converter[] = [tz.on_off];
+        const toZigbee: Tz.Converter[] = [];
+        if (args.onOffCountdown==12) {
+            fromZigbee.push(tuyaFz.on_off_countdown_12h);
+            toZigbee.push(tuyaTz.on_off_countdown_12h);
+            if (args.endpoints) {
+                exposes.push(...args.endpoints.map((ee) => e.countdown().withEndpoint(ee)));
+            } else {
+                exposes.push(e.countdown());
+            }
+        } else {
+            toZigbee.push(tz.on_off);
+        }
         if (args.powerOutageMemory) {
             // Legacy, powerOnBehavior is preferred
             fromZigbee.push(tuyaFz.power_outage_memory);
