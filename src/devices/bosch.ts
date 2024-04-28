@@ -193,7 +193,7 @@ const tzLocal = {
                     Zcl.Clusters.ssIasZone.ID, 'boschSmokeDetectorSiren',
                     {data: index}, manufacturerOptions
                 );
-                return {state: {broadcast_alarm: value}};
+                return;
             }
         },
     } satisfies Tz.Converter,
