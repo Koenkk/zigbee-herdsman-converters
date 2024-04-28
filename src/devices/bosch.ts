@@ -187,8 +187,9 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'broadcast_alarm') {
                 const index = utils.getFromLookup(value, broadcastAlarmState);
-                await meta.device.zclCommandToAll(
-                    255, 1, Zspec.BroadcastAddress.SLEEPY,
+                utils.assertEndpoint(entity);
+                await entity.zclCommandBroadcast(
+                    255, Zspec.BroadcastAddress.SLEEPY,
                     Zcl.Clusters.ssIasZone.ID, 'boschSmokeDetectorSiren',
                     {data: index}, manufacturerOptions
                 );
