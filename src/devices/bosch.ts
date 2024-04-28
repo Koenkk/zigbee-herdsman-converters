@@ -120,7 +120,7 @@ const smokeDetectorSensitivity: KeyValue = {
     'high': 0x2,
 };
 
-// Smoke detector II bsd-2
+// Smoke detector II BSD-2
 const broadcastAlarmState: KeyValue = {
     'smoke_off': 0x0000,
     'smoke_on': 0x3c00,
@@ -1052,7 +1052,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['RBSH-SD-ZB-EU'],
         model: 'BSD-2',
         vendor: 'Bosch',
-        description: 'Smoke alarm detector',
+        description: 'Smoke alarm II',
         fromZigbee: [
             fz.battery,
             fzLocal.bsd2,
