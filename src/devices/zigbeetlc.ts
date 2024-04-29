@@ -6,10 +6,6 @@
 
 import {Zcl} from 'zigbee-herdsman';
 
-import * as types from '../lib/types';
-import * as constants from '../lib/constants';
-import * as reporting from '../lib/reporting';
-
 import {
     battery,
     binary,
@@ -20,25 +16,6 @@ import {
     quirkAddEndpointCluster,
     temperature,
 } from '../lib/modernExtend';
-
-const NS = 'zhc:zigbeetlc';
-
-async function configure(device: types.Zh.Device, coordinatorEndpoint: types.Zh.Endpoint, definition: types.Definition) {
-    const endpoint = device.getEndpoint(1);
-    const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg', 'genPollCtrl', 'genOta'];
-
-    try {
-        await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-        await reporting.temperature(endpoint, {min: 10, max: constants.repInterval.MINUTES_5, change: 10});
-        await reporting.humidity(endpoint, {min: 10, max: constants.repInterval.MINUTES_5, change: 50});
-        await reporting.batteryPercentageRemaining(endpoint);
-    } catch (e) {
-        device.meta.logger.warning(`Error while configuring ZigbeeTLc device: ${e}`, NS);
-    }
-
-    device.powerSource = 'Battery';
-    device.save();
-}
 
 const extend = {
     comfortDisplay: binary({
@@ -190,7 +167,6 @@ const definitions = [
             extend.endpointQuirk,
             ota(),
         ],
-        configure: configure,
     },
     /*
         ZigbeeTLc devices supporting:
@@ -218,7 +194,6 @@ const definitions = [
             extend.endpointQuirk,
             ota(),
         ],
-        configure: configure,
     },
     /*
         ZigbeeTLc devices supporting:
@@ -245,7 +220,6 @@ const definitions = [
             extend.endpointQuirk,
             ota(),
         ],
-        configure: configure,
     },
 ];
 
