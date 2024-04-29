@@ -698,6 +698,7 @@ const definitions: Definition[] = [
             onOff(),
             electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SP 242'],
@@ -711,6 +712,7 @@ const definitions: Definition[] = [
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/6747
             reconfigureReportingsOnDeviceAnnounce(),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SP 244'],
@@ -721,6 +723,7 @@ const definitions: Definition[] = [
             onOff(),
             electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
+        ota: ota.zigbeeOTA,
     },
 ];
 
