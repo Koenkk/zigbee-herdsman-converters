@@ -1,4 +1,4 @@
-import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
+import {Zcl} from 'zigbee-herdsman';
 import {Definition} from '../lib/types';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
@@ -945,7 +945,7 @@ const definitions: Definition[] = [
                 {
                     ID: 0x042a,
                     attributes: {
-                        measuredValue: {ID: 0x0000, type: dataType.singlePrec},
+                        measuredValue: {ID: 0x0000, type: Zcl.DataType.singlePrec},
                     },
                     commands: {},
                     commandsResponse: {},
