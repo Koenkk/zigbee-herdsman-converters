@@ -86,6 +86,14 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['OLS 210'],
+        model: 'OLS 210',
+        vendor: 'Innr',
+        description: 'Smart outdoor light string',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['OGL 130 C'],
         model: 'OGL 130 C',
         vendor: 'Innr',

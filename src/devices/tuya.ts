@@ -1170,7 +1170,7 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.illuminance(), e.temperature().withUnit('lx'), e.humidity()],
+        exposes: [e.illuminance().withUnit('lx'), e.temperature(), e.humidity()],
         meta: {
             tuyaDatapoints: [
                 [2, 'illuminance', tuya.valueConverter.raw],

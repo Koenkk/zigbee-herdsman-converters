@@ -597,12 +597,17 @@ const converters2 = {
     } satisfies Tz.Converter,
     cover_position_tilt: {
         key: ['position', 'tilt'],
-        options: [exposes.options.invert_cover()],
+        options: [
+            exposes.options.invert_cover(),
+            exposes.options.cover_position_tilt_disable_report(),
+        ],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             const isPosition = (key === 'position');
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
+            const disableReport = !(utils.getMetaValue(entity, meta.mapped, 'coverPositionTiltDisableReport', 'allEqual', false) ?
+                !meta.options.cover_position_tilt_disable_report : meta.options.cover_position_tilt_disable_report);
             const position = invert ? 100 - value : value;
 
             // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
@@ -614,8 +619,11 @@ const converters2 = {
                 isPosition ? {percentageliftvalue: position} : {percentagetiltvalue: position},
                 utils.getOptions(meta.mapped, entity),
             );
-
-            return {state: {[isPosition ? 'position' : 'tilt']: value}};
+            if (disableReport) {
+                return;
+            } else {
+                return {state: {[isPosition ? 'position' : 'tilt']: value}};
+            }
         },
         convertGet: async (entity, key, meta) => {
             const isPosition = (key === 'position');
