@@ -48,7 +48,7 @@ const stateDeviceMode: KeyValue = {
 
 // BMCT
 const stateMotor: KeyValue = {
-    'idle': 0x00,
+    'stopped': 0x00,
     'opening': 0x01,
     'closing': 0x02,
 };
