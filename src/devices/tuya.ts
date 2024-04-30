@@ -6426,6 +6426,24 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
+            {modelID: 'TS0002', manufacturerName: '_TZ3000_i9w5mehz'},
+        ],
+        model: 'TS0002',
+        vendor: 'TuYa',
+        description: '2-Gang switch with backlight',
+        extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, backlightModeOffOn: true, indicatorMode: true, endpoints: ['l1', 'l2']})],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: [
             {modelID: 'TS0003', manufacturerName: '_TZ3000_pv4puuxi'},
             {modelID: 'TS0003', manufacturerName: '_TZ3000_avky2mvc'},
         ],
