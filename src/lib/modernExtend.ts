@@ -369,7 +369,7 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
     const normal: Expose = e.enum('identify', ea.SET, ['identify']).withDescription('Initiate device identification').withCategory('config');
     const sleepy: Expose = e.enum('identify', ea.SET, ['identify'])
         .withDescription('Initiate device identification. This device is asleep by default.' +
-            'You may need to wake it up first before sending the indetify command.')
+            'You may need to wake it up first before sending the identify command.')
         .withCategory('config');
 
     const exposes: Expose[] = args.isSleepy ? [sleepy] : [normal];
