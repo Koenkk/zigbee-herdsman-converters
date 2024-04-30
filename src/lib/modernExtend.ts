@@ -1,4 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
+import {ClusterDefinition} from 'zigbee-herdsman/dist/zcl/definition/tstype';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as globalLegacy from '../lib/legacy';
@@ -368,7 +369,7 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
     const normal: Expose = e.enum('identify', ea.SET, ['identify']).withDescription('Initiate device identification').withCategory('config');
     const sleepy: Expose = e.enum('identify', ea.SET, ['identify'])
         .withDescription('Initiate device identification. This device is asleep by default.' +
-            'You may need to wake it up first before sending the indetify command.')
+            'You may need to wake it up first before sending the identify command.')
         .withCategory('config');
 
     const exposes: Expose[] = args.isSleepy ? [sleepy] : [normal];
@@ -1792,6 +1793,16 @@ export function deviceEndpoints(args: {endpoints: {[n: string]: number}, multiEn
     if (args.multiEndpointSkip) result.meta.multiEndpointSkip = args.multiEndpointSkip;
 
     return result;
+}
+
+export function deviceAddCustomCluster(clusterName: string, clusterDefinition: ClusterDefinition): ModernExtend {
+    const onEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
+        if (!device.customClusters[clusterName]) {
+            device.addCustomCluster(clusterName, clusterDefinition);
+        }
+    };
+
+    return {onEvent, isModernExtend: true};
 }
 
 export function ignoreClusterReport(args: {cluster: string | number}): ModernExtend {
