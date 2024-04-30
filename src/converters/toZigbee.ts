@@ -606,7 +606,7 @@ const converters2 = {
             const isPosition = (key === 'position');
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
-            const disableReport = !(utils.getMetaValue(entity, meta.mapped, 'coverPositionTiltDisableReport', 'allEqual', false) ?
+            const disableReport = (utils.getMetaValue(entity, meta.mapped, 'coverPositionTiltDisableReport', 'allEqual', false) ?
                 !meta.options.cover_position_tilt_disable_report : meta.options.cover_position_tilt_disable_report);
             const position = invert ? 100 - value : value;
 
