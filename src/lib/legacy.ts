@@ -3065,68 +3065,6 @@ const fromZigbee1 = {
             return result;
         },
     } satisfies Fz.Converter,
-    eurotronic_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.eurotronic_thermostat.convert(model, msg, publish, options, meta);
-            }
-
-            const result = fromZigbee.thermostat_att_report.convert(model, msg, publish, options, meta) as KeyValueAny;
-            // system_mode is always 'heat', we set it below based on eurotronic_host_flags
-            if (result.system_mode) {
-                delete result['system_mode'];
-            }
-            if (typeof msg.data[0x4003] == 'number') {
-                result.current_heating_setpoint =
-                    utils.precisionRound(msg.data[0x4003], 2) / 100;
-            }
-            if (typeof msg.data[0x4008] == 'number') {
-                result.eurotronic_host_flags = msg.data[0x4008];
-                const resultHostFlags = {
-                    'mirror_display': false,
-                    'boost': false,
-                    'window_open': false,
-                    'child_protection': false,
-                };
-                if ((result.eurotronic_host_flags & 1 << 2) != 0) {
-                    // system_mode => 'heat', boost mode
-                    result.system_mode = thermostatSystemModes[4];
-                    resultHostFlags.boost = true;
-                } else if ((result.eurotronic_host_flags & (1 << 4)) != 0 ) {
-                    // system_mode => 'off', window open detected
-                    result.system_mode = thermostatSystemModes[0];
-                    resultHostFlags.window_open = true;
-                } else {
-                    // system_mode => 'auto', default
-                    result.system_mode = thermostatSystemModes[1];
-                }
-                if ((result.eurotronic_host_flags & (1 << 1)) != 0 ) {
-                    // mirror_display
-                    resultHostFlags.mirror_display = true;
-                }
-                if ((result.eurotronic_host_flags & (1 << 7)) != 0 ) {
-                    // child protection
-                    resultHostFlags.child_protection = true;
-                }
-                // keep eurotronic_system_mode for compatibility (is there a way to mark this as deprecated?)
-                result.eurotronic_system_mode = result.eurotronic_host_flags;
-                result.eurotronic_host_flags = resultHostFlags;
-            }
-            if (typeof msg.data[0x4002] == 'number') {
-                result.eurotronic_error_status = msg.data[0x4002];
-            }
-            if (typeof msg.data[0x4000] == 'number') {
-                result.eurotronic_trv_mode = msg.data[0x4000];
-            }
-            if (typeof msg.data[0x4001] == 'number') {
-                result.eurotronic_valve_position = msg.data[0x4001];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
     wiser_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
