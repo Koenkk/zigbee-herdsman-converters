@@ -910,7 +910,7 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.illuminance(), e.temperature().withUnit('lx'), e.humidity()],
+        exposes: [e.illuminance().withUnit('lx'), e.temperature(), e.humidity()],
         meta: {
             tuyaDatapoints: [
                 [2, 'illuminance', tuya.valueConverter.raw],
@@ -6267,7 +6267,7 @@ const definitions: Definition[] = [
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff],
                 [3, 'fan_speed', tuya.valueConverterBasic
-                    .lookup({'1': tuya.enum(0), '2': tuya.enum(1), '3': tuya.enum(2), '4': tuya.enum(3), '5': tuya.enum(4)})],
+                    .lookup({'1': tuya.enum(0), '2': tuya.enum(1), '3': tuya.enum(2), '4': tuya.enum(3), '5': tuya.enum(4)}, '5')],
                 [11, 'power_on_behavior', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
                 [5, 'status_indication', tuya.valueConverter.onOff],
             ],
@@ -6423,6 +6423,24 @@ const definitions: Definition[] = [
             tuya.whitelabel('Homeetec', '37022463', '2 Gang switch with backlight', ['_TZ3000_in5qxhtt']),
             tuya.whitelabel('RoomsAI', '37022463', '2 Gang switch with backlight', ['_TZ3000_ogpla3lh']),
         ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0002', manufacturerName: '_TZ3000_i9w5mehz'},
+        ],
+        model: 'TS0002_switch_module_4',
+        vendor: 'TuYa',
+        description: '2 gang switch with backlight',
+        extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, backlightModeOffOn: true, indicatorMode: true, endpoints: ['l1', 'l2']})],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
     },
     {
         fingerprint: [

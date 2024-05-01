@@ -1,5 +1,5 @@
 import {identify, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl, ZSpec} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -48,7 +48,7 @@ const stateDeviceMode: KeyValue = {
 
 // BMCT
 const stateMotor: KeyValue = {
-    'idle': 0x00,
+    'stopped': 0x00,
     'opening': 0x01,
     'closing': 0x02,
 };
@@ -101,23 +101,31 @@ const displayedTemperature = {
     'measured': 1,
 };
 
-// Smoke detector II bsd-2
+// Smoke detector II BSD-2
 const smokeAlarmState: KeyValue = {
     'OFF': 0x0000,
     'ON': 0x3c00, // 15360 or 46080 works
 };
 
-// Smoke detector II bsd-2
+// Smoke detector II BSD-2
 const burglarAlarmState: KeyValue = {
     'OFF': 0x0001,
     'ON': 0xb401, // 46081
 };
 
-// Smoke detector II bsd-2
+// Smoke detector II BSD-2
 const smokeDetectorSensitivity: KeyValue = {
     'low': 0x0,
     'medium': 0x1,
     'high': 0x2,
+};
+
+// Smoke detector II BSD-2
+const broadcastAlarmState: KeyValue = {
+    'smoke_off': 0x0000,
+    'smoke_on': 0x3c00,
+    'burglar_off': 0x0001,
+    'burglar_on': 0xb401,
 };
 
 // Radiator Thermostat II
@@ -174,6 +182,21 @@ Example: 30ff00000102010001`;
 
 
 const tzLocal = {
+    broadcast_alarm: {
+        key: ['broadcast_alarm'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'broadcast_alarm') {
+                const index = utils.getFromLookup(value, broadcastAlarmState);
+                utils.assertEndpoint(entity);
+                await entity.zclCommandBroadcast(
+                    255, ZSpec.BroadcastAddress.SLEEPY,
+                    Zcl.Clusters.ssIasZone.ID, 'boschSmokeDetectorSiren',
+                    {data: index}, manufacturerOptions,
+                );
+                return;
+            }
+        },
+    } satisfies Tz.Converter,
     bsd2: {
         key: ['alarm_smoke', 'alarm_burglar', 'sensitivity'],
         convertSet: async (entity, key, value: string, meta) => {
@@ -1029,13 +1052,14 @@ const definitions: Definition[] = [
         zigbeeModel: ['RBSH-SD-ZB-EU'],
         model: 'BSD-2',
         vendor: 'Bosch',
-        description: 'Smoke alarm detector',
+        description: 'Smoke alarm II',
         fromZigbee: [
             fz.battery,
             fzLocal.bsd2,
         ],
         toZigbee: [
             tzLocal.bsd2,
+            tzLocal.broadcast_alarm,
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1054,6 +1078,7 @@ const definitions: Definition[] = [
             e.binary('alarm_burglar', ea.ALL, 'ON', 'OFF').withDescription('Toggle the burglar alarm on or off'),
             e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
             e.enum('sensitivity', ea.ALL, Object.keys(smokeDetectorSensitivity)).withDescription('Sensitivity of the smoke alarm'),
+            e.enum('broadcast_alarm', ea.SET, Object.keys(broadcastAlarmState)).withDescription('Set alarm state of all BSD-2 via broadcast'),
         ],
     },
     {
@@ -1067,7 +1092,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'msIlluminanceMeasurement']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
             await reporting.illuminance(endpoint);
@@ -1505,9 +1530,20 @@ const definitions: Definition[] = [
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
         description: 'Light/shutter control unit II',
-        fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.on_off, fz.power_on_behavior],
-        toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.power_on_behavior],
-        meta: {multiEndpoint: true},
+        fromZigbee: [
+            fz.on_off,
+            fz.power_on_behavior,
+            fz.cover_position_tilt,
+            fzLocal.bmct,
+        ],
+        toZigbee: [
+            tz.power_on_behavior,
+            tz.cover_position_tilt,
+            tzLocal.bmct,
+        ],
+        meta: {
+            multiEndpoint: true,
+        },
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
         },
