@@ -1187,7 +1187,11 @@ const tuyaTz = {
             return {state: {do_not_disturb: value}};
         },
     } satisfies Tz.Converter,
-    on_off_countdown_12h: {
+    on_off_countdown: {
+        // Note: This is the Tuya on-off countdown feature documented for switches and smart plugs
+        //       using the Zigbee 'onWithTimedOff' command in a non-standard way.
+        //       There is also a second on-off countdown implementation for tuya Lights that
+        //       uses a commands and attributes but that one should also provide datapoints.
         key: ['state', 'countdown'],
         convertSet: async (entity, key, value, meta) => {
             const state = meta.message.hasOwnProperty('state') ?
@@ -1391,7 +1395,7 @@ const tuyaFz = {
             return {action: `${button}${clickMapping[msg.data.value]}`};
         },
     } satisfies Fz.Converter,
-    on_off_countdown_12h: {
+    on_off_countdown: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -1709,14 +1713,14 @@ const tuyaModernExtend = {
     tuyaOnOff: (args: {
         endpoints?: string[], powerOutageMemory?: boolean, powerOnBehavior2?: boolean, switchType?: boolean, backlightModeLowMediumHigh?: boolean,
         indicatorMode?: boolean, backlightModeOffNormalInverted?: boolean, backlightModeOffOn?: boolean, electricalMeasurements?: boolean,
-        electricalMeasurementsFzConverter?: Fz.Converter, childLock?: boolean, switchMode?: boolean, onOffCountdown?: number =0,
+        electricalMeasurementsFzConverter?: Fz.Converter, childLock?: boolean, switchMode?: boolean, onOffCountdown?: boolean,
     }={}): ModernExtend => {
         const exposes: Expose[] = args.endpoints ? args.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
         const fromZigbee: Fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
         const toZigbee: Tz.Converter[] = [];
-        if (args.onOffCountdown==12) {
-            fromZigbee.push(tuyaFz.on_off_countdown_12h);
-            toZigbee.push(tuyaTz.on_off_countdown_12h);
+        if (args.onOffCountdown) {
+            fromZigbee.push(tuyaFz.on_off_countdown);
+            toZigbee.push(tuyaTz.on_off_countdown);
             if (args.endpoints) {
                 exposes.push(...args.endpoints.map((ee) => e.countdown().withEndpoint(ee)));
             } else {
