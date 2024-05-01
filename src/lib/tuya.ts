@@ -326,7 +326,7 @@ const tuyaExposes = {
         .withDescription(`Sum of consumed energy (phase ${phase.toUpperCase()})`),
     energyProducedWithPhase: (phase: string) => e.numeric(`energy_produced_${phase}`, ea.STATE).withUnit('kWh')
         .withDescription(`Sum of produced energy (phase ${phase.toUpperCase()})`),
-    energyFlowWithPhase: (phase: string) => e.enum(`energy_flow_${phase}`, ea.STATE, ['consuming', 'producing'])
+    energyFlowWithPhase: (phase: string, more: [string]) => e.enum(`energy_flow_${phase}`, ea.STATE, ['consuming', 'producing', ...more])
         .withDescription(`Direction of energy (phase ${phase.toUpperCase()})`),
     voltageWithPhase: (phase: string) => e.numeric(`voltage_${phase}`, ea.STATE).withUnit('V')
         .withDescription(`Measured electrical potential value (phase ${phase.toUpperCase()})`),
@@ -1136,7 +1136,7 @@ const tuyaTz = {
             'screen_orientation', 'regulator_period', 'regulator_set_point', 'upper_stroke_limit', 'middle_stroke_limit', 'lower_stroke_limit',
             'buzzer_feedback', 'rf_pairing', 'max_temperature_alarm', 'min_temperature_alarm', 'max_humidity_alarm', 'min_humidity_alarm',
             'temperature_periodic_report', 'humidity_periodic_report', 'temperature_sensitivity', 'humidity_sensitivity', 'temperature_alarm',
-            'humidity_alarm', 'move_sensitivity', 'radar_range', 'presence_timeout',
+            'humidity_alarm', 'move_sensitivity', 'radar_range', 'presence_timeout', 'update_frequency',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop

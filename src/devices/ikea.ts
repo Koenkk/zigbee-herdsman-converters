@@ -4,7 +4,7 @@ import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
     temperature, humidity, occupancy, illuminance, windowCovering,
     commandsOnOff, commandsLevelCtrl, commandsWindowCovering, pm25,
-    linkQuality, deviceEndpoints, bindCluster,
+    linkQuality, deviceEndpoints, deviceAddCustomCluster, bindCluster,
 } from '../lib/modernExtend';
 import {
     ikeaConfigureRemote, ikeaLight, ikeaOta,
@@ -940,13 +940,20 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'VINDSTYRKA air quality and humidity sensor',
         extend: [
+            deviceAddCustomCluster(
+                'pm25Measurement',
+                {
+                    ID: 0x042a,
+                    attributes: {
+                        measuredValue: {ID: 0x0000, type: Zcl.DataType.singlePrec},
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                },
+            ),
             temperature(),
             humidity(),
-            pm25({
-                // IKEA used conflicting date type on a standart attribute
-                attribute: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
-                reporting: {min: '1_MINUTE', max: '2_MINUTES', change: 2},
-            }),
+            pm25({reporting: {min: '1_MINUTE', max: '2_MINUTES', change: 2}}),
             ikeaVoc(),
             identify(),
             ikeaOta(),

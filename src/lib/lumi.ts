@@ -2643,8 +2643,8 @@ export const fromZigbee = {
         cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('curtainManual')) {
-                return {hand_open: msg.data['curtainManual'] === 0};
+            if (msg.data.hasOwnProperty('curtainHandOpen')) {
+                return {hand_open: msg.data['curtainHandOpen'] === 0};
             } else if (msg.data.hasOwnProperty('curtainReverse')) {
                 return {reverse_direction: msg.data['curtainReverse'] === 1};
             } else if (msg.data.hasOwnProperty('curtainCalibrated')) {
@@ -4194,10 +4194,10 @@ export const toZigbee = {
     lumi_curtain_hand_open: {
         key: ['hand_open'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {'curtainManual': !value}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {'curtainHandOpen': !value}, manufacturerOptions.lumi);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', ['curtainManual'], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', ['curtainHandOpen'], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_curtain_reverse: {

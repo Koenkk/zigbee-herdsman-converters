@@ -1853,7 +1853,7 @@ const definitions: Definition[] = [
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(),
             e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
-            e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
+            e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stopped'])
                 .withDescription('The current state of the motor.'), e.power_outage_count()],
         extend: [lumiZigbeeOTA()],
     },
@@ -1881,7 +1881,7 @@ const definitions: Definition[] = [
                 .withDescription('Pulling curtains by hand starts the motor'),
             e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
-            e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
+            e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stopped'])
                 .withDescription('The current state of the motor.'), e.power_outage_count()],
         extend: [lumiZigbeeOTA()],
     },
@@ -1906,7 +1906,7 @@ const definitions: Definition[] = [
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET), e.device_temperature(),
             e.binary('charging_status', ea.STATE_GET, true, false)
                 .withDescription('The current charging status.'),
-            e.enum('motor_state', ea.STATE, ['declining', 'rising', 'pause', 'blocked'])
+            e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stopped', 'blocked'])
                 .withDescription('The current state of the motor.'),
             e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not')],

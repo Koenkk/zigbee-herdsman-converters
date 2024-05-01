@@ -274,8 +274,8 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Wired switch without neutral',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
-        toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
+        fromZigbee: [fz.identify, fz.level_config, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
+        toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config, tz.level_config],
         exposes: [
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
@@ -286,7 +286,8 @@ const definitions: Definition[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [light({configureReporting: true})],
+        extend: [light({configureReporting: true, levelConfig: {disabledFeatures: ['on_off_transition_time', 'on_transition_time',
+            'off_transition_time', 'execute_if_off', 'current_level_startup']}})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genBinaryInput', 'lightingBallastCfg']);
