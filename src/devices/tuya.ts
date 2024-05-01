@@ -2887,7 +2887,7 @@ const definitions: Definition[] = [
             {vendor: 'Moes', model: 'ZM-104-M'},
             tuya.whitelabel('AVATTO', 'ZWSM16-1-Zigbee', '1 gang switch module', ['_TZ3000_4rbqgcuv']),
         ],
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: true})],
+        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true})],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);

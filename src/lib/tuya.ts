@@ -1190,40 +1190,49 @@ const tuyaTz = {
     on_off_countdown: {
         // Note: This is the Tuya on-off countdown feature documented for switches and smart plugs
         //       using the Zigbee 'onWithTimedOff' command in a non-standard way.
-        //       There is also a second on-off countdown implementation for tuya Lights that
-        //       uses a commands and attributes but that one should also provide datapoints.
+        //       There is also an alternative on-off countdown implementation mostly for for Tuya Lighting
+        //       products that uses private commands and attributes. However, those devices should also
+        //       provide datapoints so there is little reason to provide support.
         key: ['state', 'countdown'],
         convertSet: async (entity, key, value, meta) => {
             const state = meta.message.hasOwnProperty('state') ?
                 ( utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : null ) :
                 undefined;
             const countdown = meta.message.hasOwnProperty('countdown') ? meta.message.countdown : undefined;
-            let result = {};
+            const result: KeyValue = {};
             if ( countdown !== undefined ) {
-                // Might work up to 0xFFFF seconds but the Tuya documentation says 43200 (so 12 hours).
+                // OnTime is a 16bit register and so might very well work up to 0xFFFF seconds but
+                // the Tuya documentation says that the maximum is 43200 (so 12 hours).
                 // @ts-expect-error
                 if ( !Number.isInteger(countdown) || countdown < 0 || countdown > 12*3600 ) {
-                    throw Error('countdown must be an integer between 1 and 43200 (12 hours) or 0 to cancel' );
+                    throw new Error('countdown must be an integer between 1 and 43200 (12 hours) or 0 to cancel' );
                 }
             }
-            // The order of the commands matters: 'on/off/toggle' and then 'onWithTimedOff'.
+            // The order of the commands matters because 'on/off/toggle' cancels 'onWithTimedOff'.
             if (state !== undefined) {
                 utils.validateValue(state, ['toggle', 'off', 'on']);
                 await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
                 if (state === 'toggle') {
                     const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
-                    result = currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
+                    if (currentState) {
+                        result.state = currentState === 'OFF' ? 'ON' : 'OFF';
+                    }
                 } else {
-                    result = {state: {state: state.toUpperCase()}};
+                    result.state = state.toUpperCase();
                 }
+                // A side effect of setting the state is to cancel any running coundown.
+                result.countdown = 0;
             }
             if (countdown !== undefined) {
-                // offwaittime may not be used but according to the Tuya documentation, it must be set
-                // to the same value than ontime
+                // offwaittime is probably not used but according to the Tuya documentation, it should
+                // be set to the same value than ontime.
                 const payload = {ctrlbits: 0, ontime: countdown, offwaittime: countdown};
                 await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
+                if (result.hasOwnProperty('state')) {
+                    result.countdown = countdown;
+                }
             }
-            return result;
+            return {state: result};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
@@ -1396,6 +1405,9 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter,
     on_off_countdown: {
+        // While a countdown is in progress, the device will report onTime at all multiples of 60.
+        // More reportings can be configured for 'onTime` but they will happen independently of
+        // the builtin 60s reporting.
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -1722,9 +1734,9 @@ const tuyaModernExtend = {
             fromZigbee.push(tuyaFz.on_off_countdown);
             toZigbee.push(tuyaTz.on_off_countdown);
             if (args.endpoints) {
-                exposes.push(...args.endpoints.map((ee) => e.countdown().withEndpoint(ee)));
+                exposes.push(...args.endpoints.map((ee) => tuyaExposes.countdown().withEndpoint(ee)));
             } else {
-                exposes.push(e.countdown());
+                exposes.push(tuyaExposes.countdown());
             }
         } else {
             toZigbee.push(tz.on_off);
