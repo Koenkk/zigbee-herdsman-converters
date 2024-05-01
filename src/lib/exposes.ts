@@ -769,7 +769,6 @@ export const presets = {
     temperature: () => new Numeric('temperature', access.STATE).withUnit('°C').withDescription('Measured temperature value'),
     temperature_sensor_select: (sensor_names: string[]) => new Enum('sensor', access.STATE_SET, sensor_names).withDescription('Select temperature sensor to use').withCategory('config'),
     test: () => new Binary('test', access.STATE, true, false).withDescription('Indicates whether the device is being tested'),
-    timeout: () => new Numeric('timeout', access.ALL).withUnit('s').withDescription('Toggle the state after some time').withValueMin(0).withValueMax(43200),
     trigger_count: (sinceScheduledReport = true) => new Numeric('trigger_count', exports.access.STATE).withDescription('Indicates how many times the sensor was triggered' + (sinceScheduledReport ? ' (since last scheduled report)' : '')).withCategory('diagnostic'),
     trigger_indicator: () => new Binary('trigger_indicator', access.ALL, true, false).withDescription('Enables trigger indication').withCategory('config'),
     valve_alarm: () => new Binary('valve_alarm', access.STATE, true, false).withCategory('diagnostic'),
