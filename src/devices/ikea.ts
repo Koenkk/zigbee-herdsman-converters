@@ -945,7 +945,7 @@ const definitions: Definition[] = [
                 {
                     ID: 0x042a,
                     attributes: {
-                        measuredValue: {ID: 0x0000, type: Zcl.DataType.singlePrec},
+                        measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
                     },
                     commands: {},
                     commandsResponse: {},
