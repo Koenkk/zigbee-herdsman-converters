@@ -147,7 +147,8 @@ const definitions = [
             {modelID: 'MHO-C401N-z', manufacturerName: 'MiaoMiaoCe'},
             {modelID: 'MHO-C401N-bz', manufacturerName: 'MiaoMiaoCe'},
         ],
-        model: 'LYWSD03MMC',
+        // LYWSD03MMC or similar with ZigbeeTLc firmware (alternative is devbis firmware)
+        model: 'LYWSD03MMC-z',
         vendor: 'Xiaomi',
         description: 'Temp & RH Monitor Lite (pvxx/ZigbeeTLc)',
         extend: [
@@ -179,6 +180,7 @@ const definitions = [
             {modelID: 'CGDK2-z', manufacturerName: 'Qingping'},
             {modelID: 'CGDK2-bz', manufacturerName: 'Qingping'},
         ],
+        // CGDK2 with ZigbeeTLc firmware, normal device is Bluetooth only
         model: 'CGDK2',
         vendor: 'Qingping',
         description: 'Temp & RH Monitor Lite (pvxx/ZigbeeTLc)',
@@ -207,7 +209,8 @@ const definitions = [
             {modelID: 'TH03Z-z', manufacturerName: 'Tuya'},
             {modelID: 'TH03Z-bz', manufacturerName: 'Tuya'},
         ],
-        model: 'WSD500A',
+        // TS0201 with ZigbeeTLc firmware
+        model: 'TS0201-z',
         vendor: 'Tuya',
         description: 'Temperature & Humidity Sensor (pvxx/ZigbeeTLc)',
         extend: [
