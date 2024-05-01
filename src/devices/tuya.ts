@@ -27,7 +27,7 @@ const ez = zosung.presetsZosung;
 
 const storeLocal = {
 
-    private_PJ1203A: (device: Zh.Device) => {
+    getPrivatePJ1203A: (device: Zh.Device) => {
         let priv = globalStore.getValue(device, 'private_state');
         if (priv===undefined) {
             //
@@ -172,10 +172,10 @@ const storeLocal = {
 };
 
 const convLocal = {
-    energy_flow_PJ1203A: (channel: string) => {
+    energyFlowPJ1203A: (channel: string) => {
         return {
             from: (v:number, meta: Fz.Meta, options: KeyValue) => {
-                const priv = storeLocal.private_PJ1203A(meta.device);
+                const priv = storeLocal.getPrivatePJ1203A(meta.device);
                 const result = {};
                 priv['sign_'+channel] = (v==1) ? -1 : +1;
                 const lateEnergyFlowKey = 'late_energy_flow_'+channel;
@@ -188,10 +188,10 @@ const convLocal = {
         };
     },
 
-    power_PJ1203A: (channel: string) => {
+    powerPJ1203A: (channel: string) => {
         return {
             from: (v:number, meta: Fz.Meta, options: KeyValue) => {
-                const priv = storeLocal.private_PJ1203A(meta.device);
+                const priv = storeLocal.getPrivatePJ1203A(meta.device);
                 const result = {};
                 priv['power_'+channel] = v/10;
                 priv['timestamp_'+channel] = new Date().toISOString();
@@ -204,10 +204,10 @@ const convLocal = {
         };
     },
 
-    current_PJ1203A: (channel: string) => {
+    currentPJ1203A: (channel: string) => {
         return {
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
-                const priv = storeLocal.private_PJ1203A(meta.device);
+                const priv = storeLocal.getPrivatePJ1203A(meta.device);
                 const result = {};
                 priv['current_'+channel] = v/1000;
                 if (v==0) {
@@ -219,10 +219,10 @@ const convLocal = {
         };
     },
 
-    power_factor_PJ1203A: (channel: string) => {
+    powerFactorPJ1203A: (channel: string) => {
         return {
             from: (v:number, meta: Fz.Meta, options: KeyValue) => {
-                const priv = storeLocal.private_PJ1203A(meta.device);
+                const priv = storeLocal.getPrivatePJ1203A(meta.device);
                 const result = {};
                 priv['power_factor_'+channel] = v;
                 const lateEnergyFlowKey = 'late_energy_flow_'+channel;
@@ -235,7 +235,7 @@ const convLocal = {
         };
     },
 
-    power_ab_PJ1203A: () => {
+    powerAbPJ1203A: () => {
         return {
             // power_ab datapoint is broken and will be recomputed so ignore it.
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
@@ -750,7 +750,7 @@ const fzLocal = {
         cluster: 'manuSpecificTuya',
         type: ['commandMcuSyncTime'],
         convert: (model, msg, publish, options, meta) => {
-            const priv = storeLocal.private_PJ1203A(meta.device);
+            const priv = storeLocal.getPrivatePJ1203A(meta.device);
             priv.last_seq += priv.seq_inc;
         },
     } satisfies Fz.Converter,
@@ -759,7 +759,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             // Uncomment the next line to test the behavior when random messages are lost
             // if ( Math.random() < 0.05 ) return;
-            const priv = storeLocal.private_PJ1203A(meta.device);
+            const priv = storeLocal.getPrivatePJ1203A(meta.device);
             // Detect missing or re-ordered messages but allow duplicate messages (should we?).
             const expectedSeq = (priv.last_seq+priv.seq_inc) & 0xFFFF;
             if ( (msg.data.seq != expectedSeq) && (msg.data.seq != priv.last_seq) ) {
@@ -7970,15 +7970,15 @@ const definitions: Definition[] = [
             tuyaDatapoints: [
                 [111, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [112, 'voltage', tuya.valueConverter.divideBy10],
-                [101, null, convLocal.power_PJ1203A('a')], // power_a
-                [105, null, convLocal.power_PJ1203A('b')], // power_b
-                [113, null, convLocal.current_PJ1203A('a')], // current_a
-                [114, null, convLocal.current_PJ1203A('b')], // current_b
-                [110, null, convLocal.power_factor_PJ1203A('a')], // power_factor_a
-                [121, null, convLocal.power_factor_PJ1203A('b')], // power_factor_b
-                [102, null, convLocal.energy_flow_PJ1203A('a')], // energy_flow_a or the sign of power_a
-                [104, null, convLocal.energy_flow_PJ1203A('b')], // energy_flow_b or the sign of power_b
-                [115, null, convLocal.power_ab_PJ1203A()],
+                [101, null, convLocal.powerPJ1203A('a')], // power_a
+                [105, null, convLocal.powerPJ1203A('b')], // power_b
+                [113, null, convLocal.currentPJ1203A('a')], // current_a
+                [114, null, convLocal.currentPJ1203A('b')], // current_b
+                [110, null, convLocal.powerFactorPJ1203A('a')], // power_factor_a
+                [121, null, convLocal.powerFactorPJ1203A('b')], // power_factor_b
+                [102, null, convLocal.energyFlowPJ1203A('a')], // energy_flow_a or the sign of power_a
+                [104, null, convLocal.energyFlowPJ1203A('b')], // energy_flow_b or the sign of power_b
+                [115, null, convLocal.powerAbPJ1203A()],
                 [106, 'energy_a', tuya.valueConverter.divideBy100],
                 [108, 'energy_b', tuya.valueConverter.divideBy100],
                 [107, 'energy_produced_a', tuya.valueConverter.divideBy100],
