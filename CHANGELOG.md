@@ -1,5 +1,45 @@
 # Changelog
 
+## [19.31.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.31.0...v19.31.1) (2024-04-29)
+
+
+### Bug Fixes
+
+* **ignore:** fix datatype ([b19c1f5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b19c1f542a7e332d924e609134b852f45552a717))
+
+## [19.31.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.30.0...v19.31.0) (2024-04-29)
+
+
+### Features
+
+* OTA support for Innr SP 240,242 and 244 ([#7464](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7464)) ([f8b2e55](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f8b2e55bf685ab0316acecb1ef3147ad6d0f71a2))
+
+
+### Bug Fixes
+
+* Fix `Value '5' is not allowed` for TuYa TS0601_fan_5_levels_and_light_switch https://github.com/Koenkk/zigbee2mqtt/issues/21787 ([c7123ab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c7123ab65cc52441997f5a40f1fb26b5408dc819))
+
+## [19.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.29.0...v19.30.0) (2024-04-28)
+
+
+### Features
+
+* Add toggle for `cover_position_tilt_disable_report` ([#7461](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7461)) ([a811aca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a811acaa94a8343b7247b3a925dbdc3c09c0f1dc))
+* **add:** CCT5010-0003 ([#7454](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7454)) ([df05493](https://github.com/Koenkk/zigbee-herdsman-converters/commit/df054935493d6dbce1e28f61e68f6e14fd6e2073))
+* **add:** OLS 210 https://github.com/Koenkk/zigbee2mqtt/issues/22291 ([401cbe2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/401cbe22f25b9e600ea57407cbcc64c1f0327768))
+* Expose `broadcast_alarm` for Bosch BSD-2 ([#7427](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7427)) ([bba8c0b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bba8c0b2ff6e87e38560cb7f7e4992dabc538f1b))
+
+
+### Bug Fixes
+
+* Fix illuminance not reporting for Bosch RFDL-ZB-MS @Ltek https://github.com/Koenkk/zigbee2mqtt/issues/22294 ([652188d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/652188dbc3fd7f01a9d1a941e03097c6ef76243f))
+* Fix invalid `contact` for MCCGQ01LM ([#7452](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7452)) ([d9640a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d9640a4d39fcc924d97e2a1034105c75452ff8c2))
+* Fix TuYa TS0601_illuminance_temperature_humidity_sensor_2 exposes units https://github.com/Koenkk/zigbee2mqtt/issues/22332 ([f01f126](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f01f1263ed3f91481723bcaf240c7dc2f9d265f2))
+* **ignore:** update dependencies ([#7458](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7458)) ([c254062](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c254062beaa4f1d23ad2402c4092e5ce588f5099))
+* **ignore:** update dependencies ([#7462](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7462)) ([bc8d371](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc8d37191ed76cba8d4223db8121a1ac6a8ceb4d))
+* IKEA VINDSTYRKA uses different DataType for measuredValue ([#7450](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7450)) ([6d328d1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6d328d12dc6f82bf58b188e308112dbff140ca1c))
+* Improve position reporting for Bosch BMCT-SLZ ([#7438](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7438)) ([badb0e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/badb0e5a58c11f3b4932ae54f90044f3d856fe7d))
+
 ## [19.29.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.28.0...v19.29.0) (2024-04-27)
 
 
