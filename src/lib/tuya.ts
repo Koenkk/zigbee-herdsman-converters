@@ -326,7 +326,7 @@ const tuyaExposes = {
         .withDescription(`Sum of consumed energy (phase ${phase.toUpperCase()})`),
     energyProducedWithPhase: (phase: string) => e.numeric(`energy_produced_${phase}`, ea.STATE).withUnit('kWh')
         .withDescription(`Sum of produced energy (phase ${phase.toUpperCase()})`),
-    energyFlowWithPhase: (phase: string) => e.enum(`energy_flow_${phase}`, ea.STATE, ['consuming', 'producing'])
+    energyFlowWithPhase: (phase: string, more: [string]) => e.enum(`energy_flow_${phase}`, ea.STATE, ['consuming', 'producing', ...more])
         .withDescription(`Direction of energy (phase ${phase.toUpperCase()})`),
     voltageWithPhase: (phase: string) => e.numeric(`voltage_${phase}`, ea.STATE).withUnit('V')
         .withDescription(`Measured electrical potential value (phase ${phase.toUpperCase()})`),
@@ -336,20 +336,6 @@ const tuyaExposes = {
         .withDescription(`Instantaneous measured electrical current (phase ${phase.toUpperCase()})`),
     powerFactorWithPhase: (phase: string) => e.numeric(`power_factor_${phase}`, ea.STATE).withUnit('%')
         .withDescription(`Instantaneous measured power factor (phase ${phase.toUpperCase()})`),
-    energyWithChannel: (channel: string) => e.numeric(`energy_${channel}`, ea.STATE).withUnit('kWh')
-        .withDescription(`Sum of consumed energy (channel ${channel.toUpperCase()})`),
-    energyProducedWithChannel: (channel: string) => e.numeric(`energy_produced_${channel}`, ea.STATE).withUnit('kWh')
-        .withDescription(`Sum of produced energy (channel ${channel.toUpperCase()})`),
-    energyFlowWithChannel: (channel: string, more: [string]) => e.enum(`energy_flow_${channel}`, ea.STATE, ['consuming', 'producing', ...more] )
-        .withDescription(`Direction of energy (channel ${channel.toUpperCase()})`),
-    voltageWithChannel: (channel: string) => e.numeric(`voltage_${channel}`, ea.STATE).withUnit('V')
-        .withDescription(`Measured electrical potential value (channel ${channel.toUpperCase()})`),
-    powerWithChannel: (channel: string) => e.numeric(`power_${channel}`, ea.STATE).withUnit('W')
-        .withDescription(`Instantaneous measured power (channel ${channel.toUpperCase()})`),
-    currentWithChannel: (channel: string) => e.numeric(`current_${channel}`, ea.STATE).withUnit('A')
-        .withDescription(`Instantaneous measured electrical current (channel ${channel.toUpperCase()})`),
-    powerFactorWithChannel: (channel: string) => e.numeric(`power_factor_${channel}`, ea.STATE).withUnit('%')
-        .withDescription(`Instantaneous measured power factor (channel ${channel.toUpperCase()})`),
     switchType: () => e.enum('switch_type', ea.ALL, ['toggle', 'state', 'momentary']).withDescription('Type of the switch'),
     backlightModeLowMediumHigh: () => e.enum('backlight_mode', ea.ALL, ['low', 'medium', 'high'])
         .withDescription('Intensity of the backlight'),
