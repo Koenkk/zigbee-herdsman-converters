@@ -2,7 +2,6 @@ import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
 /* eslint-disable max-len */
 /* eslint-disable no-multi-spaces */
 /* eslint-disable object-curly-spacing */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as exposes from '../lib/exposes';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
@@ -65,8 +64,25 @@ const ticmeterOptions = [
     e.binary('advanced', ea.SET, 'ON', 'OFF').withDescription('Affiche toutes les données du compteur. Pour un usage avancé. Par défaut: OFF'),
 ];
 
+interface TICMeterData {
+    name: string;
+    desc: string;
+    cluster: string;
+    attribute: string;
+    type: string;
+    unit: string;
+    poll: boolean;
+    tic: string;
+    contract: string;
+    elec: string;
+    producer: boolean;
+    values?: string[];
+    min?: number;
+    max?: number;
+}
+
 // prettier-ignore
-const ticmeterDatas = [
+const ticmeterDatas: TICMeterData[] = [
     {name: 'Mode TIC',                      desc: 'Mode de communication TIC',                           cluster: TICMETER_CLUSTER,   attribute: 'ticMode',                            type: ENUM,   unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, values: modeTICEnum  },
     {name: 'Mode électrique',               desc: 'Mode de électrique du compteur',                      cluster: TICMETER_CLUSTER,   attribute: 'elecMode',                           type: ENUM,   unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, values: modeElecEnum },
     {name: 'Option tarifaire',              desc: 'Option tarifaire',                                    cluster: TICMETER_CLUSTER,   attribute: 'contractType',                       type: STRING, unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false                         },
@@ -278,51 +294,51 @@ function toSnakeCase(str: string) {
     return str.split(/(?=[A-Z])/).join('_').toLowerCase();
 }
 
+
+function ticmeterConverter(msg: Fz.Message) {
+    const result: KeyValue = {};
+    const keys = Object.keys(msg.data);
+    keys.forEach((key) => {
+        const found = ticmeterDatas.find((x) => x.attribute == key);
+        if (found) {
+            let value;
+            switch (found.type) {
+            case STRING:
+                if (Buffer.isBuffer(msg.data[key])) {
+                    value = msg.data[key].toString();
+                } else {
+                    value = msg.data[key];
+                }
+                break;
+            case NUMBER:
+            case NUM_RW:
+                if (Array.isArray(msg.data[key])) {
+                    value = (msg.data[key][0] << 32) + msg.data[key][1];
+                } else {
+                    value = msg.data[key];
+                }
+                break;
+            case ENUM:
+                value = found.values[msg.data[key]];
+                break;
+            case TIME:
+                value = new Date(msg.data[key] * 1000).toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
+                break;
+            }
+            result[toSnakeCase(found.attribute)] = value;
+        } else {
+            logger.warning(`Key not found: ${key}`, 'TICMeter');
+        }
+    });
+    return result;
+}
+
 const fzLocal = {
     ticmeter_ha_electrical_measurement: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-
-            const elements = [
-                /* 0x0305 */ 'totalReactivePower',
-                /* 0x0306 */ 'totalApparentPower',
-                /* 0x0505 */ 'rmsVoltage',
-                /* 0x0508 */ 'rmsCurrent',
-                /* 0x050A */ 'rmsCurrentMax',
-                /* 0x050B */ 'activePower',
-                /* 0x050D */ 'activePowerMax',
-                /* 0x050E */ 'reactivePower',
-                /* 0x050F */ 'apparentPower',
-                /* 0x0511 */ 'averageRmsVoltageMeasPeriod',
-                /* 0x0905 */ 'rmsVoltagePhB',
-                /* 0x0908 */ 'rmsCurrentPhB',
-                /* 0x090A */ 'rmsCurrentMaxPhB',
-                /* 0x090B */ 'activePowerPhB',
-                /* 0x090E */ 'reactivePowerPhB',
-                /* 0x090D */ 'activePowerMaxPhB',
-                /* 0x090F */ 'apparentPowerPhB',
-                /* 0x0911 */ 'averageRmsVoltageMeasurePeriodPhB',
-                /* 0x0A05 */ 'rmsVoltagePhC',
-                /* 0x0A08 */ 'rmsCurrentPhC',
-                /* 0x0A0A */ 'rmsCurrentMaxPhC',
-                /* 0x0A0D */ 'activePowerMaxPhC',
-                /* 0x0A0E */ 'reactivePowerPhC',
-                /* 0x0A0F */ 'apparentPowerPhC',
-                /* 0x0A11 */ 'averageRmsVoltageMeasPeriodPhC',
-            ];
-
-            for (const at of elements) {
-                const atSnake = at
-                    .split(/(?=[A-Z])/)
-                    .join('_')
-                    .toLowerCase();
-                if (msg.data[at] != null) {
-                    result[atSnake] = msg.data[at];
-                }
-            }
-            return result;
+            return ticmeterConverter(msg);
         },
     } satisfies Fz.Converter,
 
@@ -330,41 +346,7 @@ const fzLocal = {
         cluster: TICMETER_CLUSTER,
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const keys = Object.keys(msg.data);
-            keys.forEach((key) => {
-                const found = ticmeterDatas.find((x) => x.attribute == key);
-                if (found) {
-                    let value;
-                    switch (found.type) {
-                    case STRING:
-                        if (Buffer.isBuffer(msg.data[key])) {
-                            value = msg.data[key].toString();
-                        } else {
-                            value = msg.data[key];
-                        }
-                        break;
-                    case NUMBER:
-                    case NUM_RW:
-                        if (Array.isArray(msg.data[key])) {
-                            value = (msg.data[key][0] << 32) + msg.data[key][1];
-                        } else {
-                            value = msg.data[key];
-                        }
-                        break;
-                    case ENUM:
-                        value = found.values[msg.data[key]];
-                        break;
-                    case TIME:
-                        value = new Date(msg.data[key] * 1000).toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
-                        break;
-                    }
-                    result[toSnakeCase(found.attribute)] = value;
-                } else {
-                    logger.warning(`Key not found: ${key}`, 'TICMeter');
-                }
-            });
-            return result;
+            return ticmeterConverter(msg);
         },
     } satisfies Fz.Converter,
 
@@ -372,59 +354,10 @@ const fzLocal = {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const elements = [
-                'currentSummDelivered',
-                'currentSummReceived',
-                'activeRegisterTierDelivered',
-                'currentTier1SummDelivered',
-                'currentTier2SummDelivered',
-                'currentTier3SummDelivered',
-                'currentTier4SummDelivered',
-                'currentTier5SummDelivered',
-                'currentTier6SummDelivered',
-                'currentTier7SummDelivered',
-                'currentTier8SummDelivered',
-                'currentTier9SummDelivered',
-                'currentTier10SummDelivered',
-                'siteId',
-                'meterSerialNumber',
-            ];
-            for (const at of elements) {
-                const atSnake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
-                const val = msg.data[at];
-                if (val != null) {
-                    result[atSnake] = val; // By default we assign raw value
-                    switch (at) {
-                    // If we receive a Buffer, transform to human readable text
-                    case 'meterSerialNumber':
-                    case 'siteId':
-                        if (Buffer.isBuffer(val)) {
-                            result[atSnake] = val.toString();
-                        }
-                        break;
-                    case 'currentSummDelivered':
-                    case 'currentSummReceived':
-                    case 'currentTier1SummDelivered':
-                    case 'currentTier2SummDelivered':
-                    case 'currentTier3SummDelivered':
-                    case 'currentTier4SummDelivered':
-                    case 'currentTier5SummDelivered':
-                    case 'currentTier6SummDelivered':
-                    case 'currentTier7SummDelivered':
-                    case 'currentTier8SummDelivered':
-                    case 'currentTier9SummDelivered':
-                    case 'currentTier10SummDelivered':
-                        result[atSnake] = (val[0] << 32) + val[1];
-                        break;
-                    }
-                }
-            }
-            return result;
+            return ticmeterConverter(msg);
         },
     } satisfies Fz.Converter,
 };
-
 
 function genereateTzLocal() {
     const tzLocal = [];
@@ -437,8 +370,8 @@ function genereateTzLocal() {
             },
         } satisfies Tz.Converter;
         if (item.type == NUM_RW) {
-            tz.convertSet = async (entity, key, value: any, meta) => {
-                if (value < 0 || value > 65535) {
+            tz.convertSet = async (entity, key, value: unknown, meta) => {
+                if (Number(value) < 0 || Number(value) > 65535) {
                     throw new Error('Value must be between 0 and 65535');
                 }
                 await entity.write(item.cluster, { [item.attribute]: value }, { manufacturerCode: null });
@@ -451,10 +384,10 @@ function genereateTzLocal() {
 
 const tzLocal = genereateTzLocal();
 
-function splitTab(tableau: any, taille: number): string[][] {
-    const result: any[][] = [];
-    for (let i = 0; i < tableau.length; i += taille) {
-        result.push(tableau.slice(i, i + taille));
+function splitTab(tab: string[], size: number): string[][] {
+    const result: string[][] = [];
+    for (let i = 0; i < tab.length; i += size) {
+        result.push(tab.slice(i, i + size));
     }
     return result;
 }
@@ -465,7 +398,7 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
     const currentTIC = globalStore.getValue(device, 'tic_mode');
     const currentProducer = globalStore.getValue(device, 'producer');
     logger.debug(`Polling: ${currentContract} ${currentElec} ${currentTIC} ${currentProducer}`, 'TICMeter');
-    const start: any = new Date();
+    const start: Date = new Date();
 
     let toRead = [];
     for (const item of ticmeterDatas) {
@@ -475,7 +408,7 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
     }
 
     toRead = toRead.sort((a, b) => a.cluster.localeCompare(b.cluster));
-    const groupedByCluster: { [key: string]: any } = {};
+    const groupedByCluster: { [key: string]: TICMeterData[] } = {};
     toRead.forEach((item) => {
         if (!groupedByCluster[item.cluster]) {
             groupedByCluster[item.cluster] = [];
@@ -486,7 +419,7 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
         return {
             cluster: cluster,
             attributes: splitTab(
-                groupedByCluster[cluster].map((item: any) => item.attribute),
+                groupedByCluster[cluster].map((item: TICMeterData) => item.attribute),
                 3,
             ),
         };
@@ -509,11 +442,11 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
                 .then((result) => {});
         }
     }
-    const end: any = new Date();
-    logger.debug(`Polling Duration: ${end - start} ms`, 'TICMeter');
+    const end: Date = new Date();
+    logger.debug(`Polling Duration: ${end.getTime() - start.getTime()} ms`, 'TICMeter');
 }
 
-function initConfig(device: Device, name: string, value: any) {
+function initConfig(device: Device, name: string, value: unknown) {
     if (!globalStore.hasValue(device, name)) {
         globalStore.putValue(device, name, value);
     }
@@ -530,13 +463,13 @@ const definitions: Definition[] = [
         toZigbee: tzLocal,
         exposes: (device, options) => {
             let endpoint: Zh.Endpoint;
-            const exposes: any[] = [];
+            const exposes: exposes.Base[] = [];
             exposes.push(e.linkquality());
 
-            let currentContract: any = '';
-            let currentElec: any = '';
-            let currentTIC: any = '';
-            let currentProducer: any = '';
+            let currentContract: string = '';
+            let currentElec: string = '';
+            let currentTIC: string = '';
+            let currentProducer:string = '';
 
             if (device == null) {
                 return exposes;
@@ -569,7 +502,7 @@ const definitions: Definition[] = [
 
                     if (globalStore.getValue(device, 'contract_type') == undefined) {
                         if (attr.hasOwnProperty('contractType') && attr.contractType != null) {
-                            let string: any = attr.contractType;
+                            let string = attr.contractType;
                             if (Buffer.isBuffer(string)) {
                                 string = string.toString();
                             }
@@ -586,7 +519,7 @@ const definitions: Definition[] = [
             }
 
             if (options && options.hasOwnProperty('contract_type') && options.contract_type != 'AUTO') {
-                currentContract = options.contract_type;
+                currentContract = String(options.contract_type);
                 logger.debug(`contract: ${currentContract}`, 'TICMeter');
             } else {
                 currentContract = globalStore.getValue(device, 'contract_type');
@@ -598,7 +531,7 @@ const definitions: Definition[] = [
             }
 
             if (options && options.hasOwnProperty('linky_elec') && options.linky_elec != 'AUTO') {
-                currentElec = options.linky_elec;
+                currentElec = String(options.linky_elec);
                 logger.debug(`Manual elec: ${currentElec}`, 'TICMeter');
             } else {
                 currentElec = globalStore.getValue(device, 'elec_mode');
@@ -610,7 +543,7 @@ const definitions: Definition[] = [
             }
 
             if (options && options.hasOwnProperty('tic_mode') && options.tic_mode != 'AUTO') {
-                currentTIC = options.tic_mode;
+                currentTIC = String(options.tic_mode);
                 logger.debug(`Manual tic: ${currentTIC}`, 'TICMeter');
             } else {
                 currentTIC = globalStore.getValue(device, 'tic_mode', 'TICMeter');
@@ -622,7 +555,7 @@ const definitions: Definition[] = [
             }
 
             if (options && options.hasOwnProperty('producer') && options.producer != 'AUTO') {
-                currentProducer = options.producer;
+                currentProducer = String(options.producer);
                 logger.debug(`Manual producer: ${currentProducer}`, 'TICMeter');
             } else {
                 currentProducer = globalStore.getValue(device, 'producer');
@@ -638,7 +571,7 @@ const definitions: Definition[] = [
             globalStore.putValue(device, 'producer', currentProducer);
 
 
-            ticmeterDatas.forEach((item: any) => {
+            ticmeterDatas.forEach((item) => {
                 let contractOK = false;
                 let elecOK = false;
                 let ticOK = false;
@@ -726,9 +659,9 @@ const definitions: Definition[] = [
                 METER_ID_CLUSTER,
             ]);
 
-            const reportingConfig: any []= [];
+            const reportingConfig: Promise<void> []= [];
 
-            const wanted: any[] = [];
+            const wanted: TICMeterData[] = [];
             for (const item of ticmeterDatas) {
                 if (!item.poll && (item.tic == TICMode || item.tic == T.ANY) && (item.contract == contractType || item.contract == C.ANY) && (item.elec == elecMode || item.elec == E.ANY) && (item.producer == producer || item.producer == false)) {
                     wanted.push(item);
@@ -742,19 +675,13 @@ const definitions: Definition[] = [
             });
 
             for (const item of wanted) {
-                let conf = {
+                const conf = {
                     attribute: item.attribute,
                     change: 1,
                     min: repInterval.SECONDS_10,
                     max: repInterval.MINUTES_10,
                 };
 
-                if (item.hasOwnProperty('report')) {
-                    conf = {
-                        ...conf,
-                        ...item.report,
-                    };
-                }
                 logger.debug(`Configure ${item.name} ${item.cluster} ${item.attribute} ${conf.min} ${conf.max} ${conf.change}`, 'TICMeter');
                 reportingConfig.push(endpoint.configureReporting(item.cluster, reporting.payload(item.attribute, conf.min, conf.max, conf.change), { manufacturerCode: null }));
             }
@@ -805,7 +732,7 @@ const definitions: Definition[] = [
                 globalStore.clearValue(device, 'interval');
             } else if (!intervalDefined) {
                 // periodic scan for non-reportable attributs
-                const seconds: any = options && options.refresh_rate ? options.refresh_rate : DEFAULT_POLL_INTERVAL;
+                const seconds: number = options && options.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
                 const interval = setInterval(async () => {
                     try {
                         await poll(endpoint, device);
@@ -822,7 +749,7 @@ const definitions: Definition[] = [
                 }
             } else {
                 if (intervalDefined) {
-                    const seconds: any = options && options.refresh_rate ? options.refresh_rate : DEFAULT_POLL_INTERVAL;
+                    const seconds: number = options && options.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
                     const definedSeconds = globalStore.getValue(device, 'refresh_rate');
                     if (seconds != definedSeconds) {
                         clearInterval(globalStore.getValue(device, 'interval'));
