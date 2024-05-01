@@ -1,4 +1,4 @@
-import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
+import {Zcl} from 'zigbee-herdsman';
 import {Definition} from '../lib/types';
 import {
     deviceEndpoints,
@@ -61,7 +61,7 @@ const definitions: Definition[] = [
                 name: 'voc_raw_data',
                 unit: 'ticks',
                 cluster: 'genAnalogInput',
-                attribute: {ID: 0x0065, type: dataType.singlePrec},
+                attribute: {ID: 0x0065, type: Zcl.DataType.SINGLE_PREC},
                 description: 'SRAW_VOC, digital raw value',
                 access: 'STATE',
             }),
@@ -74,7 +74,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0203, type: dataType.boolean},
+                attribute: {ID: 0x0203, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable or Disable Auto Brightness of the Display',
             }),
             binary({
@@ -82,7 +82,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0401, type: dataType.boolean},
+                attribute: {ID: 0x0401, type: Zcl.DataType.BOOLEAN},
                 description: 'Complete shutdown of the backlight at night mode',
             }),
             numeric({
@@ -91,7 +91,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 23,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0405, type: dataType.uint8},
+                attribute: {ID: 0x0405, type: Zcl.DataType.UINT8},
                 description: 'Night mode activation time',
             }),
             numeric({
@@ -100,14 +100,14 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 23,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0406, type: dataType.uint8},
+                attribute: {ID: 0x0406, type: Zcl.DataType.UINT8},
                 description: 'Night mode deactivation time',
             }),
             enumLookup({
                 name: 'rotate',
                 lookup: {'0': 0, '90': 90, '180': 180, '270': 270},
                 cluster: 'msCO2',
-                attribute: {ID: 0x0285, type: dataType.uint16},
+                attribute: {ID: 0x0285, type: Zcl.DataType.UINT16},
                 description: 'Display rotation angle',
             }),
             binary({
@@ -115,7 +115,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0204, type: dataType.boolean},
+                attribute: {ID: 0x0204, type: Zcl.DataType.BOOLEAN},
                 description: 'The period of plotting the CO2 level(OFF - 1H | ON - 24H)',
             }),
             binary({
@@ -123,7 +123,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0404, type: dataType.boolean},
+                attribute: {ID: 0x0404, type: Zcl.DataType.BOOLEAN},
                 description: 'The period of plotting the VOC Index points(OFF - 1H | ON - 24H)',
             }),
             numeric({
@@ -132,7 +132,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 3000,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0205, type: dataType.uint16},
+                attribute: {ID: 0x0205, type: Zcl.DataType.UINT16},
                 description: 'Setting the altitude above sea level (for high accuracy of the CO2 sensor)',
             }),
             numeric({
@@ -143,7 +143,7 @@ const definitions: Definition[] = [
                 valueStep: 0.1,
                 scale: 10,
                 cluster: 'msTemperatureMeasurement',
-                attribute: {ID: 0x0210, type: dataType.int16},
+                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust temperature',
             }),
             numeric({
@@ -153,7 +153,7 @@ const definitions: Definition[] = [
                 valueMax: 50,
                 valueStep: 1,
                 cluster: 'msRelativeHumidity',
-                attribute: {ID: 0x0210, type: dataType.int16},
+                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust humidity',
             }),
             binary({
@@ -161,7 +161,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0288, type: dataType.boolean},
+                attribute: {ID: 0x0288, type: Zcl.DataType.BOOLEAN},
                 description: 'Display data from internal or external TH sensor',
             }),
             binary({
@@ -169,7 +169,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0402, type: dataType.boolean},
+                attribute: {ID: 0x0402, type: Zcl.DataType.BOOLEAN},
                 description: 'Automatic self calibration',
             }),
             binary({
@@ -177,7 +177,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0202, type: dataType.boolean},
+                attribute: {ID: 0x0202, type: Zcl.DataType.BOOLEAN},
                 description: 'Start FRC (Perform Forced Recalibration of the CO2 Sensor)',
             }),
             binary({
@@ -185,7 +185,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0206, type: dataType.boolean},
+                attribute: {ID: 0x0206, type: Zcl.DataType.BOOLEAN},
                 description: 'Factory Reset CO2 sensor',
             }),
             numeric({
@@ -194,7 +194,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 5000,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0207, type: dataType.uint16},
+                attribute: {ID: 0x0207, type: Zcl.DataType.UINT16},
                 description: 'Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)',
             }),
             binary({
@@ -202,7 +202,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0220, type: dataType.boolean},
+                attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable CO2 Gas Control',
             }),
             binary({
@@ -210,7 +210,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0225, type: dataType.boolean},
+                attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable invert logic CO2 Gas Control',
             }),
             numeric({
@@ -219,7 +219,7 @@ const definitions: Definition[] = [
                 valueMin: 400,
                 valueMax: 5000,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0221, type: dataType.uint16},
+                attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: 'Setting High CO2 Gas Border',
             }),
             numeric({
@@ -228,7 +228,7 @@ const definitions: Definition[] = [
                 valueMin: 400,
                 valueMax: 5000,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0222, type: dataType.uint16},
+                attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: 'Setting Low CO2 Gas Border',
             }),
         ],
@@ -252,7 +252,7 @@ const definitions: Definition[] = [
                 valueMin: 1,
                 valueMax: 240,
                 cluster: 'genPowerCfg',
-                attribute: {ID: 0x0201, type: dataType.uint16},
+                attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
                 description: 'Adjust Report Delay. Setting the time in minutes, by default 15 minutes',
             }),
         ],
@@ -321,7 +321,7 @@ const definitions: Definition[] = [
                 valueMin: 1,
                 valueMax: 180,
                 cluster: 'genPowerCfg',
-                attribute: {ID: 0x0201, type: dataType.uint16},
+                attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
                 description: 'Adjust Report Delay, by default 60 minutes',
             }),
         ],
@@ -456,7 +456,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0203, type: dataType.boolean},
+                attribute: {ID: 0x0203, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable or Disable Auto Brightness of the Display',
             }),
             binary({
@@ -464,7 +464,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0204, type: dataType.boolean},
+                attribute: {ID: 0x0204, type: Zcl.DataType.BOOLEAN},
                 description: 'The period of plotting the CO2 level(OFF - 1H | ON - 24H)',
             }),
             numeric({
@@ -473,7 +473,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 3000,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0205, type: dataType.uint16},
+                attribute: {ID: 0x0205, type: Zcl.DataType.UINT16},
                 description: 'Setting the altitude above sea level (for high accuracy of the CO2 sensor)',
             }),
             numeric({
@@ -484,7 +484,7 @@ const definitions: Definition[] = [
                 valueStep: 0.1,
                 scale: 10,
                 cluster: 'msTemperatureMeasurement',
-                attribute: {ID: 0x0210, type: dataType.int16},
+                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust temperature',
             }),
             numeric({
@@ -494,7 +494,7 @@ const definitions: Definition[] = [
                 valueMax: 50,
                 valueStep: 1,
                 cluster: 'msRelativeHumidity',
-                attribute: {ID: 0x0210, type: dataType.int16},
+                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust humidity',
             }),
             binary({
@@ -502,7 +502,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0202, type: dataType.boolean},
+                attribute: {ID: 0x0202, type: Zcl.DataType.BOOLEAN},
                 description: 'Start FRC (Perform Forced Recalibration of the CO2 Sensor)',
             }),
             binary({
@@ -510,7 +510,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0206, type: dataType.boolean},
+                attribute: {ID: 0x0206, type: Zcl.DataType.BOOLEAN},
                 description: 'Factory Reset CO2 sensor',
             }),
             numeric({
@@ -519,7 +519,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 5000,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0207, type: dataType.uint16},
+                attribute: {ID: 0x0207, type: Zcl.DataType.UINT16},
                 description: 'Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)',
             }),
         ],
@@ -538,7 +538,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0211, type: dataType.boolean},
+                attribute: {ID: 0x0211, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable or Disable light indicator',
             }),
             numeric({
@@ -547,7 +547,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 100,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0209, type: dataType.uint8},
+                attribute: {ID: 0x0209, type: Zcl.DataType.UINT8},
                 description: 'Light indicator level',
             }),
             numeric({
@@ -556,7 +556,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 3000,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0205, type: dataType.uint16},
+                attribute: {ID: 0x0205, type: Zcl.DataType.UINT16},
                 description: 'Setting the altitude above sea level (for high accuracy of the CO2 sensor)',
             }),
             numeric({
@@ -567,7 +567,7 @@ const definitions: Definition[] = [
                 valueStep: 0.1,
                 scale: 10,
                 cluster: 'msTemperatureMeasurement',
-                attribute: {ID: 0x0210, type: dataType.int16},
+                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust temperature',
             }),
             numeric({
@@ -577,7 +577,7 @@ const definitions: Definition[] = [
                 valueMax: 50,
                 valueStep: 1,
                 cluster: 'msRelativeHumidity',
-                attribute: {ID: 0x0210, type: dataType.int16},
+                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust humidity',
             }),
             binary({
@@ -585,7 +585,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0202, type: dataType.boolean},
+                attribute: {ID: 0x0202, type: Zcl.DataType.BOOLEAN},
                 description: 'Start FRC (Perform Forced Recalibration of the CO2 Sensor)',
             }),
             binary({
@@ -593,7 +593,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0206, type: dataType.boolean},
+                attribute: {ID: 0x0206, type: Zcl.DataType.BOOLEAN},
                 description: 'Factory Reset CO2 sensor',
             }),
             numeric({
@@ -602,7 +602,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 5000,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0207, type: dataType.uint16},
+                attribute: {ID: 0x0207, type: Zcl.DataType.UINT16},
                 description: 'Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)',
             }),
             binary({
@@ -610,7 +610,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
-                attribute: {ID: 0x0220, type: dataType.boolean},
+                attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable CO2 Gas Control',
             }),
             numeric({
@@ -619,7 +619,7 @@ const definitions: Definition[] = [
                 valueMin: 400,
                 valueMax: 2000,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0221, type: dataType.uint16},
+                attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: 'Setting High CO2 Gas Border',
             }),
             numeric({
@@ -628,7 +628,7 @@ const definitions: Definition[] = [
                 valueMin: 400,
                 valueMax: 2000,
                 cluster: 'msCO2',
-                attribute: {ID: 0x0222, type: dataType.uint16},
+                attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: 'Setting Low CO2 Gas Border',
             }),
             binary({
@@ -636,7 +636,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msTemperatureMeasurement',
-                attribute: {ID: 0x0220, type: dataType.boolean},
+                attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable Temperature Control',
             }),
             numeric({
@@ -645,7 +645,7 @@ const definitions: Definition[] = [
                 valueMin: -5,
                 valueMax: 50,
                 cluster: 'msTemperatureMeasurement',
-                attribute: {ID: 0x0221, type: dataType.int16},
+                attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: 'Setting High Temperature Border',
             }),
             numeric({
@@ -654,7 +654,7 @@ const definitions: Definition[] = [
                 valueMin: -5,
                 valueMax: 50,
                 cluster: 'msTemperatureMeasurement',
-                attribute: {ID: 0x0222, type: dataType.int16},
+                attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: 'Setting Low Temperature Border',
             }),
             binary({
@@ -662,7 +662,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msRelativeHumidity',
-                attribute: {ID: 0x0220, type: dataType.boolean},
+                attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable Humidity Control',
             }),
             numeric({
@@ -671,7 +671,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 99,
                 cluster: 'msRelativeHumidity',
-                attribute: {ID: 0x0221, type: dataType.uint16},
+                attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: 'Setting High Humidity Border',
             }),
             numeric({
@@ -680,7 +680,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 99,
                 cluster: 'msRelativeHumidity',
-                attribute: {ID: 0x0222, type: dataType.uint16},
+                attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: 'Setting Low Humidity Border',
             }),
         ],
@@ -704,7 +704,7 @@ const definitions: Definition[] = [
                 valueMin: 1,
                 valueMax: 60,
                 cluster: 'genPowerCfg',
-                attribute: {ID: 0x0201, type: dataType.uint16},
+                attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
                 description: 'Adjust Report Delay. Setting the time in minutes, by default 5 minutes',
             }),
             binary({
@@ -712,7 +712,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msTemperatureMeasurement',
-                attribute: {ID: 0x0220, type: dataType.boolean},
+                attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable Temperature Control',
             }),
             numeric({
@@ -721,7 +721,7 @@ const definitions: Definition[] = [
                 valueMin: -5,
                 valueMax: 50,
                 cluster: 'msTemperatureMeasurement',
-                attribute: {ID: 0x0221, type: dataType.int16},
+                attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: 'Setting High Temperature Border',
             }),
             numeric({
@@ -730,7 +730,7 @@ const definitions: Definition[] = [
                 valueMin: -5,
                 valueMax: 50,
                 cluster: 'msTemperatureMeasurement',
-                attribute: {ID: 0x0222, type: dataType.int16},
+                attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: 'Setting Low Temperature Border',
             }),
             binary({
@@ -738,7 +738,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msRelativeHumidity',
-                attribute: {ID: 0x0220, type: dataType.boolean},
+                attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable Humidity Control',
             }),
             numeric({
@@ -747,7 +747,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 99,
                 cluster: 'msRelativeHumidity',
-                attribute: {ID: 0x0221, type: dataType.uint16},
+                attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: 'Setting High Humidity Border',
             }),
             numeric({
@@ -756,7 +756,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 99,
                 cluster: 'msRelativeHumidity',
-                attribute: {ID: 0x0222, type: dataType.uint16},
+                attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: 'Setting Low Humidity Border',
             }),
         ],

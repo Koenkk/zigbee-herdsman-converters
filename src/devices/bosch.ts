@@ -1,5 +1,5 @@
 import {identify, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl, ZSpec} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -48,7 +48,7 @@ const stateDeviceMode: KeyValue = {
 
 // BMCT
 const stateMotor: KeyValue = {
-    'idle': 0x00,
+    'stopped': 0x00,
     'opening': 0x01,
     'closing': 0x02,
 };
@@ -101,23 +101,31 @@ const displayedTemperature = {
     'measured': 1,
 };
 
-// Smoke detector II bsd-2
+// Smoke detector II BSD-2
 const smokeAlarmState: KeyValue = {
     'OFF': 0x0000,
     'ON': 0x3c00, // 15360 or 46080 works
 };
 
-// Smoke detector II bsd-2
+// Smoke detector II BSD-2
 const burglarAlarmState: KeyValue = {
     'OFF': 0x0001,
     'ON': 0xb401, // 46081
 };
 
-// Smoke detector II bsd-2
+// Smoke detector II BSD-2
 const smokeDetectorSensitivity: KeyValue = {
     'low': 0x0,
     'medium': 0x1,
     'high': 0x2,
+};
+
+// Smoke detector II BSD-2
+const broadcastAlarmState: KeyValue = {
+    'smoke_off': 0x0000,
+    'smoke_on': 0x3c00,
+    'burglar_off': 0x0001,
+    'burglar_on': 0xb401,
 };
 
 // Radiator Thermostat II
@@ -174,6 +182,21 @@ Example: 30ff00000102010001`;
 
 
 const tzLocal = {
+    broadcast_alarm: {
+        key: ['broadcast_alarm'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'broadcast_alarm') {
+                const index = utils.getFromLookup(value, broadcastAlarmState);
+                utils.assertEndpoint(entity);
+                await entity.zclCommandBroadcast(
+                    255, ZSpec.BroadcastAddress.SLEEPY,
+                    Zcl.Clusters.ssIasZone.ID, 'boschSmokeDetectorSiren',
+                    {data: index}, manufacturerOptions,
+                );
+                return;
+            }
+        },
+    } satisfies Tz.Converter,
     bsd2: {
         key: ['alarm_smoke', 'alarm_burglar', 'sensitivity'],
         convertSet: async (entity, key, value: string, meta) => {
@@ -391,12 +414,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'window_detection') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('hvacThermostat', {0x4042: {value: index, type: Zcl.DataType.enum8}}, manufacturerOptions);
+                await entity.write('hvacThermostat', {0x4042: {value: index, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
                 return {state: {window_detection: value}};
             }
             if (key === 'boost') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('hvacThermostat', {0x4043: {value: index, type: Zcl.DataType.enum8}}, manufacturerOptions);
+                await entity.write('hvacThermostat', {0x4043: {value: index, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
                 return {state: {boost: value}};
             }
             if (key === 'system_mode') {
@@ -411,14 +434,14 @@ const tzLocal = {
                 } else if (value == 'auto') {
                     opMode = operatingModes.automatic; // OperatingMode 0 = Automatic
                 }
-                await entity.write('hvacThermostat', {0x4007: {value: opMode, type: Zcl.DataType.enum8}}, manufacturerOptions);
+                await entity.write('hvacThermostat', {0x4007: {value: opMode, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
                 return {state: {system_mode: value}};
             }
             if (key === 'pi_heating_demand') {
                 let demand = utils.toNumber(value, key);
                 demand = utils.numberWithinRange(demand, 0, 100);
                 await entity.write('hvacThermostat',
-                    {0x4020: {value: demand, type: Zcl.DataType.enum8}},
+                    {0x4020: {value: demand, type: Zcl.DataType.ENUM8}},
                     manufacturerOptions);
                 return {state: {pi_heating_demand: demand}};
             }
@@ -427,7 +450,7 @@ const tzLocal = {
                 temperature = utils.precisionRound(temperature, 1);
                 const convertedTemperature = utils.precisionRound(temperature * 100, 0);
                 await entity.write('hvacThermostat',
-                    {0x4040: {value: convertedTemperature, type: Zcl.DataType.int16}}, manufacturerOptions);
+                    {0x4040: {value: convertedTemperature, type: Zcl.DataType.INT16}}, manufacturerOptions);
                 return {state: {remote_temperature: temperature}};
             }
 
@@ -480,19 +503,19 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'display_orientation') {
                 const index = utils.getFromLookup(value, displayOrientation);
-                await entity.write('hvacUserInterfaceCfg', {0x400b: {value: index, type: Zcl.DataType.uint8}}, manufacturerOptions);
+                await entity.write('hvacUserInterfaceCfg', {0x400b: {value: index, type: Zcl.DataType.UINT8}}, manufacturerOptions);
                 return {state: {display_orientation: value}};
             }
             if (key === 'display_ontime') {
                 let ontime = utils.toNumber(value, key);
                 ontime = utils.numberWithinRange(ontime, 5, 30);
-                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: ontime, type: Zcl.DataType.enum8}}, manufacturerOptions);
+                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: ontime, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
                 return {state: {display_ontime: ontime}};
             }
             if (key === 'display_brightness') {
                 let brightness = utils.toNumber(value, key);
                 brightness = utils.numberWithinRange(brightness, 0, 10);
-                await entity.write('hvacUserInterfaceCfg', {0x403b: {value: brightness, type: Zcl.DataType.enum8}}, manufacturerOptions);
+                await entity.write('hvacUserInterfaceCfg', {0x403b: {value: brightness, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
                 return {state: {display_brightness: brightness}};
             }
             if (key === 'child_lock') {
@@ -502,7 +525,7 @@ const tzLocal = {
             }
             if (key === 'displayed_temperature') {
                 const index = utils.getFromLookup(value, displayedTemperature);
-                await entity.write('hvacUserInterfaceCfg', {0x4039: {value: index, type: Zcl.DataType.enum8}}, manufacturerOptions);
+                await entity.write('hvacUserInterfaceCfg', {0x4039: {value: index, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
                 return {state: {displayed_temperature: value}};
             }
         },
@@ -1029,13 +1052,14 @@ const definitions: Definition[] = [
         zigbeeModel: ['RBSH-SD-ZB-EU'],
         model: 'BSD-2',
         vendor: 'Bosch',
-        description: 'Smoke alarm detector',
+        description: 'Smoke alarm II',
         fromZigbee: [
             fz.battery,
             fzLocal.bsd2,
         ],
         toZigbee: [
             tzLocal.bsd2,
+            tzLocal.broadcast_alarm,
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1054,6 +1078,7 @@ const definitions: Definition[] = [
             e.binary('alarm_burglar', ea.ALL, 'ON', 'OFF').withDescription('Toggle the burglar alarm on or off'),
             e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
             e.enum('sensitivity', ea.ALL, Object.keys(smokeDetectorSensitivity)).withDescription('Sensitivity of the smoke alarm'),
+            e.enum('broadcast_alarm', ea.SET, Object.keys(broadcastAlarmState)).withDescription('Set alarm state of all BSD-2 via broadcast'),
         ],
     },
     {
@@ -1177,35 +1202,35 @@ const definitions: Definition[] = [
             }]);
             // report operating_mode (system_mode)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4007, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4007, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR * 12,
                 reportableChange: null,
             }], manufacturerOptions);
             // report pi_heating_demand (valve opening)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4020, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4020, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR * 12,
                 reportableChange: null,
             }], manufacturerOptions);
             // Report valve_adapt_status (adaptation status)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4022, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4022, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR * 12,
                 reportableChange: null,
             }], manufacturerOptions);
             // report window_detection
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4042, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR * 12,
                 reportableChange: null,
             }], manufacturerOptions);
             // report boost as it's disabled by thermostat after 5 minutes
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4043, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR * 12,
                 reportableChange: null,
@@ -1252,21 +1277,21 @@ const definitions: Definition[] = [
 
             // report operating_mode (system_mode)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4007, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4007, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
             // report window_detection
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4042, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
             // report boost as it's disabled by thermostat after 5 minutes
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4043, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
@@ -1310,28 +1335,28 @@ const definitions: Definition[] = [
 
             // report operating_mode (system_mode)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4007, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4007, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
             // report pi_heating_demand (valve opening)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4020, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4020, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
             // report window_detection
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4042, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
             // report boost as it's disabled by thermostat after 5 minutes
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
+                attribute: {ID: 0x4043, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
@@ -1518,7 +1543,6 @@ const definitions: Definition[] = [
         ],
         meta: {
             multiEndpoint: true,
-            coverPositionTiltDisableReport: false,
         },
         endpoint: (device) => {
             return {'left': 2, 'right': 3};

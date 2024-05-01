@@ -86,6 +86,14 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['OLS 210'],
+        model: 'OLS 210',
+        vendor: 'Innr',
+        description: 'Smart outdoor light string',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['OGL 130 C'],
         model: 'OGL 130 C',
         vendor: 'Innr',
@@ -690,6 +698,7 @@ const definitions: Definition[] = [
             onOff(),
             electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SP 242'],
@@ -703,6 +712,7 @@ const definitions: Definition[] = [
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/6747
             reconfigureReportingsOnDeviceAnnounce(),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SP 244'],
@@ -713,6 +723,7 @@ const definitions: Definition[] = [
             onOff(),
             electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
+        ota: ota.zigbeeOTA,
     },
 ];
 

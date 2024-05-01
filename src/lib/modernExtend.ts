@@ -1,4 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
+import {ClusterDefinition} from 'zigbee-herdsman/dist/zcl/definition/tstype';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as globalLegacy from '../lib/legacy';
@@ -368,7 +369,7 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
     const normal: Expose = e.enum('identify', ea.SET, ['identify']).withDescription('Initiate device identification').withCategory('config');
     const sleepy: Expose = e.enum('identify', ea.SET, ['identify'])
         .withDescription('Initiate device identification. This device is asleep by default.' +
-            'You may need to wake it up first before sending the indetify command.')
+            'You may need to wake it up first before sending the identify command.')
         .withCategory('config');
 
     const exposes: Expose[] = args.isSleepy ? [sleepy] : [normal];
@@ -622,41 +623,166 @@ export function soilMoisture(args?: Partial<NumericArgs>) {
     });
 }
 
-export function occupancy(args?: Partial<BinaryArgs>): ModernExtend {
-    const name = 'occupancy';
-    const cluster = 'msOccupancySensing';
-    const attribute = 'occupancy';
-    const valueOn: [string | boolean, unknown] = [true, true];
-    const valueOff: [string | boolean, unknown] = [false, false];
+export interface OccupancyArgs {
+    pirConfig?: ('otu_delay' | 'uto_delay' | 'uto_threshold')[],
+    ultrasonicConfig?: ('otu_delay' | 'uto_delay' | 'uto_threshold')[],
+    contactConfig?: ('otu_delay' | 'uto_delay' | 'uto_threshold')[],
+    reporting?: boolean, reportingConfig?: ReportingConfigWithoutAttribute, endpointNames?: string[],
+}
+export function occupancy(args?: OccupancyArgs): ModernExtend {
+    args = {reporting: true, reportingConfig: {min: '10_SECONDS', max: '1_MINUTE', change: 0}, ...args};
 
-    const result = binary({
-        name: name,
-        cluster: cluster,
-        attribute: attribute,
-        reporting: {attribute: attribute, min: '10_SECONDS', max: '1_MINUTE', change: 0},
-        description: 'Indicates whether the device detected occupancy',
-        access: 'STATE_GET',
-        valueOn: valueOn,
-        valueOff: valueOff,
-        ...args,
-    });
+    const templateExposes: Expose[] = [e.occupancy().withAccess(ea.STATE_GET)];
+    const exposes: Expose[] = args.endpointNames ?
+        templateExposes.map((exp) => args.endpointNames.map((ep) => exp.withEndpoint(ep))).flat() : templateExposes;
 
-    const fromZigbeeOverride: Fz.Converter = {
-        cluster: cluster.toString(),
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         options: [opt.no_occupancy_since_false()],
         convert: (model, msg, publish, options, meta) => {
-            if (attribute in msg.data && (!args?.endpointName || getEndpointName(msg, model, meta) === args?.endpointName)) {
-                const payload = {[name]: (msg.data[attribute] % 2) > 0};
-                noOccupancySince(msg.endpoint, options, publish, payload.occupancy ? 'stop' : 'start');
+            if ('occupancy' in msg.data && (!args.endpointNames || args.endpointNames.includes(getEndpointName(msg, model, meta).toString()))) {
+                const propertyName = postfixWithEndpointName('occupancy', msg, model, meta);
+                const payload = {[propertyName]: (msg.data['occupancy'] & 1) > 0};
+                noOccupancySince(msg.endpoint, options, publish, payload[propertyName] ? 'stop' : 'start');
                 return payload;
             }
         },
+    }];
+
+    const toZigbee: Tz.Converter[] = [{
+        key: ['occupancy'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msOccupancySensing', ['occupancy']);
+        },
+    }];
+
+    const settingsExtends: ModernExtend[] = [];
+
+    const settingsTemplate = {
+        cluster: 'msOccupancySensing',
+        description: '',
+        endpointNames: args.endpointNames,
+        access: 'ALL' as 'STATE' | 'STATE_GET' | 'ALL',
+        entityCategory: 'config' as 'config' | 'diagnostic',
     };
 
-    result.fromZigbee[0] = fromZigbeeOverride;
+    const attributesForReading: string[] = [];
 
-    return result;
+    if (args.pirConfig) {
+        if (args.pirConfig.includes('otu_delay')) {
+            settingsExtends.push(numeric({
+                name: 'pir_otu_delay',
+                attribute: 'pirOToUDelay',
+                valueMin: 0,
+                valueMax: 65534,
+                ...settingsTemplate,
+            }));
+            attributesForReading.push('pirOToUDelay');
+        }
+        if (args.pirConfig.includes('uto_delay')) {
+            settingsExtends.push(numeric({
+                name: 'pir_uto_delay',
+                attribute: 'pirUToODelay',
+                valueMin: 0,
+                valueMax: 65534,
+                ...settingsTemplate,
+            }));
+            attributesForReading.push('pirUToODelay');
+        }
+        if (args.pirConfig.includes('uto_threshold')) {
+            settingsExtends.push(numeric({
+                name: 'pir_uto_threshold',
+                attribute: 'pirUToOThreshold',
+                valueMin: 1,
+                valueMax: 254,
+                ...settingsTemplate,
+            }));
+            attributesForReading.push('pirUToOThreshold');
+        }
+    }
+
+    if (args.ultrasonicConfig) {
+        if (args.pirConfig.includes('otu_delay')) {
+            settingsExtends.push(numeric({
+                name: 'ultrasonic_otu_delay',
+                attribute: 'ultrasonicOToUDelay',
+                valueMin: 0,
+                valueMax: 65534,
+                ...settingsTemplate,
+            }));
+            attributesForReading.push('ultrasonicOToUDelay');
+        }
+        if (args.pirConfig.includes('uto_delay')) {
+            settingsExtends.push(numeric({
+                name: 'ultrasonic_uto_delay',
+                attribute: 'ultrasonicUToODelay',
+                valueMin: 0,
+                valueMax: 65534,
+                ...settingsTemplate,
+            }));
+            attributesForReading.push('ultrasonicUToODelay');
+        }
+        if (args.pirConfig.includes('uto_threshold')) {
+            settingsExtends.push(numeric({
+                name: 'ultrasonic_uto_threshold',
+                attribute: 'ultrasonicUToOThreshold',
+                valueMin: 1,
+                valueMax: 254,
+                ...settingsTemplate,
+            }));
+            attributesForReading.push('ultrasonicUToOThreshold');
+        }
+    }
+
+    if (args.contactConfig) {
+        if (args.pirConfig.includes('otu_delay')) {
+            settingsExtends.push(numeric({
+                name: 'contact_otu_delay',
+                attribute: 'contactOToUDelay',
+                valueMin: 0,
+                valueMax: 65534,
+                ...settingsTemplate,
+            }));
+            attributesForReading.push('contactOToUDelay');
+        }
+        if (args.pirConfig.includes('uto_delay')) {
+            settingsExtends.push(numeric({
+                name: 'contact_uto_delay',
+                attribute: 'contactUToODelay',
+                valueMin: 0,
+                valueMax: 65534,
+                ...settingsTemplate,
+            }));
+            attributesForReading.push('contactUToODelay');
+        }
+        if (args.pirConfig.includes('uto_threshold')) {
+            settingsExtends.push(numeric({
+                name: 'contact_uto_threshold',
+                attribute: 'contactUToOThreshold',
+                valueMin: 1,
+                valueMax: 254,
+                ...settingsTemplate,
+            }));
+            attributesForReading.push('contactUToOThreshold');
+        }
+    }
+
+    settingsExtends.map((extend) => exposes.push(...extend.exposes));
+    settingsExtends.map((extend) => fromZigbee.push(...extend.fromZigbee));
+    settingsExtends.map((extend) => toZigbee.push(...extend.toZigbee));
+
+    const configure: Configure[] = [];
+
+    if (attributesForReading.length > 0) configure.push(setupConfigureForReading('msOccupancySensing', attributesForReading, args.endpointNames));
+
+    if (args.reporting) {
+        configure.push(
+            setupConfigureForReporting('msOccupancySensing', 'occupancy', args.reportingConfig, ea.STATE_GET, args.endpointNames),
+        );
+    }
+
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export function co2(args?: Partial<NumericArgs>) {
@@ -1667,6 +1793,16 @@ export function deviceEndpoints(args: {endpoints: {[n: string]: number}, multiEn
     if (args.multiEndpointSkip) result.meta.multiEndpointSkip = args.multiEndpointSkip;
 
     return result;
+}
+
+export function deviceAddCustomCluster(clusterName: string, clusterDefinition: ClusterDefinition): ModernExtend {
+    const onEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
+        if (!device.customClusters[clusterName]) {
+            device.addCustomCluster(clusterName, clusterDefinition);
+        }
+    };
+
+    return {onEvent, isModernExtend: true};
 }
 
 export function ignoreClusterReport(args: {cluster: string | number}): ModernExtend {

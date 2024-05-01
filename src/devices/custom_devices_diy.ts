@@ -1,4 +1,4 @@
-import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
+import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
@@ -682,7 +682,7 @@ const definitions: Definition[] = [
                 valueOn: ['SHOW', 1],
                 valueOff: ['HIDE', 0],
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0010, type: dataType.boolean},
+                attribute: {ID: 0x0010, type: Zcl.DataType.BOOLEAN},
                 description: 'Whether to show a smiley on the device screen.',
             }),
             binary({
@@ -690,14 +690,14 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0011, type: dataType.boolean},
+                attribute: {ID: 0x0011, type: Zcl.DataType.BOOLEAN},
                 description: 'Whether to turn display on/off.',
             }),
             numeric({
                 name: 'temperature_calibration',
                 unit: '°C',
                 cluster: 'msTemperatureMeasurement',
-                attribute: {ID: 0x0010, type: dataType.int16},
+                attribute: {ID: 0x0010, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 valueStep: 0.01,
@@ -708,7 +708,7 @@ const definitions: Definition[] = [
                 name: 'humidity_calibration',
                 unit: '%',
                 cluster: 'msRelativeHumidity',
-                attribute: {ID: 0x0010, type: dataType.int16},
+                attribute: {ID: 0x0010, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 valueStep: 0.01,
@@ -719,7 +719,7 @@ const definitions: Definition[] = [
                 name: 'comfort_temperature_min',
                 unit: '°C',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0102, type: dataType.int16},
+                attribute: {ID: 0x0102, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 scale: 100,
@@ -729,7 +729,7 @@ const definitions: Definition[] = [
                 name: 'comfort_temperature_max',
                 unit: '°C',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0103, type: dataType.int16},
+                attribute: {ID: 0x0103, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 scale: 100,
@@ -739,7 +739,7 @@ const definitions: Definition[] = [
                 name: 'comfort_humidity_min',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0104, type: dataType.uint16},
+                attribute: {ID: 0x0104, type: Zcl.DataType.UINT16},
                 valueMin: 0.0,
                 valueMax: 100.0,
                 scale: 100,
@@ -749,7 +749,7 @@ const definitions: Definition[] = [
                 name: 'comfort_humidity_max',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0105, type: dataType.uint16},
+                attribute: {ID: 0x0105, type: Zcl.DataType.UINT16},
                 valueMin: 0.0,
                 valueMax: 100.0,
                 scale: 100,
