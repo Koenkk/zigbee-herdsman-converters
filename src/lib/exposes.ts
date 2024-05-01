@@ -618,6 +618,7 @@ export const options = {
     illuminance_below_threshold_check: () => new Binary(`illuminance_below_threshold_check`, access.SET, true, false).withDescription(`Set to false to also send messages when illuminance is above threshold in night mode (default true).`),
     state_action: () => new Binary(`state_action`, access.SET, true, false).withDescription(`State actions will also be published as 'action' when true (default false).`),
     identify_timeout: () => new Numeric('identify_timeout', access.SET).withDescription('Sets duration of identification procedure in seconds (i.e., how long device would flash). Value ranges from 1 to 30 seconds (default 3).').withValueMin(1).withValueMax(30),
+    cover_position_tilt_disable_report: () => new Binary(`cover_position_tilt_disable_report`, access.SET, true, false).withDescription(`Do not publish set cover target position as a normal 'position' value (default false).`),
 };
 
 export const presets = {
