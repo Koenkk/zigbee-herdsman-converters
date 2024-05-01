@@ -1,9 +1,3 @@
-// requires zigbee2mqtt v1.34+
-// external converter for ZigbeeTLc v0.1.2.1+ by pvvx
-// https://github.com/pvvx/ZigbeeTLc
-// based on external converter for devbis-Firmware
-// https://raw.githubusercontent.com/devbis/z03mmc/master/converters/lywsd03mmc.js
-
 import {Zcl} from 'zigbee-herdsman';
 
 import {
