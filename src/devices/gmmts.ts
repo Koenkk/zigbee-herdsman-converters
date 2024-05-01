@@ -1,5 +1,4 @@
 import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
-/* eslint-disable camelcase */
 /* eslint-disable max-len */
 /* eslint-disable no-multi-spaces */
 /* eslint-disable object-curly-spacing */
@@ -52,24 +51,24 @@ const T = {
     STD: 'STANDARD',
 };
 
-const mode_tic_enum = ['HISTORIQUE', 'STANDARD', 'AUTO'];
-const mode_elec_enum = ['MONOPHASE', 'TRIPHASE', 'AUTO'];
-const mode_contract_enum = ['AUTO', 'BASE', 'HCHP', 'EJP', 'TEMPO', 'PRODUCTEUR'];
+const modeTICEnum = ['HISTORIQUE', 'STANDARD', 'AUTO'];
+const modeElecEnum = ['MONOPHASE', 'TRIPHASE', 'AUTO'];
+const modeContractEnum = ['AUTO', 'BASE', 'HCHP', 'EJP', 'TEMPO', 'PRODUCTEUR'];
 
 // prettier-ignore
-const ticmeter_options = [
+const ticmeterOptions = [
     e.numeric(`refresh_rate`, ea.SET).withValueMin(60).withDescription(`Temps d'actualisation des valeurs statiques (celles qui possèdent des boutons refresh). Par défaut: ${DEFAULT_POLL_INTERVAL} s`).withValueMin(60).withValueMax(3600),
-    e.enum('tic_mode', ea.SET, mode_tic_enum).withDescription('Mode de communication TIC du Linky. Par défaut en mode AUTO. À utiliser en cas de problème'),
-    e.enum('contract_type', ea.SET, mode_contract_enum).withDescription('Contrat électrique actuel sur le Linky. Par défaut en mode AUTO. Permet d\'afficher les bonnes entités. À utiliser en cas de problème'),
-    e.enum('linky_elec', ea.SET, mode_elec_enum).withDescription('Mode électrique du Linky. Par défaut en mode AUTO. À utiliser en cas de problème'),
+    e.enum('tic_mode', ea.SET, modeTICEnum).withDescription('Mode de communication TIC du Linky. Par défaut en mode AUTO. À utiliser en cas de problème'),
+    e.enum('contract_type', ea.SET, modeContractEnum).withDescription('Contrat électrique actuel sur le Linky. Par défaut en mode AUTO. Permet d\'afficher les bonnes entités. À utiliser en cas de problème'),
+    e.enum('linky_elec', ea.SET, modeElecEnum).withDescription('Mode électrique du Linky. Par défaut en mode AUTO. À utiliser en cas de problème'),
     e.binary('producer', ea.SET, 'ON', 'OFF').withDescription('Mode producteur: affiche les index de production électrique. Par défaut: OFF'),
     e.binary('advanced', ea.SET, 'ON', 'OFF').withDescription('Affiche toutes les données du compteur. Pour un usage avancé. Par défaut: OFF'),
 ];
 
 // prettier-ignore
-const ticmeter_data = [
-    {name: 'Mode TIC',                      desc: 'Mode de communication TIC',                           cluster: TICMETER_CLUSTER,   attribute: 'ticMode',                            type: ENUM,   unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, values: mode_tic_enum  },
-    {name: 'Mode électrique',               desc: 'Mode de électrique du compteur',                      cluster: TICMETER_CLUSTER,   attribute: 'elecMode',                           type: ENUM,   unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, values: mode_elec_enum },
+const ticmeterDatas = [
+    {name: 'Mode TIC',                      desc: 'Mode de communication TIC',                           cluster: TICMETER_CLUSTER,   attribute: 'ticMode',                            type: ENUM,   unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, values: modeTICEnum  },
+    {name: 'Mode électrique',               desc: 'Mode de électrique du compteur',                      cluster: TICMETER_CLUSTER,   attribute: 'elecMode',                           type: ENUM,   unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, values: modeElecEnum },
     {name: 'Option tarifaire',              desc: 'Option tarifaire',                                    cluster: TICMETER_CLUSTER,   attribute: 'contractType',                       type: STRING, unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false                         },
     {name: 'Durée de fonctionnement',       desc: 'Durée depuis le dernier redémmarage',                 cluster: TICMETER_CLUSTER,   attribute: 'uptime',                             type: NUMBER, unit: 's',    poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false                         },
     {name: 'Durée d\'actualisation',        desc: 'Durée entre les actualisations',                      cluster: TICMETER_CLUSTER,   attribute: 'refreshRate',                        type: NUM_RW, unit: 's',    poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, min: 30, max: 300      },
@@ -175,7 +174,7 @@ const ticmeter_data = [
     {name: 'Fin Pointe Mobile 3',           desc: 'Fin Pointe Mobile 3',                                 cluster: TICMETER_CLUSTER,   attribute: 'stopEJP3',                           type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  producer: false                         },
 ];
 
-const ticmeter_custom_cluster = {
+const ticmeterCustomCluster = {
     ID: 0xff42,
     attributes: {
         contractType: { ID: 0x0000, type: Zcl.DataType.charStr },
@@ -315,12 +314,12 @@ const fzLocal = {
             ];
 
             for (const at of elements) {
-                const at_snake = at
+                const atSnake = at
                     .split(/(?=[A-Z])/)
                     .join('_')
                     .toLowerCase();
                 if (msg.data[at] != null) {
-                    result[at_snake] = msg.data[at];
+                    result[atSnake] = msg.data[at];
                 }
             }
             return result;
@@ -334,7 +333,7 @@ const fzLocal = {
             const result: KeyValue = {};
             const keys = Object.keys(msg.data);
             keys.forEach((key) => {
-                const found = ticmeter_data.find((x) => x.attribute == key);
+                const found = ticmeterDatas.find((x) => x.attribute == key);
                 if (found) {
                     let value;
                     switch (found.type) {
@@ -392,16 +391,16 @@ const fzLocal = {
                 'meterSerialNumber',
             ];
             for (const at of elements) {
-                const at_snake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
+                const atSnake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
                 const val = msg.data[at];
                 if (val != null) {
-                    result[at_snake] = val; // By default we assign raw value
+                    result[atSnake] = val; // By default we assign raw value
                     switch (at) {
                     // If we receive a Buffer, transform to human readable text
                     case 'meterSerialNumber':
                     case 'siteId':
                         if (Buffer.isBuffer(val)) {
-                            result[at_snake] = val.toString();
+                            result[atSnake] = val.toString();
                         }
                         break;
                     case 'currentSummDelivered':
@@ -416,7 +415,7 @@ const fzLocal = {
                     case 'currentTier8SummDelivered':
                     case 'currentTier9SummDelivered':
                     case 'currentTier10SummDelivered':
-                        result[at_snake] = (val[0] << 32) + val[1];
+                        result[atSnake] = (val[0] << 32) + val[1];
                         break;
                     }
                 }
@@ -429,7 +428,7 @@ const fzLocal = {
 
 function genereateTzLocal() {
     const tzLocal = [];
-    for (const item of ticmeter_data) {
+    for (const item of ticmeterDatas) {
         const key = toSnakeCase(item.attribute);
         const tz : Tz.Converter = {
             key: [key],
@@ -452,7 +451,7 @@ function genereateTzLocal() {
 
 const tzLocal = genereateTzLocal();
 
-function split_tab(tableau: any, taille: number): string[][] {
+function splitTab(tableau: any, taille: number): string[][] {
     const result: any[][] = [];
     for (let i = 0; i < tableau.length; i += taille) {
         result.push(tableau.slice(i, i + taille));
@@ -461,23 +460,23 @@ function split_tab(tableau: any, taille: number): string[][] {
 }
 
 async function poll(endpoint: Zh.Endpoint, device: Device) {
-    const current_contract = globalStore.getValue(device, 'contract_type');
-    const current_elec = globalStore.getValue(device, 'elec_mode');
-    const current_tic = globalStore.getValue(device, 'tic_mode');
-    const current_producer = globalStore.getValue(device, 'producer');
-    logger.debug(`Polling: ${current_contract} ${current_elec} ${current_tic} ${current_producer}`, 'TICMeter');
+    const currentContract = globalStore.getValue(device, 'contract_type');
+    const currentElec = globalStore.getValue(device, 'elec_mode');
+    const currentTIC = globalStore.getValue(device, 'tic_mode');
+    const currentProducer = globalStore.getValue(device, 'producer');
+    logger.debug(`Polling: ${currentContract} ${currentElec} ${currentTIC} ${currentProducer}`, 'TICMeter');
     const start: any = new Date();
 
-    let to_read = [];
-    for (const item of ticmeter_data) {
-        if (item.poll && (item.tic == current_tic || item.tic == T.ANY) && (item.contract == current_contract || item.contract == C.ANY) && (item.elec == current_elec || item.elec == E.ANY) && (item.producer == current_producer || item.producer == false)) {
-            to_read.push(item);
+    let toRead = [];
+    for (const item of ticmeterDatas) {
+        if (item.poll && (item.tic == currentTIC || item.tic == T.ANY) && (item.contract == currentContract || item.contract == C.ANY) && (item.elec == currentElec || item.elec == E.ANY) && (item.producer == currentProducer || item.producer == false)) {
+            toRead.push(item);
         }
     }
 
-    to_read = to_read.sort((a, b) => a.cluster.localeCompare(b.cluster));
+    toRead = toRead.sort((a, b) => a.cluster.localeCompare(b.cluster));
     const groupedByCluster: { [key: string]: any } = {};
-    to_read.forEach((item) => {
+    toRead.forEach((item) => {
         if (!groupedByCluster[item.cluster]) {
             groupedByCluster[item.cluster] = [];
         }
@@ -486,7 +485,7 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
     const splited = Object.keys(groupedByCluster).map((cluster) => {
         return {
             cluster: cluster,
-            attributes: split_tab(
+            attributes: splitTab(
                 groupedByCluster[cluster].map((item: any) => item.attribute),
                 3,
             ),
@@ -514,7 +513,7 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
     logger.debug(`Polling Duration: ${end - start} ms`, 'TICMeter');
 }
 
-function init_config(device: Device, name: string, value: any) {
+function initConfig(device: Device, name: string, value: any) {
     if (!globalStore.hasValue(device, name)) {
         globalStore.putValue(device, name, value);
     }
@@ -534,10 +533,10 @@ const definitions: Definition[] = [
             const exposes: any[] = [];
             exposes.push(e.linkquality());
 
-            let current_contract: any = '';
-            let current_elec: any = '';
-            let current_tic: any = '';
-            let current_producer: any = '';
+            let currentContract: any = '';
+            let currentElec: any = '';
+            let currentTIC: any = '';
+            let currentProducer: any = '';
 
             if (device == null) {
                 return exposes;
@@ -557,14 +556,14 @@ const definitions: Definition[] = [
                     if (globalStore.getValue(device, 'tic_mode') == undefined) {
                         if (attr.hasOwnProperty('ticMode') && attr.ticMode != null) {
                             logger.debug(`Load ticMode: ${attr.ticMode}`, 'TICMeter');
-                            globalStore.putValue(device, 'tic_mode', mode_tic_enum[Number(attr.ticMode)]);
+                            globalStore.putValue(device, 'tic_mode', modeTICEnum[Number(attr.ticMode)]);
                         }
                     }
 
                     if (globalStore.getValue(device, 'elec_mode') == undefined) {
                         if (attr.hasOwnProperty('elecMode') && attr.elecMode != null) {
                             logger.debug(`Load elecMode: ${attr.elecMode}`, 'TICMeter');
-                            globalStore.putValue(device, 'elec_mode', mode_elec_enum[Number(attr.elecMode)]);
+                            globalStore.putValue(device, 'elec_mode', modeElecEnum[Number(attr.elecMode)]);
                         }
                     }
 
@@ -587,96 +586,96 @@ const definitions: Definition[] = [
             }
 
             if (options && options.hasOwnProperty('contract_type') && options.contract_type != 'AUTO') {
-                current_contract = options.contract_type;
-                logger.debug(`contract: ${current_contract}`, 'TICMeter');
+                currentContract = options.contract_type;
+                logger.debug(`contract: ${currentContract}`, 'TICMeter');
             } else {
-                current_contract = globalStore.getValue(device, 'contract_type');
-                logger.debug(`contract: ${current_contract}`, 'TICMeter');
-                if (current_contract == undefined) {
+                currentContract = globalStore.getValue(device, 'contract_type');
+                logger.debug(`contract: ${currentContract}`, 'TICMeter');
+                if (currentContract == undefined) {
                     logger.debug('TICMeter: Force contract to AUTO', 'TICMeter');
-                    current_contract = 'AUTO';
+                    currentContract = 'AUTO';
                 }
             }
 
             if (options && options.hasOwnProperty('linky_elec') && options.linky_elec != 'AUTO') {
-                current_elec = options.linky_elec;
-                logger.debug(`Manual elec: ${current_elec}`, 'TICMeter');
+                currentElec = options.linky_elec;
+                logger.debug(`Manual elec: ${currentElec}`, 'TICMeter');
             } else {
-                current_elec = globalStore.getValue(device, 'elec_mode');
-                logger.debug(`AUTO elec: ${current_elec}`, 'TICMeter');
-                if (current_elec == undefined) {
+                currentElec = globalStore.getValue(device, 'elec_mode');
+                logger.debug(`AUTO elec: ${currentElec}`, 'TICMeter');
+                if (currentElec == undefined) {
                     logger.debug('TICMeter: Force elec to AUTO', 'TICMeter');
-                    current_elec = 'AUTO';
+                    currentElec = 'AUTO';
                 }
             }
 
             if (options && options.hasOwnProperty('tic_mode') && options.tic_mode != 'AUTO') {
-                current_tic = options.tic_mode;
-                logger.debug(`Manual tic: ${current_tic}`, 'TICMeter');
+                currentTIC = options.tic_mode;
+                logger.debug(`Manual tic: ${currentTIC}`, 'TICMeter');
             } else {
-                current_tic = globalStore.getValue(device, 'tic_mode', 'TICMeter');
-                logger.debug(`TIC: ${current_tic}`, 'TICMeter');
-                if (current_tic == undefined) {
+                currentTIC = globalStore.getValue(device, 'tic_mode', 'TICMeter');
+                logger.debug(`TIC: ${currentTIC}`, 'TICMeter');
+                if (currentTIC == undefined) {
                     logger.debug('TICMeter: Force TIC to AUTO', 'TICMeter');
-                    current_tic = 'AUTO';
+                    currentTIC = 'AUTO';
                 }
             }
 
             if (options && options.hasOwnProperty('producer') && options.producer != 'AUTO') {
-                current_producer = options.producer;
-                logger.debug(`Manual producer: ${current_producer}`, 'TICMeter');
+                currentProducer = options.producer;
+                logger.debug(`Manual producer: ${currentProducer}`, 'TICMeter');
             } else {
-                current_producer = globalStore.getValue(device, 'producer');
-                if (current_producer == undefined) {
+                currentProducer = globalStore.getValue(device, 'producer');
+                if (currentProducer == undefined) {
                     logger.debug('Force producer to AUTO', 'TICMeter');
-                    current_producer = 'OFF';
+                    currentProducer = 'OFF';
                 }
             }
 
-            globalStore.putValue(device, 'contract_type', current_contract);
-            globalStore.putValue(device, 'elec_mode', current_elec);
-            globalStore.putValue(device, 'tic_mode', current_tic);
-            globalStore.putValue(device, 'producer', current_producer);
+            globalStore.putValue(device, 'contract_type', currentContract);
+            globalStore.putValue(device, 'elec_mode', currentElec);
+            globalStore.putValue(device, 'tic_mode', currentTIC);
+            globalStore.putValue(device, 'producer', currentProducer);
 
 
-            ticmeter_data.forEach((item: any) => {
-                let contract_ok = false;
-                let elec_ok = false;
-                let tic_ok = false;
-                let producer_ok = true;
+            ticmeterDatas.forEach((item: any) => {
+                let contractOK = false;
+                let elecOK = false;
+                let ticOK = false;
+                let producerOK = true;
                 if (item.hasOwnProperty('contract')) {
-                    if (item['contract'] == current_contract || item['contract'] == C.ANY) {
-                        contract_ok = true;
+                    if (item['contract'] == currentContract || item['contract'] == C.ANY) {
+                        contractOK = true;
                     }
                 } else {
                     logger.warning(`No contract for ${item.name}`, 'TICMeter');
                 }
 
                 if (item.hasOwnProperty('elec')) {
-                    if (item['elec'] == current_elec || item['elec'] == E.ANY) {
-                        elec_ok = true;
+                    if (item['elec'] == currentElec || item['elec'] == E.ANY) {
+                        elecOK = true;
                     }
                 } else {
                     logger.warning(`No elec for ${item.name}`, 'TICMeter');
                 }
 
                 if (item.hasOwnProperty('tic')) {
-                    if (item['tic'] == current_tic || item['tic'] == T.ANY) {
-                        tic_ok = true;
+                    if (item['tic'] == currentTIC || item['tic'] == T.ANY) {
+                        ticOK = true;
                     }
                 } else {
                     logger.warning(`No tic for ${item.name}`, 'TICMeter');
                 }
 
                 if (item.hasOwnProperty('producer')) {
-                    if (item['producer'] == true && current_producer == 'OFF') {
-                        producer_ok = false;
+                    if (item['producer'] == true && currentProducer == 'OFF') {
+                        producerOK = false;
                     }
                 } else {
                     logger.warning(`No producer for ${item.name}`, 'TICMeter');
                 }
 
-                if (contract_ok && elec_ok && tic_ok && producer_ok) {
+                if (contractOK && elecOK && ticOK && producerOK) {
                     let access: number = ea.STATE;
                     if (item.poll) {
                         access = ea.STATE_GET;
@@ -710,13 +709,13 @@ const definitions: Definition[] = [
             device.save();
             const endpoint = device.getEndpoint(1);
 
-            const tic_mode = init_config(device, 'tic_mode', 'AUTO');
-            const contract_type = init_config(device, 'contract_type', 'AUTO');
-            const elec_mode = init_config(device, 'elec_mode', 'AUTO');
-            const producer = init_config(device, 'producer', false);
-            init_config(device, 'refresh_rate', DEFAULT_POLL_INTERVAL);
+            const TICMode = initConfig(device, 'tic_mode', 'AUTO');
+            const contractType = initConfig(device, 'contract_type', 'AUTO');
+            const elecMode = initConfig(device, 'elec_mode', 'AUTO');
+            const producer = initConfig(device, 'producer', false);
+            initConfig(device, 'refresh_rate', DEFAULT_POLL_INTERVAL);
 
-            logger.debug(`Configure: ${tic_mode} ${contract_type} ${elec_mode} ${producer}`, 'TICMeter');
+            logger.debug(`Configure: ${TICMode} ${contractType} ${elecMode} ${producer}`, 'TICMeter');
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', { acCurrentDivisor: 1, acCurrentMultiplier: 1 });
             endpoint.saveClusterAttributeKeyValue('seMetering', { divisor: 1, multiplier: 1 });
 
@@ -727,11 +726,11 @@ const definitions: Definition[] = [
                 METER_ID_CLUSTER,
             ]);
 
-            const reporting_config: any []= [];
+            const reportingConfig: any []= [];
 
             const wanted: any[] = [];
-            for (const item of ticmeter_data) {
-                if (!item.poll && (item.tic == tic_mode || item.tic == T.ANY) && (item.contract == contract_type || item.contract == C.ANY) && (item.elec == elec_mode || item.elec == E.ANY) && (item.producer == producer || item.producer == false)) {
+            for (const item of ticmeterDatas) {
+                if (!item.poll && (item.tic == TICMode || item.tic == T.ANY) && (item.contract == contractType || item.contract == C.ANY) && (item.elec == elecMode || item.elec == E.ANY) && (item.producer == producer || item.producer == false)) {
                     wanted.push(item);
                 }
             }
@@ -757,10 +756,10 @@ const definitions: Definition[] = [
                     };
                 }
                 logger.debug(`Configure ${item.name} ${item.cluster} ${item.attribute} ${conf.min} ${conf.max} ${conf.change}`, 'TICMeter');
-                reporting_config.push(endpoint.configureReporting(item.cluster, reporting.payload(item.attribute, conf.min, conf.max, conf.change), { manufacturerCode: null }));
+                reportingConfig.push(endpoint.configureReporting(item.cluster, reporting.payload(item.attribute, conf.min, conf.max, conf.change), { manufacturerCode: null }));
             }
 
-            await Promise.allSettled(reporting_config.map(async (config) => {
+            await Promise.allSettled(reportingConfig.map(async (config) => {
                 try {
                     await config;
                 } catch (error) {
@@ -772,22 +771,22 @@ const definitions: Definition[] = [
                 }
             }));
         },
-        options: ticmeter_options,
+        options: ticmeterOptions,
         onEvent: async (type, data, device, options) => {
             const endpoint = device.getEndpoint(1);
             if (!device.customClusters[TICMETER_CLUSTER]) {
-                device.addCustomCluster(TICMETER_CLUSTER, ticmeter_custom_cluster);
+                device.addCustomCluster(TICMETER_CLUSTER, ticmeterCustomCluster);
             }
 
             const intervalDefined = globalStore.hasValue(device, 'interval');
             if (data.data) {
                 if (data.data.hasOwnProperty('ticMode')) {
-                    const ticMode = mode_tic_enum[data.data.ticMode];
+                    const ticMode = modeTICEnum[data.data.ticMode];
                     globalStore.putValue(device, 'tic_mode', ticMode);
                     // settings.changeEntityOptions(device, { tic_mode: ticMode });
                 }
                 if (data.data.hasOwnProperty('elecMode')) {
-                    const elecMode = mode_elec_enum[data.data.elecMode];
+                    const elecMode = modeElecEnum[data.data.elecMode];
                     globalStore.putValue(device, 'elec_mode', elecMode);
                 }
                 if (data.data.hasOwnProperty('contractType')) {
@@ -824,8 +823,8 @@ const definitions: Definition[] = [
             } else {
                 if (intervalDefined) {
                     const seconds: any = options && options.refresh_rate ? options.refresh_rate : DEFAULT_POLL_INTERVAL;
-                    const defined_seconds = globalStore.getValue(device, 'refresh_rate');
-                    if (seconds != defined_seconds) {
+                    const definedSeconds = globalStore.getValue(device, 'refresh_rate');
+                    if (seconds != definedSeconds) {
                         clearInterval(globalStore.getValue(device, 'interval'));
                         const interval = setInterval(async () => {
                             try {
