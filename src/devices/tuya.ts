@@ -757,7 +757,6 @@ const fzLocal = {
     PJ1203A_strict_fz_datapoints: {
         ...tuya.fz.datapoints,
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
             // Uncomment the next line to test the behavior when random messages are lost
             // if ( Math.random() < 0.05 ) return;
             const priv = storeLocal.private_PJ1203A(meta.device);
