@@ -1235,7 +1235,11 @@ const tuyaTz = {
             return {state: result};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['onOff']);
+            if (key=='state') {
+                await entity.read('genOnOff', ['onOff']);
+            } else if (key=='countdown') {
+                await entity.read('genOnOff', ['onTime']);
+            }
         },
     } satisfies Tz.Converter,
 };
@@ -1734,9 +1738,9 @@ const tuyaModernExtend = {
             fromZigbee.push(tuyaFz.on_off_countdown);
             toZigbee.push(tuyaTz.on_off_countdown);
             if (args.endpoints) {
-                exposes.push(...args.endpoints.map((ee) => tuyaExposes.countdown().withEndpoint(ee)));
+                exposes.push(...args.endpoints.map((ee) => tuyaExposes.countdown().withAccess(ea.ALL).withEndpoint(ee)));
             } else {
-                exposes.push(tuyaExposes.countdown());
+                exposes.push(tuyaExposes.countdown().withAccess(ea.ALL));
             }
         } else {
             toZigbee.push(tz.on_off);
