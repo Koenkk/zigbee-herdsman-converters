@@ -17,15 +17,19 @@ const ea = exposes.access;
 const e = exposes.presets;
 
 const METER_ID_CLUSTER = 'haMeterIdentification'; // 0x0B01
-const ELEC_MES_CLUSTER = 'haElectricalMeasurement'; // 0x0B04
-const METERING_CLUSTER = 'seMetering'; // 0x0702
-const TICMETER_CLUSTER = 'manuSpecificGmmts'; // 0xFF42
+const CLUSTER_ELE = 'haElectricalMeasurement'; // 0x0B04
+const CLUSTER_MET = 'seMetering'; // 0x0702
+const CLUSTER_TIC = 'manuSpecificGmmts'; // 0xFF42
 
 const STRING = 'string';
 const NUMBER = 'numeric';
 const NUM_RW = 'read/write numeric';
 const ENUM = 'enum';
 const TIME = 'date';
+
+const TRANSLATION_EN = 'ENGLISH';
+const TRANSLATION_FR = 'FRANCAIS';
+
 
 const DEFAULT_POLL_INTERVAL = 120;
 
@@ -53,140 +57,271 @@ const modeTICEnum = ['HISTORIQUE', 'STANDARD', 'AUTO'];
 const modeElecEnum = ['MONOPHASE', 'TRIPHASE', 'AUTO'];
 const modeContractEnum = ['AUTO', 'BASE', 'HCHP', 'EJP', 'TEMPO', 'PRODUCTEUR'];
 
-// prettier-ignore
-const ticmeterOptions = [
-    e.numeric(`refresh_rate`, ea.SET).withValueMin(60).withDescription(`Temps d'actualisation des valeurs statiques (celles qui possèdent des boutons refresh). Par défaut: ${DEFAULT_POLL_INTERVAL} s`).withValueMin(60).withValueMax(3600),
-    e.enum('tic_mode', ea.SET, modeTICEnum).withDescription('Mode de communication TIC du Linky. Par défaut en mode AUTO. À utiliser en cas de problème'),
-    e.enum('contract_type', ea.SET, modeContractEnum).withDescription('Contrat électrique actuel sur le Linky. Par défaut en mode AUTO. Permet d\'afficher les bonnes entités. À utiliser en cas de problème'),
-    e.enum('linky_elec', ea.SET, modeElecEnum).withDescription('Mode électrique du Linky. Par défaut en mode AUTO. À utiliser en cas de problème'),
-    e.binary('producer', ea.SET, 'ON', 'OFF').withDescription('Mode producteur: affiche les index de production électrique. Par défaut: OFF'),
-    e.binary('advanced', ea.SET, 'ON', 'OFF').withDescription('Affiche toutes les données du compteur. Pour un usage avancé. Par défaut: OFF'),
-];
-
 interface TICMeterData {
+    id: number;
     name: string;
     desc: string;
-    cluster: string;
-    attribute: string;
+    clust: string;
+    attr: string;
     type: string;
     unit: string;
     poll: boolean;
     tic: string;
     contract: string;
     elec: string;
-    producer: boolean;
+    prod: boolean;
     values?: string[];
     min?: number;
     max?: number;
 }
 
-// prettier-ignore
+
+interface Translation  {
+    nameFR?: string;
+    descFR: string;
+    descEN?: string;
+}
+
+type Translations = {
+    [key: number]: Translation;
+};
+
+const ticmeterOptionsFRTr: Translations = {
+    0: {descEN: `Refresh rate for static values (those with refresh buttons). Default: ${DEFAULT_POLL_INTERVAL} s`, descFR: `Temps d'actualisation des valeurs statiques (celles qui possèdent des boutons refresh). Par défaut: ${DEFAULT_POLL_INTERVAL} s`},
+    1: {descEN: 'Linky TIC communication mode. Defaults to AUTO mode. To be used in case of problem', descFR: 'Mode de communication TIC du Linky. Par défaut en mode AUTO. À utiliser en cas de problème'},
+    2: {descEN: 'Current electricity contract on Linky. Defaults to AUTO mode. Displays the correct entities. To be used in case of problem', descFR: 'Contrat électrique actuel sur le Linky. Par défaut en mode AUTO. Permet d\'afficher les bonnes entités. À utiliser en cas de problème'},
+    3: {descEN: 'Linky electrical mode. Defaults to AUTO mode. To be used in case of problem', descFR: 'Mode électrique du Linky. Par défaut en mode AUTO. À utiliser en cas de problème'},
+    4: {descEN: 'Producer mode: displays electricity production indexes. Default: OFF', descFR: 'Mode producteur: affiche les index de production électrique. Par défaut: OFF'},
+    5: {descEN: 'Displays all meter data. For advanced use. Default: OFF', descFR: 'Affiche toutes les données du compteur. Pour un usage avancé. Par défaut: OFF'},
+    6: {descEN: 'Language: Default French', descFR: 'Langue. Par défaut Francais'},
+};
+
+const ticmeterOptions = [
+    e.numeric(`refresh_rate`, ea.SET).withValueMin(60).withDescription(ticmeterOptionsFRTr[0].descEN).withValueMin(60).withValueMax(3600),
+    e.enum('tic_mode', ea.SET, modeTICEnum).withDescription(ticmeterOptionsFRTr[1].descEN),
+    e.enum('contract_type', ea.SET, modeContractEnum).withDescription(ticmeterOptionsFRTr[2].descEN),
+    e.enum('linky_elec', ea.SET, modeElecEnum).withDescription(ticmeterOptionsFRTr[3].descEN),
+    e.binary('producer', ea.SET, 'ON', 'OFF').withDescription(ticmeterOptionsFRTr[4].descEN),
+    e.binary('advanced', ea.SET, 'ON', 'OFF').withDescription(ticmeterOptionsFRTr[5].descEN),
+    e.enum('translation', ea.SET, [TRANSLATION_FR, TRANSLATION_EN]).withDescription(ticmeterOptionsFRTr[6].descEN),
+];
+
+
+const ticmeterDatasFRTranslation: Translations = {
+    0: {nameFR: 'Mode TIC',                       descFR: 'Mode de communication TIC'},
+    1: {nameFR: 'Mode électrique',                descFR: 'Mode de électrique du compteur'},
+    2: {nameFR: 'Option tarifaire',               descFR: 'Option tarifaire'},
+    3: {nameFR: 'Durée de fonctionnement',        descFR: 'Durée depuis le dernier redémmarage'},
+    4: {nameFR: 'Durée d\'actualisation',         descFR: 'Durée entre les actualisations'},
+    5: {nameFR: 'Identifiant',                    descFR: 'Numéro de serie du compteur'},
+    6: {nameFR: 'Puissance Max contrat',          descFR: 'Puissance Max contrat'},
+    7: {nameFR: 'Index total',                    descFR: 'Somme de tous les index'},
+    8: {nameFR: 'Index BASE',                     descFR: 'Index Tarif Base'},
+    9: {nameFR: 'Index HC',                       descFR: 'Index Tarif Heures Creuses'},
+    10: {nameFR: 'Index HP',                      descFR: 'Index Tarif Heures Pleines'},
+    11: {nameFR: 'Index EJP HN',                  descFR: 'Index Tarif EJP Heures Normales'},
+    12: {nameFR: 'Index EJP HPM',                 descFR: 'Index Tarif EJP Heures de Pointe Mobile'},
+    13: {nameFR: 'Préavis EJP',                   descFR: 'Préavis EJP'},
+    14: {nameFR: 'Index BBRHCJB',                 descFR: 'Index Tarif Heures Creuses Jours Bleus'},
+    15: {nameFR: 'Index BBRHPJB',                 descFR: 'Index Tarif Heures Pleines Jours Bleus'},
+    16: {nameFR: 'Index BBRHCJW',                 descFR: 'Index Tarif Heures Creuses Jours Blancs'},
+    17: {nameFR: 'Index BBRHPJW',                 descFR: 'Index Tarif Heures Pleines Jours Blancs'},
+    18: {nameFR: 'Index BBRHCJR',                 descFR: 'Index Tarif Heures Creuses Jours Rouges'},
+    19: {nameFR: 'Index BBRHPJR',                 descFR: 'Index Tarif Heures Pleines Jours Rouges'},
+    20: {nameFR: 'Index 7',                       descFR: 'Index 7'},
+    21: {nameFR: 'Index 8',                       descFR: 'Index 8'},
+    22: {nameFR: 'Index 9',                       descFR: 'Index 9'},
+    23: {nameFR: 'Index 10',                      descFR: 'Index 10'},
+    24: {nameFR: 'Tarif en cours',                descFR: 'Option tarifaire en cours'},
+    25: {nameFR: 'Couleur demain',                descFR: 'Couleur demain'},
+    26: {nameFR: 'Intensité instantanée',         descFR: 'Intensité instantanée'},
+    27: {nameFR: 'Intensité instantanée Ph A',    descFR: 'Intensité instantanée Phase A'},
+    28: {nameFR: 'Intensité instantanée Ph B',    descFR: 'Intensité instantanée Phase B'},
+    29: {nameFR: 'Intensité instantanée Ph C',    descFR: 'Intensité instantanée Phase C'},
+    30: {nameFR: 'Intensité maximale',            descFR: 'Intensité maximale'},
+    31: {nameFR: 'Intensité maximale Ph A',       descFR: 'Intensité maximale Phase A'},
+    32: {nameFR: 'Intensité maximale Ph B',       descFR: 'Intensité maximale Phase B'},
+    33: {nameFR: 'Intensité maximale Ph C',       descFR: 'Intensité maximale Phase C'},
+    34: {nameFR: 'Dépassement de puissance',      descFR: 'Dépassement de puissance'},
+    35: {nameFR: 'Dépassement Itensité Ph A',     descFR: 'Dépassement de puissance Phase A'},
+    36: {nameFR: 'Dépassement Itensité Ph B',     descFR: 'Dépassement de puissance Phase B'},
+    37: {nameFR: 'Dépassement Itensité Ph C',     descFR: 'Dépassement de puissance Phase C'},
+    38: {nameFR: 'Puissance Apparente',           descFR: 'Puissance Apparente'},
+    39: {nameFR: 'Puissance Apparente Ph A',      descFR: 'Puissance Apparente Phase A'},
+    40: {nameFR: 'Puissance Apparente Ph B',      descFR: 'Puissance Apparente Phase B'},
+    41: {nameFR: 'Puissance Apparente Ph C',      descFR: 'Puissance Apparente Phase C'},
+    42: {nameFR: 'Index énergie injectée',        descFR: 'Index énergie injectée'},
+    43: {nameFR: 'Puissance injectée',            descFR: 'Puissance injectée'},
+    44: {nameFR: 'Puissance max injectée Auj.',   descFR: 'Puissance max injectée Aujourd\'hui'},
+    45: {nameFR: 'Heure PMAX injectée Auj.',      descFR: 'Date et Heure puissance max injectée aujourd\'hui'},
+    46: {nameFR: 'Puissance max injectée Hier',   descFR: 'Puissance max injectée Hier'},
+    47: {nameFR: 'Heure PMAX injectée Hier',      descFR: 'Date et Heure puissance max injectée hier'},
+    48: {nameFR: 'Présence de potentiels',        descFR: 'Présence de potentiels'},
+    49: {nameFR: 'Horaire Heures Creuses',        descFR: 'Horaire Heures Creuses'},
+    50: {nameFR: 'Registre Status',               descFR: 'Registre de status du compteur'},
+    51: {nameFR: 'Index 1 Distributeur',          descFR: 'Index 1 Energie soutirée Distributeur'},
+    52: {nameFR: 'Index 2 Distributeur',          descFR: 'Index 2 Energie soutirée Distributeur'},
+    53: {nameFR: 'Index 3 Distributeur',          descFR: 'Index 3 Energie soutirée Distributeur'},
+    54: {nameFR: 'Index 4 Distributeur',          descFR: 'Index 4 Energie soutirée Distributeur'},
+    55: {nameFR: 'Tension instantanée',           descFR: 'Tension instantanée efficace'},
+    56: {nameFR: 'Tension instantanée Ph A',      descFR: 'Tension instantanée efficace Phase A'},
+    57: {nameFR: 'Tension instantanée Ph B',      descFR: 'Tension instantanée efficace Phase B'},
+    58: {nameFR: 'Tension instantanée Ph C',      descFR: 'Tension instantanée efficace Phase C'},
+    59: {nameFR: 'Tension moyenne',               descFR: 'Tension moyenne'},
+    60: {nameFR: 'Tension moyenne Ph A',          descFR: 'Tension moyenne Phase A'},
+    61: {nameFR: 'Tension moyenne Ph B',          descFR: 'Tension moyenne Phase B'},
+    62: {nameFR: 'Tension moyenne Ph C',          descFR: 'Tension moyenne Phase C'},
+    63: {nameFR: 'Puissance max Auj',             descFR: 'Puissance max Aujourd\'hui'},
+    64: {nameFR: 'Heure Puissance max Auj',       descFR: 'Date et Heure de la puissance max aujourd\'hui'},
+    65: {nameFR: 'Puissance max Auj Ph A',        descFR: 'Puissance max Aujourd\'hui Phase A'},
+    66: {nameFR: 'Heure Puissance max Auj Ph A',  descFR: 'Date et Heure de la puissance max aujourd\'hui Ph A'},
+    67: {nameFR: 'Puissance max Auj Ph B',        descFR: 'Puissance max Aujourd\'hui Phase B'},
+    68: {nameFR: 'Heure Puissance max Auj Ph B',  descFR: 'Date et Heure de la puissance max aujourd\'hui Ph B'},
+    69: {nameFR: 'Puissance max Auj Ph C',        descFR: 'Puissance max Aujourd\'hui Phase C'},
+    70: {nameFR: 'Heure Puissance max Auj Ph C',  descFR: 'Date et Heure de la puissance max aujourd\'hui Ph C'},
+    71: {nameFR: 'Puissance maximale triphasée',  descFR: 'Puissance maximale triphasée'},
+    72: {nameFR: 'Puissance max Hier',            descFR: 'Puissance max Hier'},
+    73: {nameFR: 'Heure Puissance max Hier',      descFR: 'Date et Heure de la puissance max hier'},
+    74: {nameFR: 'Puissance max Hier Ph A',       descFR: 'Puissance max Hier Phase A'},
+    75: {nameFR: 'Heure Puissance max Hier Ph A', descFR: 'Date et Heure de la puissance max hier Ph A'},
+    76: {nameFR: 'Puissance max Hier Ph B',       descFR: 'Puissance max Hier Phase B'},
+    77: {nameFR: 'Heure Puissance max Hier Ph B', descFR: 'Date et Heure de la puissance max hier Ph B'},
+    78: {nameFR: 'Puissance max Hier Ph C',       descFR: 'Puissance max Hier Phase C'},
+    79: {nameFR: 'Heure Puissance max Hier Ph C', descFR: 'Date et Heure de la puissance max hier Ph C'},
+    80: {nameFR: 'Index en cours',                descFR: 'Numeréo de l\'index tarifaire en cours'},
+    81: {nameFR: 'N° jours en cours',             descFR: 'N° jours en cours fournisseur'},
+    82: {nameFR: 'N° prochain jour',              descFR: 'N° prochain jour fournisseur'},
+    83: {nameFR: 'Relais',                        descFR: 'Relais virtuel du compteur'},
+    84: {nameFR: 'PMR',                           descFR: 'Identifiant Point Référence Mesure'},
+    85: {nameFR: 'Message court',                 descFR: 'Message court'},
+    86: {nameFR: 'Message ultra court',           descFR: 'Message ultra court'},
+    87: {nameFR: 'Version de la TIC',             descFR: 'Version de la TIC'},
+    88: {nameFR: 'Date et heure Compteur',        descFR: 'Date et heure du compteur'},
+    89: {nameFR: 'Profil prochain jour',          descFR: 'Profil du prochain jour'},
+    90: {nameFR: 'Profil prochain jour pointe',   descFR: 'Profil du prochain jour pointe'},
+    91: {nameFR: 'Point n courbe soutirée',       descFR: 'Point n de la courbe de charge active soutirée'},
+    92: {nameFR: 'Point n-1 courbe soutirée',     descFR: 'Point n-1 de la courbe de charge active soutirée'},
+    93: {nameFR: 'Point n courbe injectée',       descFR: 'Point n de la courbe de charge active injectée'},
+    94: {nameFR: 'Point n-1 courbe injectée',     descFR: 'Point n-1 de la courbe de charge active injectée'},
+    95: {nameFR: 'Energie réactive Q1 totale',    descFR: 'Energie réactive Q1 totale'},
+    96: {nameFR: 'Energie réactive Q2 totale',    descFR: 'Energie réactive Q2 totale'},
+    97: {nameFR: 'Energie réactive Q3 totale',    descFR: 'Energie réactive Q3 totale'},
+    98: {nameFR: 'Energie réactive Q4 totale',    descFR: 'Energie réactive Q4 totale'},
+    99: {nameFR: 'Début Pointe Mobile 1',         descFR: 'Début Pointe Mobile 1'},
+    100: {nameFR: 'Fin Pointe Mobile 1',          descFR: 'Fin Pointe Mobile 1'},
+    101: {nameFR: 'Début Pointe Mobile 2',        descFR: 'Début Pointe Mobile 2'},
+    102: {nameFR: 'Fin Pointe Mobile 2',          descFR: 'Fin Pointe Mobile 2'},
+    103: {nameFR: 'Début Pointe Mobile 3',        descFR: 'Début Pointe Mobile 3'},
+    104: {nameFR: 'Fin Pointe Mobile 3',          descFR: 'Fin Pointe Mobile 3'},
+};
+
+
 const ticmeterDatas: TICMeterData[] = [
-    {name: 'Mode TIC',                      desc: 'Mode de communication TIC',                           cluster: TICMETER_CLUSTER,   attribute: 'ticMode',                            type: ENUM,   unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, values: modeTICEnum},
-    {name: 'Mode électrique',               desc: 'Mode de électrique du compteur',                      cluster: TICMETER_CLUSTER,   attribute: 'elecMode',                           type: ENUM,   unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, values: modeElecEnum},
-    {name: 'Option tarifaire',              desc: 'Option tarifaire',                                    cluster: TICMETER_CLUSTER,   attribute: 'contractType',                       type: STRING, unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Durée de fonctionnement',       desc: 'Durée depuis le dernier redémmarage',                 cluster: TICMETER_CLUSTER,   attribute: 'uptime',                             type: NUMBER, unit: 's',    poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Durée d\'actualisation',        desc: 'Durée entre les actualisations',                      cluster: TICMETER_CLUSTER,   attribute: 'refreshRate',                        type: NUM_RW, unit: 's',    poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, min: 30, max: 300},
-    {name: 'Identifiant',                   desc: 'Numéro de serie du compteur',                         cluster: METERING_CLUSTER,   attribute: 'meterSerialNumber',                  type: STRING, unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Puissance Max contrat',         desc: 'Puissance Max contrat',                               cluster: TICMETER_CLUSTER,   attribute: 'maxContractPower',                   type: NUMBER, unit: 'kVA',  poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Index total',                   desc: 'Somme de tous les index',                             cluster: METERING_CLUSTER,   attribute: 'currentSummDelivered',               type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Index BASE',                    desc: 'Index Tarif Base',                                    cluster: METERING_CLUSTER,   attribute: 'currentTier1SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.BASE,  elec: E.ANY,  producer: false},
-    {name: 'Index HC',                      desc: 'Index Tarif Heures Creuses',                          cluster: METERING_CLUSTER,   attribute: 'currentTier1SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.HCHP,  elec: E.ANY,  producer: false},
-    {name: 'Index HP',                      desc: 'Index Tarif Heures Pleines',                          cluster: METERING_CLUSTER,   attribute: 'currentTier2SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.HCHP,  elec: E.ANY,  producer: false},
-    {name: 'Index EJP HN',                  desc: 'Index Tarif EJP Heures Normales',                     cluster: METERING_CLUSTER,   attribute: 'currentTier1SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  producer: false},
-    {name: 'Index EJP HPM',                 desc: 'Index Tarif EJP Heures de Pointe Mobile',             cluster: METERING_CLUSTER,   attribute: 'currentTier2SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  producer: false},
-    {name: 'Préavis EJP',                   desc: 'Préavis EJP',                                         cluster: TICMETER_CLUSTER,   attribute: 'startEJP',                           type: STRING, unit: '',     poll: false,  tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  producer: false},
-    {name: 'Index BBRHCJB',                 desc: 'Index Tarif Heures Creuses Jours Bleus',              cluster: METERING_CLUSTER,   attribute: 'currentTier1SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  producer: false},
-    {name: 'Index BBRHPJB',                 desc: 'Index Tarif Heures Pleines Jours Bleus',              cluster: METERING_CLUSTER,   attribute: 'currentTier2SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  producer: false},
-    {name: 'Index BBRHCJW',                 desc: 'Index Tarif Heures Creuses Jours Blancs',             cluster: METERING_CLUSTER,   attribute: 'currentTier3SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  producer: false},
-    {name: 'Index BBRHPJW',                 desc: 'Index Tarif Heures Pleines Jours Blancs',             cluster: METERING_CLUSTER,   attribute: 'currentTier4SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  producer: false},
-    {name: 'Index BBRHCJR',                 desc: 'Index Tarif Heures Creuses Jours Rouges',             cluster: METERING_CLUSTER,   attribute: 'currentTier5SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  producer: false},
-    {name: 'Index BBRHPJR',                 desc: 'Index Tarif Heures Pleines Jours Rouges',             cluster: METERING_CLUSTER,   attribute: 'currentTier6SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  producer: false},
-    {name: 'Index 7',                       desc: 'Index 7',                                             cluster: METERING_CLUSTER,   attribute: 'currentTier7SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Index 8',                       desc: 'Index 8',                                             cluster: METERING_CLUSTER,   attribute: 'currentTier8SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Index 9',                       desc: 'Index 9',                                             cluster: METERING_CLUSTER,   attribute: 'currentTier9SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Index 10',                      desc: 'Index 10',                                            cluster: METERING_CLUSTER,   attribute: 'currentTier10SummDelivered',         type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Tarif en cours',                desc: 'Option tarifaire en cours',                           cluster: TICMETER_CLUSTER,   attribute: 'currentTarif',                       type: STRING, unit: '',     poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Couleur demain',                desc: 'Couleur demain',                                      cluster: TICMETER_CLUSTER,   attribute: 'tomorowColor',                       type: STRING, unit: '',     poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  producer: false},
-    {name: 'Intensité instantanée',         desc: 'Intensité instantanée',                               cluster: ELEC_MES_CLUSTER,   attribute: 'rmsCurrent',                         type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.MONO, producer: false},
-    {name: 'Intensité instantanée Ph A',    desc: 'Intensité instantanée Phase A',                       cluster: ELEC_MES_CLUSTER,   attribute: 'rmsCurrent',                         type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Intensité instantanée Ph B',    desc: 'Intensité instantanée Phase B',                       cluster: ELEC_MES_CLUSTER,   attribute: 'rmsCurrentPhB',                      type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Intensité instantanée Ph C',    desc: 'Intensité instantanée Phase C',                       cluster: ELEC_MES_CLUSTER,   attribute: 'rmsCurrentPhC',                      type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Intensité maximale',            desc: 'Intensité maximale',                                  cluster: ELEC_MES_CLUSTER,   attribute: 'rmsCurrentMax',                      type: NUMBER, unit: 'A',    poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.MONO, producer: false},
-    {name: 'Intensité maximale Ph A',       desc: 'Intensité maximale Phase A',                          cluster: ELEC_MES_CLUSTER,   attribute: 'rmsCurrentMax',                      type: NUMBER, unit: 'A',    poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Intensité maximale Ph B',       desc: 'Intensité maximale Phase B',                          cluster: ELEC_MES_CLUSTER,   attribute: 'rmsCurrentMaxPhB',                   type: NUMBER, unit: 'A',    poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Intensité maximale Ph C',       desc: 'Intensité maximale Phase C',                          cluster: ELEC_MES_CLUSTER,   attribute: 'rmsCurrentMaxPhC',                   type: NUMBER, unit: 'A',    poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Dépassement de puissance',      desc: 'Dépassement de puissance',                            cluster: TICMETER_CLUSTER,   attribute: 'powerOverrun',                       type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.MONO, producer: false},
-    {name: 'Dépassement Itensité Ph A',     desc: 'Dépassement de puissance Phase A',                    cluster: TICMETER_CLUSTER,   attribute: 'powerOverrunA',                      type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Dépassement Itensité Ph B',     desc: 'Dépassement de puissance Phase B',                    cluster: TICMETER_CLUSTER,   attribute: 'powerOverrunB',                      type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Dépassement Itensité Ph C',     desc: 'Dépassement de puissance Phase C',                    cluster: TICMETER_CLUSTER,   attribute: 'powerOverrunC',                      type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Puissance Apparente',           desc: 'Puissance Apparente',                                 cluster: ELEC_MES_CLUSTER,   attribute: 'apparentPower',                      type: NUMBER, unit: 'VA',   poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Puissance Apparente Ph A',      desc: 'Puissance Apparente Phase A',                         cluster: ELEC_MES_CLUSTER,   attribute: 'apparentPower',                      type: NUMBER, unit: 'VA',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Puissance Apparente Ph B',      desc: 'Puissance Apparente Phase B',                         cluster: ELEC_MES_CLUSTER,   attribute: 'apparentPowerPhB',                   type: NUMBER, unit: 'VA',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Puissance Apparente Ph C',      desc: 'Puissance Apparente Phase C',                         cluster: ELEC_MES_CLUSTER,   attribute: 'apparentPowerPhC',                   type: NUMBER, unit: 'VA',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Index énergie injectée',        desc: 'Index énergie injectée',                              cluster: METERING_CLUSTER,   attribute: 'currentSummReceived',                type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: true},
-    {name: 'Puissance injectée',            desc: 'Puissance injectée',                                  cluster: TICMETER_CLUSTER,   attribute: 'powerInjected',                      type: NUMBER, unit: 'VA',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: true},
-    {name: 'Puissance max injectée Auj.',   desc: 'Puissance max injectée Aujourd\'hui',                 cluster: TICMETER_CLUSTER,   attribute: 'powerMaxInjected',                   type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: true},
-    {name: 'Heure PMAX injectée Auj.',      desc: 'Date et Heure puissance max injectée aujourd\'hui',   cluster: TICMETER_CLUSTER,   attribute: 'powerMaxInjectedTime',               type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: true},
-    {name: 'Puissance max injectée Hier',   desc: 'Puissance max injectée Hier',                         cluster: TICMETER_CLUSTER,   attribute: 'powerMaxInjectedYesterday',          type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: true},
-    {name: 'Heure PMAX injectée Hier',      desc: 'Date et Heure puissance max injectée hier',           cluster: TICMETER_CLUSTER,   attribute: 'powerMaxInjectedYesterdayTime',      type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: true},
-    {name: 'Présence de potentiels',        desc: 'Présence de potentiels',                              cluster: TICMETER_CLUSTER,   attribute: 'potentialPresence',                  type: NUMBER, unit: '',     poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Horaire Heures Creuses',        desc: 'Horaire Heures Creuses',                              cluster: TICMETER_CLUSTER,   attribute: 'hcHours',                            type: STRING, unit: '',     poll: false,  tic: T.ANY,  contract: C.HCHP,  elec: E.ANY,  producer: false},
-    {name: 'Registre Status',               desc: 'Registre de status du compteur',                      cluster: TICMETER_CLUSTER,   attribute: 'motdetat',                           type: STRING, unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Index 1 Distributeur',          desc: 'Index 1 Energie soutirée Distributeur',               cluster: TICMETER_CLUSTER,   attribute: 'index1Dist',                         type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Index 2 Distributeur',          desc: 'Index 2 Energie soutirée Distributeur',               cluster: TICMETER_CLUSTER,   attribute: 'index2Dist',                         type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Index 3 Distributeur',          desc: 'Index 3 Energie soutirée Distributeur',               cluster: TICMETER_CLUSTER,   attribute: 'index3Dist',                         type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Index 4 Distributeur',          desc: 'Index 4 Energie soutirée Distributeur',               cluster: TICMETER_CLUSTER,   attribute: 'index4Dist',                         type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Tension instantanée',           desc: 'Tension instantanée efficace',                        cluster: ELEC_MES_CLUSTER,   attribute: 'rmsVoltage',                         type: NUMBER, unit: 'V',    poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.MONO, producer: false},
-    {name: 'Tension instantanée Ph A',      desc: 'Tension instantanée efficace Phase A',                cluster: ELEC_MES_CLUSTER,   attribute: 'rmsVoltage',                         type: NUMBER, unit: 'V',    poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Tension instantanée Ph B',      desc: 'Tension instantanée efficace Phase B',                cluster: ELEC_MES_CLUSTER,   attribute: 'rmsVoltagePhB',                      type: NUMBER, unit: 'V',    poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Tension instantanée Ph C',      desc: 'Tension instantanée efficace Phase C',                cluster: ELEC_MES_CLUSTER,   attribute: 'rmsVoltagePhC',                      type: NUMBER, unit: 'V',    poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Tension moyenne',               desc: 'Tension moyenne',                                     cluster: ELEC_MES_CLUSTER,   attribute: 'averageRmsVoltageMeasPeriod',        type: NUMBER, unit: 'V',    poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.MONO, producer: false},
-    {name: 'Tension moyenne Ph A',          desc: 'Tension moyenne Phase A',                             cluster: ELEC_MES_CLUSTER,   attribute: 'averageRmsVoltageMeasPeriod',        type: NUMBER, unit: 'V',    poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Tension moyenne Ph B',          desc: 'Tension moyenne Phase B',                             cluster: ELEC_MES_CLUSTER,   attribute: 'averageRmsVoltageMeasurePeriodPhB',  type: NUMBER, unit: 'V',    poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Tension moyenne Ph C',          desc: 'Tension moyenne Phase C',                             cluster: ELEC_MES_CLUSTER,   attribute: 'averageRmsVoltageMeasPeriodPhC',     type: NUMBER, unit: 'V',    poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Puissance max Auj',             desc: 'Puissance max Aujourd\'hui',                          cluster: ELEC_MES_CLUSTER,   attribute: 'activePowerMax',                     type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.MONO, producer: false},
-    {name: 'Heure Puissance max Auj',       desc: 'Date et Heure de la puissance max aujourd\'hui',      cluster: TICMETER_CLUSTER,   attribute: 'powerMaxTodayTime',                  type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.MONO, producer: false},
-    {name: 'Puissance max Auj Ph A',        desc: 'Puissance max Aujourd\'hui Phase A',                  cluster: ELEC_MES_CLUSTER,   attribute: 'activePowerMax',                     type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Heure Puissance max Auj Ph A',  desc: 'Date et Heure de la puissance max aujourd\'hui Ph A', cluster: TICMETER_CLUSTER,   attribute: 'powerMaxToday1Time',                 type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Puissance max Auj Ph B',        desc: 'Puissance max Aujourd\'hui Phase B',                  cluster: ELEC_MES_CLUSTER,   attribute: 'activePowerMaxPhB',                  type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Heure Puissance max Auj Ph B',  desc: 'Date et Heure de la puissance max aujourd\'hui Ph B', cluster: TICMETER_CLUSTER,   attribute: 'powerMaxToday2Time',                 type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Puissance max Auj Ph C',        desc: 'Puissance max Aujourd\'hui Phase C',                  cluster: ELEC_MES_CLUSTER,   attribute: 'activePowerMaxPhC',                  type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Heure Puissance max Auj Ph C',  desc: 'Date et Heure de la puissance max aujourd\'hui Ph C', cluster: TICMETER_CLUSTER,   attribute: 'powerMaxToday3Time',                 type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Puissance maximale triphasée',  desc: 'Puissance maximale triphasée',                        cluster: ELEC_MES_CLUSTER,   attribute: 'activePowerMax',                     type: NUMBER, unit: 'W',    poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Puissance max Hier',            desc: 'Puissance max Hier',                                  cluster: TICMETER_CLUSTER,   attribute: 'powerMaxYesterday',                  type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.MONO, producer: false},
-    {name: 'Heure Puissance max Hier',      desc: 'Date et Heure de la puissance max hier',              cluster: TICMETER_CLUSTER,   attribute: 'powerMaxYesterdayTime',              type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.MONO, producer: false},
-    {name: 'Puissance max Hier Ph A',       desc: 'Puissance max Hier Phase A',                          cluster: TICMETER_CLUSTER,   attribute: 'powerMaxYesterday1',                 type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Heure Puissance max Hier Ph A', desc: 'Date et Heure de la puissance max hier Ph A',         cluster: TICMETER_CLUSTER,   attribute: 'powerMaxYesterday1Time',             type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Puissance max Hier Ph B',       desc: 'Puissance max Hier Phase B',                          cluster: TICMETER_CLUSTER,   attribute: 'powerMaxYesterday2',                 type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Heure Puissance max Hier Ph B', desc: 'Date et Heure de la puissance max hier Ph B',         cluster: TICMETER_CLUSTER,   attribute: 'powerMaxYesterday2Time',             type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Puissance max Hier Ph C',       desc: 'Puissance max Hier Phase C',                          cluster: TICMETER_CLUSTER,   attribute: 'powerMaxYesterday3',                 type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Heure Puissance max Hier Ph C', desc: 'Date et Heure de la puissance max hier Ph C',         cluster: TICMETER_CLUSTER,   attribute: 'powerMaxYesterday3Time',             type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  producer: false},
-    {name: 'Index en cours',                desc: 'Numeréo de l\'index tarifaire en cours',              cluster: TICMETER_CLUSTER,   attribute: 'currentIndex',                       type: NUMBER, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'N° jours en cours',             desc: 'N° jours en cours fournisseur',                       cluster: TICMETER_CLUSTER,   attribute: 'calendarSupplierDay',                type: NUMBER, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'N° prochain jour',              desc: 'N° prochain jour fournisseur',                        cluster: TICMETER_CLUSTER,   attribute: 'nextSupplierCalendarDay',            type: NUMBER, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Relais',                        desc: 'Relais virtuel du compteur',                          cluster: TICMETER_CLUSTER,   attribute: 'relays',                             type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'PMR',                           desc: 'Identifiant Point Référence Mesure',                  cluster: METERING_CLUSTER,   attribute: 'siteId',                             type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Message court',                 desc: 'Message court',                                       cluster: TICMETER_CLUSTER,   attribute: 'shortMsg',                           type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Message ultra court',           desc: 'Message ultra court',                                 cluster: TICMETER_CLUSTER,   attribute: 'ultraShortMsg',                      type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Version de la TIC',             desc: 'Version de la TIC',                                   cluster: TICMETER_CLUSTER,   attribute: 'ticVersion',                         type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Date et heure Compteur',        desc: 'Date et heure du compteur',                           cluster: TICMETER_CLUSTER,   attribute: 'date',                               type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Profil prochain jour',          desc: 'Profil du prochain jour',                             cluster: TICMETER_CLUSTER,   attribute: 'calendarDay',                        type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Profil prochain jour pointe',   desc: 'Profil du prochain jour pointe',                      cluster: TICMETER_CLUSTER,   attribute: 'calendarDayPointe',                  type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Point n courbe soutirée',       desc: 'Point n de la courbe de charge active soutirée',      cluster: ELEC_MES_CLUSTER,   attribute: 'activePower',                        type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Point n-1 courbe soutirée',     desc: 'Point n-1 de la courbe de charge active soutirée',    cluster: ELEC_MES_CLUSTER,   attribute: 'activePowerPhB',                     type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Point n courbe injectée',       desc: 'Point n de la courbe de charge active injectée',      cluster: TICMETER_CLUSTER,   attribute: 'injectedLoadN',                      type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: true},
-    {name: 'Point n-1 courbe injectée',     desc: 'Point n-1 de la courbe de charge active injectée',    cluster: TICMETER_CLUSTER,   attribute: 'injectedLoadN_1',                    type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: true},
-    {name: 'Energie réactive Q1 totale',    desc: 'Energie réactive Q1 totale',                          cluster: ELEC_MES_CLUSTER,   attribute: 'totalReactivePower',                 type: NUMBER, unit: 'VARh', poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Energie réactive Q2 totale',    desc: 'Energie réactive Q2 totale',                          cluster: ELEC_MES_CLUSTER,   attribute: 'reactivePower',                      type: NUMBER, unit: 'VARh', poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Energie réactive Q3 totale',    desc: 'Energie réactive Q3 totale',                          cluster: ELEC_MES_CLUSTER,   attribute: 'reactivePowerPhB',                   type: NUMBER, unit: 'VARh', poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Energie réactive Q4 totale',    desc: 'Energie réactive Q4 totale',                          cluster: ELEC_MES_CLUSTER,   attribute: 'reactivePowerPhC',                   type: NUMBER, unit: 'VARh', poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  producer: false},
-    {name: 'Début Pointe Mobile 1',         desc: 'Début Pointe Mobile 1',                               cluster: TICMETER_CLUSTER,   attribute: 'startEJP1',                          type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  producer: false},
-    {name: 'Fin Pointe Mobile 1',           desc: 'Fin Pointe Mobile 1',                                 cluster: TICMETER_CLUSTER,   attribute: 'stopEJP1',                           type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  producer: false},
-    {name: 'Début Pointe Mobile 2',         desc: 'Début Pointe Mobile 2',                               cluster: TICMETER_CLUSTER,   attribute: 'startEJP2',                          type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  producer: false},
-    {name: 'Fin Pointe Mobile 2',           desc: 'Fin Pointe Mobile 2',                                 cluster: TICMETER_CLUSTER,   attribute: 'stopEJP2',                           type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  producer: false},
-    {name: 'Début Pointe Mobile 3',         desc: 'Début Pointe Mobile 3',                               cluster: TICMETER_CLUSTER,   attribute: 'startEJP3',                          type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  producer: false},
-    {name: 'Fin Pointe Mobile 3',           desc: 'Fin Pointe Mobile 3',                                 cluster: TICMETER_CLUSTER,   attribute: 'stopEJP3',                           type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  producer: false},
+    {id: 0,   name: 'TIC Mode',                          desc: 'TIC Communication Mode',                     clust: CLUSTER_TIC,   attr: 'ticMode',                            type: ENUM,   unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  prod: false, values: modeTICEnum},
+    {id: 1,   name: 'Electric Mode',                     desc: 'Meter Electric Mode',                        clust: CLUSTER_TIC,   attr: 'elecMode',                           type: ENUM,   unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  prod: false, values: modeElecEnum},
+    {id: 2,   name: 'Tariff Option',                     desc: 'Tariff Option',                              clust: CLUSTER_TIC,   attr: 'contractType',                       type: STRING, unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 3,   name: 'Uptime',                            desc: 'Duration since last restart',                clust: CLUSTER_TIC,   attr: 'uptime',                             type: NUMBER, unit: 's',    poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 4,   name: 'Refresh Rate',                      desc: 'Time between refreshes',                     clust: CLUSTER_TIC,   attr: 'refreshRate',                        type: NUM_RW, unit: 's',    poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  prod: false, min: 30, max: 300},
+    {id: 5,   name: 'Identifier',                        desc: 'Meter serial number',                        clust: CLUSTER_MET,   attr: 'meterSerialNumber',                  type: STRING, unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 6,   name: 'Max Contract Power',                desc: 'Max Contract Power',                         clust: CLUSTER_TIC,   attr: 'maxContractPower',                   type: NUMBER, unit: 'kVA',  poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 7,   name: 'Total Index',                       desc: 'Sum of all Index',                           clust: CLUSTER_MET,   attr: 'currentSummDelivered',               type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 8,   name: 'BASE Index',                        desc: 'Base Tariff Index',                          clust: CLUSTER_MET,   attr: 'currentTier1SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.BASE,  elec: E.ANY,  prod: false},
+    {id: 9,   name: 'Off-Peak Index',                    desc: 'Off-Peak Tariff Index',                      clust: CLUSTER_MET,   attr: 'currentTier1SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.HCHP,  elec: E.ANY,  prod: false},
+    {id: 10,  name: 'Peak Index',                        desc: 'Peak Tariff Index',                          clust: CLUSTER_MET,   attr: 'currentTier2SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.HCHP,  elec: E.ANY,  prod: false},
+    {id: 11,  name: 'EJP Normal Hours Index',            desc: 'EJP Normal Hours Tariff Index',              clust: CLUSTER_MET,   attr: 'currentTier1SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  prod: false},
+    {id: 12,  name: 'EJP Mobile Peak Hours Index',       desc: 'EJP Mobile Peak Hours Tariff Index',         clust: CLUSTER_MET,   attr: 'currentTier2SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  prod: false},
+    {id: 13,  name: 'EJP Notice',                        desc: 'EJP Notice',                                 clust: CLUSTER_TIC,   attr: 'startEJP',                           type: STRING, unit: '',     poll: false,  tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  prod: false},
+    {id: 14,  name: 'BBRHCJB Index',                     desc: 'Blue Days Off-Peak Tariff Index',            clust: CLUSTER_MET,   attr: 'currentTier1SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  prod: false},
+    {id: 15,  name: 'BBRHPJB Index',                     desc: 'Blue Days Peak Tariff Index',                clust: CLUSTER_MET,   attr: 'currentTier2SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  prod: false},
+    {id: 16,  name: 'BBRHCJW Index',                     desc: 'White Days Off-Peak Tariff Index',           clust: CLUSTER_MET,   attr: 'currentTier3SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  prod: false},
+    {id: 17,  name: 'BBRHPJW Index',                     desc: 'White Days Peak Tariff Index',               clust: CLUSTER_MET,   attr: 'currentTier4SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  prod: false},
+    {id: 18,  name: 'BBRHCJR Index',                     desc: 'Red Days Off-Peak Tariff Index',             clust: CLUSTER_MET,   attr: 'currentTier5SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  prod: false},
+    {id: 19,  name: 'BBRHPJR Index',                     desc: 'Red Days Peak Tariff Index',                 clust: CLUSTER_MET,   attr: 'currentTier6SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  prod: false},
+    {id: 20,  name: 'Index 7',                           desc: 'Index 7',                                    clust: CLUSTER_MET,   attr: 'currentTier7SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 21,  name: 'Index 8',                           desc: 'Index 8',                                    clust: CLUSTER_MET,   attr: 'currentTier8SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 22,  name: 'Index 9',                           desc: 'Index 9',                                    clust: CLUSTER_MET,   attr: 'currentTier9SummDelivered',          type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 23,  name: 'Index 10',                          desc: 'Index 10',                                   clust: CLUSTER_MET,   attr: 'currentTier10SummDelivered',         type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 24,  name: 'Current Tariff',                    desc: 'Current Tariff Option',                      clust: CLUSTER_TIC,   attr: 'currentTarif',                       type: STRING, unit: '',     poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 25,  name: 'Tomorrow Color',                    desc: 'Tomorrow Color',                             clust: CLUSTER_TIC,   attr: 'tomorowColor',                       type: STRING, unit: '',     poll: false,  tic: T.ANY,  contract: C.TEMPO, elec: E.ANY,  prod: false},
+    {id: 26,  name: 'Instant Intensity',                 desc: 'Instant Intensity',                          clust: CLUSTER_ELE,   attr: 'rmsCurrent',                         type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.MONO, prod: false},
+    {id: 27,  name: 'Instant Intensity Phase A',         desc: 'Instant Intensity Phase A',                  clust: CLUSTER_ELE,   attr: 'rmsCurrent',                         type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 28,  name: 'Instant Intensity Phase B',         desc: 'Instant Intensity Phase B',                  clust: CLUSTER_ELE,   attr: 'rmsCurrentPhB',                      type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 29,  name: 'Instant Intensity Phase C',         desc: 'Instant Intensity Phase C',                  clust: CLUSTER_ELE,   attr: 'rmsCurrentPhC',                      type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 30,  name: 'Max Intensity',                     desc: 'Max Intensity',                              clust: CLUSTER_ELE,   attr: 'rmsCurrentMax',                      type: NUMBER, unit: 'A',    poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.MONO, prod: false},
+    {id: 31,  name: 'Max Intensity Phase A',             desc: 'Max Intensity Phase A',                      clust: CLUSTER_ELE,   attr: 'rmsCurrentMax',                      type: NUMBER, unit: 'A',    poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 32,  name: 'Max Intensity Phase B',             desc: 'Max Intensity Phase B',                      clust: CLUSTER_ELE,   attr: 'rmsCurrentMaxPhB',                   type: NUMBER, unit: 'A',    poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 33,  name: 'Max Intensity Phase C',             desc: 'Max Intensity Phase C',                      clust: CLUSTER_ELE,   attr: 'rmsCurrentMaxPhC',                   type: NUMBER, unit: 'A',    poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 34,  name: 'Power Exceedance',                  desc: 'Power Exceedance',                           clust: CLUSTER_TIC,   attr: 'powerOverrun',                       type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.MONO, prod: false},
+    {id: 35,  name: 'Power Exceedance Phase A',          desc: 'Power Exceedance Phase A',                   clust: CLUSTER_TIC,   attr: 'powerOverrunA',                      type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 36,  name: 'Power Exceedance Phase B',          desc: 'Power Exceedance Phase B',                   clust: CLUSTER_TIC,   attr: 'powerOverrunB',                      type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 37,  name: 'Power Exceedance Phase C',          desc: 'Power Exceedance Phase C',                   clust: CLUSTER_TIC,   attr: 'powerOverrunC',                      type: NUMBER, unit: 'A',    poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 38,  name: 'Apparent Power',                    desc: 'Apparent Power',                             clust: CLUSTER_ELE,   attr: 'apparentPower',                      type: NUMBER, unit: 'VA',   poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 39,  name: 'Apparent Power Phase A',            desc: 'Apparent Power Phase A',                     clust: CLUSTER_ELE,   attr: 'apparentPower',                      type: NUMBER, unit: 'VA',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 40,  name: 'Apparent Power Phase B',            desc: 'Apparent Power Phase B',                     clust: CLUSTER_ELE,   attr: 'apparentPowerPhB',                   type: NUMBER, unit: 'VA',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 41,  name: 'Apparent Power Phase C',            desc: 'Apparent Power Phase C',                     clust: CLUSTER_ELE,   attr: 'apparentPowerPhC',                   type: NUMBER, unit: 'VA',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 42,  name: 'Injected Energy Index',             desc: 'Injected Energy Index',                      clust: CLUSTER_MET,   attr: 'currentSummReceived',                type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: true},
+    {id: 43,  name: 'Injected Power',                    desc: 'Injected Power',                             clust: CLUSTER_TIC,   attr: 'powerInjected',                      type: NUMBER, unit: 'VA',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: true},
+    {id: 44,  name: 'Today Max Injected Power',          desc: 'Max Injected Power Today',                   clust: CLUSTER_TIC,   attr: 'powerMaxInjected',                   type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: true},
+    {id: 45,  name: 'Today Time Max Injected Power',     desc: 'Date and Time of Today Max Injected ',       clust: CLUSTER_TIC,   attr: 'powerMaxInjectedTime',               type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: true},
+    {id: 46,  name: 'Yesterday Max Injected Power',      desc: 'Max Injected Power Yesterday',               clust: CLUSTER_TIC,   attr: 'powerMaxInjectedYesterday',          type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: true},
+    {id: 47,  name: 'Yesterday Time Max Injected Power', desc: 'Date and Time of Yesterday Max Injected',    clust: CLUSTER_TIC,   attr: 'powerMaxInjectedYesterdayTime',      type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: true},
+    {id: 48,  name: 'Potential Presence',                desc: 'Potential Presence',                         clust: CLUSTER_TIC,   attr: 'potentialPresence',                  type: NUMBER, unit: '',     poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 49,  name: 'Off-Peak Hours Schedule',           desc: 'Off-Peak Hours Schedule',                    clust: CLUSTER_TIC,   attr: 'hcHours',                            type: STRING, unit: '',     poll: false,  tic: T.ANY,  contract: C.HCHP,  elec: E.ANY,  prod: false},
+    {id: 50,  name: 'Status Register',                   desc: 'Meter Status Register',                      clust: CLUSTER_TIC,   attr: 'motdetat',                           type: STRING, unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 51,  name: 'Distributor Index 1',               desc: 'Distributor Drawn Energy Index 1',           clust: CLUSTER_TIC,   attr: 'index1Dist',                         type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 52,  name: 'Distributor Index 2',               desc: 'Distributor Drawn Energy Index 2',           clust: CLUSTER_TIC,   attr: 'index2Dist',                         type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 53,  name: 'Distributor Index 3',               desc: 'Distributor Drawn Energy Index 3',           clust: CLUSTER_TIC,   attr: 'index3Dist',                         type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 54,  name: 'Distributor Index 4',               desc: 'Distributor Drawn Energy Index 4',           clust: CLUSTER_TIC,   attr: 'index4Dist',                         type: NUMBER, unit: 'Wh',   poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 55,  name: 'Instantaneous Voltage',             desc: 'Instantaneous Effective Voltage',            clust: CLUSTER_ELE,   attr: 'rmsVoltage',                         type: NUMBER, unit: 'V',    poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.MONO, prod: false},
+    {id: 56,  name: 'Instantaneous Voltage Phase A',     desc: 'Instantaneous Effective Voltage Phase A',    clust: CLUSTER_ELE,   attr: 'rmsVoltage',                         type: NUMBER, unit: 'V',    poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 57,  name: 'Instantaneous Voltage Phase B',     desc: 'Instantaneous Effective Voltage Phase B',    clust: CLUSTER_ELE,   attr: 'rmsVoltagePhB',                      type: NUMBER, unit: 'V',    poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 58,  name: 'Instantaneous Voltage Phase C',     desc: 'Instantaneous Effective Voltage Phase C',    clust: CLUSTER_ELE,   attr: 'rmsVoltagePhC',                      type: NUMBER, unit: 'V',    poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 59,  name: 'Average Voltage',                   desc: 'Average Voltage',                            clust: CLUSTER_ELE,   attr: 'averageRmsVoltageMeasPeriod',        type: NUMBER, unit: 'V',    poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.MONO, prod: false},
+    {id: 60,  name: 'Average Voltage Phase A',           desc: 'Average Voltage Phase A',                    clust: CLUSTER_ELE,   attr: 'averageRmsVoltageMeasPeriod',        type: NUMBER, unit: 'V',    poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 61,  name: 'Average Voltage Phase B',           desc: 'Average Voltage Phase B',                    clust: CLUSTER_ELE,   attr: 'averageRmsVoltageMeasurePeriodPhB',  type: NUMBER, unit: 'V',    poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 62,  name: 'Average Voltage Phase C',           desc: 'Average Voltage Phase C',                    clust: CLUSTER_ELE,   attr: 'averageRmsVoltageMeasPeriodPhC',     type: NUMBER, unit: 'V',    poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 63,  name: 'Today Max Power',                   desc: 'Max Power Today',                            clust: CLUSTER_ELE,   attr: 'activePowerMax',                     type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.MONO, prod: false},
+    {id: 64,  name: 'Time Today Max Power',              desc: 'Date and Time of Max Power Today',           clust: CLUSTER_TIC,   attr: 'powerMaxTodayTime',                  type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.MONO, prod: false},
+    {id: 65,  name: 'Today Max Power Phase A',           desc: 'Max Power Today Phase A',                    clust: CLUSTER_ELE,   attr: 'activePowerMax',                     type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 66,  name: 'Time Today Max Power Phase A',      desc: 'Date and Time of Today Max Power Phase A',   clust: CLUSTER_TIC,   attr: 'powerMaxToday1Time',                 type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 67,  name: 'Today Max Power Phase B',           desc: 'Max Power Today Phase B',                    clust: CLUSTER_ELE,   attr: 'activePowerMaxPhB',                  type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 68,  name: 'Time Today Max Power Phase B',      desc: 'Date and Time of Max Power Today Phase B',   clust: CLUSTER_TIC,   attr: 'powerMaxToday2Time',                 type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 69,  name: 'Today Max Power Phase C',           desc: 'Max Power Today Phase C',                    clust: CLUSTER_ELE,   attr: 'activePowerMaxPhC',                  type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 70,  name: 'Time Today Max Power Phase C',      desc: 'Date and Time of Max Power Today Phase C',   clust: CLUSTER_TIC,   attr: 'powerMaxToday3Time',                 type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 71,  name: 'Three-Phase Max Power',             desc: 'Three-Phase Max Power',                      clust: CLUSTER_ELE,   attr: 'activePowerMax',                     type: NUMBER, unit: 'W',    poll: true,   tic: T.HIST, contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 72,  name: 'Yesterday Max Power',               desc: 'Max Power Yesterday',                        clust: CLUSTER_TIC,   attr: 'powerMaxYesterday',                  type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.MONO, prod: false},
+    {id: 73,  name: 'Time Yesterday Max Power',          desc: 'Date and Time of Max Power Yesterday',       clust: CLUSTER_TIC,   attr: 'powerMaxYesterdayTime',              type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.MONO, prod: false},
+    {id: 74,  name: 'Max Yesterday Power Phase A',       desc: 'Max Power Yesterday Phase A',                clust: CLUSTER_TIC,   attr: 'powerMaxYesterday1',                 type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 75,  name: 'Time Yesterday Max Power Phase A',  desc: 'DateTime of Max Power Yesterday Phase A',    clust: CLUSTER_TIC,   attr: 'powerMaxYesterday1Time',             type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 76,  name: 'Max Yesterday Power Phase B',       desc: 'Max Power Yesterday Phase B',                clust: CLUSTER_TIC,   attr: 'powerMaxYesterday2',                 type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 77,  name: 'Time Yesterday Max Power Phase B',  desc: 'DateTime of Max Power Yesterday Phase B',    clust: CLUSTER_TIC,   attr: 'powerMaxYesterday2Time',             type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 78,  name: 'Max Yesterday Power Phase C',       desc: 'Max Power Yesterday Phase C',                clust: CLUSTER_TIC,   attr: 'powerMaxYesterday3',                 type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 79,  name: 'Time Yesterday Max Power Phase C',  desc: 'DateTime of Max Power Yesterday Phase C',    clust: CLUSTER_TIC,   attr: 'powerMaxYesterday3Time',             type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.TRI,  prod: false},
+    {id: 80,  name: 'Current Index',                     desc: 'Current Tariff Index Number',                clust: CLUSTER_TIC,   attr: 'currentIndex',                       type: NUMBER, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 81,  name: 'Current Days Number',               desc: 'Current Supplier Days Number',               clust: CLUSTER_TIC,   attr: 'calendarSupplierDay',                type: NUMBER, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 82,  name: 'Next Day Number',                   desc: 'Next Supplier Day Number',                   clust: CLUSTER_TIC,   attr: 'nextSupplierCalendarDay',            type: NUMBER, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 83,  name: 'Relay',                             desc: 'Meter Virtual Relay',                        clust: CLUSTER_TIC,   attr: 'relays',                             type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 84,  name: 'PMR',                               desc: 'Measurement Reference Point Identifier',     clust: CLUSTER_MET,   attr: 'siteId',                             type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 85,  name: 'Short Message',                     desc: 'Short Message',                              clust: CLUSTER_TIC,   attr: 'shortMsg',                           type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 86,  name: 'Ultra-Short Message',               desc: 'Ultra-Short Message',                        clust: CLUSTER_TIC,   attr: 'ultraShortMsg',                      type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 87,  name: 'TIC Version',                       desc: 'TIC Version',                                clust: CLUSTER_TIC,   attr: 'ticVersion',                         type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 88,  name: 'Meter Date and Time',               desc: 'Meter Date and Time',                        clust: CLUSTER_TIC,   attr: 'date',                               type: TIME,   unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 89,  name: 'Next Day Profile',                  desc: 'Next Day Profile',                           clust: CLUSTER_TIC,   attr: 'calendarDay',                        type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 90,  name: 'Next Day Peak Profile',             desc: 'Next Day Peak Profile',                      clust: CLUSTER_TIC,   attr: 'calendarDayPointe',                  type: STRING, unit: '',     poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 91,  name: 'Current Drawn Curve Point',         desc: 'Current Drawn Active Load Curve Point',      clust: CLUSTER_ELE,   attr: 'activePower',                        type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 92,  name: 'Previous Drawn Curve Point',        desc: 'Previous Drawn Active Load Curve Point',     clust: CLUSTER_ELE,   attr: 'activePowerPhB',                     type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 93,  name: 'Current Injected Curve Point',      desc: 'Current Injected Active Load Curve Point',   clust: CLUSTER_TIC,   attr: 'injectedLoadN',                      type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: true},
+    {id: 94,  name: 'Previous Injected Curve Point',     desc: 'Previous Injected Active Load Curve Point',  clust: CLUSTER_TIC,   attr: 'injectedLoadN_1',                    type: NUMBER, unit: 'VA',   poll: true,   tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: true},
+    {id: 95,  name: 'Total Reactive Energy Q1',          desc: 'Total Reactive Energy Q1',                   clust: CLUSTER_ELE,   attr: 'totalReactivePower',                 type: NUMBER, unit: 'VARh', poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 96,  name: 'Total Reactive Energy Q2',          desc: 'Total Reactive Energy Q2',                   clust: CLUSTER_ELE,   attr: 'reactivePower',                      type: NUMBER, unit: 'VARh', poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 97,  name: 'Total Reactive Energy Q3',          desc: 'Total Reactive Energy Q3',                   clust: CLUSTER_ELE,   attr: 'reactivePowerPhB',                   type: NUMBER, unit: 'VARh', poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 98,  name: 'Total Reactive Energy Q4',          desc: 'Total Reactive Energy Q4',                   clust: CLUSTER_ELE,   attr: 'reactivePowerPhC',                   type: NUMBER, unit: 'VARh', poll: false,  tic: T.STD,  contract: C.ANY,   elec: E.ANY,  prod: false},
+    {id: 99,  name: 'Start Mobile Peak 1',               desc: 'Start Mobile Peak 1',                        clust: CLUSTER_TIC,   attr: 'startEJP1',                          type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  prod: false},
+    {id: 100, name: 'End Mobile Peak 1',                 desc: 'End Mobile Peak 1',                          clust: CLUSTER_TIC,   attr: 'stopEJP1',                           type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  prod: false},
+    {id: 101, name: 'Start Mobile Peak 2',               desc: 'Start Mobile Peak 2',                        clust: CLUSTER_TIC,   attr: 'startEJP2',                          type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  prod: false},
+    {id: 102, name: 'End Mobile Peak 2',                 desc: 'End Mobile Peak 2',                          clust: CLUSTER_TIC,   attr: 'stopEJP2',                           type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  prod: false},
+    {id: 103, name: 'Start Mobile Peak 3',               desc: 'Start Mobile Peak 3',                        clust: CLUSTER_TIC,   attr: 'startEJP3',                          type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  prod: false},
+    {id: 104, name: 'End Mobile Peak 3',                 desc: 'End Mobile Peak 3',                          clust: CLUSTER_TIC,   attr: 'stopEJP3',                           type: TIME,   unit: '',     poll: true,   tic: T.ANY,  contract: C.EJP,   elec: E.ANY,  prod: false},
 ];
 
 const ticmeterCustomCluster = {
@@ -298,7 +433,7 @@ function ticmeterConverter(msg: Fz.Message) {
     const result: KeyValue = {};
     const keys = Object.keys(msg.data);
     keys.forEach((key) => {
-        const found = ticmeterDatas.find((x) => x.attribute == key);
+        const found = ticmeterDatas.find((x) => x.attr == key);
         if (found) {
             let value;
             switch (found.type) {
@@ -324,7 +459,7 @@ function ticmeterConverter(msg: Fz.Message) {
                 value = new Date(msg.data[key] * 1000).toLocaleString('fr-FR', {timeZone: 'Europe/Paris'});
                 break;
             }
-            result[toSnakeCase(found.attribute)] = value;
+            result[toSnakeCase(found.attr)] = value;
         } else {
             logger.warning(`Key not found: ${key}`, 'TICMeter');
         }
@@ -342,7 +477,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 
     ticmeter_cluster_fz: {
-        cluster: TICMETER_CLUSTER,
+        cluster: CLUSTER_TIC,
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return ticmeterConverter(msg);
@@ -361,11 +496,11 @@ const fzLocal = {
 function genereateTzLocal() {
     const tzLocal = [];
     for (const item of ticmeterDatas) {
-        const key = toSnakeCase(item.attribute);
+        const key = toSnakeCase(item.attr);
         const tz : Tz.Converter = {
             key: [key],
             convertGet: async (entity, key, meta) => {
-                await entity.read(item.cluster, [item.attribute]);
+                await entity.read(item.clust, [item.attr]);
             },
         } satisfies Tz.Converter;
         if (item.type == NUM_RW) {
@@ -373,7 +508,7 @@ function genereateTzLocal() {
                 if (Number(value) < 0 || Number(value) > 65535) {
                     throw new Error('Value must be between 0 and 65535');
                 }
-                await entity.write(item.cluster, {[item.attribute]: value}, {manufacturerCode: null});
+                await entity.write(item.clust, {[item.attr]: value}, {manufacturerCode: null});
             };
         }
         tzLocal.push(tz);
@@ -401,24 +536,28 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
 
     let toRead = [];
     for (const item of ticmeterDatas) {
-        if (item.poll && (item.tic == currentTIC || item.tic == T.ANY) && (item.contract == currentContract || item.contract == C.ANY) && (item.elec == currentElec || item.elec == E.ANY) && (item.producer == currentProducer || item.producer == false)) {
+        if (item.poll &&
+            (item.tic == currentTIC || item.tic == T.ANY) &&
+            (item.contract == currentContract || item.contract == C.ANY) &&
+            (item.elec == currentElec || item.elec == E.ANY) &&
+            (item.prod == currentProducer || item.prod == false)) {
             toRead.push(item);
         }
     }
 
-    toRead = toRead.sort((a, b) => a.cluster.localeCompare(b.cluster));
+    toRead = toRead.sort((a, b) => a.clust.localeCompare(b.clust));
     const groupedByCluster: { [key: string]: TICMeterData[] } = {};
     toRead.forEach((item) => {
-        if (!groupedByCluster[item.cluster]) {
-            groupedByCluster[item.cluster] = [];
+        if (!groupedByCluster[item.clust]) {
+            groupedByCluster[item.clust] = [];
         }
-        groupedByCluster[item.cluster].push(item);
+        groupedByCluster[item.clust].push(item);
     });
     const splited = Object.keys(groupedByCluster).map((cluster) => {
         return {
             cluster: cluster,
             attributes: splitTab(
-                groupedByCluster[cluster].map((item: TICMeterData) => item.attribute),
+                groupedByCluster[cluster].map((item: TICMeterData) => item.attr),
                 3,
             ),
         };
@@ -469,6 +608,7 @@ const definitions: Definition[] = [
             let currentElec: string = '';
             let currentTIC: string = '';
             let currentProducer:string = '';
+            let translation: string = '';
 
             if (device == null) {
                 return exposes;
@@ -481,9 +621,9 @@ const definitions: Definition[] = [
             }
 
 
-            if (endpoint != null && endpoint.hasOwnProperty('clusters') && endpoint.clusters[TICMETER_CLUSTER] != undefined) {
-                if (endpoint.clusters[TICMETER_CLUSTER].hasOwnProperty('attributes') && endpoint.clusters[TICMETER_CLUSTER].attributes != undefined) {
-                    const attr = endpoint.clusters[TICMETER_CLUSTER].attributes;
+            if (endpoint != null && endpoint.hasOwnProperty('clusters') && endpoint.clusters[CLUSTER_TIC] != undefined) {
+                if (endpoint.clusters[CLUSTER_TIC].hasOwnProperty('attributes') && endpoint.clusters[CLUSTER_TIC].attributes != undefined) {
+                    const attr = endpoint.clusters[CLUSTER_TIC].attributes;
 
                     if (globalStore.getValue(device, 'tic_mode') == undefined) {
                         if (attr.hasOwnProperty('ticMode') && attr.ticMode != null) {
@@ -564,10 +704,17 @@ const definitions: Definition[] = [
                 }
             }
 
+            if (options && options.hasOwnProperty('translation')) {
+                translation = String(options.translation);
+            } else {
+                translation = TRANSLATION_FR;
+            }
+
             globalStore.putValue(device, 'contract_type', currentContract);
             globalStore.putValue(device, 'elec_mode', currentElec);
             globalStore.putValue(device, 'tic_mode', currentTIC);
             globalStore.putValue(device, 'producer', currentProducer);
+            globalStore.putValue(device, 'translation', translation);
 
 
             ticmeterDatas.forEach((item) => {
@@ -599,8 +746,8 @@ const definitions: Definition[] = [
                     logger.warning(`No tic for ${item.name}`, 'TICMeter');
                 }
 
-                if (item.hasOwnProperty('producer')) {
-                    if (item['producer'] == true && currentProducer == 'OFF') {
+                if (item.hasOwnProperty('prod')) {
+                    if (item['prod'] == true && currentProducer == 'OFF') {
                         producerOK = false;
                     }
                 } else {
@@ -612,27 +759,49 @@ const definitions: Definition[] = [
                     if (item.poll) {
                         access = ea.STATE_GET;
                     }
+                    let name = item.name;
+                    let desc = item.desc;
+                    if (translation == TRANSLATION_FR) {
+                        name = ticmeterDatasFRTranslation[item.id].nameFR;
+                        desc = ticmeterDatasFRTranslation[item.id].descFR;
+                    }
                     switch (item.type) {
                     case STRING:
-                        exposes.push(e.text(item.name, access).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc));
+                        exposes.push(e.text(name, access).withProperty(toSnakeCase(item.attr)).withDescription(desc));
                         break;
                     case NUMBER:
-                        exposes.push(e.numeric(item.name, access).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc).withUnit(item.unit));
+                        exposes.push(e.numeric(name, access).withProperty(toSnakeCase(item.attr)).withDescription(desc).withUnit(item.unit));
                         break;
                     case ENUM:
-                        exposes.push(e.enum(item.name, access, item.values).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc));
+                        exposes.push(e.enum(name, access, item.values).withProperty(toSnakeCase(item.attr)).withDescription(desc));
                         break;
                     case TIME:
-                        exposes.push(e.text(item.name, access).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc));
+                        exposes.push(e.text(name, access).withProperty(toSnakeCase(item.attr)).withDescription(desc));
                         break;
                     case NUM_RW:
-                        exposes.push(e.numeric(item.name, ea.ALL).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc).withUnit(item.unit).withValueMin(item.min).withValueMax(item.max));
+                        exposes.push(e.numeric(name, ea.ALL).withProperty(toSnakeCase(item.attr)).withDescription(desc).withUnit(item.unit).withValueMin(item.min).withValueMax(item.max));
                         break;
                     }
                 }
             });
             logger.debug(`Exposes ${exposes.length} attributes`, 'TICMeter');
 
+            if (options.hasOwnProperty('translation')) {
+                switch (options.translation) {
+                case TRANSLATION_FR:
+                    for (let i = 0; i < ticmeterOptions.length; i++) {
+                        ticmeterOptions[i].description = ticmeterOptionsFRTr[i].descFR;
+                    }
+                    break;
+                case TRANSLATION_EN:
+                    for (let i = 0; i < ticmeterOptions.length; i++) {
+                        ticmeterOptions[i].description = ticmeterOptionsFRTr[i].descEN;
+                    }
+                    break;
+                default:
+                    logger.warning(`Unknown translation: ${options.translation}`, 'TICMeter');
+                }
+            }
             return exposes;
         },
         configure: async (device, coordinatorEndpoint) => {
@@ -652,9 +821,9 @@ const definitions: Definition[] = [
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1, multiplier: 1});
 
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                TICMETER_CLUSTER,
-                ELEC_MES_CLUSTER,
-                METERING_CLUSTER,
+                CLUSTER_TIC,
+                CLUSTER_ELE,
+                CLUSTER_MET,
                 METER_ID_CLUSTER,
             ]);
 
@@ -662,7 +831,10 @@ const definitions: Definition[] = [
 
             const wanted: TICMeterData[] = [];
             for (const item of ticmeterDatas) {
-                if (!item.poll && (item.tic == TICMode || item.tic == T.ANY) && (item.contract == contractType || item.contract == C.ANY) && (item.elec == elecMode || item.elec == E.ANY) && (item.producer == producer || item.producer == false)) {
+                if (!item.poll && (item.tic == TICMode || item.tic == T.ANY) &&
+                (item.contract == contractType || item.contract == C.ANY) &&
+                (item.elec == elecMode || item.elec == E.ANY) &&
+                (item.prod == producer || item.prod == false)) {
                     wanted.push(item);
                 }
             }
@@ -675,14 +847,14 @@ const definitions: Definition[] = [
 
             for (const item of wanted) {
                 const conf = {
-                    attribute: item.attribute,
+                    attribute: item.attr,
                     change: 1,
                     min: repInterval.SECONDS_10,
                     max: repInterval.MINUTES_10,
                 };
 
-                logger.debug(`Configure ${item.name} ${item.cluster} ${item.attribute} ${conf.min} ${conf.max} ${conf.change}`, 'TICMeter');
-                reportingConfig.push(endpoint.configureReporting(item.cluster, reporting.payload(item.attribute, conf.min, conf.max, conf.change), {manufacturerCode: null}));
+                logger.debug(`Configure ${item.name} ${item.clust} ${item.attr} ${conf.min} ${conf.max} ${conf.change}`, 'TICMeter');
+                reportingConfig.push(endpoint.configureReporting(item.clust, reporting.payload(item.attr, conf.min, conf.max, conf.change), {manufacturerCode: null}));
             }
 
             await Promise.allSettled(reportingConfig.map(async (config) => {
@@ -700,8 +872,8 @@ const definitions: Definition[] = [
         options: ticmeterOptions,
         onEvent: async (type, data, device, options) => {
             const endpoint = device.getEndpoint(1);
-            if (!device.customClusters[TICMETER_CLUSTER]) {
-                device.addCustomCluster(TICMETER_CLUSTER, ticmeterCustomCluster);
+            if (!device.customClusters[CLUSTER_TIC]) {
+                device.addCustomCluster(CLUSTER_TIC, ticmeterCustomCluster);
             }
 
             const intervalDefined = globalStore.hasValue(device, 'interval');
