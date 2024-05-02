@@ -1756,7 +1756,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu', '_TZE200_ga1maeof']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu', '_TZE200_ga1maeof', '_TZE200_2se8efxh']),
         model: 'TS0601_soil',
         vendor: 'TuYa',
         description: 'Soil sensor',
