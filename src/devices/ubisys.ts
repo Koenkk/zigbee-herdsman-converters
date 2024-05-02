@@ -616,6 +616,9 @@ const definitions: Definition[] = [
             return {'l1': 1, 's1': 2, 'meter': 3};
         },
         meta: {multiEndpointEnforce: {'power': 3, 'energy': 3}},
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -665,6 +668,9 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 4};
         },
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -715,6 +721,9 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4, 'meter': 5};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy'], multiEndpointEnforce: {'power': 5, 'energy': 5}},
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -819,6 +828,11 @@ const definitions: Definition[] = [
                 .withDescription('The dimmer\'s reactance discriminator had detected an inductive load.'),
             e.enum('mode_phase_control', ea.ALL, ['automatic', 'forward', 'reverse'])
                 .withDescription('Configures the dimming technique.')],
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDimmerSetup(),
+            ubisysModernExtend.addCustomClusterGenLevelCtrl(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -885,6 +899,10 @@ const definitions: Definition[] = [
                 e.linkquality(),
             ];
         },
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.addCustomClusterClosuresWindowCovering(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -934,6 +952,9 @@ const definitions: Definition[] = [
                 'cover_open_s6', 'cover_close_s6', 'cover_stop_s6',
             ]),
         ],
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             for (const ep of [1, 2, 3, 4]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genScenes', 'genOnOff', 'genLevelCtrl']);
@@ -974,6 +995,7 @@ const definitions: Definition[] = [
                 .withWeeklySchedule(['heat']),
         ],
         extend: [
+            ubisysModernExtend.addCustomClusterHvacThermostat(),
             ubisysModernExtend.vacationMode(),
             ubisysModernExtend.localTemperatureOffset(),
             ubisysModernExtend.occupiedHeatingSetpointDefault(),
@@ -1043,6 +1065,10 @@ const definitions: Definition[] = [
             e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6'),
             e.switch().withEndpoint('l7'), e.switch().withEndpoint('l8'),
             e.switch().withEndpoint('l9'), e.switch().withEndpoint('l10'),
+        ],
+        extend: [
+            ubisysModernExtend.addCustomClusterHvacThermostat(),
+            ubisysModernExtend.addCustomClusterGenLevelCtrl(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             // setup ep 11-20 as on/off switches
