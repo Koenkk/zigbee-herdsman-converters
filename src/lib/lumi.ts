@@ -48,7 +48,7 @@ export interface TrvScheduleConfig {
     events: TrvScheduleConfigEvent[];
 }
 
-export const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buffer) => {
+export const buffer2DataObject = (model: Definition, buffer: Buffer) => {
     const dataObject: KeyValue = {};
 
     if (buffer !== null && Buffer.isBuffer(buffer)) {
@@ -535,8 +535,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '247':
             {
-                // @ts-expect-error
-                const dataObject247 = buffer2DataObject(meta, model, value);
+                const dataObject247 = buffer2DataObject(model, value as Buffer);
                 if (['CTP-R01'].includes(model.model)) {
                     // execute pending soft switch of operation_mode, if exists
                     const opModeSwitchTask = globalStore.getValue(meta.device, 'opModeSwitchTask');
@@ -835,22 +834,20 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
     return payload;
 };
 
-const numericAttributes2Lookup = async (dataObject: KeyValue) => {
+const numericAttributes2Lookup = async (model: Definition, dataObject: KeyValue) => {
     let result: KeyValue = {};
     for (const [key, value] of Object.entries(dataObject)) {
         switch (key) {
         case '247':
             {
-                // @ts-expect-error
-                const dataObject247 = buffer2DataObject(meta, model, value);
-                const result247 = await numericAttributes2Lookup(dataObject247);
+                const dataObject247 = buffer2DataObject(model, value as Buffer);
+                const result247 = await numericAttributes2Lookup(model, dataObject247);
                 result = {...result, ...result247};
             }
             break;
         case '65281':
             {
-                // @ts-expect-error
-                const result65281 = await numericAttributes2Lookup(value);
+                const result65281 = await numericAttributes2Lookup(model, value as KeyValue);
                 result = {...result, ...result65281};
             }
             break;
@@ -1124,7 +1121,7 @@ export const trv = {
     },
 
     decodeHeartbeat(meta: Fz.Meta, model: Definition, messageBuffer: Buffer) {
-        const data = buffer2DataObject(meta, model, messageBuffer);
+        const data = buffer2DataObject(model, messageBuffer);
         const payload: KeyValue = {};
 
         Object.entries(data).forEach(([key, value]) => {
@@ -1507,7 +1504,7 @@ export const lumiModernExtend = {
                 //  under the manuSpecificLumi cluster as attribute 247, we simple decode and grab value with ID 5.
                 // Normal attribute publishing and decoding will be left to the classic fromZigbee or modernExtends.
                 if (msg.data.hasOwnProperty('247')) {
-                    const dataDecoded = buffer2DataObject(meta, model, msg.data['247']);
+                    const dataDecoded = buffer2DataObject(model, msg.data['247']);
                     if (dataDecoded.hasOwnProperty('5')) {
                         assertNumber(dataDecoded['5']);
 
@@ -1885,7 +1882,7 @@ export const lumiModernExtend = {
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
                     const payload: KeyValueAny = {};
-                    const lookup: KeyValueAny = numericAttributes2Lookup(msg.data);
+                    const lookup: KeyValueAny = numericAttributes2Lookup(model, msg.data);
                     if (lookup[args.percentageAtrribute.toString()]) {
                         const value = lookup[args.percentageAtrribute];
                         assertNumber(value);
@@ -1938,7 +1935,7 @@ export const fromZigbee = {
         convert: async (model, msg, publish, options, meta) => {
             let payload = {};
             if (Buffer.isBuffer(msg.data)) {
-                const dataObject = buffer2DataObject(meta, model, msg.data);
+                const dataObject = buffer2DataObject(model, msg.data);
                 payload = await numericAttributes2Payload(msg, meta, model, options, dataObject);
             }
             return payload;
