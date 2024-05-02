@@ -2625,7 +2625,7 @@ export const fromZigbee = {
             // For lumi.curtain.hagl04 and lumi.curtain.hagl07
             if (['ZNCLDJ12LM', 'ZNCLDJ14LM'].includes(model.model)) lookup = {0: 'closing', 1: 'opening', 2: 'stop'};
             // for lumi.curtain.acn002
-            if (['ZNJLBL01LM'].includes(model.model)) lookup = {0: 'declining', 1: 'rising', 2: 'pause', 3: 'blocked'};
+            if (['ZNJLBL01LM'].includes(model.model)) lookup = {0: 'closing', 1: 'opening', 2: 'stopped', 3: 'blocked'};
 
             if (data && data.hasOwnProperty('presentValue')) {
                 const value = data['presentValue'];
