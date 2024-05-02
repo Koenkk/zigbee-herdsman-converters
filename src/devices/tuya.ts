@@ -14,6 +14,7 @@ import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString} f
 import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify,
     actionEnumLookup, commandsOnOff, commandsLevelCtrl} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
+import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
 
 const NS = 'zhc:tuya';
 const {tuyaLight} = tuya.modernExtend;
@@ -616,6 +617,16 @@ const fzLocal = {
                 result[propertyName] = lookup[msg.data['64514']];
             }
             return result;
+        },
+    } satisfies Fz.Converter,
+    scene_recall: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const payload = {action: postfixWithEndpointName(`scene_${msg.data.sceneid}`, msg, model, meta)};
+            addActionGroup(payload, msg, model);
+            return payload;
         },
     } satisfies Fz.Converter,
     scenes_recall_scene_65029: {
@@ -4940,7 +4951,7 @@ const definitions: Definition[] = [
         model: 'TS0026',
         vendor: 'TuYa',
         description: '6 button scene wall switch',
-        fromZigbee: [fzLocal.scenes_recall_scene_65029],
+        fromZigbee: [fzLocal.scenes_recall_scene_65029, fzLocal.scene_recall],
         exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         toZigbee: [],
     },
