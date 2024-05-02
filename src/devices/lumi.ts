@@ -3294,7 +3294,7 @@ const definitions: Definition[] = [
         description: 'Ceiling light T1M',
         extend: [
             deviceEndpoints({endpoints: {'white': 1, 'rgb': 2}}),
-            lumiLight({colorTemp: true, powerOutageMemory: 'light', endpointNames: ['white']}),
+            lumiLight({colorTemp: true, endpointNames: ['white']}),
             lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ['xy', 'hs']}, endpointNames: ['rgb']}),
             lumiZigbeeOTA(),
         ],
