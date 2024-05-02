@@ -9,6 +9,7 @@ import * as globalStore from '../lib/store';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
 import {logger} from '../lib/logger';
+import {illuminance} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -669,9 +670,10 @@ const definitions: Definition[] = [
         vendor: 'Develco',
         description: 'Motion sensor',
         fromZigbee: [
-            develco.fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery,
+            develco.fz.temperature, fz.ias_occupancy_alarm_1, fz.battery,
             develco.fz.led_control, develco.fz.ias_occupancy_timeout,
         ],
+        extend: [illuminance()],
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
         exposes: (device, options) => {
             const dynExposes = [];
@@ -681,7 +683,6 @@ const definitions: Definition[] = [
                     withValueMin(5).withValueMax(65535));
             }
             dynExposes.push(e.temperature());
-            dynExposes.push(e.illuminance_lux());
             dynExposes.push(e.tamper());
             dynExposes.push(e.battery_low());
             dynExposes.push(e.battery());
@@ -698,11 +699,6 @@ const definitions: Definition[] = [
             return {default: 35};
         },
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint39 = device.getEndpoint(39);
-            await reporting.bind(endpoint39, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint39,
-                {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 500});
-
             const endpoint38 = device.getEndpoint(38);
             await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint38,

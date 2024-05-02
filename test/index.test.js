@@ -594,6 +594,12 @@ describe('index.js', () => {
         expect(payload).toStrictEqual({current: 0.03});
     });
 
+    it('Should allow definition with both modern extend and exposes as function', () => {
+        const MOSZB140 = index.findByModel('MOSZB-140');
+        const exposes = MOSZB140.exposes();
+        expect(exposes.map((e) => e.name)).toStrictEqual(['occupancy', 'temperature', 'tamper', 'battery_low', 'battery', 'linkquality', 'illuminance_lux', 'illuminance']);
+    });
+
     it('Check getFromLookup', () => {
         expect(utils.getFromLookup('OFF', {'off': 0, 'on': 1, 'previous': 2})).toStrictEqual(0);
         expect(utils.getFromLookup('On', {'off': 0, 'on': 1, 'previous': 2})).toStrictEqual(1);
