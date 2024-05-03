@@ -8,7 +8,8 @@ import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
-import {light, battery, iasZoneAlarm, illuminance, occupancy, identify, ota} from '../lib/modernExtend';
+import {light, battery, iasZoneAlarm, illuminance, occupancy, identify, ota, numeric} from '../lib/modernExtend';
+import {Zcl} from 'zigbee-herdsman';
 
 const definitions: Definition[] = [
     {
@@ -747,8 +748,18 @@ const definitions: Definition[] = [
             illuminance(),
             occupancy({ultrasonicConfig: ['otu_delay']}),
             identify(),
+            numeric({
+                name: 'illuminance_threshold',
+                cluster: 'msIlluminanceMeasurement',
+                attribute: {ID: 0xF000, type: Zcl.DataType.INT16},
+                description: 'Controls illuminance threshold for sending commands',
+                valueMin: 0,
+                valueMax: 1000,
+                unit: 'lx',
+                entityCategory: 'config',
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
+            }),
             // radar settings (?)
-            // illuminance Threshold
             // diagnostics
             // illuminance SensorStatus
             ota(),
