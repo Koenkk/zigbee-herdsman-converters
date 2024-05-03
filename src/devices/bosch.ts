@@ -551,6 +551,87 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    bosch_room_thermostat: {
+        key: ['window_detection', 'boost', 'operating_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'window_detection') {
+                const index = utils.getFromLookup(value, stateOffOn);
+                await entity.write('hvacThermostat', {0x4042: {value: index, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
+                return {state: {window_detection: value}};
+            }
+            if (key === 'boost') {
+                const index = utils.getFromLookup(value, stateOffOn);
+                await entity.write('hvacThermostat', {0x4043: {value: index, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
+                return {state: {boost: value}};
+            }
+            if (key === 'operating_mode') {
+                utils.assertString(value, key);
+                value = value.toLowerCase();
+
+                let opMode = operatingModes.manual; // OperatingMode 1 = Manual (Default)
+
+                if (value=='off') {
+                    opMode = operatingModes.pause; // OperatingMode 5 = Pause
+                } else if (value == 'auto') {
+                    opMode = operatingModes.automatic; // OperatingMode 0 = Automatic
+                }
+                await entity.write('hvacThermostat', {0x4007: {value: opMode, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
+                return {state: {operating_mode: value}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'window_detection':
+                await entity.read('hvacThermostat', [0x4042], manufacturerOptions);
+                break;
+            case 'boost':
+                await entity.read('hvacThermostat', [0x4043], manufacturerOptions);
+                break;
+            case 'operating_mode':
+                await entity.read('hvacThermostat', [0x4007], manufacturerOptions);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.bosch_thermostat.convertGet ${key}`);
+            }
+        },
+    } satisfies Tz.Converter,
+    bosch_room_thermostat_ui: {
+        key: ['display_ontime', 'display_brightness', 'child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'display_ontime') {
+                let ontime = utils.toNumber(value, key);
+                ontime = utils.numberWithinRange(ontime, 5, 30);
+                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: ontime, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
+                return {state: {display_ontime: ontime}};
+            }
+            if (key === 'display_brightness') {
+                let brightness = utils.toNumber(value, key);
+                brightness = utils.numberWithinRange(brightness, 0, 10);
+                await entity.write('hvacUserInterfaceCfg', {0x403b: {value: brightness, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
+                return {state: {display_brightness: brightness}};
+            }
+            if (key === 'child_lock') {
+                const keypadLockout = Number(value === 'LOCK');
+                await entity.write('hvacUserInterfaceCfg', {keypadLockout});
+                return {state: {child_lock: value}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'display_ontime':
+                await entity.read('hvacUserInterfaceCfg', [0x403a], manufacturerOptions);
+                break;
+            case 'display_brightness':
+                await entity.read('hvacUserInterfaceCfg', [0x403b], manufacturerOptions);
+                break;
+            case 'child_lock':
+                await entity.read('hvacUserInterfaceCfg', ['keypadLockout']);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.bosch_userInterface.convertGet ${key}`);
+            }
+        },
+    } satisfies Tz.Converter,
     bosch_twinguard: {
         key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
         convertSet: async (entity, key, value, meta) => {
@@ -759,7 +840,7 @@ const fzLocal = {
                 result.boost = (Object.keys(stateOffOn)[data[0x4043]]);
             }
             if (data.hasOwnProperty(0x4007)) {
-                const opModes: KeyValue = {0: 'auto', 1: 'heat', 2: 'unknown_2', 3: 'unknown_3', 4: 'unknown_4', 5: 'off'};
+                const opModes: KeyValue = {0: 'auto', 1: 'manual', 5: 'off'};
                 result.system_mode = opModes[data[0x4007]];
             }
             if (data.hasOwnProperty(0x4020)) {
@@ -777,7 +858,6 @@ const fzLocal = {
                     result.valve_adapt_process = false;
                 }
             }
-
             return result;
         },
     } satisfies Fz.Converter,
@@ -802,7 +882,48 @@ const fzLocal = {
             if (data.hasOwnProperty('keypadLockout')) {
                 result.child_lock = (data['keypadLockout'] == 1 ? 'LOCK' : 'UNLOCK');
             }
-
+            return result;
+        },
+    } satisfies Fz.Converter,
+    bosch_room_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        options: manufacturerOptions,
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            const data = msg.data;
+            if (data.hasOwnProperty(0x4040)) {
+                result.remote_temperature = utils.precisionRound(data[0x4040] / 100, 1);
+            }
+            if (data.hasOwnProperty(0x4042)) {
+                result.window_detection = (Object.keys(stateOffOn)[data[0x4042]]);
+            }
+            if (data.hasOwnProperty(0x4043)) {
+                result.boost = (Object.keys(stateOffOn)[data[0x4043]]);
+            }
+            if (data.hasOwnProperty(0x4007)) {
+                const opModes: KeyValue = {0: 'auto', 1: 'manual', 5: 'off'};
+                result.operating_mode = opModes[data[0x4007]];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    bosch_room_thermostat_ui: {
+        cluster: 'hvacUserInterfaceCfg',
+        type: ['attributeReport', 'readResponse'],
+        options: manufacturerOptions,
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            const data = msg.data;
+            if (data.hasOwnProperty(0x403a)) {
+                result.display_ontime = data[0x403a];
+            }
+            if (data.hasOwnProperty(0x403b)) {
+                result.display_brightness = data[0x403b];
+            }
+            if (data.hasOwnProperty('keypadLockout')) {
+                result.child_lock = (data['keypadLockout'] == 1 ? 'LOCK' : 'UNLOCK');
+            }
             return result;
         },
     } satisfies Fz.Converter,
@@ -1307,17 +1428,36 @@ const definitions: Definition[] = [
         model: 'BTH-RM230Z',
         vendor: 'Bosch',
         description: 'Room thermostat II 230V',
-        fromZigbee: [fz.humidity, fz.thermostat, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
-        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tz.thermostat_running_state,
-            tzLocal.bosch_thermostat, tzLocal.bosch_userInterface],
+        fromZigbee: [
+            fz.humidity,
+            fz.thermostat,
+            fz.thermostat_weekly_schedule,
+            fz.hvac_user_interface,
+            fzLocal.bosch_room_thermostat,
+            fzLocal.bosch_room_thermostat_ui,
+        ],
+        toZigbee: [
+            tz.thermostat_system_mode,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_programming_operation_mode, // Only 0 or 1
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_temperature_setpoint_hold,
+            tz.thermostat_temperature_display_mode,
+            tzLocal.bosch_room_thermostat,
+            tzLocal.bosch_room_thermostat_ui,
+        ],
         exposes: [
             e.climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'auto'])
-                .withRunningState(['idle', 'heat'], ea.STATE_GET),
+                .withSystemMode(['off', 'heat', 'cool', 'auto'])
+                .withRunningState(['idle', 'heat', 'cool'], ea.STATE_GET),
             e.humidity(),
             e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
             e.binary('window_detection', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
@@ -1328,21 +1468,15 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity']);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatRunningState(endpoint);
             await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatKeypadLockMode(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.humidity(endpoint);
-
-            // report operating_mode (system_mode)
+            // report operating_mode
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4007, type: Zcl.DataType.ENUM8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], manufacturerOptions);
-            // report pi_heating_demand (valve opening)
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4020, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
@@ -1362,7 +1496,7 @@ const definitions: Definition[] = [
                 reportableChange: 1,
             }], manufacturerOptions);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4042, 0x4043], manufacturerOptions);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], manufacturerOptions);
         },
