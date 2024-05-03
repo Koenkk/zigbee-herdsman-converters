@@ -757,6 +757,7 @@ const definitions: Definition[] = [
                 valueMax: 1000,
                 unit: 'lx',
                 entityCategory: 'config',
+                read: true,
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
             }),
             // radar settings (?)
