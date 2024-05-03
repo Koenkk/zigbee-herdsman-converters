@@ -1548,7 +1548,7 @@ export interface NumericArgs {
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
     endpointNames?: string[], reporting?: ReportingConfigWithoutAttribute,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number | ScaleFunction, label?: string,
-    entityCategory?: 'config' | 'diagnostic', precision?: number,
+    entityCategory?: 'config' | 'diagnostic', precision?: number, read?: boolean
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
@@ -1627,6 +1627,8 @@ export function numeric(args: NumericArgs): ModernExtend {
     }];
 
     const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access, endpoints)];
+
+    if (args.read) configure.push(setupConfigureForReading(cluster.toString(), [attributeKey], endpoints));
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
