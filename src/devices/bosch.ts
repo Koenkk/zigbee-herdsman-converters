@@ -1459,6 +1459,7 @@ const definitions: Definition[] = [
                 .withSystemMode(['off', 'heat', 'cool', 'auto'])
                 .withRunningState(['idle', 'heat', 'cool'], ea.STATE_GET),
             e.humidity(),
+            e.enum('operating_mode', ea.ALL, Object.keys(operatingModes)).withDescription('Set operating mode'),
             e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
             e.binary('window_detection', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
             e.child_lock().setAccess('state', ea.ALL),
