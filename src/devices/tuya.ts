@@ -10,9 +10,11 @@ import * as globalStore from '../lib/store';
 import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify} from '../lib/modernExtend';
+import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
+import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify,
+    actionEnumLookup, commandsOnOff, commandsLevelCtrl} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
+import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
 
 const NS = 'zhc:tuya';
 const {tuyaLight} = tuya.modernExtend;
@@ -24,6 +26,225 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
+const storeLocal = {
+
+    getPrivatePJ1203A: (device: Zh.Device) => {
+        let priv = globalStore.getValue(device, 'private_state');
+        if (priv===undefined) {
+            //
+            // The PJ-1203A is sending quick sequences of messages containing a single datapoint.
+            // A sequence occurs every `update_frequency` seconds (10s by default)
+            //
+            // A typical sequence is composed of two identical groups for channel a and b.
+            //
+            //     102 energy_flow_a
+            //     112 voltage
+            //     113 current_a
+            //     101 power_a
+            //     110 power_factor_a
+            //     111 ac_frequency
+            //     115 power_ab
+            //     ---
+            //     104 energy_flow_b
+            //     112 voltage
+            //     114 current_b
+            //     105 power_b
+            //     121 power_factor_b
+            //     111 ac_frequency
+            //     115 power_ab
+            //
+            // It should be noted that when no current is detected on channel x then
+            // energy_flow_x is not emited and current_x==0, power_x==0 and power_factor_x==100.
+            //
+            // The other datapoints are emitted every few minutes.
+            //
+            // There is a known issue on the _TZE204_81yrt3lo (with appVersion 74, stackVersion 0 and hwVersion 1).
+            // The energy_flow datapoints are (incorrectly) emited during the next update. This is quite problematic
+            // because that means that the direction can be inverted for up to update_frequency seconds.
+            //
+            // The features implemented here are
+            //   - cache the datapoints for each channel and publish them together.
+            //   - (OPTIONAL) solve the issue described above by waiting for the next energy flow datapoint
+            //     before publishing the cached channel data.
+            //   - (OPTIONAL) provide signed power instead of energy flow.
+            //   - detect missing or reordered Zigbee message using the Tuya 'seq' attibute and invalidate
+            //     cached data accordingly.
+            //
+            priv = {
+                // Cached values for both channels
+                sign_a: null,
+                sign_b: null,
+                power_a: null,
+                power_b: null,
+                current_a: null,
+                current_b: null,
+                power_factor_a: null,
+                power_factor_b: null,
+                timestamp_a: null,
+                timestamp_b: null,
+                // Used to detect missing or misordered messages.
+                last_seq: -99999,
+                // Do all PJ-1203A increment seq by 256? If not, then this is
+                // the value that will have to be customized.
+                seq_inc: 256,
+                // Also need to save the last published SIGNED values of
+                // power_a and power_b to recompute power_ab on the fly.
+                pub_power_a: null,
+                pub_power_b: null,
+
+                recompute_power_ab: function(result: KeyValueAny) {
+                    let modified = false;
+                    if ('power_a' in result) {
+                        this.pub_power_a = result.power_a * ( result.energy_flow_a == 'producing' ? -1 : 1 );
+                        modified = true;
+                    }
+                    if ('power_b' in result) {
+                        this.pub_power_b = result.power_b * ( result.energy_flow_b == 'producing' ? -1 : 1 );
+                        modified = true;
+                    }
+                    if (modified) {
+                        if ( this.pub_power_a!==null && this.pub_power_b!==null ) {
+                            // Cancel and reapply the scaling by 10 to avoid floating-point rounding errors
+                            // such as 79.8 - 37.1 = 42.699999999999996
+                            result['power_ab'] = Math.round(10*this.pub_power_a + 10*this.pub_power_b) / 10;
+                        }
+                    }
+                },
+
+                flush: function(result: KeyValueAny, channel: string, options: KeyValue) {
+                    const sign = this['sign_'+channel];
+                    const power = this['power_'+channel];
+                    const current = this['current_'+channel];
+                    const powerFactor = this['power_factor_'+channel];
+                    this['sign_'+channel] = this['power_'+channel] = this['current_'+channel] = this['power_factor_'+channel] = null;
+                    // Only publish if the set is complete otherwise discard everything.
+                    if ( sign!==null && power!==null && current!==null && powerFactor!==null ) {
+                        const signedPowerKey = 'signed_power_'+channel;
+                        const signedPower = options.hasOwnProperty(signedPowerKey) ? options[signedPowerKey] : false;
+                        if (signedPower) {
+                            result['power_'+channel] = sign * power;
+                            result['energy_flow_'+channel] = 'sign';
+                        } else {
+                            result['power_'+channel] = power;
+                            result['energy_flow_'+channel] = (sign>0) ? 'consuming' : 'producing';
+                        }
+                        result['timestamp_'+channel] = this['timestamp_'+channel];
+                        result['current_'+channel] = current;
+                        result['power_factor_'+channel] = powerFactor;
+                        this.recompute_power_ab(result);
+                        return true;
+                    }
+                    return false;
+                },
+
+                // When the device does not detect any flow, it stops sending
+                // the energy_flow datapoint (102 and 104) and always set
+                // current_x=0, power_x=0 and power_factor_x=100.
+                //
+                // So if we see a datapoint with current==0 or power==0
+                // then we can safely assume that we are in that zero energy state.
+                //
+                // Also, the publication of a zero energy state is not delayed
+                // when option late_energy_flow_a|b is set.
+                flushZero: function(result: KeyValueAny, channel:string, options: KeyValue) {
+                    this['sign_'+channel] = +1;
+                    this['power_'+channel] = 0;
+                    this['timestamp_'+channel] = new Date().toISOString();
+                    this['current_'+channel] = 0;
+                    this['power_factor_'+channel] = 100;
+                    this.flush(result, channel, options);
+                },
+
+                clear: function() {
+                    priv.sign_a = null;
+                    priv.sign_b = null;
+                    priv.power_a = null;
+                    priv.power_b = null;
+                    priv.current_a = null;
+                    priv.current_b = null;
+                    priv.power_factor_a = null;
+                    priv.power_factor_b = null;
+                },
+            };
+            globalStore.putValue(device, 'private_state', priv );
+        }
+        return priv;
+    },
+};
+
+const convLocal = {
+    energyFlowPJ1203A: (channel: string) => {
+        return {
+            from: (v:number, meta: Fz.Meta, options: KeyValue) => {
+                const priv = storeLocal.getPrivatePJ1203A(meta.device);
+                const result = {};
+                priv['sign_'+channel] = (v==1) ? -1 : +1;
+                const lateEnergyFlowKey = 'late_energy_flow_'+channel;
+                const lateEnergyFlow = options.hasOwnProperty(lateEnergyFlowKey) ? options[lateEnergyFlowKey] : false;
+                if (lateEnergyFlow) {
+                    priv.flush(result, channel, options);
+                }
+                return result;
+            },
+        };
+    },
+
+    powerPJ1203A: (channel: string) => {
+        return {
+            from: (v:number, meta: Fz.Meta, options: KeyValue) => {
+                const priv = storeLocal.getPrivatePJ1203A(meta.device);
+                const result = {};
+                priv['power_'+channel] = v/10;
+                priv['timestamp_'+channel] = new Date().toISOString();
+                if (v==0) {
+                    priv.flushZero(result, channel, options);
+                    return result;
+                }
+                return result;
+            },
+        };
+    },
+
+    currentPJ1203A: (channel: string) => {
+        return {
+            from: (v: number, meta: Fz.Meta, options: KeyValue) => {
+                const priv = storeLocal.getPrivatePJ1203A(meta.device);
+                const result = {};
+                priv['current_'+channel] = v/1000;
+                if (v==0) {
+                    priv.flushZero(result, channel, options);
+                    return result;
+                }
+                return result;
+            },
+        };
+    },
+
+    powerFactorPJ1203A: (channel: string) => {
+        return {
+            from: (v:number, meta: Fz.Meta, options: KeyValue) => {
+                const priv = storeLocal.getPrivatePJ1203A(meta.device);
+                const result = {};
+                priv['power_factor_'+channel] = v;
+                const lateEnergyFlowKey = 'late_energy_flow_'+channel;
+                const lateEnergyFlow = options.hasOwnProperty(lateEnergyFlowKey) ? options[lateEnergyFlowKey] : false;
+                if (!lateEnergyFlow) {
+                    priv.flush(result, channel, options);
+                }
+                return result;
+            },
+        };
+    },
+
+    powerAbPJ1203A: () => {
+        return {
+            // power_ab datapoint is broken and will be recomputed so ignore it.
+            from: (v: number, meta: Fz.Meta, options: KeyValue) => {
+                return {};
+            },
+        };
+    },
+};
 
 const tzLocal = {
     TS030F_border: {
@@ -398,6 +619,16 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
+    scene_recall: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const payload = {action: postfixWithEndpointName(`scene_${msg.data.sceneid}`, msg, model, meta)};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter,
     scenes_recall_scene_65029: {
         cluster: '65029',
         type: ['raw', 'attributeReport'],
@@ -524,6 +755,31 @@ const fzLocal = {
                     'under_voltage_breaker': lookup[value[0x04][0]],
                 };
             }
+        },
+    } satisfies Fz.Converter,
+    PJ1203A_sync_time_increase_seq: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandMcuSyncTime'],
+        convert: (model, msg, publish, options, meta) => {
+            const priv = storeLocal.getPrivatePJ1203A(meta.device);
+            priv.last_seq += priv.seq_inc;
+        },
+    } satisfies Fz.Converter,
+    PJ1203A_strict_fz_datapoints: {
+        ...tuya.fz.datapoints,
+        convert: (model, msg, publish, options, meta) => {
+            // Uncomment the next line to test the behavior when random messages are lost
+            // if ( Math.random() < 0.05 ) return;
+            const priv = storeLocal.getPrivatePJ1203A(meta.device);
+            // Detect missing or re-ordered messages but allow duplicate messages (should we?).
+            const expectedSeq = (priv.last_seq+priv.seq_inc) & 0xFFFF;
+            if ( (msg.data.seq != expectedSeq) && (msg.data.seq != priv.last_seq) ) {
+                logger.debug(`[PJ1203A] Missing or re-ordered message detected: Got seq=${msg.data.seq}, expected ${priv.next_seq}`, NS);
+                priv.clear();
+            }
+            priv.last_seq = msg.data.seq;
+            // And finally, process the datapoint using tuya.fz.datapoints
+            return tuya.fz.datapoints.convert(model, msg, publish, options, meta);
         },
     } satisfies Fz.Converter,
 };
@@ -703,56 +959,72 @@ const definitions: Definition[] = [
         model: 'F00MB00-04-1',
         vendor: 'FORIA',
         description: '4 scenes switch',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4'])],
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, 'action', tuya.valueConverter.static('scene_1')],
-                [2, 'action', tuya.valueConverter.static('scene_2')],
-                [3, 'action', tuya.valueConverter.static('scene_3')],
-                [4, 'action', tuya.valueConverter.static('scene_4')],
-            ],
-        },
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.combineActions([
+                tuya.modernExtend.dpAction({dp: 1, lookup: {'scene_1': 0}}),
+                tuya.modernExtend.dpAction({dp: 2, lookup: {'scene_2': 0}}),
+                tuya.modernExtend.dpAction({dp: 3, lookup: {'scene_3': 0}}),
+                tuya.modernExtend.dpAction({dp: 4, lookup: {'scene_4': 0}}),
+            ]),
+            tuya.modernExtend.dpBinary({
+                name: 'vibration',
+                dp: 0x6c, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable vibration',
+            }),
+            tuya.modernExtend.dpBinary({
+                name: 'approach',
+                dp: 0x6b, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable approach detection',
+            }),
+            tuya.modernExtend.dpBinary({
+                name: 'illumination',
+                dp: 0x6a, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable illumination detection',
+            }),
+            tuya.modernExtend.dpBinary({
+                name: 'backlight',
+                dp: 0x69, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable backlight',
+            }),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dhke3p9w']),
         model: 'F00YK04-18-1',
         vendor: 'FORIA',
         description: '18 scenes remote',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6',
-            'scene_7', 'scene_8', 'scene_9', 'scene_10', 'scene_11', 'scene_12', 'scene_13', 'scene_14', 'scene_15', 'scene_16',
-            'scene_17', 'scene_18']),
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.combineActions([
+                tuya.modernExtend.dpAction({dp: 1, lookup: {'scene_1': 0}}),
+                tuya.modernExtend.dpAction({dp: 2, lookup: {'scene_2': 0}}),
+                tuya.modernExtend.dpAction({dp: 3, lookup: {'scene_3': 0}}),
+                tuya.modernExtend.dpAction({dp: 4, lookup: {'scene_4': 0}}),
+                tuya.modernExtend.dpAction({dp: 5, lookup: {'scene_5': 0}}),
+                tuya.modernExtend.dpAction({dp: 6, lookup: {'scene_6': 0}}),
+                tuya.modernExtend.dpAction({dp: 7, lookup: {'scene_7': 0}}),
+                tuya.modernExtend.dpAction({dp: 8, lookup: {'scene_8': 0}}),
+                tuya.modernExtend.dpAction({dp: 9, lookup: {'scene_9': 0}}),
+                tuya.modernExtend.dpAction({dp: 10, lookup: {'scene_10': 0}}),
+                tuya.modernExtend.dpAction({dp: 11, lookup: {'scene_11': 0}}),
+                tuya.modernExtend.dpAction({dp: 12, lookup: {'scene_12': 0}}),
+                tuya.modernExtend.dpAction({dp: 13, lookup: {'scene_13': 0}}),
+                tuya.modernExtend.dpAction({dp: 14, lookup: {'scene_14': 0}}),
+                tuya.modernExtend.dpAction({dp: 15, lookup: {'scene_15': 0}}),
+                tuya.modernExtend.dpAction({dp: 16, lookup: {'scene_16': 0}}),
+                tuya.modernExtend.dpAction({dp: 101, lookup: {'scene_17': 0}}),
+                tuya.modernExtend.dpAction({dp: 102, lookup: {'scene_18': 0}}),
+            ]),
         ],
-
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, 'action', tuya.valueConverter.static('scene_1')],
-                [2, 'action', tuya.valueConverter.static('scene_2')],
-                [3, 'action', tuya.valueConverter.static('scene_3')],
-                [4, 'action', tuya.valueConverter.static('scene_4')],
-                [5, 'action', tuya.valueConverter.static('scene_5')],
-                [6, 'action', tuya.valueConverter.static('scene_6')],
-                [7, 'action', tuya.valueConverter.static('scene_7')],
-                [8, 'action', tuya.valueConverter.static('scene_8')],
-                [9, 'action', tuya.valueConverter.static('scene_9')],
-                [10, 'action', tuya.valueConverter.static('scene_10')],
-                [11, 'action', tuya.valueConverter.static('scene_11')],
-                [12, 'action', tuya.valueConverter.static('scene_12')],
-                [13, 'action', tuya.valueConverter.static('scene_13')],
-                [14, 'action', tuya.valueConverter.static('scene_14')],
-                [15, 'action', tuya.valueConverter.static('scene_15')],
-                [16, 'action', tuya.valueConverter.static('scene_16')],
-                [101, 'action', tuya.valueConverter.static('scene_17')],
-                [102, 'action', tuya.valueConverter.static('scene_18')],
-            ],
-        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
@@ -893,7 +1165,7 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.illuminance(), e.temperature().withUnit('lx'), e.humidity()],
+        exposes: [e.illuminance().withUnit('lx'), e.temperature(), e.humidity()],
         meta: {
             tuyaDatapoints: [
                 [2, 'illuminance', tuya.valueConverter.raw],
@@ -1055,7 +1327,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'QS-zigbee-S08-16A-RF', 'Wall switch module', ['_TZ3000_dlhhrhs8']),
         ],
         description: 'Wall switch module',
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: true})],
+        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true})],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
@@ -1495,7 +1767,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu', '_TZE200_ga1maeof']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu', '_TZE200_ga1maeof', '_TZE200_2se8efxh']),
         model: 'TS0601_soil',
         vendor: 'TuYa',
         description: 'Soil sensor',
@@ -2678,6 +2950,7 @@ const definitions: Definition[] = [
             e.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage')],
         whiteLabel: [
             tuya.whitelabel('Nous', 'B2Z', '1 gang switch with power monitoring', ['_TZ3000_qlai3277']),
+            tuya.whitelabel('Colorock', 'CR-MNZ1', '1 gang switch 30A with power monitoring', ['_TZ3000_tgddllx4']),
         ],
     },
     {
@@ -2750,7 +3023,7 @@ const definitions: Definition[] = [
         model: 'TS0001_switch_module_1',
         vendor: 'TuYa',
         description: '1 gang switch module',
-        extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true, backlightModeOffOn: true})],
+        extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true, backlightModeOffOn: true, onOffCountdown: true})],
         whiteLabel: [
             tuya.whitelabel('PSMART', 'T441', '1 gang switch module', ['_TZ3000_myaaknbq']),
         ],
@@ -2870,7 +3143,7 @@ const definitions: Definition[] = [
             {vendor: 'Moes', model: 'ZM-104-M'},
             tuya.whitelabel('AVATTO', 'ZWSM16-1-Zigbee', '1 gang switch module', ['_TZ3000_4rbqgcuv']),
         ],
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: true})],
+        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true})],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -3136,7 +3409,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_r0jdjrvi']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_r0jdjrvi', '_TZE200_g5xqosu7']),
         model: 'TS0601_cover_8',
         vendor: 'TuYa',
         description: 'Cover motor',
@@ -3971,7 +4244,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         extend: [tuya.modernExtend.tuyaOnOff({
             electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
-            powerOutageMemory: true, indicatorMode: true, childLock: true})],
+            powerOutageMemory: true, indicatorMode: true, childLock: true, onOffCountdown: true})],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
@@ -4678,7 +4951,7 @@ const definitions: Definition[] = [
         model: 'TS0026',
         vendor: 'TuYa',
         description: '6 button scene wall switch',
-        fromZigbee: [fzLocal.scenes_recall_scene_65029],
+        fromZigbee: [fzLocal.scenes_recall_scene_65029, fzLocal.scene_recall],
         exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         toZigbee: [],
     },
@@ -6108,6 +6381,7 @@ const definitions: Definition[] = [
             tuya.exposes.powerFactorWithPhase('a'), tuya.exposes.powerFactorWithPhase('b'), tuya.exposes.powerFactorWithPhase('c'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [132, 'ac_frequency', tuya.valueConverter.raw],
                 [133, 'temperature', tuya.valueConverter.divideBy10],
@@ -6249,7 +6523,7 @@ const definitions: Definition[] = [
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff],
                 [3, 'fan_speed', tuya.valueConverterBasic
-                    .lookup({'1': tuya.enum(0), '2': tuya.enum(1), '3': tuya.enum(2), '4': tuya.enum(3), '5': tuya.enum(4)})],
+                    .lookup({'1': tuya.enum(0), '2': tuya.enum(1), '3': tuya.enum(2), '4': tuya.enum(3), '5': tuya.enum(4)}, '5')],
                 [11, 'power_on_behavior', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
                 [5, 'status_indication', tuya.valueConverter.onOff],
             ],
@@ -6405,6 +6679,24 @@ const definitions: Definition[] = [
             tuya.whitelabel('Homeetec', '37022463', '2 Gang switch with backlight', ['_TZ3000_in5qxhtt']),
             tuya.whitelabel('RoomsAI', '37022463', '2 Gang switch with backlight', ['_TZ3000_ogpla3lh']),
         ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0002', manufacturerName: '_TZ3000_i9w5mehz'},
+        ],
+        model: 'TS0002_switch_module_4',
+        vendor: 'TuYa',
+        description: '2 gang switch with backlight',
+        extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, backlightModeOffOn: true, indicatorMode: true, endpoints: ['l1', 'l2']})],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
     },
     {
         fingerprint: [
@@ -6981,7 +7273,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cfnprab5', '_TZ3000_o005nuxx']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cfnprab5', '_TZ3000_o005nuxx', '_TZ3000_gdyjfvgm']),
         model: 'TS011F_5',
         description: '5 gang switch',
         vendor: 'TuYa',
@@ -7652,33 +7944,53 @@ const definitions: Definition[] = [
         model: 'PJ-1203A',
         vendor: 'TuYa',
         description: 'Bidirectional energy meter with 80A current clamp',
-        fromZigbee: [tuya.fz.datapoints],
+        fromZigbee: [fzLocal.PJ1203A_strict_fz_datapoints, fzLocal.PJ1203A_sync_time_increase_seq],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
+        options: [
+            e.binary('late_energy_flow_a', ea.SET, true, false )
+                .withDescription(`Delay channel A publication until the next energy flow update (default false).`),
+            e.binary('late_energy_flow_b', ea.SET, true, false )
+                .withDescription(`Delay channel B publication until the next energy flow update (default false).`),
+            e.binary('signed_power_a', ea.SET, true, false )
+                .withDescription(`Report energy flow direction for channel A using signed power (default false).`),
+            e.binary('signed_power_b', ea.SET, true, false )
+                .withDescription(`Report energy flow direction for channel B using signed power (default false).`),
+        ],
         exposes: [
             e.ac_frequency(), e.voltage(),
             tuya.exposes.powerWithPhase('a'), tuya.exposes.powerWithPhase('b'), tuya.exposes.powerWithPhase('ab'),
             tuya.exposes.currentWithPhase('a'), tuya.exposes.currentWithPhase('b'),
             tuya.exposes.powerFactorWithPhase('a'), tuya.exposes.powerFactorWithPhase('b'),
-            tuya.exposes.energyFlowWithPhase('a'), tuya.exposes.energyFlowWithPhase('b'),
+            tuya.exposes.energyFlowWithPhase('a', ['sign']), tuya.exposes.energyFlowWithPhase('b', ['sign']),
             tuya.exposes.energyWithPhase('a'), tuya.exposes.energyWithPhase('b'),
             tuya.exposes.energyProducedWithPhase('a'), tuya.exposes.energyProducedWithPhase('b'),
-            e.numeric('update_frequency', ea.STATE).withUnit('s').withDescription('Update frequency'),
+            e.numeric('update_frequency', ea.STATE_SET).withUnit('s').withDescription('Update frequency')
+                .withValueMin(3)
+                .withValueMax(60)
+                .withPreset('default', 10, 'Default value'),
+            // Timestamp a and b are basically equivalent to last_seen
+            // but they indicate when the unsigned value of power_a and power_b
+            // were received. They can be several seconds in the past if
+            // the publication was delayed because of the late_energy_flow options.
+            e.numeric('timestamp_a', ea.STATE).withDescription('Timestamp at power measure (phase a)'),
+            e.numeric('timestamp_b', ea.STATE).withDescription('Timestamp at power measure (phase b)'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [111, 'ac_frequency', tuya.valueConverter.divideBy100],
-                [101, 'power_a', tuya.valueConverter.divideBy10],
-                [105, 'power_b', tuya.valueConverter.divideBy10],
-                [115, 'power_ab', tuya.valueConverter.divideBy10],
                 [112, 'voltage', tuya.valueConverter.divideBy10],
-                [113, 'current_a', tuya.valueConverter.divideBy1000],
-                [114, 'current_b', tuya.valueConverter.divideBy1000],
-                [110, 'power_factor_a', tuya.valueConverter.raw],
-                [121, 'power_factor_b', tuya.valueConverter.raw],
-                [102, 'energy_flow_a', tuya.valueConverterBasic.lookup({'consuming': 0, 'producing': 1})],
-                [104, 'energy_flow_b', tuya.valueConverterBasic.lookup({'consuming': 0, 'producing': 1})],
+                [101, null, convLocal.powerPJ1203A('a')], // power_a
+                [105, null, convLocal.powerPJ1203A('b')], // power_b
+                [113, null, convLocal.currentPJ1203A('a')], // current_a
+                [114, null, convLocal.currentPJ1203A('b')], // current_b
+                [110, null, convLocal.powerFactorPJ1203A('a')], // power_factor_a
+                [121, null, convLocal.powerFactorPJ1203A('b')], // power_factor_b
+                [102, null, convLocal.energyFlowPJ1203A('a')], // energy_flow_a or the sign of power_a
+                [104, null, convLocal.energyFlowPJ1203A('b')], // energy_flow_b or the sign of power_b
+                [115, null, convLocal.powerAbPJ1203A()],
                 [106, 'energy_a', tuya.valueConverter.divideBy100],
                 [108, 'energy_b', tuya.valueConverter.divideBy100],
                 [107, 'energy_produced_a', tuya.valueConverter.divideBy100],
@@ -7705,6 +8017,7 @@ const definitions: Definition[] = [
             tuya.exposes.energyProducedWithPhase('a'), tuya.exposes.energyProducedWithPhase('b'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [113, 'ac_frequency', tuya.valueConverter.raw],
                 [108, 'power_a', tuya.valueConverter.raw],
@@ -8026,21 +8339,21 @@ const definitions: Definition[] = [
         model: 'F00XN00-04-1',
         vendor: 'FORIA',
         description: 'Dimmer 4 scenes',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp,
-            fz.command_step_color_temperature, fz.command_step],
-        toZigbee: [],
-        exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.command('genGroups', 'miboxerSetZones', {zones: [
-                {zoneNum: 1, groupId: 101},
-                {zoneNum: 2, groupId: 102},
-                {zoneNum: 3, groupId: 103},
-                {zoneNum: 4, groupId: 104},
-            ]});
-            await endpoint.command('genBasic', 'tuyaSetup', {}, {disableDefaultResponse: true});
-        },
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            battery({voltage: true}),
+            tuya.modernExtend.combineActions([
+                actionEnumLookup({
+                    actionLookup: {'scene_1': 1, 'scene_2': 2, 'scene_3': 3, 'scene_4': 4},
+                    cluster: 'genOnOff',
+                    commands: ['commandTuyaAction'],
+                    attribute: 'data',
+                    parse: (msg, attr) => msg.data[attr][1],
+                }),
+                commandsOnOff(),
+                commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
+            ]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_l6llgoxq']),
@@ -8112,6 +8425,23 @@ const definitions: Definition[] = [
                 [18, 'temperature', tuya.valueConverter.raw],
                 [19, 'humidity', tuya.valueConverter.raw],
             ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_guijtl8k']),
+        model: 'QS-Zigbee-D04',
+        vendor: 'LEDRON',
+        description: '0-10v dimmer',
+        fromZigbee: [fzLocal.TS110E, fz.on_off],
+        toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tz.light_brightness_move],
+        exposes: [
+            e.light_brightness().withMinBrightness().withMaxBrightness(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
         },
     },
     {

@@ -128,7 +128,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'on', 'off', 'recall_*'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'RGB Genie', model: 'ZGRC-KEY-013'}],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genScenes']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -271,7 +271,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);

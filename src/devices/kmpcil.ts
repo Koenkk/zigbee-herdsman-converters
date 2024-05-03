@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, Publish} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -98,7 +99,7 @@ const definitions: Definition[] = [
             const payloadPressure = [{
                 // 0 = measuredValue, override dataType from int16 to uint16
                 // https://github.com/Koenkk/zigbee-herdsman/pull/191/files?file-filters%5B%5D=.ts#r456569398
-                attribute: {ID: 0, type: 33}, minimumReportInterval: 2, maximumReportInterval: constants.repInterval.HOUR,
+                attribute: {ID: 0, type: Zcl.DataType.UINT16}, minimumReportInterval: 2, maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 3}];
             await endpoint.configureReporting('msPressureMeasurement', payloadPressure);
             const options = {disableDefaultResponse: true};

@@ -10,17 +10,6 @@ import * as ota from '../lib/ota';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const dataType = {
-    boolean: 16,
-    uint8: 32,
-    uint16: 33,
-    int8: 40,
-    int16: 41,
-    enum8: 48,
-    charStr: 66,
-    ieeeAddr: 240,
-};
-
 const fzLocal = {
     ctm_mbd_device_enabled: {
         cluster: 'genOnOff',
@@ -364,7 +353,7 @@ const tzLocal = {
     ctm_device_enabled: {
         key: ['device_enabled'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('genOnOff', {0x2201: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
+            await entity.write('genOnOff', {0x2201: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: Zcl.DataType.BOOLEAN}});
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x2201]);
@@ -387,7 +376,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             await entity.write(
                 'genOnOff',
-                {0x5001: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}},
+                {0x5001: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: Zcl.DataType.BOOLEAN}},
                 {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS},
             );
         },
@@ -402,56 +391,56 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'load':
-                await entity.write('hvacThermostat', {0x0401: {value: value, type: dataType.uint16}});
+                await entity.write('hvacThermostat', {0x0401: {value: value, type: Zcl.DataType.UINT16}});
                 break;
             case 'display_text':
-                await entity.write('hvacThermostat', {0x0402: {value: value, type: dataType.charStr}});
+                await entity.write('hvacThermostat', {0x0402: {value: value, type: Zcl.DataType.CHAR_STR}});
                 break;
             case 'sensor':
                 await entity.write('hvacThermostat', {0x0403: {
                     value: utils.getFromLookup(value,
                         {'air': 0, 'floor': 1, 'external': 2, 'regulator': 3, 'mv_air': 4, 'mv_external': 5, 'mv_regulator': 6}),
-                    type: dataType.enum8}});
+                    type: Zcl.DataType.ENUM8}});
                 break;
             case 'regulator_mode':
                 await entity.write('hvacThermostat', {0x0405:
-                    {value: utils.getFromLookup(value, {'thermostat': 0, 'regulator': 1}), type: dataType.boolean}});
+                    {value: utils.getFromLookup(value, {'thermostat': 0, 'regulator': 1}), type: Zcl.DataType.BOOLEAN}});
                 break;
             case 'power_status':
-                await entity.write('hvacThermostat', {0x0406: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0406: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: Zcl.DataType.BOOLEAN}});
                 break;
             case 'system_mode':
                 if (value === 'off') {
-                    await entity.write('hvacThermostat', {0x0406: {value: 0, type: dataType.boolean}});
+                    await entity.write('hvacThermostat', {0x0406: {value: 0, type: Zcl.DataType.BOOLEAN}});
                 } else if (value === 'heat') {
-                    await entity.write('hvacThermostat', {0x0422: {value: 3, type: dataType.uint8}});
+                    await entity.write('hvacThermostat', {0x0422: {value: 3, type: Zcl.DataType.UINT8}});
                 }
                 break;
             case 'night_switching':
-                await entity.write('hvacThermostat', {0x0411: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0411: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: Zcl.DataType.BOOLEAN}});
                 break;
             case 'frost_guard':
-                await entity.write('hvacThermostat', {0x0412: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0412: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: Zcl.DataType.BOOLEAN}});
                 break;
             case 'max_floor_temp':
-                await entity.write('hvacThermostat', {0x0414: {value: value, type: dataType.uint8}});
+                await entity.write('hvacThermostat', {0x0414: {value: value, type: Zcl.DataType.UINT8}});
                 break;
             case 'regulator_setpoint':
-                await entity.write('hvacThermostat', {0x0420: {value: value, type: dataType.uint8}});
+                await entity.write('hvacThermostat', {0x0420: {value: value, type: Zcl.DataType.UINT8}});
                 break;
             case 'regulation_mode':
                 await entity.write('hvacThermostat', {0x0421: {
                     value: utils.getFromLookup(value, {'thermostat': 0, 'regulator': 1, 'zzilent': 2}),
-                    type: dataType.uint8}});
+                    type: Zcl.DataType.UINT8}});
                 break;
             case 'max_floor_guard':
-                await entity.write('hvacThermostat', {0x0423: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0423: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: Zcl.DataType.BOOLEAN}});
                 break;
             case 'weekly_timer':
-                await entity.write('hvacThermostat', {0x0424: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0424: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: Zcl.DataType.BOOLEAN}});
                 break;
             case 'exteral_sensor_source':
-                await entity.write('hvacThermostat', {0x0428: {value: value, type: dataType.uint16}});
+                await entity.write('hvacThermostat', {0x0428: {value: value, type: Zcl.DataType.UINT16}});
                 break;
 
             default: // Unknown key
@@ -512,13 +501,13 @@ const tzLocal = {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
             const presetLookup = {'off': 0, 'away': 1, 'sleep': 2, 'home': 3};
-            await entity.write('hvacThermostat', {0x0422: {value: utils.getFromLookup(value, presetLookup), type: dataType.uint8}});
+            await entity.write('hvacThermostat', {0x0422: {value: utils.getFromLookup(value, presetLookup), type: Zcl.DataType.UINT8}});
         },
     } satisfies Tz.Converter,
     ctm_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {0x0413: {value: utils.getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), type: dataType.boolean}});
+            await entity.write('hvacThermostat', {0x0413: {value: utils.getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), type: Zcl.DataType.BOOLEAN}});
         },
     } satisfies Tz.Converter,
     ctm_thermostat_gets: {
@@ -727,56 +716,56 @@ const definitions: Definition[] = [
             // Regulator mode
             await endpoint.read('hvacThermostat', [0x0405]);
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x0405, type: dataType.boolean},
+                attribute: {ID: 0x0405, type: Zcl.DataType.BOOLEAN},
                 minimumReportInterval: 1,
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null}]);
             // Power consumption
             await endpoint.read('hvacThermostat', [0x0408]);
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x0408, type: dataType.uint16},
+                attribute: {ID: 0x0408, type: Zcl.DataType.UINT16},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 5}]);
             // Floor temp sensor
             await endpoint.read('hvacThermostat', [0x0409]);
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x0409, type: dataType.int16},
+                attribute: {ID: 0x0409, type: Zcl.DataType.INT16},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 10}]);
             // Frost guard
             await endpoint.read('hvacThermostat', [0x0412]);
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x0412, type: dataType.boolean},
+                attribute: {ID: 0x0412, type: Zcl.DataType.BOOLEAN},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null}]);
             // Child lock active/inactive
             await endpoint.read('hvacThermostat', [0x0413]);
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x0413, type: dataType.boolean},
+                attribute: {ID: 0x0413, type: Zcl.DataType.BOOLEAN},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null}]);
             // Regulator setpoint
             await endpoint.read('hvacThermostat', [0x0420]);
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x0420, type: dataType.uint8},
+                attribute: {ID: 0x0420, type: Zcl.DataType.UINT8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1}]);
             // Operation mode
             await endpoint.read('hvacThermostat', [0x0422]);
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x0422, type: dataType.uint8},
+                attribute: {ID: 0x0422, type: Zcl.DataType.UINT8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1}]);
             // Air temp sensor
             await endpoint.read('hvacThermostat', [0x0429]);
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x0429, type: dataType.int16},
+                attribute: {ID: 0x0429, type: Zcl.DataType.INT16},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 10}]);
@@ -851,21 +840,21 @@ const definitions: Definition[] = [
             // Alarm status
             // await endpoint.read(0xFFC9, [0x0001], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             await endpoint.configureReporting(0xFFC9, [{
-                attribute: {ID: 0x0001, type: dataType.uint8},
+                attribute: {ID: 0x0001, type: Zcl.DataType.UINT8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 0}], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             // Change battery
             // await endpoint.read(0xFFC9, [0x0002], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             await endpoint.configureReporting(0xFFC9, [{
-                attribute: {ID: 0x0002, type: dataType.uint8},
+                attribute: {ID: 0x0002, type: Zcl.DataType.UINT8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: 0}], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             // Active
             // await endpoint.read(0xFFC9, [0x0005], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             await endpoint.configureReporting(0xFFC9, [{
-                attribute: {ID: 0x0005, type: dataType.uint8},
+                attribute: {ID: 0x0005, type: Zcl.DataType.UINT8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 0}], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
@@ -893,19 +882,19 @@ const definitions: Definition[] = [
             // Device mode
             await endpoint.read('genOnOff', [0x2200]);
             await endpoint.configureReporting('genOnOff', [{
-                attribute: {ID: 0x2200, type: dataType.uint8},
+                attribute: {ID: 0x2200, type: Zcl.DataType.UINT8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 0}]);
             await endpoint.read('genOnOff', [0x2201]);
             await endpoint.configureReporting('genOnOff', [{
-                attribute: {ID: 0x2201, type: dataType.boolean},
+                attribute: {ID: 0x2201, type: Zcl.DataType.BOOLEAN},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null}]);
             await endpoint.read('genOnOff', [0x2202]);
             await endpoint.configureReporting('genOnOff', [{
-                attribute: {ID: 0x2202, type: dataType.boolean},
+                attribute: {ID: 0x2202, type: Zcl.DataType.BOOLEAN},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null}]);
@@ -1027,7 +1016,7 @@ const definitions: Definition[] = [
             // Relay State
             await endpoint.read('genOnOff', [0x5001], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             await endpoint.configureReporting('genOnOff', [{
-                attribute: {ID: 0x5001, type: dataType.boolean},
+                attribute: {ID: 0x5001, type: Zcl.DataType.BOOLEAN},
                 minimumReportInterval: 1,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 0}], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
@@ -1077,7 +1066,7 @@ const definitions: Definition[] = [
             // Relay State
             await endpoint.read('genOnOff', [0x5001], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             await endpoint.configureReporting('genOnOff', [{
-                attribute: {ID: 0x5001, type: dataType.boolean},
+                attribute: {ID: 0x5001, type: Zcl.DataType.BOOLEAN},
                 minimumReportInterval: 1,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 0}], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});

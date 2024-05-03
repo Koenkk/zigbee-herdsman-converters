@@ -719,7 +719,8 @@ const converters1 = {
                 if (factor != null) {
                     power = (power * factor) * 1000; // kWh to Watt
                 }
-                payload.power = power;
+                const property = postfixWithEndpointName('power', msg, model, meta);
+                payload[property] = power;
             }
 
             if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
@@ -727,12 +728,14 @@ const converters1 = {
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
                     const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    payload.energy = value * factor;
+                    const property = postfixWithEndpointName('energy', msg, model, meta);
+                    payload[property] = value * factor;
                 }
                 if (msg.data.hasOwnProperty('currentSummReceived')) {
                     const data = msg.data['currentSummReceived'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    payload.produced_energy = value * factor;
+                    const property = postfixWithEndpointName('produced_energy', msg, model, meta);
+                    payload[property] = value * factor;
                 }
             }
 
@@ -787,13 +790,16 @@ const converters1 = {
                 }
             }
             if (msg.data.hasOwnProperty('powerFactor')) {
-                payload.power_factor = precisionRound(msg.data['powerFactor'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactor'] / 100, 2);
             }
             if (msg.data.hasOwnProperty('powerFactorPhB')) {
-                payload.power_factor_phase_b = precisionRound(msg.data['powerFactorPhB'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor_phase_b', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactorPhB'] / 100, 2);
             }
             if (msg.data.hasOwnProperty('powerFactorPhC')) {
-                payload.power_factor_phase_c = precisionRound(msg.data['powerFactorPhC'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor_phase_c', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactorPhC'] / 100, 2);
             }
             return payload;
         },
@@ -4915,21 +4921,22 @@ const converters2 = {
         convert: async (model, msg, publish, options, meta) => {
             const result = await converters1.thermostat.convert(model, msg, publish, options, meta);
             if (result) {
-                // system_mode is always 'heat', we set it below based on eurotronic_host_flags
-                delete result['system_mode'];
-
                 if (typeof msg.data[0x4003] == 'number') {
                     result.current_heating_setpoint = precisionRound(msg.data[0x4003], 2) / 100;
                 }
                 if (typeof msg.data[0x4008] == 'number') {
-                    result.child_protection = (msg.data[0x4008] & (1 << 7)) != 0;
-                    result.mirror_display = (msg.data[0x4008] & (1 << 1)) != 0;
-                    result.boost = (msg.data[0x4008] & 1 << 2) != 0;
-                    result.window_open = (msg.data[0x4008] & (1 << 4)) != 0;
-
-                    if (result.boost) result.system_mode = constants.thermostatSystemModes[4];
-                    else if (result.window_open) result.system_mode = constants.thermostatSystemModes[0];
-                    else result.system_mode = constants.thermostatSystemModes[1];
+                    result.child_lock = (msg.data[0x4008] & 0x80) != 0 ? 'LOCK' : 'UNLOCK';
+                    result.mirror_display = (msg.data[0x4008] & 0x02) != 0 ? 'ON' : 'OFF';
+                    // This seems broken... We need to write 0x20 to turn it off and 0x10 to set
+                    // it to auto mode. However, when it reports the flag, it will report 0x10
+                    //  when it's off, and nothing at all when it's in auto mode
+                    if ((msg.data[0x4008] & 0x10) != 0) { // reports auto -> setting to force_off
+                        result.system_mode = constants.thermostatSystemModes[0];
+                    } else if ((msg.data[0x4008] & 0x04) != 0) { // always_on
+                        result.system_mode = constants.thermostatSystemModes[4];
+                    } else { // auto
+                        result.system_mode = constants.thermostatSystemModes[1];
+                    }
                 }
                 if (typeof msg.data[0x4002] == 'number') {
                     result.error_status = msg.data[0x4002];

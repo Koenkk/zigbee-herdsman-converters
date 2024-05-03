@@ -4,7 +4,10 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import {binary, enumLookup, forcePowerSource, numeric, onOff, customTimeResponse, battery, ota} from '../lib/modernExtend';
+import {
+    binary, enumLookup, forcePowerSource, numeric, onOff,
+    customTimeResponse, battery, ota, deviceAddCustomCluster,
+} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 import {logger} from '../lib/logger';
@@ -803,26 +806,48 @@ const definitions: Definition[] = [
             tz.thermostat_running_state,
         ],
         extend: [
+            deviceAddCustomCluster(
+                'customSonoffTrvzb',
+                {
+                    ID: 0xfc11,
+                    attributes: {
+                        childLock: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                        tamper: {ID: 0x2000, type: Zcl.DataType.UINT8},
+                        illumination: {ID: 0x2001, type: Zcl.DataType.UINT8},
+                        openWindow: {ID: 0x6000, type: Zcl.DataType.BOOLEAN},
+                        frostProtectionTemperature: {ID: 0x6002, type: Zcl.DataType.INT16},
+                        idleSteps: {ID: 0x6003, type: Zcl.DataType.UINT16},
+                        closingSteps: {ID: 0x6004, type: Zcl.DataType.UINT16},
+                        valveOpeningLimitVoltage: {ID: 0x6005, type: Zcl.DataType.UINT16},
+                        valveClosingLimitVoltage: {ID: 0x6006, type: Zcl.DataType.UINT16},
+                        valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.UINT16},
+                        valveOpeningDegree: {ID: 0x600B, type: Zcl.DataType.UINT8},
+                        valveClosingDegree: {ID: 0x600C, type: Zcl.DataType.UINT8},
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                },
+            ),
             binary({
                 name: 'child_lock',
-                cluster: 0xFC11,
-                attribute: {ID: 0x0000, type: 0x10},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'childLock',
                 description: 'Enables/disables physical input on the device',
                 valueOn: ['LOCK', 0x01],
                 valueOff: ['UNLOCK', 0x00],
             }),
             binary({
                 name: 'open_window',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6000, type: 0x10},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'openWindow',
                 description: 'Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.',
                 valueOn: ['ON', 0x01],
                 valueOff: ['OFF', 0x00],
             }),
             numeric({
                 name: 'frost_protection_temperature',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6002, type: 0x29},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'frostProtectionTemperature',
                 description: 'Minimum temperature at which to automatically turn on the radiator, ' +
                     'if system mode is off, to prevent pipes freezing.',
                 valueMin: 4.0,
@@ -833,46 +858,46 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'idle_steps',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6003, type: 0x21},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'idleSteps',
                 description: 'Number of steps used for calibration (no-load steps)',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'closing_steps',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6004, type: 0x21},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'closingSteps',
                 description: 'Number of steps it takes to close the valve',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_opening_limit_voltage',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6005, type: 0x21},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'valveOpeningLimitVoltage',
                 description: 'Valve opening limit voltage',
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_closing_limit_voltage',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6006, type: 0x21},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'valveClosingLimitVoltage',
                 description: 'Valve closing limit voltage',
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_motor_running_voltage',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6007, type: 0x21},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'valveMotorRunningVoltage',
                 description: 'Valve motor running voltage',
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_opening_degree',
-                cluster: 0xFC11,
-                attribute: {ID: 0x600B, type: 0x20},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'valveOpeningDegree',
                 description: 'Valve open position (percentage) control. ' +
                     'If the opening degree is set to 100%, the valve is fully open when it is opened. ' +
                     'If the opening degree is set to 0%, the valve is fully closed when it is opened, ' +
@@ -885,8 +910,8 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'valve_closing_degree',
-                cluster: 0xFC11,
-                attribute: {ID: 0x600C, type: 0x20},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'valveClosingDegree',
                 description: 'Valve closed position (percentage) control. ' +
                     'If the closing degree is set to 100%, the valve is fully closed when it is closed. ' +
                     'If the closing degree is set to 0%, the valve is fully opened when it is closed, ' +

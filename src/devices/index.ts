@@ -93,6 +93,7 @@ import giderwel from './giderwel';
 import giex from './giex';
 import girier from './girier';
 import gledopto from './gledopto';
+import gmmts from "./gmmts";
 import gmy from './gmy';
 import gs from './gs';
 import halemeier from './halemeier';
@@ -295,6 +296,7 @@ import yookee from './yookee';
 import ysrsai from './ysrsai';
 import zemismart from './zemismart';
 import zen from './zen';
+import zigbeetlc from './zigbeetlc';
 import zipato from './zipato';
 
 export default [
@@ -393,6 +395,7 @@ export default [
     ...giex,
     ...girier,
     ...gledopto,
+    ...gmmts,
     ...gmy,
     ...gs,
     ...halemeier,
@@ -595,5 +598,6 @@ export default [
     ...ysrsai,
     ...zemismart,
     ...zen,
+    ...zigbeetlc,
     ...zipato,
 ];

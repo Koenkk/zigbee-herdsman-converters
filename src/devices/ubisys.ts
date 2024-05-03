@@ -311,7 +311,7 @@ const ubisys = {
             key: ['configure_device_setup'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const devMgmtEp = meta.device.getEndpoint(232);
-                const cluster = Zcl.Utils.getCluster('manuSpecificUbisysDeviceSetup');
+                const cluster = Zcl.Utils.getCluster('manuSpecificUbisysDeviceSetup', null, {});
                 const attributeInputConfigurations = cluster.getAttribute('inputConfigurations');
                 const attributeInputActions = cluster.getAttribute('inputActions');
 
@@ -333,7 +333,7 @@ const ubisys = {
                             [{
                                 attrId: attributeInputConfigurations.ID,
                                 selector: {},
-                                dataType: Zcl.DataType.array,
+                                dataType: Zcl.DataType.ARRAY,
                                 elementData: {
                                     elementType: 'data8',
                                     elements: value.input_configurations,
@@ -358,7 +358,7 @@ const ubisys = {
                             [{
                                 attrId: attributeInputActions.ID,
                                 selector: {},
-                                dataType: Zcl.DataType.array,
+                                dataType: Zcl.DataType.ARRAY,
                                 elementData: {
                                     elementType: 'octetStr',
                                     elements: value.input_actions,
@@ -561,7 +561,7 @@ const ubisys = {
                             [{
                                 attrId: attributeInputActions.ID,
                                 selector: {},
-                                dataType: Zcl.DataType.array,
+                                dataType: Zcl.DataType.ARRAY,
                                 elementData: {
                                     elementType: 'octetStr',
                                     elements: resultingInputActions,
@@ -616,6 +616,9 @@ const definitions: Definition[] = [
             return {'l1': 1, 's1': 2, 'meter': 3};
         },
         meta: {multiEndpointEnforce: {'power': 3, 'energy': 3}},
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -665,6 +668,9 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 4};
         },
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -714,7 +720,10 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4, 'meter': 5};
         },
-        meta: {multiEndpoint: true, multiEndpointEnforce: {'power': 5, 'energy': 5}},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy'], multiEndpointEnforce: {'power': 5, 'energy': 5}},
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -819,13 +828,18 @@ const definitions: Definition[] = [
                 .withDescription('The dimmer\'s reactance discriminator had detected an inductive load.'),
             e.enum('mode_phase_control', ea.ALL, ['automatic', 'forward', 'reverse'])
                 .withDescription('Configures the dimming technique.')],
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDimmerSetup(),
+            ubisysModernExtend.addCustomClusterGenLevelCtrl(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness'], multiEndpointEnforce: {'power': 4, 'energy': 4}},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness', 'power', 'energy'], multiEndpointEnforce: {'power': 4, 'energy': 4}},
         endpoint: (device) => {
             return {'default': 1, 's1': 2, 's2': 3, 'meter': 4};
         },
@@ -885,6 +899,10 @@ const definitions: Definition[] = [
                 e.linkquality(),
             ];
         },
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.addCustomClusterClosuresWindowCovering(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -934,6 +952,9 @@ const definitions: Definition[] = [
                 'cover_open_s6', 'cover_close_s6', 'cover_stop_s6',
             ]),
         ],
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             for (const ep of [1, 2, 3, 4]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genScenes', 'genOnOff', 'genLevelCtrl']);
@@ -974,6 +995,7 @@ const definitions: Definition[] = [
                 .withWeeklySchedule(['heat']),
         ],
         extend: [
+            ubisysModernExtend.addCustomClusterHvacThermostat(),
             ubisysModernExtend.vacationMode(),
             ubisysModernExtend.localTemperatureOffset(),
             ubisysModernExtend.occupiedHeatingSetpointDefault(),
@@ -1043,6 +1065,10 @@ const definitions: Definition[] = [
             e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6'),
             e.switch().withEndpoint('l7'), e.switch().withEndpoint('l8'),
             e.switch().withEndpoint('l9'), e.switch().withEndpoint('l10'),
+        ],
+        extend: [
+            ubisysModernExtend.addCustomClusterHvacThermostat(),
+            ubisysModernExtend.addCustomClusterGenLevelCtrl(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             // setup ep 11-20 as on/off switches

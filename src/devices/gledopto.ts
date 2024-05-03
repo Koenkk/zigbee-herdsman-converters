@@ -150,15 +150,17 @@ function gledoptoOnOff(args?: OnOffArgs) {
 }
 
 function gledoptoConfigureReadModelID(): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
-        // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3016#issuecomment-1027726604
-        const endpoint = device.endpoints[0];
-        const oldModel = device.modelID;
-        const newModel = (await endpoint.read('genBasic', ['modelId'])).modelId;
-        if (oldModel != newModel) {
-            logger.info(`Detected Gledopto device mode change, from '${oldModel}' to '${newModel}'`, NS);
-        }
-    };
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3016#issuecomment-1027726604
+            const endpoint = device.endpoints[0];
+            const oldModel = device.modelID;
+            const newModel = (await endpoint.read('genBasic', ['modelId'])).modelId;
+            if (oldModel != newModel) {
+                logger.info(`Detected Gledopto device mode change, from '${oldModel}' to '${newModel}'`, NS);
+            }
+        },
+    ];
     return {configure, isModernExtend: true};
 }
 
