@@ -745,7 +745,7 @@ const definitions: Definition[] = [
         description: 'Ceiling embedded occupancy sensor',
         extend: [
             illuminance(),
-            occupancy(), // + OccupiedToUnoccupied
+            occupancy({ultrasonicConfig: ['otu_delay']}),
             identify(),
             // radar settings (?)
             // illuminance Threshold
