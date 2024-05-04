@@ -559,11 +559,6 @@ const tzLocal = {
                 await entity.write('hvacThermostat', {0x4042: {value: index, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
                 return {state: {window_detection: value}};
             }
-            if (key === 'boost') {
-                const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('hvacThermostat', {0x4043: {value: index, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
-                return {state: {boost: value}};
-            }
             if (key === 'operating_mode') {
                 utils.assertString(value, key);
                 value = value.toLowerCase();
@@ -583,9 +578,6 @@ const tzLocal = {
             switch (key) {
             case 'window_detection':
                 await entity.read('hvacThermostat', [0x4042], manufacturerOptions);
-                break;
-            case 'boost':
-                await entity.read('hvacThermostat', [0x4043], manufacturerOptions);
                 break;
             case 'operating_mode':
                 await entity.read('hvacThermostat', [0x4007], manufacturerOptions);
@@ -891,14 +883,8 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x4040)) {
-                result.remote_temperature = utils.precisionRound(data[0x4040] / 100, 1);
-            }
             if (data.hasOwnProperty(0x4042)) {
                 result.window_detection = (Object.keys(stateOffOn)[data[0x4042]]);
-            }
-            if (data.hasOwnProperty(0x4043)) {
-                result.boost = (Object.keys(stateOffOn)[data[0x4043]]);
             }
             if (data.hasOwnProperty(0x4007)) {
                 const opModes: KeyValue = {0: 'auto', 1: 'manual', 5: 'off'};
@@ -1429,7 +1415,6 @@ const definitions: Definition[] = [
         fromZigbee: [
             fz.humidity,
             fz.thermostat,
-            fz.thermostat_weekly_schedule,
             fz.hvac_user_interface,
             fzLocal.bosch_room_thermostat,
             fzLocal.bosch_room_thermostat_ui,
@@ -1441,32 +1426,16 @@ const definitions: Definition[] = [
             tz.thermostat_programming_operation_mode, // Only 0 or 1
             tz.thermostat_local_temperature_calibration,
             tz.thermostat_local_temperature,
-            tz.thermostat_weekly_schedule,
-            tz.thermostat_clear_weekly_schedule,
             tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_display_mode,
             tzLocal.bosch_room_thermostat,
             tzLocal.bosch_room_thermostat_ui,
         ],
-        exposes: [
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'cool'])
-                .withRunningState(['idle', 'heat', 'cool']),
-            e.humidity(),
-            e.enum('operating_mode', ea.ALL, Object.keys(operatingModes)).withDescription('Set operating mode'),
-            e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
-            e.binary('window_detection', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
-            e.child_lock().setAccess('state', ea.ALL),
-            e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
-            e.numeric('display_brightness', ea.ALL).withValueMin(0).withValueMax(10).withDescription('Specifies the brightness value of the display'),
-        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity']);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msRelativeHumidity','hvacThermostat','hvacUserInterfaceCfg',
+            ]);
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
             await reporting.thermostatTemperature(endpoint);
@@ -1480,18 +1449,28 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
-            // report boost as it's disabled by thermostat after 5 minutes
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4043, type: Zcl.DataType.ENUM8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], manufacturerOptions);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], manufacturerOptions);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4042], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], manufacturerOptions);
         },
+        exposes: [
+            e.climate()
+                .withLocalTemperature()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
+                .withLocalTemperatureCalibration(-12, 12, 0.5)
+                .withSystemMode(['off', 'heat', 'cool'])
+                .withRunningState(['idle', 'heat', 'cool']),
+            e.humidity(),
+            e.enum('operating_mode', ea.ALL, Object.keys(operatingModes)).withDescription('Set operating mode'),
+            e.binary('window_detection', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
+            e.child_lock().setAccess('state', ea.ALL),
+            e.numeric('display_ontime', ea.ALL)
+                .withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
+            e.numeric('display_brightness', ea.ALL)
+                .withValueMin(0).withValueMax(10).withDescription('Specifies the brightness value of the display'),
+        ],
     },
     {
         zigbeeModel: ['Champion'],
