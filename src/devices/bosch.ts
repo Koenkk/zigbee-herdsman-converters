@@ -1424,7 +1424,7 @@ const definitions: Definition[] = [
             tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_programming_operation_mode, // Only 0 or 1
+            tz.thermostat_programming_operation_mode, // NOTE: Only 0x0 & 0x1 supported
             tz.thermostat_local_temperature_calibration,
             tz.thermostat_local_temperature,
             tz.thermostat_temperature_setpoint_hold,
@@ -1435,7 +1435,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msRelativeHumidity','hvacThermostat','hvacUserInterfaceCfg',
+                'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
@@ -1443,7 +1443,7 @@ const definitions: Definition[] = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.humidity(endpoint);
-            // report operating_mode
+            // Report operating_mode
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4007, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
