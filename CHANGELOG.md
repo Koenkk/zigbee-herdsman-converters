@@ -1,5 +1,20 @@
 # Changelog
 
+## [19.35.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.34.0...v19.35.0) (2024-05-04)
+
+
+### Features
+
+* **add:** THS317-ET-EY [@awhitwam](https://github.com/awhitwam) https://github.com/Koenkk/zigbee2mqtt/issues/19804 ([6696098](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6696098219fea6f1d354b534299b5446110be165))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_pfayrzcw` as TuYa MTG035-ZB-RL https://github.com/Koenkk/zigbee2mqtt/issues/22440 ([95f7efb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/95f7efba2686b312ef8eb7d26606f4f62198e7d2))
+* **detect:** Detect `_TZE204_znvwzxkq` as Zemismart ZN2S-RS3E-DH https://github.com/Koenkk/zigbee2mqtt/issues/21940 ([d604f89](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d604f8903c126260a9a03ecdcc23d20b11880c1e))
+* Fix `motor_state` for ZNCLDJ12LM ([#7483](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7483)) ([8fe5f3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8fe5f3fe459a9ff82378fbd678f03eb10d43c95a))
+* Fix no actions for some TuYa TS0026 https://github.com/Koenkk/zigbee2mqtt/issues/22328 ([71e39f7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/71e39f759ab0aebe9304e374488119f1e842c875))
+
 ## [19.34.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.33.0...v19.34.0) (2024-05-02)
 
 

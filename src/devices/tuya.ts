@@ -1878,7 +1878,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vm1gyrso', '_TZE204_1v1dxkck']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vm1gyrso', '_TZE204_1v1dxkck', '_TZE204_znvwzxkq']),
         model: 'TS0601_dimmer_3',
         vendor: 'TuYa',
         description: '3 gang smart dimmer',
@@ -1922,6 +1922,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'Moes', model: 'ZS-EUD_3gang'},
             tuya.whitelabel('Moes', 'ZS-SR-EUD-3', 'Star ring smart dimmer switch 3 gangs', ['_TZE204_1v1dxkck']),
+            tuya.whitelabel('Zemismart', 'ZN2S-RS3E-DH', '3 gang dimmer', ['_TZE204_znvwzxkq']),
         ],
     },
     {
@@ -7870,12 +7871,13 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e', '_TZE204_iaeejhvf', '_TZE204_mtoaryre',
-            '_TZE200_mp902om5']),
+            '_TZE200_mp902om5', '_TZE204_pfayrzcw']),
         model: 'MTG075-ZB-RL',
         vendor: 'TuYa',
         description: '2.4G/5.8G human presence sensor with relay',
         whiteLabel: [
             tuya.whitelabel('TuYa', 'MTG275-ZB-RL', '2.4G/5.8G MmWave radar human presence motion sensor', ['_TZE204_dtzziy1e']),
+            tuya.whitelabel('TuYa', 'MTG035-ZB-RL', 'Human presence sensor with relay', ['_TZE204_pfayrzcw']),
         ],
         configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
