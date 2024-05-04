@@ -591,7 +591,7 @@ const tzLocal = {
                 await entity.read('hvacThermostat', [0x4007], manufacturerOptions);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_thermostat.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bosch_room_thermostat.convertGet ${key}`);
             }
         },
     } satisfies Tz.Converter,
@@ -628,7 +628,7 @@ const tzLocal = {
                 await entity.read('hvacUserInterfaceCfg', ['keypadLockout']);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_userInterface.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bosch_room_thermostat_ui.convertGet ${key}`);
             }
         },
     } satisfies Tz.Converter,
@@ -888,7 +888,6 @@ const fzLocal = {
     bosch_room_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
-        options: manufacturerOptions,
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
@@ -911,7 +910,6 @@ const fzLocal = {
     bosch_room_thermostat_ui: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],
-        options: manufacturerOptions,
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
@@ -1456,8 +1454,8 @@ const definitions: Definition[] = [
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'cool', 'auto'])
-                .withRunningState(['idle', 'heat', 'cool'], ea.STATE_GET),
+                .withSystemMode(['off', 'heat', 'cool'])
+                .withRunningState(['idle', 'heat', 'cool']),
             e.humidity(),
             e.enum('operating_mode', ea.ALL, Object.keys(operatingModes)).withDescription('Set operating mode'),
             e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
@@ -1478,13 +1476,6 @@ const definitions: Definition[] = [
             // report operating_mode
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4007, type: Zcl.DataType.ENUM8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], manufacturerOptions);
-            // report window_detection
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4042, type: Zcl.DataType.ENUM8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
