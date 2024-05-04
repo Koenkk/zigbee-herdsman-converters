@@ -1878,7 +1878,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vm1gyrso', '_TZE204_1v1dxkck']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vm1gyrso', '_TZE204_1v1dxkck', '_TZE204_znvwzxkq']),
         model: 'TS0601_dimmer_3',
         vendor: 'TuYa',
         description: '3 gang smart dimmer',
@@ -1922,6 +1922,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'Moes', model: 'ZS-EUD_3gang'},
             tuya.whitelabel('Moes', 'ZS-SR-EUD-3', 'Star ring smart dimmer switch 3 gangs', ['_TZE204_1v1dxkck']),
+            tuya.whitelabel('Zemismart', 'ZN2S-RS3E-DH', '3 gang dimmer', ['_TZE204_znvwzxkq']),
         ],
     },
     {
