@@ -1247,12 +1247,11 @@ const converters2 = {
                     utils.assertNumber(transition, 'transition');
                     const speed = Math.min(255, Math.max(1, Math.round(255 / transition)));
                     converters2.light_hue_saturation_move.convertSet(entity, 'hue_move', speed, meta);
+                } else if (value === 'stop_colorloop') {
+                    converters2.light_hue_saturation_move.convertSet(entity, 'hue_move', 'stop', meta);
                 } else {
                     const payload = {effectid: utils.getFromLookup(value, lookup), effectvariant: 0};
                     await entity.command('genIdentify', 'triggerEffect', payload, utils.getOptions(meta.mapped, entity));
-                }
-                if (value === 'stop_effect') {
-                    converters2.light_hue_saturation_move.convertSet(entity, 'hue_move', 'stop', meta);
                 }
             } else if (key === 'alert' || key === 'flash') { // Deprecated
                 let effectid = 0;

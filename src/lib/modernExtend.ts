@@ -756,7 +756,7 @@ export function light(args?: LightArgs): ModernExtend {
     if (args.effect) {
         const effects = e.effect();
         if (args.color) {
-            effects.values.push('colorloop');
+            effects.values.push('colorloop', 'stop_colorloop');
         }
         exposes.push(effects);
         toZigbee.push(tz.effect);
