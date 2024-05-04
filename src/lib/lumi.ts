@@ -2620,7 +2620,7 @@ export const fromZigbee = {
             let lookup: KeyValueAny = {};
 
             // For lumi.curtain.hagl04 and lumi.curtain.hagl07
-            if (['ZNCLDJ12LM', 'ZNCLDJ14LM'].includes(model.model)) lookup = {0: 'closing', 1: 'opening', 2: 'stop'};
+            if (['ZNCLDJ12LM', 'ZNCLDJ14LM'].includes(model.model)) lookup = {0: 'closing', 1: 'opening', 2: 'stopped'};
             // for lumi.curtain.acn002
             if (['ZNJLBL01LM'].includes(model.model)) lookup = {0: 'closing', 1: 'opening', 2: 'stopped', 3: 'blocked'};
 
