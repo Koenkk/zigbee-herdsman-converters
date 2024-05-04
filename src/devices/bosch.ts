@@ -1,4 +1,7 @@
-import {identify, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
+import {
+    identify, light, onOff, quirkCheckinInterval,
+    deviceAddCustomCluster, binary, numeric, enumLookup,
+} from '../lib/modernExtend';
 import {Zcl, ZSpec} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -551,79 +554,6 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    bosch_room_thermostat: {
-        key: ['window_detection', 'boost', 'operating_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'window_detection') {
-                const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('hvacThermostat', {0x4042: {value: index, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
-                return {state: {window_detection: value}};
-            }
-            if (key === 'operating_mode') {
-                utils.assertString(value, key);
-                value = value.toLowerCase();
-
-                let opMode = operatingModes.manual; // OperatingMode 1 = Manual (Default)
-
-                if (value=='off') {
-                    opMode = operatingModes.pause; // OperatingMode 5 = Pause
-                } else if (value == 'auto') {
-                    opMode = operatingModes.automatic; // OperatingMode 0 = Automatic
-                }
-                await entity.write('hvacThermostat', {0x4007: {value: opMode, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
-                return {state: {operating_mode: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            switch (key) {
-            case 'window_detection':
-                await entity.read('hvacThermostat', [0x4042], manufacturerOptions);
-                break;
-            case 'operating_mode':
-                await entity.read('hvacThermostat', [0x4007], manufacturerOptions);
-                break;
-            default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_room_thermostat.convertGet ${key}`);
-            }
-        },
-    } satisfies Tz.Converter,
-    bosch_room_thermostat_ui: {
-        key: ['display_ontime', 'display_brightness', 'child_lock'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'display_ontime') {
-                let ontime = utils.toNumber(value, key);
-                ontime = utils.numberWithinRange(ontime, 5, 30);
-                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: ontime, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
-                return {state: {display_ontime: ontime}};
-            }
-            if (key === 'display_brightness') {
-                let brightness = utils.toNumber(value, key);
-                brightness = utils.numberWithinRange(brightness, 0, 10);
-                await entity.write('hvacUserInterfaceCfg', {0x403b: {value: brightness, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
-                return {state: {display_brightness: brightness}};
-            }
-            if (key === 'child_lock') {
-                const keypadLockout = Number(value === 'LOCK');
-                await entity.write('hvacUserInterfaceCfg', {keypadLockout});
-                return {state: {child_lock: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            switch (key) {
-            case 'display_ontime':
-                await entity.read('hvacUserInterfaceCfg', [0x403a], manufacturerOptions);
-                break;
-            case 'display_brightness':
-                await entity.read('hvacUserInterfaceCfg', [0x403b], manufacturerOptions);
-                break;
-            case 'child_lock':
-                await entity.read('hvacUserInterfaceCfg', ['keypadLockout']);
-                break;
-            default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_room_thermostat_ui.convertGet ${key}`);
-            }
-        },
-    } satisfies Tz.Converter,
     bosch_twinguard: {
         key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
         convertSet: async (entity, key, value, meta) => {
@@ -865,40 +795,6 @@ const fzLocal = {
             if (data.hasOwnProperty(0x4039)) {
                 result.displayed_temperature = (Object.keys(displayedTemperature)[data[0x4039]]);
             }
-            if (data.hasOwnProperty(0x403a)) {
-                result.display_ontime = data[0x403a];
-            }
-            if (data.hasOwnProperty(0x403b)) {
-                result.display_brightness = data[0x403b];
-            }
-            if (data.hasOwnProperty('keypadLockout')) {
-                result.child_lock = (data['keypadLockout'] == 1 ? 'LOCK' : 'UNLOCK');
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    bosch_room_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const data = msg.data;
-            if (data.hasOwnProperty(0x4042)) {
-                result.window_detection = (Object.keys(stateOffOn)[data[0x4042]]);
-            }
-            if (data.hasOwnProperty(0x4007)) {
-                const opModes: KeyValue = {0: 'auto', 1: 'manual', 5: 'off'};
-                result.operating_mode = opModes[data[0x4007]];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    bosch_room_thermostat_ui: {
-        cluster: 'hvacUserInterfaceCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const data = msg.data;
             if (data.hasOwnProperty(0x403a)) {
                 result.display_ontime = data[0x403a];
             }
@@ -1412,12 +1308,20 @@ const definitions: Definition[] = [
         model: 'BTH-RM230Z',
         vendor: 'Bosch',
         description: 'Room thermostat II 230V',
+        exposes: [
+            e.climate()
+                .withLocalTemperature()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
+                .withLocalTemperatureCalibration(-12, 12, 0.5)
+                .withSystemMode(['off', 'heat', 'cool'])
+                .withRunningState(['idle', 'heat', 'cool']),
+            e.humidity(),
+        ],
         fromZigbee: [
             fz.humidity,
             fz.thermostat,
             fz.hvac_user_interface,
-            fzLocal.bosch_room_thermostat,
-            fzLocal.bosch_room_thermostat_ui,
         ],
         toZigbee: [
             tz.thermostat_system_mode,
@@ -1429,8 +1333,78 @@ const definitions: Definition[] = [
             tz.thermostat_local_temperature,
             tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_display_mode,
-            tzLocal.bosch_room_thermostat,
-            tzLocal.bosch_room_thermostat_ui,
+        ],
+        extend: [
+            deviceAddCustomCluster(
+                'boschRoomThermostat',
+                {
+                    ID: 0x201,
+                    attributes: {
+                        operatingMode: {ID: 0x4007, type: Zcl.DataType.ENUM8},
+                        windowDetection: {ID: 0x4042, type: Zcl.DataType.ENUM8},
+                        boostMode: {ID: 0x4043, type: Zcl.DataType.ENUM8},
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                },
+            ),
+            deviceAddCustomCluster(
+                'boschRoomThermostatUi',
+                {
+                    ID: 0x204,
+                    attributes: {
+                        childLock: {ID: 0x1, type: Zcl.DataType.ENUM8},
+                        displayOntime: {ID: 0x403a, type: Zcl.DataType.ENUM8},
+                        displayBrightness: {ID: 0x403b, type: Zcl.DataType.ENUM8},
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                },
+            ),
+            enumLookup({
+                name: 'operating_mode',
+                cluster: 'boschRoomThermostat',
+                attribute: 'operatingMode',
+                description: 'Sets Bosch-specific operating mode',
+                lookup: {'auto': 0, 'manual': 1, 'off': 5},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            binary({
+                name: 'window_detection',
+                cluster: 'boschRoomThermostat',
+                attribute: 'windowDetection',
+                description: 'Enable/disable window open (Lo.) mode',
+                valueOn: ['ON', 0x01],
+                valueOff: ['OFF', 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            binary({
+                name: 'child_lock',
+                cluster: 'boschRoomThermostatUi',
+                attribute: 'childLock',
+                description: 'Enables/disables physical input on the device',
+                valueOn: ['LOCK', 0x01],
+                valueOff: ['UNLOCK', 0x00],
+            }),
+            numeric({
+                name: 'display_ontime',
+                cluster: 'boschRoomThermostatUi',
+                attribute: 'displayOntime',
+                description: 'Sets the display on-time',
+                valueMin: 5,
+                valueMax: 30,
+                unit: 's',
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            numeric({
+                name: 'display_brightness',
+                cluster: 'boschRoomThermostatUi',
+                attribute: 'displayBrightness',
+                description: 'Sets brightness of the display',
+                valueMin: 0,
+                valueMax: 10,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1443,35 +1417,17 @@ const definitions: Definition[] = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.humidity(endpoint);
-            // Report operating_mode
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4007, type: Zcl.DataType.ENUM8},
+            await endpoint.configureReporting('boschRoomThermostat', [{
+                attribute: 'operatingMode',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4042], manufacturerOptions);
-            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
-            await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], manufacturerOptions);
+            await endpoint.read('boschRoomThermostat', ['operatingMode', 'windowDetection'], manufacturerOptions);
+            await endpoint.read('boschRoomThermostatUi', ['childLock']);
+            await endpoint.read('boschRoomThermostatUi', ['displayOntime', 'displayBrightness'], manufacturerOptions);
         },
-        exposes: [
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'cool'])
-                .withRunningState(['idle', 'heat', 'cool']),
-            e.humidity(),
-            e.enum('operating_mode', ea.ALL, Object.keys(operatingModes)).withDescription('Set operating mode'),
-            e.binary('window_detection', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
-            e.child_lock().setAccess('state', ea.ALL),
-            e.numeric('display_ontime', ea.ALL)
-                .withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
-            e.numeric('display_brightness', ea.ALL)
-                .withValueMin(0).withValueMax(10).withDescription('Specifies the brightness value of the display'),
-        ],
     },
     {
         zigbeeModel: ['Champion'],
