@@ -1455,7 +1455,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'genPowerCfg', 'msRelativeHumidity', 'boschRoomThermostatUi', 'boschRoomThermostat',
             ]);
             await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
             await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
