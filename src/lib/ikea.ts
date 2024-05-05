@@ -574,6 +574,16 @@ export function ikeaArrowClick(args?: {styrbar: boolean}): ModernExtend {
         },
         {
             cluster: 'genScenes',
+            type: 'commandTradfriArrowHold',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const direction = msg.data.value === 3329 ? 'left' : 'right';
+                globalStore.putValue(msg.endpoint, 'direction', direction);
+                return {action: `arrow_${direction}_hold`};
+            },
+        },
+        {
+            cluster: 'genScenes',
             type: 'commandTradfriArrowRelease',
             options: [options.legacy()],
             convert: (model, msg, publish, options, meta) => {
