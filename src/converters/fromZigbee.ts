@@ -1424,6 +1424,22 @@ const converters1 = {
             return payload;
         },
     } satisfies Fz.Converter,
+    command_move_to_hue_and_saturation: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToHueAndSaturation',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const payload = {
+                action: postfixWithEndpointName(`move_to_hue_and_saturation`, msg, model, meta),
+                action_hue: msg.data.hue,
+                action_saturation: msg.data.saturation,
+                action_transition_time: msg.data.transtime,
+            };
+
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter,
     command_step_hue: {
         cluster: 'lightingColorCtrl',
         type: ['commandStepHue'],
