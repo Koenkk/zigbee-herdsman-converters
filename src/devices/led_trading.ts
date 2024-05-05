@@ -61,6 +61,7 @@ const definitions: Definition[] = [
         model: '9135',
         vendor: 'LED-Trading',
         description: 'Curtain motor controller',
+        meta: {coverInverted: true},
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
