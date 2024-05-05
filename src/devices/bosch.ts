@@ -1336,70 +1336,24 @@ const definitions: Definition[] = [
         ],
         extend: [
             deviceAddCustomCluster(
-                'boschRoomThermostat',
+                'hvacThermostat',
                 {
                     ID: 0x201,
                     attributes: {
-                        localTemp: {ID: 0, type: Zcl.DataType.INT16},
-                        outdoorTemp: {ID: 1, type: Zcl.DataType.INT16},
-                        occupancy: {ID: 2, type: Zcl.DataType.BITMAP8},
-                        localTemperatureCalibration: {ID: 16, type: Zcl.DataType.INT8},
-                        occupiedCoolingSetpoint: {ID: 17, type: Zcl.DataType.INT16},
-                        occupiedHeatingSetpoint: {ID: 18, type: Zcl.DataType.INT16},
-                        minHeatSetpointLimit: {ID: 21, type: Zcl.DataType.INT16},
-                        maxHeatSetpointLimit: {ID: 22, type: Zcl.DataType.INT16},
-                        minCoolSetpointLimit: {ID: 23, type: Zcl.DataType.INT16},
-                        maxCoolSetpointLimit: {ID: 24, type: Zcl.DataType.INT16},
-                        minSetpointDeadBand: {ID: 25, type: Zcl.DataType.INT8},
-                        ctrlSeqeOfOper: {ID: 27, type: Zcl.DataType.ENUM8},
-                        systemMode: {ID: 28, type: Zcl.DataType.ENUM8},
-                        runningMode: {ID: 30, type: Zcl.DataType.ENUM8},
-                        startOfWeek: {ID: 32, type: Zcl.DataType.ENUM8},
-                        numberOfWeeklyTrans: {ID: 33, type: Zcl.DataType.UINT8},
-                        numberOfDailyTrans: {ID: 34, type: Zcl.DataType.UINT8},
-                        tempSetpointHold: {ID: 35, type: Zcl.DataType.ENUM8},
-                        programingOperMode: {ID: 37, type: Zcl.DataType.BITMAP8},
-                        runningState: {ID: 41, type: Zcl.DataType.BITMAP16},
-                        setpointChangeSource: {ID: 48, type: Zcl.DataType.ENUM8},
                         operatingMode: {ID: 0x4007, type: Zcl.DataType.ENUM8},
                         windowDetection: {ID: 0x4042, type: Zcl.DataType.ENUM8},
                         boostMode: {ID: 0x4043, type: Zcl.DataType.ENUM8},
                     },
-                    commands: {
-                        setpointRaiseLower: {
-                            ID: 0,
-                            parameters: [
-                                {name: 'mode', type: Zcl.DataType.UINT8},
-                                {name: 'amount', type: Zcl.DataType.INT8},
-                            ],
-                        },
-                        getWeeklySchedule: {
-                            ID: 2,
-                            parameters: [
-                                {name: 'daystoreturn', type: Zcl.DataType.UINT8},
-                                {name: 'modetoreturn', type: Zcl.DataType.UINT8},
-                            ],
-                        },
-                        clearWeeklySchedule: {
-                            ID: 3,
-                            parameters: [],
-                        },
-                        getRelayStatusLog: {
-                            ID: 4,
-                            parameters: [],
-                        },
-                    },
+                    commands: {},
                     commandsResponse: {},
                 },
             ),
             deviceAddCustomCluster(
-                'boschRoomThermostatUi',
+                'hvacUserInterfaceCfg',
                 {
                     ID: 0x204,
                     attributes: {
-                        tempDisplayMode: {ID: 0, type: Zcl.DataType.ENUM8},
                         childLock: {ID: 0x1, type: Zcl.DataType.ENUM8},
-                        programmingVisibility: {ID: 2, type: Zcl.DataType.ENUM8},
                         displayOntime: {ID: 0x403a, type: Zcl.DataType.ENUM8},
                         displayBrightness: {ID: 0x403b, type: Zcl.DataType.ENUM8},
                     },
@@ -1409,7 +1363,7 @@ const definitions: Definition[] = [
             ),
             enumLookup({
                 name: 'operating_mode',
-                cluster: 'boschRoomThermostat',
+                cluster: 'hvacThermostat',
                 attribute: 'operatingMode',
                 description: 'Sets Bosch-specific operating mode',
                 lookup: {'schedule': 0, 'manual': 1, 'pause': 5},
@@ -1417,7 +1371,7 @@ const definitions: Definition[] = [
             }),
             binary({
                 name: 'window_detection',
-                cluster: 'boschRoomThermostat',
+                cluster: 'hvacThermostat',
                 attribute: 'windowDetection',
                 description: 'Enable/disable window open (Lo.) mode',
                 valueOn: ['ON', 0x01],
@@ -1426,7 +1380,7 @@ const definitions: Definition[] = [
             }),
             binary({
                 name: 'child_lock',
-                cluster: 'boschRoomThermostatUi',
+                cluster: 'hvacUserInterfaceCfg',
                 attribute: 'childLock',
                 description: 'Enables/disables physical input on the device',
                 valueOn: ['LOCK', 0x01],
@@ -1434,7 +1388,7 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'display_ontime',
-                cluster: 'boschRoomThermostatUi',
+                cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayOntime',
                 description: 'Sets the display on-time',
                 valueMin: 5,
@@ -1444,7 +1398,7 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'display_brightness',
-                cluster: 'boschRoomThermostatUi',
+                cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayBrightness',
                 description: 'Sets brightness of the display',
                 valueMin: 0,
@@ -1455,7 +1409,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msRelativeHumidity', 'boschRoomThermostatUi', 'boschRoomThermostat',
+                'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
             await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
             await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
@@ -1463,22 +1417,22 @@ const definitions: Definition[] = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.humidity(endpoint);
-            await endpoint.configureReporting('boschRoomThermostat', [{
+            await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'operatingMode',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 0,
             }], manufacturerOptions);
-            await endpoint.configureReporting('boschRoomThermostatUi', [{
+            await endpoint.configureReporting('hvacUserInterfaceCfg', [{
                 attribute: 'childLock',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 0,
             }]);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('boschRoomThermostat', ['operatingMode', 'windowDetection'], manufacturerOptions);
-            await endpoint.read('boschRoomThermostatUi', ['childLock']);
-            await endpoint.read('boschRoomThermostatUi', ['displayOntime', 'displayBrightness'], manufacturerOptions);
+            await endpoint.read('hvacThermostat', ['operatingMode', 'windowDetection'], manufacturerOptions);
+            await endpoint.read('hvacUserInterfaceCfg', ['childLock']);
+            await endpoint.read('hvacUserInterfaceCfg', ['displayOntime', 'displayBrightness'], manufacturerOptions);
         },
     },
     {
