@@ -1340,12 +1340,86 @@ const definitions: Definition[] = [
                 {
                     ID: 0x201,
                     attributes: {
+                        localTemp: {ID: 0, type: DataType.INT16},
+                        outdoorTemp: {ID: 1, type: DataType.INT16},
+                        occupancy: {ID: 2, type: DataType.BITMAP8},
+                        localTemperatureCalibration: {ID: 16, type: DataType.INT8},
+                        occupiedCoolingSetpoint: {ID: 17, type: DataType.INT16},
+                        occupiedHeatingSetpoint: {ID: 18, type: DataType.INT16},
+                        minHeatSetpointLimit: {ID: 21, type: DataType.INT16},
+                        maxHeatSetpointLimit: {ID: 22, type: DataType.INT16},
+                        minCoolSetpointLimit: {ID: 23, type: DataType.INT16},
+                        maxCoolSetpointLimit: {ID: 24, type: DataType.INT16},
+                        minSetpointDeadBand: {ID: 25, type: DataType.INT8},
+                        ctrlSeqeOfOper: {ID: 27, type: DataType.ENUM8},
+                        systemMode: {ID: 28, type: DataType.ENUM8},
+                        runningMode: {ID: 30, type: DataType.ENUM8},
+                        startOfWeek: {ID: 32, type: DataType.ENUM8},
+                        numberOfWeeklyTrans: {ID: 33, type: DataType.UINT8},
+                        numberOfDailyTrans: {ID: 34, type: DataType.UINT8},
+                        tempSetpointHold: {ID: 35, type: DataType.ENUM8},
+                        programingOperMode: {ID: 37, type: DataType.BITMAP8},
+                        runningState: {ID: 41, type: DataType.BITMAP16},
+                        setpointChangeSource: {ID: 48, type: DataType.ENUM8},
                         operatingMode: {ID: 0x4007, type: Zcl.DataType.ENUM8},
                         windowDetection: {ID: 0x4042, type: Zcl.DataType.ENUM8},
                         boostMode: {ID: 0x4043, type: Zcl.DataType.ENUM8},
                     },
-                    commands: {},
-                    commandsResponse: {},
+                    commands: {
+                        setpointRaiseLower: {
+                            ID: 0,
+                            parameters: [
+                                {name: 'mode', type: DataType.UINT8},
+                                {name: 'amount', type: DataType.INT8},
+                            ],
+                        },
+                        setWeeklySchedule: {
+                            ID: 1,
+                            parameters: [
+                                {name: 'numoftrans', type: DataType.UINT8},
+                                {name: 'dayofweek', type: DataType.UINT8},
+                                {name: 'mode', type: DataType.UINT8},
+                                {name: 'transitions', type: BuffaloZclDataType.LIST_THERMO_TRANSITIONS},
+                            ],
+                        },
+                        getWeeklySchedule: {
+                            ID: 2,
+                            parameters: [
+                                {name: 'daystoreturn', type: DataType.UINT8},
+                                {name: 'modetoreturn', type: DataType.UINT8},
+                            ],
+                        },
+                        clearWeeklySchedule: {
+                            ID: 3,
+                            parameters: [],
+                        },
+                        getRelayStatusLog: {
+                            ID: 4,
+                            parameters: [],
+                        },
+                    },
+                    commandsResponse: {
+                        getWeeklyScheduleRsp: {
+                            ID: 0,
+                            parameters: [
+                                {name: 'numoftrans', type: DataType.UINT8},
+                                {name: 'dayofweek', type: DataType.UINT8},
+                                {name: 'mode', type: DataType.UINT8},
+                                {name: 'transitions', type: BuffaloZclDataType.LIST_THERMO_TRANSITIONS},
+                            ]
+                        },
+                        getRelayStatusLogRsp: {
+                            ID: 1,
+                            parameters: [
+                                {name: 'timeofday', type: DataType.UINT16},
+                                {name: 'relaystatus', type: DataType.UINT16},
+                                {name: 'localtemp', type: DataType.UINT16},
+                                {name: 'humidity', type: DataType.UINT8},
+                                {name: 'setpoint', type: DataType.UINT16},
+                                {name: 'unreadentries', type: DataType.UINT16},
+                            ],
+                        },
+                    },
                 },
             ),
             deviceAddCustomCluster(
@@ -1353,7 +1427,9 @@ const definitions: Definition[] = [
                 {
                     ID: 0x204,
                     attributes: {
+                        tempDisplayMode: {ID: 0, type: DataType.ENUM8},
                         childLock: {ID: 0x1, type: Zcl.DataType.ENUM8},
+                        programmingVisibility: {ID: 2, type: DataType.ENUM8},
                         displayOntime: {ID: 0x403a, type: Zcl.DataType.ENUM8},
                         displayBrightness: {ID: 0x403b, type: Zcl.DataType.ENUM8},
                     },
@@ -1366,7 +1442,7 @@ const definitions: Definition[] = [
                 cluster: 'boschRoomThermostat',
                 attribute: 'operatingMode',
                 description: 'Sets Bosch-specific operating mode',
-                lookup: {'auto': 0, 'manual': 1, 'off': 5},
+                lookup: {'schedule': 0, 'manual': 1, 'off': 5},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
             }),
             binary({
@@ -1419,10 +1495,16 @@ const definitions: Definition[] = [
             await reporting.humidity(endpoint);
             await endpoint.configureReporting('boschRoomThermostat', [{
                 attribute: 'operatingMode',
+                minimumReportInterval: 10,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null,
+            }], manufacturerOptions);
+            await endpoint.configureReporting('boschRoomThermostatUi', [{
+                attribute: 'childLock',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
-            }], manufacturerOptions);
+            }]);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read('boschRoomThermostat', ['operatingMode', 'windowDetection'], manufacturerOptions);
             await endpoint.read('boschRoomThermostatUi', ['childLock']);
