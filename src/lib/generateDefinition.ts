@@ -1,4 +1,4 @@
-import {Cluster} from 'zigbee-herdsman/dist/zcl/tstype';
+import {Cluster} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
 import {Definition, ModernExtend, Zh} from './types';
 import {getClusterAttributeValue} from './utils';
 import * as m from './modernExtend';
