@@ -223,7 +223,7 @@ const definitions: Definition[] = [
             e.numeric('brightness', ea.ALL).withValueMin(0).withValueMax(254)
                 .withDescription('Brightness of this backlight LED')],
         toZigbee: [tzLocal.backlight_brightness, tz.on_off],
-        meta: {multiEndpoint: true, multiEndpointSkip: ['energy', 'power']},
+        meta: {multiEndpoint: true},
         ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
