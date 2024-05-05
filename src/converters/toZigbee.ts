@@ -1242,8 +1242,17 @@ const converters2 = {
                 utils.assertString(value, key);
                 const lookup = {blink: 0, breathe: 1, okay: 2, channel_change: 11, finish_effect: 254, stop_effect: 255};
                 value = value.toLowerCase();
-                const payload = {effectid: utils.getFromLookup(value, lookup), effectvariant: 0};
-                await entity.command('genIdentify', 'triggerEffect', payload, utils.getOptions(meta.mapped, entity));
+                if (value === 'colorloop') {
+                    const transition = meta.message.transition ?? 15;
+                    utils.assertNumber(transition, 'transition');
+                    const speed = Math.min(255, Math.max(1, Math.round(255 / transition)));
+                    converters2.light_hue_saturation_move.convertSet(entity, 'hue_move', speed, meta);
+                } else if (value === 'stop_colorloop') {
+                    converters2.light_hue_saturation_move.convertSet(entity, 'hue_move', 'stop', meta);
+                } else {
+                    const payload = {effectid: utils.getFromLookup(value, lookup), effectvariant: 0};
+                    await entity.command('genIdentify', 'triggerEffect', payload, utils.getOptions(meta.mapped, entity));
+                }
             } else if (key === 'alert' || key === 'flash') { // Deprecated
                 let effectid = 0;
                 const lookup = {'select': 0x00, 'lselect': 0x01, 'none': 0xFF};
