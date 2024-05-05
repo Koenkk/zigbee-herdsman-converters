@@ -1457,23 +1457,23 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
-            await reporting.thermostatSystemMode(endpoint);
-            await reporting.thermostatRunningState(endpoint);
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
+            await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.humidity(endpoint);
             await endpoint.configureReporting('boschRoomThermostat', [{
                 attribute: 'operatingMode',
-                minimumReportInterval: 10,
+                minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null,
+                reportableChange: 0,
             }], manufacturerOptions);
             await endpoint.configureReporting('boschRoomThermostatUi', [{
                 attribute: 'childLock',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
+                reportableChange: 0,
             }]);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read('boschRoomThermostat', ['operatingMode', 'windowDetection'], manufacturerOptions);
