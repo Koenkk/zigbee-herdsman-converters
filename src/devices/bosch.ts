@@ -1373,15 +1373,6 @@ const definitions: Definition[] = [
                                 {name: 'amount', type: Zcl.DataType.INT8},
                             ],
                         },
-                        setWeeklySchedule: {
-                            ID: 1,
-                            parameters: [
-                                {name: 'numoftrans', type: Zcl.DataType.UINT8},
-                                {name: 'dayofweek', type: Zcl.DataType.UINT8},
-                                {name: 'mode', type: Zcl.DataType.UINT8},
-                                {name: 'transitions', type: Zcl.BuffaloZclDataType.LIST_THERMO_TRANSITIONS},
-                            ],
-                        },
                         getWeeklySchedule: {
                             ID: 2,
                             parameters: [
@@ -1398,28 +1389,7 @@ const definitions: Definition[] = [
                             parameters: [],
                         },
                     },
-                    commandsResponse: {
-                        getWeeklyScheduleRsp: {
-                            ID: 0,
-                            parameters: [
-                                {name: 'numoftrans', type: Zcl.DataType.UINT8},
-                                {name: 'dayofweek', type: Zcl.DataType.UINT8},
-                                {name: 'mode', type: Zcl.DataType.UINT8},
-                                {name: 'transitions', type: Zcl.BuffaloZclDataType.LIST_THERMO_TRANSITIONS},
-                            ]
-                        },
-                        getRelayStatusLogRsp: {
-                            ID: 1,
-                            parameters: [
-                                {name: 'timeofday', type: Zcl.DataType.UINT16},
-                                {name: 'relaystatus', type: Zcl.DataType.UINT16},
-                                {name: 'localtemp', type: Zcl.DataType.UINT16},
-                                {name: 'humidity', type: Zcl.DataType.UINT8},
-                                {name: 'setpoint', type: Zcl.DataType.UINT16},
-                                {name: 'unreadentries', type: Zcl.DataType.UINT16},
-                            ],
-                        },
-                    },
+                    commandsResponse: {},
                 },
             ),
             deviceAddCustomCluster(
