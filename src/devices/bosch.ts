@@ -1,4 +1,7 @@
-import {identify, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
+import {
+    identify, light, onOff, quirkCheckinInterval,
+    deviceAddCustomCluster, binary, numeric, enumLookup,
+} from '../lib/modernExtend';
 import {Zcl, ZSpec} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -759,7 +762,7 @@ const fzLocal = {
                 result.boost = (Object.keys(stateOffOn)[data[0x4043]]);
             }
             if (data.hasOwnProperty(0x4007)) {
-                const opModes: KeyValue = {0: 'auto', 1: 'heat', 2: 'unknown_2', 3: 'unknown_3', 4: 'unknown_4', 5: 'off'};
+                const opModes: KeyValue = {0: 'auto', 1: 'manual', 5: 'off'};
                 result.system_mode = opModes[data[0x4007]];
             }
             if (data.hasOwnProperty(0x4020)) {
@@ -777,7 +780,6 @@ const fzLocal = {
                     result.valve_adapt_process = false;
                 }
             }
-
             return result;
         },
     } satisfies Fz.Converter,
@@ -802,7 +804,6 @@ const fzLocal = {
             if (data.hasOwnProperty('keypadLockout')) {
                 result.child_lock = (data['keypadLockout'] == 1 ? 'LOCK' : 'UNLOCK');
             }
-
             return result;
         },
     } satisfies Fz.Converter,
@@ -1307,64 +1308,131 @@ const definitions: Definition[] = [
         model: 'BTH-RM230Z',
         vendor: 'Bosch',
         description: 'Room thermostat II 230V',
-        fromZigbee: [fz.humidity, fz.thermostat, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
-        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tz.thermostat_running_state,
-            tzLocal.bosch_thermostat, tzLocal.bosch_userInterface],
         exposes: [
             e.climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'auto'])
-                .withRunningState(['idle', 'heat'], ea.STATE_GET),
+                .withSystemMode(['off', 'heat', 'cool'])
+                .withRunningState(['idle', 'heat', 'cool']),
             e.humidity(),
-            e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
-            e.binary('window_detection', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
-            e.child_lock().setAccess('state', ea.ALL),
-            e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
-            e.numeric('display_brightness', ea.ALL).withValueMin(0).withValueMax(10).withDescription('Specifies the brightness value of the display'),
+        ],
+        fromZigbee: [
+            fz.humidity,
+            fz.thermostat,
+            fz.hvac_user_interface,
+        ],
+        toZigbee: [
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_programming_operation_mode, // NOTE: Only 0x0 & 0x1 supported
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
+            tz.thermostat_temperature_setpoint_hold,
+            tz.thermostat_temperature_display_mode,
+        ],
+        extend: [
+            deviceAddCustomCluster(
+                'hvacThermostat',
+                {
+                    ID: 0x201,
+                    attributes: {
+                        operatingMode: {ID: 0x4007, type: Zcl.DataType.ENUM8},
+                        windowDetection: {ID: 0x4042, type: Zcl.DataType.ENUM8},
+                        boostMode: {ID: 0x4043, type: Zcl.DataType.ENUM8},
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                },
+            ),
+            deviceAddCustomCluster(
+                'hvacUserInterfaceCfg',
+                {
+                    ID: 0x204,
+                    attributes: {
+                        childLock: {ID: 0x1, type: Zcl.DataType.ENUM8},
+                        displayOntime: {ID: 0x403a, type: Zcl.DataType.ENUM8},
+                        displayBrightness: {ID: 0x403b, type: Zcl.DataType.ENUM8},
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                },
+            ),
+            enumLookup({
+                name: 'operating_mode',
+                cluster: 'hvacThermostat',
+                attribute: 'operatingMode',
+                description: 'Sets Bosch-specific operating mode',
+                lookup: {'schedule': 0, 'manual': 1, 'pause': 5},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            binary({
+                name: 'window_detection',
+                cluster: 'hvacThermostat',
+                attribute: 'windowDetection',
+                description: 'Enable/disable window open (Lo.) mode',
+                valueOn: ['ON', 0x01],
+                valueOff: ['OFF', 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            binary({
+                name: 'child_lock',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: 'childLock',
+                description: 'Enables/disables physical input on the device',
+                valueOn: ['LOCK', 0x01],
+                valueOff: ['UNLOCK', 0x00],
+            }),
+            numeric({
+                name: 'display_ontime',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: 'displayOntime',
+                description: 'Sets the display on-time',
+                valueMin: 5,
+                valueMax: 30,
+                unit: 's',
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            numeric({
+                name: 'display_brightness',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: 'displayBrightness',
+                description: 'Sets brightness of the display',
+                valueMin: 0,
+                valueMax: 10,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity']);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
+            ]);
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
+            await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
             await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatKeypadLockMode(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.humidity(endpoint);
-
-            // report operating_mode (system_mode)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4007, type: Zcl.DataType.ENUM8},
+                attribute: 'operatingMode',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
+                reportableChange: 0,
             }], manufacturerOptions);
-            // report pi_heating_demand (valve opening)
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4020, type: Zcl.DataType.ENUM8},
+            await endpoint.configureReporting('hvacUserInterfaceCfg', [{
+                attribute: 'childLock',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], manufacturerOptions);
-            // report window_detection
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4042, type: Zcl.DataType.ENUM8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], manufacturerOptions);
-            // report boost as it's disabled by thermostat after 5 minutes
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4043, type: Zcl.DataType.ENUM8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], manufacturerOptions);
+                reportableChange: 0,
+            }]);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4042, 0x4043], manufacturerOptions);
-            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
-            await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], manufacturerOptions);
+            await endpoint.read('hvacThermostat', ['operatingMode', 'windowDetection'], manufacturerOptions);
+            await endpoint.read('hvacUserInterfaceCfg', ['childLock']);
+            await endpoint.read('hvacUserInterfaceCfg', ['displayOntime', 'displayBrightness'], manufacturerOptions);
         },
     },
     {
