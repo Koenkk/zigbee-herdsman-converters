@@ -1433,8 +1433,8 @@ const definitions: Definition[] = [
             await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
             await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
             await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0);
-            await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
             await reporting.humidity(endpoint);
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'operatingMode',
