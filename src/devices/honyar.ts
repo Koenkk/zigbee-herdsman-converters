@@ -16,6 +16,8 @@ const fzLocal = {
         convert: (model : any, msg : any, publish : any, options : any, meta : any) => {
             if (meta.device.dateCode === '20170621') {
                 const result = {};
+		const converters = {};
+		let energy
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
                     const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
@@ -38,6 +40,10 @@ const fzLocal = {
         convert: (model : any, msg : any, publish : any, options : any, meta : any) => {
             if (meta.device.dateCode === '20170621') {
                 const payload = {};
+		const converters = {};
+		let current
+		let voltage
+		let power
                 if (msg.data.hasOwnProperty('rmsCurrent')) {
                     const current = msg.data['rmsCurrent'];
                     payload.current = current / 1000.0;
