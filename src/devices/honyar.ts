@@ -13,7 +13,7 @@ const fzLocal = {
     honyer_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
+        convert: async (model, msg, publish, options, meta) => {
             if (meta.device.dateCode === '20170621') {
                 const result = {};
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
@@ -35,7 +35,7 @@ const fzLocal = {
             exposes.options.calibration('current', 'percentual'), exposes.options.precision('current'),
             exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
         ],
-        convert: (model, msg, publish, options, meta) => {
+        convert: async (model, msg, publish, options, meta) => {
             if (meta.device.dateCode === '20170621') {
                 const payload = {};
                 if (msg.data.hasOwnProperty('rmsCurrent')) {
