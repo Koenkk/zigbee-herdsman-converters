@@ -6,7 +6,6 @@ import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as globalStore from '../lib/store';
-import {logger} from '../lib/logger';
 
 const e = exposes.presets;
 
@@ -14,7 +13,7 @@ const fzLocal = {
     honyer_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             if (meta.device.dateCode === '20170621') {
                 const result = {};
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
@@ -36,7 +35,7 @@ const fzLocal = {
             exposes.options.calibration('current', 'percentual'), exposes.options.precision('current'),
             exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
         ],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             if (meta.device.dateCode === '20170621') {
                 const payload = {};
                 if (msg.data.hasOwnProperty('rmsCurrent')) {
@@ -206,7 +205,7 @@ const definitions: Definition[] = [
 						await Endpoint.read('genOnOff', ['onOff']);
 					} catch (error) {
 					}
-				}, 5*1000); //Every 5 seconds
+				}, 5*1000); //5秒读一次。
 				globalStore.putValue(device, 'interval', interval);
 			}
 		},
