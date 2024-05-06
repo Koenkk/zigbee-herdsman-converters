@@ -2,12 +2,18 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import {getFromLookup} from '../lib/utils';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as globalStore from '../lib/store';
+import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
+import {battery, lock} from '../lib/modernExtend';
+import {logger} from '../lib/logger';
 
+const NS = 'zhc:yale';
 const e = exposes.presets;
+const ea = exposes.access;
 
 const fzLocal = {
     honyer_metering: {
