@@ -19,7 +19,8 @@ const fzLocal = {
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
                     const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    const result.energy = value / 1000.0;
+					let energy = {} as any[];
+                    result.energy = value / 1000.0;
                 }
                 return result;
             } else {
@@ -40,17 +41,20 @@ const fzLocal = {
                 const payload = {};
                 if (msg.data.hasOwnProperty('rmsCurrent')) {
                     const current = msg.data['rmsCurrent'];
-                    const payload.current = current / 1000.0;
+					let current = {} as any[];
+                    payload.current = current / 1000.0;
                 }
 			    if (msg.data.hasOwnProperty('rmsVoltage')) {
                     const voltage = msg.data['rmsVoltage'];
 					if (voltage > 1) {
-					    const payload.voltage = voltage;
+					    let voltage = {} as any[];
+					    payload.voltage = voltage;
 				    }
 				}
 			    if (msg.data.hasOwnProperty('activePower')) {
                     const power = msg.data['activePower'];
-                    const payload.power = power;
+					let power = {} as any[];
+                    payload.power = power;
 				}
 				return payload;
             } 
@@ -205,7 +209,7 @@ const definitions: Definition[] = [
 						await Endpoint.read('genOnOff', ['onOff']);
 					} catch (error) {
 					}
-				}, 5*1000); 
+				}, 5*1000); //5秒读一次。
 				globalStore.putValue(device, 'interval', interval);
 			}
 		},
