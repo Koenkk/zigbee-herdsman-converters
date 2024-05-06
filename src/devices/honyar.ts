@@ -1,30 +1,13 @@
+import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
-import * as tuya from '../lib/tuya';
-import * as ota from '../lib/ota';
-import * as reporting from '../lib/reporting';
-import * as libColor from '../lib/color';
-import * as utils from '../lib/utils';
-import * as zosung from '../lib/zosung';
-import * as globalStore from '../lib/store';
-import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify,
-    actionEnumLookup, commandsOnOff, commandsLevelCtrl} from '../lib/modernExtend';
-import {logger} from '../lib/logger';
-import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
-
-const NS = 'zhc:tuya';
-const {tuyaLight} = tuya.modernExtend;
+import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import * as globalStore from '../lib/store';
 
 const e = exposes.presets;
-const ea = exposes.access;
-
-const fzZosung = zosung.fzZosung;
-const tzZosung = zosung.tzZosung;
-const ez = zosung.presetsZosung;
 
 const fzLocal = {
     honyer_metering: {
