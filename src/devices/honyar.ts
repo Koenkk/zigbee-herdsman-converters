@@ -1,7 +1,5 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import * as extend from '../lib/extend';
-import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
@@ -10,15 +8,13 @@ import {deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as globalStore from '../lib/store';
 import {logger} from '../lib/logger';
 
-
 const e = exposes.presets;
-const ea = exposes.access;
 
 const fzLocal = {
     honyer_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
+        convert: async (model, msg, publish, options, meta) => {
             if (meta.device.dateCode === '20170621') {
                 const result = {};
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
@@ -40,7 +36,7 @@ const fzLocal = {
             exposes.options.calibration('current', 'percentual'), exposes.options.precision('current'),
             exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
         ],
-        convert: (model, msg, publish, options, meta) => {
+        convert: async (model, msg, publish, options, meta) => {
             if (meta.device.dateCode === '20170621') {
                 const payload = {};
                 if (msg.data.hasOwnProperty('rmsCurrent')) {
