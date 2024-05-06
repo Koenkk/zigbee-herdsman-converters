@@ -1,5 +1,12 @@
 # Changelog
 
+## [19.36.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.36.0...v19.36.1) (2024-05-06)
+
+
+### Bug Fixes
+
+* Add missing `manuSpecificLumi` to Aqara ZNJLBL01LM https://github.com/Koenkk/zigbee2mqtt/issues/22475 ([0bdd6bf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0bdd6bf799d131a06a013dc3003eadcd760faf5d))
+
 ## [19.36.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.35.0...v19.36.0) (2024-05-05)
 
 
