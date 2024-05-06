@@ -1353,7 +1353,7 @@ const definitions: Definition[] = [
                         boostMode: {
                             ID: 0x4043,
                             type: Zcl.DataType.ENUM8,
-                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH.
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
                     },
                     commands: {},
