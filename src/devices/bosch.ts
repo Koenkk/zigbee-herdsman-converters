@@ -1340,9 +1340,21 @@ const definitions: Definition[] = [
                 {
                     ID: 0x201,
                     attributes: {
-                        operatingMode: {ID: 0x4007, type: Zcl.DataType.ENUM8},
-                        windowDetection: {ID: 0x4042, type: Zcl.DataType.ENUM8},
-                        boostMode: {ID: 0x4043, type: Zcl.DataType.ENUM8},
+                        operatingMode: {
+                            ID: 0x4007,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        windowDetection: {
+                            ID: 0x4042,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        boostMode: {
+                            ID: 0x4043,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH.
+                        },
                     },
                     commands: {},
                     commandsResponse: {},
@@ -1353,8 +1365,16 @@ const definitions: Definition[] = [
                 {
                     ID: 0x204,
                     attributes: {
-                        displayOntime: {ID: 0x403a, type: Zcl.DataType.ENUM8},
-                        displayBrightness: {ID: 0x403b, type: Zcl.DataType.ENUM8},
+                        displayOntime: {
+                            ID: 0x403a,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        displayBrightness: {
+                            ID: 0x403b,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
                     },
                     commands: {},
                     commandsResponse: {},
@@ -1413,8 +1433,8 @@ const definitions: Definition[] = [
             await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
             await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
             await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0);
             await reporting.humidity(endpoint);
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'operatingMode',
