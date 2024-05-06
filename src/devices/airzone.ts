@@ -2,6 +2,7 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
+import {identify, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
@@ -36,6 +37,7 @@ const definitions: Definition[] = [
                 .withFanMode(['off', 'low', 'medium', 'high', 'auto'])
                 .withAcLouverPosition(['fully_open', 'fully_closed', 'half_open', 'quarter_open', 'three_quarters_open']),
         ],
+        extend: [onOff({"powerOnBehavior":false}), identify()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const binds1 = ['hvacFanCtrl', 'genIdentify', 'hvacThermostat'];
