@@ -37,7 +37,7 @@ const definitions: Definition[] = [
                 .withFanMode(['off', 'low', 'medium', 'high', 'auto'])
                 .withAcLouverPosition(['fully_open', 'fully_closed', 'half_open', 'quarter_open', 'three_quarters_open']),
         ],
-        extend: [onOff({"powerOnBehavior":false}), identify()],
+        extend: [onOff({powerOnBehavior: false}), identify()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const binds1 = ['hvacFanCtrl', 'genIdentify', 'hvacThermostat'];
