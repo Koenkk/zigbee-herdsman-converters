@@ -1353,7 +1353,6 @@ const definitions: Definition[] = [
                 {
                     ID: 0x204,
                     attributes: {
-                        childLock: {ID: 0x1, type: Zcl.DataType.ENUM8},
                         displayOntime: {ID: 0x403a, type: Zcl.DataType.ENUM8},
                         displayBrightness: {ID: 0x403b, type: Zcl.DataType.ENUM8},
                     },
@@ -1365,7 +1364,7 @@ const definitions: Definition[] = [
                 name: 'operating_mode',
                 cluster: 'hvacThermostat',
                 attribute: 'operatingMode',
-                description: 'Sets Bosch-specific operating mode',
+                description: 'Sets Bosch-specific operating mode (overrides system mode)',
                 lookup: {'schedule': 0, 'manual': 1, 'pause': 5},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
             }),
@@ -1381,7 +1380,7 @@ const definitions: Definition[] = [
             binary({
                 name: 'child_lock',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: 'childLock',
+                attribute: 'keypadLockout',
                 description: 'Enables/disables physical input on the device',
                 valueOn: ['LOCK', 0x01],
                 valueOff: ['UNLOCK', 0x00],
@@ -1424,14 +1423,14 @@ const definitions: Definition[] = [
                 reportableChange: 0,
             }], manufacturerOptions);
             await endpoint.configureReporting('hvacUserInterfaceCfg', [{
-                attribute: 'childLock',
+                attribute: 'keypadLockout',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 0,
             }]);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read('hvacThermostat', ['operatingMode', 'windowDetection'], manufacturerOptions);
-            await endpoint.read('hvacUserInterfaceCfg', ['childLock']);
+            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', ['displayOntime', 'displayBrightness'], manufacturerOptions);
         },
     },
