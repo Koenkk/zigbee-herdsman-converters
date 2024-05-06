@@ -5,8 +5,62 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import * as globalStore from '../lib/store';
+import {logger} from '../lib/logger';
 
 const e = exposes.presets;
+
+const fzLocal = {
+    honyer_metering: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (meta.device.dateCode === '20170621') {
+                const result = {};
+                if (msg.data.hasOwnProperty('currentSummDelivered')) {
+                    const data = msg.data['currentSummDelivered'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    result.energy = value / 1000.0;
+                }
+                return result;
+            } else {
+                return converters.metering.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    honyer_electrical_measurement: {
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        options: [
+            exposes.options.calibration('power', 'percentual'), exposes.options.precision('power'),
+            exposes.options.calibration('current', 'percentual'), exposes.options.precision('current'),
+            exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
+        ],
+        convert: (model, msg, publish, options, meta) => {
+            if (meta.device.dateCode === '20170621') {
+                const payload = {};
+                if (msg.data.hasOwnProperty('rmsCurrent')) {
+                    const current = msg.data['rmsCurrent'];
+                    payload.current = current / 1000.0;
+                }
+			    if (msg.data.hasOwnProperty('rmsVoltage')) {
+                    const voltage = msg.data['rmsVoltage'];
+					if (voltage > 1) {
+					    payload.voltage = voltage;
+				    }
+				}
+			    if (msg.data.hasOwnProperty('activePower')) {
+                    const power = msg.data['activePower'];
+                    payload.power = power;
+				}
+				return payload;
+            } 
+			else {
+                return converters.metering.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+};
 
 const definitions: Definition[] = [
     {
@@ -128,6 +182,36 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint3);
         },
     },
+	{
+		zigbeeModel: ['000a0abb\u0000', 'RH5000_SmartOutlet'],
+		model: 'IHC8223AL',
+		vendor: 'Honyar',
+		description: 'Smart Power Socket 10A (with power monitoring)',
+		fromZigbee: [fz.on_off, fzLocal.honyer_electrical_measurement, fzLocal.honyer_metering],
+		toZigbee: [tz.on_off],
+		onEvent: async (type, data, device) => {
+			device.skipDefaultResponse = true;
+			const Endpoint = device.getEndpoint(1);
+			if (Endpoint == null) {
+				return;
+			}
+			if (type === 'stop') {
+				clearInterval(globalStore.getValue(device, 'interval'));
+				globalStore.clearValue(device, 'interval');
+			} else if (!globalStore.hasValue(device, 'interval')) {
+				const interval = setInterval(async () => {
+					try {
+						await Endpoint.read('haElectricalMeasurement', ['activePower', 'rmsCurrent', 'rmsVoltage']);
+						await Endpoint.read('seMetering', ['currentSummDelivered']);
+						await Endpoint.read('genOnOff', ['onOff']);
+					} catch (error) {
+					}
+				}, 5*1000); //Every 5 seconds
+				globalStore.putValue(device, 'interval', interval);
+			}
+		},
+		exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+	},	
 ];
 
 export default definitions;
