@@ -1,5 +1,7 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
+import * as extend from '../lib/extend';
+import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
@@ -8,7 +10,9 @@ import {deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as globalStore from '../lib/store';
 import {logger} from '../lib/logger';
 
+
 const e = exposes.presets;
+const ea = exposes.access;
 
 const fzLocal = {
     honyer_metering: {
