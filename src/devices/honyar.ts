@@ -15,11 +15,10 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model : any, msg : any, publish : any, options : any, meta : any) => {
             if (meta.device.dateCode === '20170621') {
-                const result = {};
+                const result = {} as any[];
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
                     const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-					let energy = {} as any[];
                     result.energy = value / 1000.0;
                 }
                 return result;
@@ -38,22 +37,19 @@ const fzLocal = {
         ],
         convert: (model : any, msg : any, publish : any, options : any, meta : any) => {
             if (meta.device.dateCode === '20170621') {
-                const payload = {};
+                const payload = {} as any[];
                 if (msg.data.hasOwnProperty('rmsCurrent')) {
                     const current = msg.data['rmsCurrent'];
-					let current = {} as any[];
                     payload.current = current / 1000.0;
                 }
 			    if (msg.data.hasOwnProperty('rmsVoltage')) {
                     const voltage = msg.data['rmsVoltage'];
 					if (voltage > 1) {
-					    let voltage = {} as any[];
 					    payload.voltage = voltage;
 				    }
 				}
 			    if (msg.data.hasOwnProperty('activePower')) {
                     const power = msg.data['activePower'];
-					let power = {} as any[];
                     payload.power = power;
 				}
 				return payload;
