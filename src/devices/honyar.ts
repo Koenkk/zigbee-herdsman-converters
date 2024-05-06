@@ -16,7 +16,6 @@ const fzLocal = {
         convert: (model : any, msg : any, publish : any, options : any, meta : any) => {
             if (meta.device.dateCode === '20170621') {
                 const result = {};
-		let energy
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
                     const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
@@ -24,7 +23,7 @@ const fzLocal = {
                 }
                 return result;
             } else {
-                return converters.metering.convert(model, msg, publish, options, meta);
+                return converters1.metering.convert(model, msg, publish, options, meta);
             }
         },
     },
@@ -39,27 +38,24 @@ const fzLocal = {
         convert: (model : any, msg : any, publish : any, options : any, meta : any) => {
             if (meta.device.dateCode === '20170621') {
                 const payload = {};
-		let current: any = {};
-		let voltage: any = {};
-		let power: any = {};
                 if (msg.data.hasOwnProperty('rmsCurrent')) {
                     const current = msg.data['rmsCurrent'];
                     payload.current = current / 1000.0;
                 }
-			    if (msg.data.hasOwnProperty('rmsVoltage')) {
+		if (msg.data.hasOwnProperty('rmsVoltage')) {
                     const voltage = msg.data['rmsVoltage'];
-					if (voltage > 1) {
-					    payload.voltage = voltage;
-				    }
-				}
-			    if (msg.data.hasOwnProperty('activePower')) {
+		    if (voltage > 1) {
+			payload.voltage = voltage;
+		    }
+	        }
+		if (msg.data.hasOwnProperty('activePower')) {
                     const power = msg.data['activePower'];
                     payload.power = power;
-				}
-				return payload;
+		}
+		return payload;
             } 
-			else {
-                return converters.metering.convert(model, msg, publish, options, meta);
+	    else {
+                return converters1.metering.convert(model, msg, publish, options, meta);
             }
         },
     },
