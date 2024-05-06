@@ -1430,24 +1430,27 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
-            await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
-            await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
-            await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 0});
             await reporting.humidity(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatRunningState(endpoint);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {
+                min: constants.repInterval.SECONDS_10,
+                max: constants.repInterval.HOUR,
+                change: 50,
+            });
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {
+                min: constants.repInterval.SECONDS_10,
+                max: constants.repInterval.HOUR,
+                change: 50,
+            });
+            await reporting.thermostatKeypadLockMode(endpoint);
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'operatingMode',
-                minimumReportInterval: 0,
+                minimumReportInterval: constants.repInterval.SECONDS_10,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 0,
+                reportableChange: null,
             }], manufacturerOptions);
-            await endpoint.configureReporting('hvacUserInterfaceCfg', [{
-                attribute: 'keypadLockout',
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 0,
-            }]);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read('hvacThermostat', ['operatingMode', 'windowDetection'], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
