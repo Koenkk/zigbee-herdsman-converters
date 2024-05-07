@@ -14,7 +14,7 @@ const fzLocal = {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
-	    const converters: any = {};
+            const converters: any = {};
             if (meta.device.dateCode === '20170621') {
                 const result: any = {};
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
@@ -37,26 +37,26 @@ const fzLocal = {
             exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
         ],
         convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
-	    const converters: any = {};
+            const converters: any = {};
             if (meta.device.dateCode === '20170621') {
                 const payload: any = {};
                 if (msg.data.hasOwnProperty('rmsCurrent')) {
                     const current = msg.data['rmsCurrent'];
                     payload.current = current / 1000.0;
                 }
-			    if (msg.data.hasOwnProperty('rmsVoltage')) {
+                if (msg.data.hasOwnProperty('rmsVoltage')) {
                     const voltage = msg.data['rmsVoltage'];
-					if (voltage > 1) {
-					    payload.voltage = voltage;
-				    }
-				}
-			    if (msg.data.hasOwnProperty('activePower')) {
+                    if (voltage > 1) {
+                        payload.voltage = voltage;
+                    }
+                }
+                if (msg.data.hasOwnProperty('activePower')) {
                     const power = msg.data['activePower'];
                     payload.power = power;
-				}
-				return payload;
+                }
+                return payload;
             } 
-			else {
+            else {
                 return converters.metering.convert(model, msg, publish, options, meta);
             }
         },
@@ -183,36 +183,36 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint3);
         },
     },
-	{
-		zigbeeModel: ['000a0abb\u0000', 'RH5000_SmartOutlet'],
-		model: 'IHC8223AL',
-		vendor: 'Honyar',
-		description: 'Smart Power Socket 10A (with power monitoring)',
-		fromZigbee: [fz.on_off, fzLocal.honyer_electrical_measurement, fzLocal.honyer_metering],
-		toZigbee: [tz.on_off],
-		onEvent: async (type, data, device) => {
-			device.skipDefaultResponse = true;
-			const Endpoint = device.getEndpoint(1);
-			if (Endpoint == null) {
-				return;
-			}
-			if (type === 'stop') {
-				clearInterval(globalStore.getValue(device, 'interval'));
-				globalStore.clearValue(device, 'interval');
-			} else if (!globalStore.hasValue(device, 'interval')) {
-				const interval = setInterval(async () => {
-					try {
-						await Endpoint.read('haElectricalMeasurement', ['activePower', 'rmsCurrent', 'rmsVoltage']);
-						await Endpoint.read('seMetering', ['currentSummDelivered']);
-						await Endpoint.read('genOnOff', ['onOff']);
-					} catch (error) {
-					}
-				}, 5*1000); //5秒读一次。
-				globalStore.putValue(device, 'interval', interval);
-			}
-		},
-		exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-	},	
+    {
+        zigbeeModel: ['000a0abb\u0000', 'RH5000_SmartOutlet'],
+        model: 'IHC8223AL',
+        vendor: 'Honyar',
+        description: 'Smart Power Socket 10A (with power monitoring)',
+        fromZigbee: [fz.on_off, fzLocal.honyer_electrical_measurement, fzLocal.honyer_metering],
+        toZigbee: [tz.on_off],
+        onEvent: async (type, data, device) => {
+            device.skipDefaultResponse = true;
+            const Endpoint = device.getEndpoint(1);
+            if (Endpoint == null) {
+                return;
+            }
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
+            } else if (!globalStore.hasValue(device, 'interval')) {
+                const interval = setInterval(async () => {
+                    try {
+                        await Endpoint.read('haElectricalMeasurement', ['activePower', 'rmsCurrent', 'rmsVoltage']);
+                        await Endpoint.read('seMetering', ['currentSummDelivered']);
+                        await Endpoint.read('genOnOff', ['onOff']);
+                    } catch (error) {
+                    }
+                }, 5*1000); //5秒读一次。
+                globalStore.putValue(device, 'interval', interval);
+            }
+        },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+    },    
 ];
 
 export default definitions;
