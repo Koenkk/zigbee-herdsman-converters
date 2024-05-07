@@ -13,10 +13,10 @@ const fzLocal = {
     honyer_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
-        convert: (model : any, msg : any, publish : any, options : any, meta : any) => {
-	    const converters :any = {};
+        convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
+	    const converters: any = {};
             if (meta.device.dateCode === '20170621') {
-                const result :any = {};
+                const result: any = {};
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
                     const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
@@ -36,10 +36,10 @@ const fzLocal = {
             exposes.options.calibration('current', 'percentual'), exposes.options.precision('current'),
             exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
         ],
-        convert: (model : any, msg : any, publish : any, options : any, meta : any) => {
-	    const converters :any = {};
+        convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
+	    const converters: any = {};
             if (meta.device.dateCode === '20170621') {
-                const payload :any = {};
+                const payload: any = {};
                 if (msg.data.hasOwnProperty('rmsCurrent')) {
                     const current = msg.data['rmsCurrent'];
                     payload.current = current / 1000.0;
