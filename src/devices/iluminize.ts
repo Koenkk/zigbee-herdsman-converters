@@ -36,6 +36,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'DIM Lighting', manufacturerName: 'Iluminize'},
+            {modelID: 'DIM Lighting', manufacturerName: 'Sunricher'},
         ],
         model: '511.10',
         vendor: 'Iluminize',
