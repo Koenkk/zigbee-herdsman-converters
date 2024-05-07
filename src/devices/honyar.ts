@@ -152,13 +152,14 @@ const definitions: Definition[] = [
                         await Endpoint.read('seMetering', ['currentSummDelivered']);
                         await Endpoint.read('genOnOff', ['onOff']);
                     } catch (error) {
+                        // Do nothing
                     }
-                }, 5*1000); //5秒读一次。
+                }, 5*1000);
                 globalStore.putValue(device, 'interval', interval);
             }
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-    },    
+    },
 ];
 
 export default definitions;
