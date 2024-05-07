@@ -12,7 +12,7 @@ const NS = 'zhc:yale';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const lockExtend = (meta={}, lockStateOptions: Reporting.Override=null, binds=['closuresDoorLock', 'genPowerCfg']): ModernExtend => {
+const lockExtend = (meta={}, lockStateOptions: Reporting.Override|false=null, binds=['closuresDoorLock', 'genPowerCfg']): ModernExtend => {
     return {
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response,
             fz.lock_user_status_response],
@@ -23,7 +23,9 @@ const lockExtend = (meta={}, lockStateOptions: Reporting.Override=null, binds=['
         configure: [async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.lockState(endpoint, lockStateOptions);
+            if (lockStateOptions !== false) {
+                await reporting.lockState(endpoint, lockStateOptions);
+            }
             await reporting.batteryPercentageRemaining(endpoint);
             try {
                 await reporting.batteryAlarmState(endpoint);
@@ -79,7 +81,7 @@ const fzLocal = {
             try {
                 await msg.endpoint.read('manuSpecificAssaDoorLock', ['batteryLevel']);
             } catch (error) {
-                logger.warning(`zigbee-herdsman-converters:Yale Lock: failed to read lock attributes`, NS);
+                logger.warning(`Failed to read lock attributes`, NS);
             }
             return result;
         },
@@ -161,6 +163,37 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
+    c4_lock_operation_event: {
+        cluster: 'genAlarms',
+        type: ['commandAlarm'],
+        convert: async (model, msg, publish, options, meta) => {
+            let result: KeyValue = {};
+            if (msg.data.clusterid == 64512) {
+                const alarmcode = msg.data.alarmcode;
+                const lookup = {
+                    9: {action: 'error_jammed', state: 'UNLOCK', lock_state: 'not_fully_locked'},
+                    21: {action: 'manual_lock', state: 'LOCK', lock_state: 'locked'},
+                    22: {action: 'manual_unlock', state: 'UNLOCK', lock_state: 'unlocked'},
+                    24: {action: 'lock', state: 'LOCK', lock_state: 'locked'},
+                    25: {action: 'unlock', state: 'UNLOCK', lock_state: 'unlocked'},
+                    27: {action: 'auto_lock', state: 'LOCK', lock_state: 'locked'},
+                };
+                if (!(alarmcode in lookup)) {
+                    result.action = 'unknown';
+                    logger.warning(`Unrecognized Operation Event (${alarmcode})`, NS);
+                    // We need to read the lock state as the alarm code is unknown
+                    try {
+                        await msg.endpoint.read('closuresDoorLock', ['lockState']);
+                    } catch (error) {
+                        logger.warning(`Failed to read lock state`, NS);
+                    }
+                } else {
+                    result = getFromLookup(alarmcode, lookup);
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -225,7 +258,8 @@ const definitions: Definition[] = [
         model: 'YAYRD256HA2619',
         vendor: 'Yale',
         description: 'Assure lock SL',
-        extend: [lockExtend()],
+        fromZigbee: [fzLocal.c4_lock_operation_event],
+        extend: [lockExtend({}, false)],
     },
     {
         zigbeeModel: ['YRD652 TSDB', 'YRD652L TSDB'],
