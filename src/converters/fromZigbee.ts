@@ -5183,8 +5183,7 @@ const converters2 = {
                     payload.power = power;
                 }
                 return payload;
-            }
-            else {
+            } else {
                 return converters1.metering.convert(model, msg, publish, options, meta);
             }
         },
