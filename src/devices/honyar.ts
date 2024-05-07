@@ -14,6 +14,7 @@ const fzLocal = {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model : any, msg : any, publish : any, options : any, meta : any) => {
+	    const converters :any = {};
             if (meta.device.dateCode === '20170621') {
                 const result :any = {};
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
@@ -36,6 +37,7 @@ const fzLocal = {
             exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
         ],
         convert: (model : any, msg : any, publish : any, options : any, meta : any) => {
+	    const converters :any = {};
             if (meta.device.dateCode === '20170621') {
                 const payload :any = {};
                 if (msg.data.hasOwnProperty('rmsCurrent')) {
