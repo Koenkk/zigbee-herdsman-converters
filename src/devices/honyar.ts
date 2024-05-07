@@ -134,7 +134,7 @@ const definitions: Definition[] = [
         model: 'IHC8223AL',
         vendor: 'Honyar',
         description: 'Smart Power Socket 10A (with power monitoring)',
-        fromZigbee: [fz.on_off, fzLocal.honyer_electrical_measurement, fzLocal.honyer_metering],
+        fromZigbee: [fz.on_off, fz.honyer_electrical_measurement, fz.honyer_metering],
         toZigbee: [tz.on_off],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
