@@ -1249,16 +1249,19 @@ const definitions: Definition[] = [
         model: 'BTH-RM',
         vendor: 'Bosch',
         description: 'Room thermostat II (Battery model)',
+        meta: {battery: {voltageToPercentage: {min: 4400, max: 6400}}},
         exposes: [
             e.climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat'])
-                .withRunningState(['idle', 'heat']),
+                .withSystemMode(['off', 'heat', 'cool'])
+                .withRunningState(['idle', 'heat', 'cool']),
             e.humidity(),
             e.battery(),
             e.battery_low(),
+            e.battery_voltage(),
         ],
         fromZigbee: [
             fz.battery,
@@ -1270,6 +1273,8 @@ const definitions: Definition[] = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_programming_operation_mode, // NOTE: Only 0x0 & 0x1 supported
             tz.thermostat_local_temperature_calibration,
             tz.thermostat_local_temperature,
             tz.thermostat_temperature_setpoint_hold,
@@ -1378,14 +1383,19 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'genPollCtrl', 'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
             await reporting.humidity(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {
+                min: constants.repInterval.SECONDS_10,
+                max: constants.repInterval.HOUR,
+                change: 50,
+            });
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {
                 min: constants.repInterval.SECONDS_10,
                 max: constants.repInterval.HOUR,
                 change: 50,
@@ -1504,6 +1514,15 @@ const definitions: Definition[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
             }),
             binary({
+                name: 'boost_heating',
+                cluster: 'hvacThermostat',
+                attribute: 'boostHeating',
+                description: 'Activate boost heating (5 min.)',
+                valueOn: ['ON', 0x01],
+                valueOff: ['OFF', 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            binary({
                 name: 'child_lock',
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'keypadLockout',
@@ -1557,8 +1576,14 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null,
             }], manufacturerOptions);
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'boostHeating',
+                minimumReportInterval: constants.repInterval.SECONDS_10,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null,
+            }], manufacturerOptions);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', ['operatingMode', 'windowDetection'], manufacturerOptions);
+            await endpoint.read('hvacThermostat', ['operatingMode', 'windowDetection', 'boostHeating'], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', ['displayOntime', 'displayBrightness'], manufacturerOptions);
         },
