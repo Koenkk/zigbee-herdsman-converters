@@ -5143,7 +5143,7 @@ const converters2 = {
     honyer_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
-        convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
+        convert: async (model: any, msg: any, publish: any, options: any, meta: any) => {
             if (meta.device.dateCode === '20170621') {
                 const result: KeyValueAny = {};
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
@@ -5165,7 +5165,7 @@ const converters2 = {
             exposes.options.calibration('current', 'percentual'), exposes.options.precision('current'),
             exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
         ],
-        convert: (model, msg, publish, options, meta) => {
+        convert: async (model, msg, publish, options, meta) => {
             if (meta.device.dateCode === '20170621') {
                 const payload: KeyValueAny = {};
                 if (msg.data.hasOwnProperty('rmsCurrent')) {
