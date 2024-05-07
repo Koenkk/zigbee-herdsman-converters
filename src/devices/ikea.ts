@@ -7,7 +7,7 @@ import {
     linkQuality, deviceEndpoints, deviceAddCustomCluster, bindCluster,
 } from '../lib/modernExtend';
 import {
-    ikeaConfigureRemote, ikeaLight, ikeaOta,
+    ikeaConfigureRemote, ikeaLight, ikeaOta, ikeaConfigureStyrbar,
     ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
     ikeaVoc, ikeaConfigureGenPollCtrl, tradfriOccupancy,
     tradfriRequestedBrightness,
@@ -782,12 +782,12 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'STYRBAR remote control',
         extend: [
-            ikeaConfigureRemote(),
+            ikeaConfigureStyrbar(),
             identify({isSleepy: true}),
             styrbarCommandOn(),
-            commandsOnOff({commands: ['off']}),
-            commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
-            ikeaArrowClick({styrbar: true}),
+            commandsOnOff({commands: ['off'], bind: false}),
+            commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop'], bind: false}),
+            ikeaArrowClick({styrbar: true, bind: false}),
             ikeaBattery(),
             ikeaOta(),
         ],
