@@ -982,7 +982,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         exposes: [
             e.climate()
-                .withLocalTemperature()
+                .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSystemMode(['heat'])
