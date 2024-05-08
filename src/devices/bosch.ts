@@ -985,7 +985,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSystemMode(['heat'], ea.STATE)
+                .withSystemMode(['heat'])
                 .withPiHeatingDemand() // Why use a custom cluster here???
                 .withRunningState(['idle', 'heat']), // Why is it missing???
             e.battery(),
@@ -1003,6 +1003,7 @@ const definitions: Definition[] = [
             fzLocal.bosch_thermostat,
         ],
         toZigbee: [
+            tz.thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
             tz.thermostat_keypad_lockout,
