@@ -177,7 +177,7 @@ import miboxer from './miboxer';
 import micromatic from './micromatic';
 import modular from './modular';
 import moes from './moes';
-import müller_licht from './müller_licht';
+import muller_licht from './muller_licht';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
 import neo from './neo';
@@ -479,7 +479,7 @@ export default [
     ...micromatic,
     ...modular,
     ...moes,
-    ...müller_licht,
+    ...muller_licht,
     ...namron,
     ...nanoleaf,
     ...neo,
