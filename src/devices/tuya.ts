@@ -4847,7 +4847,7 @@ const definitions: Definition[] = [
         model: 'TS0013',
         vendor: 'TuYa',
         description: 'Smart light switch - 3 gang without neutral wire',
-        extend: [tuya.modernExtend.tuyaOnOff({backlightModeLowMediumHigh: true, endpoints: ['left', 'center', 'right']})],
+        extend: [tuya.modernExtend.tuyaOnOff({backlightModeOffNormalInverted: true, endpoints: ['left', 'center', 'right']})],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
