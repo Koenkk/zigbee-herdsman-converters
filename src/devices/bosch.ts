@@ -985,7 +985,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSystemMode(['heat'])
+                .withSystemMode(['heat'], ea.STATE)
                 .withPiHeatingDemand() // Why use a custom cluster here???
                 .withRunningState(['idle', 'heat']), // Why is it missing???
             e.battery(),
