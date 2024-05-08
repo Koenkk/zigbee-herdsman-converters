@@ -988,8 +988,8 @@ const definitions: Definition[] = [
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSystemMode(['heat'])
-                .withPiHeatingDemand(ea.ALL) // Why use a custom cluster here???
-                .withRunningState(['idle', 'heat']), // Why is it missing???
+                .withPiHeatingDemand() // Why use a custom cluster here???
+                .withRunningState(['idle', 'heat'], ea.STATE), // Why is it missing???
             e.battery(),
             e.battery_low(),
             e.binary('valve_adapt_process', ea.ALL, true, false)
