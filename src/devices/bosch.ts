@@ -413,7 +413,7 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     bosch_thermostat: {
-        key: ['pi_heating_demand', 'valve_adapt_process'],
+        key: ['pi_heating_demand', 'running_state', 'valve_adapt_process'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'pi_heating_demand') {
                 let demand = utils.toNumber(value, key);
@@ -439,6 +439,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'pi_heating_demand':
+            case 'running_state':
                 await entity.read('hvacThermostat', ['heatingDemand'], manufacturerOptions);
                 break;
             case 'valve_adapt_process':
@@ -982,11 +983,12 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         exposes: [
             e.climate()
-                .withLocalTemperature(ea.STATE)
+                .withLocalTemperature(ea.STATE, 'Temperature used by the heating algorithm. ' +
+                'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).')
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSystemMode(['heat'])
-                .withPiHeatingDemand() // Why use a custom cluster here???
+                .withPiHeatingDemand(ea.ALL) // Why use a custom cluster here???
                 .withRunningState(['idle', 'heat']), // Why is it missing???
             e.battery(),
             e.battery_low(),
