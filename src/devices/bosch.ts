@@ -985,8 +985,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('occupied_coolting_setpoint', 5, 30, 0.5)
-                .withSystemMode(['heat', 'cool']) // Please dont ask about 'cool' mode... Bosch implemented it like this.
+                .withSystemMode(['heat'])
                 .withPiHeatingDemand() // Why use a custom cluster here???
                 .withRunningState(['idle', 'heat']), // Why is it missing???
             e.battery(),
