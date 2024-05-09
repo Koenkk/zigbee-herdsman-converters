@@ -4280,9 +4280,15 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [160, 100, 69, 68, 65, 64].map((applicationVersion) => {
-            return {modelID: 'TS011F', applicationVersion, priority: -1};
-        }),
+        fingerprint: [
+            {modelID: 'TS011F', applicationVersion: 160, priority: -1},
+            {modelID: 'TS011F', applicationVersion: 100, priority: -1},
+            {modelID: 'TS011F', applicationVersion: 69, priority: -1},
+            {modelID: 'TS011F', applicationVersion: 68, priority: -1},
+            {modelID: 'TS011F', applicationVersion: 65, priority: -1},
+            {modelID: 'TS011F', applicationVersion: 64, priority: -1},
+            {modelID: 'TS011F', softwareBuildID: '1.0.5\u0000', priority: -1},
+        ],
         model: 'TS011F_plug_3',
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
@@ -4304,7 +4310,7 @@ const definitions: Definition[] = [
         onEvent: (type, data, device, options) =>
             tuya.onEventMeasurementPoll(type, data, device, options,
                 true, // polling for voltage, current and power
-                [100, 160].includes(device.applicationVersion), // polling for energy
+                [100, 160].includes(device.applicationVersion) || ['1.0.5\u0000'].includes(device.softwareBuildID) //polling for energy
             ),
     },
     {
