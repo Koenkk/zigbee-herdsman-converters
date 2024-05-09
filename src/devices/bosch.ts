@@ -113,13 +113,13 @@ const broadcastAlarmState: KeyValue = {
 };
 
 // Radiator Thermostat II
- const adaptationStatus = {
-     'none': 0,
-     'ready_to_calibrate': 1,
-     'calibration_in_progress': 2,
-     'error': 3,
-     'success': 4,
- };
+const adaptationStatus = {
+    'none': 0,
+    'ready_to_calibrate': 1,
+    'calibration_in_progress': 2,
+    'error': 3,
+    'success': 4,
+};
 
 // Universal Switch II
 const buttonMap: {[key: string]: number} = {
