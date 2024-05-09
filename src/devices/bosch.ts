@@ -479,48 +479,6 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    /**
-    bosch_thermostat: {
-        key: ['pi_heating_demand', 'running_state', 'valve_adapt_process'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'pi_heating_demand') {
-                let demand = utils.toNumber(value, key);
-                demand = utils.numberWithinRange(demand, 0, 100);
-                await entity.write('hvacThermostat', {heatingDemand: demand}, manufacturerOptions);
-                return {state: {pi_heating_demand: demand}};
-            }
-            if (key === 'valve_adapt_process') {
-                if (value == true) {
-                    const adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, adaptationStatus);
-                    switch (adaptStatus) {
-                    case adaptationStatus.ready_to_calibrate:
-                    case adaptationStatus.error:
-                        await entity.command('hvacThermostat', 'calibrateValve', {}, manufacturerOptions);
-                        break;
-                    default:
-                        throw new Error('Valve adaptation process not possible right now.');
-                    }
-                }
-                return {state: {valve_adapt_process: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            switch (key) {
-            case 'pi_heating_demand':
-            case 'running_state':
-                await entity.read('hvacThermostat', ['heatingDemand'], manufacturerOptions);
-                break;
-            case 'valve_adapt_process':
-                // Reads the current valve adaptation status as it depends solely on it
-                await entity.read('hvacThermostat', ['valveAdaptStatus'], manufacturerOptions);
-                break;
-
-            default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_thermostat.convertGet ${key}`);
-            }
-        },
-    } satisfies Tz.Converter,
-    */
     bosch_twinguard: {
         key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
         convertSet: async (entity, key, value, meta) => {
@@ -712,31 +670,6 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
-/**
-    bosch_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const data = msg.data;
-            if (data.hasOwnProperty('heatingDemand')) {
-                const demand = data['heatingDemand'] as number;
-                result.pi_heating_demand = demand;
-                result.running_state = demand > 0 ? 'heat' : 'idle';
-            }
-            if (data.hasOwnProperty('valveAdaptStatus')) {
-                result.valve_adapt_status = utils.getFromLookupByValue(data['valveAdaptStatus'], adaptationStatus);
-
-                if (data['valveAdaptStatus'] === adaptationStatus.calibration_in_progress) {
-                    result.valve_adapt_process = true;
-                } else {
-                    result.valve_adapt_process = false;
-                }
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-*/
     bosch_twinguard_sensitivity: {
         cluster: 'manuSpecificBosch',
         type: ['attributeReport', 'readResponse'],
