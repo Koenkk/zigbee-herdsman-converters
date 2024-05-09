@@ -112,6 +112,15 @@ const broadcastAlarmState: KeyValue = {
     'burglar_on': 0xb401,
 };
 
+// Radiator Thermostat II
+ const adaptationStatus = {
+     'none': 0,
+     'ready_to_calibrate': 1,
+     'calibration_in_progress': 2,
+     'error': 3,
+     'success': 4,
+ };
+
 // Universal Switch II
 const buttonMap: {[key: string]: number} = {
     config_led_top_left_press: 0x10,
