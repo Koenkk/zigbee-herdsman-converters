@@ -160,10 +160,10 @@ Example: 30ff00000102010001`;
 const boschExtend = {
     valveAdaptStatusProcess: (): ModernExtend => {
         const exposes = e.binary('valve_adapt_process', ea.ALL, true, false)
-                .withLabel('Trigger adaptation process')
-                .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
-                    'is "ready_to_calibrate" or "error".')
-                .withCategory('config');
+            .withLabel('Trigger adaptation process')
+            .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
+            'is "ready_to_calibrate" or "error".')
+            .withCategory('config');
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'hvacThermostat',
             type: ['attributeReport', 'readResponse'],
@@ -189,10 +189,10 @@ const boschExtend = {
                     switch (adaptStatus) {
                     case adaptationStatus.ready_to_calibrate:
                     case adaptationStatus.error:
-                            await entity.command('hvacThermostat', 'calibrateValve', {}, manufacturerOptions);
-                            break;
+                        await entity.command('hvacThermostat', 'calibrateValve', {}, manufacturerOptions);
+                        break;
                     default:
-                            throw new Error('Valve adaptation process not possible right now.');
+                        throw new Error('Valve adaptation process not possible right now.');
                     }
                 }
                 return {state: {valve_adapt_process: value}};
@@ -479,7 +479,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-/**
+    /**
     bosch_thermostat: {
         key: ['pi_heating_demand', 'running_state', 'valve_adapt_process'],
         convertSet: async (entity, key, value, meta) => {
@@ -520,7 +520,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-*/
+    */
     bosch_twinguard: {
         key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
         convertSet: async (entity, key, value, meta) => {
