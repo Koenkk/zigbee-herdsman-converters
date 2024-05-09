@@ -1005,7 +1005,7 @@ const definitions: Definition[] = [
             fzLocal.bosch_thermostat,
         ],
         toZigbee: [
-            tz.tz.thermostat_running_state,
+            tz.thermostat_running_state,
             tz.thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
