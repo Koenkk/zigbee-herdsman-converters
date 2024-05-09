@@ -989,7 +989,7 @@ const definitions: Definition[] = [
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSystemMode(['heat'])
                 .withPiHeatingDemand(ea.ALL) // Why use a custom cluster here???
-                .withRunningState(['idle', 'heat'], ea.STATE), // Why is it missing???
+                .withRunningState(['idle', 'heat'], ea.STATE_GET), // Why is this missing, Bosch???
             e.battery(),
             e.battery_low(),
             e.binary('valve_adapt_process', ea.ALL, true, false)
