@@ -210,14 +210,6 @@ const boschExtend = {
         };
     },
     heatingDemand: (): ModernExtend => {
-        const exposes = e.climate()
-                .withLocalTemperature(ea.STATE, 'Temperature used by the heating algorithm. ' +
-                'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).')
-                .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSystemMode(['heat'])
-                .withPiHeatingDemand(ea.ALL)
-                .withRunningState(['idle', 'heat'], ea.STATE_GET);
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'hvacThermostat',
             type: ['attributeReport', 'readResponse'],
@@ -233,19 +225,26 @@ const boschExtend = {
             },
         }];
         const toZigbee: Tz.Converter[] = [{
-            key: ['pi_heating_demand', 'running_state'],
+            key: ['pi_heating_demand'],
             convertSet: async (entity, key, value, meta) => {
-                let demand = utils.toNumber(value, key);
-                demand = utils.numberWithinRange(demand, 0, 100);
-                await entity.write('hvacThermostat', {heatingDemand: demand}, manufacturerOptions);
-                return {state: {pi_heating_demand: demand}};
+                if (key === 'pi_heating_demand') {
+                    let demand = utils.toNumber(value, key);
+                    demand = utils.numberWithinRange(demand, 0, 100);
+                    await entity.write('hvacThermostat', {heatingDemand: demand}, manufacturerOptions);
+                    return {state: {pi_heating_demand: demand}};
+                }
             },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('hvacThermostat', ['heatingDemand'], manufacturerOptions);
+            },
+        }, {
+            key: ['running_state'],
             convertGet: async (entity, key, meta) => {
                 await entity.read('hvacThermostat', ['heatingDemand'], manufacturerOptions);
             },
         }];
         return {
-            exposes: [exposes],
+            exposes: [],
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -1054,6 +1053,14 @@ const definitions: Definition[] = [
         description: 'Radiator thermostat II',
         ota: ota.zigbeeOTA,
         exposes: [
+            e.climate()
+                .withLocalTemperature(ea.STATE, 'Temperature used by the heating algorithm. ' +
+                'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).')
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSystemMode(['heat'])
+                .withPiHeatingDemand(ea.ALL)
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.battery(),
             e.battery_low(),
         ],
