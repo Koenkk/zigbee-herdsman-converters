@@ -157,7 +157,93 @@ const labelConfirmation = `Specifies LED color (rgb) and pattern of the confirma
 8: Number of Repetitions (01=1 to ff=255)
 Example: 30ff00000102010001`;
 
-
+const boschExtend = {
+    valveAdaptStatusProcess: (): ModernExtend => {
+        const exposes = e.binary('valve_adapt_process', ea.ALL, true, false)
+                .withLabel('Trigger adaptation process')
+                .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
+                    'is "ready_to_calibrate" or "error".')
+                .withCategory('config');
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'hvacThermostat',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result: KeyValue = {};
+                const data = msg.data;
+                if (data.hasOwnProperty('valveAdaptStatus')) {
+                    result.valve_adapt_status = utils.getFromLookupByValue(data['valveAdaptStatus'], adaptationStatus);
+                    if (data['valveAdaptStatus'] === adaptationStatus.calibration_in_progress) {
+                        result.valve_adapt_process = true;
+                    } else {
+                        result.valve_adapt_process = false;
+                    }
+                }
+                return result;
+            },
+        }];
+        const toZigbee: Tz.Converter[] = [{
+            key: ['valve_adapt_process'],
+            convertSet: async (entity, key, value, meta) => {
+                if (value == true) {
+                    const adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, adaptationStatus);
+                    switch (adaptStatus) {
+                    case adaptationStatus.ready_to_calibrate:
+                    case adaptationStatus.error:
+                            await entity.command('hvacThermostat', 'calibrateValve', {}, manufacturerOptions);
+                            break;
+                    default:
+                            throw new Error('Valve adaptation process not possible right now.');
+                    }
+                }
+                return {state: {valve_adapt_process: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                // Reads the current valve adaptation status as it depends solely on it
+                await entity.read('hvacThermostat', ['valveAdaptStatus'], manufacturerOptions);
+            },
+        }];
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    heatingDemand: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'hvacThermostat',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result: KeyValue = {};
+                const data = msg.data;
+                if (data.hasOwnProperty('heatingDemand')) {
+                    const demand = data['heatingDemand'] as number;
+                    result.pi_heating_demand = demand;
+                    result.running_state = demand > 0 ? 'heat' : 'idle';
+                }
+                return result;
+            },
+        }];
+        const toZigbee: Tz.Converter[] = [{
+            key: ['pi_heating_demand', 'running_state'],
+            convertSet: async (entity, key, value, meta) => {
+                let demand = utils.toNumber(value, key);
+                demand = utils.numberWithinRange(demand, 0, 100);
+                await entity.write('hvacThermostat', {heatingDemand: demand}, manufacturerOptions);
+                return {state: {pi_heating_demand: demand}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('hvacThermostat', ['heatingDemand'], manufacturerOptions);
+            },
+        }];
+        return {
+            exposes: [],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+};
 const tzLocal = {
     broadcast_alarm: {
         key: ['broadcast_alarm'],
@@ -386,6 +472,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+/**
     bosch_thermostat: {
         key: ['pi_heating_demand', 'running_state', 'valve_adapt_process'],
         convertSet: async (entity, key, value, meta) => {
@@ -426,6 +513,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+*/
     bosch_twinguard: {
         key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
         convertSet: async (entity, key, value, meta) => {
@@ -617,6 +705,7 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+/**
     bosch_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -640,6 +729,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
+*/
     bosch_twinguard_sensitivity: {
         cluster: 'manuSpecificBosch',
         type: ['attributeReport', 'readResponse'],
@@ -966,25 +1056,17 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat'], ea.STATE_GET), // Why is this missing, Bosch???
             e.battery(),
             e.battery_low(),
-            e.binary('valve_adapt_process', ea.ALL, true, false)
-                .withLabel('Trigger adaptation process')
-                .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
-                    'is "ready_to_calibrate" or "error".')
-                .withCategory('config'),
         ],
         fromZigbee: [
             fz.battery,
             fz.thermostat,
             fzLocal.bosch_ignore_dst,
-            fzLocal.bosch_thermostat,
         ],
         toZigbee: [
-            tz.thermostat_running_state,
             tz.thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
             tz.thermostat_keypad_lockout,
-            tzLocal.bosch_thermostat,
         ],
         extend: [
             deviceAddCustomCluster(
@@ -1165,6 +1247,8 @@ const definitions: Definition[] = [
                 },
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
             }),
+            boschExtend.valveAdaptStatusProcess(),
+            boschExtend.heatingDemand(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
