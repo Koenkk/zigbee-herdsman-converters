@@ -991,13 +991,13 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         exposes: [
             e.climate()
-                .withLocalTemperature(ea.STATE, 'Temperature used by the heating algorithm. ' +
+                .withLocalTemperature(ea.STATE_GET, 'Temperature used by the heating algorithm. ' +
                 'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).')
-                .withLocalTemperatureCalibration(-5, 5, 0.1)
+                .withSystemMode(['heat'], ea.STATE)
+                .withRunningState(['idle', 'heat'])
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSystemMode(['heat'])
-                .withPiHeatingDemand(ea.ALL)
-                .withRunningState(['idle', 'heat'], ea.STATE_GET),
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
+                .withPiHeatingDemand(ea.ALL),
             e.battery(),
             e.battery_low(),
         ],
@@ -1064,7 +1064,7 @@ const definitions: Definition[] = [
                     attributes: {
                         displayOrientation: {
                             ID: 0x400b,
-                            type: Zcl.DataType.ENUM8,
+                            type: Zcl.DataType.UINT8,
                             manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
                         displayedTemperature: {
@@ -1095,6 +1095,14 @@ const definitions: Definition[] = [
                 lookup: {'schedule': 0, 'manual': 1, 'pause': 5},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
             }),
+            enumLookup({
+                name: 'setpoint_change_source',
+                cluster: 'hvacThermostat',
+                attribute: 'setpointChangeSource',
+                description: 'Source of the current setpoint temperature',
+                lookup: {'manual': 0, 'schedule': 1, 'externally': 2},
+                access: 'STATE',
+            }),
             binary({
                 name: 'window_detection',
                 cluster: 'hvacThermostat',
@@ -1121,17 +1129,10 @@ const definitions: Definition[] = [
                     'Required at least every 30 min. to prevent fallback to internal sensor!',
                 valueMin: 0.0,
                 valueMax: 35.0,
-                valueStep: 0.01,
+                valueStep: 0.5,
                 unit: '°C',
                 scale: 100,
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
-            }),
-            enumLookup({
-                name: 'setpoint_change_source',
-                cluster: 'hvacThermostat',
-                attribute: 'setpointChangeSource',
-                description: 'Source of the current setpoint temperature',
-                lookup: {'manual': 0, 'schedule': 1, 'externally': 2},
             }),
             binary({
                 name: 'child_lock',
@@ -1188,6 +1189,7 @@ const definitions: Definition[] = [
                     'error': 3,
                     'success': 4,
                 },
+                access: 'STATE',
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
             }),
             boschExtend.valveAdaptProcess(),
@@ -1200,13 +1202,13 @@ const definitions: Definition[] = [
                 'genPollCtrl', 'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
             await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {
                 min: constants.repInterval.SECONDS_10,
                 max: constants.repInterval.HOUR,
                 change: 50,
             });
-            await reporting.thermostatKeypadLockMode(endpoint);
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'setpointChangeSource',
                 minimumReportInterval: constants.repInterval.SECONDS_10,
@@ -1257,11 +1259,11 @@ const definitions: Definition[] = [
         exposes: [
             e.climate()
                 .withLocalTemperature()
+                .withSystemMode(['off', 'heat', 'cool'])
+                .withRunningState(['idle', 'heat', 'cool'])
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'cool'])
-                .withRunningState(['idle', 'heat', 'cool']),
+                .withLocalTemperatureCalibration(-12, 12, 0.5),
             e.humidity(),
             e.battery(),
             e.battery_low(),
@@ -1295,6 +1297,21 @@ const definitions: Definition[] = [
                             type: Zcl.DataType.ENUM8,
                             manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
+                        heatingDemand: {
+                            ID: 0x4020,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        valveAdaptStatus: {
+                            ID: 0x4022,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        remoteTemperature: {
+                            ID: 0x4040,
+                            type: Zcl.DataType.INT16,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
                         windowDetection: {
                             ID: 0x4042,
                             type: Zcl.DataType.ENUM8,
@@ -1306,7 +1323,12 @@ const definitions: Definition[] = [
                             manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
                     },
-                    commands: {},
+                    commands: {
+                        calibrateValve: {
+                            ID: 0x41,
+                            parameters: [],
+                        },
+                    },
                     commandsResponse: {},
                 },
             ),
@@ -1315,6 +1337,16 @@ const definitions: Definition[] = [
                 {
                     ID: 0x204,
                     attributes: {
+                        displayOrientation: {
+                            ID: 0x400b,
+                            type: Zcl.DataType.UINT8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        displayedTemperature: {
+                            ID: 0x4039,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
                         displayOntime: {
                             ID: 0x403a,
                             type: Zcl.DataType.ENUM8,
@@ -1389,8 +1421,9 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPollCtrl', 'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
-            await reporting.humidity(endpoint);
             await reporting.batteryVoltage(endpoint);
+            await reporting.humidity(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
             await reporting.thermostatTemperature(endpoint);
@@ -1404,7 +1437,6 @@ const definitions: Definition[] = [
                 max: constants.repInterval.HOUR,
                 change: 50,
             });
-            await reporting.thermostatKeypadLockMode(endpoint);
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'operatingMode',
                 minimumReportInterval: constants.repInterval.SECONDS_10,
@@ -1431,11 +1463,11 @@ const definitions: Definition[] = [
         exposes: [
             e.climate()
                 .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
                 .withSystemMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool']),
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
+                .withLocalTemperatureCalibration(-12, 12, 0.5),
             e.humidity(),
         ],
         fromZigbee: [
@@ -1465,6 +1497,21 @@ const definitions: Definition[] = [
                             type: Zcl.DataType.ENUM8,
                             manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
+                        heatingDemand: {
+                            ID: 0x4020,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        valveAdaptStatus: {
+                            ID: 0x4022,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        remoteTemperature: {
+                            ID: 0x4040,
+                            type: Zcl.DataType.INT16,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
                         windowDetection: {
                             ID: 0x4042,
                             type: Zcl.DataType.ENUM8,
@@ -1476,7 +1523,12 @@ const definitions: Definition[] = [
                             manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
                     },
-                    commands: {},
+                    commands: {
+                        calibrateValve: {
+                            ID: 0x41,
+                            parameters: [],
+                        },
+                    },
                     commandsResponse: {},
                 },
             ),
@@ -1485,6 +1537,16 @@ const definitions: Definition[] = [
                 {
                     ID: 0x204,
                     attributes: {
+                        displayOrientation: {
+                            ID: 0x400b,
+                            type: Zcl.DataType.UINT8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        displayedTemperature: {
+                            ID: 0x4039,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
                         displayOntime: {
                             ID: 0x403a,
                             type: Zcl.DataType.ENUM8,
@@ -1560,6 +1622,7 @@ const definitions: Definition[] = [
                 'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
             await reporting.humidity(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
             await reporting.thermostatTemperature(endpoint);
@@ -1573,7 +1636,6 @@ const definitions: Definition[] = [
                 max: constants.repInterval.HOUR,
                 change: 50,
             });
-            await reporting.thermostatKeypadLockMode(endpoint);
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'operatingMode',
                 minimumReportInterval: constants.repInterval.SECONDS_10,
