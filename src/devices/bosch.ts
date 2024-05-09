@@ -210,6 +210,14 @@ const boschExtend = {
         };
     },
     heatingDemand: (): ModernExtend => {
+        const exposes = e.climate()
+                .withLocalTemperature(ea.STATE, 'Temperature used by the heating algorithm. ' +
+                'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).')
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSystemMode(['heat'])
+                .withPiHeatingDemand(ea.ALL)
+                .withRunningState(['idle', 'heat'], ea.STATE_GET);
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'hvacThermostat',
             type: ['attributeReport', 'readResponse'],
@@ -237,7 +245,7 @@ const boschExtend = {
             },
         }];
         return {
-            exposes: [],
+            exposes: [exposes],
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -1046,14 +1054,6 @@ const definitions: Definition[] = [
         description: 'Radiator thermostat II',
         ota: ota.zigbeeOTA,
         exposes: [
-            e.climate()
-                .withLocalTemperature(ea.STATE, 'Temperature used by the heating algorithm. ' +
-                'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).')
-                .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSystemMode(['heat'])
-                .withPiHeatingDemand(ea.ALL) // Why use a custom cluster here???
-                .withRunningState(['idle', 'heat'], ea.STATE_GET), // Why is this missing, Bosch???
             e.battery(),
             e.battery_low(),
         ],
