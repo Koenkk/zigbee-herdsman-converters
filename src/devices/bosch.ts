@@ -11,7 +11,7 @@ import * as utils from '../lib/utils';
 import * as constants from '../lib/constants';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
-import {Tz, Fz, Definition, KeyValue} from '../lib/types';
+import {Tz, Fz, Definition, KeyValue, ModernExtend} from '../lib/types';
 import {logger} from '../lib/logger';
 const e = exposes.presets;
 const ea = exposes.access;
