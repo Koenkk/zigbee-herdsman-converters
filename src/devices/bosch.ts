@@ -80,28 +80,9 @@ const sirenState = {
 };
 
 // Radiator Thermostat II
-const operatingModes = {
-    'automatic': 0,
-    'manual': 1,
-    'pause': 5,
-};
-
-// Radiator Thermostat II
 const stateOffOn = {
     'OFF': 0,
     'ON': 1,
-};
-
-// Radiator Thermostat II
-const displayOrientation = {
-    'normal': 0,
-    'flipped': 1,
-};
-
-// Radiator Thermostat II
-const displayedTemperature = {
-    'target': 0,
-    'measured': 1,
 };
 
 // Smoke detector II BSD-2
@@ -129,22 +110,6 @@ const broadcastAlarmState: KeyValue = {
     'smoke_on': 0x3c00,
     'burglar_off': 0x0001,
     'burglar_on': 0xb401,
-};
-
-// Radiator Thermostat II
-const setpointSource = {
-    'manual': 0,
-    'schedule': 1,
-    'external': 2,
-};
-
-// Radiator Thermostat II
-const adaptationStatus = {
-    'none': 0,
-    'ready_to_calibrate': 1,
-    'calibration_in_progress': 2,
-    'error': 3,
-    'success': 4,
 };
 
 // Universal Switch II
