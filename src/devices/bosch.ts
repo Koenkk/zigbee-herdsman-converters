@@ -158,7 +158,7 @@ const labelConfirmation = `Specifies LED color (rgb) and pattern of the confirma
 Example: 30ff00000102010001`;
 
 const boschExtend = {
-    valveAdaptStatusProcess: (): ModernExtend => {
+    valveAdaptProcess: (): ModernExtend => {
         const exposes = e.binary('valve_adapt_process', ea.ALL, true, false)
             .withLabel('Trigger adaptation process')
             .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
@@ -171,7 +171,6 @@ const boschExtend = {
                 const result: KeyValue = {};
                 const data = msg.data;
                 if (data.hasOwnProperty('valveAdaptStatus')) {
-                    result.valve_adapt_status = utils.getFromLookupByValue(data['valveAdaptStatus'], adaptationStatus);
                     if (data['valveAdaptStatus'] === adaptationStatus.calibration_in_progress) {
                         result.valve_adapt_process = true;
                     } else {
@@ -244,9 +243,28 @@ const boschExtend = {
             },
         }];
         return {
-            exposes: [],
             fromZigbee,
             toZigbee,
+            isModernExtend: true,
+        };
+    },
+    ignoreDst: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'genTime',
+            type: 'read',
+            convert: async (model, msg, publish, options, meta) => {
+                if (msg.data.includes('dstStart', 'dstEnd', 'dstShift')) {
+                    const response = {
+                        'dstStart': {attribute: 0x0003, status: Zcl.Status.SUCCESS, value: 0x00},
+                        'dstEnd': {attribute: 0x0004, status: Zcl.Status.SUCCESS, value: 0x00},
+                        'dstShift': {attribute: 0x0005, status: Zcl.Status.SUCCESS, value: 0x00},
+                    };
+                    await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
+                }
+            },
+        }];
+        return {
+            fromZigbee,
             isModernExtend: true,
         };
     },
@@ -656,20 +674,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
-    bosch_ignore_dst: {
-        cluster: 'genTime',
-        type: 'read',
-        convert: async (model, msg, publish, options, meta) => {
-            if (msg.data.includes('dstStart', 'dstEnd', 'dstShift')) {
-                const response = {
-                    'dstStart': {attribute: 0x0003, status: Zcl.Status.SUCCESS, value: 0x00},
-                    'dstEnd': {attribute: 0x0004, status: Zcl.Status.SUCCESS, value: 0x00},
-                    'dstShift': {attribute: 0x0005, status: Zcl.Status.SUCCESS, value: 0x00},
-                };
-                await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
-            }
-        },
-    } satisfies Fz.Converter,
     bosch_twinguard_sensitivity: {
         cluster: 'manuSpecificBosch',
         type: ['attributeReport', 'readResponse'],
@@ -1000,7 +1004,6 @@ const definitions: Definition[] = [
         fromZigbee: [
             fz.battery,
             fz.thermostat,
-            fzLocal.bosch_ignore_dst,
         ],
         toZigbee: [
             tz.thermostat_system_mode,
@@ -1187,8 +1190,9 @@ const definitions: Definition[] = [
                 },
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
             }),
-            boschExtend.valveAdaptStatusProcess(),
+            boschExtend.valveAdaptProcess(),
             boschExtend.heatingDemand(),
+            boschExtend.ignoreDst(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
