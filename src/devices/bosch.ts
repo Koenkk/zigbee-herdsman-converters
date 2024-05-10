@@ -112,15 +112,6 @@ const broadcastAlarmState: KeyValue = {
     'burglar_on': 0xb401,
 };
 
-// Radiator Thermostat II
-const adaptationStatus = {
-    'none': 0,
-    'ready_to_calibrate': 1,
-    'calibration_in_progress': 2,
-    'error': 3,
-    'success': 4,
-};
-
 // Universal Switch II
 const buttonMap: {[key: string]: number} = {
     config_led_top_left_press: 0x10,
@@ -159,6 +150,13 @@ Example: 30ff00000102010001`;
 
 const boschExtend = {
     valveAdaptProcess: (): ModernExtend => {
+        const adaptationStatus: KeyValue = {
+            'none': 0,
+            'ready_to_calibrate': 1,
+            'calibration_in_progress': 2,
+            'error': 3,
+            'success': 4,
+        };
         const exposes = e.binary('valve_adapt_process', ea.ALL, true, false)
             .withLabel('Trigger adaptation process')
             .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
@@ -197,7 +195,6 @@ const boschExtend = {
                 return {state: {valve_adapt_process: value}};
             },
             convertGet: async (entity, key, meta) => {
-                // Reads the current valve adaptation status as it depends solely on it
                 await entity.read('hvacThermostat', ['valveAdaptStatus'], manufacturerOptions);
             },
         }];
@@ -1464,7 +1461,7 @@ const definitions: Definition[] = [
             e.climate()
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool'])
-                .withRunningState(['idle', 'heat', 'cool']),
+                .withRunningState(['idle', 'heat', 'cool'])
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5),
