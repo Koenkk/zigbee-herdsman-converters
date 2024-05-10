@@ -877,6 +877,129 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+    const definition = {
+    zigbeeModel: ['MHO-C401N-z'],
+    model: 'MHO-C401N',
+    vendor: 'Xiaomi',
+    description: 'E-Ink Temperature & Humidity sensor with custom firmware (pvxx/ZigbeeTLc)',
+    extend: [
+        quirkAddEndpointCluster({
+            endpointID: 1,
+            outputClusters: [],
+            inputClusters: [
+                'genPowerCfg',
+                'msTemperatureMeasurement',
+                'msRelativeHumidity',
+                'hvacUserInterfaceCfg',
+            ],
+        }),
+        battery({percentage: true}),
+        temperature({reporting: {min: 10, max: 300, change: 10}, access: 'STATE'}),
+        humidity({reporting: {min: 2, max: 300, change: 50}, access: 'STATE'}),
+        enumLookup({
+            name: 'temperature_display_mode',
+            lookup: {'celsius': 0, 'fahrenheit': 1},
+            cluster: 'hvacUserInterfaceCfg',
+            attribute: {ID: 0x0000, type: dataType.enum8},
+            description: 'The units of the temperature displayed on the device screen.',
+        }),
+        binary({
+            name: 'smiley',
+            valueOn: ['SHOW', 0],
+            valueOff: ['HIDE', 1],
+            cluster: 'hvacUserInterfaceCfg',
+            attribute: {ID: 0x0002, type: dataType.enum8},
+            description: 'Whether to show a smiley on the device screen.',
+        }),
+        numeric({
+            name: 'temperature_calibration',
+            unit: 'ºC',
+            cluster: 'hvacUserInterfaceCfg',
+            attribute: {ID: 0x0100, type: dataType.int16},
+            valueMin: -12.7,
+            valueMax: 12.7,
+            valueStep: 0.01,
+            scale: 10,
+            description: 'The temperature calibration, in 0.01° steps.',
+        }),
+        numeric({
+            name: 'humidity_calibration',
+            unit: '%',
+            cluster: 'hvacUserInterfaceCfg',
+            attribute: {ID: 0x0101, type: dataType.int16},
+            valueMin: -12.7,
+            valueMax: 12.7,
+            valueStep: 0.01,
+            scale: 10,
+            description: 'The humidity offset is set in 0.01 % steps.',
+        }),
+        numeric({
+            name: 'comfort_temperature_min',
+            unit: 'ºC',
+            cluster: 'hvacUserInterfaceCfg',
+            attribute: {ID: 0x0102, type: dataType.int16},
+            valueMin: -127.0,
+            valueMax: 127.0,
+            scale: 100,
+            description: 'Comfort parameters/Temperature minimum, in 1°C steps.',
+        }),
+        numeric({
+            name: 'comfort_temperature_max',
+            unit: 'ºC',
+            cluster: 'hvacUserInterfaceCfg',
+            attribute: {ID: 0x0103, type: dataType.int16},
+            valueMin: -127.0,
+            valueMax: 127.0,
+            scale: 100,
+            description: 'Comfort parameters/Temperature maximum, in 1°C steps.',
+        }),
+        numeric({
+            name: 'comfort_humidity_min',
+            unit: '%',
+            cluster: 'hvacUserInterfaceCfg',
+            attribute: {ID: 0x0104, type: dataType.uint16},
+            valueMin: 0.0,
+            valueMax: 100.0,
+            scale: 100,
+            description: 'Comfort parameters/Humidity minimum, in 1% steps.',
+        }),
+        numeric({
+            name: 'comfort_humidity_max',
+            unit: '%',
+            cluster: 'hvacUserInterfaceCfg',
+            attribute: {ID: 0x0105, type: dataType.uint16},
+            valueMin: 0.0,
+            valueMax: 100.0,
+            scale: 100,
+            description: 'Comfort parameters/Humidity maximum, in 1% steps.',
+        }),
+        numeric({
+            name: 'measurement_interval',
+            unit: 's',
+            cluster: 'hvacUserInterfaceCfg',
+            attribute: {ID: 0x0107, type: dataType.uint8},
+            valueMin: 3,
+            valueMax: 255,
+            description: 'Measurement interval, default 10 seconds.',
+        }),
+    ],
+    ota: ota.zigbeeOTA,
+    configure: async (device, coordinatorEndpoint, logger) => {
+        const endpoint = device.getEndpoint(1);
+        const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+        await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+        await reporting.temperature(endpoint, {min: 10, max: 300, change: 10});
+        await reporting.humidity(endpoint, {min: 10, max: 300, change: 50});
+        await reporting.batteryPercentageRemaining(endpoint);
+        try {
+            await endpoint.read('hvacThermostat', [0x0010, 0x0011, 0x0102, 0x0103, 0x0104, 0x0105, 0x0107]);
+            await endpoint.read('msTemperatureMeasurement', [0x0010]);
+            await endpoint.read('msRelativeHumidity', [0x0010]);
+        } catch (e) {
+            /* backward compatibility */
+        }
+    },    
+    {
         zigbeeModel: ['QUAD-ZIG-SW'],
         model: 'QUAD-ZIG-SW',
         vendor: 'smarthjemmet.dk',
