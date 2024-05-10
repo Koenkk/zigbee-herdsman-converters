@@ -713,7 +713,7 @@ const definitions: Definition[] = [
             ikeaConfigureGenPollCtrl(),
             windowCovering({controls: ['lift']}),
             identify(),
-            battery({dontDividePercentage: true}),
+            ikeaBattery(),
             ikeaOta(),
         ],
     },
