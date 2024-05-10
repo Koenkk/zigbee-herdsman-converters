@@ -30,14 +30,14 @@ const definitions: Definition[] = [
         model: 'SGMHM-I1',
         vendor: 'GS',
         description: 'Methane gas sensor',
-        extend: [iasZoneAlarm({zoneType: 'gas', zoneAttributes: ['alarm_2', 'tamper', 'battery_low']})],
+        extend: [iasZoneAlarm({zoneType: 'gas', zoneAttributes: ['alarm_2']})],
     },
     {
         zigbeeModel: ['SGPHM-I1'],
         model: 'SGPHM-I1',
         vendor: 'GS',
         description: 'Propane gas sensor',
-        extend: [iasZoneAlarm({zoneType: 'gas', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
+        extend: [iasZoneAlarm({zoneType: 'gas', zoneAttributes: ['alarm_2']})],
     },
     {
         zigbeeModel: ['SKHMP30-I1'],

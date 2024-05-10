@@ -4,11 +4,15 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import {binary, enumLookup, forcePowerSource, numeric, onOff, customTimeResponse, battery} from '../lib/modernExtend';
+import {
+    binary, enumLookup, forcePowerSource, numeric, onOff,
+    customTimeResponse, battery, ota, deviceAddCustomCluster,
+} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
-import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
 import {logger} from '../lib/logger';
+import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
+const {ewelinkAction} = ewelinkModernExtend;
 
 const NS = 'zhc:sonoff';
 const e = exposes.presets;
@@ -405,8 +409,10 @@ const definitions: Definition[] = [
         model: 'ZBMINI-L',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
-        ota: ota.zigbeeOTA,
-        extend: [onOff()],
+        extend: [
+            onOff(),
+            ota(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -422,8 +428,10 @@ const definitions: Definition[] = [
         model: 'ZBMINIL2',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
-        ota: ota.zigbeeOTA,
-        extend: [onOff()],
+        extend: [
+            onOff(),
+            ota(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -600,7 +608,10 @@ const definitions: Definition[] = [
         model: 'S40ZBTPB',
         vendor: 'SONOFF',
         description: '15A Zigbee smart plug',
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, ota: ota.zigbeeOTA})],
+        extend: [
+            onOff({powerOnBehavior: false, skipDuplicateTransaction: true}),
+            ota(),
+        ],
     },
     {
         zigbeeModel: ['DONGLE-E_R'],
@@ -637,16 +648,17 @@ const definitions: Definition[] = [
         model: 'SNZB-01P',
         vendor: 'SONOFF',
         description: 'Wireless button',
-        exposes: [e.battery(), e.action(['single', 'double', 'long']), e.battery_low(), e.battery_voltage()],
-        fromZigbee: [fz.ewelink_action, fz.battery],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
-        },
+        extend: [
+            forcePowerSource({powerSource: 'Battery'}),
+            ewelinkAction(),
+            battery({
+                percentageReportingConfig: {min: 3600, max: 7200, change: 0},
+                voltage: true,
+                voltageReporting: true,
+                voltageReportingConfig: {min: 3600, max: 7200, change: 0},
+            }),
+            ota(),
+        ],
     },
     {
         zigbeeModel: ['SNZB-02P'],
@@ -655,8 +667,6 @@ const definitions: Definition[] = [
         description: 'Temperature and humidity sensor',
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_low(), e.battery_voltage()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint) => {
             try {
                 const endpoint = device.getEndpoint(1);
@@ -669,6 +679,9 @@ const definitions: Definition[] = [
                 logger.error(`Configure failed: ${e}`, NS);
             }
         },
+        extend: [
+            ota(),
+        ],
     },
     {
         zigbeeModel: ['SNZB-04P'],
@@ -677,8 +690,6 @@ const definitions: Definition[] = [
         description: 'Contact sensor',
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
         extend: [
             binary({
                 name: 'tamper',
@@ -690,6 +701,7 @@ const definitions: Definition[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 access: 'STATE_GET',
             }),
+            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -704,8 +716,6 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee PIR sensor',
         fromZigbee: [fz.occupancy, fz.battery],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
         exposes: [e.occupancy(), e.battery_low(), e.battery()],
         extend: [
             numeric({
@@ -725,6 +735,7 @@ const definitions: Definition[] = [
                 description: 'Only updated when occupancy is detected',
                 access: 'STATE',
             }),
+            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -739,8 +750,6 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee occupancy sensor',
         fromZigbee: [fz.occupancy],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
         exposes: [e.occupancy()],
         extend: [
             numeric({
@@ -767,6 +776,7 @@ const definitions: Definition[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 access: 'STATE',
             }),
+            ota(),
         ],
     },
     {
@@ -795,28 +805,49 @@ const definitions: Definition[] = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
         ],
-        ota: ota.zigbeeOTA,
         extend: [
+            deviceAddCustomCluster(
+                'customSonoffTrvzb',
+                {
+                    ID: 0xfc11,
+                    attributes: {
+                        childLock: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                        tamper: {ID: 0x2000, type: Zcl.DataType.UINT8},
+                        illumination: {ID: 0x2001, type: Zcl.DataType.UINT8},
+                        openWindow: {ID: 0x6000, type: Zcl.DataType.BOOLEAN},
+                        frostProtectionTemperature: {ID: 0x6002, type: Zcl.DataType.INT16},
+                        idleSteps: {ID: 0x6003, type: Zcl.DataType.UINT16},
+                        closingSteps: {ID: 0x6004, type: Zcl.DataType.UINT16},
+                        valveOpeningLimitVoltage: {ID: 0x6005, type: Zcl.DataType.UINT16},
+                        valveClosingLimitVoltage: {ID: 0x6006, type: Zcl.DataType.UINT16},
+                        valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.UINT16},
+                        valveOpeningDegree: {ID: 0x600B, type: Zcl.DataType.UINT8},
+                        valveClosingDegree: {ID: 0x600C, type: Zcl.DataType.UINT8},
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                },
+            ),
             binary({
                 name: 'child_lock',
-                cluster: 0xFC11,
-                attribute: {ID: 0x0000, type: 0x10},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'childLock',
                 description: 'Enables/disables physical input on the device',
                 valueOn: ['LOCK', 0x01],
                 valueOff: ['UNLOCK', 0x00],
             }),
             binary({
                 name: 'open_window',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6000, type: 0x10},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'openWindow',
                 description: 'Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.',
                 valueOn: ['ON', 0x01],
                 valueOff: ['OFF', 0x00],
             }),
             numeric({
                 name: 'frost_protection_temperature',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6002, type: 0x29},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'frostProtectionTemperature',
                 description: 'Minimum temperature at which to automatically turn on the radiator, ' +
                     'if system mode is off, to prevent pipes freezing.',
                 valueMin: 4.0,
@@ -827,44 +858,73 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'idle_steps',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6003, type: 0x21},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'idleSteps',
                 description: 'Number of steps used for calibration (no-load steps)',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'closing_steps',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6004, type: 0x21},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'closingSteps',
                 description: 'Number of steps it takes to close the valve',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_opening_limit_voltage',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6005, type: 0x21},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'valveOpeningLimitVoltage',
                 description: 'Valve opening limit voltage',
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_closing_limit_voltage',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6006, type: 0x21},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'valveClosingLimitVoltage',
                 description: 'Valve closing limit voltage',
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_motor_running_voltage',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6007, type: 0x21},
+                cluster: 'customSonoffTrvzb',
+                attribute: 'valveMotorRunningVoltage',
                 description: 'Valve motor running voltage',
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
+            numeric({
+                name: 'valve_opening_degree',
+                cluster: 'customSonoffTrvzb',
+                attribute: 'valveOpeningDegree',
+                description: 'Valve open position (percentage) control. ' +
+                    'If the opening degree is set to 100%, the valve is fully open when it is opened. ' +
+                    'If the opening degree is set to 0%, the valve is fully closed when it is opened, ' +
+                    'and the default value is 100%. ' +
+                    'Note: only version v1.1.4 or higher is supported.',
+                valueMin: 0.0,
+                valueMax: 100.0,
+                valueStep: 1.0,
+                unit: '%',
+            }),
+            numeric({
+                name: 'valve_closing_degree',
+                cluster: 'customSonoffTrvzb',
+                attribute: 'valveClosingDegree',
+                description: 'Valve closed position (percentage) control. ' +
+                    'If the closing degree is set to 100%, the valve is fully closed when it is closed. ' +
+                    'If the closing degree is set to 0%, the valve is fully opened when it is closed, ' +
+                    'and the default value is 100%. ' +
+                    'Note: Only version v1.1.4 or higher is supported.',
+                valueMin: 0.0,
+                valueMax: 100.0,
+                valueStep: 1.0,
+                unit: '%',
+            }),
             sonoffExtend.weeklySchedule(),
             customTimeResponse('1970_UTC'),
+            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -898,8 +958,6 @@ const definitions: Definition[] = [
         fromZigbee: [
             fz.flow,
         ],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
         exposes: [
             e.numeric('flow', ea.STATE).withDescription('Current water flow').withUnit('m³/h'),
         ],
@@ -920,6 +978,7 @@ const definitions: Definition[] = [
             }),
             sonoffExtend.cyclicTimedIrrigation(),
             sonoffExtend.cyclicQuantitativeIrrigation(),
+            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -933,7 +992,6 @@ const definitions: Definition[] = [
         model: 'ZBMicro',
         vendor: 'SONOFF',
         description: 'Zigbee USB repeater plug',
-        ota: ota.zigbeeOTA,
         extend: [
             onOff(),
             binary({
@@ -946,6 +1004,7 @@ const definitions: Definition[] = [
                 valueOn: [true, 0x14],
             }),
             sonoffExtend.inchingControlSet(),
+            ota(),
         ],
     },
 ];

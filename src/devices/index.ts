@@ -93,6 +93,7 @@ import giderwel from './giderwel';
 import giex from './giex';
 import girier from './girier';
 import gledopto from './gledopto';
+import gmmts from "./gmmts";
 import gmy from './gmy';
 import gs from './gs';
 import halemeier from './halemeier';
@@ -176,7 +177,7 @@ import miboxer from './miboxer';
 import micromatic from './micromatic';
 import modular from './modular';
 import moes from './moes';
-import müller_licht from './müller_licht';
+import muller_licht from './muller_licht';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
 import neo from './neo';
@@ -295,6 +296,7 @@ import yookee from './yookee';
 import ysrsai from './ysrsai';
 import zemismart from './zemismart';
 import zen from './zen';
+import zigbeetlc from './zigbeetlc';
 import zipato from './zipato';
 
 export default [
@@ -393,6 +395,7 @@ export default [
     ...giex,
     ...girier,
     ...gledopto,
+    ...gmmts,
     ...gmy,
     ...gs,
     ...halemeier,
@@ -476,7 +479,7 @@ export default [
     ...micromatic,
     ...modular,
     ...moes,
-    ...müller_licht,
+    ...muller_licht,
     ...namron,
     ...nanoleaf,
     ...neo,
@@ -595,5 +598,6 @@ export default [
     ...ysrsai,
     ...zemismart,
     ...zen,
+    ...zigbeetlc,
     ...zipato,
 ];

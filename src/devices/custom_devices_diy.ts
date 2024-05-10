@@ -1,4 +1,4 @@
-import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
+import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
@@ -202,19 +202,29 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     }
     if (endpoint.supportsInputCluster('msTemperatureMeasurement')) {
         expose.push(e.temperature().withEndpoint(epName));
-        options['exposed_temperature'] = true;
     }
     if (endpoint.supportsInputCluster('msRelativeHumidity')) {
         expose.push(e.humidity().withEndpoint(epName));
-        options['exposed_humidity'] = true;
     }
     if (endpoint.supportsInputCluster('msPressureMeasurement')) {
         expose.push(e.pressure().withEndpoint(epName));
-        options['exposed_pressure'] = true;
     }
     if (endpoint.supportsInputCluster('msIlluminanceMeasurement')) {
         expose.push(e.illuminance().withEndpoint(epName));
-        options['exposed_illuminance'] = true;
+    }
+    if (endpoint.supportsInputCluster('msCO2')) {
+        expose.push(e.co2().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster('pm25Measurement')) {
+        expose.push(e.pm25().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster('haElectricalMeasurement')) {
+        expose.push(e.voltage().withEndpoint(epName));
+        expose.push(e.current().withEndpoint(epName));
+        expose.push(e.power().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster('seMetering')) {
+        expose.push(e.energy().withEndpoint(epName));
     }
     if (endpoint.supportsInputCluster('genPowerCfg')) {
         deviceOptions['expose_battery'] = true;
@@ -276,7 +286,7 @@ const definitions: Definition[] = [
         description: 'Multi-functional device',
         fromZigbee: [fz.battery, fz.on_off, fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report, fz.temperature,
-            fzLocal.humidity2, fzLocal.pressure2, fzLocal.illuminance2],
+            fzLocal.humidity2, fzLocal.pressure2, fzLocal.illuminance2, fz.electrical_measurement, fz.metering, fz.co2],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tzLocal.ptvo_on_off],
         exposes: (device, options) => {
             const expose: Expose[] = [];
@@ -489,6 +499,17 @@ const definitions: Definition[] = [
                         }
                     } catch (err) {/* do nothing */}
                 }
+                for (const endpoint of device.endpoints) {
+                    if (endpoint.supportsInputCluster('haElectricalMeasurement')) {
+                        endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {dcCurrentDivisor: 1000, dcCurrentMultiplier: 1,
+                            dcPowerDivisor: 10, dcPowerMultiplier: 1, dcVoltageDivisor: 100, dcVoltageMultiplier: 1,
+                            acVoltageDivisor: 100, acVoltageMultiplier: 1, acCurrentDivisor: 1000, acCurrentMultiplier: 1,
+                            acPowerDivisor: 10, acPowerMultiplier: 1});
+                    }
+                    if (endpoint.supportsInputCluster('seMetering')) {
+                        endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
+                    }
+                }
             }
         },
     },
@@ -661,7 +682,7 @@ const definitions: Definition[] = [
                 valueOn: ['SHOW', 1],
                 valueOff: ['HIDE', 0],
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0010, type: dataType.boolean},
+                attribute: {ID: 0x0010, type: Zcl.DataType.BOOLEAN},
                 description: 'Whether to show a smiley on the device screen.',
             }),
             binary({
@@ -669,14 +690,14 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0011, type: dataType.boolean},
+                attribute: {ID: 0x0011, type: Zcl.DataType.BOOLEAN},
                 description: 'Whether to turn display on/off.',
             }),
             numeric({
                 name: 'temperature_calibration',
                 unit: '°C',
                 cluster: 'msTemperatureMeasurement',
-                attribute: {ID: 0x0010, type: dataType.int16},
+                attribute: {ID: 0x0010, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 valueStep: 0.01,
@@ -687,7 +708,7 @@ const definitions: Definition[] = [
                 name: 'humidity_calibration',
                 unit: '%',
                 cluster: 'msRelativeHumidity',
-                attribute: {ID: 0x0010, type: dataType.int16},
+                attribute: {ID: 0x0010, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 valueStep: 0.01,
@@ -698,7 +719,7 @@ const definitions: Definition[] = [
                 name: 'comfort_temperature_min',
                 unit: '°C',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0102, type: dataType.int16},
+                attribute: {ID: 0x0102, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 scale: 100,
@@ -708,7 +729,7 @@ const definitions: Definition[] = [
                 name: 'comfort_temperature_max',
                 unit: '°C',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0103, type: dataType.int16},
+                attribute: {ID: 0x0103, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 scale: 100,
@@ -718,7 +739,7 @@ const definitions: Definition[] = [
                 name: 'comfort_humidity_min',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0104, type: dataType.uint16},
+                attribute: {ID: 0x0104, type: Zcl.DataType.UINT16},
                 valueMin: 0.0,
                 valueMax: 100.0,
                 scale: 100,
@@ -728,7 +749,7 @@ const definitions: Definition[] = [
                 name: 'comfort_humidity_max',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0105, type: dataType.uint16},
+                attribute: {ID: 0x0105, type: Zcl.DataType.UINT16},
                 valueMin: 0.0,
                 valueMax: 100.0,
                 scale: 100,

@@ -313,7 +313,7 @@ describe('index.js', () => {
 
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'multiEndpoint', 'multiEndpointSkip', 'multiEndpointEnforce', 'applyRedFix', 'disableDefaultResponse', 'supportsEnhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'coverStateFromTilt', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaDatapoints', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'separateWhite', 'publishDuplicateTransaction', 'tuyaSendCommand'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'multiEndpointSkip', 'multiEndpointEnforce', 'applyRedFix', 'disableDefaultResponse', 'supportsEnhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'coverStateFromTilt', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaDatapoints', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'separateWhite', 'publishDuplicateTransaction', 'tuyaSendCommand', 'coverPositionTiltDisableReport'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
@@ -592,6 +592,12 @@ describe('index.js', () => {
         options = {current_calibration: -50};
         index.postProcessConvertedFromZigbeeMessage(TS011F_plug_1, payload, options);
         expect(payload).toStrictEqual({current: 0.03});
+    });
+
+    it('Should allow definition with both modern extend and exposes as function', () => {
+        const MOSZB140 = index.findByModel('MOSZB-140');
+        const exposes = MOSZB140.exposes();
+        expect(exposes.map((e) => e.name)).toStrictEqual(['occupancy', 'temperature', 'tamper', 'battery_low', 'battery', 'linkquality', 'illuminance_lux', 'illuminance']);
     });
 
     it('Check getFromLookup', () => {

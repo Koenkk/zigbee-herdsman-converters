@@ -377,6 +377,23 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
     },
     {
+        zigbeeModel: ['PUCK/UNIDIM/1'],
+        model: 'CCT5010-0003',
+        vendor: 'Schneider Electric',
+        description: 'Micro module dimmer with neutral lead',
+        ota: ota.zigbeeOTA,
+        extend: [light({configureReporting: true, levelConfig: {}})],
+        fromZigbee: [fz.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
+        exposes: [
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
+            e.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
+                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
+    },
+    {
         zigbeeModel: ['CCTFR6730'],
         model: 'CCTFR6730',
         vendor: 'Schneider Electric',
@@ -1292,6 +1309,36 @@ const definitions: Definition[] = [
             await reporting.temperature(endpoint2);
             await endpoint1.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
         },
+    },
+    {
+        zigbeeModel: ['2GANG/ESWITCH/2'],
+        model: 'MEG5126-0300_MEG5152-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5152 switch insert (2fold) with Merten System M push button (2fold)',
+        extend: [deviceEndpoints({'endpoints': {'left': 1, 'right': 2, 'left_sw': 21, 'right_sw': 22}}), identify(),
+            onOff({'powerOnBehavior': false, 'endpointNames': ['left', 'right']}),
+            commandsOnOff({'endpointNames': ['left_sw', 'right_sw']}),
+        ],
+    },
+    {
+        zigbeeModel: ['1GANG/SWITCH/2'],
+        model: 'MEG5116-0300_MEG5162-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5162 switch insert (2fold) with Merten System M push button (1fold)',
+        extend: [deviceEndpoints({'endpoints': {'left': 1, 'right': 2, 'left_sw': 21}}), identify(),
+            onOff({'powerOnBehavior': false, 'endpointNames': ['left', 'right']}),
+            commandsOnOff({'endpointNames': ['left_sw']}),
+        ],
+    },
+    {
+        zigbeeModel: ['1GANG/ESWITCH/1'],
+        model: 'MEG5116-0300_MEG5151-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5151 switch insert with Merten System M push button (1fold)',
+        extend: [deviceEndpoints({'endpoints': {'switch': 1, 'switch_sw': 21}}), identify(),
+            onOff({'powerOnBehavior': false}),
+            commandsOnOff({'endpointNames': ['switch_sw']}),
+        ],
     },
 ];
 

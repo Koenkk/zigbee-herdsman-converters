@@ -16,7 +16,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -91,7 +91,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -119,7 +119,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -190,7 +190,7 @@ const definitions: Definition[] = [
         },
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
-        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);

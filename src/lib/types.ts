@@ -156,6 +156,12 @@ export interface DefinitionMeta {
      * @defaultValue true
      */
     supportsHueAndSaturation?: boolean,
+    /**
+     * Do not set `position` or `tilt` to target value on /set. See `toZigbee.cover_position_tilt`
+     *
+     * @defaultValue false
+     */
+    coverPositionTiltDisableReport?: boolean,
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
@@ -165,7 +171,7 @@ export interface ModernExtend {
     fromZigbee?: Fz.Converter[],
     toZigbee?: Tz.Converter[],
     exposes?: Expose[],
-    configure?: Configure,
+    configure?: Configure[],
     meta?: DefinitionMeta,
     ota?: DefinitionOta,
     onEvent?: OnEvent,
@@ -186,6 +192,10 @@ export type DefinitionOta = {
     updateToLatest: (device: Zh.Device, onProgress: Ota.OnProgress) => Promise<number>;
 }
 
+export type DefinitionExposesFunction = (device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[];
+
+export type DefinitionExposes = Expose[] | DefinitionExposesFunction;
+
 export type Definition = {
     model: string;
     vendor: string;
@@ -203,11 +213,11 @@ export type Definition = {
         extend: ModernExtend[];
         fromZigbee?: Fz.Converter[];
         toZigbee?: Tz.Converter[];
-        exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]));
+        exposes?: DefinitionExposes;
     } | {
         fromZigbee: Fz.Converter[];
         toZigbee: Tz.Converter[];
-        exposes: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]));
+        exposes: DefinitionExposes;
     });
 
 export namespace Fz {

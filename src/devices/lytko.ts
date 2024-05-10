@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, Tz, KeyValue} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -5,7 +6,6 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import * as ota from '../lib/ota';
-import * as herdsman from 'zigbee-herdsman';
 import {precisionRound, getFromLookup, postfixWithEndpointName, getKey, toNumber} from '../lib/utils';
 
 const e = exposes.presets;
@@ -86,11 +86,11 @@ const tzLocal = {
             switch (key) {
             case 'sensor_type':
                 newValue = sensorTypes.indexOf(value as string);
-                payload = {30464: {'value': newValue, 'type': herdsman.Zcl.DataType.enum8}};
+                payload = {30464: {'value': newValue, 'type': Zcl.DataType.ENUM8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions);
                 break;
             case 'target_temp_first':
-                payload = {30465: {'value': newValue, 'type': herdsman.Zcl.DataType.boolean}};
+                payload = {30465: {'value': newValue, 'type': Zcl.DataType.BOOLEAN}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions);
                 break;
             case 'min_setpoint_deadband':
@@ -125,11 +125,11 @@ const tzLocal = {
             const newValue = value;
             switch (key) {
             case 'brightness':
-                payload = {30464: {'value': newValue, 'type': herdsman.Zcl.DataType.enum8}};
+                payload = {30464: {'value': newValue, 'type': Zcl.DataType.ENUM8}};
                 await entity.write('hvacUserInterfaceCfg', payload, manufacturerOptions);
                 break;
             case 'brightness_standby':
-                payload = {30465: {'value': newValue, 'type': herdsman.Zcl.DataType.enum8}};
+                payload = {30465: {'value': newValue, 'type': Zcl.DataType.ENUM8}};
                 await entity.write('hvacUserInterfaceCfg', payload, manufacturerOptions);
                 break;
             default:

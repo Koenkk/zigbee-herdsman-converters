@@ -558,7 +558,7 @@ const definitions: Definition[] = [
         model: '7602031K6',
         vendor: 'Philips',
         description: 'Hue Go portable light',
-        extend: [philipsLight({colorTemp: {range: [153, 500]}})],
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ['LLC020'],
@@ -1215,7 +1215,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ['LCT024', '440400982841', '440400982842', 'PCM002'],
+        zigbeeModel: ['LCT024', '440400982841', '440400982842', '440400982843', 'PCM002'],
         model: '915005733701',
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
@@ -2157,7 +2157,7 @@ const definitions: Definition[] = [
         model: '929003017102',
         vendor: 'Philips',
         description: 'Hue wall switch module',
-        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, fz.hue_wall_switch, fz.command_toggle],
+        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, fz.hue_wall_switch, fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [
             e.battery(), e.action(['left_press', 'left_press_release', 'right_press', 'right_press_release',
                 'left_hold', 'left_hold_release', 'right_hold', 'right_hold_release', 'toggle']),
@@ -3051,7 +3051,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['LTF002'],
+        zigbeeModel: ['LTF002', 'LTC010'],
         model: '6109331C5',
         vendor: 'Philips',
         description: 'Hue white ambiance Apogee round',

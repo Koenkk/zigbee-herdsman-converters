@@ -54,19 +54,19 @@ const tzLocal = {
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'display_brightnesss') {
-                const payload = {0x1000: {value: value, type: Zcl.DataType.enum8}};
+                const payload = {0x1000: {value: value, type: Zcl.DataType.ENUM8}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             } else if (key === 'display_auto_off') {
                 const lookup = {'deactivated': 0, 'activated': 1};
-                const payload = {0x1001: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
+                const payload = {0x1001: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             } else if (key === 'power_up_status') {
                 const lookup = {'manual': 0, 'last_state': 1};
-                const payload = {0x1004: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
+                const payload = {0x1004: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             } else if (key==='window_open_check') {
                 const lookup = {'enable': 0, 'disable': 1};
-                const payload = {0x1009: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
+                const payload = {0x1009: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             } else if (key==='hysterersis') {
                 const payload = {0x100A: {value: utils.toNumber(value, 'hysterersis') * 10, type: 0x20}};
@@ -1004,7 +1004,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {multiEndpoint: true, publishDuplicateTransaction: true},
+        meta: {multiEndpoint: true, publishDuplicateTransaction: true, multiEndpointSkip: ['power', 'energy']},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -1033,7 +1033,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['4512770', '4512771', 'HK-SENSOR-4IN1-A'],
+        zigbeeModel: ['4512770', '4512771'],
         model: '4512770',
         vendor: 'Namron',
         description: 'Zigbee multisensor (white)',

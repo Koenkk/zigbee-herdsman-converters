@@ -1,5 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Fz, Tz, OnEvent, KeyValueString, KeyValueAny} from '../lib/types';
+import {Fz, Tz, Zh, OnEvent, KeyValueString, KeyValueAny} from '../lib/types';
 import * as exposes from './exposes';
 import * as utils from '../lib/utils';
 import {logger} from './logger';
@@ -8,12 +8,12 @@ const NS = 'zhc:legrand';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const shutterCalibrationModes: {[k: number]: {description: string, onlyNLLV: boolean}} = {
-    0: {description: 'classic_nllv', onlyNLLV: true},
-    1: {description: 'specific_nllv', onlyNLLV: true},
-    2: {description: 'up_down_stop', onlyNLLV: false},
-    3: {description: 'temporal', onlyNLLV: false},
-    4: {description: 'venetian_bso', onlyNLLV: false},
+const shutterCalibrationModes: {[k: number]: {description: string, onlyNLLV: boolean, supportsTilt: boolean}} = {
+    0: {description: 'classic_nllv', onlyNLLV: true, supportsTilt: false},
+    1: {description: 'specific_nllv', onlyNLLV: true, supportsTilt: false},
+    2: {description: 'up_down_stop', onlyNLLV: false, supportsTilt: false},
+    3: {description: 'temporal', onlyNLLV: false, supportsTilt: false},
+    4: {description: 'venetian_bso', onlyNLLV: false, supportsTilt: true},
 };
 
 const ledModes:{[k: number]: string} = {
@@ -42,7 +42,7 @@ const ledColors:{[k: number]: string} = {
 const optsLegrand = {
     identityEffect: () => {
         return e.composite('Identity effect', 'identity_effect', ea.SET)
-            .withDescription('Defines the identification effect to simplify the device identification')
+            .withDescription('Defines the identification effect to simplify the device identification.')
             .withFeature(e.enum('effect', ea.SET, Object.values(ledEffects)).withLabel('Effect'))
             .withFeature(e.enum('color', ea.SET, Object.values(ledColors)).withLabel('Color'));
     },
@@ -57,10 +57,14 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
 export const legrandOptions = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
 
 export const _067776 = {
-    getCover: () => {
+    getCover: (device: Zh.Device) => {
         const c = e.cover_position();
-        if (c.hasOwnProperty('features')) {
-            c.features.push(new exposes.Numeric('tilt', ea.ALL)
+
+        const calMode = Number(device?.getEndpoint(1)?.clusters?.closuresWindowCovering?.attributes?.calibrationMode);
+        const showTilt = calMode ? (shutterCalibrationModes[calMode]?.supportsTilt === true): false;
+
+        if (showTilt) {
+            c.addFeature(new exposes.Numeric('tilt', ea.ALL)
                 .withValueMin(0).withValueMax(100)
                 .withValueStep(25)
                 .withPreset('Closed', 0, 'Vertical')

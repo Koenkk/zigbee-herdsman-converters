@@ -48,7 +48,7 @@ export interface TrvScheduleConfig {
     events: TrvScheduleConfigEvent[];
 }
 
-export const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buffer) => {
+export const buffer2DataObject = (model: Definition, buffer: Buffer) => {
     const dataObject: KeyValue = {};
 
     if (buffer !== null && Buffer.isBuffer(buffer)) {
@@ -535,8 +535,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '247':
             {
-                // @ts-expect-error
-                const dataObject247 = buffer2DataObject(meta, model, value);
+                const dataObject247 = buffer2DataObject(model, value as Buffer);
                 if (['CTP-R01'].includes(model.model)) {
                     // execute pending soft switch of operation_mode, if exists
                     const opModeSwitchTask = globalStore.getValue(meta.device, 'opModeSwitchTask');
@@ -800,10 +799,6 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             // This is a a complete structure with attributes, like element 0 for state, element 1 for voltage...
             // At this moment we only extract what we are sure, for example, position 0 seems to be always 1 for a
             // occupancy sensor, so we ignore it at this moment
-            if (['MCCGQ01LM'].includes(model.model)) {
-                // @ts-expect-error
-                payload.contact = value[0].elmVal === 0;
-            }
             // @ts-expect-error
             payload.voltage = value[1].elmVal;
             if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
@@ -837,6 +832,31 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
     logger.debug(`${model.model}: Processed data into payload ${JSON.stringify(payload)}`, NS);
 
     return payload;
+};
+
+const numericAttributes2Lookup = async (model: Definition, dataObject: KeyValue) => {
+    let result: KeyValue = {};
+    for (const [key, value] of Object.entries(dataObject)) {
+        switch (key) {
+        case '247':
+            {
+                const dataObject247 = buffer2DataObject(model, value as Buffer);
+                const result247 = await numericAttributes2Lookup(model, dataObject247);
+                result = {...result, ...result247};
+            }
+            break;
+        case '65281':
+            {
+                const result65281 = await numericAttributes2Lookup(model, value as KeyValue);
+                result = {...result, ...result65281};
+            }
+            break;
+        default:
+            result[key] = value;
+        }
+    }
+
+    return result;
 };
 
 type LumiPresenceRegionZone = {x: number, y: number}
@@ -1101,7 +1121,7 @@ export const trv = {
     },
 
     decodeHeartbeat(meta: Fz.Meta, model: Definition, messageBuffer: Buffer) {
-        const data = buffer2DataObject(meta, model, messageBuffer);
+        const data = buffer2DataObject(model, messageBuffer);
         const payload: KeyValue = {};
 
         Object.entries(data).forEach(([key, value]) => {
@@ -1484,7 +1504,7 @@ export const lumiModernExtend = {
                 //  under the manuSpecificLumi cluster as attribute 247, we simple decode and grab value with ID 5.
                 // Normal attribute publishing and decoding will be left to the classic fromZigbee or modernExtends.
                 if (msg.data.hasOwnProperty('247')) {
-                    const dataDecoded = buffer2DataObject(meta, model, msg.data['247']);
+                    const dataDecoded = buffer2DataObject(model, msg.data['247']);
                     if (dataDecoded.hasOwnProperty('5')) {
                         assertNumber(dataDecoded['5']);
 
@@ -1703,9 +1723,11 @@ export const lumiModernExtend = {
         // modes:
         // 0 - 'command' mode. keys send commands. useful for binding
         // 1 - 'event' mode. keys send events. useful for handling
-        const configure: Configure = async (device, coordinatorEndpoint, definition) => {
-            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
-        };
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
+            },
+        ];
         return {configure, isModernExtend: true};
     },
     lumiSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
@@ -1768,6 +1790,117 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    lumiKnobRotation: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e.action(['start_rotating', 'rotation', 'stop_rotating']),
+            e.enum('action_rotation_button_state', ea.STATE, ['released', 'pressed'])
+                .withDescription('Button state during rotation').withCategory('diagnostic'),
+            e.numeric('action_rotation_angle', ea.STATE)
+                .withUnit('*').withDescription('Rotation angle').withCategory('diagnostic'),
+            e.numeric('action_rotation_angle_speed', ea.STATE)
+                .withUnit('*').withDescription('Rotation angle speed').withCategory('diagnostic'),
+            e.numeric('action_rotation_percent', ea.STATE).withUnit('%')
+                .withDescription('Rotation percent').withCategory('diagnostic'),
+            e.numeric('action_rotation_percent_speed', ea.STATE)
+                .withUnit('%').withDescription('Rotation percent speed').withCategory('diagnostic'),
+            e.numeric('action_rotation_time', ea.STATE)
+                .withUnit('ms').withDescription('Rotation time').withCategory('diagnostic'),
+        ];
+
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'manuSpecificLumi',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty(570)) {
+                    const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
+                    const state: KeyValueNumberString = {0: 'released', 128: 'pressed'};
+                    return {
+                        action: act[msg.data[570] & ~128],
+                        action_rotation_button_state: state[msg.data[570] & 128],
+                        action_rotation_angle: msg.data[558],
+                        action_rotation_angle_speed: msg.data[560],
+                        action_rotation_percent: msg.data[563],
+                        action_rotation_percent_speed: msg.data[562],
+                        action_rotation_time: msg.data[561],
+                    };
+                }
+            },
+        }];
+
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
+    lumiCommandMode: (args?: {setEventMode: boolean}): ModernExtend => {
+        args = {setEventMode: true, ...args};
+        const exposes: Expose[] = [
+            e.enum('operation_mode', ea.ALL, ['event', 'command'])
+                .withDescription('Command mode is usefull for binding. Event mode is usefull for processing.'),
+        ];
+
+        const toZigbee: Tz.Converter[] = [{
+            key: ['operation_mode'],
+            convertSet: async (entity, key, value, meta) => {
+                assertString(value);
+                // modes:
+                // 0 - 'command' mode. keys send commands. useful for binding
+                // 1 - 'event' mode. keys send events. useful for handling
+                const lookup = {command: 0, event: 1};
+                const endpoint = meta.device.getEndpoint(1);
+                await endpoint.write('manuSpecificLumi', {'mode': getFromLookup(value.toLowerCase(), lookup)},
+                    {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
+                return {state: {operation_mode: value.toLowerCase()}};
+            },
+            convertGet: async (entity, key, meta) => {
+                const endpoint = meta.device.getEndpoint(1);
+                await endpoint.read('manuSpecificLumi', ['mode'], {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
+            },
+        }];
+        const result: ModernExtend = {exposes, toZigbee, isModernExtend: true};
+
+        if (args.setEventMode) {
+            result.configure = lumiModernExtend.lumiSetEventMode().configure;
+        }
+
+        return result;
+    },
+    lumiBattery: (args?: {
+        cluster?: 'genBasic' | 'manuSpecificLumi',
+        voltageToPercentage?: string | {min: number, max: number},
+        percentageAtrribute?: number,
+        voltageAttribute?: number,
+    }): ModernExtend => {
+        args = {
+            cluster: 'manuSpecificLumi',
+            percentageAtrribute: 1,
+            voltageAttribute: 1,
+            ...args,
+        };
+        const exposes: Expose[] = [e.battery(), e.battery_voltage()];
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: args.cluster,
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    const payload: KeyValueAny = {};
+                    const lookup: KeyValueAny = numericAttributes2Lookup(model, msg.data);
+                    if (lookup[args.percentageAtrribute.toString()]) {
+                        const value = lookup[args.percentageAtrribute];
+                        assertNumber(value);
+                        if (!args.voltageToPercentage) payload.battery = value;
+                    }
+                    if (lookup[args.voltageAttribute.toString()]) {
+                        const value = lookup[args.voltageAttribute];
+                        assertNumber(value);
+                        payload.voltage = value;
+                        if (args.voltageToPercentage) payload.battery = batteryVoltageToPercentage(value, args.voltageToPercentage);
+                    }
+                    return payload;
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
 };
 
 export {lumiModernExtend as modernExtend};
@@ -1802,7 +1935,7 @@ export const fromZigbee = {
         convert: async (model, msg, publish, options, meta) => {
             let payload = {};
             if (Buffer.isBuffer(msg.data)) {
-                const dataObject = buffer2DataObject(meta, model, msg.data);
+                const dataObject = buffer2DataObject(model, msg.data);
                 payload = await numericAttributes2Payload(msg, meta, model, options, dataObject);
             }
             return payload;
@@ -2478,25 +2611,6 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
-    lumi_knob_rotation: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(570)) {
-                const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
-                const state: KeyValueNumberString = {0: 'released', 128: 'pressed'};
-                return {
-                    action: act[msg.data[570] & ~128],
-                    action_rotation_button_state: state[msg.data[570] & 128],
-                    action_rotation_angle: msg.data[558],
-                    action_rotation_angle_speed: msg.data[560],
-                    action_rotation_percent: msg.data[563],
-                    action_rotation_percent_speed: msg.data[562],
-                    action_rotation_time: msg.data[561],
-                };
-            }
-        },
-    } satisfies Fz.Converter,
     lumi_curtain_status: {
         cluster: 'genMultistateOutput',
         type: ['attributeReport'],
@@ -2506,9 +2620,9 @@ export const fromZigbee = {
             let lookup: KeyValueAny = {};
 
             // For lumi.curtain.hagl04 and lumi.curtain.hagl07
-            if (['ZNCLDJ12LM', 'ZNCLDJ14LM'].includes(model.model)) lookup = {0: 'closing', 1: 'opening', 2: 'stop'};
+            if (['ZNCLDJ12LM', 'ZNCLDJ14LM'].includes(model.model)) lookup = {0: 'closing', 1: 'opening', 2: 'stopped'};
             // for lumi.curtain.acn002
-            if (['ZNJLBL01LM'].includes(model.model)) lookup = {0: 'declining', 1: 'rising', 2: 'pause', 3: 'blocked'};
+            if (['ZNJLBL01LM'].includes(model.model)) lookup = {0: 'closing', 1: 'opening', 2: 'stopped', 3: 'blocked'};
 
             if (data && data.hasOwnProperty('presentValue')) {
                 const value = data['presentValue'];
@@ -2526,8 +2640,8 @@ export const fromZigbee = {
         cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('curtainManual')) {
-                return {hand_open: msg.data['curtainManual'] === 0};
+            if (msg.data.hasOwnProperty('curtainHandOpen')) {
+                return {hand_open: msg.data['curtainHandOpen'] === 0};
             } else if (msg.data.hasOwnProperty('curtainReverse')) {
                 return {reverse_direction: msg.data['curtainReverse'] === 1};
             } else if (msg.data.hasOwnProperty('curtainCalibrated')) {
@@ -4077,10 +4191,10 @@ export const toZigbee = {
     lumi_curtain_hand_open: {
         key: ['hand_open'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {'curtainManual': !value}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {'curtainHandOpen': !value}, manufacturerOptions.lumi);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', ['curtainManual'], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', ['curtainHandOpen'], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_curtain_reverse: {

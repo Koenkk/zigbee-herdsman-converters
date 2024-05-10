@@ -86,6 +86,14 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['OLS 210'],
+        model: 'OLS 210',
+        vendor: 'Innr',
+        description: 'Smart outdoor light string',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['OGL 130 C'],
         model: 'OGL 130 C',
         vendor: 'Innr',
@@ -178,6 +186,13 @@ const definitions: Definition[] = [
         description: 'B22 bulb filament clear',
         extend: [light({turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['RB 272 T'],
+        model: 'RB 272 T',
+        vendor: 'Innr',
+        description: 'Smart bulb tunable white E27',
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RB 278 T'],
@@ -316,7 +331,7 @@ const definitions: Definition[] = [
         model: 'RS 128 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RS 228 T'],
@@ -363,6 +378,14 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['RB 245'],
         model: 'RB 245',
+        vendor: 'Innr',
+        description: 'E14 candle',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['RB 243'],
+        model: 'RB 243',
         vendor: 'Innr',
         description: 'E14 candle',
         extend: [light({turnsOffAtBrightness1: true})],
@@ -675,6 +698,7 @@ const definitions: Definition[] = [
             onOff(),
             electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SP 242'],
@@ -688,6 +712,7 @@ const definitions: Definition[] = [
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/6747
             reconfigureReportingsOnDeviceAnnounce(),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SP 244'],
@@ -698,6 +723,7 @@ const definitions: Definition[] = [
             onOff(),
             electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
+        ota: ota.zigbeeOTA,
     },
 ];
 

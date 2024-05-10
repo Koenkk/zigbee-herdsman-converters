@@ -1,13 +1,13 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition} from '../lib/types';
-import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
     temperature, humidity, occupancy, illuminance, windowCovering,
     commandsOnOff, commandsLevelCtrl, commandsWindowCovering, pm25,
-    linkQuality, deviceEndpoints, bindCluster,
+    linkQuality, deviceEndpoints, deviceAddCustomCluster, bindCluster,
 } from '../lib/modernExtend';
 import {
-    ikeaConfigureRemote, ikeaLight, ikeaOta,
+    ikeaConfigureRemote, ikeaLight, ikeaOta, ikeaConfigureStyrbar,
     ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
     ikeaVoc, ikeaConfigureGenPollCtrl, tradfriOccupancy,
     tradfriRequestedBrightness,
@@ -489,10 +489,17 @@ const definitions: Definition[] = [
         extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
+        zigbeeModel: ['JETSTROM 3030 wall'],
+        model: 'L2205',
+        vendor: 'IKEA',
+        description: 'JETSTROM wall light panel, color/white spectrum, 30x30 cm',
+        extend: [ikeaLight({colorTemp: true, color: true}), identify()],
+    },
+    {
         zigbeeModel: ['JETSTROM 3030 ceiling'],
         model: 'L2206',
         vendor: 'IKEA',
-        description: 'JETSTROM wall light panel, color/white spectrum, 30x30 cm',
+        description: 'JETSTROM ceiling light panel, color/white spectrum, 30x30 cm',
         extend: [ikeaLight({colorTemp: true, color: true}), identify()],
     },
     {
@@ -775,12 +782,12 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'STYRBAR remote control',
         extend: [
-            ikeaConfigureRemote(),
+            ikeaConfigureStyrbar(),
             identify({isSleepy: true}),
             styrbarCommandOn(),
-            commandsOnOff({commands: ['off']}),
-            commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
-            ikeaArrowClick({styrbar: true}),
+            commandsOnOff({commands: ['off'], bind: false}),
+            commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop'], bind: false}),
+            ikeaArrowClick({styrbar: true, bind: false}),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -933,13 +940,20 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'VINDSTYRKA air quality and humidity sensor',
         extend: [
+            deviceAddCustomCluster(
+                'pm25Measurement',
+                {
+                    ID: 0x042a,
+                    attributes: {
+                        measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                },
+            ),
             temperature(),
             humidity(),
-            pm25({
-                // IKEA used conflicting date type on a standart attribute
-                attribute: {ID: 0x0000, type: dataType.singlePrec},
-                reporting: {min: '1_MINUTE', max: '2_MINUTES', change: 2},
-            }),
+            pm25({reporting: {min: '1_MINUTE', max: '2_MINUTES', change: 2}}),
             ikeaVoc(),
             identify(),
             ikeaOta(),
