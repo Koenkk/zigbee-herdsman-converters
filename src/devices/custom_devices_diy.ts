@@ -877,7 +877,6 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
-    const definition = {
     zigbeeModel: ['MHO-C401N-z'],
     model: 'MHO-C401N',
     vendor: 'Xiaomi',
