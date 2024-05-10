@@ -937,7 +937,6 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_vs0skpuc'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_s1xgth2u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_44af8vyi'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zl1kmjqx'}],
         model: 'TS0601_temperature_humidity_sensor_1',
@@ -1060,6 +1059,34 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'ZTH05', 'Temperature and humidity sensor', ['_TZE204_upagmta9', '_TZE200_upagmta9']),
             tuya.whitelabel('TuYa', 'ZTH08-E', 'Temperature and humidity sensor', ['_TZE200_cirvgep4', '_TZE204_cirvgep4']),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_s1xgth2u'}],
+        model: 'TS0601_temperature_humidity_sensor_3',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            // Required to get the device to start reporting (-- Maybe needed? Copied this from another humidity sensor configuration)
+            await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
+        },
+        toZigbee: [],
+        onEvent: tuya.onEventSetLocalTime,
+        exposes: (device, options) => {
+            const exps = [e.temperature(), e.humidity(), e.battery(), tuya.exposes.temperatureUnit()];
+            exps.push(e.linkquality());
+            return exps;
+        },
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [2, 'humidity', tuya.valueConverter.raw],
+                [4, 'battery', tuya.valueConverter.raw], // maybe?
+                [9, 'temperature_unit', tuya.valueConverter.temperatureUnitEnum], // maybe?
+                //[19, 'temperature_sensitivity', tuya.valueConverter.raw], // maybe? commented this out for now
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vvmbj46n']),
