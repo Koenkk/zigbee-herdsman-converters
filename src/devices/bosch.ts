@@ -990,7 +990,7 @@ const definitions: Definition[] = [
             e.climate()
                 .withLocalTemperature(ea.STATE_GET, 'Temperature used by the heating algorithm. ' +
                 'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).')
-                .withSystemMode(['heat'], ea.STATE)
+                .withSystemMode(['heat'])
                 .withRunningState(['idle', 'heat'])
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
