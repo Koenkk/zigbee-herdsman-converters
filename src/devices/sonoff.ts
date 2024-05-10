@@ -104,10 +104,10 @@ const sonoffExtend = {
                 }
 
                 await entity.command(
-                    clusterName, 
-                    commandName, 
-                    {data: payloadValue}, 
-                    {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD}
+                    clusterName,
+                    commandName,
+                    {data: payloadValue},
+                    {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 );
                 return {state: {[key]: value}};
             },
@@ -412,7 +412,7 @@ const sonoffExtend = {
     externalTriggerMode: (): ModernExtend => {
         const clusterName = 'customClusterEwelink';
         const attributeName = 'externalTriggerMode';
-        const exposes = e.enum('external_trigger_mode', ea.ALL, ['edge', 'pulse', 
+        const exposes = e.enum('external_trigger_mode', ea.ALL, ['edge', 'pulse',
             'following(off)', 'following(on)']).withDescription('External trigger mode, which can be one of edge, pulse, ' +
             'following(off), following(on). The appropriate triggering mode can be selected according to the type of ' +
             'external switch to achieve a better use experience.');
@@ -424,7 +424,7 @@ const sonoffExtend = {
                 logger.debug(`from zigbee msg.data['externalSwitchTriggerType'] ${msg.data['externalSwitchTriggerType']}`, NS);
                 if (msg.data.hasOwnProperty('externalSwitchTriggerType')) {
                     let switchType = 'edge';
-                    for (let name in lookup) {
+                    for (const name in lookup) {
                         if (lookup[name] === msg.data['externalSwitchTriggerType']) {
                             switchType = name;
                             break;
