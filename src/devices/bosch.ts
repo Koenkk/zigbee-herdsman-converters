@@ -1005,6 +1005,7 @@ const definitions: Definition[] = [
         toZigbee: [
             tz.thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_local_temperature,
             tz.thermostat_local_temperature_calibration,
             tz.thermostat_keypad_lockout,
         ],
