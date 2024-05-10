@@ -878,7 +878,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['MHO-C401N-z'],
-        model: 'MHO-C401N',
+        model: 'MHO-C401N-z',
         vendor: 'Xiaomi',
         description: 'E-Ink temperature & humidity sensor with custom firmware (pvxx/ZigbeeTLc)',
         extend: [
