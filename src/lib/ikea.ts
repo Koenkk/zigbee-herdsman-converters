@@ -100,15 +100,21 @@ export function ikeaBattery(): ModernExtend {
             if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
                 // Some devices do not comply to the ZCL and report a
                 // batteryPercentageRemaining of 100 when the battery is full (should be 200).
-                //
-                // IKEA corrected this on newer remote fw version, but many people are still
-                // 2.2.010 which is the last version supporting group bindings. We try to be
-                // smart and pick the correct one for IKEA remotes.
                 let dividePercentage = true;
-                // If softwareBuildID is below 2.4.0 it should not be divided
-                if (semver.lt(meta.device.softwareBuildID, '2.4.0', true)) {
-                    dividePercentage = false;
+                if (model.model === 'E2103') {
+                    if (semver.lt(meta.device.softwareBuildID, '24.4.13', true)) {
+                        dividePercentage = false;
+                    }
+                } else {
+                    // IKEA corrected this on newer remote fw version, but many people are still
+                    // 2.2.010 which is the last version supporting group bindings. We try to be
+                    // smart and pick the correct one for IKEA remotes.
+                    // If softwareBuildID is below 2.4.0 it should not be divided
+                    if (semver.lt(meta.device.softwareBuildID, '2.4.0', true)) {
+                        dividePercentage = false;
+                    }
                 }
+
                 let percentage = msg.data['batteryPercentageRemaining'];
                 percentage = dividePercentage ? percentage / 2 : percentage;
                 payload.battery = precisionRound(percentage, 2);
