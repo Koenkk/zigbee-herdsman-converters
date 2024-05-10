@@ -46,7 +46,7 @@ const sonoffExtend = {
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
             },
             commands: {
-                protocolData: {ID: 0x01, parameters: [{ name: 'data', type: BuffaloZclDataType.LIST_UINT8 }]},
+                protocolData: {ID: 0x01, parameters: [{name: 'data', type: BuffaloZclDataType.LIST_UINT8}]},
             },
             commandsResponse: {},
         },
@@ -103,7 +103,12 @@ const sonoffExtend = {
                     payloadValue[10] ^= payloadValue[i];
                 }
 
-                await entity.command(clusterName, commandName, {data: payloadValue}, {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD});
+                await entity.command(
+                    clusterName, 
+                    commandName, 
+                    {data: payloadValue}, 
+                    {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD}
+                );
                 return {state: {[key]: value}};
             },
         }];
@@ -410,7 +415,7 @@ const sonoffExtend = {
         const exposes = e.enum('external_trigger_mode', ea.ALL, ['edge', 'pulse', 
             'following(off)', 'following(on)']).withDescription('External trigger mode, which can be one of edge, pulse, ' +
             'following(off), following(on). The appropriate triggering mode can be selected according to the type of ' +
-            'external switch to achieve a better use experience.')
+            'external switch to achieve a better use experience.');
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'manuSpecificeWeLink',
             type: ['attributeReport', 'readResponse'],
@@ -420,12 +425,12 @@ const sonoffExtend = {
                 if (msg.data.hasOwnProperty('externalSwitchTriggerType')) {
                     let switchType = 'edge';
                     for (let name in lookup) {
-                        if (lookup[name] === msg.data['externalSwitchTriggerType']) {		            
+                        if (lookup[name] === msg.data['externalSwitchTriggerType']) {
                             switchType = name;
                             break;
                         }
                     }
-                    logger.debug(`form zigbee switchType ${switchType}`, NS);                       
+                    logger.debug(`form zigbee switchType ${switchType}`, NS);
                     return {['external_trigger_mode']: switchType};
                 }
             },
@@ -1067,12 +1072,12 @@ const definitions: Definition[] = [
                 name: 'rf_turbo_mode',
                 cluster: 'customClusterEwelink',
                 attribute: 'radioPower',
-                zigbeeCommandOptions: { manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD },
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 description: 'Enable/disable Radio power turbo mode',
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
-            }),          
-            sonoffExtend.inchingControlSet(),           
+            }),
+            sonoffExtend.inchingControlSet(),
         ],
     },
     {
@@ -1092,7 +1097,7 @@ const definitions: Definition[] = [
                 description: 'Enable/disable Radio power turbo mode',
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
-            }), 
+            }),
             binary({
                 name: 'delayed_power_on_state',
                 cluster: 'customClusterEwelink',
