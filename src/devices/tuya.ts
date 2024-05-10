@@ -1073,11 +1073,7 @@ const definitions: Definition[] = [
         },
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
-        exposes: (device, options) => {
-            const exps = [e.temperature(), e.humidity(), e.battery(), tuya.exposes.temperatureUnit()];
-            exps.push(e.linkquality());
-            return exps;
-        },
+        exposes: [e.temperature(), e.humidity(), e.battery(), tuya.exposes.temperatureUnit()],
         meta: {
             tuyaDatapoints: [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
