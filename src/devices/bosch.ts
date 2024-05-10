@@ -11,7 +11,7 @@ import * as utils from '../lib/utils';
 import * as constants from '../lib/constants';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
-import {Tz, Fz, Definition, KeyValue} from '../lib/types';
+import {Tz, Fz, Definition, KeyValue, ModernExtend} from '../lib/types';
 import {logger} from '../lib/logger';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -80,28 +80,9 @@ const sirenState = {
 };
 
 // Radiator Thermostat II
-const operatingModes = {
-    'automatic': 0,
-    'manual': 1,
-    'pause': 5,
-};
-
-// Radiator Thermostat II
 const stateOffOn = {
     'OFF': 0,
     'ON': 1,
-};
-
-// Radiator Thermostat II
-const displayOrientation = {
-    'normal': 0,
-    'flipped': 1,
-};
-
-// Radiator Thermostat II
-const displayedTemperature = {
-    'target': 0,
-    'measured': 1,
 };
 
 // Smoke detector II BSD-2
@@ -129,13 +110,6 @@ const broadcastAlarmState: KeyValue = {
     'smoke_on': 0x3c00,
     'burglar_off': 0x0001,
     'burglar_on': 0xb401,
-};
-
-// Radiator Thermostat II
-const setpointSource = {
-    'manual': 0,
-    'schedule': 1,
-    'external': 2,
 };
 
 // Radiator Thermostat II
@@ -183,7 +157,117 @@ const labelConfirmation = `Specifies LED color (rgb) and pattern of the confirma
 8: Number of Repetitions (01=1 to ff=255)
 Example: 30ff00000102010001`;
 
-
+const boschExtend = {
+    valveAdaptProcess: (): ModernExtend => {
+        const exposes = e.binary('valve_adapt_process', ea.ALL, true, false)
+            .withLabel('Trigger adaptation process')
+            .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
+            'is "ready_to_calibrate" or "error".')
+            .withCategory('config');
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'hvacThermostat',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result: KeyValue = {};
+                const data = msg.data;
+                if (data.hasOwnProperty('valveAdaptStatus')) {
+                    if (data['valveAdaptStatus'] === adaptationStatus.calibration_in_progress) {
+                        result.valve_adapt_process = true;
+                    } else {
+                        result.valve_adapt_process = false;
+                    }
+                }
+                return result;
+            },
+        }];
+        const toZigbee: Tz.Converter[] = [{
+            key: ['valve_adapt_process'],
+            convertSet: async (entity, key, value, meta) => {
+                if (value == true) {
+                    const adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, adaptationStatus);
+                    switch (adaptStatus) {
+                    case adaptationStatus.ready_to_calibrate:
+                    case adaptationStatus.error:
+                        await entity.command('hvacThermostat', 'calibrateValve', {}, manufacturerOptions);
+                        break;
+                    default:
+                        throw new Error('Valve adaptation process not possible right now.');
+                    }
+                }
+                return {state: {valve_adapt_process: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('hvacThermostat', ['valveAdaptStatus'], manufacturerOptions);
+            },
+        }];
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    heatingDemand: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'hvacThermostat',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result: KeyValue = {};
+                const data = msg.data;
+                if (data.hasOwnProperty('heatingDemand')) {
+                    const demand = data['heatingDemand'] as number;
+                    result.pi_heating_demand = demand;
+                    result.running_state = demand > 0 ? 'heat' : 'idle';
+                }
+                return result;
+            },
+        }];
+        const toZigbee: Tz.Converter[] = [{
+            key: ['pi_heating_demand'],
+            convertSet: async (entity, key, value, meta) => {
+                if (key === 'pi_heating_demand') {
+                    let demand = utils.toNumber(value, key);
+                    demand = utils.numberWithinRange(demand, 0, 100);
+                    await entity.write('hvacThermostat', {heatingDemand: demand}, manufacturerOptions);
+                    return {state: {pi_heating_demand: demand}};
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('hvacThermostat', ['heatingDemand'], manufacturerOptions);
+            },
+        }, {
+            key: ['running_state'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('hvacThermostat', ['heatingDemand'], manufacturerOptions);
+            },
+        }];
+        return {
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    ignoreDst: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'genTime',
+            type: 'read',
+            convert: async (model, msg, publish, options, meta) => {
+                if (msg.data.includes('dstStart', 'dstEnd', 'dstShift')) {
+                    const response = {
+                        'dstStart': {attribute: 0x0003, status: Zcl.Status.SUCCESS, value: 0x00},
+                        'dstEnd': {attribute: 0x0004, status: Zcl.Status.SUCCESS, value: 0x00},
+                        'dstShift': {attribute: 0x0005, status: Zcl.Status.SUCCESS, value: 0x00},
+                    };
+                    await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
+                }
+            },
+        }];
+        return {
+            fromZigbee,
+            isModernExtend: true,
+        };
+    },
+};
 const tzLocal = {
     broadcast_alarm: {
         key: ['broadcast_alarm'],
@@ -412,148 +496,6 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    bosch_thermostat: {
-        key: ['window_detection', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature', 'valve_adapt_process'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'window_detection') {
-                const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('hvacThermostat', {0x4042: {value: index, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
-                return {state: {window_detection: value}};
-            }
-            if (key === 'boost') {
-                const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('hvacThermostat', {0x4043: {value: index, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
-                return {state: {boost: value}};
-            }
-            if (key === 'system_mode') {
-                // Map system_mode (Off/Auto/Heat) to Bosch operating mode
-                utils.assertString(value, key);
-                value = value.toLowerCase();
-
-                let opMode = operatingModes.manual; // OperatingMode 1 = Manual (Default)
-
-                if (value=='off') {
-                    opMode = operatingModes.pause; // OperatingMode 5 = Pause
-                } else if (value == 'auto') {
-                    opMode = operatingModes.automatic; // OperatingMode 0 = Automatic
-                }
-                await entity.write('hvacThermostat', {0x4007: {value: opMode, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
-                return {state: {system_mode: value}};
-            }
-            if (key === 'pi_heating_demand') {
-                let demand = utils.toNumber(value, key);
-                demand = utils.numberWithinRange(demand, 0, 100);
-                await entity.write('hvacThermostat',
-                    {0x4020: {value: demand, type: Zcl.DataType.ENUM8}},
-                    manufacturerOptions);
-                return {state: {pi_heating_demand: demand}};
-            }
-            if (key === 'remote_temperature') {
-                let temperature = utils.toNumber(value, key);
-                temperature = utils.precisionRound(temperature, 1);
-                const convertedTemperature = utils.precisionRound(temperature * 100, 0);
-                await entity.write('hvacThermostat',
-                    {0x4040: {value: convertedTemperature, type: Zcl.DataType.INT16}}, manufacturerOptions);
-                return {state: {remote_temperature: temperature}};
-            }
-
-            if (key === 'valve_adapt_process') {
-                if (value == true) {
-                    const adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, adaptationStatus);
-
-                    switch (adaptStatus) {
-                    case adaptationStatus.ready_to_calibrate:
-                    case adaptationStatus.error:
-                        await entity.command('hvacThermostat', 'boschCalibrateValve', {}, manufacturerOptions);
-                        break;
-                    default:
-                        throw new Error('Valve adaptation process not possible right now.');
-                    }
-                }
-
-                return {state: {valve_adapt_process: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            switch (key) {
-            case 'window_detection':
-                await entity.read('hvacThermostat', [0x4042], manufacturerOptions);
-                break;
-            case 'boost':
-                await entity.read('hvacThermostat', [0x4043], manufacturerOptions);
-                break;
-            case 'system_mode':
-                await entity.read('hvacThermostat', [0x4007], manufacturerOptions);
-                break;
-            case 'pi_heating_demand':
-                await entity.read('hvacThermostat', [0x4020], manufacturerOptions);
-                break;
-            case 'remote_temperature':
-                await entity.read('hvacThermostat', [0x4040], manufacturerOptions);
-                break;
-            case 'valve_adapt_process':
-                // Reads the current valve adaptation status as it depends solely on it
-                await entity.read('hvacThermostat', [0x4022], manufacturerOptions);
-                break;
-
-            default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_thermostat.convertGet ${key}`);
-            }
-        },
-    } satisfies Tz.Converter,
-    bosch_userInterface: {
-        key: ['display_orientation', 'display_ontime', 'display_brightness', 'child_lock', 'displayed_temperature'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'display_orientation') {
-                const index = utils.getFromLookup(value, displayOrientation);
-                await entity.write('hvacUserInterfaceCfg', {0x400b: {value: index, type: Zcl.DataType.UINT8}}, manufacturerOptions);
-                return {state: {display_orientation: value}};
-            }
-            if (key === 'display_ontime') {
-                let ontime = utils.toNumber(value, key);
-                ontime = utils.numberWithinRange(ontime, 5, 30);
-                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: ontime, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
-                return {state: {display_ontime: ontime}};
-            }
-            if (key === 'display_brightness') {
-                let brightness = utils.toNumber(value, key);
-                brightness = utils.numberWithinRange(brightness, 0, 10);
-                await entity.write('hvacUserInterfaceCfg', {0x403b: {value: brightness, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
-                return {state: {display_brightness: brightness}};
-            }
-            if (key === 'child_lock') {
-                const keypadLockout = Number(value === 'LOCK');
-                await entity.write('hvacUserInterfaceCfg', {keypadLockout});
-                return {state: {child_lock: value}};
-            }
-            if (key === 'displayed_temperature') {
-                const index = utils.getFromLookup(value, displayedTemperature);
-                await entity.write('hvacUserInterfaceCfg', {0x4039: {value: index, type: Zcl.DataType.ENUM8}}, manufacturerOptions);
-                return {state: {displayed_temperature: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            switch (key) {
-            case 'display_orientation':
-                await entity.read('hvacUserInterfaceCfg', [0x400b], manufacturerOptions);
-                break;
-            case 'display_ontime':
-                await entity.read('hvacUserInterfaceCfg', [0x403a], manufacturerOptions);
-                break;
-            case 'display_brightness':
-                await entity.read('hvacUserInterfaceCfg', [0x403b], manufacturerOptions);
-                break;
-            case 'child_lock':
-                await entity.read('hvacUserInterfaceCfg', ['keypadLockout']);
-                break;
-            case 'displayed_temperature':
-                await entity.read('hvacUserInterfaceCfg', [0x4039], manufacturerOptions);
-                break;
-            default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_userInterface.convertGet ${key}`);
-            }
-        },
-    } satisfies Tz.Converter,
     bosch_twinguard: {
         key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
         convertSet: async (entity, key, value, meta) => {
@@ -728,82 +670,6 @@ const fzLocal = {
                 action: lookup[(zoneStatus >> 11) & 3],
             };
             if (result.action === 'none') delete result.action;
-            return result;
-        },
-    } satisfies Fz.Converter,
-    bosch_ignore_dst: {
-        cluster: 'genTime',
-        type: 'read',
-        convert: async (model, msg, publish, options, meta) => {
-            if (msg.data.includes('dstStart', 'dstEnd', 'dstShift')) {
-                const response = {
-                    'dstStart': {attribute: 0x0003, status: Zcl.Status.SUCCESS, value: 0x00},
-                    'dstEnd': {attribute: 0x0004, status: Zcl.Status.SUCCESS, value: 0x00},
-                    'dstShift': {attribute: 0x0005, status: Zcl.Status.SUCCESS, value: 0x00},
-                };
-
-                await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
-            }
-        },
-    } satisfies Fz.Converter,
-    bosch_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const data = msg.data;
-            if (data.hasOwnProperty(0x4040)) {
-                result.remote_temperature = utils.precisionRound(data[0x4040] / 100, 1);
-            }
-            if (data.hasOwnProperty(0x4042)) {
-                result.window_detection = (Object.keys(stateOffOn)[data[0x4042]]);
-            }
-            if (data.hasOwnProperty(0x4043)) {
-                result.boost = (Object.keys(stateOffOn)[data[0x4043]]);
-            }
-            if (data.hasOwnProperty(0x4007)) {
-                const opModes: KeyValue = {0: 'auto', 1: 'manual', 5: 'off'};
-                result.system_mode = opModes[data[0x4007]];
-            }
-            if (data.hasOwnProperty(0x4020)) {
-                const demand = data[0x4020] as number;
-                result.pi_heating_demand = demand;
-                result.running_state = demand > 0 ? 'heat' : 'idle';
-            }
-
-            if (data.hasOwnProperty(0x4022)) {
-                result.valve_adapt_status = utils.getFromLookupByValue(data[0x4022], adaptationStatus);
-
-                if (data[0x4022] === adaptationStatus.calibration_in_progress) {
-                    result.valve_adapt_process = true;
-                } else {
-                    result.valve_adapt_process = false;
-                }
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    bosch_userInterface: {
-        cluster: 'hvacUserInterfaceCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const data = msg.data;
-            if (data.hasOwnProperty(0x400b)) {
-                result.display_orientation = (Object.keys(displayOrientation)[data[0x400b]]);
-            }
-            if (data.hasOwnProperty(0x4039)) {
-                result.displayed_temperature = (Object.keys(displayedTemperature)[data[0x4039]]);
-            }
-            if (data.hasOwnProperty(0x403a)) {
-                result.display_ontime = data[0x403a];
-            }
-            if (data.hasOwnProperty(0x403b)) {
-                result.display_brightness = data[0x403b];
-            }
-            if (data.hasOwnProperty('keypadLockout')) {
-                result.child_lock = (data['keypadLockout'] == 1 ? 'LOCK' : 'UNLOCK');
-            }
             return result;
         },
     } satisfies Fz.Converter,
@@ -1122,126 +988,265 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
         ota: ota.zigbeeOTA,
-        fromZigbee: [
-            fz.thermostat,
-            fz.battery,
-            fzLocal.bosch_ignore_dst,
-            fzLocal.bosch_thermostat,
-            fzLocal.bosch_userInterface,
-        ],
-        toZigbee: [
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_keypad_lockout,
-            tzLocal.bosch_thermostat,
-            tzLocal.bosch_userInterface,
-        ],
         exposes: [
             e.climate()
-                .withLocalTemperature(ea.STATE, 'Temperature used by the heating algorithm. ' +
-                    'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 minutes).')
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature(ea.STATE_GET, 'Temperature used by the heating algorithm. ' +
+                'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).')
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSystemMode(['off', 'heat', 'auto'])
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSystemMode(['heat'])
                 .withPiHeatingDemand(ea.ALL)
-                .withRunningState(['idle', 'heat'], ea.STATE),
-            e.binary('boost', ea.ALL, 'ON', 'OFF')
-                .withDescription('Activate boost heating'),
-            e.binary('window_detection', ea.ALL, 'ON', 'OFF')
-                .withDescription('Window open'),
-            e.enum('display_orientation', ea.ALL, Object.keys(displayOrientation))
-                .withDescription('Display orientation')
-                .withCategory('config'),
-            e.numeric('remote_temperature', ea.ALL)
-                .withValueMin(0)
-                .withValueMax(35)
-                .withValueStep(0.01)
-                .withUnit('°C')
-                .withDescription('Input for remote temperature sensor. ' +
-                    'This must be set at least every 30 minutes to prevent fallback to internal temperature reading!'),
-            e.numeric('display_ontime', ea.ALL)
-                .withValueMin(5)
-                .withValueMax(30)
-                .withDescription('Specifies the display on-time')
-                .withCategory('config'),
-            e.numeric('display_brightness', ea.ALL)
-                .withValueMin(0)
-                .withValueMax(10)
-                .withDescription('Specifies the brightness level of the display')
-                .withCategory('config'),
-            e.enum('displayed_temperature', ea.ALL, Object.keys(displayedTemperature))
-                .withDescription('Temperature displayed on the thermostat')
-                .withCategory('config'),
-            e.child_lock().setAccess('state', ea.ALL),
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.battery(),
-            e.enum('setpoint_change_source', ea.STATE, Object.keys(setpointSource))
-                .withDescription('States where the current setpoint originated'),
-            e.enum('valve_adapt_status', ea.STATE, Object.keys(adaptationStatus))
-                .withLabel('Adaptation status')
-                .withDescription('Specifies the current status of the valve adaptation')
-                .withCategory('diagnostic'),
-            e.binary('valve_adapt_process', ea.ALL, true, false)
-                .withLabel('Trigger adaptation process')
-                .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
-                    'is "ready_to_calibrate" or "error".')
-                .withCategory('config'),
+            e.battery_low(),
+        ],
+        fromZigbee: [
+            fz.battery,
+            fz.thermostat,
+        ],
+        toZigbee: [
+            tz.thermostat_system_mode,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
+            tz.thermostat_keypad_lockout,
+        ],
+        extend: [
+            deviceAddCustomCluster(
+                'hvacThermostat',
+                {
+                    ID: 0x201,
+                    attributes: {
+                        operatingMode: {
+                            ID: 0x4007,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        heatingDemand: {
+                            ID: 0x4020,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        valveAdaptStatus: {
+                            ID: 0x4022,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        remoteTemperature: {
+                            ID: 0x4040,
+                            type: Zcl.DataType.INT16,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        windowDetection: {
+                            ID: 0x4042,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        boostHeating: {
+                            ID: 0x4043,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                    },
+                    commands: {
+                        calibrateValve: {
+                            ID: 0x41,
+                            parameters: [],
+                        },
+                    },
+                    commandsResponse: {},
+                },
+            ),
+            deviceAddCustomCluster(
+                'hvacUserInterfaceCfg',
+                {
+                    ID: 0x204,
+                    attributes: {
+                        displayOrientation: {
+                            ID: 0x400b,
+                            type: Zcl.DataType.UINT8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        displayedTemperature: {
+                            ID: 0x4039,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        displayOntime: {
+                            ID: 0x403a,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        displayBrightness: {
+                            ID: 0x403b,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                },
+            ),
+            enumLookup({
+                name: 'operating_mode',
+                cluster: 'hvacThermostat',
+                attribute: 'operatingMode',
+                description: 'Bosch-specific operating mode (overrides system mode)',
+                lookup: {'schedule': 0, 'manual': 1, 'pause': 5},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            binary({
+                name: 'window_detection',
+                cluster: 'hvacThermostat',
+                attribute: 'windowDetection',
+                description: 'Enable/disable window open (Lo.) mode',
+                valueOn: ['ON', 0x01],
+                valueOff: ['OFF', 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            binary({
+                name: 'boost_heating',
+                cluster: 'hvacThermostat',
+                attribute: 'boostHeating',
+                description: 'Activate boost heating (5 min.)',
+                valueOn: ['ON', 0x01],
+                valueOff: ['OFF', 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            numeric({
+                name: 'remote_temperature',
+                cluster: 'hvacThermostat',
+                attribute: 'remoteTemperature',
+                description: 'Input for remote temperature sensor. ' +
+                    'Required at least every 30 min. to prevent fallback to internal sensor!',
+                valueMin: 0.0,
+                valueMax: 35.0,
+                valueStep: 0.01,
+                unit: '°C',
+                scale: 100,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            enumLookup({
+                name: 'setpoint_change_source',
+                cluster: 'hvacThermostat',
+                attribute: 'setpointChangeSource',
+                description: 'Source of the current setpoint temperature',
+                lookup: {'manual': 0, 'schedule': 1, 'externally': 2},
+                access: 'STATE_GET',
+            }),
+            binary({
+                name: 'child_lock',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: 'keypadLockout',
+                description: 'Enables/disables physical input on the device',
+                valueOn: ['LOCK', 0x01],
+                valueOff: ['UNLOCK', 0x00],
+            }),
+            numeric({
+                name: 'display_ontime',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: 'displayOntime',
+                description: 'Sets the display on-time',
+                valueMin: 5,
+                valueMax: 30,
+                unit: 's',
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            numeric({
+                name: 'display_brightness',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: 'displayBrightness',
+                description: 'Sets brightness of the display',
+                valueMin: 0,
+                valueMax: 10,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            enumLookup({
+                name: 'display_orientation',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: 'displayOrientation',
+                description: 'Sets orientation of the display',
+                lookup: {'normal': 0, 'flipped': 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            enumLookup({
+                name: 'displayed_temperature',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: 'displayedTemperature',
+                description: 'Temperature displayed on the TRV',
+                lookup: {'target': 0, 'measured': 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+            }),
+            enumLookup({
+                name: 'valve_adapt_status',
+                cluster: 'hvacThermostat',
+                attribute: 'valveAdaptStatus',
+                description: 'Specifies the current status of the valve adaptation',
+                lookup: {
+                    'none': 0,
+                    'ready_to_calibrate': 1,
+                    'calibration_in_progress': 2,
+                    'error': 3,
+                    'success': 4,
+                },
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
+                access: 'STATE_GET',
+            }),
+            boschExtend.valveAdaptProcess(),
+            boschExtend.heatingDemand(),
+            boschExtend.ignoreDst(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg']);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR * 12, change: 1});
-            await reporting.thermostatTemperature(endpoint, {min: 30, max: 900, change: 20});
-            await reporting.thermostatKeypadLockMode(endpoint, {min: 0, max: constants.repInterval.HOUR * 12, change: null});
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPollCtrl', 'genPowerCfg', 'msRelativeHumidity', 'hvacThermostat', 'hvacUserInterfaceCfg',
+            ]);
             await reporting.batteryPercentageRemaining(endpoint);
-
-            // Report setpoint_change_source
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {
+                min: constants.repInterval.SECONDS_10,
+                max: constants.repInterval.HOUR,
+                change: 50,
+            });
+            await reporting.thermostatKeypadLockMode(endpoint);
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'setpointChangeSource',
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR * 12,
+                minimumReportInterval: constants.repInterval.SECONDS_10,
+                maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null,
             }]);
-            // report operating_mode (system_mode)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4007, type: Zcl.DataType.ENUM8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR * 12,
+                attribute: 'operatingMode',
+                minimumReportInterval: constants.repInterval.SECONDS_10,
+                maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null,
             }], manufacturerOptions);
-            // report pi_heating_demand (valve opening)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4020, type: Zcl.DataType.ENUM8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR * 12,
+                attribute: 'boostHeating',
+                minimumReportInterval: constants.repInterval.SECONDS_10,
+                maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null,
             }], manufacturerOptions);
-            // Report valve_adapt_status (adaptation status)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4022, type: Zcl.DataType.ENUM8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR * 12,
+                attribute: 'valveAdaptStatus',
+                minimumReportInterval: constants.repInterval.SECONDS_10,
+                maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null,
             }], manufacturerOptions);
-            // report window_detection
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4042, type: Zcl.DataType.ENUM8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR * 12,
+                attribute: 'heatingDemand',
+                minimumReportInterval: constants.repInterval.SECONDS_10,
+                maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null,
             }], manufacturerOptions);
-            // report boost as it's disabled by thermostat after 5 minutes
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4043, type: Zcl.DataType.ENUM8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR * 12,
-                reportableChange: null,
-            }], manufacturerOptions);
-
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration', 'setpointChangeSource']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4022, 0x4040, 0x4042, 0x4043], manufacturerOptions);
-
+            await endpoint.read('hvacThermostat', [
+                'operatingMode', 'heatingDemand', 'valveAdaptStatus', 'remoteTemperature', 'windowDetection', 'boostHeating',
+            ], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
-            await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x4039, 0x403a, 0x403b], manufacturerOptions);
+            await endpoint.read('hvacUserInterfaceCfg', [
+                'displayOrientation', 'displayedTemperature', 'displayOntime', 'displayBrightness',
+            ], manufacturerOptions);
         },
     },
     {
@@ -1255,7 +1260,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
+                .withLocalTemperatureCalibration(-12, 12, 0.1)
                 .withSystemMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool']),
             e.humidity(),
@@ -1291,6 +1296,21 @@ const definitions: Definition[] = [
                             type: Zcl.DataType.ENUM8,
                             manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
+                        heatingDemand: {
+                            ID: 0x4020,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        valveAdaptStatus: {
+                            ID: 0x4022,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        remoteTemperature: {
+                            ID: 0x4040,
+                            type: Zcl.DataType.INT16,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
                         windowDetection: {
                             ID: 0x4042,
                             type: Zcl.DataType.ENUM8,
@@ -1302,7 +1322,12 @@ const definitions: Definition[] = [
                             manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
                     },
-                    commands: {},
+                    commands: {
+                        calibrateValve: {
+                            ID: 0x41,
+                            parameters: [],
+                        },
+                    },
                     commandsResponse: {},
                 },
             ),
@@ -1311,6 +1336,16 @@ const definitions: Definition[] = [
                 {
                     ID: 0x204,
                     attributes: {
+                        displayOrientation: {
+                            ID: 0x400b,
+                            type: Zcl.DataType.UINT8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        displayedTemperature: {
+                            ID: 0x4039,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
                         displayOntime: {
                             ID: 0x403a,
                             type: Zcl.DataType.ENUM8,
@@ -1347,7 +1382,7 @@ const definitions: Definition[] = [
                 name: 'boost_heating',
                 cluster: 'hvacThermostat',
                 attribute: 'boostHeating',
-                description: 'Activate boost heating (5 min.)',
+                description: 'Activate boost heating',
                 valueOn: ['ON', 0x01],
                 valueOff: ['OFF', 0x00],
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
@@ -1429,7 +1464,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
+                .withLocalTemperatureCalibration(-12, 12, 0.1)
                 .withSystemMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool']),
             e.humidity(),
@@ -1461,6 +1496,21 @@ const definitions: Definition[] = [
                             type: Zcl.DataType.ENUM8,
                             manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
+                        heatingDemand: {
+                            ID: 0x4020,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        valveAdaptStatus: {
+                            ID: 0x4022,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        remoteTemperature: {
+                            ID: 0x4040,
+                            type: Zcl.DataType.INT16,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
                         windowDetection: {
                             ID: 0x4042,
                             type: Zcl.DataType.ENUM8,
@@ -1472,7 +1522,12 @@ const definitions: Definition[] = [
                             manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
                     },
-                    commands: {},
+                    commands: {
+                        calibrateValve: {
+                            ID: 0x41,
+                            parameters: [],
+                        },
+                    },
                     commandsResponse: {},
                 },
             ),
@@ -1481,6 +1536,16 @@ const definitions: Definition[] = [
                 {
                     ID: 0x204,
                     attributes: {
+                        displayOrientation: {
+                            ID: 0x400b,
+                            type: Zcl.DataType.UINT8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
+                        displayedTemperature: {
+                            ID: 0x4039,
+                            type: Zcl.DataType.ENUM8,
+                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                        },
                         displayOntime: {
                             ID: 0x403a,
                             type: Zcl.DataType.ENUM8,
@@ -1517,7 +1582,7 @@ const definitions: Definition[] = [
                 name: 'boost_heating',
                 cluster: 'hvacThermostat',
                 attribute: 'boostHeating',
-                description: 'Activate boost heating (5 min.)',
+                description: 'Activate boost heating',
                 valueOn: ['ON', 0x01],
                 valueOff: ['OFF', 0x00],
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH},
