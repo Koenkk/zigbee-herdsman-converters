@@ -990,7 +990,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         exposes: [
             e.climate()
-                .withLocalTemperature(ea.STATE, 'Temperature used by the heating algorithm. ' +
+                .withLocalTemperature(ea.STATE_GET, 'Temperature used by the heating algorithm. ' +
                 'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).')
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
@@ -1008,6 +1008,7 @@ const definitions: Definition[] = [
             tz.thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
             tz.thermostat_keypad_lockout,
         ],
         extend: [
@@ -1242,7 +1243,6 @@ const definitions: Definition[] = [
             await endpoint.read('hvacThermostat', [
                 'operatingMode', 'heatingDemand', 'valveAdaptStatus', 'remoteTemperature', 'windowDetection', 'boostHeating',
             ], manufacturerOptions);
-
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', [
                 'displayOrientation', 'displayedTemperature', 'displayOntime', 'displayBrightness',
@@ -1260,7 +1260,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
+                .withLocalTemperatureCalibration(-12, 12, 0.1)
                 .withSystemMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool']),
             e.humidity(),
@@ -1464,7 +1464,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
+                .withLocalTemperatureCalibration(-12, 12, 0.1)
                 .withSystemMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool']),
             e.humidity(),
