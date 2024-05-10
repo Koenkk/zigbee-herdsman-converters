@@ -1071,10 +1071,10 @@ const definitions: Definition[] = [
             // Required to get the device to start reporting (-- Maybe needed? Copied this from another humidity sensor configuration)
             await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
         },
-        toZigbee: [],
+        toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
         exposes: (device, options) => {
-            const exps = [e.temperature(), e.humidity(), e.battery()]; // maybe this also supported? tuya.exposes.temperatureUnit()
+            const exps = [e.temperature(), e.humidity(), e.battery(), tuya.exposes.temperatureUnit()];
             exps.push(e.linkquality());
             return exps;
         },
@@ -1083,8 +1083,8 @@ const definitions: Definition[] = [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
                 [2, 'humidity', tuya.valueConverter.raw],
                 [4, 'battery', tuya.valueConverter.raw], // maybe?
-                // [9, 'temperature_unit', tuya.valueConverter.temperatureUnitEnum], // maybe?
-                // [19, 'temperature_sensitivity', tuya.valueConverter.raw], // maybe? commented this out for now
+                [9, 'temperature_unit', tuya.valueConverter.temperatureUnitEnum],
+                [19, 'temperature_sensitivity', tuya.valueConverter.raw], // maybe? commented this out for now
             ],
         },
     },
