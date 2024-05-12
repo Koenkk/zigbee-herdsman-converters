@@ -1,5 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
-import {BuffaloZclDataType} from 'zigbee-herdsman/dist/zcl/definition/enums';
+import {BuffaloZclDataType} from 'zigbee-herdsman/dist/zspec/zcl/definition/enums';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
