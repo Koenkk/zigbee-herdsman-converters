@@ -1,5 +1,23 @@
 # Changelog
 
+## [19.38.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.37.2...v19.38.0) (2024-05-12)
+
+
+### Features
+
+* **add:** HO-C401N-z ([#7507](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7507)) ([c385d3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c385d3fa7766ac5ab33bcc7124a1691663b6b8b6))
+* **add:** TS0601_temperature_humidity_sensor_3 ([#7505](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7505)) ([83f8551](https://github.com/Koenkk/zigbee-herdsman-converters/commit/83f8551869113d215858d0cf03d5781a1688df1a))
+* **add:** ZBMINIR2 ([#7506](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7506)) ([03b3caa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/03b3caa24632053d50ea5564600160ec03f69e87))
+
+
+### Bug Fixes
+
+* Convert Bosch BTH-RA to `modernExtend` ([#7498](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7498)) ([bb2bdee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bb2bdeedcb9473d60a55a9a28859091f8eb6e315))
+* Fix electrical measurements not working for  `_TZ3000_cehuw1lw` with swBuilId `1.0.5` ([#7482](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7482)) ([4182889](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4182889448e29e1bcf8e4aae961fe5dea0fa0543))
+* Fix IKEA E2103 battery % multiplied by 2 https://github.com/Koenkk/zigbee2mqtt/issues/22528 ([5032c2a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5032c2a6bae52fb8cacb36b6135b551ecacd3146))
+* **ignore:** Update dependencies ([#7508](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7508)) ([b53ba20](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b53ba20f6b21ba12efc7d2f5210eeb7153b0f8a3))
+* **ignore:** Zigbee spec revamp ([#7488](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7488)) ([162f3cd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/162f3cdb26d9235d337b748c98d18627680bd01a))
+
 ## [19.37.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.37.1...v19.37.2) (2024-05-09)
 
 
