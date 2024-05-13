@@ -134,8 +134,10 @@ const definitions: Definition[] = [
         model: 'IHC8223AL',
         vendor: 'Honyar',
         description: 'Smart Power Socket 10A (with power monitoring)',
-        fromZigbee: [fz.on_off, fz.honyer_electrical_measurement, fz.honyer_metering],
-        toZigbee: [tz.on_off],
+        extend: [
+            onOff({powerOnBehavior: false}),
+            electricityMeter({cluster: 'honyar'}),
+        ],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
             const Endpoint = device.getEndpoint(1);
@@ -158,7 +160,6 @@ const definitions: Definition[] = [
                 globalStore.putValue(device, 'interval', interval);
             }
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
     },
 ];
 
