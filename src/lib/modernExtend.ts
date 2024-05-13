@@ -1456,7 +1456,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.currentsummdelivered];
         delete configureLookup.seMetering.power;
     }
-    
+
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
 
     if (args.configureReporting) {
