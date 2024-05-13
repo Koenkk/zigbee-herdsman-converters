@@ -1,6 +1,7 @@
 import {
     identify, light, onOff, quirkCheckinInterval,
     deviceAddCustomCluster, binary, numeric, enumLookup,
+    ota, battery, humidity,
 } from '../lib/modernExtend';
 import {Zcl, ZSpec} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
@@ -228,7 +229,7 @@ const boschExtend = {
         name: 'operating_mode',
         cluster: 'hvacThermostat',
         attribute: 'operatingMode',
-        reporting: {min: 'SECONDS_10', max: 'MAX', change: null},
+        reporting: {min: '10_SECONDS', max: 'MAX', change: null},
         description: 'Bosch-specific operating mode (overrides system mode)',
         lookup: {'schedule': 0, 'manual': 1, 'pause': 5},
         zigbeeCommandOptions: manufacturerOptions,
@@ -246,7 +247,7 @@ const boschExtend = {
         name: 'boost_heating',
         cluster: 'hvacThermostat',
         attribute: 'boostHeating',
-        reporting: {min: 'SECONDS_10', max: 'MAX', change: null},
+        reporting: {min: '10_SECONDS', max: 'MAX', change: null},
         description: 'Activate boost heating (5 min. on TRV)',
         valueOn: ['ON', 0x01],
         valueOff: ['OFF', 0x00],
@@ -1163,7 +1164,7 @@ const definitions: Definition[] = [
                 name: 'setpoint_change_source',
                 cluster: 'hvacThermostat',
                 attribute: 'setpointChangeSource',
-                reporting: {min: 'SECONDS_10', max: 'MAX', change: null},
+                reporting: {min: '10_SECONDS', max: 'MAX', change: null},
                 description: 'Source of the current setpoint temperature',
                 lookup: {'manual': 0, 'schedule': 1, 'externally': 2},
                 access: 'STATE_GET',
@@ -1176,7 +1177,7 @@ const definitions: Definition[] = [
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayOrientation',
                 description: 'Sets orientation of the display',
-                reporting: {min: 'SECONDS_10', max: 'MAX', change: 1},
+                reporting: {min: '10_SECONDS', max: 'MAX', change: 1},
                 lookup: {'normal': 0, 'flipped': 1},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
@@ -1184,7 +1185,7 @@ const definitions: Definition[] = [
                 name: 'displayed_temperature',
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayedTemperature',
-                reporting: {min: 'SECONDS_10', max: 'MAX', change: null},
+                reporting: {min: '10_SECONDS', max: 'MAX', change: null},
                 description: 'Temperature displayed on the TRV',
                 lookup: {'target': 0, 'measured': 1},
                 zigbeeCommandOptions: manufacturerOptions,
@@ -1193,7 +1194,7 @@ const definitions: Definition[] = [
                 name: 'valve_adapt_status',
                 cluster: 'hvacThermostat',
                 attribute: 'valveAdaptStatus',
-                reporting: {min: 'SECONDS_10', max: 'MAX', change: null},
+                reporting: {min: '10_SECONDS', max: 'MAX', change: null},
                 description: 'Specifies the current status of the valve adaptation',
                 lookup: {
                     'none': 0,
