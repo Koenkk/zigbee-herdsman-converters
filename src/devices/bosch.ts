@@ -1,7 +1,7 @@
 import {
     identify, light, onOff, quirkCheckinInterval,
     deviceAddCustomCluster, binary, numeric, enumLookup,
-    ota, battery, humidity,
+    battery, humidity,
 } from '../lib/modernExtend';
 import {Zcl, ZSpec} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
@@ -247,7 +247,7 @@ const boschExtend = {
         name: 'boost_heating',
         cluster: 'hvacThermostat',
         attribute: 'boostHeating',
-        reporting: {min: '10_SECONDS', max: 'MAX', change: null},
+        reporting: {min: '10_SECONDS', max: 'MAX', change: null, attribute: 'boostHeating'},
         description: 'Activate boost heating (5 min. on TRV)',
         valueOn: ['ON', 0x01],
         valueOff: ['OFF', 0x00],
@@ -1116,6 +1116,7 @@ const definitions: Definition[] = [
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
+        ota: ota.zigbeeOTA,
         exposes: [
             e.climate()
                 .withLocalTemperature(ea.STATE_GET, 'Temperature used by the heating algorithm. ' +
@@ -1139,7 +1140,6 @@ const definitions: Definition[] = [
         extend: [
             boschExtend.hvacThermostatCluster(),
             boschExtend.hvacUserInterfaceCfgCluster(),
-            ota(),
             battery({
                 percentage: true,
                 lowStatus: true,
