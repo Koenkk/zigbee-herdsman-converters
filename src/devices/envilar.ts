@@ -2,7 +2,7 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 const e = exposes.presets;
 import fz from '../converters/fromZigbee';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff, electricityMeter, identify} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
