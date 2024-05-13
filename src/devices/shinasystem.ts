@@ -293,7 +293,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
+            const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
             await reporting.occupancy(endpoint, {min: 1, max: 600, change: 1});

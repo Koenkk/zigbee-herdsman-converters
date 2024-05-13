@@ -2,7 +2,7 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 const e = exposes.presets;
 import fz from '../converters/fromZigbee';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff, identify, electricityMeter} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -53,6 +53,13 @@ const definitions: Definition[] = [
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
             onOff({endpointNames: ['l1', 'l2']}),
         ],
+    },
+    {
+        zigbeeModel: ['7853'],
+        model: '1CH-HP-RELAY-7853',
+        vendor: 'Envilar',
+        description: '1 channel high power box relay',
+        extend: [onOff({powerOnBehavior: true}), identify(), electricityMeter()],
     },
 ];
 
