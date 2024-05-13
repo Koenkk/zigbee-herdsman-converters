@@ -60,7 +60,7 @@ const definitions: Definition[] = [
         vendor: 'Envilar',
         description: '1 channel 16A relay',
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9101SAC-HP-SWITCH-B'}],
-		extend: [identify(), onOff({powerOnBehavior: ['off', 'on', 'previous']}), electricityMeter()],
+		extend: [identify(), onOff(), electricityMeter()],
     },
 ];
 
