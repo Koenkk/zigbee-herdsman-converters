@@ -54,6 +54,14 @@ const definitions: Definition[] = [
             onOff({endpointNames: ['l1', 'l2']}),
         ],
     },
+	{
+        zigbeeModel: ['7853'],
+        model: 'Envilar-7853',
+        vendor: 'Envilar',
+        description: '1 channel 16A relay',
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9101SAC-HP-SWITCH-B'}],
+		extend: [identify(), onOff({"powerOnBehavior":['off', 'on', 'previous']}), electricityMeter()],
+    },
 ];
 
 export default definitions;
