@@ -38,11 +38,11 @@ const definitions: Definition[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff],
-                [101, 'restart_mode', tuya.valueConverterBasic.lookup({ 'restart': tuya.enum(0), 'force restart': tuya.enum(1), '–': tuya.enum(2) })],
-                [102, 'rf_remote_control', tuya.valueConverterBasic.lookup({ 'ON': tuya.enum(0), 'OFF': tuya.enum(1) })],
+                [101, 'restart_mode', tuya.valueConverterBasic.lookup({'restart': tuya.enum(0), 'force restart': tuya.enum(1), '–': tuya.enum(2)})],
+                [102, 'rf_remote_control', tuya.valueConverterBasic.lookup({'ON': tuya.enum(0), 'OFF': tuya.enum(1)})],
                 [103, 'rf_pairing', tuya.valueConverter.onOff],
                 [104, 'buzzer_feedback', tuya.valueConverter.onOff],
-                [105, 'power_on_behavior', tuya.valueConverterBasic.lookup({ 'off': tuya.enum(0), 'on': tuya.enum(1) })],
+                [105, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1)})],
                 [106, 'child_lock', tuya.valueConverter.lockUnlock],
             ],
         },
