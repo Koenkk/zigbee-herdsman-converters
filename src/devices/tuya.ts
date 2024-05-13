@@ -1061,6 +1061,30 @@ const definitions: Definition[] = [
         ],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_s1xgth2u'}],
+        model: 'TS0601_temperature_humidity_sensor_3',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            // Required to get the device to start reporting (-- Maybe needed? Copied this from another humidity sensor configuration)
+            await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
+        },
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetLocalTime,
+        exposes: [e.temperature(), e.humidity(), e.battery(), tuya.exposes.temperatureUnit()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [2, 'humidity', tuya.valueConverter.raw],
+                [4, 'battery', tuya.valueConverter.raw], // maybe?
+                [9, 'temperature_unit', tuya.valueConverter.temperatureUnitEnum],
+                [19, 'temperature_sensitivity', tuya.valueConverter.raw], // maybe? commented this out for now
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vvmbj46n']),
         model: 'ZTH05Z',
         vendor: 'TuYa',
@@ -4279,9 +4303,15 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [160, 100, 69, 68, 65, 64].map((applicationVersion) => {
-            return {modelID: 'TS011F', applicationVersion, priority: -1};
-        }),
+        fingerprint: [
+            {modelID: 'TS011F', applicationVersion: 160, priority: -1},
+            {modelID: 'TS011F', applicationVersion: 100, priority: -1},
+            {modelID: 'TS011F', applicationVersion: 69, priority: -1},
+            {modelID: 'TS011F', applicationVersion: 68, priority: -1},
+            {modelID: 'TS011F', applicationVersion: 65, priority: -1},
+            {modelID: 'TS011F', applicationVersion: 64, priority: -1},
+            {modelID: 'TS011F', softwareBuildID: '1.0.5\u0000', priority: -1},
+        ],
         model: 'TS011F_plug_3',
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
@@ -4303,7 +4333,7 @@ const definitions: Definition[] = [
         onEvent: (type, data, device, options) =>
             tuya.onEventMeasurementPoll(type, data, device, options,
                 true, // polling for voltage, current and power
-                [100, 160].includes(device.applicationVersion), // polling for energy
+                [100, 160].includes(device.applicationVersion) || ['1.0.5\u0000'].includes(device.softwareBuildID), // polling for energy
             ),
     },
     {
@@ -4847,7 +4877,7 @@ const definitions: Definition[] = [
         model: 'TS0013',
         vendor: 'TuYa',
         description: 'Smart light switch - 3 gang without neutral wire',
-        extend: [tuya.modernExtend.tuyaOnOff({backlightModeLowMediumHigh: true, endpoints: ['left', 'center', 'right']})],
+        extend: [tuya.modernExtend.tuyaOnOff({backlightModeOffNormalInverted: true, endpoints: ['left', 'center', 'right']})],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -6608,7 +6638,7 @@ const definitions: Definition[] = [
             device.save();
         },
         whiteLabel: [
-            tuya.whitelabel('TONGOU', 'TO-Q-SY2-163JZT', 'Smart circuit breaker', ['_TZ3000_cayepv1a']),
+            tuya.whitelabel('Tongou', 'TO-Q-SY2-163JZT', 'Smart circuit breaker', ['_TZ3000_cayepv1a']),
             tuya.whitelabel('EARU', 'EAKCB-T-M-Z', 'Smart circuit breaker', ['_TZ3000_lepzuhto']),
             tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart Circuit Breaker', ['_TZ3000_qystbcjg']),
         ],

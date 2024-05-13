@@ -5,10 +5,8 @@ import type {
     Endpoint as ZHEndpoint,
     Group as ZHGroup,
 } from 'zigbee-herdsman/dist/controller/model';
-import type {
-    FrameControl,
-    ZclHeader as ZHZclHeader,
-} from 'zigbee-herdsman/dist/zcl';
+import type {FrameControl} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
+import type {Header as ZHZclHeader} from 'zigbee-herdsman/dist/zspec/zcl';
 
 import * as exposes from './exposes';
 

@@ -1917,6 +1917,12 @@ const definitions: Definition[] = [
             await endpoint.read('manuSpecificLumi', [0x040a], {manufacturerCode: manufacturerCode});
         },
         extend: [
+            quirkAddEndpointCluster({
+                endpointID: 1,
+                inputClusters: [
+                    'manuSpecificLumi',
+                ],
+            }),
             lumiZigbeeOTA(),
             lumiMotorSpeed(),
         ],

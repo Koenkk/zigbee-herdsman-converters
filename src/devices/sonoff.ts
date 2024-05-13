@@ -1,4 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
+import {BuffaloZclDataType} from 'zigbee-herdsman/dist/zspec/zcl/definition/enums';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -33,7 +34,26 @@ const fzLocal = {
 
 const sonoffPrivateCluster = 0xFC11;
 const sonoffExtend = {
+    addCustomClusterEwelink: () => deviceAddCustomCluster(
+        'customClusterEwelink',
+        {
+            ID: 0xfc11,
+            attributes: {
+                radioPower: {ID: 0x0012, type: Zcl.DataType.INT16},
+                delayedPowerOnState: {ID: 0x0014, type: Zcl.DataType.BOOLEAN},
+                delayedPowerOnTime: {ID: 0x0015, type: Zcl.DataType.UINT16},
+                externalTriggerMode: {ID: 0x0016, type: Zcl.DataType.UINT8},
+                detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
+            },
+            commands: {
+                protocolData: {ID: 0x01, parameters: [{name: 'data', type: BuffaloZclDataType.LIST_UINT8}]},
+            },
+            commandsResponse: {},
+        },
+    ),
     inchingControlSet: (): ModernExtend => {
+        const clusterName = 'customClusterEwelink';
+        const commandName = 'protocolData';
         const exposes = e.composite('inching_control_set', 'inching_control_set', ea.SET)
             .withDescription('Device Inching function Settings. The device will automatically turn off (turn on) '+
             'after each turn on (turn off) for a specified period of time.')
@@ -83,7 +103,12 @@ const sonoffExtend = {
                     payloadValue[10] ^= payloadValue[i];
                 }
 
-                await entity.command(sonoffPrivateCluster, 0x01, {data: payloadValue}, {manufacturerCode: 0x1286});
+                await entity.command(
+                    clusterName,
+                    commandName,
+                    {data: payloadValue},
+                    {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
+                );
                 return {state: {[key]: value}};
             },
         }];
@@ -377,6 +402,53 @@ const sonoffExtend = {
             },
         }];
 
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    externalTriggerMode: (): ModernExtend => {
+        const clusterName = 'customClusterEwelink';
+        const attributeName = 'externalTriggerMode';
+        const exposes = e.enum('external_trigger_mode', ea.ALL, ['edge', 'pulse',
+            'following(off)', 'following(on)']).withDescription('External trigger mode, which can be one of edge, pulse, ' +
+            'following(off), following(on). The appropriate triggering mode can be selected according to the type of ' +
+            'external switch to achieve a better use experience.');
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'manuSpecificeWeLink',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const lookup:KeyValue = {'edge': 0, 'pulse': 1, 'following(off)': 2, 'following(on)': 130};
+                logger.debug(`from zigbee msg.data['externalSwitchTriggerType'] ${msg.data['externalSwitchTriggerType']}`, NS);
+                if (msg.data.hasOwnProperty('externalSwitchTriggerType')) {
+                    let switchType = 'edge';
+                    for (const name in lookup) {
+                        if (lookup[name] === msg.data['externalSwitchTriggerType']) {
+                            switchType = name;
+                            break;
+                        }
+                    }
+                    logger.debug(`form zigbee switchType ${switchType}`, NS);
+                    return {['external_trigger_mode']: switchType};
+                }
+            },
+        }];
+        const toZigbee: Tz.Converter[] = [{
+            key: ['external_trigger_mode'],
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertString(value, key);
+                value = value.toLowerCase();
+                const lookup = {'edge': 0, 'pulse': 1, 'following(off)': 2, 'following(on)': 130};
+                const tmpValue = utils.getFromLookup(value, lookup);
+                await entity.write(clusterName, {[attributeName]: {value: tmpValue, type: Zcl.DataType.UINT8}});
+                return {state: {[key]: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read(clusterName, [attributeName]);
+            },
+        }];
         return {
             exposes: [exposes],
             fromZigbee,
@@ -993,19 +1065,73 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee USB repeater plug',
         extend: [
+            ota(),
             onOff(),
+            sonoffExtend.addCustomClusterEwelink(),
             binary({
                 name: 'rf_turbo_mode',
-                cluster: 0xFC11,
-                attribute: {ID: 0x0012, type: 0x29},
-                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                cluster: 'customClusterEwelink',
+                attribute: 'radioPower',
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 description: 'Enable/disable Radio power turbo mode',
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
             }),
             sonoffExtend.inchingControlSet(),
-            ota(),
         ],
+    },
+    {
+        zigbeeModel: ['ZBMINIR2'],
+        model: 'ZBMINIR2',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart switch',
+        exposes: [],
+        extend: [
+            ota(),
+            onOff(),
+            sonoffExtend.addCustomClusterEwelink(),
+            binary({
+                name: 'turbo_mode',
+                cluster: 'customClusterEwelink',
+                attribute: 'radioPower',
+                description: 'Enable/disable Radio power turbo mode',
+                valueOff: [false, 0x09],
+                valueOn: [true, 0x14],
+            }),
+            binary({
+                name: 'delayed_power_on_state',
+                cluster: 'customClusterEwelink',
+                attribute: 'delayedPowerOnState',
+                description: 'Delayed Power-on State',
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            numeric({
+                name: 'delayed_power_on_time',
+                cluster: 'customClusterEwelink',
+                attribute: 'delayedPowerOnTime',
+                description: 'Delayed Power-on time',
+                valueMin: 0.5,
+                valueMax: 3599.5,
+                valueStep: 0.5,
+                unit: 'seconds',
+                scale: 2,
+            }),
+            binary({
+                name: 'detach_relay_mode',
+                cluster: 'customClusterEwelink',
+                attribute: 'detachRelayMode',
+                description: 'Enable/Disable detach relay mode',
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            sonoffExtend.externalTriggerMode(),
+            sonoffExtend.inchingControlSet(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('customClusterEwelink', [0x0012, 0x0014, 0x0015, 0x0016, 0x0017]);
+        },
     },
 ];
 
