@@ -62,7 +62,7 @@ const definitions: Definition[] = [
         extend: [
             onOff({powerOnBehavior: true}),
             identify(),
-            electricityMeter()
+            electricityMeter(),
         ],
     },	
 ];
