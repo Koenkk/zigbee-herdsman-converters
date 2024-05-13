@@ -23,9 +23,9 @@ const definitions: Definition[] = [
             e.numeric('valve_state', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(5).withUnit('%')
                 .withDescription('Set valve to %.'),
             e.numeric('valve_state_auto_shutdown', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(5).withUnit('%')
-                .withDescription('Set valve to % with auto shutdown. Must be set before setting auto shutdown in seconds'),
+                .withDescription('Set valve to % with auto shutdown. Must be set before setting the shutdown timer.'),
             e.numeric('shutdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(14400).withUnit('sec')
-                .withDescription('Auto shutdown in seconds. Must be set after setting valve % with auto shutdown.'),
+                .withDescription('Auto shutdown in seconds. Must be set after setting valve state auto shutdown.'),
             e.battery(),
         ],
     },
