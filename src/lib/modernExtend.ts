@@ -1451,7 +1451,9 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         exposes = [
             e.power().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET),
             e.current().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
+        ];
         fromZigbee = [fz.honyer_electrical_measurement, fz.honyer_metering];
+        toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.currentsummdelivered];
         delete configureLookup.seMetering.power.honyer;
     }
     
