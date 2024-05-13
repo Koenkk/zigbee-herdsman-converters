@@ -60,7 +60,7 @@ const definitions: Definition[] = [
         vendor: 'Envilar',
         description: '1CH High Power Box Relay',
         extend: [
-            onOff({powerOnBehavior: ['off', 'on', 'previous']}),
+            onOff({powerOnBehavior: true}),
             identify(),
             electricityMeter()
         ],
