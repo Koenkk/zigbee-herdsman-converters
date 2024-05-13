@@ -58,12 +58,8 @@ const definitions: Definition[] = [
         zigbeeModel: ['7853'],
         model: '1CH-HP-RELAY-7853',
         vendor: 'Envilar',
-        description: '1CH High Power Box Relay',
-        extend: [
-            onOff({powerOnBehavior: true}),
-            identify(),
-            electricityMeter(),
-        ],
+        description: '1 channel high power box relay',
+        extend: [onOff({powerOnBehavior: true}), identify(), electricityMeter()],
     },
 ];
 
