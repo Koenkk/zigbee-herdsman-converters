@@ -21,11 +21,11 @@ const definitions: Definition[] = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
             e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Motor direction').withCategory('config'),
             e.enum('motor_working_mode', ea.STATE_SET, ['continuous', 'intermittently']).withDescription('Motor operating mode')
-                  .withCategory('config'),
+                .withCategory('config'),
             e.enum('remote_pair', ea.STATE_SET, ['on', 'off']).withDescription('Remote control pairing mode').withCategory('config'),
             e.enum('upper_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set / Reset the upper stroke limit').withCategory('config'),
             e.enum('middle_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set / Reset the middle stroke limit')
-                  .withCategory('config'),
+                .withCategory('config'),
             e.enum('lower_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set / Reset the lower stroke limit').withCategory('config'),
         ],
         meta: {
