@@ -1184,7 +1184,6 @@ const definitions: Definition[] = [
                 name: 'displayed_temperature',
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayedTemperature',
-                reporting: {min: '10_SECONDS', max: 'MAX', change: null},
                 description: 'Temperature displayed on the TRV',
                 lookup: {'target': 0, 'measured': 1},
                 zigbeeCommandOptions: manufacturerOptions,
