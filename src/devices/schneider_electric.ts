@@ -244,7 +244,6 @@ function wiserCurtain(endpointNames: string[]) {
                     await entity.write('genLevelCtrl', {onOffTransitionTime: +value * 10}, utils.getOptions(meta.mapped, entity));
                 },
             },
-            ...visaConfigIndicatorLuminanceLevel().toZigbee,
             tz.cover_via_brightness,
         ],
         exposes: [
