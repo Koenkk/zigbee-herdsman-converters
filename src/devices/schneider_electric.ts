@@ -1555,7 +1555,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['E8332SCN300ZB'],
-        model: 'E8332SCN300ZB',
+        model: 'E8332SCN300ZB_WE',
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 2G Curtain Switch',
         extend: [
@@ -1573,24 +1573,6 @@ const definitions: Definition[] = [
             visaConfigCurtainStatus(undefined, 1),
             visaConfigCurtainStatus(undefined, 2),
         ],
-    },
-    {
-        zigbeeModel: ['E8334RWMZB'],
-        model: 'E8334RWMZB_WE',
-        vendor: 'Schneider Electric',
-        description: 'Wiser AvatarOn 4K Freelocate',
-        extend: [
-            battery(),
-            commandsOnOff(),
-            deviceAddCustomCluster(
-                'visaConfiguration',
-                getVisaConfigurationCluster(Zcl.DataType.UINT8),
-            ),
-            visaConfigIndicatorLuminanceLevel(),
-            visaConfigIndicatorColor(),
-            visaIndicatorMode([0, 1, 2, 3]),
-        ],
-        meta: {},
     },
 ];
 
