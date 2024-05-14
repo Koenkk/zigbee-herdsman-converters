@@ -22,7 +22,8 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     thirdreality_private_motion_sensor: {
-        cluster: 'manuSpecificUbisysDeviceSetup',
+        cluster: 'manuSpecificAssaDoorLock',
+        // This cluster ID is 0xFC00. Temporarily modify like this
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data[2];
