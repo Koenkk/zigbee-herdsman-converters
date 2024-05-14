@@ -1177,7 +1177,6 @@ const definitions: Definition[] = [
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayOrientation',
                 description: 'Sets orientation of the display',
-                reporting: {min: '10_SECONDS', max: 'MAX', change: 1},
                 lookup: {'normal': 0, 'flipped': 1},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
