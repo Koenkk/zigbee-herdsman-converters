@@ -606,25 +606,6 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    bwa1_alarm_on_motion: {
-        key: ['alarm_on_motion'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'alarm_on_motion') {
-                const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('manuSpecificBosch11', {alarmOnMotion: index}, manufacturerOptions);
-                return {state: {alarm_on_motion: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            switch (key) {
-            case 'alarm_on_motion':
-                await entity.read('manuSpecificBosch11', ['alarmOnMotion'], manufacturerOptions);
-                break;
-            default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bwa1_alarm_on_motion.convertGet ${key}`);
-            }
-        },
-    } satisfies Tz.Converter,
     bosch_twinguard: {
         key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
         convertSet: async (entity, key, value, meta) => {
@@ -771,17 +752,6 @@ const fzLocal = {
             }
             if (data.hasOwnProperty('motorState')) {
                 result.motor_state = Object.keys(stateMotor).find((key) => stateMotor[key] === msg.data['motorState']);
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    bwa1_alarm_on_motion: {
-        cluster: 'manuSpecificBosch11',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('alarmOnMotion')) {
-                result.alarm_on_motion = (Object.keys(stateOffOn)[msg.data['alarmOnMotion']]);
             }
             return result;
         },
@@ -1018,31 +988,54 @@ const definitions: Definition[] = [
         zigbeeModel: ['RBSH-WS-ZB-EU'],
         model: 'BWA-1',
         vendor: 'Bosch',
-        description: 'Zigbee smart water leak detector',
-        fromZigbee: [
-            fz.battery,
-            fz.ias_water_leak_alarm_1,
-            fzLocal.bwa1_alarm_on_motion,
-        ],
-        toZigbee: [
-            tzLocal.bwa1_alarm_on_motion,
+        description: 'Smart water alarm',
+        exposes: [],
+        fromZigbee: [],
+        toZigbee: [],
+        extend: [
+            deviceAddCustomCluster(
+                'boschSpecific',
+                {
+                    ID: 0xfcac,
+                    manufacturerCode: ManufacturerCode.ROBERT_BOSCH_GMBH,
+                    attributes: {
+                        alarmOnMotion: {
+                            ID: 0x0003,
+                            type: Zcl.DataType.BOOLEAN,
+                        },
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                },
+            ),
+            battery({
+                percentage: true,
+                lowStatus: true,
+            }),
+            iasZoneAlarm({
+                zoneType: 'water_leak',
+                iasZoneAttribute: 'tamper',
+            }),
+            binary({
+                name: 'alarm_on_motion',
+                cluster: 'boschSpecific',
+                attribute: 'alarmOnMotion',
+                description: 'Toggle audible alarm on motion',
+                valueOn: ['ON', 0x01],
+                valueOff: ['OFF', 0x00],
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: 'config',
+            }),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'genPollCtrl',
-            ]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.read('manuSpecificBosch11', ['alarmOnMotion'], manufacturerOptions);
+            await endpoint.read('ssIasZone', ['zoneStatus']);
+            await endpoint.read('boschSpecific', ['alarmOnMotion'], manufacturerOptions);
         },
-        exposes: [
-            e.water_leak(),
-            e.tamper(),
-            e.battery(),
-            e.battery_low(),
-            e.binary('alarm_on_motion', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable sound alarm on motion'),
-        ],
     },
     {
         zigbeeModel: ['RBSH-SD-ZB-EU'],
