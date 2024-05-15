@@ -1014,7 +1014,7 @@ const definitions: Definition[] = [
             }),
             iasZoneAlarm({
                 zoneType: 'water_leak',
-                zoneAttributes: 'tamper',
+                zoneAttributes: ['tamper'],
             }),
             binary({
                 name: 'alarm_on_motion',
