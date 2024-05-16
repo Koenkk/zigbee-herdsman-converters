@@ -997,11 +997,11 @@ const definitions: Definition[] = [
                 'boschSpecific',
                 {
                     ID: 0xfcac,
+                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                     attributes: {
                         alarmOnMotion: {
                             ID: 0x0003,
                             type: Zcl.DataType.BOOLEAN,
-                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
                     },
                     commands: {},
