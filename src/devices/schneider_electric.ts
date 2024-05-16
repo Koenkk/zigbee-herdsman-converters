@@ -1524,7 +1524,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['E8331DST300ZB'],
-        model: 'E8331DST300ZB_WG',
+        model: 'E8331DST300ZB',
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 2G Dimmer Switch',
         fromZigbee: [
@@ -1557,7 +1557,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['E8331SRY800ZB'],
-        model: 'E8331SRY800ZB_WE',
+        model: 'E8331SRY800ZB',
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 1G Switch',
         exposes: [],
@@ -1574,7 +1574,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['A3N32SR800ZB_xx_C1'],
-        model: 'E8332SRY800ZB_WG',
+        model: 'E8332SRY800ZB',
         vendor: 'Schneider Electric',
         description: '2G Smart Switch',
         exposes: [],
@@ -1590,7 +1590,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['E8332SCN300ZB'],
-        model: 'E8332SCN300ZB_WE',
+        model: 'E8332SCN300ZB',
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 2G Curtain Switch',
         extend: [
