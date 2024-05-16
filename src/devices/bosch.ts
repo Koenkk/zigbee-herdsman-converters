@@ -396,6 +396,30 @@ const boschExtend = {
             isModernExtend: true,
         };
     },
+    contactSensor: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'ssIasZone',
+            type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (data.hasOwnProperty('zoneStatus') || data.hasOwnProperty('zonestatus')) {
+                    const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+                    const lookup: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
+                    const result = {
+                        contact: !((zoneStatus & 1) > 0),
+                        vibration: (zoneStatus & 1<<1) > 0,
+                        battery_low: (zoneStatus & 1<<3) > 0,
+                        action: lookup[(zoneStatus >> 11) & 3],
+                    };
+                    if (result.action === 'none') delete result.action;
+                    return result;
+                }
+            },
+        }];
+        return {
+            fromZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 const tzLocal = {
     broadcast_alarm: {
@@ -753,22 +777,6 @@ const fzLocal = {
             if (data.hasOwnProperty('motorState')) {
                 result.motor_state = Object.keys(stateMotor).find((key) => stateMotor[key] === msg.data['motorState']);
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    bosch_contact: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            const lookup: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
-            const result = {
-                contact: !((zoneStatus & 1) > 0),
-                vibration: (zoneStatus & 1<<1) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-                action: lookup[(zoneStatus >> 11) & 3],
-            };
-            if (result.action === 'none') delete result.action;
             return result;
         },
     } satisfies Fz.Converter,
@@ -1464,51 +1472,55 @@ const definitions: Definition[] = [
         model: 'BSEN-C2',
         vendor: 'Bosch',
         description: 'Door/window contact II',
-        fromZigbee: [
-            fz.battery,
-            fzLocal.bosch_contact,
-        ],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'genPollCtrl',
-            ]);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
         exposes: [
-            e.battery(),
-            e.battery_low(),
             e.contact(),
             e.action(['single', 'long']),
         ],
+        fromZigbee: [],
+        toZigbee: [],
+        extend: [
+            battery({
+                percentage: true,
+                lowStatus: true,
+            }),
+            boschExtend.contactSensor(),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('ssIasZone', ['zoneStatus']);
+        },
     },
     {
         zigbeeModel: ['RBSH-SWDV-ZB'],
         model: 'BSEN-CV',
         vendor: 'Bosch',
         description: 'Door/window contact II plus',
-        fromZigbee: [
-            fz.battery,
-            fzLocal.bosch_contact,
-        ],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'genPollCtrl',
-            ]);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
         exposes: [
-            e.battery(),
-            e.battery_low(),
             e.contact(),
             e.vibration(),
             e.action(['single', 'long']),
         ],
+        fromZigbee: [],
+        toZigbee: [],
+        extend: [
+            battery({
+                percentage: true,
+                lowStatus: true,
+            }),
+            boschExtend.contactSensor(),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('ssIasZone', ['zoneStatus']);
+        },
     },
     {
         zigbeeModel: ['RBSH-MMD-ZB-EU'],
