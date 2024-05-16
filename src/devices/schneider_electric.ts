@@ -20,6 +20,7 @@ import {
     deviceEndpoints,
     deviceAddCustomCluster,
 } from '../lib/modernExtend';
+import {postfixWithEndpointName} from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -229,28 +230,59 @@ function wiserCurtain(endpointNames: string[]) {
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
                     const onOffTransitionTime = Number(msg.data['onOffTransitionTime']) / 10;
+                    const currentLevel = utils.mapNumberRange(Number(msg.data['currentLevel']), 0, 255, 0, 100);
 
-                    return {transition: onOffTransitionTime};
+                    const transition = postfixWithEndpointName('transition', msg, model, meta);
+                    const position = postfixWithEndpointName('position', msg, model, meta);
+
+                    return {
+                        [transition]: onOffTransitionTime,
+                        [position]: currentLevel,
+                    };
                 },
             },
         ],
         toZigbee: [
             {
-                key: ['transition'],
+                key: ['state', 'transition', 'position'],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read('genLevelCtrl', ['onOffTransitionTime']);
+                    await entity.read('genLevelCtrl', ['onOffTransitionTime', 'currentLevel']);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    await entity.write('genLevelCtrl', {onOffTransitionTime: +value * 10}, utils.getOptions(meta.mapped, entity));
+                    if (key === 'state') {
+                        if (value === 'OPEN') {
+                            await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
+                        } else if (value === 'CLOSE') {
+                            await entity.command('genOnOff', 'off', {}, utils.getOptions(meta.mapped, entity));
+                        } else if (value === 'STOP') {
+                            await entity.command('genLevelCtrl', 'stop', {}, utils.getOptions(meta.mapped, entity));
+                        }
+                    } else if (key === 'transition') {
+                        await entity.write('genLevelCtrl', {onOffTransitionTime: +value * 10}, utils.getOptions(meta.mapped, entity));
+                    } else if (key === 'position') {
+                        await entity.command(
+                            'genLevelCtrl',
+                            'moveToLevelWithOnOff',
+                            {level: utils.mapNumberRange(Number(value), 0, 100, 0, 255), transtime: 0},
+                            utils.getOptions(meta.mapped, entity),
+                        );
+                    }
                 },
             },
-            tz.cover_via_brightness,
         ],
         exposes: [
-            ...endpointNames.map((endpoint) => e.cover_position().withEndpoint(endpoint).withDescription('Cover position of the curtain')),
-            e.numeric('transition', ea.ALL).withValueMin(0).withValueMax(300).withUnit('s').withDescription('Transition time in seconds'),
+            ...endpointNames.map((endpointName) =>
+                e.enum('state', ea.SET, ['OPEN', 'CLOSE', 'STOP']).withDescription('State of the curtain').withEndpoint(endpointName),
+            ),
+            ...endpointNames.map((endpointName) =>
+                e.numeric('position', ea.ALL).withValueMin(0).withValueMax(100).withUnit('%').withDescription('Position of the curtain')
+                    .withEndpoint(endpointName),
+            ),
+            ...endpointNames.map((endpointName) =>
+                e.numeric('transition', ea.ALL).withValueMin(0).withValueMax(300).withUnit('s').withDescription('Transition time in seconds')
+                    .withEndpoint(endpointName),
+            ),
         ],
-
     } as ModernExtend;
 }
 
