@@ -1574,7 +1574,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['A3N32SR800ZB_xx_C1'],
-        model: 'A3N32SR800ZB_xx_C1',
+        model: 'E8332SRY800ZB_WG',
         vendor: 'Schneider Electric',
         description: '2G Smart Switch',
         exposes: [],
