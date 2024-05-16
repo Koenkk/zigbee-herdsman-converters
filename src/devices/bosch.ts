@@ -288,11 +288,13 @@ const boschExtend = {
             'error': 3,
             'success': 4,
         };
-        const exposes = e.binary('valve_adapt_process', ea.ALL, true, false)
+        const exposes: Expose[] = [
+            e.binary('valve_adapt_process', ea.ALL, true, false)
             .withLabel('Trigger adaptation process')
             .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
             'is "ready_to_calibrate" or "error".')
-            .withCategory('config');
+            .withCategory('config'),
+        ];
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'hvacThermostat',
             type: ['attributeReport', 'readResponse'],
@@ -329,7 +331,7 @@ const boschExtend = {
             },
         }];
         return {
-            exposes: [exposes],
+            exposes,
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -394,19 +396,36 @@ const boschExtend = {
             isModernExtend: true,
         };
     },
-    contactSensor: (): ModernExtend => {
+    doorWindowSensor: (hasVibrationSensor?: boolean): ModernExtend => {
+        const buttonActions: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
+        const exposes: Expose[] = [
+            e.binary('contact', ea.STATE, false, true)
+            .withDescription('Indicates whether the device is opened or closed'),
+            e.enum('action', ea.STATE, buttonActions)
+            .withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic'),
+        ];
+        if (hasVibrationSensor) {
+            exposes.push(e.binary('vibration', ea.STATE, true, false)
+                .withDescription('Indicates whether the device detected vibration'));
+        }
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'ssIasZone',
             type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.data.hasOwnProperty('zoneStatus') || msg.data.hasOwnProperty('zonestatus')) {
                     const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
-                    const lookup: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
                     const result: KeyValue = {
                         contact: !((zoneStatus & 1) > 0),
                         vibration: (zoneStatus & 1<<1) > 0,
-                        battery_low: (zoneStatus & 1<<3) > 0,
-                        action: lookup[(zoneStatus >> 11) & 3],
+                        tamper: (zoneStatus & 1 << 2) > 0,
+                        battery_low: (zoneStatus & 1 << 3) > 0,
+                        supervision_reports: (zoneStatus & 1 << 4) > 0,
+                        restore_reports: (zoneStatus & 1 << 5) > 0,
+                        trouble: (zoneStatus & 1 << 6) > 0,
+                        ac_status: (zoneStatus & 1 << 7) > 0,
+                        test: (zoneStatus & 1 << 8) > 0,
+                        battery_defect: (zoneStatus & 1 << 9) > 0,
+                        action: buttonActions[(zoneStatus >> 11) & 3],
                     };
                     if (result.action === 'none') delete result.action;
                     return result;
@@ -414,6 +433,7 @@ const boschExtend = {
             },
         }];
         return {
+            exposes,
             fromZigbee,
             isModernExtend: true,
         };
@@ -1014,13 +1034,13 @@ const definitions: Definition[] = [
                     commandsResponse: {},
                 },
             ),
-            battery({
-                percentage: true,
-                lowStatus: true,
-            }),
             iasZoneAlarm({
                 zoneType: 'water_leak',
                 zoneAttributes: ['tamper'],
+            }),
+            battery({
+                percentage: true,
+                lowStatus: true,
             }),
             binary({
                 name: 'alarm_on_motion',
@@ -1470,18 +1490,15 @@ const definitions: Definition[] = [
         model: 'BSEN-C2',
         vendor: 'Bosch',
         description: 'Door/window contact II',
-        exposes: [
-            e.contact(),
-            e.action(['single', 'long']),
-        ],
+        exposes: [],
         fromZigbee: [],
         toZigbee: [],
         extend: [
+            boschExtend.doorWindowContact(false),
             battery({
                 percentage: true,
                 lowStatus: true,
             }),
-            boschExtend.contactSensor(),
             bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
@@ -1497,19 +1514,15 @@ const definitions: Definition[] = [
         model: 'BSEN-CV',
         vendor: 'Bosch',
         description: 'Door/window contact II plus',
-        exposes: [
-            e.contact(),
-            e.vibration(),
-            e.action(['single', 'long']),
-        ],
+        exposes: [],
         fromZigbee: [],
         toZigbee: [],
         extend: [
+            boschExtend.doorWindowContact(true),
             battery({
                 percentage: true,
                 lowStatus: true,
             }),
-            boschExtend.contactSensor(),
             bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
