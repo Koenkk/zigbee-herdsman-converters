@@ -400,11 +400,10 @@ const boschExtend = {
         };
     },
     doorWindowContact: (hasVibrationSensor?: boolean): ModernExtend => {
-        const buttonActions: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
         const exposes: Expose[] = [
             e.binary('contact', ea.STATE, false, true)
                 .withDescription('Indicates whether the device is opened or closed'),
-            e.enum('action', ea.STATE, buttonActions)
+            e.enum('action', ea.STATE, ['none', 'single', 'long'])
                 .withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic'),
         ];
         if (hasVibrationSensor) {
@@ -417,6 +416,7 @@ const boschExtend = {
             convert: (model, msg, publish, options, meta) => {
                 if (msg.data.hasOwnProperty('zoneStatus') || msg.data.hasOwnProperty('zonestatus')) {
                     const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+                    const lookup: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
                     const result: KeyValue = {
                         contact: !((zoneStatus & 1) > 0),
                         vibration: (zoneStatus & 1<<1) > 0,
@@ -428,7 +428,7 @@ const boschExtend = {
                         ac_status: (zoneStatus & 1 << 7) > 0,
                         test: (zoneStatus & 1 << 8) > 0,
                         battery_defect: (zoneStatus & 1 << 9) > 0,
-                        action: buttonActions[(zoneStatus >> 11) & 3],
+                        action: lookup[(zoneStatus >> 11) & 3],
                     };
                     if (result.action === 'none') delete result.action;
                     return result;
