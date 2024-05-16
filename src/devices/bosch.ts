@@ -403,9 +403,9 @@ const boschExtend = {
         const buttonActions: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
         const exposes: Expose[] = [
             e.binary('contact', ea.STATE, false, true)
-            .withDescription('Indicates whether the device is opened or closed'),
+                .withDescription('Indicates whether the device is opened or closed'),
             e.enum('action', ea.STATE, buttonActions)
-            .withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic'),
+                .withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic'),
         ];
         if (hasVibrationSensor) {
             exposes.push(e.binary('vibration', ea.STATE, true, false)
