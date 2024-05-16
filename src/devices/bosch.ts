@@ -298,9 +298,8 @@ const boschExtend = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                const data = msg.data;
-                if (data.hasOwnProperty('valveAdaptStatus')) {
-                    if (data['valveAdaptStatus'] === adaptationStatus.calibration_in_progress) {
+                if (msg.data.hasOwnProperty('valveAdaptStatus')) {
+                    if (msg.data['valveAdaptStatus'] === adaptationStatus.calibration_in_progress) {
                         result.valve_adapt_process = true;
                     } else {
                         result.valve_adapt_process = false;
@@ -342,9 +341,8 @@ const boschExtend = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                const data = msg.data;
-                if (data.hasOwnProperty('heatingDemand')) {
-                    const demand = data['heatingDemand'] as number;
+                if (msg.data.hasOwnProperty('heatingDemand')) {
+                    const demand = msg.data['heatingDemand'] as number;
                     result.pi_heating_demand = demand;
                     result.running_state = demand > 0 ? 'heat' : 'idle';
                 }
@@ -401,10 +399,10 @@ const boschExtend = {
             cluster: 'ssIasZone',
             type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                if (data.hasOwnProperty('zoneStatus') || data.hasOwnProperty('zonestatus')) {
+                if (msg.data.hasOwnProperty('zoneStatus') || msg.data.hasOwnProperty('zonestatus')) {
                     const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
                     const lookup: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
-                    const result = {
+                    const result: KeyValue = {
                         contact: !((zoneStatus & 1) > 0),
                         vibration: (zoneStatus & 1<<1) > 0,
                         battery_low: (zoneStatus & 1<<3) > 0,
