@@ -347,7 +347,7 @@ const definitions: Definition[] = [
         extend: [lockExtend()],
     },
     {
-        zigbeeModel: ['YRD410 TS'],
+        zigbeeModel: ['YRD410 TS', 'YRD410 PB'],
         model: 'YRD410-BLE',
         vendor: 'Yale',
         description: 'Assure lock 2',
