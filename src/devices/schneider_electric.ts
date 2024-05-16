@@ -244,20 +244,12 @@ function wiserCurtain(endpointNames: string[]) {
         ],
         toZigbee: [
             {
-                key: ['state', 'transition', 'position'],
+                key: ['transition', 'position'],
                 convertGet: async (entity, key, meta) => {
                     await entity.read('genLevelCtrl', ['onOffTransitionTime', 'currentLevel']);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    if (key === 'state') {
-                        if (value === 'OPEN') {
-                            await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
-                        } else if (value === 'CLOSE') {
-                            await entity.command('genOnOff', 'off', {}, utils.getOptions(meta.mapped, entity));
-                        } else if (value === 'STOP') {
-                            await entity.command('genLevelCtrl', 'stop', {}, utils.getOptions(meta.mapped, entity));
-                        }
-                    } else if (key === 'transition') {
+                    if (key === 'transition') {
                         await entity.write('genLevelCtrl', {onOffTransitionTime: +value * 10}, utils.getOptions(meta.mapped, entity));
                     } else if (key === 'position') {
                         await entity.command(
@@ -266,6 +258,18 @@ function wiserCurtain(endpointNames: string[]) {
                             {level: utils.mapNumberRange(Number(value), 0, 100, 0, 255), transtime: 0},
                             utils.getOptions(meta.mapped, entity),
                         );
+                    }
+                },
+            },
+            {
+                key: ['state'],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === 'OPEN') {
+                        await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
+                    } else if (value === 'CLOSE') {
+                        await entity.command('genOnOff', 'off', {}, utils.getOptions(meta.mapped, entity));
+                    } else if (value === 'STOP') {
+                        await entity.command('genLevelCtrl', 'stop', {}, utils.getOptions(meta.mapped, entity));
                     }
                 },
             },
