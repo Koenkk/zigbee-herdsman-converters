@@ -172,6 +172,17 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['RB 267'],
+        model: 'RB 267',
+        vendor: 'Innr',
+        description: 'E27 smart bulb white 1100',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+        endpoint: (device) => {
+            return {default: 1};
+        },
+    },
+    {
         zigbeeModel: ['RF 265'],
         model: 'RF 265',
         vendor: 'Innr',
