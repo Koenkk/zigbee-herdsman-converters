@@ -13,8 +13,7 @@ import * as constants from '../lib/constants';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
 import {
-    Tz, Fz, Definition, KeyValue, ModernExtend,
-    KeyValueString, KeyValueAny, Expose,
+    Tz, Fz, Definition, KeyValue, ModernExtend, Expose,
 } from '../lib/types';
 import {logger} from '../lib/logger';
 const e = exposes.presets;
@@ -293,10 +292,9 @@ const boschExtend = {
         };
         const exposes: Expose[] = [
             e.binary('valve_adapt_process', ea.ALL, true, false)
-            .withLabel('Trigger adaptation process')
-            .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
-            'is "ready_to_calibrate" or "error".')
-            .withCategory('config'),
+                .withLabel('Trigger adaptation process')
+                .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
+                'is "ready_to_calibrate" or "error".').withCategory('config'),
         ];
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'hvacThermostat',
