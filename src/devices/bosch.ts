@@ -1264,9 +1264,9 @@ const definitions: Definition[] = [
         exposes: [
             e.climate()
                 .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.1)
+                .withSetpoint('occupied_heating_setpoint', 4.5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 4.5, 30, 0.5)
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool']),
         ],
@@ -1337,9 +1337,9 @@ const definitions: Definition[] = [
         exposes: [
             e.climate()
                 .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.1)
+                .withSetpoint('occupied_heating_setpoint', 4.5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 4.5, 30, 0.5)
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool']),
         ],
