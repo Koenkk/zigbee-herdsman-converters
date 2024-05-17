@@ -9,7 +9,7 @@ import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as zosung from '../lib/zosung';
-import {onOff, deviceEndpoints, actionEnumLookup} from '../lib/modernExtend';
+import {onOff, deviceEndpoints, actionEnumLookup, battery} from '../lib/modernExtend';
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -33,8 +33,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(1));
@@ -48,7 +48,7 @@ const definitions: Definition[] = [
         description: 'Smart light switch module (1 gang)',
         vendor: 'Moes',
         extend: [tuya.modernExtend.tuyaOnOff()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             try {
@@ -70,7 +70,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);
@@ -176,7 +176,7 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
             device.powerSource = 'Mains (single phase)';
@@ -202,7 +202,7 @@ const definitions: Definition[] = [
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
@@ -230,7 +230,7 @@ const definitions: Definition[] = [
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1, 'l3': 1};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(3)) await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -260,7 +260,7 @@ const definitions: Definition[] = [
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(3)) await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -363,17 +363,32 @@ const definitions: Definition[] = [
             fz.battery,
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
-        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.battery(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.batteryVoltage(endpoint);
+        exposes: (device, options) => {
+            const exposes = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.linkquality()];
+            if (device?.manufacturerName !== '') {
+                exposes.push(e.battery(), e.battery_voltage());
+            }
+            return exposes;
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            if (device.manufacturerName !== '_TZ3290_gnl5a6a5xvql7c2a') {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+                await reporting.batteryPercentageRemaining(endpoint);
+                await reporting.batteryVoltage(endpoint);
+            }
         },
         whiteLabel: [
             tuya.whitelabel('TuYa', 'iH-F8260', 'Universal smart IR remote control', ['_TZ3290_gnl5a6a5xvql7c2a']),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0049', ['_TZ3000_cjfmu5he']),
+        model: 'ZWV-YC',
+        vendor: 'Moes',
+        description: 'Water valve',
+        extend: [battery(), onOff({powerOnBehavior: false})],
     },
     {
         fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_hhiodade'}],
@@ -381,7 +396,7 @@ const definitions: Definition[] = [
         vendor: 'Moes',
         description: 'Wall light switch (1 gang)',
         extend: [tuya.modernExtend.tuyaOnOff({backlightModeOffNormalInverted: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -453,7 +468,7 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
                 'Operation mode: "command" - for group control, "event" - for clicks'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
             await endpoint.write('genOnOff', {'tuyaOperationMode': 1});

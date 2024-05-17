@@ -24,17 +24,23 @@ const definitions: Definition[] = [
         extend: [onOff()],
     },
     {
-        zigbeeModel: ['511.050'],
+        fingerprint: [
+            {modelID: '511.050'},
+            {modelID: 'RGBWW Lighting', manufacturerName: 'Iluminize'},
+        ],
         model: '511.050',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 LED controller for 5in1 RGB+CCT LEDs',
         extend: [light({colorTemp: {range: [155, 450]}, color: true})],
     },
     {
-        zigbeeModel: ['DIM Lighting'],
+        fingerprint: [
+            {modelID: 'DIM Lighting', manufacturerName: 'Iluminize'},
+            {modelID: 'DIM Lighting', manufacturerName: 'Sunricher'},
+        ],
         model: '511.10',
         vendor: 'Iluminize',
-        description: 'Zigbee LED-Controller ',
+        description: 'Zigbee LED-Controller',
         extend: [light()],
     },
     {
@@ -127,7 +133,10 @@ const definitions: Definition[] = [
         exposes: [e.action(['off', 'on', 'color_temperature_move', 'color_move'])],
     },
     {
-        zigbeeModel: ['RGBW-CCT', '511.040'],
+        fingerprint: [
+            {modelID: '511.040'},
+            {modelID: 'RGBW-CCT', manufacturerName: 'Iluminize'},
+        ],
         model: '511.040',
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 LED-controller, 4 channel 5A, RGBW LED',

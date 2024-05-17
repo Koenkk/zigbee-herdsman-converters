@@ -65,6 +65,7 @@ import ecolink from './ecolink';
 import ecosmart from './ecosmart';
 import ecozy from './ecozy';
 import edp from './edp';
+import efekta from './efekta';
 import eglo from './eglo';
 import elko from './elko';
 import enbrighten from './enbrighten';
@@ -92,6 +93,7 @@ import giderwel from './giderwel';
 import giex from './giex';
 import girier from './girier';
 import gledopto from './gledopto';
+import gmmts from "./gmmts";
 import gmy from './gmy';
 import gs from './gs';
 import halemeier from './halemeier';
@@ -173,8 +175,9 @@ import meazon from './meazon';
 import mercator from './mercator';
 import miboxer from './miboxer';
 import micromatic from './micromatic';
+import modular from './modular';
 import moes from './moes';
-import müller_licht from './müller_licht';
+import muller_licht from './muller_licht';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
 import neo from './neo';
@@ -218,6 +221,7 @@ import rtx from './rtx';
 import salus_controls from './salus_controls';
 import samotech from './samotech';
 import saswell from './saswell';
+import sber from './sber';
 import scanproducts from './scanproducts';
 import schlage from './schlage';
 import schneider_electric from './schneider_electric';
@@ -292,6 +296,7 @@ import yookee from './yookee';
 import ysrsai from './ysrsai';
 import zemismart from './zemismart';
 import zen from './zen';
+import zigbeetlc from './zigbeetlc';
 import zipato from './zipato';
 
 export default [
@@ -362,6 +367,7 @@ export default [
     ...ecosmart,
     ...ecozy,
     ...edp,
+    ...efekta,
     ...eglo,
     ...elko,
     ...enbrighten,
@@ -389,6 +395,7 @@ export default [
     ...giex,
     ...girier,
     ...gledopto,
+    ...gmmts,
     ...gmy,
     ...gs,
     ...halemeier,
@@ -470,8 +477,9 @@ export default [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...modular,
     ...moes,
-    ...müller_licht,
+    ...muller_licht,
     ...namron,
     ...nanoleaf,
     ...neo,
@@ -515,6 +523,7 @@ export default [
     ...salus_controls,
     ...samotech,
     ...saswell,
+    ...sber,
     ...scanproducts,
     ...schlage,
     ...schneider_electric,
@@ -589,5 +598,6 @@ export default [
     ...ysrsai,
     ...zemismart,
     ...zen,
+    ...zigbeetlc,
     ...zipato,
 ];

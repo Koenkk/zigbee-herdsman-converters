@@ -19,7 +19,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.temperature],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
@@ -41,7 +41,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.metering_datek, fz.electrical_measurement, fz.temperature, fz.hw_version],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
@@ -95,7 +95,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.occupancy, fz.occupancy_timeout, fz.illuminance, fz.temperature,
             fz.ias_enroll, fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.led_on_motion],
         toZigbee: [tz.occupancy_timeout, tz.led_on_motion],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const options = {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS};
             const endpoint = device.getEndpoint(1);
             const binds = ['msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing', 'ssIasZone'];
@@ -126,7 +126,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.lock, tz.lock_sound_volume, tz.idlock_master_pin_mode, tz.idlock_rfid_enable,
             tz.idlock_service_mode, tz.idlock_lock_mode, tz.idlock_relock_enabled, tz.pincode_lock],
         meta: {pinCodeCount: 109},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS};
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -198,7 +198,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_water_leak_alarm_1, fz.ias_water_leak_alarm_1_report],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'ssIasZone']);
             await reporting.batteryVoltage(endpoint);
@@ -220,7 +220,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.battery, fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
         toZigbee: [tz.on_off],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'genOnOff',
                 'genLevelCtrl', 'msTemperatureMeasurement']);
@@ -238,7 +238,7 @@ const definitions: Definition[] = [
         description: 'Door/window sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.temperature, fz.ias_enroll],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'msTemperatureMeasurement']);
             await reporting.temperature(endpoint);
@@ -253,7 +253,7 @@ const definitions: Definition[] = [
         description: 'Door/window sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.temperature, fz.ias_enroll],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'msTemperatureMeasurement']);
             await reporting.temperature(endpoint);

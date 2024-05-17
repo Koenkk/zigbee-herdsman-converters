@@ -25,7 +25,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_toggle, fz.command_step],
         toZigbee: [],
         exposes: [e.action(['toggle', 'brightness_step_up', 'brightness_step_down'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -43,9 +43,9 @@ const definitions: Definition[] = [
             tz.elko_regulator_mode, tz.elko_regulator_time, tz.elko_night_switching],
         exposes: [e.text('display_text', ea.ALL).withDescription('Displayed text on thermostat display (zone). Max 14 characters'),
             e.numeric('load', ea.ALL).withUnit('W')
-                .withDescription('Load in W when heating is on (between 0-2000 W). The thermostat uses the value as input to the ' +
+                .withDescription('Load in W when heating is on (between 0-2300 W). The thermostat uses the value as input to the ' +
                 'mean_power calculation.')
-                .withValueMin(0).withValueMax(2000),
+                .withValueMin(0).withValueMax(2300),
             e.binary('regulator_mode', ea.ALL, 'regulator', 'thermostat')
                 .withDescription('Device in regulator or thermostat mode.'),
             e.numeric('regulator_time', ea.ALL).withUnit('min')
@@ -74,7 +74,7 @@ const definitions: Definition[] = [
             e.binary('night_switching', ea.ALL, 'on', 'off')
                 .withDescription('Turn on or off night setting.'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'genBasic', 'genIdentify']);
 

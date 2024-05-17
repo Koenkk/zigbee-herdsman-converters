@@ -36,7 +36,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering],
         exposes: [e.switch(), e.power()],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.instantaneousDemand(endpoint);

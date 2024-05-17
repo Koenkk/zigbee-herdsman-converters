@@ -8,8 +8,21 @@ import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
 import * as utils from '../lib/utils';
 import {Definition, Fz, Zh} from '../lib/types';
-import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
+import {
+    deviceEndpoints,
+    electricityMeter,
+    light,
+    onOff,
+    battery,
+    identify,
+    occupancy,
+    temperature,
+    humidity,
+    illuminance,
+} from '../lib/modernExtend';
+import {logger} from '../lib/logger';
 
+const NS = 'zhc:sunricher';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -37,7 +50,7 @@ const fzLocal = {
                 0x40: 'rgb_release',
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Sunricher: missing command '0x${commandID.toString(16)}'`);
+                logger.error(`Missing command '0x${commandID.toString(16)}'`, NS);
             } else {
                 return {action: utils.getFromLookup(commandID, lookup)};
             }
@@ -54,6 +67,20 @@ async function syncTime(endpoint: Zh.Endpoint) {
 }
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['HK-SL-DIM-US-A'],
+        model: 'HK-SL-DIM-US-A',
+        vendor: 'Sunricher',
+        description: 'Keypad smart dimmer',
+        extend: [light({configureReporting: true}), electricityMeter()],
+    },
+    {
+        zigbeeModel: ['HK-SENSOR-4IN1-A'],
+        model: 'HK-SENSOR-4IN1-A',
+        vendor: 'Sunricher',
+        description: '4IN1 Sensor',
+        extend: [battery(), identify(), occupancy(), temperature(), humidity(), illuminance()],
+    },
     {
         zigbeeModel: ['SR-ZG9023A-EU'],
         model: 'SR-ZG9023A-EU',
@@ -86,8 +113,8 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy', 'voltage', 'current']},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -157,7 +184,7 @@ const definitions: Definition[] = [
             'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4',
             'on_5', 'off_5', 'brightness_move_up_5', 'brightness_move_down_5', 'brightness_stop_5'])],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -177,7 +204,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         whiteLabel: [{vendor: 'RGB Genie', model: 'ZGRC-KEY-013'}],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genScenes']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -293,7 +320,7 @@ const definitions: Definition[] = [
         description: 'Zigbee handheld remote RGBCCT 3 channels',
         fromZigbee: [fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
             fz.command_step, fz.command_recall, fz.command_on, fz.command_off, fz.command_toggle, fz.command_stop,
-            fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation],
+            fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation, fz.command_move_to_hue_and_saturation],
         exposes: [e.battery(), e.action([
             'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down',
             'recall_*', 'on', 'off', 'toggle', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
@@ -309,10 +336,11 @@ const definitions: Definition[] = [
         model: 'SR-ZG9080A',
         vendor: 'Sunricher',
         description: 'Curtain motor controller',
+        meta: {coverInverted: true},
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
@@ -424,7 +452,7 @@ const definitions: Definition[] = [
                 globalStore.putValue(device, 'time', interval);
             }
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'hvacThermostat', 'seMetering', 'haElectricalMeasurement', 'genAlarms',
@@ -441,7 +469,7 @@ const definitions: Definition[] = [
             } catch (error) {
                 // Fails for some
                 // https://github.com/Koenkk/zigbee2mqtt/issues/15025
-                logger.debug(`Failed to setup keypadLockout reporting`);
+                logger.debug(`Failed to setup keypadLockout reporting`, NS);
             }
 
             await endpoint.configureReporting('hvacThermostat', [{

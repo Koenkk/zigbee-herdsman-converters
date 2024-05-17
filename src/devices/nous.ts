@@ -22,6 +22,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_c7emyjom'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_locansqn'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_qrztc3ev'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_snloy4rw'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_eanjj2pa'}],
         model: 'SZ-T04',
         vendor: 'Nous',
@@ -32,7 +33,7 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.nous_lcd_temperature_humidity_sensor],
         onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
@@ -69,7 +70,7 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.nous_lcd_temperature_humidity_sensor],
         onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },

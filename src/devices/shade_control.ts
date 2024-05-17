@@ -12,7 +12,7 @@ const definitions: Definition[] = [
         vendor: 'Shade Control',
         description: 'Automate shades and blinds with beaded chains',
         fromZigbee: [fz.battery, fz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);

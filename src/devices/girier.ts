@@ -13,7 +13,7 @@ const definitions: Definition[] = [
         vendor: 'Girier',
         description: '1 gang mini switch',
         extend: [tuya.modernExtend.tuyaOnOff({switchType: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },

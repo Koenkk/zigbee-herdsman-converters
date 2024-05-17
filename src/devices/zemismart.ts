@@ -16,19 +16,27 @@ const definitions: Definition[] = [
         model: 'ZM25R1',
         vendor: 'Zemismart',
         description: 'Tubular motor',
-        fromZigbee: [legacy.fromZigbee.tuya_cover],
-        toZigbee: [legacy.toZigbee.tuya_cover_control, legacy.toZigbee.tuya_cover_options, tuya.tz.datapoints],
+        fromZigbee: [legacy.fromZigbee.tuya_cover, tuya.fz.datapoints],
+        toZigbee: [legacy.toZigbee.tuya_cover_control, tuya.tz.datapoints],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
-            e.enum('upper_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Reset / Set the upper stroke limit'),
-            e.enum('middle_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Reset / Set the middle stroke limit'),
-            e.enum('lower_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Reset / Set the lower stroke limit'),
+            e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Motor direction').withCategory('config'),
+            e.enum('motor_working_mode', ea.STATE_SET, ['continuous', 'intermittently']).withDescription('Motor operating mode')
+                .withCategory('config'),
+            e.enum('remote_pair', ea.STATE_SET, ['on', 'off']).withDescription('Remote control pairing mode').withCategory('config'),
+            e.enum('upper_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set / Reset the upper stroke limit').withCategory('config'),
+            e.enum('middle_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set / Reset the middle stroke limit')
+                .withCategory('config'),
+            e.enum('lower_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set / Reset the lower stroke limit').withCategory('config'),
         ],
         meta: {
             // All datapoints go in here
             tuyaDatapoints: [
-                [103, 'upper_stroke_limit', tuya.valueConverterBasic.lookup({'SET': tuya.enum(1), 'RESET': tuya.enum(0)})],
-                [104, 'middle_stroke_limit', tuya.valueConverterBasic.lookup({'SET': tuya.enum(1), 'RESET': tuya.enum(0)})],
-                [105, 'lower_stroke_limit', tuya.valueConverterBasic.lookup({'SET': tuya.enum(1), 'RESET': tuya.enum(0)})],
+                [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
+                [101, 'remote_pair', tuya.valueConverterBasic.lookup({'on': true, 'off': false})],
+                [103, 'upper_stroke_limit', tuya.valueConverterBasic.lookup({'SET': true, 'RESET': false})],
+                [104, 'middle_stroke_limit', tuya.valueConverterBasic.lookup({'SET': true, 'RESET': false})],
+                [105, 'lower_stroke_limit', tuya.valueConverterBasic.lookup({'SET': true, 'RESET': false})],
+                [106, 'motor_working_mode', tuya.valueConverterBasic.lookup({'continuous': tuya.enum(0), 'intermittently': tuya.enum(1)})],
             ],
         },
     },
@@ -55,7 +63,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.cover_state, tz.ZMCSW032D_cover_position],
         exposes: [e.cover_position()],
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             // Configure reporting of currentPositionLiftPercentage always fails.
@@ -72,8 +80,8 @@ const definitions: Definition[] = [
         endpoint: () => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const endpointID of [1, 2, 3]) {
                 const endpoint = device.getEndpoint(endpointID);
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -114,8 +122,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(1));
@@ -123,7 +131,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_7eue9vhc', '_TZE200_bv1jcqqu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_7eue9vhc', '_TZE200_bv1jcqqu', '_TZE200_wehza30a']),
         model: 'ZM25RX-08/30',
         vendor: 'Zemismart',
         description: 'Tubular motor',
@@ -164,6 +172,7 @@ const definitions: Definition[] = [
                 [101, 'click_control', tuya.valueConverterBasic.lookup((options) => options.invert_cover ?
                     {'lower': tuya.enum(2), 'upper': tuya.enum(3), 'lower_micro': tuya.enum(5), 'upper_micro': tuya.enum(6)} :
                     {'lower': tuya.enum(3), 'upper': tuya.enum(2), 'lower_micro': tuya.enum(6), 'upper_micro': tuya.enum(5)}, null)],
+                [103, 'battery', tuya.valueConverter.raw],
             ],
         },
     },
@@ -232,7 +241,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(3)) await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -258,7 +267,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(3)) await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);

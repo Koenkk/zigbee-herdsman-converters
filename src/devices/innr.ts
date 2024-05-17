@@ -17,7 +17,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level',
             'color_temperature_move'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
         },
@@ -31,7 +31,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down',
             'brightness_move_to_level', 'color_temperature_move'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genGroups', 'genScenes',
                 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
@@ -82,6 +82,14 @@ const definitions: Definition[] = [
         model: 'BF 263',
         vendor: 'Innr',
         description: 'B22 filament bulb dimmable',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['OLS 210'],
+        model: 'OLS 210',
+        vendor: 'Innr',
+        description: 'Smart outdoor light string',
         extend: [light({turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
     },
@@ -164,6 +172,17 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['RB 267'],
+        model: 'RB 267',
+        vendor: 'Innr',
+        description: 'E27 smart bulb white 1100',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+        endpoint: (device) => {
+            return {default: 1};
+        },
+    },
+    {
         zigbeeModel: ['RF 265'],
         model: 'RF 265',
         vendor: 'Innr',
@@ -178,6 +197,13 @@ const definitions: Definition[] = [
         description: 'B22 bulb filament clear',
         extend: [light({turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['RB 272 T'],
+        model: 'RB 272 T',
+        vendor: 'Innr',
+        description: 'Smart bulb tunable white E27',
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RB 278 T'],
@@ -316,7 +342,7 @@ const definitions: Definition[] = [
         model: 'RS 128 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RS 228 T'],
@@ -363,6 +389,14 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['RB 245'],
         model: 'RB 245',
+        vendor: 'Innr',
+        description: 'E14 candle',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['RB 243'],
+        model: 'RB 243',
         vendor: 'Innr',
         description: 'E14 candle',
         extend: [light({turnsOffAtBrightness1: true})],
@@ -657,7 +691,7 @@ const definitions: Definition[] = [
             return {'all': 1, 'l1': 3, 'l2': 4, 'l3': 5, 'l4': 6, 'l5': 7, 'l6': 8};
         },
         exposes: [e.action(['on_*', 'off_*', 'brightness_*', 'scene_*'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint,
                 ['genBasic', 'genGroups', 'genScenes', 'genOnOff', 'genLevelCtrl']);
             for (const ep of [3, 4, 5, 6, 7, 8]) {
@@ -675,6 +709,7 @@ const definitions: Definition[] = [
             onOff(),
             electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SP 242'],
@@ -688,6 +723,7 @@ const definitions: Definition[] = [
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/6747
             reconfigureReportingsOnDeviceAnnounce(),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SP 244'],
@@ -698,6 +734,7 @@ const definitions: Definition[] = [
             onOff(),
             electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
+        ota: ota.zigbeeOTA,
     },
 ];
 

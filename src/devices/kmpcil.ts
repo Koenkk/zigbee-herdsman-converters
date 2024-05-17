@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, Publish} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -82,7 +83,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pressure, fz.illuminance, fz.kmpcil_res005_occupancy,
             fz.kmpcil_res005_on_off],
         toZigbee: [tz.kmpcil_res005_on_off, tz.illuminance],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
             const binds = ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement',
                 'msIlluminanceMeasurement', 'genBinaryInput', 'genBinaryOutput'];
@@ -98,7 +99,7 @@ const definitions: Definition[] = [
             const payloadPressure = [{
                 // 0 = measuredValue, override dataType from int16 to uint16
                 // https://github.com/Koenkk/zigbee-herdsman/pull/191/files?file-filters%5B%5D=.ts#r456569398
-                attribute: {ID: 0, type: 33}, minimumReportInterval: 2, maximumReportInterval: constants.repInterval.HOUR,
+                attribute: {ID: 0, type: Zcl.DataType.UINT16}, minimumReportInterval: 2, maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 3}];
             await endpoint.configureReporting('msPressureMeasurement', payloadPressure);
             const options = {disableDefaultResponse: true};
@@ -123,7 +124,7 @@ const definitions: Definition[] = [
             e.occupancy(), e.vibration(), e.temperature()],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             for (const cluster of ['msTemperatureMeasurement', 'genPowerCfg', 'genBinaryInput']) {
                 // This sleep here(and the sleep) after is to allow the command to be

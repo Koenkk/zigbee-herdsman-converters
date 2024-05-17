@@ -23,7 +23,7 @@ const definitions: Definition[] = [
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])
             .withLocalTemperatureCalibration()
             .withPiHeatingDemand(ea.STATE_GET)],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             const binds = ['genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);

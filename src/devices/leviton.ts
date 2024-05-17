@@ -71,7 +71,7 @@ const definitions: Definition[] = [
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl']);
             await reporting.thermostatTemperature(endpoint);

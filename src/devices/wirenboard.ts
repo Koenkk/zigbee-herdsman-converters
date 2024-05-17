@@ -429,11 +429,7 @@ const sprutModernExtend = {
                 }
             },
         }];
-        const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['sprutIrBlaster']);
-            device.save();
-        };
+        const configure: Configure[] = [modernExtend.setupConfigureForBinding('sprutIrBlaster', 'input')];
         return {toZigbee, configure, isModernExtend: true};
     },
 };
@@ -480,7 +476,7 @@ const definitions: Definition[] = [
                 .withDescription('Turn on when working in conditions of high humidity (more than 70 %, RH) or condensation, '+
                     'if the sensor shows 0 or 100 %.'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const binds = ['genBasic', 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity',
                 'msOccupancySensing', 'msCO2', 'sprutVoc', 'sprutNoise', 'sprutIrBlaster', 'genOta'];

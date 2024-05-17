@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, Tz, KeyValue} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -5,7 +6,6 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import * as ota from '../lib/ota';
-import * as herdsman from 'zigbee-herdsman';
 import {precisionRound, getFromLookup, postfixWithEndpointName, getKey, toNumber} from '../lib/utils';
 
 const e = exposes.presets;
@@ -86,11 +86,11 @@ const tzLocal = {
             switch (key) {
             case 'sensor_type':
                 newValue = sensorTypes.indexOf(value as string);
-                payload = {30464: {'value': newValue, 'type': herdsman.Zcl.DataType.enum8}};
+                payload = {30464: {'value': newValue, 'type': Zcl.DataType.ENUM8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions);
                 break;
             case 'target_temp_first':
-                payload = {30465: {'value': newValue, 'type': herdsman.Zcl.DataType.boolean}};
+                payload = {30465: {'value': newValue, 'type': Zcl.DataType.BOOLEAN}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions);
                 break;
             case 'min_setpoint_deadband':
@@ -125,11 +125,11 @@ const tzLocal = {
             const newValue = value;
             switch (key) {
             case 'brightness':
-                payload = {30464: {'value': newValue, 'type': herdsman.Zcl.DataType.enum8}};
+                payload = {30464: {'value': newValue, 'type': Zcl.DataType.ENUM8}};
                 await entity.write('hvacUserInterfaceCfg', payload, manufacturerOptions);
                 break;
             case 'brightness_standby':
-                payload = {30465: {'value': newValue, 'type': herdsman.Zcl.DataType.enum8}};
+                payload = {30465: {'value': newValue, 'type': Zcl.DataType.ENUM8}};
                 await entity.write('hvacUserInterfaceCfg', payload, manufacturerOptions);
                 break;
             default:
@@ -174,7 +174,7 @@ const definitions: Definition[] = [
             e.numeric('brightness_standby', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1)
                 .withDescription('Display brightness in standby mode').withEndpoint('l1'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             await endpoint2.read('msRelativeHumidity', ['measuredValue']);
@@ -231,7 +231,7 @@ const definitions: Definition[] = [
                 .withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1).withDescription('Display brightness in standby mode')
                 .withEndpoint('l1'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint3);
@@ -275,7 +275,7 @@ const definitions: Definition[] = [
             e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l3'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint3);
@@ -330,7 +330,7 @@ const definitions: Definition[] = [
             e.numeric('brightness_standby', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1)
                 .withDescription('Display brightness in standby mode').withEndpoint('l1'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             await endpoint2.read('msRelativeHumidity', ['measuredValue']);
@@ -407,7 +407,7 @@ const definitions: Definition[] = [
             e.numeric('brightness_standby', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1)
                 .withDescription('Display brightness in standby mode').withEndpoint('l1'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint3);
@@ -474,7 +474,7 @@ const definitions: Definition[] = [
             e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l4'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint3);

@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition, Expose, Fz, Tz, Zh} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -68,9 +69,6 @@ const individualLedEffects: { [key: string]: number } = {
 const fanModes: { [key: string]: number } = {low: 2, smart: 4, medium: 86, high: 170, on: 255};
 const breezemodes: string[] = ['off', 'low', 'medium', 'high'];
 
-const UINT8 = 32;
-const BOOLEAN = 16;
-const UINT16 = 33;
 const INOVELLI = 0x122f;
 
 interface Attribute {
@@ -179,7 +177,7 @@ const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesLis
 const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     dimmingSpeedUpRemote: {
         ID: 1,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 127,
         description:
@@ -189,7 +187,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     dimmingSpeedUpLocal: {
         ID: 2,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 127,
         description:
@@ -199,7 +197,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     rampRateOffToOnRemote: {
         ID: 3,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 127,
         description:
@@ -209,7 +207,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     rampRateOffToOnLocal: {
         ID: 4,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 127,
         description:
@@ -219,7 +217,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     dimmingSpeedDownRemote: {
         ID: 5,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 127,
         description:
@@ -229,7 +227,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     dimmingSpeedDownLocal: {
         ID: 6,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 127,
         description:
@@ -239,7 +237,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     rampRateOnToOffRemote: {
         ID: 7,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 127,
         description:
@@ -249,7 +247,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     rampRateOnToOffLocal: {
         ID: 8,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 127,
         description:
@@ -259,7 +257,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     minimumLevel: {
         ID: 9,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 1,
         max: 253,
         description:
@@ -268,7 +266,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     maximumLevel: {
         ID: 10,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 2,
         max: 254,
         description:
@@ -278,7 +276,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     invertSwitch: {
         ID: 11,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         displayType: 'enum',
         values: {Yes: 1, No: 0},
         min: 0,
@@ -291,7 +289,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 12,
         min: 0,
         max: 32767,
-        dataType: UINT16,
+        dataType: Zcl.DataType.UINT16,
         unit: 'seconds',
         values: {Disabled: 0},
         description:
@@ -300,25 +298,25 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLevelLocal: {
         ID: 13,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
-      'Default level for the dimmer when it is turned on at the switch.' +
+      'Default level for the load when it is turned on at the switch.' +
       ' A setting of 255 means that the switch will return to the level that it was on before it was turned off.',
     },
     defaultLevelRemote: {
         ID: 14,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
-      'Default level for the dimmer when it is turned on from the hub.' +
+      'Default level for the load when it is turned on from the hub.' +
       ' A setting of 255 means that the switch will return to the level that it was on before it was turned off.',
     },
     stateAfterPowerRestored: {
         ID: 15,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -326,7 +324,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     loadLevelIndicatorTimeout: {
         ID: 17,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         description:
       'Shows the level that the load is at for x number of seconds after the load is adjusted' +
       ' and then returns to the Default LED state. 0 = Stay Off, 1-10 = seconds, 11 = Stay On.',
@@ -350,7 +348,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     powerType: {
         ID: 21,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         displayType: 'enum',
         values: {'Non Neutral': 0, 'Neutral': 1},
         min: 0,
@@ -360,33 +358,16 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     switchType: {
         ID: 22,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         displayType: 'enum',
         values: {'Single Pole': 0, '3-Way Dumb Switch': 1, '3-Way Aux Switch': 2, 'Single-Pole Full Sine Wave': 3},
         min: 0,
         max: 3,
         description: 'Set the switch configuration.',
     },
-    quickStartFan: {
-        ID: 23,
-        dataType: UINT8,
-        min: 0,
-        max: 60,
-        description:
-        'Duration of full power output while fan tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
-    },
-    higherOutputInNonNeutral: {
-        ID: 25,
-        dataType: BOOLEAN,
-        displayType: 'enum',
-        values: {'Disabled (default)': 0, 'Enabled': 1},
-        min: 0,
-        max: 1,
-        description: 'Increase level in non-neutral mode',
-    },
     internalTemperature: {
         ID: 32,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 127,
         readOnly: true,
@@ -394,7 +375,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     overheat: {
         ID: 33,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         displayType: 'enum',
         values: {'No Alert': 0, 'Overheated': 1},
         min: 0,
@@ -402,25 +383,9 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         readOnly: true,
         description: 'Indicates if the internal chipset is currently in an overheated state.',
     },
-    quickStartLightTime: {
-        ID: 34,
-        dataType: UINT8,
-        min: 0,
-        max: 60,
-        description:
-        'Duration of full power output while lamp tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
-    },
-    quickStartLightLevel: {
-        ID: 35,
-        dataType: UINT8,
-        min: 1,
-        max: 254,
-        description:
-        'Level of power output during Quick Start Light time (P34).',
-    },
     buttonDelay: {
         ID: 50,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         values: {
             '0ms': 0,
             '100ms': 1,
@@ -442,13 +407,13 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     deviceBindNumber: {
         ID: 51,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         readOnly: true,
         description: 'The number of devices currently bound (excluding gateways) and counts one group as two devices',
     },
     smartBulbMode: {
         ID: 52,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         displayType: 'enum',
         values: {'Disabled': 0, 'Smart Bulb Mode': 1},
         description:
@@ -456,35 +421,35 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     doubleTapUpToParam55: {
         ID: 53,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         displayType: 'enum',
         values: {'Disabled': 0, 'Enabled': 1},
-        description: 'Enable or Disable setting brightness to parameter 55 on double-tap UP.',
+        description: 'Enable or Disable setting level to parameter 55 on double-tap UP.',
     },
     doubleTapDownToParam56: {
         ID: 54,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         displayType: 'enum',
         values: {'Disabled': 0, 'Enabled': 1},
-        description: 'Enable or Disable setting brightness to parameter 56 on double-tap DOWN.',
+        description: 'Enable or Disable setting level to parameter 56 on double-tap DOWN.',
     },
     brightnessLevelForDoubleTapUp: {
         ID: 55,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 2,
         max: 255,
         description: 'Set this level on double-tap UP (if enabled by P53). 255 = send ON command.',
     },
     brightnessLevelForDoubleTapDown: {
         ID: 56,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description: 'Set this level on double-tap DOWN (if enabled by P54). 255 = send OFF command.',
     },
     ledColorWhenOn: {
         ID: 95,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         values: {
@@ -502,7 +467,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     ledColorWhenOff: {
         ID: 96,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         values: {
@@ -520,65 +485,65 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     ledIntensityWhenOn: {
         ID: 97,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 100,
         description: 'Set the intensity of the LED Indicator when the load is on.',
     },
     ledIntensityWhenOff: {
         ID: 98,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 100,
         description: 'Set the intensity of the LED Indicator when the load is off.',
     },
     singleTapBehavior: {
         ID: 120,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         displayType: 'enum',
         values: {'Old Behavior': 0, 'New Behavior': 1, 'Down Always Off': 2},
         description: 'Behavior of single tapping the on or off button. Old behavior turns the switch on or off. ' +
             'New behavior cycles through the levels set by P131-133. Down Always Off is like the new behavior but ' +
             'down always turns the switch off instead of going to next lower speed.',
     },
-    advancedTimerMode: {
+    fanTimerMode: {
         ID: 121,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         displayType: 'enum',
         values: {'Disabled': 0, 'Enabled': 1},
         description: 'Enable or disable advanced timer mode to have the switch act like a bathroom fan timer',
     },
     fanControlMode: {
         ID: 130,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         displayType: 'enum',
         values: {'Disabled': 0, 'Multi Tap': 1, 'Cycle': 2},
-        description: 'Which mode to use when binding EP3 to a fan module.',
+        description: 'Which mode to use when binding EP3 (config button) to another device (like a fan module).',
     },
     lowLevelForFanControlMode: {
         ID: 131,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 2,
         max: 254,
         description: 'Level to send to device bound to EP3 when set to low.',
     },
     mediumLevelForFanControlMode: {
         ID: 132,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 2,
         max: 254,
         description: 'Level to send to device bound to EP3 when set to medium.',
     },
     highLevelForFanControlMode: {
         ID: 133,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 2,
         max: 254,
         description: 'Level to send to device bound to EP3 when set to high.',
     },
     ledColorForFanControlMode: {
         ID: 134,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         values: {
@@ -596,40 +561,31 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     auxSwitchUniqueScenes: {
         ID: 123,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         displayType: 'enum',
         values: {'Disabled': 0, 'Enabled': 1},
         description: 'Have unique scene numbers for scenes activated with the aux switch.',
     },
     bindingOffToOnSyncLevel: {
         ID: 125,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         displayType: 'enum',
         values: {'Disabled': 0, 'Enabled': 1},
         description: 'Send Move_To_Level using Default Level with Off/On to bound devices.',
     },
     localProtection: {
         ID: 256,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         values: {Disabled: 0, Enabled: 1},
         description: 'Ability to control switch from the wall.',
         displayType: 'enum',
     },
     remoteProtection: {
         ID: 257,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         values: {Disabled: 0, Enabled: 1},
         readOnly: true,
         description: 'Ability to control switch from the hub.',
-        displayType: 'enum',
-    },
-    outputMode: {
-        ID: 258,
-        min: 0,
-        max: 1,
-        values: {'Dimmer': 0, 'On/Off': 1},
-        dataType: BOOLEAN,
-        description: 'Use device as a Dimmer or an On/Off switch.',
         displayType: 'enum',
     },
     onOffLedMode: {
@@ -637,21 +593,21 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 1,
         values: {All: 0, One: 1},
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         description:
       'When the device is in On/Off mode, use full LED bar or just one LED.',
         displayType: 'enum',
     },
     firmwareUpdateInProgressIndicator: {
         ID: 260,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         values: {Disabled: 0, Enabled: 1},
         description: 'Display progress on LED bar during firmware update.',
         displayType: 'enum',
     },
     defaultLed1ColorWhenOn: {
         ID: 60,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -659,7 +615,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed1ColorWhenOff: {
         ID: 61,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -667,7 +623,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed1IntensityWhenOn: {
         ID: 62,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -675,7 +631,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed1IntensityWhenOff: {
         ID: 63,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -683,7 +639,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed2ColorWhenOn: {
         ID: 65,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -691,7 +647,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed2ColorWhenOff: {
         ID: 66,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -699,7 +655,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed2IntensityWhenOn: {
         ID: 67,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -707,7 +663,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed2IntensityWhenOff: {
         ID: 68,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -715,7 +671,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed3ColorWhenOn: {
         ID: 70,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -723,7 +679,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed3ColorWhenOff: {
         ID: 71,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -731,7 +687,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed3IntensityWhenOn: {
         ID: 72,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -739,7 +695,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed3IntensityWhenOff: {
         ID: 73,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -747,7 +703,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed4ColorWhenOn: {
         ID: 75,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -755,7 +711,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed4ColorWhenOff: {
         ID: 76,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -763,7 +719,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed4IntensityWhenOn: {
         ID: 77,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -771,7 +727,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed4IntensityWhenOff: {
         ID: 78,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -779,7 +735,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed5ColorWhenOn: {
         ID: 80,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -787,7 +743,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed5ColorWhenOff: {
         ID: 81,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -795,7 +751,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed5IntensityWhenOn: {
         ID: 82,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -803,7 +759,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed5IntensityWhenOff: {
         ID: 83,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -811,7 +767,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed6ColorWhenOn: {
         ID: 85,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -819,7 +775,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed6ColorWhenOff: {
         ID: 86,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -827,7 +783,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed6IntensityWhenOn: {
         ID: 87,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -835,7 +791,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed6IntensityWhenOff: {
         ID: 88,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -843,7 +799,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed7ColorWhenOn: {
         ID: 90,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -851,7 +807,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed7ColorWhenOff: {
         ID: 91,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
         description:
@@ -859,7 +815,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed7IntensityWhenOn: {
         ID: 92,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
@@ -867,15 +823,24 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     defaultLed7IntensityWhenOff: {
         ID: 93,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
         description:
       'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
+    outputMode: {
+        ID: 258,
+        min: 0,
+        max: 1,
+        values: {'Dimmer': 0, 'On/Off': 1},
+        dataType: Zcl.DataType.BOOLEAN,
+        description: 'Use device as a Dimmer or an On/Off switch.',
+        displayType: 'enum',
+    },
     doubleTapClearNotifications: {
         ID: 262,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         min: 0,
         max: 1,
         description: 'Double-Tap the Config button to clear notifications.',
@@ -884,7 +849,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     fanLedLevelType: {
         ID: 263,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 10,
         values: {'Limitless (like VZM31)': 0, 'Adaptive LED': 10},
@@ -896,7 +861,7 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
     ...COMMON_ATTRIBUTES,
     activePowerReports: {
         ID: 18,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 100,
         description:
@@ -906,29 +871,52 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 19,
         min: 0,
         max: 32767,
-        dataType: UINT16,
+        dataType: Zcl.DataType.UINT16,
         description:
       'Time period between consecutive power & energy reports being sent (in seconds). The timer is reset after each report is sent.',
     },
     activeEnergyReports: {
         ID: 20,
-        dataType: UINT16,
+        dataType: Zcl.DataType.UINT16,
         min: 0,
         max: 32767,
         description:
       'Energy reports Energy level change which will result in sending a new energy report.' +
       '0 = disabled, 1-32767 = 0.01kWh-327.67kWh. Default setting: 10 (0.1 kWh)',
     },
+    quickStartTime: {
+        ID: 23,
+        dataType: Zcl.DataType.UINT8,
+        min: 0,
+        max: 60,
+        description: 'Duration of full power output while lamp tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
+    },
+    quickStartLevel: {
+        ID: 24,
+        dataType: Zcl.DataType.UINT8,
+        min: 1,
+        max: 254,
+        description: 'Level of power output during Quick Start Light time (P23).',
+    },
+    higherOutputInNonNeutral: {
+        ID: 25,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled (default)': 0, 'Enabled': 1},
+        min: 0,
+        max: 1,
+        description: 'Increase level in non-neutral mode',
+    },
     ledBarScaling: {
         ID: 100,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         displayType: 'enum',
         values: {'Gen3 method (VZM-style)': 0, 'Gen2 method (LZW-style)': 1},
         description: 'Method used for scaling.',
     },
     relayClick: {
         ID: 261,
-        dataType: BOOLEAN,
+        dataType: Zcl.DataType.BOOLEAN,
         min: 0,
         max: 1,
         description:
@@ -959,22 +947,34 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
     },
     smartBulbMode: {
         ...COMMON_ATTRIBUTES.smartBulbMode,
-        description: 'Use this mode to synchronize and control other fan switches or controllers.',
-        values: {'Disabled': 0, 'Remote Control Mode': 1},
+        description: 'For use with Smart Fans that need constant power and are controlled via commands rather than power.',
+        values: {'Disabled': 0, 'Smart Fan Mode': 1},
+    },
+    quickStartTime: {
+        ID: 23,
+        dataType: Zcl.DataType.UINT8,
+        min: 0,
+        max: 60,
+        description: 'Duration of full power output while fan tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
     },
     nonNeutralAuxMediumGear: {
         ID: 30,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 42,
         max: 135,
         description: 'Identification value in Non-nuetral, medium gear, aux switch',
     },
     nonNeutralAuxLowGear: {
         ID: 31,
-        dataType: UINT8,
+        dataType: Zcl.DataType.UINT8,
         min: 42,
         max: 135,
         description: 'Identification value in Non-nuetral, low gear, aux switch',
+    },
+    outputMode: {
+        ...COMMON_ATTRIBUTES.outputMode,
+        values: {'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1},
+        description: 'Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.',
     },
 };
 
@@ -1002,9 +1002,29 @@ const VZM36_ATTRIBUTES : {[s: string]: Attribute} = {
         description:
             'The state the light should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.',
     },
-    higherOutputInNonNeutral_1: {...COMMON_ATTRIBUTES.higherOutputInNonNeutral},
-    quickStartLightTime_1: {...COMMON_ATTRIBUTES.quickStartLightTime},
-    quickStartLightLevel_1: {...COMMON_ATTRIBUTES.quickStartLightLevel},
+    higherOutputInNonNeutral_1: {
+        ID: 25,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled (default)': 0, 'Enabled': 1},
+        min: 0,
+        max: 1,
+        description: 'Increase level in non-neutral mode for light.',
+    },
+    quickStartTime_1: {
+        ID: 23,
+        dataType: Zcl.DataType.UINT8,
+        min: 0,
+        max: 60,
+        description: 'Duration of full power output while lamp tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
+    },
+    quickStartLevel_1: {
+        ID: 24,
+        dataType: Zcl.DataType.UINT8,
+        min: 1,
+        max: 254,
+        description: 'Level of power output during Quick Start Light time (P23).',
+    },
     smartBulbMode_1: {...COMMON_ATTRIBUTES.smartBulbMode},
     ledColorWhenOn_1: {...COMMON_ATTRIBUTES.ledColorWhenOn},
     ledIntensityWhenOn_1: {...COMMON_ATTRIBUTES.ledIntensityWhenOn},
@@ -1064,18 +1084,27 @@ const VZM36_ATTRIBUTES : {[s: string]: Attribute} = {
         description:
         'The state the fan should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.',
     },
+    quickStartTime_2: {
+        ID: 23,
+        dataType: Zcl.DataType.UINT8,
+        min: 0,
+        max: 60,
+        description: 'Duration of full power output while fan tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
+    },
     // power type readonly
-    quickStartFan_2: {...COMMON_ATTRIBUTES.quickStartFan},
     // internal temp readonly
     // overheat readonly
     smartBulbMode_2: {
         ...COMMON_ATTRIBUTES.smartBulbMode,
         values: {'Disabled': 0, 'Smart Fan Mode': 1},
-        description:
-        'For use with Smart Fans that need constant power and are controlled via commands rather than power.',
+        description: 'For use with Smart Fans that need constant power and are controlled via commands rather than power.',
     },
     // remote protection readonly..
-    outputMode_2: {...COMMON_ATTRIBUTES.outputMode},
+    outputMode_2: {
+        ...COMMON_ATTRIBUTES.outputMode,
+        values: {'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1},
+        description: 'Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.',
+    },
 };
 
 const tzLocal = {
@@ -1486,7 +1515,7 @@ const tzLocal = {
             await endpoint.read('genOnOff', ['onOff']);
         },
     } satisfies Tz.Converter,
-    breezeMode: {
+    vzm36_breezeMode: {
         key: ['breezeMode'],
         convertSet: async (entity, key, values: BreezeModeValues, meta) => {
         // Calculate the value..
@@ -1532,6 +1561,61 @@ const tzLocal = {
             }
 
             const endpoint = meta.device.getEndpoint(2);
+
+            const payload = {breezeMode: configValue.toString()};
+            await endpoint.write('manuSpecificInovelli', payload, {
+                manufacturerCode: INOVELLI,
+            });
+
+            return {state: {[key]: values}};
+        },
+    } satisfies Tz.Converter,
+    breezeMode: {
+        key: ['breezeMode'],
+        convertSet: async (entity, key, values: BreezeModeValues, meta) => {
+        // Calculate the value..
+            let configValue = 0;
+            let term = false;
+            configValue += speedToInt(values.speed1);
+            configValue += Number(values.time1) / 5 * 4;
+
+            let speed = speedToInt(values.speed2);
+
+            if (speed !== 0) {
+                configValue += speed * 64;
+                configValue += values.time2 / 5 * 256;
+            } else {
+                term = true;
+            }
+
+            speed = speedToInt(values.speed3);
+
+            if (speed !== 0 && ! term) {
+                configValue += speed * 4096;
+                configValue += values.time3 / 5 * 16384;
+            } else {
+                term = true;
+            }
+
+            speed = speedToInt(values.speed4);
+
+            if (speed !== 0 && ! term) {
+                configValue += speed * 262144;
+                configValue += values.time4 / 5 * 1048576;
+            } else {
+                term = true;
+            }
+
+            speed = speedToInt(values.speed5);
+
+            if (speed !== 0 && ! term) {
+                configValue += speed * 16777216;
+                configValue += values.time5 / 5 * 67108864;
+            } else {
+                term = true;
+            }
+
+            const endpoint = meta.device.getEndpoint(1);
 
             const payload = {breezeMode: configValue.toString()};
             await endpoint.write('manuSpecificInovelli', payload, {
@@ -2218,7 +2302,7 @@ const definitions: Definition[] = [
             fzLocal.inovelli(VZM31_ATTRIBUTES),
         ],
         ota: ota.inovelli,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'seMetering',
@@ -2269,7 +2353,7 @@ const definitions: Definition[] = [
         ],
         exposes: exposesListVZM35,
         ota: ota.inovelli,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genOnOff',
@@ -2301,13 +2385,13 @@ const definitions: Definition[] = [
             tzLocal.light_onoff_brightness_inovelli,
             tzLocal.inovelli_parameters(VZM36_ATTRIBUTES),
             tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES),
-            tzLocal.breezeMode,
+            tzLocal.vzm36_breezeMode,
         ],
         exposes: exposesListVZM36,
         ota: ota.inovelli,
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);

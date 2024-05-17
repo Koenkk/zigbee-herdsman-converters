@@ -1,4 +1,4 @@
-import {Cluster} from 'zigbee-herdsman/dist/zcl/tstype';
+import {Cluster} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
 import {Definition, ModernExtend, Zh} from './types';
 import {getClusterAttributeValue} from './utils';
 import * as m from './modernExtend';
@@ -6,6 +6,8 @@ import * as zh from 'zigbee-herdsman/dist';
 import {philipsLight} from './philips';
 import {Endpoint} from 'zigbee-herdsman/dist/controller/model';
 import {logger} from './logger';
+
+const NS = 'zhc:gendef';
 
 interface GeneratedExtend {
     getExtend(): ModernExtend,
@@ -137,10 +139,11 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
     // It is possible to better check if device should be considered multiEndpoint
     // based, for example, on generator arguments(i.e. presence of "endpointNames"),
     // but this will be enough for now.
-    const multiEndpoint = device.endpoints.length > 1;
+    const endpointsWithoutGreenPower = device.endpoints.filter((e) => e.ID !== 242);
+    const multiEndpoint = endpointsWithoutGreenPower.length > 1;
     if (multiEndpoint) {
         const endpoints: {[n: string]: number} = {};
-        for (const endpoint of device.endpoints) {
+        for (const endpoint of endpointsWithoutGreenPower) {
             endpoints[endpoint.ID.toString()] = endpoint.ID;
         }
         // Add to beginning for better visibility.
@@ -229,7 +232,6 @@ const inputExtenders: Extender[] = [
 ];
 
 const outputExtenders: Extender[] = [
-    [['genOta'], async (d, eps) => [new Generator({extend: m.ota, source: 'ota'})]],
     [['genOnOff'], async (d, eps) => [
         new Generator({extend: m.commandsOnOff, args: maybeEndpointArgs(d, eps), source: 'commandsOnOff'}),
     ]],
@@ -247,7 +249,7 @@ const outputExtenders: Extender[] = [
 async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
-        logger.warn('extenderLock can accept only one endpoint');
+        logger.warning('extenderLock can accept only one endpoint', NS);
     }
 
     const endpoint = endpoints[0];
@@ -307,7 +309,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
 async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
-        logger.warn('extenderElectricityMeter can accept only one endpoint');
+        logger.warning('extenderElectricityMeter can accept only one endpoint', NS);
     }
 
     const endpoint = endpoints[0];

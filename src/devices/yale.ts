@@ -6,10 +6,13 @@ import {Definition, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
 import {getFromLookup} from '../lib/utils';
 import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
 import {battery, lock} from '../lib/modernExtend';
+import {logger} from '../lib/logger';
+
+const NS = 'zhc:yale';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const lockExtend = (meta={}, lockStateOptions: Reporting.Override=null, binds=['closuresDoorLock', 'genPowerCfg']): ModernExtend => {
+const lockExtend = (meta={}, lockStateOptions: Reporting.Override|false=null, binds=['closuresDoorLock', 'genPowerCfg']): ModernExtend => {
     return {
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response,
             fz.lock_user_status_response],
@@ -17,17 +20,19 @@ const lockExtend = (meta={}, lockStateOptions: Reporting.Override=null, binds=['
         meta: {pinCodeCount: 250, ...meta},
         exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
             e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume(), e.battery_low()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: [async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.lockState(endpoint, lockStateOptions);
+            if (lockStateOptions !== false) {
+                await reporting.lockState(endpoint, lockStateOptions);
+            }
             await reporting.batteryPercentageRemaining(endpoint);
             try {
                 await reporting.batteryAlarmState(endpoint);
             } catch (e) {
                 // Fails for some: https://github.com/Koenkk/zigbee-herdsman-converters/pull/5414
             }
-        },
+        }],
         isModernExtend: true,
     };
 };
@@ -76,7 +81,7 @@ const fzLocal = {
             try {
                 await msg.endpoint.read('manuSpecificAssaDoorLock', ['batteryLevel']);
             } catch (error) {
-                meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: failed to read lock attributes`);
+                logger.warning(`Failed to read lock attributes`, NS);
             }
             return result;
         },
@@ -158,6 +163,37 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
+    c4_lock_operation_event: {
+        cluster: 'genAlarms',
+        type: ['commandAlarm'],
+        convert: async (model, msg, publish, options, meta) => {
+            let result: KeyValue = {};
+            if (msg.data.clusterid == 64512) {
+                const alarmcode = msg.data.alarmcode;
+                const lookup = {
+                    9: {action: 'error_jammed', state: 'UNLOCK', lock_state: 'not_fully_locked'},
+                    21: {action: 'manual_lock', state: 'LOCK', lock_state: 'locked'},
+                    22: {action: 'manual_unlock', state: 'UNLOCK', lock_state: 'unlocked'},
+                    24: {action: 'lock', state: 'LOCK', lock_state: 'locked'},
+                    25: {action: 'unlock', state: 'UNLOCK', lock_state: 'unlocked'},
+                    27: {action: 'auto_lock', state: 'LOCK', lock_state: 'locked'},
+                };
+                if (!(alarmcode in lookup)) {
+                    result.action = 'unknown';
+                    logger.warning(`Unrecognized Operation Event (${alarmcode})`, NS);
+                    // We need to read the lock state as the alarm code is unknown
+                    try {
+                        await msg.endpoint.read('closuresDoorLock', ['lockState']);
+                    } catch (error) {
+                        logger.warning(`Failed to read lock state`, NS);
+                    }
+                } else {
+                    result = getFromLookup(alarmcode, lookup);
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -216,6 +252,14 @@ const definitions: Definition[] = [
         vendor: 'Yale',
         description: 'Assure lock SL',
         extend: [lockExtend()],
+    },
+    {
+        zigbeeModel: ['YRD256-TSDB'],
+        model: 'YAYRD256HA2619',
+        vendor: 'Yale',
+        description: 'Assure lock SL',
+        fromZigbee: [fzLocal.c4_lock_operation_event],
+        extend: [lockExtend({}, false)],
     },
     {
         zigbeeModel: ['YRD652 TSDB', 'YRD652L TSDB'],
@@ -303,7 +347,7 @@ const definitions: Definition[] = [
         extend: [lockExtend()],
     },
     {
-        zigbeeModel: ['YRD410 TS'],
+        zigbeeModel: ['YRD410 TS', 'YRD410 PB'],
         model: 'YRD410-BLE',
         vendor: 'Yale',
         description: 'Assure lock 2',
@@ -348,7 +392,7 @@ const definitions: Definition[] = [
         extend: [lockExtend({battery: {dontDividePercentage: true}}, {max: 900}, ['closuresDoorLock'])],
     },
     {
-        zigbeeModel: ['06ffff2027'],
+        zigbeeModel: ['06ffff2027', '06e01d220c'],
         model: 'YMF40A RL',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
@@ -378,7 +422,7 @@ const definitions: Definition[] = [
             e.enum('auto_lock_time', ea.ALL, ['off', '30seconds', '60seconds', '2minutes', '3minutes']),
             e.enum('volume', ea.ALL, ['silent', 'low', 'high']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('closuresDoorLock', ['lockState']);
             await endpoint.read('manuSpecificAssaDoorLock', ['autoLockTime', 'wrongCodeAttempts', 'shutdownTime', 'batteryLevel', 'volume']);

@@ -23,9 +23,9 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         exposes: [e.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 0.5)
             .withSetpoint('occupied_cooling_setpoint', 10, 31, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool'])
+            .withSystemMode(['off', 'auto', 'heat', 'cool', 'emergency_heating']).withRunningState(['idle', 'heat', 'cool'])
             .withLocalTemperatureCalibration().withFanMode(['auto', 'on'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genPowerCfg', 'genTime', 'hvacThermostat', 'hvacUserInterfaceCfg', 'hvacFanCtrl'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);

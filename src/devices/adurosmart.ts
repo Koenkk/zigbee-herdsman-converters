@@ -26,7 +26,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -75,7 +75,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_on, fz.command_off, legacy.fz.eria_81825_updown],
         exposes: [e.action(['on', 'off', 'up', 'down'])],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
@@ -114,6 +114,13 @@ const definitions: Definition[] = [
         vendor: 'AduroSmart',
         description: 'Eria tunable white A19/BR30 smart bulb',
         extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs']}})],
+    },
+    {
+        zigbeeModel: ['ONOFFRELAY'],
+        model: '81898',
+        vendor: 'AduroSmart',
+        description: 'AduroSmart on/off relay',
+        extend: [onOff({powerOnBehavior: false})],
     },
 ];
 

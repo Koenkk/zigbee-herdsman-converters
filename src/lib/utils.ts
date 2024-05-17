@@ -1,7 +1,10 @@
 import * as globalStore from './store';
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Expose, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
+import {Definition, Expose, Fz, KeyValue, KeyValueAny, Publish, Tz, Zh} from './types';
 import {Feature, Light, Numeric} from './exposes';
+import {logger} from './logger';
+
+const NS = 'zhc:utils';
 
 export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
@@ -134,7 +137,7 @@ export function getEndpointName(msg: Fz.Message, definition: Definition, meta: F
 export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
-        meta.logger.warn(`No meta passed to postfixWithEndpointName, update your external converter!`);
+        logger.warning(`No meta passed to postfixWithEndpointName, update your external converter!`, NS);
         // @ts-expect-error
         meta = {device: null};
     }
@@ -487,7 +490,7 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
 }
 
 export function attachOutputCluster(device: Zh.Device, clusterKey: string) {
-    const clusterId = Zcl.Utils.getCluster(clusterKey).ID;
+    const clusterId = Zcl.Utils.getCluster(clusterKey, device.manufacturerID, device.customClusters).ID;
     const endpoint = device.getEndpoint(1);
 
     if (!endpoint.outputClusters.includes(clusterId)) {
@@ -504,12 +507,6 @@ export function printNumberAsHex(value: number, hexLength: number): string {
 export function printNumbersAsHexSequence(numbers: number[], hexLength: number): string {
     return numbers.map((v) => v.toString(16).padStart(hexLength, '0')).join(':');
 }
-
-// Note: this is valid typescript-flavored JSDoc
-// eslint-disable-next-line valid-jsdoc
-export const createLogger = (logger: Logger, vendor: string, key: string) => (level: 'debug' | 'info' | 'warn' | 'error', message: string) => {
-    logger[level](`zigbee-herdsman-converters:${vendor}:${key}: ${message}`);
-};
 
 // eslint-disable-next-line
 export function assertObject(value: unknown, property?: string): asserts value is {[s: string]: any} {
@@ -663,5 +660,4 @@ exports.getSceneState = getSceneState;
 exports.attachOutputCluster = attachOutputCluster;
 exports.printNumberAsHex = printNumberAsHex;
 exports.printNumbersAsHexSequence = printNumbersAsHexSequence;
-exports.createLogger = createLogger;
 exports.getFromLookup = getFromLookup;

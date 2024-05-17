@@ -36,10 +36,10 @@ const definitions: Definition[] = [
         ],
         meta: {disableActionGroup: true},
         onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             // Enables reporting of physical state changes
             // https://github.com/Koenkk/zigbee2mqtt/issues/9057#issuecomment-1007742130
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
     },
     {

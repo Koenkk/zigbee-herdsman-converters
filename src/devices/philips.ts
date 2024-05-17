@@ -49,7 +49,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, philipsFz.philips_contact],
         toZigbee: [],
         exposes: [e.battery(), e.contact()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -558,7 +558,7 @@ const definitions: Definition[] = [
         model: '7602031K6',
         vendor: 'Philips',
         description: 'Hue Go portable light',
-        extend: [philipsLight({colorTemp: {range: [153, 500]}})],
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ['LLC020'],
@@ -1215,7 +1215,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ['LCT024', '440400982841', '440400982842', 'PCM002'],
+        zigbeeModel: ['LCT024', '440400982841', '440400982842', '440400982843', 'PCM002'],
         model: '915005733701',
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
@@ -1971,6 +1971,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929003621301_01', '929003621301_02', '929003621301_03', '929003621301_04', '929003621301_05'],
+        model: '929003621301',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris ceiling light (4 spots) (black)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ['5060830P7_01', '5060830P7_02', '5060830P7_03', '5060830P7_04'],
         model: '5060830P7',
         vendor: 'Philips',
@@ -2150,13 +2157,13 @@ const definitions: Definition[] = [
         model: '929003017102',
         vendor: 'Philips',
         description: 'Hue wall switch module',
-        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, fz.hue_wall_switch, fz.command_toggle],
+        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, fz.hue_wall_switch, fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [
             e.battery(), e.action(['left_press', 'left_press_release', 'right_press', 'right_press_release',
                 'left_hold', 'left_hold_release', 'right_hold', 'right_hold_release', 'toggle']),
             e.enum('device_mode', ea.ALL, ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'])],
         toZigbee: [tz.hue_wall_switch_device_mode],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'manuSpecificPhilips']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -2176,7 +2183,7 @@ const definitions: Definition[] = [
             'down_hold_release', 'off_press', 'off_press_release', 'off_hold', 'off_hold_release']),
         e.action_duration()],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
 
@@ -2203,7 +2210,7 @@ const definitions: Definition[] = [
             'off_press', 'off_hold', 'off_press_release', 'off_hold_release', 'up_press', 'up_hold', 'up_press_release', 'up_hold_release',
             'down_press', 'down_hold', 'down_press_release', 'down_hold_release', 'recall_0', 'recall_1'])],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificPhilips', 'genPowerCfg']);
             const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
@@ -2220,7 +2227,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_on, fz.command_off_with_effect, legacy.fz.SmartButton_skip, fz.hue_smart_button_event, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off', 'skip_backward', 'skip_forward', 'press', 'hold', 'release'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
 
@@ -2246,7 +2253,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'default': 2, 'ep1': 1, 'ep2': 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -2275,7 +2282,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'default': 2, 'ep1': 1, 'ep2': 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -2350,7 +2357,7 @@ const definitions: Definition[] = [
             e.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
             e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)],
         toZigbee: [tz.occupancy_timeout, philipsTz.hue_motion_sensitivity, philipsTz.hue_motion_led_indication],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -2375,7 +2382,7 @@ const definitions: Definition[] = [
             e.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
             e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)],
         toZigbee: [tz.occupancy_timeout, philipsTz.hue_motion_sensitivity, philipsTz.hue_motion_led_indication],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -2906,7 +2913,7 @@ const definitions: Definition[] = [
                 .withDescription('amount of steps the last action took on the dial exposed as a posive value from 0-255')
                 .withValueMin(0).withValueMax(255),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificPhilips', 'genPowerCfg']);
             const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
@@ -3044,7 +3051,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['LTF002'],
+        zigbeeModel: ['LTF002', 'LTC010'],
         model: '6109331C5',
         vendor: 'Philips',
         description: 'Hue white ambiance Apogee round',
@@ -3566,6 +3573,13 @@ const definitions: Definition[] = [
         model: '442296118491',
         vendor: 'Philips',
         description: 'Hue Secure Camera Floodlight',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ['929003555701'],
+        model: '929003555701',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance Play Gradient Light Tube Compact',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
 ];

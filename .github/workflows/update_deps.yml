@@ -20,7 +20,7 @@ jobs:
       with:
         node-version: 20
         cache: npm
-    - run: npx npm-check-updates -u
+    - run: npx npm-check-updates -u -x eslint
     - run: rm -f package-lock.json
     - run: npm install
     - uses: peter-evans/create-pull-request@v6

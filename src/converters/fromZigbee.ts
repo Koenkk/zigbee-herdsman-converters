@@ -8,7 +8,9 @@ import * as constants from '../lib/constants';
 import * as libColor from '../lib/color';
 import * as utils from '../lib/utils';
 import * as exposes from '../lib/exposes';
+import {logger} from '../lib/logger';
 
+const NS = 'zhc:fz';
 const defaultSimulatedBrightness = 255;
 const e = exposes.presets;
 const ea = exposes.access;
@@ -676,7 +678,7 @@ const converters1 = {
             // handle color property sync
             // NOTE: this should the last thing we do, as we need to have processed all attributes,
             //       we use assign here so we do not lose other attributes.
-            return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, meta.logger));
+            return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options));
         },
     } satisfies Fz.Converter,
     meter_identification: {
@@ -717,7 +719,8 @@ const converters1 = {
                 if (factor != null) {
                     power = (power * factor) * 1000; // kWh to Watt
                 }
-                payload.power = power;
+                const property = postfixWithEndpointName('power', msg, model, meta);
+                payload[property] = power;
             }
 
             if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
@@ -725,12 +728,14 @@ const converters1 = {
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
                     const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    payload.energy = value * factor;
+                    const property = postfixWithEndpointName('energy', msg, model, meta);
+                    payload[property] = value * factor;
                 }
                 if (msg.data.hasOwnProperty('currentSummReceived')) {
                     const data = msg.data['currentSummReceived'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    payload.produced_energy = value * factor;
+                    const property = postfixWithEndpointName('produced_energy', msg, model, meta);
+                    payload[property] = value * factor;
                 }
             }
 
@@ -770,6 +775,9 @@ const converters1 = {
                 {key: 'rmsVoltagePhB', name: 'voltage_phase_b', factor: 'acVoltage'},
                 {key: 'rmsVoltagePhC', name: 'voltage_phase_c', factor: 'acVoltage'},
                 {key: 'acFrequency', name: 'ac_frequency', factor: 'acFrequency'},
+                {key: 'dcPower', name: 'power', factor: 'dcPower'},
+                {key: 'dcCurrent', name: 'current', factor: 'dcCurrent'},
+                {key: 'dcVoltage', name: 'voltage', factor: 'dcVoltage'},
             ];
 
             const payload: KeyValueAny = {};
@@ -782,13 +790,16 @@ const converters1 = {
                 }
             }
             if (msg.data.hasOwnProperty('powerFactor')) {
-                payload.power_factor = precisionRound(msg.data['powerFactor'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactor'] / 100, 2);
             }
             if (msg.data.hasOwnProperty('powerFactorPhB')) {
-                payload.power_factor_phase_b = precisionRound(msg.data['powerFactorPhB'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor_phase_b', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactorPhB'] / 100, 2);
             }
             if (msg.data.hasOwnProperty('powerFactorPhC')) {
-                payload.power_factor_phase_c = precisionRound(msg.data['powerFactorPhC'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor_phase_c', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactorPhC'] / 100, 2);
             }
             return payload;
         },
@@ -1413,6 +1424,22 @@ const converters1 = {
             return payload;
         },
     } satisfies Fz.Converter,
+    command_move_to_hue_and_saturation: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToHueAndSaturation',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const payload = {
+                action: postfixWithEndpointName(`move_to_hue_and_saturation`, msg, model, meta),
+                action_hue: msg.data.hue,
+                action_saturation: msg.data.saturation,
+                action_transition_time: msg.data.transtime,
+            };
+
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter,
     command_step_hue: {
         cluster: 'lightingColorCtrl',
         type: ['commandStepHue'],
@@ -1983,7 +2010,7 @@ const converters1 = {
                 result.color.s = result.color.saturation;
             }
 
-            return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, meta.logger));
+            return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options));
         },
     } satisfies Fz.Converter,
     wiser_device_info: {
@@ -2175,19 +2202,6 @@ const converters1 = {
             return {action: `${clickMapping[msg.data[6]]}`};
         },
     } satisfies Fz.Converter,
-    tuya_on_off_action: {
-        cluster: 'genOnOff',
-        type: 'commandTuyaAction',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
-            const buttonMapping: KeyValueNumberString = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'};
-            // TS004F has single endpoint, TS0041A/TS0041 can have multiple but have just one button
-            const button = msg.device.endpoints.length == 1 || ['TS0041A', 'TS0041'].includes(msg.device.modelID) ?
-                '' : `${buttonMapping[msg.endpoint.ID]}_`;
-            return {action: `${button}${clickMapping[msg.data.value]}`};
-        },
-    } satisfies Fz.Converter,
     tuya_switch_scene: {
         cluster: 'genOnOff',
         type: 'commandTuyaAction',
@@ -2353,8 +2367,7 @@ const converters1 = {
                     return null;
                 default:
                     // Unknown dps
-                    meta.logger.debug(`livolo_cover_state: Unhandled DP ${dp} for ${meta.device.manufacturerName}: \
-                     ${msg.data.toString('hex')}`);
+                    logger.debug(`Unhandled DP ${dp} for ${meta.device.manufacturerName}: ${msg.data.toString('hex')}`, NS);
                 }
             }
         },
@@ -2400,7 +2413,7 @@ const converters1 = {
             if (value) {
                 return {action: value};
             } else {
-                meta.logger.warn('Unknown lock status with source ' + msg.data[3] + ' and event code ' + msg.data[4]);
+                logger.warning('Unknown lock status with source ' + msg.data[3] + ' and event code ' + msg.data[4], NS);
             }
         },
     } satisfies Fz.Converter,
@@ -2467,7 +2480,7 @@ const converters1 = {
                     meta.device.save();
                 }*/
                 if (msg.data.includes(Buffer.from([19, 5, 0]), 13)) {
-                    if (meta.logger) meta.logger.debug('Detected Livolo Curtain Switch');
+                    logger.debug('Detected Livolo Curtain Switch', NS);
                     // curtain switch, hack
                     meta.device.modelID = 'TI0001-curtain-switch';
                     meta.device.save();
@@ -2482,7 +2495,7 @@ const converters1 = {
                     meta.device.save();
                 }
                 if (msg.data.includes(Buffer.from([19, 13, 0]), 13)) {
-                    if (meta.logger) meta.logger.debug('Detected Livolo Pir Sensor');
+                    logger.debug('Detected Livolo Pir Sensor', NS);
                     meta.device.modelID = 'TI0001-pir';
                     meta.device.save();
                 }
@@ -2866,6 +2879,32 @@ const converters1 = {
             return result;
         },
     } satisfies Fz.Converter,
+    danfoss_icon_floor_sensor: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.hasOwnProperty('danfossRoomFloorSensorMode')) {
+                result[postfixWithEndpointName('room_floor_sensor_mode', msg, model, meta)] =
+                    constants.danfossRoomFloorSensorMode.hasOwnProperty(msg.data['danfossRoomFloorSensorMode']) ?
+                        constants.danfossRoomFloorSensorMode[msg.data['danfossRoomFloorSensorMode']] :
+                        msg.data['danfossRoomFloorSensorMode'];
+            }
+            if (msg.data.hasOwnProperty('danfossFloorMinSetpoint')) {
+                const value = precisionRound(msg.data['danfossFloorMinSetpoint'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('floor_min_setpoint', msg, model, meta)] = value;
+                }
+            }
+            if (msg.data.hasOwnProperty('danfossFloorMaxSetpoint')) {
+                const value = precisionRound(msg.data['danfossFloorMaxSetpoint'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('floor_max_setpoint', msg, model, meta)] = value;
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
     danfoss_icon_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -3047,72 +3086,6 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    E1524_E1810_toggle: {
-        cluster: 'genOnOff',
-        type: 'commandToggle',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: postfixWithEndpointName('toggle', msg, model, meta)};
-        },
-    } satisfies Fz.Converter,
-    ikea_arrow_click: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowSingle',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            if (msg.data.value === 2) {
-                // This is send on toggle hold, ignore it as a toggle_hold is already handled above.
-                return;
-            }
-
-            const direction = msg.data.value === 257 ? 'left' : 'right';
-            return {action: `arrow_${direction}_click`};
-        },
-    } satisfies Fz.Converter,
-    ikea_arrow_hold: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowHold',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = msg.data.value === 3329 ? 'left' : 'right';
-            globalStore.putValue(msg.endpoint, 'direction', direction);
-            return {action: `arrow_${direction}_hold`};
-        },
-    } satisfies Fz.Converter,
-    ikea_arrow_release: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowRelease',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = globalStore.getValue(msg.endpoint, 'direction');
-            if (direction) {
-                globalStore.clearValue(msg.endpoint, 'direction');
-                const duration = msg.data.value / 1000;
-                const result: KeyValueAny = {action: `arrow_${direction}_release`, duration, action_duration: duration};
-                if (!isLegacyEnabled(options)) delete result.duration;
-                return result;
-            }
-        },
-    } satisfies Fz.Converter,
-    E1524_E1810_levelctrl: {
-        cluster: 'genLevelCtrl',
-        type: [
-            'commandStepWithOnOff', 'commandStep', 'commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop',
-            'commandMoveToLevelWithOnOff',
-        ],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup: KeyValueAny = {
-                commandStepWithOnOff: 'brightness_up_click',
-                commandStep: 'brightness_down_click',
-                commandMoveWithOnOff: 'brightness_up_hold',
-                commandStopWithOnOff: 'brightness_up_release',
-                commandMove: 'brightness_down_hold',
-                commandStop: 'brightness_down_release',
-                commandMoveToLevelWithOnOff: 'toggle_hold',
-            };
-            return {action: lookup[msg.type]};
-        },
-    } satisfies Fz.Converter,
     ewelink_action: {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff', 'commandToggle'],
@@ -3193,7 +3166,7 @@ const converters1 = {
             };
 
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`PTM 215ZE: missing command '${commandID}'`);
+                logger.error(`PTM 215ZE: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
             }
@@ -3221,7 +3194,7 @@ const converters1 = {
 
             const ID = `${commandID}_${msg.data.commandFrame.raw?.slice(0, 1).join('_') ?? ''}`;
             if (!lookup.hasOwnProperty(ID)) {
-                meta.logger.error(`PTM 216Z: missing command '${ID}'`);
+                logger.error(`PTM 216Z: missing command '${ID}'`, NS);
             } else {
                 return {action: lookup[ID]};
             }
@@ -3235,33 +3208,6 @@ const converters1 = {
             return {
                 water_leak: (alertStatus & 1<<12) > 0,
             };
-        },
-    } satisfies Fz.Converter,
-    E1E_G7F_action: {
-        cluster: 64528,
-        type: ['raw'],
-        convert: (model, msg, publish, options, meta) => {
-            // A list of commands the sixth digit in the raw data can map to
-            const lookup: KeyValueAny = {
-                1: 'on',
-                2: 'up',
-                // Two outputs for long press. The eighth digit outputs 1 for initial press then 2 for each
-                // LED blink (approx 1 second, repeating until release)
-                3: 'down', // Same as above
-                4: 'off',
-                5: 'on_double',
-                6: 'on_long',
-                7: 'off_double',
-                8: 'off_long',
-            };
-
-            if (msg.data[7] === 2) { // If the 8th digit is 2 (implying long press)
-                // Append '_long' to the end of the action so the user knows it was a long press.
-                // This only applies to the up and down action
-                return {action: `${lookup[msg.data[5]]}_long`};
-            } else {
-                return {action: lookup[msg.data[5]]}; // Just output the data from the above lookup list
-            }
         },
     } satisfies Fz.Converter,
     diyruz_freepad_clicks: {
@@ -3423,7 +3369,7 @@ const converters1 = {
             else if (mode === 0x04) payload.pilot_wire_mode = 'frost_protection';
             else if (mode === 0x05) payload.pilot_wire_mode = 'off';
             else {
-                meta.logger.warn(`Bad mode : ${mode}`);
+                logger.warning(`Bad mode : ${mode}`, NS);
                 payload.pilot_wire_mode = 'unknown';
             }
             return payload;
@@ -3467,7 +3413,7 @@ const converters1 = {
                 0x34: 'stop', 0x35: 'up', 0x36: 'down', // 600087l
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Legrand GreenPower: missing command '${commandID}'`);
+                logger.error(`Legrand GreenPower: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
             }
@@ -3605,35 +3551,6 @@ const converters1 = {
             return payload;
         },
     } satisfies Fz.Converter,
-    tradfri_occupancy: {
-        cluster: 'genOnOff',
-        type: 'commandOnWithTimedOff',
-        options: [exposes.options.occupancy_timeout(), exposes.options.illuminance_below_threshold_check()],
-        convert: (model, msg, publish, options, meta) => {
-            const onlyWhenOnFlag = (msg.data.ctrlbits & 1) != 0;
-            if (onlyWhenOnFlag &&
-                (!options || !options.hasOwnProperty('illuminance_below_threshold_check') ||
-                  options.illuminance_below_threshold_check) &&
-                !globalStore.hasValue(msg.endpoint, 'timer')) return;
-
-            const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
-                Number(options.occupancy_timeout) : msg.data.ontime / 10;
-
-            // Stop existing timer because motion is detected and set a new one.
-            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
-            globalStore.clearValue(msg.endpoint, 'timer');
-
-            if (timeout !== 0) {
-                const timer = setTimeout(() => {
-                    publish({occupancy: false});
-                    globalStore.clearValue(msg.endpoint, 'timer');
-                }, timeout * 1000);
-                globalStore.putValue(msg.endpoint, 'timer', timer);
-            }
-
-            return {occupancy: true, illuminance_above_threshold: onlyWhenOnFlag};
-        },
-    } satisfies Fz.Converter,
     almond_click: {
         cluster: 'ssIasAce',
         type: ['commandArm'],
@@ -3705,7 +3622,7 @@ const converters1 = {
                 if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] == 50 ) {
                     if ((entry.CurrentPosition == -1 && entry.lastPreviousAction == -1) ||
                         entry.lastPreviousAction == 50 ) {
-                        meta.logger.warn(`ZMCSW032D ignore action `);
+                        logger.warning(`ZMCSW032D ignore action`, NS);
                         return;
                     }
                 }
@@ -3793,17 +3710,6 @@ const converters1 = {
             globalStore.putValue(msg.endpoint, 'timer', timer);
 
             return {presence: true};
-        },
-    } satisfies Fz.Converter,
-    E1745_requested_brightness: {
-        // Possible values are 76 (30%) or 254 (100%)
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveToLevelWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                requested_brightness_level: msg.data.level,
-                requested_brightness_percent: mapNumberRange(msg.data.level, 0, 254, 0, 100),
-            };
         },
     } satisfies Fz.Converter,
     heiman_scenes: {
@@ -4286,7 +4192,7 @@ const converters1 = {
                 0x62: 'press_3_and_4', 0x63: 'release_3_and_4', 0x64: 'press_1_and_2', 0x65: 'release_1_and_2',
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Hue Tap: missing command '${commandID}'`);
+                logger.error(`Hue Tap: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
             }
@@ -4480,7 +4386,7 @@ const converters1 = {
 
             result['occupied_heating_setpoint'] = parseFloat(msg.data['setpoint']) / 100.0;
 
-            meta.logger.debug(`received wiser setpoint command with value: '${msg.data['setpoint']}'`);
+            logger.debug(`received wiser setpoint command with value: '${msg.data['setpoint']}'`, NS);
             return result;
         },
     } satisfies Fz.Converter,
@@ -4568,7 +4474,7 @@ const converters1 = {
             if (commandID === 224) return;
             const lookup: KeyValueAny = {0x21: 'press_on', 0x20: 'press_off', 0x34: 'release', 0x35: 'hold_on', 0x36: 'hold_off'};
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Sunricher: missing command '${commandID}'`);
+                logger.error(`Sunricher: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
             }
@@ -4591,7 +4497,7 @@ const converters1 = {
                 0x34: 'release',
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Sunricher: missing command '${commandID}'`);
+                logger.error(`Sunricher: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
             }
@@ -5031,21 +4937,22 @@ const converters2 = {
         convert: async (model, msg, publish, options, meta) => {
             const result = await converters1.thermostat.convert(model, msg, publish, options, meta);
             if (result) {
-                // system_mode is always 'heat', we set it below based on eurotronic_host_flags
-                delete result['system_mode'];
-
                 if (typeof msg.data[0x4003] == 'number') {
                     result.current_heating_setpoint = precisionRound(msg.data[0x4003], 2) / 100;
                 }
                 if (typeof msg.data[0x4008] == 'number') {
-                    result.child_protection = (msg.data[0x4008] & (1 << 7)) != 0;
-                    result.mirror_display = (msg.data[0x4008] & (1 << 1)) != 0;
-                    result.boost = (msg.data[0x4008] & 1 << 2) != 0;
-                    result.window_open = (msg.data[0x4008] & (1 << 4)) != 0;
-
-                    if (result.boost) result.system_mode = constants.thermostatSystemModes[4];
-                    else if (result.window_open) result.system_mode = constants.thermostatSystemModes[0];
-                    else result.system_mode = constants.thermostatSystemModes[1];
+                    result.child_lock = (msg.data[0x4008] & 0x80) != 0 ? 'LOCK' : 'UNLOCK';
+                    result.mirror_display = (msg.data[0x4008] & 0x02) != 0 ? 'ON' : 'OFF';
+                    // This seems broken... We need to write 0x20 to turn it off and 0x10 to set
+                    // it to auto mode. However, when it reports the flag, it will report 0x10
+                    //  when it's off, and nothing at all when it's in auto mode
+                    if ((msg.data[0x4008] & 0x10) != 0) { // reports auto -> setting to force_off
+                        result.system_mode = constants.thermostatSystemModes[0];
+                    } else if ((msg.data[0x4008] & 0x04) != 0) { // always_on
+                        result.system_mode = constants.thermostatSystemModes[4];
+                    } else { // auto
+                        result.system_mode = constants.thermostatSystemModes[1];
+                    }
                 }
                 if (typeof msg.data[0x4002] == 'number') {
                     result.error_status = msg.data[0x4002];
@@ -5204,8 +5111,8 @@ const converters2 = {
                         await msg.endpoint.command('hvacThermostat', 'wiserSmartSetSetpoint', payload,
                             {srcEndpoint: 11, disableDefaultResponse: true});
 
-                        meta.logger.debug(`syncing vact setpoint was: '${result.occupied_heating_setpoint}'` +
-                        ` now: '${meta.state.occupied_heating_setpoint}'`);
+                        logger.debug(`syncing vact setpoint was: '${result.occupied_heating_setpoint}'` +
+                        ` now: '${meta.state.occupied_heating_setpoint}'`, NS);
                     }
                 } else {
                     publish(result);
@@ -5227,7 +5134,7 @@ const converters2 = {
             else if (mode === 0x04) payload.pilot_wire_mode = 'comfort_-1';
             else if (mode === 0x05) payload.pilot_wire_mode = 'comfort_-2';
             else {
-                meta.logger.warn(`wrong mode : ${mode}`);
+                logger.warning(`wrong mode : ${mode}`, NS);
                 payload.pilot_wire_mode = 'unknown';
             }
             return payload;

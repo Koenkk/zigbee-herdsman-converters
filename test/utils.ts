@@ -1,9 +1,9 @@
 import {findByDevice} from '../src/index';
 import * as utils from '../src/lib/utils';
-import {Zh, Logger, DefinitionMeta, Fz, Definition} from '../src/lib/types';
+import {Zh, DefinitionMeta, Fz, Definition} from '../src/lib/types';
 import tz from '../src/converters/toZigbee';
 import { Device } from 'zigbee-herdsman/dist/controller/model';
-import {Cluster} from 'zigbee-herdsman/dist/zcl'
+import {Clusters} from 'zigbee-herdsman/dist/zspec/zcl/definition/cluster';
 
 interface MockEndpointArgs {ID?: number, inputClusters?: string[], outputClusters?: string[], attributes?: {[s: string]: {[s: string]: unknown}}}
 
@@ -33,7 +33,7 @@ export function mockDevice(args: {modelID: string, manufacturerID?: number, manu
 }
 
 function getCluster(ID: string | number) {
-    const cluster = Object.entries(Cluster).find((c) => typeof ID === 'number' ? c[1].ID === ID : c[0] === ID);
+    const cluster = Object.entries(Clusters).find((c) => typeof ID === 'number' ? c[1].ID === ID : c[0] === ID);
     if (!cluster) throw new Error(`Cluster '${ID}' does not exist`);
     return {name: cluster[0], ID: cluster[1].ID};
 }
@@ -63,8 +63,6 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
     };
 }
 
-const MockLogger: Logger = {info: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn()};
-
 const DefaultTz = [
     tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, 
     tz.scene_rename, tz.read, tz.write, tz.command, tz.factory_reset, tz.zcl_command,
@@ -87,7 +85,7 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
     const coordinatorEndpoint = mockEndpoint({}, undefined);
     const definition = await args.findByDeviceFn(args.device);
 
-    await definition.configure?.(args.device, coordinatorEndpoint, MockLogger);
+    await definition.configure?.(args.device, coordinatorEndpoint, definition);
 
     const logIfNotEqual = (expected: string[], actual: string[]) => {
         if (JSON.stringify(expected) !== JSON.stringify(actual)) {
