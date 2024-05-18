@@ -9,6 +9,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vrjkcam9'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_d0ypnbvn'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_v5xjyphj'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_d0ypnbvn'}],
         model: 'PF-PM02D-TYZ',
         vendor: 'IOTPerfect',
