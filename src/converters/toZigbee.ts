@@ -3542,7 +3542,7 @@ const converters2 = {
         key: ['scene_store'],
         convertSet: async (entity, key, value: KeyValueAny, meta) => {
             const isGroup = utils.isGroup(entity);
-            const groupid = isGroup ? entity.groupID : value.hasOwnProperty('group_id') ? value.group_id : 0;
+            const groupid = isGroup ? entity.groupID : (value.group_id != undefined ? value.group_id : 0);
             let sceneid = value;
             let scenename = null;
             if (typeof value === 'object') {
@@ -3551,10 +3551,11 @@ const converters2 = {
             }
 
             utils.assertNumber(sceneid, 'ID');
-            if (sceneid < 1) {
-                // Don't allow ID 0, from the spec:
+
+            if (groupid === 0 && sceneid === 0) {
+                // From Zigbee spec:
                 // "Scene identifier 0x00, along with group identifier 0x0000, is reserved for the global scene used by the OnOff cluster"
-                throw new Error('ID must be at least 1');
+                throw new Error('Scene ID 0 cannot be used with group ID 0 (reserved).');
             }
 
             const response = await entity.command('genScenes', 'store', {groupid, sceneid}, utils.getOptions(meta.mapped, entity));
@@ -3639,26 +3640,23 @@ const converters2 = {
         key: ['scene_add'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertObject(value);
+            utils.assertNumber(value.ID, 'ID');
 
-            if (!value.hasOwnProperty('ID')) {
-                throw new Error('Payload missing ID.');
-            }
-
-            if (value.ID < 1) {
-                // Don't allow ID 0, from the spec:
-                // "Scene identifier 0x00, along with group identifier 0x0000, is reserved for the global scene used by the OnOff cluster"
-                throw new Error('ID must be at least 1');
-            }
-
-            if (value.hasOwnProperty('color_temp') && value.hasOwnProperty('color')) {
+            if (value.color_temp != undefined && value.color != undefined) {
                 throw new Error(`Don't specify both 'color_temp' and 'color'`);
             }
 
             const isGroup = utils.isGroup(entity);
-            const groupid = isGroup ? entity.groupID : value.hasOwnProperty('group_id') ? value.group_id : 0;
+            const groupid = isGroup ? entity.groupID : (value.group_id != undefined ? value.group_id : 0);
             const sceneid = value.ID;
             const scenename = value.name;
-            const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
+            const transtime = value.transition != undefined ? value.transition : 0;
+
+            if (groupid === 0 && sceneid === 0) {
+                // From Zigbee spec:
+                // "Scene identifier 0x00, along with group identifier 0x0000, is reserved for the global scene used by the OnOff cluster"
+                throw new Error('Scene ID 0 cannot be used with group ID 0 (reserved).');
+            }
 
             const state: KeyValueAny = {};
             const extensionfieldsets = [];
