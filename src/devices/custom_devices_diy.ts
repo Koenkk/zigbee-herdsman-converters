@@ -324,9 +324,9 @@ const definitions: Definition[] = [
                     if (epId <= 0) {
                         continue;
                     }
-                    if(epId < 10) {
+                    if (epId < 10) {
                         epConfig = '0' + epConfig;
-                    }                    
+                    }
                     allEndpoints[epId] = '1';
                     allEndpointsSorted.push(epConfig);
                 }
@@ -336,7 +336,7 @@ const definitions: Definition[] = [
                         continue;
                     }
                     epConfig = endpoint.ID.toString();
-                    if(endpoint.ID < 10) {
+                    if (endpoint.ID < 10) {
                         epConfig = '0' + epConfig;
                     }
                     allEndpointsSorted.push(epConfig);
@@ -357,7 +357,7 @@ const definitions: Definition[] = [
                     let valueDescription = (valueConfigItems[1])? valueConfigItems[1]: '';
                     let valueUnit = (valueConfigItems[2] !== undefined)? valueConfigItems[2]: '';
                     if (!exposeDeviceOptions.hasOwnProperty(epName)) {
-                        exposeDeviceOptions[epName] = {}
+                        exposeDeviceOptions[epName] = {};
                     }
                     const exposeEpOptions: KeyValueAny = exposeDeviceOptions[epName];
                     if (valueId === '*') {
