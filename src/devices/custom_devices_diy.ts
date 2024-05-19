@@ -3,7 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import {Definition, Tz, Fz, KeyValue, Zh, Expose} from '../lib/types';
+import {Definition, Tz, Fz, KeyValue, KeyValueAny, Zh, Expose} from '../lib/types';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
 const e = exposes.presets;
@@ -178,7 +178,7 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     const epId = endpoint.ID;
     const epName = `l${epId}`;
     if (endpoint.supportsInputCluster('lightingColorCtrl')) {
-        expose.push(e.light_brightness_colorxy().withEndpoint('l1').withEndpoint(epName));
+        expose.push(e.light_brightness_colorxy().withEndpoint(epName));
         options['exposed_onoff'] = true;
         options['exposed_analog'] = true;
         options['exposed_colorcontrol'] = true;
@@ -188,7 +188,7 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
         options['exposed_analog'] = true;
         options['exposed_levelcontrol'] = true;
     }
-    if (endpoint.supportsInputCluster('genOnOff') || endpoint.supportsOutputCluster('genOnOff')) {
+    if (endpoint.supportsInputCluster('genOnOff')) {
         if (!options['exposed_onoff']) {
             expose.push(e.switch().withEndpoint(epName));
         }
@@ -219,12 +219,17 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
         expose.push(e.pm25().withEndpoint(epName));
     }
     if (endpoint.supportsInputCluster('haElectricalMeasurement')) {
-        expose.push(e.voltage().withEndpoint(epName));
-        expose.push(e.current().withEndpoint(epName));
-        expose.push(e.power().withEndpoint(epName));
+        // haElectricalMeasurement may expose only one value defined explicitly
+        if (!(options['exposed_voltage'] || options['exposed_current'] || options['exposed_power'])) {
+            expose.push(e.voltage().withEndpoint(epName));
+            expose.push(e.current().withEndpoint(epName));
+            expose.push(e.power().withEndpoint(epName));
+        }
     }
     if (endpoint.supportsInputCluster('seMetering')) {
-        expose.push(e.energy().withEndpoint(epName));
+        if (!options['exposed_energy']) {
+            expose.push(e.energy().withEndpoint(epName));
+        }
     }
     if (endpoint.supportsInputCluster('genPowerCfg')) {
         deviceOptions['expose_battery'] = true;
@@ -312,42 +317,49 @@ const definitions: Definition[] = [
                 const deviceConfigArray = deviceConfig.split(/[\r\n]+/);
                 const allEndpoints: { [key: number]: string } = {};
                 const allEndpointsSorted = [];
+                let epConfig;
                 for (let i = 0; i < deviceConfigArray.length; i++) {
-                    const epConfig = deviceConfigArray[i];
+                    epConfig = deviceConfigArray[i];
                     const epId = parseInt(epConfig.substr(0, 1), 16);
                     if (epId <= 0) {
                         continue;
                     }
-                    allEndpoints[epId] = epConfig;
-                    allEndpointsSorted.push(epId);
+                    if (epId < 10) {
+                        epConfig = '0' + epConfig;
+                    }
+                    allEndpoints[epId] = '1';
+                    allEndpointsSorted.push(epConfig);
                 }
 
                 for (const endpoint of device.endpoints) {
                     if (allEndpoints.hasOwnProperty(endpoint.ID)) {
                         continue;
                     }
-                    allEndpointsSorted.push(endpoint.ID);
-                    allEndpoints[endpoint.ID] = '';
+                    epConfig = endpoint.ID.toString();
+                    if (endpoint.ID < 10) {
+                        epConfig = '0' + epConfig;
+                    }
+                    allEndpointsSorted.push(epConfig);
                 }
                 allEndpointsSorted.sort();
 
-                let prevEp = -1;
                 for (let i = 0; i < allEndpointsSorted.length; i++) {
-                    const epId = allEndpointsSorted[i];
-                    const epConfig = allEndpoints[epId];
-                    if (epId <= 0) {
-                        continue;
-                    }
+                    epConfig = allEndpointsSorted[i];
+                    const epId = parseInt(epConfig.substr(0, 2), 10);
+                    epConfig = epConfig.substring(2);
                     const epName = `l${epId}`;
-                    const epValueAccessRights = epConfig.substr(1, 1);
+                    const epValueAccessRights = epConfig.substr(0, 1);
                     const epStateType = ((epValueAccessRights === 'W') || (epValueAccessRights === '*'))?
                         ea.STATE_SET: ea.STATE;
-                    const valueConfig = epConfig.substr(2);
+                    const valueConfig = epConfig.substr(1);
                     const valueConfigItems = (valueConfig)? valueConfig.split(','): [];
                     let valueId = (valueConfigItems[0])? valueConfigItems[0]: '';
                     let valueDescription = (valueConfigItems[1])? valueConfigItems[1]: '';
                     let valueUnit = (valueConfigItems[2] !== undefined)? valueConfigItems[2]: '';
-                    const exposeEpOptions: KeyValue = {};
+                    if (!exposeDeviceOptions.hasOwnProperty(epName)) {
+                        exposeDeviceOptions[epName] = {};
+                    }
+                    const exposeEpOptions: KeyValueAny = exposeDeviceOptions[epName];
                     if (valueId === '*') {
                         // GPIO output (Generic)
                         exposeEpOptions['exposed_onoff'] = true;
@@ -406,6 +418,9 @@ const definitions: Definition[] = [
                         if ((valueName === undefined) && valueNumIndex) {
                             valueName = 'val' + valueNumIndex;
                         }
+                        if (valueName) {
+                            exposeEpOptions['exposed_' + valueName] = true;
+                        }
 
                         valueName = (valueName === undefined)? epName: valueName + '_' + epName;
 
@@ -434,12 +449,14 @@ const definitions: Definition[] = [
                             .withDescription(valueDescription)
                             .withUnit(valueUnit));
                     }
-                    const endpoint = device.getEndpoint(epId);
-                    if (!endpoint) {
-                        continue;
-                    }
-                    if (prevEp !== epId) {
-                        prevEp = epId;
+
+                    const epConfigNext = allEndpointsSorted[i + 1] || '-1';
+                    const epIdNext = parseInt(epConfigNext.substr(0, 2), 10);
+                    if (epIdNext !== epId) {
+                        const endpoint = device.getEndpoint(epId);
+                        if (!endpoint) {
+                            continue;
+                        }
                         ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
                     }
                 }
