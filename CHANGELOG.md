@@ -1,5 +1,22 @@
 # Changelog
 
+## [19.41.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.40.0...v19.41.0) (2024-05-18)
+
+
+### Features
+
+* **add:** RB 267 ([#7527](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7527)) ([010319f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/010319fc669fbdc2d7ef9ad3aa12ee4f3c540a0e))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZB210_417ikxay` as MiBoxer FUT037Z+ https://github.com/Koenkk/zigbee2mqtt/issues/21659 ([668db65](https://github.com/Koenkk/zigbee-herdsman-converters/commit/668db653c96ee23be0d9abe0ef3417e4bb007b06))
+* **detect:** Detect `_TZE204_v5xjyphj` as IOTPerfect PF-PM02D-TYZ https://github.com/Koenkk/zigbee2mqtt/issues/22664 ([945ec3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/945ec3fe7e66d3f0a2c8a3f0af4ceb51c87328a5))
+* **detect:** Detect `YRD410 PB` as Yale YRD410-BLE ([#7526](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7526)) ([fb8969c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fb8969c4961223b69a1a12d0dc5e8a4c625d0fba))
+* Fix cannot find manuSpecificUbisysDeviceSetup ([#7532](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7532)) ([5f82043](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5f82043add431ed0eb9b40b728db480d46911f23))
+* Fix ID checks for scene/group 0 ([#7529](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7529)) ([92b9918](https://github.com/Koenkk/zigbee-herdsman-converters/commit/92b9918a0a74c9d104a4a5a96f4547ddc039854a))
+* Improvements for Aqara Spotlight T3 ([#7530](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7530)) ([c831f5c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c831f5cf0ad04fa0965ef9f657d289131eb3a943))
+
 ## [19.40.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.39.0...v19.40.0) (2024-05-15)
 
 

@@ -311,7 +311,7 @@ const ubisys = {
             key: ['configure_device_setup'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const devMgmtEp = meta.device.getEndpoint(232);
-                const cluster = Zcl.Utils.getCluster('manuSpecificUbisysDeviceSetup', null, {});
+                const cluster = Zcl.Utils.getCluster('manuSpecificUbisysDeviceSetup', null, meta.device.customClusters);
                 const attributeInputConfigurations = cluster.getAttribute('inputConfigurations');
                 const attributeInputActions = cluster.getAttribute('inputActions');
 
