@@ -5510,7 +5510,7 @@ const definitions: Definition[] = [
         vendor: '_TZE608_c75zqghm',
         extend: [],
         meta: {
-            tuyaDatapoints: [[3, 'garage_door_contact', tuya.valueConverter.trueFalseInvert]]
+            tuyaDatapoints: [[3, 'garage_door_contact', tuya.valueConverter.trueFalseInvert],],
         },
         description: 'Garage door opener',
         configure: async (device, coordinatorEndpoint) => {
@@ -5518,10 +5518,11 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
-        fromZigbee: [legacy.fromZigbee.matsee_garage_door_opener, fz.ignore_basic_report, tuya.fz.datapoints], // We will add this later
-        toZigbee: [legacy.toZigbee.matsee_garage_door_opener, legacy.toZigbee.tuya_data_point_test, tuya.tz.datapoints], // Should be empty, unless device can be controlled (e.g. lights, switches).
+        fromZigbee: [legacy.fromZigbee.matsee_garage_door_opener, fz.ignore_basic_report, tuya.fz.datapoints],
+        toZigbee: [legacy.toZigbee.matsee_garage_door_opener, legacy.toZigbee.tuya_data_point_test, tuya.tz.datapoints],
         exposes: [e.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
-        e.binary('garage_door_contact', ea.STATE, true, false).withDescription('Indicates if the garage door contact is closed (= true) or open (= false)')], // Defines what this device exposes, used for e.g. Home Assistant discovery and in the frontend
+            e.binary('garage_door_contact', ea.STATE, true, false)
+                .withDescription('Indicates if the garage door contact is closed (= true) or open (= false)')],
     },
     {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_qaaysllp'}],
