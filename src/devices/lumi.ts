@@ -2711,6 +2711,14 @@ const definitions: Definition[] = [
             lumiAction({actionLookup: {'hold': 0, 'single': 1, 'double': 2, 'release': 255}}),
             lumiBattery({voltageToPercentage: '3V_2850_3000'}),
             lumiKnobRotation(),
+            enumLookup({
+                name: 'sensitivity',
+                lookup: {'low': 720, 'medium': 360, 'high': 180},
+                cluster: 'manuSpecificLumi',
+                attribute: {ID: 0x0234, type: 0x21},
+                description: 'Rotation sensitivity',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
         ],
     },
     {

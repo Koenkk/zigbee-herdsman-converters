@@ -12,7 +12,9 @@ import * as utils from '../lib/utils';
 import * as constants from '../lib/constants';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
-import {Tz, Fz, Definition, KeyValue, ModernExtend} from '../lib/types';
+import {
+    Tz, Fz, Definition, KeyValue, ModernExtend, Expose,
+} from '../lib/types';
 import {logger} from '../lib/logger';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -288,19 +290,19 @@ const boschExtend = {
             'error': 3,
             'success': 4,
         };
-        const exposes = e.binary('valve_adapt_process', ea.ALL, true, false)
-            .withLabel('Trigger adaptation process')
-            .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
-            'is "ready_to_calibrate" or "error".')
-            .withCategory('config');
+        const exposes: Expose[] = [
+            e.binary('valve_adapt_process', ea.ALL, true, false)
+                .withLabel('Trigger adaptation process')
+                .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
+                'is "ready_to_calibrate" or "error".').withCategory('config'),
+        ];
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'hvacThermostat',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                const data = msg.data;
-                if (data.hasOwnProperty('valveAdaptStatus')) {
-                    if (data['valveAdaptStatus'] === adaptationStatus.calibration_in_progress) {
+                if (msg.data.hasOwnProperty('valveAdaptStatus')) {
+                    if (msg.data['valveAdaptStatus'] === adaptationStatus.calibration_in_progress) {
                         result.valve_adapt_process = true;
                     } else {
                         result.valve_adapt_process = false;
@@ -330,7 +332,7 @@ const boschExtend = {
             },
         }];
         return {
-            exposes: [exposes],
+            exposes,
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -342,9 +344,8 @@ const boschExtend = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                const data = msg.data;
-                if (data.hasOwnProperty('heatingDemand')) {
-                    const demand = data['heatingDemand'] as number;
+                if (msg.data.hasOwnProperty('heatingDemand')) {
+                    const demand = msg.data['heatingDemand'] as number;
                     result.pi_heating_demand = demand;
                     result.running_state = demand > 0 ? 'heat' : 'idle';
                 }
@@ -392,6 +393,48 @@ const boschExtend = {
             },
         }];
         return {
+            fromZigbee,
+            isModernExtend: true,
+        };
+    },
+    doorWindowContact: (hasVibrationSensor?: boolean): ModernExtend => {
+        const exposes: Expose[] = [
+            e.binary('contact', ea.STATE, false, true)
+                .withDescription('Indicates whether the device is opened or closed'),
+            e.enum('action', ea.STATE, ['none', 'single', 'long'])
+                .withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic'),
+        ];
+        if (hasVibrationSensor) {
+            exposes.push(e.binary('vibration', ea.STATE, true, false)
+                .withDescription('Indicates whether the device detected vibration'));
+        }
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'ssIasZone',
+            type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty('zoneStatus') || msg.data.hasOwnProperty('zonestatus')) {
+                    const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+                    const lookup: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
+                    const result: KeyValue = {
+                        contact: !((zoneStatus & 1) > 0),
+                        vibration: (zoneStatus & 1<<1) > 0,
+                        tamper: (zoneStatus & 1 << 2) > 0,
+                        battery_low: (zoneStatus & 1 << 3) > 0,
+                        supervision_reports: (zoneStatus & 1 << 4) > 0,
+                        restore_reports: (zoneStatus & 1 << 5) > 0,
+                        trouble: (zoneStatus & 1 << 6) > 0,
+                        ac_status: (zoneStatus & 1 << 7) > 0,
+                        test: (zoneStatus & 1 << 8) > 0,
+                        battery_defect: (zoneStatus & 1 << 9) > 0,
+                        action: lookup[(zoneStatus >> 11) & 3],
+                    };
+                    if (result.action === 'none') delete result.action;
+                    return result;
+                }
+            },
+        }];
+        return {
+            exposes,
             fromZigbee,
             isModernExtend: true,
         };
@@ -756,22 +799,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
-    bosch_contact: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            const lookup: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
-            const result = {
-                contact: !((zoneStatus & 1) > 0),
-                vibration: (zoneStatus & 1<<1) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-                action: lookup[(zoneStatus >> 11) & 3],
-            };
-            if (result.action === 'none') delete result.action;
-            return result;
-        },
-    } satisfies Fz.Converter,
     bosch_twinguard_sensitivity: {
         cluster: 'manuSpecificBosch',
         type: ['attributeReport', 'readResponse'],
@@ -997,24 +1024,24 @@ const definitions: Definition[] = [
                 'boschSpecific',
                 {
                     ID: 0xfcac,
+                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                     attributes: {
                         alarmOnMotion: {
                             ID: 0x0003,
                             type: Zcl.DataType.BOOLEAN,
-                            manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                         },
                     },
                     commands: {},
                     commandsResponse: {},
                 },
             ),
-            battery({
-                percentage: true,
-                lowStatus: true,
-            }),
             iasZoneAlarm({
                 zoneType: 'water_leak',
                 zoneAttributes: ['tamper'],
+            }),
+            battery({
+                percentage: true,
+                lowStatus: true,
             }),
             binary({
                 name: 'alarm_on_motion',
@@ -1237,9 +1264,9 @@ const definitions: Definition[] = [
         exposes: [
             e.climate()
                 .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.1)
+                .withSetpoint('occupied_heating_setpoint', 4.5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 4.5, 30, 0.5)
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool']),
         ],
@@ -1310,9 +1337,9 @@ const definitions: Definition[] = [
         exposes: [
             e.climate()
                 .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.1)
+                .withSetpoint('occupied_heating_setpoint', 4.5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 4.5, 30, 0.5)
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool']),
         ],
@@ -1464,51 +1491,48 @@ const definitions: Definition[] = [
         model: 'BSEN-C2',
         vendor: 'Bosch',
         description: 'Door/window contact II',
-        fromZigbee: [
-            fz.battery,
-            fzLocal.bosch_contact,
-        ],
+        exposes: [],
+        fromZigbee: [],
         toZigbee: [],
+        extend: [
+            boschExtend.doorWindowContact(false),
+            battery({
+                percentage: true,
+                lowStatus: true,
+            }),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'genPollCtrl',
-            ]);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read('ssIasZone', ['zoneStatus']);
         },
-        exposes: [
-            e.battery(),
-            e.battery_low(),
-            e.contact(),
-            e.action(['single', 'long']),
-        ],
     },
     {
         zigbeeModel: ['RBSH-SWDV-ZB'],
         model: 'BSEN-CV',
         vendor: 'Bosch',
         description: 'Door/window contact II plus',
-        fromZigbee: [
-            fz.battery,
-            fzLocal.bosch_contact,
-        ],
+        exposes: [],
+        fromZigbee: [],
         toZigbee: [],
+        extend: [
+            boschExtend.doorWindowContact(true),
+            battery({
+                percentage: true,
+                lowStatus: true,
+            }),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'genPollCtrl',
-            ]);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read('ssIasZone', ['zoneStatus']);
         },
-        exposes: [
-            e.battery(),
-            e.battery_low(),
-            e.contact(),
-            e.vibration(),
-            e.action(['single', 'long']),
-        ],
     },
     {
         zigbeeModel: ['RBSH-MMD-ZB-EU'],
