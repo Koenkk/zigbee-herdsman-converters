@@ -857,6 +857,39 @@ const definitions: Definition[] = [
             }),
         ],
     },
+    {
+        zigbeeModel: ['TCM-300Z'],
+        model: 'TCM-300Z',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS Zigbee Thermostat',
+        fromZigbee: [fz.thermostat, fz.hvac_user_interface],
+        toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_ac_louver_position, tz.thermostat_local_temperature,
+            tz.thermostat_keypad_lockout],
+        exposes: [e.climate().withSystemMode(['off', 'heat', 'cool'])
+                             .withLocalTemperature()
+                             .withSetpoint('occupied_heating_setpoint', 10, 70, 0.5)
+                             .withSetpoint('occupied_cooling_setpoint', 10, 70, 0.5),
+                  e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1', 'lock2', 'lock3'])
+                             .withDescription('Enables or disables the device’s buttons.  ' +
+                                              'Lock1 locks the temperature setting and the cooling/heating mode button input.  ' +
+                                              'Lock2 locks the power button input.  ' +
+                                              'Lock3 locks all button inputs.')
+                 ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacUserInterfaceCfg']);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
+            await reporting.thermostatTemperature(endpoint, {min: 10, max: 600, change: 0.1});
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: 600});
+            await reporting.thermostatKeypadLockMode(endpoint, {min: 0, max: 600});
+            await endpoint.read('hvacThermostat', ['systemMode', 'occupiedHeatingSetpoint', 
+                            'occupiedCoolingSetpoint', 'localTemp']);
+            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
+        },
+    },
 ];
 
 export default definitions;
