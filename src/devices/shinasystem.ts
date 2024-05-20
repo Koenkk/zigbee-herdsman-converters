@@ -877,7 +877,7 @@ const definitions: Definition[] = [
                                              'Lock1 locks the temperature setting and the cooling/heating mode button input.  ' +
                                              'Lock2 locks the power button input.  ' +
                                              'Lock3 locks all button inputs.'),
-        ],    
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
