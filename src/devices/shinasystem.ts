@@ -864,7 +864,7 @@ const definitions: Definition[] = [
         description: 'SiHAS Zigbee Thermostat',
         fromZigbee: [fz.thermostat, fz.hvac_user_interface],
         toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_ac_louver_position, tz.thermostat_local_temperature,
+            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature,
             tz.thermostat_keypad_lockout],
         exposes: [
             e.climate()
