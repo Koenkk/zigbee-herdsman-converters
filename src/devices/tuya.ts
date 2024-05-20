@@ -5510,7 +5510,11 @@ const definitions: Definition[] = [
         vendor: '_TZE608_c75zqghm',
         extend: [],
         meta: {
-            tuyaDatapoints: [[3, 'garage_door_contact', tuya.valueConverter.trueFalseInvert],],
+            tuyaDatapoints: [
+                [1, null, null],
+                [3, 'garage_door_contact', tuya.valueConverter.trueFalseInvert],
+                [12, null, null],
+            ],
         },
         description: 'Garage door opener',
         configure: async (device, coordinatorEndpoint) => {
