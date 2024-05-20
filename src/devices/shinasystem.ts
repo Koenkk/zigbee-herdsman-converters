@@ -861,7 +861,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['TCM-300Z'],
         model: 'TCM-300Z',
         vendor: 'ShinaSystem',
-        description: 'SiHAS Zigbee Thermostat',
+        description: 'SiHAS Zigbee thermostat',
         fromZigbee: [fz.thermostat, fz.hvac_user_interface],
         toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature,
