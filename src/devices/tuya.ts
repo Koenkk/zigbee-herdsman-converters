@@ -589,7 +589,8 @@ const fzLocal = {
                 result['max_brightness'] = utils.mapNumberRange(msg.data['64516'], 0, 1000, 1, 255);
             }
             if (msg.data.hasOwnProperty('61440')) {
-                result['brightness'] = utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255);
+                const propertyName = utils.postfixWithEndpointName('brightness', msg, model, meta);
+                result[propertyName] = utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255);
             }
             return result;
         },
@@ -6305,7 +6306,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: '1 channel dimmer',
         extend: [light({powerOnBehavior: false, configureReporting: true})],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E],
+        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E, fz.on_off],
         toZigbee: [tzLocal.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tzLocal.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],
         configure: tuya.configureMagicPacket,
