@@ -5371,7 +5371,10 @@ const definitions: Definition[] = [
         toZigbee: [tz.TS0210_sensitivity],
         exposes: [e.battery(), e.battery_voltage(), e.vibration(),
             e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(50)
-                .withDescription('Sensitivty of the sensor, press button on the device right before changing this')],
+                .withDescription(
+                    'Sensitivty of the sensor (0 = highest sensitivity, 50 = lowest sensitivity). ' +
+                    'Press button on the device right before changing this',
+                )],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8ply8mjj']),
