@@ -136,7 +136,7 @@ const definitions: Definition[] = [
         description: 'Smart Power Socket 10A (with power monitoring)',
         extend: [
             onOff({powerOnBehavior: false}),
-            electricityMeter({cluster: 'honyar'}),
+            electricityMeter({cluster: 'honyar', current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}}),
         ],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
