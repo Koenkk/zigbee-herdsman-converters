@@ -589,7 +589,8 @@ const fzLocal = {
                 result['max_brightness'] = utils.mapNumberRange(msg.data['64516'], 0, 1000, 1, 255);
             }
             if (msg.data.hasOwnProperty('61440')) {
-                result['brightness'] = utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255);
+                const propertyName = utils.postfixWithEndpointName('brightness', msg, model, meta);
+                result[propertyName] = utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255);
             }
             return result;
         },
@@ -5370,7 +5371,10 @@ const definitions: Definition[] = [
         toZigbee: [tz.TS0210_sensitivity],
         exposes: [e.battery(), e.battery_voltage(), e.vibration(),
             e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(50)
-                .withDescription('Sensitivty of the sensor, press button on the device right before changing this')],
+                .withDescription(
+                    'Sensitivty of the sensor (0 = highest sensitivity, 50 = lowest sensitivity). ' +
+                    'Press button on the device right before changing this',
+                )],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8ply8mjj']),
@@ -6305,7 +6309,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: '1 channel dimmer',
         extend: [light({powerOnBehavior: false, configureReporting: true})],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E],
+        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E, fz.on_off],
         toZigbee: [tzLocal.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tzLocal.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],
         configure: tuya.configureMagicPacket,

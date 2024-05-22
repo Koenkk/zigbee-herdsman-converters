@@ -1484,6 +1484,34 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['WDE011680'],
+        model: 'WDE011680',
+        vendor: 'Schneider Electric',
+        description: 'Smart thermostat',
+        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fz.wiser_device_info, fz.hvac_user_interface, fz.temperature],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.thermostat_local_temperature, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode,
+            tz.schneider_thermostat_keypad_lockout, tz.thermostat_temperature_display_mode],
+        exposes: [e.binary('keypad_lockout', ea.STATE_SET, 'lock1', 'unlock')
+            .withDescription('Enables/disables physical input on the device'),
+        e.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
+        e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+            .withDescription('The temperature format displayed on the thermostat screen'),
+        e.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
+            .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand(),
+        e.temperature()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['hvacThermostat']);
+            await reporting.thermostatPIHeatingDemand(endpoint1);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint2);
+            await endpoint1.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
+        },
+    },
+    {
         zigbeeModel: ['2GANG/ESWITCH/2'],
         model: 'MEG5126-0300_MEG5152-0000',
         vendor: 'Schneider Electric',

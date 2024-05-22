@@ -6,7 +6,7 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_yenbr4om'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_yenbr4om'}, {modelID: 'TS0601', manufacturerName: '_TZE204_bdblidq3'}],
         model: 'BSEED_TS0601_cover',
         vendor: 'BSEED',
         description: 'Zigbee curtain switch',
