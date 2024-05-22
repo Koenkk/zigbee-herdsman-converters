@@ -17,6 +17,13 @@ function mullerLichtLight(args: LightArgs) {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['tint-Spotlights'],
+        model: '404051',
+        vendor: 'Müller Licht',
+        description: 'Tint LED-Spotlights, white+color 3x (1800-6500K+RGB) 19W',
+        extend: [mullerLichtLight({colorTemp: {range: [153, 556]}, color: true})],
+    },
+    {
         zigbeeModel: ['tint-ExtendedColor'],
         model: '404036/45327/45317/45328',
         vendor: 'Müller Licht',
