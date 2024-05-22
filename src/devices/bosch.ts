@@ -88,14 +88,6 @@ const stateOffOn = {
     'ON': 1,
 };
 
-// Smoke detector II BSD-2
-const broadcastAlarmState: KeyValue = {
-    'smoke_off': 0x0000,
-    'smoke_on': 0x3c00,
-    'burglar_off': 0x0001,
-    'burglar_on': 0xb401,
-};
-
 // Universal Switch II
 const buttonMap: {[key: string]: number} = {
     config_led_top_left_press: 0x10,
@@ -136,7 +128,7 @@ const boschExtend = {
     hvacThermostatCluster: () => deviceAddCustomCluster(
         'hvacThermostat',
         {
-            ID: 0x201,
+            ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
                 operatingMode: {
                     ID: 0x4007,
@@ -181,7 +173,7 @@ const boschExtend = {
     hvacUserInterfaceCfgCluster: () => deviceAddCustomCluster(
         'hvacUserInterfaceCfg',
         {
-            ID: 0x204,
+            ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
             attributes: {
                 displayOrientation: {
                     ID: 0x400b,
@@ -432,11 +424,9 @@ const boschExtend = {
         const exposes: Expose[] = [
             e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
             e.binary('test', ea.STATE, true, false).withDescription('Indicates whether the device is currently performing a test')
-            .withCategory('diagnostic'),
-            e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm siren')
-            .withCategory('config'),
-            e.binary('alarm_burglar', ea.ALL, 'ON', 'OFF').withDescription('Toggle the burglar alarm siren')
-            .withCategory('config'),
+                .withCategory('diagnostic'),
+            e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm siren').withCategory('config'),
+            e.binary('alarm_burglar', ea.ALL, 'ON', 'OFF').withDescription('Toggle the burglar alarm siren').withCategory('config'),
         ];
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'ssIasZone',
@@ -473,13 +463,13 @@ const boschExtend = {
             },
             convertGet: async (entity, key, meta) => {
                 switch (key) {
-                    case 'alarm_smoke':
-                    case 'alarm_burglar':
-                    case 'zone_status':
-                        await entity.read('ssIasZone', ['zoneStatus']);
-                        break;
-                    default:
-                        throw new Error(`Unhandled key boschExtend.smokeAlarm.toZigbee.convertGet ${key}`);
+                case 'alarm_smoke':
+                case 'alarm_burglar':
+                case 'zone_status':
+                    await entity.read('ssIasZone', ['zoneStatus']);
+                    break;
+                default:
+                    throw new Error(`Unhandled key boschExtend.smokeAlarm.toZigbee.convertGet ${key}`);
                 }
             },
         }];
@@ -490,23 +480,40 @@ const boschExtend = {
             isModernExtend: true,
         };
     },
+    broadcastAlarm: (): ModernExtend => {
+        const sirenState: KeyValue = {
+            'smoke_off': 0x0000,
+            'smoke_on': 0x3c00,
+            'burglar_off': 0x0001,
+            'burglar_on': 0xb401,
+        };
+        const exposes: Expose[] = [
+            e.enum('broadcast_alarm', ea.SET, Object.keys(sirenState))
+                .withDescription('Set siren state of all BSD-2 via broadcast').withCategory('config'),
+        ];
+        const toZigbee: Tz.Converter[] = [{
+            key: ['broadcast_alarm'],
+            convertSet: async (entity, key, value, meta) => {
+                if (key === 'broadcast_alarm') {
+                    const index = utils.getFromLookup(value, sirenState);
+                    utils.assertEndpoint(entity);
+                    await entity.zclCommandBroadcast(
+                        255, ZSpec.BroadcastAddress.SLEEPY,
+                        Zcl.Clusters.ssIasZone.ID, 'boschSmokeAlarmSiren',
+                        {data: index}, manufacturerOptions,
+                    );
+                    return;
+                }
+            },
+        }];
+        return {
+            exposes,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 const tzLocal = {
-    broadcast_alarm: {
-        key: ['broadcast_alarm'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'broadcast_alarm') {
-                const index = utils.getFromLookup(value, broadcastAlarmState);
-                utils.assertEndpoint(entity);
-                await entity.zclCommandBroadcast(
-                    255, ZSpec.BroadcastAddress.SLEEPY,
-                    Zcl.Clusters.ssIasZone.ID, 'boschSmokeDetectorSiren',
-                    {data: index}, manufacturerOptions,
-                );
-                return;
-            }
-        },
-    } satisfies Tz.Converter,
     rbshoszbeu: {
         key: ['light_delay', 'siren_delay', 'light_duration', 'siren_duration', 'siren_volume', 'alarm_state', 'power_source', 'siren_and_light'],
         convertSet: async (entity, key, value, meta) => {
@@ -1061,23 +1068,19 @@ const definitions: Definition[] = [
         model: 'BSD-2',
         vendor: 'Bosch',
         description: 'Smoke alarm II',
-        exposes: [
-            e.enum('broadcast_alarm', ea.SET, Object.keys(broadcastAlarmState)).withDescription('Set alarm state of all BSD-2 via broadcast'),
-        ],
+        exposes: [],
         fromZigbee: [],
-        toZigbee: [
-            tzLocal.broadcast_alarm,
-        ],
+        toZigbee: [],
         extend: [
             deviceAddCustomCluster(
                 'ssIasZone',
                 {
-                    ID: 1280,
+                    ID: Zcl.Clusters.ssIasZone.ID,
                     attributes: {},
                     commands: {
                         boschSmokeAlarmSiren: {
                             ID: 0x80,
-                            parameters: [{name: "data", type: Zcl.DataType.UINT16}],
+                            parameters: [{name: 'data', type: Zcl.DataType.UINT16}],
                         },
                     },
                     commandsResponse: {},
@@ -1100,6 +1103,7 @@ const definitions: Definition[] = [
                 },
                 entityCategory: 'config',
             }),
+            boschExtend.broadcastAlarm(),
             bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
