@@ -256,7 +256,7 @@ const definitions: Definition[] = [
     },
     // #region E12/E14/E17
     {
-        zigbeeModel: ['TRADFRI bulb E14 WS candle 470lm'],
+        zigbeeModel: ['TRADFRI bulb E14 WS candle 470lm', 'TRADFRI bulb E12 WS candle 450lm'],
         model: 'LED2107C4',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14, white spectrum, candle, opal, 470 lm',

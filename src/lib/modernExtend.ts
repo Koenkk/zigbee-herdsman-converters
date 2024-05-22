@@ -1,5 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
-import {ClusterDefinition} from 'zigbee-herdsman/dist/zcl/definition/tstype';
+import {ClusterDefinition} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as globalLegacy from '../lib/legacy';

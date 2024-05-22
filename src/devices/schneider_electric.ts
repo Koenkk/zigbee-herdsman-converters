@@ -1,5 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import {Definition, Fz, Tz, KeyValue, ModernExtend} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
@@ -8,7 +8,19 @@ import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {onOff, commandsOnOff, commandsLevelCtrl, light, battery, electricityMeter, identify, enumLookup, deviceEndpoints} from '../lib/modernExtend';
+import {
+    onOff,
+    commandsOnOff,
+    commandsLevelCtrl,
+    light,
+    battery,
+    electricityMeter,
+    identify,
+    enumLookup,
+    deviceEndpoints,
+    deviceAddCustomCluster,
+} from '../lib/modernExtend';
+import {postfixWithEndpointName} from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -107,6 +119,167 @@ function switchActions(endpoint?: string) {
         endpointName: endpoint,
     });
 }
+
+const schneiderElectricExtend = {
+    addVisaConfigurationCluster: (enumDataType: Zcl.DataType.ENUM8 | Zcl.DataType.UINT8) =>
+        deviceAddCustomCluster('visaConfiguration', {
+            ID: 0xfc04,
+            manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                indicatorLuminanceLevel: {ID: 0x0000, type: enumDataType},
+                indicatorColor: {ID: 0x0001, type: enumDataType},
+                indicatorMode: {ID: 0x0002, type: enumDataType},
+                motorTypeChannel1: {ID: 0x0003, type: Zcl.DataType.UINT8},
+                motorTypeChannel2: {ID: 0x0004, type: Zcl.DataType.UINT8},
+                curtainStatusChannel1: {ID: 0x0005, type: Zcl.DataType.UINT8},
+                curtainStatusChannel2: {ID: 0x0006, type: Zcl.DataType.UINT8},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    visaConfigIndicatorLuminanceLevel: (): ModernExtend => {
+        return enumLookup({
+            name: 'indicator_luminance_level',
+            lookup: {
+                '100': 0,
+                '80': 1,
+                '60': 2,
+                '40': 3,
+                '20': 4,
+                '0': 5,
+            },
+            cluster: 'visaConfiguration',
+            attribute: 'indicatorLuminanceLevel',
+            description: 'Set indicator luminance Level',
+        });
+    },
+    visaConfigIndicatorColor: (): ModernExtend => {
+        return enumLookup({
+            name: 'indicator_color',
+            lookup: {
+                white: 0,
+                blue: 1,
+            },
+            cluster: 'visaConfiguration',
+            attribute: 'indicatorColor',
+            description: 'Set indicator color',
+        });
+    },
+    visaIndicatorMode: ([reverseWithLoad, consistentWithLoad, alwaysOff, alwaysOn]: number[]): ModernExtend => {
+        return enumLookup({
+            name: 'indicator_mode',
+            lookup: {
+                'reverse_with_load': reverseWithLoad,
+                'consistent_with_load': consistentWithLoad,
+                'always_off': alwaysOff,
+                'always_on': alwaysOn,
+            },
+            cluster: 'visaConfiguration',
+            attribute: 'indicatorMode',
+            description: 'Set indicator mode for switch',
+        });
+    },
+    visaConfigMotorType: (channel?: number): ModernExtend => {
+        const attribute = `motorTypeChannel${channel || ''}`;
+        const description = `Set motor type for channel ${channel || ''}`;
+
+        return enumLookup({
+            name: 'motor_type' + (channel ? `_${channel}` : ''),
+            lookup: {
+                ac_motor: 0,
+                pulse_motor: 1,
+            },
+            cluster: 'visaConfiguration',
+            attribute: attribute,
+            description: description,
+        });
+    },
+    visaConfigCurtainStatus: (channel?: number): ModernExtend => {
+        const attribute = `curtainStatusChannel${channel || ''}`;
+        const description = `Set curtain status for channel ${channel}`;
+
+        return enumLookup({
+            access: 'STATE',
+            name: 'curtain_status' + (channel ? `_${channel}` : ''),
+            lookup: {
+                stop: 0,
+                opening: 1,
+                closing: 2,
+            },
+            cluster: 'visaConfiguration',
+            attribute: attribute,
+            description: description,
+        });
+    },
+    visaWiserCurtain: (endpointNames: string[]): ModernExtend => {
+        return {
+            isModernExtend: true,
+            fromZigbee: [
+                {
+                    cluster: 'genLevelCtrl',
+                    type: ['attributeReport', 'readResponse'],
+                    convert: (model, msg, publish, options, meta) => {
+                        const onOffTransitionTime = Number(msg.data['onOffTransitionTime']) / 10;
+                        const currentLevel = utils.mapNumberRange(Number(msg.data['currentLevel']), 0, 255, 0, 100);
+
+                        const transition = postfixWithEndpointName('transition', msg, model, meta);
+                        const position = postfixWithEndpointName('position', msg, model, meta);
+
+                        return {
+                            [transition]: onOffTransitionTime,
+                            [position]: currentLevel,
+                        };
+                    },
+                },
+            ],
+            toZigbee: [
+                {
+                    key: ['transition', 'position'],
+                    convertGet: async (entity, key, meta) => {
+                        await entity.read('genLevelCtrl', ['onOffTransitionTime', 'currentLevel']);
+                    },
+                    convertSet: async (entity, key, value, meta) => {
+                        if (key === 'transition') {
+                            await entity.write('genLevelCtrl', {onOffTransitionTime: +value * 10}, utils.getOptions(meta.mapped, entity));
+                        } else if (key === 'position') {
+                            await entity.command(
+                                'genLevelCtrl',
+                                'moveToLevelWithOnOff',
+                                {level: utils.mapNumberRange(Number(value), 0, 100, 0, 255), transtime: 0},
+                                utils.getOptions(meta.mapped, entity),
+                            );
+                        }
+                    },
+                },
+                {
+                    key: ['state'],
+                    convertSet: async (entity, key, value, meta) => {
+                        if (value === 'OPEN') {
+                            await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
+                        } else if (value === 'CLOSE') {
+                            await entity.command('genOnOff', 'off', {}, utils.getOptions(meta.mapped, entity));
+                        } else if (value === 'STOP') {
+                            await entity.command('genLevelCtrl', 'stop', {}, utils.getOptions(meta.mapped, entity));
+                        }
+                    },
+                },
+            ],
+            exposes: [
+                ...endpointNames.map((endpointName) =>
+                    e.enum('state', ea.SET, ['OPEN', 'CLOSE', 'STOP']).withDescription('State of the curtain').withEndpoint(endpointName),
+                ),
+                ...endpointNames.map((endpointName) =>
+                    e.numeric('position', ea.ALL).withValueMin(0).withValueMax(100).withUnit('%').withDescription('Position of the curtain')
+                        .withEndpoint(endpointName),
+                ),
+                ...endpointNames.map((endpointName) =>
+                    e.numeric('transition', ea.ALL).withValueMin(0).withValueMax(300).withUnit('s').withDescription('Transition time in seconds')
+                        .withEndpoint(endpointName),
+                ),
+            ],
+        };
+    },
+};
 
 const tzLocal = {
     lift_duration: {
@@ -1311,6 +1484,34 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['WDE011680'],
+        model: 'WDE011680',
+        vendor: 'Schneider Electric',
+        description: 'Smart thermostat',
+        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fz.wiser_device_info, fz.hvac_user_interface, fz.temperature],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.thermostat_local_temperature, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode,
+            tz.schneider_thermostat_keypad_lockout, tz.thermostat_temperature_display_mode],
+        exposes: [e.binary('keypad_lockout', ea.STATE_SET, 'lock1', 'unlock')
+            .withDescription('Enables/disables physical input on the device'),
+        e.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
+        e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+            .withDescription('The temperature format displayed on the thermostat screen'),
+        e.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
+            .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand(),
+        e.temperature()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['hvacThermostat']);
+            await reporting.thermostatPIHeatingDemand(endpoint1);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint2);
+            await endpoint1.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
+        },
+    },
+    {
         zigbeeModel: ['2GANG/ESWITCH/2'],
         model: 'MEG5126-0300_MEG5152-0000',
         vendor: 'Schneider Electric',
@@ -1338,6 +1539,94 @@ const definitions: Definition[] = [
         extend: [deviceEndpoints({'endpoints': {'switch': 1, 'switch_sw': 21}}), identify(),
             onOff({'powerOnBehavior': false}),
             commandsOnOff({'endpointNames': ['switch_sw']}),
+        ],
+    },
+    {
+        zigbeeModel: ['E8332DST350ZB'],
+        model: 'E8332DST350ZB',
+        vendor: 'Schneider Electric',
+        description: 'Wiser AvatarOn 2G dimmer switch',
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 10, 'l2': 11}}),
+            light({
+                endpointNames: ['l1', 'l2'],
+                effect: false,
+                color: false,
+                powerOnBehavior: false,
+                levelConfig: {
+                    disabledFeatures: [
+                        'on_off_transition_time',
+                        'on_transition_time',
+                        'off_transition_time',
+                        'execute_if_off',
+                        'on_level',
+                        'current_level_startup',
+                    ],
+                },
+                configureReporting: true,
+            }),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.ENUM8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaIndicatorMode([2, 0, 3, 1]),
+        ],
+    },
+    {
+        zigbeeModel: ['E8331SRY800ZB'],
+        model: 'E8331SRY800ZB',
+        vendor: 'Schneider Electric',
+        description: 'Wiser AvatarOn 1G onoff switch',
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 10}}),
+            onOff({endpointNames: ['l1'], powerOnBehavior: false}),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
+        ],
+    },
+    {
+        zigbeeModel: ['A3N32SR800ZB_xx_C1'],
+        model: 'E8332SRY800ZB',
+        vendor: 'Schneider Electric',
+        description: 'Wiser AvatarOn 2G onoff switch',
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 10, 'l2': 11}}),
+            onOff({endpointNames: ['l1', 'l2'], powerOnBehavior: false}),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
+        ],
+    },
+    {
+        zigbeeModel: ['E8333SRY800ZB'],
+        model: 'E8333SRY800ZB',
+        vendor: 'Schneider Electric',
+        description: 'Wiser AvatarOn 3G onoff switch',
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 10, 'l2': 11, 'l3': 12}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: false}),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
+        ],
+    },
+    {
+        zigbeeModel: ['E8332SCN300ZB'],
+        model: 'E8332SCN300ZB',
+        vendor: 'Schneider Electric',
+        description: 'Wiser AvatarOn 2G curtain switch',
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 10, 'l2': 11}}),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
+            schneiderElectricExtend.visaWiserCurtain(['l1', 'l2']),
+            schneiderElectricExtend.visaConfigMotorType(1),
+            schneiderElectricExtend.visaConfigMotorType(2),
+            schneiderElectricExtend.visaConfigCurtainStatus(1),
+            schneiderElectricExtend.visaConfigCurtainStatus(2),
         ],
     },
 ];

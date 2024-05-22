@@ -133,7 +133,8 @@ function processExtensions(definition: Definition): Definition {
             if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
             if (ext.exposes) addToAllExposes(ext.exposes);
             if (ext.meta) meta = {...ext.meta, ...meta};
-            if (ext.configure) configures.push(...ext.configure);
+            // Filter `undefined` configures, e.g. returned by setupConfigureForReporting.
+            if (ext.configure) configures.push(...ext.configure.filter((c) => c));
             if (ext.onEvent) onEvents.push(ext.onEvent);
             if (ext.ota) {
                 if (ota && ext.ota !== ota) {

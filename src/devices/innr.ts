@@ -172,6 +172,17 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['RB 267'],
+        model: 'RB 267',
+        vendor: 'Innr',
+        description: 'E27 smart bulb white 1100',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+        endpoint: (device) => {
+            return {default: 1};
+        },
+    },
+    {
         zigbeeModel: ['RF 265'],
         model: 'RF 265',
         vendor: 'Innr',
@@ -535,6 +546,13 @@ const definitions: Definition[] = [
         vendor: 'Innr',
         description: 'E26/24 bulb',
         extend: [light({turnsOffAtBrightness1: true})],
+    },
+    {
+        zigbeeModel: ['AE 270 T'],
+        model: 'AE 270 T',
+        vendor: 'Innr',
+        description: 'E26/24 bulb 1100lm, dimmable, white spectrum',
+        extend: [light({colorTemp: {range: [154, 500]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['AE 280 C'],

@@ -8,7 +8,7 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_arge1ptm', '_TZE200_anv5ujhv']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_arge1ptm', '_TZE200_anv5ujhv', '_TZE200_xlppj4f5']),
         model: 'QT-05M',
         vendor: 'QOTO',
         description: 'Solar powered garden watering timer',
@@ -22,10 +22,10 @@ const definitions: Definition[] = [
                 .withDescription('Remaning watering time (for auto shutdown). Updates every minute, and every 10s in the last minute.'),
             e.numeric('valve_state', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(5).withUnit('%')
                 .withDescription('Set valve to %.'),
-            e.numeric('shutdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(14400).withUnit('sec')
-                .withDescription('Auto shutdown in seconds.'),
             e.numeric('valve_state_auto_shutdown', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(5).withUnit('%')
-                .withDescription('Set valve to % with auto shutdown.'),
+                .withDescription('Set valve to % with auto shutdown. Must be set before setting the shutdown timer.'),
+            e.numeric('shutdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(14400).withUnit('sec')
+                .withDescription('Auto shutdown in seconds. Must be set after setting valve state auto shutdown.'),
             e.battery(),
         ],
     },

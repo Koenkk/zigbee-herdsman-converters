@@ -589,7 +589,8 @@ const fzLocal = {
                 result['max_brightness'] = utils.mapNumberRange(msg.data['64516'], 0, 1000, 1, 255);
             }
             if (msg.data.hasOwnProperty('61440')) {
-                result['brightness'] = utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255);
+                const propertyName = utils.postfixWithEndpointName('brightness', msg, model, meta);
+                result[propertyName] = utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255);
             }
             return result;
         },
@@ -1445,15 +1446,15 @@ const definitions: Definition[] = [
             tuya.whitelabel('Lidl', 'HG07834B', 'Livarno Lux E14 candle RGB', ['_TZ3000_th6zqqy6', '_TZ3000_wr6g6olr']),
             tuya.whitelabel('Lidl', 'HG08131C', 'Livarno Home outdoor E27 bulb in set with flare', ['_TZ3000_q50zhdsc']),
             tuya.whitelabel('Lidl', 'HG07834C', 'Livarno Lux E27 bulb RGB', ['_TZ3000_qd7hej8u']),
+            tuya.whitelabel('MiBoxer', 'FUT037Z+', 'RGB led controller', ['_TZB210_417ikxay']),
             tuya.whitelabel('Lidl', 'HG08383B', 'Livarno outdoor LED light chain', ['_TZ3000_bwlvyjwk']),
             tuya.whitelabel('Lidl', 'HG08383A', 'Livarno outdoor LED light chain', ['_TZ3000_taspddvq']),
             tuya.whitelabel('Garza Smart', 'Garza-Standard-A60', 'Standard A60 bulb', ['_TZ3210_sln7ah6r']),
-            tuya.whitelabel('UR Lighting', 'TH008L10RGBCCT', '10W RGB+CCT downlight', ['_TZ3210_dn5higyl']),
+            tuya.whitelabel('UR Lighting', 'TH008L10RGBCCT', '10W RGB+CCT downlight', ['_TZ3210_dn5higyl', '_TZ3210_hicxa0rh']),
             tuya.whitelabel('Lidl', 'HG08010', 'Livarno Home outdoor spotlight', ['_TZ3210_umi6vbsz']),
             tuya.whitelabel('Lidl', 'HG08008', 'Livarno Home LED ceiling light', ['_TZ3210_p9ao60da']),
             tuya.whitelabel('Lidl', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
             tuya.whitelabel('Lidl', '399629_2110', 'Livarno Lux Ceiling Panel RGB+CCT', ['_TZ3210_c0s1xloa', '_TZ3210_x13bu7za']),
-            tuya.whitelabel('TuYa', 'TS0505B_1_3', 'Zigbee 10W Downlight RGB CCW', ['_TZ3210_it1u8ahz']),
             tuya.whitelabel('Nous', 'P3Z', 'Smart light bulb', ['_TZ3210_cieijuw1']),
             tuya.whitelabel('Moes', 'ZLD-RCW_1', 'RGB+CCT Zigbee LED controller', ['_TZ3000_7hcgjxpc']),
             tuya.whitelabel('Moes', 'ZB-TD5-RCW-GU10', 'RGB+CCT 4.7W GU10 LED bulb', ['_TZ3210_rcggc0ys']),
@@ -2721,7 +2722,7 @@ const definitions: Definition[] = [
             {vendor: 'LoraTap', model: 'SS6400ZB'}, {vendor: 'Moes', model: 'ZT-SY-EU-G-4S-WH-MS'},
             tuya.whitelabel('Moes', 'ZT-SR-EU4', 'Star Ring 4 Gang Scene Switch', ['_TZ3000_a4xycprs']),
             tuya.whitelabel('TuYa', 'TS0044_1', 'Zigbee 4 button remote - 12 scene',
-                ['_TZ3000_dziaict4', '_TZ3000_mh9px7cq']),
+                ['_TZ3000_dziaict4', '_TZ3000_mh9px7cq', '_TZ3000_j61x9rxn']),
             tuya.whitelabel('TuYa', 'TM-YKQ004', 'Zigbee 4 button remote - 12 scene', ['_TZ3000_u3nv1jwk']),
         ],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
@@ -3326,6 +3327,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_gaj531w3'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_yia0p3tr'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rsj5pu8y'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_xu4a5rhj'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'TuYa',
@@ -5369,7 +5371,10 @@ const definitions: Definition[] = [
         toZigbee: [tz.TS0210_sensitivity],
         exposes: [e.battery(), e.battery_voltage(), e.vibration(),
             e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(50)
-                .withDescription('Sensitivty of the sensor, press button on the device right before changing this')],
+                .withDescription(
+                    'Sensitivty of the sensor (0 = highest sensitivity, 50 = lowest sensitivity). ' +
+                    'Press button on the device right before changing this',
+                )],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8ply8mjj']),
@@ -6304,7 +6309,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: '1 channel dimmer',
         extend: [light({powerOnBehavior: false, configureReporting: true})],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E],
+        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E, fz.on_off],
         toZigbee: [tzLocal.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tzLocal.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],
         configure: tuya.configureMagicPacket,
