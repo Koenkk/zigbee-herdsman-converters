@@ -88,33 +88,6 @@ const stateOffOn = {
     'ON': 1,
 };
 
-// Smoke detector II BSD-2
-const smokeAlarmState: KeyValue = {
-    'OFF': 0x0000,
-    'ON': 0x3c00, // 15360 or 46080 works
-};
-
-// Smoke detector II BSD-2
-const burglarAlarmState: KeyValue = {
-    'OFF': 0x0001,
-    'ON': 0xb401, // 46081
-};
-
-// Smoke detector II BSD-2
-const smokeDetectorSensitivity: KeyValue = {
-    'low': 0x0,
-    'medium': 0x1,
-    'high': 0x2,
-};
-
-// Smoke detector II BSD-2
-const broadcastAlarmState: KeyValue = {
-    'smoke_off': 0x0000,
-    'smoke_on': 0x3c00,
-    'burglar_off': 0x0001,
-    'burglar_on': 0xb401,
-};
-
 // Universal Switch II
 const buttonMap: {[key: string]: number} = {
     config_led_top_left_press: 0x10,
@@ -155,7 +128,7 @@ const boschExtend = {
     hvacThermostatCluster: () => deviceAddCustomCluster(
         'hvacThermostat',
         {
-            ID: 0x201,
+            ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
                 operatingMode: {
                     ID: 0x4007,
@@ -200,7 +173,7 @@ const boschExtend = {
     hvacUserInterfaceCfgCluster: () => deviceAddCustomCluster(
         'hvacUserInterfaceCfg',
         {
-            ID: 0x204,
+            ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
             attributes: {
                 displayOrientation: {
                     ID: 0x400b,
@@ -233,7 +206,7 @@ const boschExtend = {
         attribute: 'operatingMode',
         reporting: {min: '10_SECONDS', max: 'MAX', change: null},
         description: 'Bosch-specific operating mode (overrides system mode)',
-        lookup: {'schedule': 0, 'manual': 1, 'pause': 5},
+        lookup: {'schedule': 0x00, 'manual': 0x01, 'pause': 0x05},
         zigbeeCommandOptions: manufacturerOptions,
     }),
     windowDetection: () => binary({
@@ -284,11 +257,11 @@ const boschExtend = {
     }),
     valveAdaptProcess: (): ModernExtend => {
         const adaptationStatus: KeyValue = {
-            'none': 0,
-            'ready_to_calibrate': 1,
-            'calibration_in_progress': 2,
-            'error': 3,
-            'success': 4,
+            'none': 0x00,
+            'ready_to_calibrate': 0x01,
+            'calibration_in_progress': 0x02,
+            'error': 0x03,
+            'success': 0x04,
         };
         const exposes: Expose[] = [
             e.binary('valve_adapt_process', ea.ALL, true, false)
@@ -414,7 +387,7 @@ const boschExtend = {
             convert: (model, msg, publish, options, meta) => {
                 if (msg.data.hasOwnProperty('zoneStatus') || msg.data.hasOwnProperty('zonestatus')) {
                     const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
-                    const lookup: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
+                    const lookup: KeyValue = {0x00: 'none', 0x01: 'single', 0x02: 'long'};
                     const result: KeyValue = {
                         contact: !((zoneStatus & 1) > 0),
                         vibration: (zoneStatus & 1<<1) > 0,
@@ -439,57 +412,108 @@ const boschExtend = {
             isModernExtend: true,
         };
     },
+    smokeAlarm: (): ModernExtend => {
+        const smokeAlarm: KeyValue = {
+            'OFF': 0x0000,
+            'ON': 0x3c00, // 15360 or 46080 works
+        };
+        const burglarAlarm: KeyValue = {
+            'OFF': 0x0001,
+            'ON': 0xb401, // 46081
+        };
+        const exposes: Expose[] = [
+            e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
+            e.binary('test', ea.STATE, true, false).withDescription('Indicates whether the device is currently performing a test')
+                .withCategory('diagnostic'),
+            e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm siren').withCategory('config'),
+            e.binary('alarm_burglar', ea.ALL, 'ON', 'OFF').withDescription('Toggle the burglar alarm siren').withCategory('config'),
+        ];
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'ssIasZone',
+            type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty('zoneStatus') || msg.data.hasOwnProperty('zonestatus')) {
+                    const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+                    return {
+                        smoke: (zoneStatus & 1) > 0,
+                        alarm_smoke: (zoneStatus & 1<<1) > 0,
+                        battery_low: (zoneStatus & 1<<3) > 0,
+                        supervision_reports: (zoneStatus & 1<<4) > 0,
+                        restore_reports: (zoneStatus & 1<<5) > 0,
+                        alarm_burglar: (zoneStatus & 1<<7) > 0,
+                        test: (zoneStatus & 1<<8) > 0,
+                        alarm_silenced: (zoneStatus & 1<<11) > 0,
+                    };
+                }
+            },
+        }];
+        const toZigbee: Tz.Converter[] = [{
+            key: ['alarm_smoke', 'alarm_burglar'],
+            convertSet: async (entity, key, value, meta) => {
+                if (key === 'alarm_smoke') {
+                    const index = utils.getFromLookup(value, smokeAlarm);
+                    await entity.command('ssIasZone', 'boschSmokeAlarmSiren', {data: index}, manufacturerOptions);
+                    return {state: {alarm_smoke: value}};
+                }
+                if (key === 'alarm_burglar') {
+                    const index = utils.getFromLookup(value, burglarAlarm);
+                    await entity.command('ssIasZone', 'boschSmokeAlarmSiren', {data: index}, manufacturerOptions);
+                    return {state: {alarm_burglar: value}};
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                switch (key) {
+                case 'alarm_smoke':
+                case 'alarm_burglar':
+                case 'zone_status':
+                    await entity.read('ssIasZone', ['zoneStatus']);
+                    break;
+                default:
+                    throw new Error(`Unhandled key boschExtend.smokeAlarm.toZigbee.convertGet ${key}`);
+                }
+            },
+        }];
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    broadcastAlarm: (): ModernExtend => {
+        const sirenState: KeyValue = {
+            'smoke_off': 0x0000,
+            'smoke_on': 0x3c00,
+            'burglar_off': 0x0001,
+            'burglar_on': 0xb401,
+        };
+        const exposes: Expose[] = [
+            e.enum('broadcast_alarm', ea.SET, Object.keys(sirenState))
+                .withDescription('Set siren state of all BSD-2 via broadcast').withCategory('config'),
+        ];
+        const toZigbee: Tz.Converter[] = [{
+            key: ['broadcast_alarm'],
+            convertSet: async (entity, key, value, meta) => {
+                if (key === 'broadcast_alarm') {
+                    const index = utils.getFromLookup(value, sirenState);
+                    utils.assertEndpoint(entity);
+                    await entity.zclCommandBroadcast(
+                        255, ZSpec.BroadcastAddress.SLEEPY,
+                        Zcl.Clusters.ssIasZone.ID, 'boschSmokeAlarmSiren',
+                        {data: index}, manufacturerOptions,
+                    );
+                    return;
+                }
+            },
+        }];
+        return {
+            exposes,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 const tzLocal = {
-    broadcast_alarm: {
-        key: ['broadcast_alarm'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'broadcast_alarm') {
-                const index = utils.getFromLookup(value, broadcastAlarmState);
-                utils.assertEndpoint(entity);
-                await entity.zclCommandBroadcast(
-                    255, ZSpec.BroadcastAddress.SLEEPY,
-                    Zcl.Clusters.ssIasZone.ID, 'boschSmokeDetectorSiren',
-                    {data: index}, manufacturerOptions,
-                );
-                return;
-            }
-        },
-    } satisfies Tz.Converter,
-    bsd2: {
-        key: ['alarm_smoke', 'alarm_burglar', 'sensitivity'],
-        convertSet: async (entity, key, value: string, meta) => {
-            if (key === 'alarm_smoke') {
-                const index = utils.getFromLookup(value, smokeAlarmState);
-                await entity.command('ssIasZone', 'boschSmokeDetectorSiren', {data: index}, manufacturerOptions);
-                return {state: {alarm_smoke: value}};
-            }
-            if (key === 'alarm_burglar') {
-                const index = utils.getFromLookup(value, burglarAlarmState);
-                await entity.command('ssIasZone', 'boschSmokeDetectorSiren', {data: index}, manufacturerOptions);
-                return {state: {alarm_burglar: value}};
-            }
-            if (key === 'sensitivity') {
-                const index = utils.getFromLookup(value, smokeDetectorSensitivity);
-                await entity.write('ssIasZone', {currentZoneSensitivityLevel: index});
-                return {state: {sensitivity: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            switch (key) {
-            case 'alarm_smoke':
-            case 'alarm_burglar':
-            case 'zone_status':
-                await entity.read('ssIasZone', ['zoneStatus']);
-                break;
-            case 'sensitivity':
-                await entity.read('ssIasZone', ['currentZoneSensitivityLevel']);
-                break;
-            default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bsd2.convertGet ${key}`);
-            }
-        },
-    } satisfies Tz.Converter,
     rbshoszbeu: {
         key: ['light_delay', 'siren_delay', 'light_duration', 'siren_duration', 'siren_volume', 'alarm_state', 'power_source', 'siren_and_light'],
         convertSet: async (entity, key, value, meta) => {
@@ -741,31 +765,6 @@ const tzLocal = {
 
 
 const fzLocal = {
-    bsd2: {
-        cluster: 'ssIasZone',
-        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data;
-            const lookup: KeyValue = {0: 'low', 1: 'medium', 2: 'high'};
-            if (data.hasOwnProperty('zoneStatus') || data.hasOwnProperty('zonestatus')) {
-                const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
-                return {
-                    smoke: (zoneStatus & 1) > 0,
-                    alarm_smoke: (zoneStatus & 1<<1) > 0,
-                    battery_low: (zoneStatus & 1<<3) > 0,
-                    supervision_reports: (zoneStatus & 1<<4) > 0,
-                    restore_reports: (zoneStatus & 1<<5) > 0,
-                    alarm_burglar: (zoneStatus & 1<<7) > 0,
-                    test: (zoneStatus & 1<<8) > 0,
-                    alarm_silenced: (zoneStatus & 1<<11) > 0,
-                };
-            }
-            if (data.hasOwnProperty('currentZoneSensitivityLevel')) {
-                const value = data.currentZoneSensitivityLevel;
-                return {sensitivity: lookup[value]};
-            }
-        },
-    } satisfies Fz.Converter,
     bmct: {
         cluster: 'manuSpecificBosch10',
         type: ['attributeReport', 'readResponse'],
@@ -1060,6 +1059,7 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('ssIasZone', ['zoneStatus']);
             await endpoint.read('boschSpecific', ['alarmOnMotion'], manufacturerOptions);
         },
@@ -1069,33 +1069,53 @@ const definitions: Definition[] = [
         model: 'BSD-2',
         vendor: 'Bosch',
         description: 'Smoke alarm II',
-        fromZigbee: [
-            fz.battery,
-            fzLocal.bsd2,
-        ],
-        toZigbee: [
-            tzLocal.bsd2,
-            tzLocal.broadcast_alarm,
+        exposes: [],
+        fromZigbee: [],
+        toZigbee: [],
+        extend: [
+            deviceAddCustomCluster(
+                'ssIasZone',
+                {
+                    ID: Zcl.Clusters.ssIasZone.ID,
+                    attributes: {},
+                    commands: {
+                        boschSmokeAlarmSiren: {
+                            ID: 0x80,
+                            parameters: [{name: 'data', type: Zcl.DataType.UINT16}],
+                        },
+                    },
+                    commandsResponse: {},
+                },
+            ),
+            boschExtend.smokeAlarm(),
+            battery({
+                percentage: true,
+                lowStatus: true,
+            }),
+            enumLookup({
+                name: 'sensitivity',
+                cluster: 'ssIasZone',
+                attribute: 'currentZoneSensitivityLevel',
+                description: 'Sensitivity of the smoke detector',
+                lookup: {
+                    'low': 0x00,
+                    'medium': 0x01,
+                    'high': 0x02,
+                },
+                entityCategory: 'config',
+            }),
+            boschExtend.broadcastAlarm(),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'genPollCtrl',
-            ]);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('ssIasZone', ['zoneStatus']);
+            await endpoint.read('ssIasZone', ['currentZoneSensitivityLevel']);
         },
-        exposes: [
-            e.smoke(),
-            e.battery(),
-            e.battery_low(),
-            e.test(),
-            e.binary('alarm_burglar', ea.ALL, 'ON', 'OFF').withDescription('Toggle the burglar alarm on or off'),
-            e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
-            e.enum('sensitivity', ea.ALL, Object.keys(smokeDetectorSensitivity)).withDescription('Sensitivity of the smoke alarm'),
-            e.enum('broadcast_alarm', ea.SET, Object.keys(broadcastAlarmState)).withDescription('Set alarm state of all BSD-2 via broadcast'),
-        ],
     },
     {
         zigbeeModel: ['RFDL-ZB', 'RFDL-ZB-EU', 'RFDL-ZB-H', 'RFDL-ZB-K', 'RFDL-ZB-CHI', 'RFDL-ZB-MS', 'RFDL-ZB-ES', 'RFPR-ZB',
@@ -1186,7 +1206,7 @@ const definitions: Definition[] = [
                 attribute: 'setpointChangeSource',
                 reporting: {min: '10_SECONDS', max: 'MAX', change: null},
                 description: 'Source of the current setpoint temperature',
-                lookup: {'manual': 0, 'schedule': 1, 'externally': 2},
+                lookup: {'manual': 0x00, 'schedule': 0x01, 'externally': 0x02},
                 access: 'STATE_GET',
             }),
             boschExtend.childLock(),
@@ -1197,7 +1217,7 @@ const definitions: Definition[] = [
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayOrientation',
                 description: 'Sets orientation of the display',
-                lookup: {'normal': 0, 'flipped': 1},
+                lookup: {'normal': 0x00, 'flipped': 0x01},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
             enumLookup({
@@ -1205,7 +1225,7 @@ const definitions: Definition[] = [
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayedTemperature',
                 description: 'Temperature displayed on the TRV',
-                lookup: {'target': 0, 'measured': 1},
+                lookup: {'target': 0x00, 'measured': 0x01},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
             enumLookup({
@@ -1215,11 +1235,11 @@ const definitions: Definition[] = [
                 reporting: {min: '10_SECONDS', max: 'MAX', change: null},
                 description: 'Specifies the current status of the valve adaptation',
                 lookup: {
-                    'none': 0,
-                    'ready_to_calibrate': 1,
-                    'calibration_in_progress': 2,
-                    'error': 3,
-                    'success': 4,
+                    'none': 0x00,
+                    'ready_to_calibrate': 0x01,
+                    'calibration_in_progress': 0x02,
+                    'error': 0x03,
+                    'success': 0x04,
                 },
                 zigbeeCommandOptions: manufacturerOptions,
                 access: 'STATE_GET',
@@ -1227,11 +1247,15 @@ const definitions: Definition[] = [
             boschExtend.valveAdaptProcess(),
             boschExtend.heatingDemand(),
             boschExtend.ignoreDst(),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {
@@ -1246,6 +1270,7 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null,
             }], manufacturerOptions);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration', 'setpointChangeSource']);
             await endpoint.read('hvacThermostat', [
                 'operatingMode', 'heatingDemand', 'valveAdaptStatus', 'remoteTemperature', 'windowDetection', 'boostHeating',
@@ -1303,11 +1328,15 @@ const definitions: Definition[] = [
             boschExtend.childLock(),
             boschExtend.displayOntime(),
             boschExtend.displayBrightness(),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
@@ -1323,6 +1352,7 @@ const definitions: Definition[] = [
                 change: 50,
             });
             await reporting.thermostatKeypadLockMode(endpoint);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read('hvacThermostat', ['operatingMode', 'windowDetection', 'boostHeating'], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
@@ -1372,7 +1402,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
@@ -1507,6 +1537,7 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('ssIasZone', ['zoneStatus']);
         },
     },
@@ -1531,6 +1562,7 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('ssIasZone', ['zoneStatus']);
         },
     },
