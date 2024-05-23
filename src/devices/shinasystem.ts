@@ -679,7 +679,7 @@ const definitions: Definition[] = [
                 lookup: {'none': 0, 'l1': 1, 'l2': 2, 'l3': 3},
                 cluster: 'genOnOff',
                 attribute: {ID: 0x9001, type: 0x20},
-                description: 'Enable RF pairing mode each button l1, l2, l3',
+                description: 'Enable RF pairing mode each button l1, l2, l3. It is supported only in repeat mode.',
                 endpointName: 'l1',
             }),
             enumLookup({
@@ -687,7 +687,8 @@ const definitions: Definition[] = [
                 lookup: {'disable': 0, 'enable': 1},
                 cluster: 'genOnOff',
                 attribute: {ID: 0x900f, type: 0x20},
-                description: 'If the 3-way switch setting is enabled, the 1st and 3rd switches are used. At this time, connect the remote switch to SW3.',
+                description: 'If the 3-way switch setting is enabled, the 1st and 3rd switches are used. ' +
+                             'At this time, connect the remote switch to SW3.',
                 endpointName: 'l1',
             }),
         ],
