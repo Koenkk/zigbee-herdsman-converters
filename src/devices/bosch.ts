@@ -1059,6 +1059,7 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('ssIasZone', ['zoneStatus']);
             await endpoint.read('boschSpecific', ['alarmOnMotion'], manufacturerOptions);
         },
@@ -1111,6 +1112,7 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('ssIasZone', ['zoneStatus']);
             await endpoint.read('ssIasZone', ['currentZoneSensitivityLevel']);
         },
@@ -1204,7 +1206,7 @@ const definitions: Definition[] = [
                 attribute: 'setpointChangeSource',
                 reporting: {min: '10_SECONDS', max: 'MAX', change: null},
                 description: 'Source of the current setpoint temperature',
-                lookup: {'manual': 0, 'schedule': 1, 'externally': 2},
+                lookup: {'manual': 0x00, 'schedule': 0x01, 'externally': 0x02},
                 access: 'STATE_GET',
             }),
             boschExtend.childLock(),
@@ -1215,7 +1217,7 @@ const definitions: Definition[] = [
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayOrientation',
                 description: 'Sets orientation of the display',
-                lookup: {'normal': 0, 'flipped': 1},
+                lookup: {'normal': 0x00, 'flipped': 0x01},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
             enumLookup({
@@ -1223,7 +1225,7 @@ const definitions: Definition[] = [
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayedTemperature',
                 description: 'Temperature displayed on the TRV',
-                lookup: {'target': 0, 'measured': 1},
+                lookup: {'target': 0x00, 'measured': 0x01},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
             enumLookup({
@@ -1233,11 +1235,11 @@ const definitions: Definition[] = [
                 reporting: {min: '10_SECONDS', max: 'MAX', change: null},
                 description: 'Specifies the current status of the valve adaptation',
                 lookup: {
-                    'none': 0,
-                    'ready_to_calibrate': 1,
-                    'calibration_in_progress': 2,
-                    'error': 3,
-                    'success': 4,
+                    'none': 0x00,
+                    'ready_to_calibrate': 0x01,
+                    'calibration_in_progress': 0x02,
+                    'error': 0x03,
+                    'success': 0x04,
                 },
                 zigbeeCommandOptions: manufacturerOptions,
                 access: 'STATE_GET',
@@ -1245,11 +1247,15 @@ const definitions: Definition[] = [
             boschExtend.valveAdaptProcess(),
             boschExtend.heatingDemand(),
             boschExtend.ignoreDst(),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {
@@ -1264,6 +1270,7 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null,
             }], manufacturerOptions);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration', 'setpointChangeSource']);
             await endpoint.read('hvacThermostat', [
                 'operatingMode', 'heatingDemand', 'valveAdaptStatus', 'remoteTemperature', 'windowDetection', 'boostHeating',
@@ -1321,11 +1328,15 @@ const definitions: Definition[] = [
             boschExtend.childLock(),
             boschExtend.displayOntime(),
             boschExtend.displayBrightness(),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
@@ -1341,6 +1352,7 @@ const definitions: Definition[] = [
                 change: 50,
             });
             await reporting.thermostatKeypadLockMode(endpoint);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read('hvacThermostat', ['operatingMode', 'windowDetection', 'boostHeating'], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
@@ -1390,7 +1402,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'hvacThermostat', 'hvacUserInterfaceCfg',
             ]);
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
@@ -1525,6 +1537,7 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('ssIasZone', ['zoneStatus']);
         },
     },
@@ -1549,6 +1562,7 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('ssIasZone', ['zoneStatus']);
         },
     },
