@@ -6283,9 +6283,9 @@ const definitions: Definition[] = [
             e.numeric('static_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
                 .withDescription('Static detection sensitivity'),
             e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED indicator mode'),
-            e.enum('motion_detection_mode', ea.STATE, ['Only PIR', 'PIR+Dadar', 'Only Dadar']).withDescription('Motion detection mode (Firmware version>=0122052017)'),
+            e.enum('motion_detection_mode', ea.STATE, ['Only PIR', 'PIR+Dadar', 'Only Dadar']).withDescription('Motion detection mode'),
             e.numeric('motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
-                .withDescription('Motion detection sensitivity (Firmware version>=0122052017)'),
+                .withDescription('Motion detection sensitivity'),
         ],
         meta: {
             tuyaDatapoints: [
