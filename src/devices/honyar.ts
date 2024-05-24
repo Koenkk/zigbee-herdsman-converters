@@ -5,7 +5,6 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {deviceEndpoints, onOff, electricityMeter} from '../lib/modernExtend';
-import * as globalStore from '../lib/store';
 
 const e = exposes.presets;
 
