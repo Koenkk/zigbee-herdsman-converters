@@ -135,31 +135,11 @@ const definitions: Definition[] = [
         vendor: 'Honyar',
         description: 'Smart Power Socket 10A (with power monitoring)',
         extend: [
-            onOff({powerOnBehavior: false}),
-            electricityMeter({cluster: 'honyar', current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}}),
+            onOff({powerOnBehavior: false, configureReporting: false}),
+            electricityMeter({cluster: 'honyar', configureReporting: false, energy: {divisor: 1000}, current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}}),
         ],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-            const Endpoint = device.getEndpoint(1);
-            if (Endpoint == null) {
-                return;
-            }
-            if (type === 'stop') {
-                clearInterval(globalStore.getValue(device, 'interval'));
-                globalStore.clearValue(device, 'interval');
-            } else if (!globalStore.hasValue(device, 'interval')) {
-                const interval = setInterval(async () => {
-                    try {
-                        await Endpoint.read('haElectricalMeasurement', ['activePower', 'rmsCurrent', 'rmsVoltage']);
-                        await Endpoint.read('seMetering', ['currentSummDelivered']);
-                        await Endpoint.read('genOnOff', ['onOff']);
-                    } catch (error) {
-                        // Do nothing
-                    }
-                }, 5*1000);// Every 5 seconds
-                globalStore.putValue(device, 'interval', interval);
-            }
-        },
+        options: [exposes.options.measurement_poll_interval()],
+        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, true, true,),
     },
 ];
 
