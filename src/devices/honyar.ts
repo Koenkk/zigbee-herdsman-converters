@@ -135,8 +135,7 @@ const definitions: Definition[] = [
         description: 'Smart Power Socket 10A (with power monitoring)',
         extend: [
             onOff({powerOnBehavior: false, configureReporting: false}),
-            electricityMeter({cluster: 'honyar', configureReporting: false,
-                energy: {divisor: 1000}, current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}}),
+            electricityMeter({cluster: 'honyar', configureReporting: false, current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}}),
         ],
         options: [exposes.options.measurement_poll_interval()],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, true, true),
