@@ -480,7 +480,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['SMSZB-120'],
+        zigbeeModel: ['SMSZB-120', 'GWA1512_SmokeSensor'],
         model: 'SMSZB-120',
         vendor: 'Develco',
         description: 'Smoke detector with siren',
