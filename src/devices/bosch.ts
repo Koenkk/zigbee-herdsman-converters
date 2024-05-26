@@ -1530,8 +1530,8 @@ const definitions: Definition[] = [
                     ID: 0xe006,
                     manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                     attributes: {
-                        unknown1:  {ID: 0x5003, type: Zcl.DataType.INT8}, // perhaps signal strength? -7?
-                        unknown2:  {ID: 0x5004, type: Zcl.DataType.UINT8}, // ????
+                        unknown1: {ID: 0x5003, type: Zcl.DataType.INT8}, // perhaps signal strength? -7?
+                        unknown2: {ID: 0x5004, type: Zcl.DataType.UINT8}, // ????
                         heartbeat: {ID: 0x5005, type: Zcl.DataType.BITMAP8}, // 0
                     },
                     commands: {
