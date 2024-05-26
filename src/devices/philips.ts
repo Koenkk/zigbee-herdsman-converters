@@ -3334,14 +3334,14 @@ const definitions: Definition[] = [
         zigbeeModel: ['LCX012'],
         model: '929003535301',
         vendor: 'Philips',
-        description: 'Hue Festavia gradient light string 250',
+        description: 'Hue Festavia gradient light string 250 (1st-gen)',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}})],
     },
     {
-        zigbeeModel: ['LCX017'],
-        model: '929003674601',
+        zigbeeModel: ['LCX015'],
+        model: '9290036744',
         vendor: 'Philips',
-        description: 'Hue Festavia gradient light string 500',
+        description: 'Hue Festavia gradient light string 250',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}})],
     },
     {
@@ -3349,6 +3349,13 @@ const definitions: Definition[] = [
         model: '9290036745',
         vendor: 'Philips',
         description: 'Hue Festavia gradient light string 100',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}})],
+    },
+    {
+        zigbeeModel: ['LCX017'],
+        model: '929003674601',
+        vendor: 'Philips',
+        description: 'Hue Festavia gradient light string 500',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}})],
     },
     {
@@ -3546,13 +3553,6 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue white ambiance MR16 with Bluetooth',
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ['LCX015'],
-        model: '9290036744',
-        vendor: 'Philips',
-        description: 'Hue Festavia gradient light string 250',
-        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle']}})],
     },
     {
         zigbeeModel: ['915005914501'],
