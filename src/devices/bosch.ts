@@ -533,7 +533,7 @@ const boschExtend = {
                 .withDescription('Siren state').withCategory('diagnostic'),
             e.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Alarm mode for siren'),
             e.binary('self_test', ea.ALL, true, false)
-                .withDescription('Initiate self-test').withCategory('diagnostic'),
+                .withDescription('Initiate self-test').withCategory('config'),
             e.enum('sensitivity', ea.ALL, Object.keys(smokeSensitivity))
                 .withDescription('Sensitivity of the smoke detector').withCategory('config'),
             e.binary('pre_alarm', ea.ALL, 'ON', 'OFF')
