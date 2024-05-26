@@ -525,6 +525,7 @@ const definitions: Definition[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -737,6 +738,7 @@ const definitions: Definition[] = [
         description: 'Temperature & humidity sensor',
         fromZigbee: [fz.battery, develco.fz.temperature, fz.humidity],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.battery(), e.battery_low(), e.temperature(), e.humidity()],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -805,6 +807,7 @@ const definitions: Definition[] = [
         description: 'Flood alarm device ',
         fromZigbee: [fz.ias_water_leak_alarm_1, develco.fz.temperature, fz.battery],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.battery_low(), e.tamper(), e.water_leak(), e.temperature(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint35 = device.getEndpoint(35);
@@ -966,6 +969,7 @@ const definitions: Definition[] = [
         description: 'Smart button',
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.battery(), e.battery_voltage(), e.action(['single'])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(32);
