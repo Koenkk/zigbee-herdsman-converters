@@ -515,17 +515,17 @@ const boschExtend = {
         };
         const exposes: Expose[] = [
             e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
-            e.numeric('temperature', access.STATE).withValueMin(0).withValueMax(65).withValueStep(0.1)
+            e.numeric('temperature', ea.STATE).withValueMin(0).withValueMax(65).withValueStep(0.1)
                 .withUnit('°C').withDescription('Measured temperature value'),
-            e.numeric('humidity', access.STATE).withValueMin(0).withValueMax(100).withValueStep(0.1)
+            e.numeric('humidity', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(0.1)
                 .withUnit('%').withDescription('Measured relative humidity'),
-            e.numeric('voc', access.STATE).withValueMin(0).withValueMax(35610).withValueStep(1)
+            e.numeric('voc', ea.STATE).withValueMin(0).withValueMax(35610).withValueStep(1)
                 .withLabel('VOC').withUnit('µg/m³').withDescription('Measured VOC value'),
-            e.numeric('co2', access.STATE).withValueMin(500).withValueMax(5500).withValueStep(1)
+            e.numeric('co2', ea.STATE).withValueMin(500).withValueMax(5500).withValueStep(1)
                 .withLabel('CO2').withUnit('ppm').withDescription('The measured CO2 (carbon dioxide) value'),
-            e.numeric('aqi', access.STATE).withValueMin(0).withValueMax(500).withValueStep(1)
+            e.numeric('aqi', ea.STATE).withValueMin(0).withValueMax(500).withValueStep(1)
                 .withLabel('AQI').withDescription('Air Quality Index'),
-            e.numeric('illuminance_lux', access.STATE).withUnit('lx')
+            e.numeric('illuminance_lux', ea.STATE).withUnit('lx')
                 .withDescription('Measured illuminance in lux'),
             e.numeric('battery', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Remaining battery in %').withCategory('diagnostic'),
@@ -1476,7 +1476,7 @@ const definitions: Definition[] = [
                     ID: 0xe000,
                     manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                     attributes: {
-                        sensitivity: {ID: 0x4003, type: DataType.UINT16},
+                        sensitivity: {ID: 0x4003, type: Zcl.DataType.UINT16},
                     },
                     commands: {
                         initiateTestMode: {
@@ -1493,19 +1493,19 @@ const definitions: Definition[] = [
                     ID: 0xe002,
                     manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                     attributes: {
-                        humidity: {ID: 0x4000, type: DataType.UINT16},
-                        unknown1: {ID: 0x4001, type: DataType.UINT16},
-                        unknown2: {ID: 0x4002, type: DataType.UINT16},
-                        airpurity: {ID: 0x4003, type: DataType.UINT16},
-                        temperature: {ID: 0x4004, type: DataType.INT16},
-                        illuminance_lux: {ID: 0x4005, type: DataType.UINT16},
-                        battery: {ID: 0x4006, type: DataType.UINT16},
-                        unknown3: {ID: 0x4007, type: DataType.UINT16},
-                        unknown4: {ID: 0x4008, type: DataType.UINT16},
-                        pressure: {ID: 0x4009, type: DataType.UINT16}, // Not yet confirmed
-                        unknown6: {ID: 0x400a, type: DataType.UINT16},
-                        unknown7: {ID: 0x400b, type: DataType.UINT16},
-                        unknown8: {ID: 0x400c, type: DataType.UINT16},
+                        humidity: {ID: 0x4000, type: Zcl.DataType.UINT16},
+                        unknown1: {ID: 0x4001, type: Zcl.DataType.UINT16},
+                        unknown2: {ID: 0x4002, type: Zcl.DataType.UINT16},
+                        airpurity: {ID: 0x4003, type: Zcl.DataType.UINT16},
+                        temperature: {ID: 0x4004, type: Zcl.DataType.INT16},
+                        illuminance_lux: {ID: 0x4005, type: Zcl.DataType.UINT16},
+                        battery: {ID: 0x4006, type: Zcl.DataType.UINT16},
+                        unknown3: {ID: 0x4007, type: Zcl.DataType.UINT16},
+                        unknown4: {ID: 0x4008, type: Zcl.DataType.UINT16},
+                        pressure: {ID: 0x4009, type: Zcl.DataType.UINT16}, // Not yet confirmed
+                        unknown6: {ID: 0x400a, type: Zcl.DataType.UINT16},
+                        unknown7: {ID: 0x400b, type: Zcl.DataType.UINT16},
+                        unknown8: {ID: 0x400c, type: Zcl.DataType.UINT16},
                     },
                     commands: {},
                     commandsResponse: {},
@@ -1517,8 +1517,8 @@ const definitions: Definition[] = [
                     ID: 0xe004,
                     manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                     attributes: {
-                        unknown1: {ID: 0x4000, type: DataType.BITMAP8}, // 0,1 ??? read during pairing
-                        pre_alarm: {ID: 0x4001, type: DataType.BITMAP8}, // 0,1 on/off
+                        unknown1: {ID: 0x4000, type: Zcl.DataType.BITMAP8}, // 0,1 ??? read during pairing
+                        pre_alarm: {ID: 0x4001, type: Zcl.DataType.BITMAP8}, // 0,1 on/off
                     },
                     commands: {},
                     commandsResponse: {},
@@ -1530,9 +1530,9 @@ const definitions: Definition[] = [
                     ID: 0xe006,
                     manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                     attributes: {
-                        unknown1:  {ID: 0x5003, type: DataType.INT8}, // perhaps signal strength? -7?
-                        unknown2:  {ID: 0x5004, type: DataType.UINT8}, // ????
-                        heartbeat: {ID: 0x5005, type: DataType.BITMAP8}, // 0
+                        unknown1:  {ID: 0x5003, type: Zcl.DataType.INT8}, // perhaps signal strength? -7?
+                        unknown2:  {ID: 0x5004, type: Zcl.DataType.UINT8}, // ????
+                        heartbeat: {ID: 0x5005, type: Zcl.DataType.BITMAP8}, // 0
                     },
                     commands: {
                         pairingCompleted: {
@@ -1549,13 +1549,13 @@ const definitions: Definition[] = [
                     ID: 0xe007,
                     manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                     attributes: {
-                        alarm_status: {ID: 0x5000, type: DataType.BITMAP32},
+                        alarm_status: {ID: 0x5000, type: Zcl.DataType.BITMAP32},
                     },
                     commands: {
                         burglarAlarm: {
                             ID: 0x01,
                             parameters: [
-                                {name: 'data', type: DataType.UINT8}, // data:1 trips the siren data:0 should stop the siren
+                                {name: 'data', type: Zcl.DataType.UINT8}, // data:1 trips the siren data:0 should stop the siren
                             ],
                         },
                     },
