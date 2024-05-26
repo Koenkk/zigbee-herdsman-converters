@@ -213,10 +213,10 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
         expose.push(e.illuminance().withEndpoint(epName));
     }
     if (endpoint.supportsInputCluster('msCO2')) {
-        expose.push(e.co2().withEndpoint(epName));
+        expose.push(e.co2());
     }
     if (endpoint.supportsInputCluster('pm25Measurement')) {
-        expose.push(e.pm25().withEndpoint(epName));
+        expose.push(e.pm25());
     }
     if (endpoint.supportsInputCluster('haElectricalMeasurement')) {
         // haElectricalMeasurement may expose only one value defined explicitly
