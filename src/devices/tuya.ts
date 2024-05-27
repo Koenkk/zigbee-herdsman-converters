@@ -8525,6 +8525,26 @@ const definitions: Definition[] = [
         },
         whiteLabel: [{vendor: 'ELECTSMART', model: 'EST-120Z'}],
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dsagrkvg']),
+        model: 'ZPV-01',
+        vendor: 'Novato',
+        description: 'Battery powered smart valve',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.switch().setAccess('state', ea.STATE_SET),
+            e.enum('valve_state', ea.STATE, ['close', 'unknown', 'open']).withDescription('State of the valve'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [8, 'valve_state', tuya.valueConverterBasic.lookup({'unknown': tuya.enum(0), 'open': tuya.enum(1), 'closed': tuya.enum(2)})],
+            ],
+        },
+    },
 ];
 
 export default definitions;
