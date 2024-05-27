@@ -336,20 +336,14 @@ const definitions: Definition[] = [
                         'hvacThermostat',
                     ]);
 
-                    await reporting.batteryPercentageRemaining(endpoint, {
-                        min: constants.repInterval.HOUR, max: 43200, change: 1
-                    });
-                    await reporting.thermostatTemperature(endpoint, {
-                        min: 0, max: constants.repInterval.MINUTES_10, change: 10
-                    });
-                    await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {
-                        min: 0, max: constants.repInterval.MINUTES_10, change: 10
-                    });
+                    await reporting.batteryPercentageRemaining(endpoint);
+                    await reporting.thermostatTemperature(endpoint);
+                    await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
 
                     await endpoint.configureReporting('hvacThermostat', [{
                         attribute: 'danfossOutputStatus',
-                        minimumReportInterval: constants.repInterval.MINUTE,
-                        maximumReportInterval: constants.repInterval.MINUTES_10,
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: 1,
                     }], options);
 
