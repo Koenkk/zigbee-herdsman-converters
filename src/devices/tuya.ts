@@ -2953,7 +2953,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_xkap8wtb', '_TZ3000_qnejhcsu', '_TZ3000_x3ewpzyr',
-            '_TZ3000_mkhkxx1p', '_TZ3000_tgddllx4', '_TZ3000_kqvb5akv', '_TZ3000_g92baclx', '_TZ3000_qlai3277']),
+            '_TZ3000_mkhkxx1p', '_TZ3000_tgddllx4', '_TZ3000_kqvb5akv', '_TZ3000_g92baclx', '_TZ3000_qlai3277', '_TZ3000_qaabwu5c']),
         model: 'TS0001_power',
         description: 'Switch with power monitoring',
         vendor: 'TuYa',
@@ -2977,6 +2977,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Nous', 'B2Z', '1 gang switch with power monitoring', ['_TZ3000_qlai3277']),
             tuya.whitelabel('Colorock', 'CR-MNZ1', '1 gang switch 30A with power monitoring', ['_TZ3000_tgddllx4']),
+            tuya.whitelabel('Nous', 'L6Z', 'Switch with power monitoring', ['_TZ3000_qaabwu5c']),
         ],
     },
     {
