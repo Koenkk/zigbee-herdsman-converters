@@ -13,22 +13,10 @@ import {
 const definitions: Definition[] = [
     {
         fingerprint: [
-            {
-                modelID: 'WSZ 98426061',
-                manufacturerName: 'Nordtronic A/S',
-            },
-            {
-                modelID: 'WSZ 98426061',
-                manufacturerName: 'Nordtronic',
-            },
-            {
-                modelID: '98426061',
-                manufacturerName: 'Nordtronic A/S',
-            },
-            {
-                modelID: '98426061',
-                manufacturerName: 'Nordtronic',
-            },
+            {modelID: 'WSZ 98426061', manufacturerName: 'Nordtronic A/S'},
+            {modelID: 'WSZ 98426061', manufacturerName: 'Nordtronic'},
+            {modelID: '98426061', manufacturerName: 'Nordtronic A/S'},
+            {modelID: '98426061', manufacturerName: 'Nordtronic'},
         ],
         model: '98426061',
         vendor: 'Nordtronic',
