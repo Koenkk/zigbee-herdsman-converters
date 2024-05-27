@@ -235,6 +235,8 @@ const definitions: Definition[] = [
             fz.thermostat,
             fz.danfoss_thermostat,
             fz.danfoss_icon_regulator,
+            fz.danfoss_icon_floor_sensor,
+            fz.temperature,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -244,6 +246,10 @@ const definitions: Definition[] = [
             tz.thermostat_system_mode,
             tz.danfoss_room_status_code,
             tz.danfoss_output_status,
+            tz.danfoss_floor_sensor_mode,
+            tz.danfoss_floor_min_setpoint,
+            tz.danfoss_floor_max_setpoint,
+            tz.temperature,
             tz.danfoss_system_status_code,
             tz.danfoss_system_status_water,
             tz.danfoss_multimaster_role,
@@ -306,6 +312,23 @@ const definitions: Definition[] = [
                         'floor_sensor_short_circuit', 'floor_sensor_disconnected'])
                         .withEndpoint(epName)
                         .withDescription('Thermostat status'));
+
+                    features.push(e.enum('room_floor_sensor_mode', ea.STATE_GET, ['comfort', 'floor_only', 'dual_mode'])
+                        .withEndpoint(epName)
+                        .withDescription('Floor sensor mode'));
+                    features.push(e.numeric('floor_min_setpoint', ea.ALL)
+                        .withValueMin(18).withValueMax(35).withValueStep(0.5).withUnit('°C')
+                        .withEndpoint(epName)
+                        .withDescription('Min floor temperature'));
+                    features.push(e.numeric('floor_max_setpoint', ea.ALL)
+                        .withValueMin(18).withValueMax(35).withValueStep(0.5).withUnit('°C')
+                        .withEndpoint(epName)
+                        .withDescription('Max floor temperature'));
+
+                    features.push(e.numeric('temperature', ea.STATE_GET)
+                        .withUnit('°C')
+                        .withEndpoint(epName)
+                        .withDescription('Floor temperature'));
                 } else {
                     features.push(e.enum('system_status_code', ea.STATE_GET, ['no_error', 'missing_expansion_board',
                         'missing_radio_module', 'missing_command_module', 'missing_master_rail', 'missing_slave_rail_no_1',
@@ -339,6 +362,7 @@ const definitions: Definition[] = [
                     await reporting.batteryPercentageRemaining(endpoint);
                     await reporting.thermostatTemperature(endpoint);
                     await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+                    await reporting.temperature(endpoint, {change: 10});
 
                     await endpoint.configureReporting('hvacThermostat', [{
                         attribute: 'danfossOutputStatus',
@@ -361,6 +385,9 @@ const definitions: Definition[] = [
                     await endpoint.read('hvacThermostat', [
                         'danfossRoomStatusCode',
                         'danfossOutputStatus',
+                        'danfossRoomFloorSensorMode',
+                        'danfossFloorMinSetpoint',
+                        'danfossFloorMaxSetpoint',
                     ], options);
                 }
             }
