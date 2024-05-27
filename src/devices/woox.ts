@@ -48,7 +48,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aycxwiau', '_TZE200_bxdyeaa9']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aycxwiau', '_TZE200_bxdyeaa9', '_TZE200_ft523twt']),
         model: 'R7049',
         vendor: 'Woox',
         description: 'Smart smoke alarm',
