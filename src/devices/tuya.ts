@@ -5511,7 +5511,7 @@ const definitions: Definition[] = [
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.raw],
                 [3, 'garage_door_contact', tuya.valueConverter.trueFalseInvert],
-                [12, null, null]
+                [12, null, null],
             ],
         },
         description: 'Garage door opener',
