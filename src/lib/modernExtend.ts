@@ -1109,6 +1109,7 @@ export function lock(args?: LockArgs): ModernExtend {
 
 export interface WindowCoveringArgs {
     controls: ('lift' | 'tilt')[], coverInverted?: boolean, stateSource?: 'lift' | 'tilt', configureReporting?: boolean,
+    coverMode?: boolean,
 }
 export function windowCovering(args: WindowCoveringArgs): ModernExtend {
     args = {stateSource: 'lift', configureReporting: true, ...args};
@@ -1152,6 +1153,11 @@ export function windowCovering(args: WindowCoveringArgs): ModernExtend {
         if (args.coverInverted) meta.coverInverted = true;
         if (args.stateSource === 'tilt') meta.coverStateFromTilt = true;
         result.meta = meta;
+    }
+
+    if (args.coverMode) {
+        result.toZigbee.push(tz.cover_mode);
+        result.exposes.push(e.cover_mode());
     }
 
     return result;

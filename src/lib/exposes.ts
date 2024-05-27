@@ -664,6 +664,11 @@ export const presets = {
     cover_position: () => new Cover().withPosition(),
     cover_position_tilt: () => new Cover().withPosition().withTilt(),
     cover_tilt: () => new Cover().withTilt(),
+    cover_mode: () => new Composite('cover_mode', 'cover_mode', access.ALL)
+        .withFeature(new Binary('reversed', access.ALL, true, false).withDescription('Reversal of the motor rotating direction'))
+        .withFeature(new Binary('calibration', access.ALL, true, false).withDescription('Set the cover calibration mode'))
+        .withFeature(new Binary('maintenance', access.ALL, true, false).withDescription('Set the cover maintenance mode, enabling will disable the cover motor'))
+        .withFeature(new Binary('led', access.ALL, true, false).withDescription('Set the LED')),
     cpu_temperature: () => new Numeric('cpu_temperature', access.STATE).withLabel('CPU temperature').withUnit('°C').withDescription('Temperature of the CPU'),
     cube_side: (name: string) => new Numeric(name, access.STATE).withDescription('Side of the cube').withValueMin(0).withValueMax(6).withValueStep(1),
     current: () => new Numeric('current', access.STATE).withUnit('A').withDescription('Instantaneous measured electrical current').withCategory('diagnostic'),
