@@ -5529,6 +5529,30 @@ const definitions: Definition[] = [
                 .withDescription('Indicates if the garage door contact is closed (= true) or open (= false)')],
     },
     {
+        fingerprint: [{modelID: 'TS0603', manufacturerName: '_TZE608_c75zqghm'}],
+        model: 'TS0603',
+        vendor: 'TuYa',
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.raw],
+                [3, 'garage_door_contact', tuya.valueConverter.trueFalseInvert],
+                [12, null, null],
+            ],
+        },
+        description: 'Garage door opener',
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.binary('state', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
+            e.binary('garage_door_contact', ea.STATE, true, false)
+                .withDescription('Indicates if the garage door contact is closed (= true) or open (= false)')],
+    },
+    {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_qaaysllp'}],
         model: 'LCZ030',
         vendor: 'TuYa',
