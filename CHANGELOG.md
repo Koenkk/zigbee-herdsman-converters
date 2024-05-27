@@ -1,5 +1,34 @@
 # Changelog
 
+## [19.44.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.43.0...v19.44.0) (2024-05-27)
+
+
+### Features
+
+* Add `cover_mode` to NodOn SIN-4-RS-20 and SIN-4-RS-20_PRO https://github.com/Koenkk/zigbee2mqtt/issues/22728 ([e9f3896](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e9f389673ddb7d98388a00e2242718b3422c4540))
+* **add:** 404051 @Chrischan-git https://github.com/Koenkk/zigbee2mqtt/issues/22707 ([cc15841](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cc15841e139d02ae49ac46eeb3480edc9f5b5074))
+* **add:** 98426061 ([#7563](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7563)) ([ee40ebe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ee40ebeb9da273446c86298f99861df916b510e4))
+* **add:** TS0601_cover_9 [@slothking87](https://github.com/slothking87) https://github.com/Koenkk/zigbee2mqtt/issues/22772 ([bf0f575](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bf0f575b82ee7021d0d34f4905561d8929fc4bf2))
+* **add:** TS0603 ([#7541](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7541)) ([0741be4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0741be4cb2d657e6b5b6e84e67c28f8bdffa4b06))
+* **add:** ZPV-01 @NTV20244 ([2ac26ba](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2ac26ba51fb21e9f3d13451e2fea71dbc8eadd62))
+* Floor sensor support for Danfoss Icon ([#7566](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7566)) ([5aa7d27](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5aa7d277d5ec6f92d0c095dce2aa2110c83fa77e))
+* Improvements for ISM300Z3 ([#7549](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7549)) ([42fabf6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/42fabf636e2dfea7013ebc9704ba024b568a61a8))
+
+
+### Bug Fixes
+
+* Add Envilar 7853 whiteLabel info ([#7551](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7551)) ([5f4d72c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5f4d72c233486aa2f2a0eceea5f42ef19fbc3948))
+* Add missing effects to LCX015 ([#7557](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7557)) ([fea6bfc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fea6bfcd0950e2f0cd4feb5357d4a89f5d1e2c53))
+* Convert Bosch BSD-2 to `modernExtend` ([#7548](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7548)) ([c9a1c14](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c9a1c14ea354a99c6ce9fdc0afe4b6f7e62da2d1))
+* Convert Bosch Twinguard to `modernExtend` ([#7560](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7560)) ([0427cb9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0427cb9195992971bb1f77ced4e874517834c083))
+* **detect:** Detect `_TZ3000_qaabwu5c` as Nous L6Z https://github.com/Koenkk/zigbee2mqtt/issues/22462 ([6462710](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6462710f9bee56029dcf7d37d2ad331a7e9742cd))
+* **detect:** Detect `_TZE200_ft523twt` as Woox R7049 ([#7558](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7558)) ([0516131](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0516131456aaca3cb98cee38b3ae6d3948794c47))
+* **detect:** Detect `TRADFRI bulb E26 WS globe 1055lm` as IKEA LED2201G8 ([#7546](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7546)) ([3817344](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3817344929b3e8b82f48d7bc21f64f19a14d98a6))
+* Fix iHORN LH03121 zone type https://github.com/Koenkk/zigbee-herdsman-converters/issues/7556 ([5e1d7b9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e1d7b9676d2a71ac7dcd00d9e3516bc0b8d3ab1))
+* Fix IKEA E2112 OTA ([#7562](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7562)) ([3a1e1f1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a1e1f12b8f7dcfa1181d3d8d6fea4902b7e78b4))
+* Fixes in the PTVO converter ([#7554](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7554)) ([4dc88a7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4dc88a7a27d6be151295b77cae7069bfeb55c1c4))
+* Increased the temperature setting interval for the Moes thermostats (BHT-002-GCLZB) ([#7550](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7550)) ([fc59171](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc59171c3cd9de72a41364d51256569a5d456e01))
+
 ## [19.43.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.42.0...v19.43.0) (2024-05-21)
 
 
