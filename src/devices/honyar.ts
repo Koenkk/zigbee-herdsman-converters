@@ -140,7 +140,7 @@ const definitions: Definition[] = [
         ],
         options: [exposes.options.measurement_poll_interval()],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, true, true),
-        //Device does not support configureReporting.
+        // Device does not support configureReporting.
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
