@@ -8,6 +8,7 @@ import * as reporting from '../lib/reporting';
 import {
     binary, enumLookup, forcePowerSource, numeric, onOff,
     customTimeResponse, battery, ota, deviceAddCustomCluster,
+    temperature, humidity, bindCluster,
 } from '../lib/modernExtend';
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -626,11 +627,16 @@ const definitions: Definition[] = [
         fromZigbee: [],
         toZigbee: [],
         extend: [
+            forcePowerSource({powerSource: 'Battery'}),
             battery({
                 percentage: true,
             }),
-            temperature(),
-            humidity(),
+            temperature({
+                reporting: {min: '1_MINUTE', max: '1_HOUR', change: 100},
+            }),
+            humidity({
+                reporting: {min: '1_MINUTE', max: '1_HOUR', change: 100},
+            }),
             bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
@@ -742,11 +748,16 @@ const definitions: Definition[] = [
         fromZigbee: [],
         toZigbee: [],
         extend: [
+            forcePowerSource({powerSource: 'Battery'}),
             battery({
                 percentage: true,
             }),
-            temperature(),
-            humidity(),
+            temperature({
+                reporting: {min: '1_MINUTE', max: '1_HOUR', change: 100},
+            }),
+            humidity({
+                reporting: {min: '1_MINUTE', max: '1_HOUR', change: 100},
+            }),
             bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
