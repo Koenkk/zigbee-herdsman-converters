@@ -519,9 +519,9 @@ const boschExtend = {
                 .withUnit('°C').withDescription('Measured temperature value'),
             e.numeric('humidity', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(0.1)
                 .withUnit('%').withDescription('Measured relative humidity'),
-            e.numeric('voc', ea.STATE).withValueMin(0).withValueMax(35610).withValueStep(1)
+            e.numeric('voc', ea.STATE).withValueMin(0).withValueMax(50000).withValueStep(1)
                 .withLabel('VOC').withUnit('µg/m³').withDescription('Measured VOC value'),
-            e.numeric('co2', ea.STATE).withValueMin(500).withValueMax(5500).withValueStep(1)
+            e.numeric('co2', ea.STATE).withValueMin(400).withValueMax(2400).withValueStep(1)
                 .withLabel('CO2').withUnit('ppm').withDescription('The measured CO2 (carbon dioxide) value'),
             e.numeric('aqi', ea.STATE).withValueMin(0).withValueMax(500).withValueStep(1)
                 .withLabel('AQI').withDescription('Air Quality Index'),
