@@ -622,19 +622,20 @@ const definitions: Definition[] = [
         model: 'SNZB-02D',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor with screen',
-        exposes: [e.battery(), e.temperature(), e.humidity()],
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        exposes: [],
+        fromZigbee: [],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
-            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.temperature(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 20});
-            await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 100});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
-            device.powerSource = 'Battery';
-            device.save();
-        },
+        extend: [
+            battery({
+                percentage: true,
+            }),
+            temperature(),
+            humidity(),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
+        ],
     },
     {
         fingerprint: [
@@ -737,22 +738,19 @@ const definitions: Definition[] = [
         model: 'SNZB-02P',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor',
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_low(), e.battery_voltage()],
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        configure: async (device, coordinatorEndpoint) => {
-            try {
-                const endpoint = device.getEndpoint(1);
-                const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
-                await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 20});
-                await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 100});
-                await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
-            } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
-                logger.error(`Configure failed: ${e}`, NS);
-            }
-        },
+        exposes: [],
+        fromZigbee: [],
+        toZigbee: [],
         extend: [
-            ota(),
+            battery({
+                percentage: true,
+            }),
+            temperature(),
+            humidity(),
+            bindCluster({
+                cluster: 'genPollCtrl',
+                clusterType: 'input',
+            }),
         ],
     },
     {
