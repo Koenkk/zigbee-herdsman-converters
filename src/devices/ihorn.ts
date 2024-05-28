@@ -65,7 +65,7 @@ const definitions: Definition[] = [
         model: 'LH03121',
         vendor: 'iHORN',
         description: 'Door contact DNAKE SH-DM-S01',
-        extend: [iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']}), battery()],
+        extend: [iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']}), battery()],
     },
 ];
 

@@ -2953,7 +2953,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_xkap8wtb', '_TZ3000_qnejhcsu', '_TZ3000_x3ewpzyr',
-            '_TZ3000_mkhkxx1p', '_TZ3000_tgddllx4', '_TZ3000_kqvb5akv', '_TZ3000_g92baclx', '_TZ3000_qlai3277']),
+            '_TZ3000_mkhkxx1p', '_TZ3000_tgddllx4', '_TZ3000_kqvb5akv', '_TZ3000_g92baclx', '_TZ3000_qlai3277', '_TZ3000_qaabwu5c']),
         model: 'TS0001_power',
         description: 'Switch with power monitoring',
         vendor: 'TuYa',
@@ -2977,6 +2977,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Nous', 'B2Z', '1 gang switch with power monitoring', ['_TZ3000_qlai3277']),
             tuya.whitelabel('Colorock', 'CR-MNZ1', '1 gang switch 30A with power monitoring', ['_TZ3000_tgddllx4']),
+            tuya.whitelabel('Nous', 'L6Z', 'Switch with power monitoring', ['_TZ3000_qaabwu5c']),
         ],
     },
     {
@@ -3465,6 +3466,26 @@ const definitions: Definition[] = [
             // Tuya ZigBee Intelligent Curtain Blind Switch Electric Motorized Curtain Roller
             tuya.whitelabel('Lilistore', 'TS0601_lilistore', 'Cover motor', ['_TZE204_r0jdjrvi']),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_p2qzzazi']),
+        model: 'TS0601_cover_9',
+        vendor: 'TuYa',
+        description: 'Cover motor',
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'position', tuya.valueConverter.raw],
+                [5, 'motor_direction', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'reversed': tuya.enum(1)})],
+                [101, 'battery', tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         zigbeeModel: ['kud7u2l'],
@@ -5505,6 +5526,30 @@ const definitions: Definition[] = [
         },
         exposes: [e.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
             e.binary('garage_door_contact', ea.STATE, false, true)
+                .withDescription('Indicates if the garage door contact is closed (= true) or open (= false)')],
+    },
+    {
+        fingerprint: [{modelID: 'TS0603', manufacturerName: '_TZE608_c75zqghm'}],
+        model: 'TS0603',
+        vendor: 'TuYa',
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.raw],
+                [3, 'garage_door_contact', tuya.valueConverter.trueFalseInvert],
+                [12, null, null],
+            ],
+        },
+        description: 'Garage door opener',
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.binary('state', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
+            e.binary('garage_door_contact', ea.STATE, true, false)
                 .withDescription('Indicates if the garage door contact is closed (= true) or open (= false)')],
     },
     {
@@ -8523,6 +8568,26 @@ const definitions: Definition[] = [
             ],
         },
         whiteLabel: [{vendor: 'ELECTSMART', model: 'EST-120Z'}],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dsagrkvg']),
+        model: 'ZPV-01',
+        vendor: 'Novato',
+        description: 'Battery powered smart valve',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.switch().setAccess('state', ea.STATE_SET),
+            e.enum('valve_state', ea.STATE, ['close', 'unknown', 'open']).withDescription('State of the valve'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [8, 'valve_state', tuya.valueConverterBasic.lookup({'unknown': tuya.enum(0), 'open': tuya.enum(1), 'closed': tuya.enum(2)})],
+            ],
+        },
     },
 ];
 

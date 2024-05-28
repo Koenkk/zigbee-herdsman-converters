@@ -630,6 +630,22 @@ const converters2 = {
             await entity.read('closuresWindowCovering', [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']);
         },
     } satisfies Tz.Converter,
+    cover_mode: {
+        key: ['cover_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertObject(value, key);
+            const windowCoveringMode =
+                (value.reversed ? 1 : 0) << 0 |
+                (value.calibration ? 1 : 0) << 1 |
+                (value.maintenance ? 1 : 0) << 2 |
+                (value.led ? 1 : 0) << 3;
+            await entity.write('closuresWindowCovering', {windowCoveringMode}, utils.getOptions(meta.mapped, entity));
+            return {state: {cover_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresWindowCovering', ['windowCoveringMode']);
+        },
+    } satisfies Tz.Converter,
     occupancy_timeout: {
         // Sets delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],

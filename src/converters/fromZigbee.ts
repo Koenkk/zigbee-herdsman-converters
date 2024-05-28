@@ -1636,6 +1636,14 @@ const converters1 = {
                         metaInvert ? (value === 100 ? 'OPEN' : 'CLOSE') : (value === 0 ? 'OPEN' : 'CLOSE');
                 }
             }
+            if (msg.data.hasOwnProperty('windowCoveringMode')) {
+                result[postfixWithEndpointName('cover_mode', msg, model, meta)] = {
+                    reversed: (msg.data.windowCoveringMode & 1<<0) > 0,
+                    calibration: (msg.data.windowCoveringMode & 1<<1) > 0,
+                    maintenance: (msg.data.windowCoveringMode & 1<<2) > 0,
+                    led: (msg.data.windowCoveringMode & 1<<3) > 0,
+                };
+            }
             return result;
         },
     } satisfies Fz.Converter,
