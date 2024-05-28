@@ -6690,6 +6690,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Tongou', 'TO-Q-SY2-163JZT', 'Smart circuit breaker', ['_TZ3000_cayepv1a']),
             tuya.whitelabel('EARU', 'EAKCB-T-M-Z', 'Smart circuit breaker', ['_TZ3000_lepzuhto']),
+            tuya.whitelabel('EARU', 'EAYCB-Z-2P', 'Smart circuit breaker with Leakage Protection', ['_TZ3000_zrm3oxsh']),
             tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart Circuit Breaker', ['_TZ3000_qystbcjg']),
         ],
     },
