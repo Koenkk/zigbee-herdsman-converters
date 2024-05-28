@@ -1751,8 +1751,24 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint3);
         },
         exposes: (device, options) => {
+            const stateDeviceMode: KeyValue = {
+                'light': 0x04,
+                'shutter': 0x01,
+                'disabled': 0x00,
+            };
+            const stateMotor: KeyValue = {
+                'stopped': 0x00,
+                'opening': 0x01,
+                'closing': 0x02,
+            };
+            const stateSwitchType: KeyValue = {
+                'button': 0x01,
+                'button_key_change': 0x02,
+                'rocker_switch': 0x03,
+                'rocker_switch_key_change': 0x04,
+            };
             const commonExposes = [
-                e.enum('switch_type', ea.ALL, Object.keys(boschExtend.bmct.stateSwitchType))
+                e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
                     .withDescription('Module controlled by a rocker switch or a button'),
                 e.linkquality(),
             ];
@@ -1768,7 +1784,7 @@ const definitions: Definition[] = [
             ];
             const coverExposes = [
                 e.cover_position(),
-                e.enum('motor_state', ea.STATE, Object.keys(boschExtend.bmct.stateMotor))
+                e.enum('motor_state', ea.STATE, Object.keys(stateMotor))
                     .withDescription('Shutter motor actual state '),
                 e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
                 e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('closing_time')
@@ -1779,7 +1795,7 @@ const definitions: Definition[] = [
 
             if (device) {
                 const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue('boschSpecific', 'deviceMode');
-                const deviceMode = Object.keys(boschExtend.bmct.stateDeviceMode).find((key) => boschExtend.bmct.stateDeviceMode[key] === deviceModeKey);
+                const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 
                 if (deviceMode === 'light') {
                     return [...commonExposes, ...lightExposes];
@@ -1787,7 +1803,7 @@ const definitions: Definition[] = [
                     return [...commonExposes, ...coverExposes];
                 }
             }
-            return [e.enum('device_mode', ea.ALL, Object.keys(boschExtend.bmct.stateDeviceMode)).withDescription('Device mode'),
+            return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'),
                 e.linkquality()];
         },
     },
