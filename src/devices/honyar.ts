@@ -133,12 +133,18 @@ const definitions: Definition[] = [
         model: 'IHC8223AL',
         vendor: 'Honyar',
         description: 'Smart Power Socket 10A (with power monitoring)',
+        // configureReporting fails for this device
         extend: [
             onOff({powerOnBehavior: false, configureReporting: false}),
-            electricityMeter({cluster: 'honyar', configureReporting: false, current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}}),
+            electricityMeter({cluster: 'honyar', configureReporting: false}),
         ],
         options: [exposes.options.measurement_poll_interval()],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, true, true),
+	    // Device does not support configureReporting.
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', { acCurrentDivisor: 1000, acCurrentMultiplier: 1 });
+    },
     },
 ];
 
