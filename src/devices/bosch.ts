@@ -1052,6 +1052,38 @@ const definitions: Definition[] = [
             e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in'),
         ],
         extend: [
+            deviceAddCustomCluster(
+                'ssIasZone',
+                {
+                    ID: Zcl.Clusters.ssIasZone.ID,
+                    attributes: {},
+                    commands: {
+                        boschTestTamper: {
+                            ID: 0xF3,
+                            parameters: [
+                                {name: 'data', type: DataType.UINT8},
+                            ],
+                        },
+                    },
+                    commandsResponse: {},
+                },
+            ),
+            deviceAddCustomCluster(
+                'ssIasWd',
+                {
+                    ID: Zcl.Clusters.ssIasWd.ID,
+                    attributes: {},
+                    commands: {
+                        boschOutdoorSiren: {
+                            ID: 240,
+                            parameters: [
+                                {name: 'data', type: DataType.UINT8},
+                            ],
+                        },
+                    },
+                    commandsResponse: {},
+                },
+            ),
             quirkCheckinInterval(0),
         ],
     },
