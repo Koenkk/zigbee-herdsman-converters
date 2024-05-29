@@ -45,12 +45,6 @@ const sirenPowerSupply = {
     'dc_power_supply': 0x03,
 };
 
-// Radiator Thermostat II
-const stateOffOn = {
-    'OFF': 0,
-    'ON': 1,
-};
-
 // Universal Switch II
 const buttonMap: {[key: string]: number} = {
     config_led_top_left_press: 0x10,
@@ -936,7 +930,7 @@ const tzLocal = {
             if (!buttonMap.hasOwnProperty(key)) {
                 throw new Error(`Unknown key ${key}`);
             }
-            await entity.read('manuSpecificBosch9', [buttonMap[key as keyof typeof buttonMap]], manufacturerOptions);
+            await entity.read('boschSpecific', [buttonMap[key as keyof typeof buttonMap]], manufacturerOptions);
         },
         convertSet: async (entity, key, value, meta) => {
             if (!buttonMap.hasOwnProperty(key) ) {
@@ -948,7 +942,7 @@ const tzLocal = {
 
             const payload: {[key: number | string]: KeyValue} = {};
             payload[buttonMap[key as keyof typeof buttonMap]] = {value: buffer, type: 65};
-            await entity.write('manuSpecificBosch9', payload, manufacturerOptions);
+            await entity.write('boschSpecific', payload, manufacturerOptions);
 
             const result:{[key: number | string]: string} = {};
             result[key] = value as string;
@@ -960,7 +954,7 @@ const tzLocal = {
 
 const fzLocal = {
     bhius_button_press: {
-        cluster: 'manuSpecificBosch9',
+        cluster: 'boschSpecific',
         type: 'raw',
         options: [e.text('led_response', ea.ALL).withLabel('LED config (confirmation response)').withDescription(labelConfirmation)],
         convert: async (model, msg, publish, options, meta) => {
@@ -991,7 +985,7 @@ const fzLocal = {
                 } else {
                     globalStore.clearValue(msg.endpoint, buttons[buttonId]);
                     command = longPress ? 'longpress_release': 'release';
-                    msg.endpoint.command('manuSpecificBosch9', 'confirmButtonPressed', {data: buffer}, {sendPolicy: 'immediate'})
+                    msg.endpoint.command('boschSpecific', 'confirmButtonPressed', {data: buffer}, {sendPolicy: 'immediate'})
                         .catch((error) => {});
                 }
                 return {action: `button_${buttons[buttonId]}_${command}`};
@@ -1001,7 +995,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     bhius_config: {
-        cluster: 'manuSpecificBosch9',
+        cluster: 'boschSpecific',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
             const result: {[key: number | string]: string} = {};
@@ -1137,7 +1131,7 @@ const definitions: Definition[] = [
             boschExtend.smokeAlarm(),
             battery({
                 percentage: true,
-                lowStatus: true,
+                lowStatus: false,
             }),
             enumLookup({
                 name: 'sensitivity',
@@ -1229,7 +1223,7 @@ const definitions: Definition[] = [
             boschExtend.hvacUserInterfaceCfgCluster(),
             battery({
                 percentage: true,
-                lowStatus: true,
+                lowStatus: false,
             }),
             boschExtend.operatingMode(),
             boschExtend.windowDetection(),
@@ -1364,7 +1358,7 @@ const definitions: Definition[] = [
                 voltageToPercentage: {min: 4400, max: 6400},
                 percentage: true,
                 voltage: true,
-                lowStatus: true,
+                lowStatus: false,
                 voltageReporting: true,
                 percentageReporting: false,
             }),
@@ -1843,21 +1837,46 @@ const definitions: Definition[] = [
                 .withDescription(labelLongPress)
                 .withCategory('config'),
         ],
+        extend: [
+            deviceAddCustomCluster(
+                'boschSpecific',
+                {
+                    ID: 0xfca1,
+                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                    attributes: {},
+                    commands: {
+                        confirmButtonPressed: {
+                            ID: 0x0010,
+                            parameters: [
+                                {name: 'data', type: BuffaloZclDataType.BUFFER},
+                            ],
+                        },
+                        pairingCompleted: {
+                            ID: 0x0012,
+                            parameters: [
+                                {name: 'data', type: BuffaloZclDataType.BUFFER},
+                            ],
+                        },
+                    },
+                    commandsResponse: {},
+                },
+            ),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
             // Read default LED configuration
-            await endpoint.read('manuSpecificBosch9', [0x0010, 0x0011, 0x0012, 0x0013], {...manufacturerOptions, sendPolicy: 'immediate'})
+            await endpoint.read('boschSpecific', [0x0010, 0x0011, 0x0012, 0x0013], {...manufacturerOptions, sendPolicy: 'immediate'})
                 .catch((error) => {});
-            await endpoint.read('manuSpecificBosch9', [0x0020, 0x0021, 0x0022, 0x0023], {...manufacturerOptions, sendPolicy: 'immediate'})
+            await endpoint.read('boschSpecific', [0x0020, 0x0021, 0x0022, 0x0023], {...manufacturerOptions, sendPolicy: 'immediate'})
                 .catch((error) => {});
 
             // We also have to read this one. Value reads 0x0f, looks like a bitmap
-            await endpoint.read('manuSpecificBosch9', [0x0024], {...manufacturerOptions, sendPolicy: 'immediate'});
+            await endpoint.read('boschSpecific', [0x0024], {...manufacturerOptions, sendPolicy: 'immediate'});
 
-            await endpoint.command('manuSpecificBosch9', 'pairingCompleted', {data: Buffer.from([0x00])}, {sendPolicy: 'immediate'});
+            await endpoint.command('boschSpecific', 'pairingCompleted', {data: Buffer.from([0x00])}, {sendPolicy: 'immediate'});
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'manuSpecificBosch9']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'boschSpecific']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
