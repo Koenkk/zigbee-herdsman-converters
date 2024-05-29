@@ -1061,7 +1061,7 @@ const definitions: Definition[] = [
                         boschTestTamper: {
                             ID: 0xF3,
                             parameters: [
-                                {name: 'data', type: DataType.UINT8},
+                                {name: 'data', type: Zcl.DataType.UINT8},
                             ],
                         },
                     },
@@ -1077,7 +1077,7 @@ const definitions: Definition[] = [
                         boschOutdoorSiren: {
                             ID: 240,
                             parameters: [
-                                {name: 'data', type: DataType.UINT8},
+                                {name: 'data', type: Zcl.DataType.UINT8},
                             ],
                         },
                     },
