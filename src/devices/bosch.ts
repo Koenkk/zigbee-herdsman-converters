@@ -715,6 +715,10 @@ const boschExtend = {
             'rocker_switch': 0x03,
             'rocker_switch_key_change': 0x04,
         };
+        const stateOffOn = {
+            'OFF': 0x00,
+            'ON': 0x01,
+        };
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'boschSpecific',
             type: ['attributeReport', 'readResponse'],
@@ -1848,13 +1852,13 @@ const definitions: Definition[] = [
                         confirmButtonPressed: {
                             ID: 0x0010,
                             parameters: [
-                                {name: 'data', type: BuffaloZclDataType.BUFFER},
+                                {name: 'data', type: Zcl.BuffaloZclDataType.BUFFER},
                             ],
                         },
                         pairingCompleted: {
                             ID: 0x0012,
                             parameters: [
-                                {name: 'data', type: BuffaloZclDataType.BUFFER},
+                                {name: 'data', type: Zcl.BuffaloZclDataType.BUFFER},
                             ],
                         },
                     },
