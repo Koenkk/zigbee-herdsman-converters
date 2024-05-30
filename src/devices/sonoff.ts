@@ -623,20 +623,13 @@ const definitions: Definition[] = [
         model: 'SNZB-02D',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor with screen',
-        exposes: [],
-        fromZigbee: [],
-        toZigbee: [],
         extend: [
             forcePowerSource({powerSource: 'Battery'}),
             battery({
                 percentage: true,
             }),
-            temperature({
-                reporting: {min: '1_MINUTE', max: '1_HOUR', change: 100},
-            }),
-            humidity({
-                reporting: {min: '1_MINUTE', max: '1_HOUR', change: 100},
-            }),
+            temperature(),
+            humidity(),
             bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
@@ -744,20 +737,13 @@ const definitions: Definition[] = [
         model: 'SNZB-02P',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor',
-        exposes: [],
-        fromZigbee: [],
-        toZigbee: [],
         extend: [
             forcePowerSource({powerSource: 'Battery'}),
             battery({
                 percentage: true,
             }),
-            temperature({
-                reporting: {min: '1_MINUTE', max: '1_HOUR', change: 100},
-            }),
-            humidity({
-                reporting: {min: '1_MINUTE', max: '1_HOUR', change: 100},
-            }),
+            temperature(),
+            humidity(),
             bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
