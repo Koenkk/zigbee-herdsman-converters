@@ -1,4 +1,4 @@
-import { Definition } from '../lib/types';
+import {Definition} from '../lib/types';
 import {
     deviceEndpoints,
     deviceTemperature,
@@ -8,7 +8,7 @@ import {
     windowCovering,
     commandsWindowCovering,
     commandsOnOff,
-    commandsLevelCtrl
+    commandsLevelCtrl,
 } from '../lib/modernExtend';
 
 import fz from '../converters/fromZigbee';
@@ -27,50 +27,47 @@ const definitions: Definition[] = [
         zigbeeModel: ['ZGA002'],
         model: 'ZGA002',
         vendor: 'AEOTEC',
-        description: 'Pico Switch with power meter',
+        description: 'Pico switch with power meter',
         extend: [
-            deviceEndpoints({ endpoints: { '1': 1, '2': 2, '3': 3 } }),
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
             deviceTemperature(),
             identify(),
-            onOff({ powerOnBehavior: false }),
+            onOff({powerOnBehavior: false}),
             electricityMeter(),
-            commandsOnOff({ endpointNames: ['2', '3'] }),
-            commandsLevelCtrl({ endpointNames: ['2', '3'] })
+            commandsOnOff({endpointNames: ['2', '3']}),
+            commandsLevelCtrl({endpointNames: ['2', '3']}),
         ],
-        meta: { multiEndpoint: true },
     },
     {
         zigbeeModel: ['ZGA003'],
         model: 'ZGA003',
         vendor: 'AEOTEC',
-        description: 'Pico Switch Duo with power meter',
+        description: 'Pico switch duo with power meter',
         extend: [
-            deviceEndpoints({ endpoints: { '1': 1, '2': 2, '3': 3, '4': 4 } }),
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
             deviceTemperature(),
             identify(),
-            onOff({ powerOnBehavior: false, endpointNames: ['1', '2'] }),
+            onOff({powerOnBehavior: false, endpointNames: ['1', '2']}),
             electricityMeter(),
-            commandsOnOff({ endpointNames: ['3', '4'] }),
-            commandsLevelCtrl({ endpointNames: ['3', '4'] })
+            commandsOnOff({endpointNames: ['3', '4']}),
+            commandsLevelCtrl({endpointNames: ['3', '4']}),
         ],
-        meta: { multiEndpoint: true },
     },
     {
         zigbeeModel: ['ZGA004'],
         model: 'ZGA004',
         vendor: 'AEOTEC',
-        description: 'Pico Shutter',
+        description: 'Pico shutter',
         extend: [
-            deviceEndpoints({ endpoints: { '1': 1, '2': 2, '3': 3, '4': 4, '5': 5 } }),
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}}),
             deviceTemperature(),
             identify(),
-            windowCovering({ controls: ['lift', 'tilt'] }),
-            commandsWindowCovering({ legacyAction: false, endpointNames: ['3'] }),
-            commandsOnOff({ endpointNames: ['4', '5'] }),
-            commandsLevelCtrl({ endpointNames: ['4', '5'] })
+            windowCovering({controls: ['lift', 'tilt']}),
+            commandsWindowCovering({legacyAction: false, endpointNames: ['3']}),
+            commandsOnOff({endpointNames: ['4', '5']}),
+            commandsLevelCtrl({endpointNames: ['4', '5']}),
         ],
-        meta: { multiEndpoint: true },
-    }
+    },
 ];
 
 export default definitions;
