@@ -625,15 +625,10 @@ const definitions: Definition[] = [
         description: 'Temperature and humidity sensor with screen',
         extend: [
             forcePowerSource({powerSource: 'Battery'}),
-            battery({
-                percentage: true,
-            }),
+            battery({percentage: true}),
             temperature(),
             humidity(),
-            bindCluster({
-                cluster: 'genPollCtrl',
-                clusterType: 'input',
-            }),
+            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
         ],
     },
     {
@@ -739,15 +734,10 @@ const definitions: Definition[] = [
         description: 'Temperature and humidity sensor',
         extend: [
             forcePowerSource({powerSource: 'Battery'}),
-            battery({
-                percentage: true,
-            }),
+            battery({percentage: true}),
             temperature(),
             humidity(),
-            bindCluster({
-                cluster: 'genPollCtrl',
-                clusterType: 'input',
-            }),
+            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
         ],
     },
     {
