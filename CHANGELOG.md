@@ -1,5 +1,25 @@
 # Changelog
 
+## [19.46.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.45.0...v19.46.0) (2024-05-30)
+
+
+### Features
+
+* **add:** 046677585235 https://github.com/Koenkk/zigbee2mqtt/issues/22828 ([f0186d7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f0186d7d1b05e0cbeca2e29ad6c6ace543f441cc))
+* **add:** RB 262 https://github.com/Koenkk/zigbee2mqtt/issues/22821 ([15c09e2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/15c09e22811a9687103a0ed5ce16ed5754e306d1))
+* **add:** ZGA002, ZGA003, ZGA004 ([#7579](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7579)) ([fff4ffb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fff4ffb2d249b74e2b7804ef2c0f565f9b752cc8))
+
+
+### Bug Fixes
+
+* Convert Sonoff SNZB-02D & SNZB-02P to `modernExtend` ([#7572](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7572)) ([825a7fa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/825a7fae5b72cdbf5566501530bbb4645173dc2c))
+* **detect:** Detect `_TZE200_emxxanvi` as TuYa TS0601_switch_6_gang ([#7580](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7580)) ([9cf481a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9cf481a0b7d62966c6a3558c96b748c3400e6650))
+* **detect:** Detect `_TZE204_7gclukjs` as TuYa ZY-M100-24G https://github.com/Koenkk/zigbee2mqtt/discussions/22790 ([5283a67](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5283a67b79e806a56e54b4159cdc49e228b0f3a4))
+* Expose voltage for WISZB-120 ([#7575](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7575)) ([b2f2f11](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2f2f11d0bee69d4ed643461940c8601cf826ad6))
+* **ignore:** Fix TS0201-z vendor https://github.com/Koenkk/zigbee2mqtt.io/pull/2778 ([273d843](https://github.com/Koenkk/zigbee-herdsman-converters/commit/273d84390a2758d43d0f34e1a2a09aeb210d089c))
+* Remove last `manuSpecificBosch*` usage ([#7574](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7574)) ([08fc7f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/08fc7f2d0a61ecdd85efd52c97baae144844d675))
+* Set entity category to configuration for Sonoff TRVZB open/close degree entities ([#7573](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7573)) ([e7ca0f8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e7ca0f860f6345396732686558e5ec15b4232b9b))
+
 ## [19.45.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.44.0...v19.45.0) (2024-05-28)
 
 
