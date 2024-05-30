@@ -1,5 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
-//import BuffaloZclDataType from 'zigbee-herdsman/dist/zcl/definition/buffaloZclDataType';
+// import BuffaloZclDataType from 'zigbee-herdsman/dist/zcl/definition/buffaloZclDataType';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -18,7 +18,7 @@ const {ewelinkAction} = ewelinkModernExtend;
 const NS = 'zhc:sonoff';
 const manufacturerOptions = {
     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD,
-    disableDefaultResponse: false
+    disableDefaultResponse: false,
 };
 const defaultResponseOptions = {disableDefaultResponse: false};
 const e = exposes.presets;
@@ -37,7 +37,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const sonoffPrivateCluster = 0xFC11;
+// const sonoffPrivateCluster = 0xFC11;
 const sonoffExtend = {
     addCustomClusterEwelink: () => deviceAddCustomCluster(
         'customClusterEwelink',
@@ -45,10 +45,10 @@ const sonoffExtend = {
             ID: 0xfc11,
             attributes: {
                 radioPower: {ID: 0x0012, type: Zcl.DataType.INT16},
-                radioPowerWithManuCode: { 
+                radioPowerWithManuCode: {
                     ID: 0x0012,
                     type: Zcl.DataType.INT16,
-                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD,
                 },
                 delayedPowerOnState: {ID: 0x0014, type: Zcl.DataType.BOOLEAN},
                 delayedPowerOnTime: {ID: 0x0015, type: Zcl.DataType.UINT16},
@@ -56,8 +56,7 @@ const sonoffExtend = {
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
             },
             commands: {
-                //protocolData: {ID: 0x01, parameters: [{name: 'data', type: BuffaloZclDataType.LIST_UINT8}]},
-                protocolData: {ID: 0x01, parameters: [{name: 'data', type: 1001}]},
+                protocolData: {ID: 0x01, parameters: [{name: 'data', type: 1001}]}, // BuffaloZclDataType.LIST_UINT8
             },
             commandsResponse: {},
         },
@@ -427,7 +426,7 @@ const sonoffExtend = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const lookup:KeyValue = {'edge': 0, 'pulse': 1, 'following(off)': 2, 'following(on)': 130};
-                //logger.debug(`from zigbee msg.data['externalTriggerMode'] ${msg.data['externalTriggerMode']}`, NS);
+                // logger.debug(`from zigbee msg.data['externalTriggerMode'] ${msg.data['externalTriggerMode']}`, NS);
                 if (msg.data.hasOwnProperty('externalTriggerMode')) {
                     let switchType = 'edge';
                     for (const name in lookup) {
@@ -436,7 +435,7 @@ const sonoffExtend = {
                             break;
                         }
                     }
-                    //logger.debug(`form zigbee switchType ${switchType}`, NS);
+                    // logger.debug(`form zigbee switchType ${switchType}`, NS);
                     return {['external_trigger_mode']: switchType};
                 }
             },
@@ -1111,7 +1110,7 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read('customClusterEwelink', ["radioPowerWithManuCode"], manufacturerOptions);
+            await endpoint.read('customClusterEwelink', ['radioPowerWithManuCode'], manufacturerOptions);
         },
     },
     {
