@@ -143,6 +143,13 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['RB 262'],
+        model: 'RB 262',
+        vendor: 'Innr',
+        description: 'E27 bulb',
+        extend: [light({turnsOffAtBrightness1: true})],
+    },
+    {
         zigbeeModel: ['RB 265'],
         model: 'RB 265',
         vendor: 'Innr',

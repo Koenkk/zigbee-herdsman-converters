@@ -979,6 +979,7 @@ const definitions: Definition[] = [
                 name: 'valve_opening_degree',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'valveOpeningDegree',
+                entityCategory: 'config',
                 description: 'Valve open position (percentage) control. ' +
                     'If the opening degree is set to 100%, the valve is fully open when it is opened. ' +
                     'If the opening degree is set to 0%, the valve is fully closed when it is opened, ' +
@@ -993,6 +994,7 @@ const definitions: Definition[] = [
                 name: 'valve_closing_degree',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'valveClosingDegree',
+                entityCategory: 'config',
                 description: 'Valve closed position (percentage) control. ' +
                     'If the closing degree is set to 100%, the valve is fully closed when it is closed. ' +
                     'If the closing degree is set to 0%, the valve is fully opened when it is closed, ' +
