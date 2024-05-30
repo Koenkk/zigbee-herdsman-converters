@@ -588,7 +588,7 @@ const definitions: Definition[] = [
         description: 'Window sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, develco.fz.temperature],
         toZigbee: [],
-        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature()],
+        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature(), e.voltage()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint) => {
