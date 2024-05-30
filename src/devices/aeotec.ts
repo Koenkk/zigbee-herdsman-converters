@@ -65,7 +65,7 @@ const definitions: Definition[] = [
             deviceTemperature(),
             identify(),
             windowCovering({ controls: ['lift', 'tilt'] }),
-            commandsWindowCovering({ legacyAction: true, endpointNames: ['3'] }),
+            commandsWindowCovering({ legacyAction: false, endpointNames: ['3'] }),
             commandsOnOff({ endpointNames: ['4', '5'] }),
             commandsLevelCtrl({ endpointNames: ['4', '5'] })
         ],
