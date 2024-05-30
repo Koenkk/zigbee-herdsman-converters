@@ -2283,7 +2283,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mwvfvw8g', '_TZE200_wnp4d4va', '_TZE200_cduqh1l0']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mwvfvw8g', '_TZE200_wnp4d4va', '_TZE200_cduqh1l0', '_TZE200_emxxanvi']),
         model: 'TS0601_switch_6_gang',
         vendor: 'TuYa',
         description: '6 gang switch',
