@@ -1,5 +1,5 @@
 import * as index from "../src/index";
-import {Definition, Fz, KeyValueAny, Tz, Zh} from "../lib/types";
+import {Definition, Fz, KeyValueAny, Tz, Zh} from "../src/lib/types";
 import {Endpoint, Entity} from "zigbee-herdsman/dist/controller/model";
 
 interface State {
