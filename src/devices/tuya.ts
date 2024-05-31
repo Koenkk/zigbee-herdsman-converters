@@ -6212,30 +6212,15 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8isdky6j']),
+        fingerprint: tuya.fingerprint [{modelID: 'TS0601', manufacturerName: '_TZE200_8isdky6j'}
+            ,{modelID: 'TS0225', manufacturerName: '_TZE200_p6fuhvez'}],
         model: 'ZG-225Z',
         vendor: 'TuYa',
         description: 'Gas sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.gas(), tuya.exposes.gasValue().withUnit('ppm')],
-        meta: {
-            tuyaDatapoints: [
-                [1, 'gas', tuya.valueConverter.trueFalse0],
-                [2, 'gas_value', tuya.valueConverter.raw],
-            ],
-        },
-    },
-     {
-        fingerprint: tuya.fingerprint('TS0225', ['_TZE200_p6fuhvez']),
-        model: 'ZG-225Z',
-        vendor: 'TuYa',
-        description: 'Gas sensor',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-     
-        exposes: [e.gas(), tuya.exposes.gasValue().withUnit('ppm'),
+         exposes: [e.gas(), tuya.exposes.gasValue().withUnit('ppm'),
              e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])
                 .withDescription('Gas sensor sensitivity'),
              e.enum('ring', ea.STATE_SET, ['ring1', 'ring2'])
@@ -6250,6 +6235,7 @@ const definitions: Definition[] = [
             ],
         },
     },
+     
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_3towulqd', '_TZE200_1ibpyhdc', '_TZE200_bh3n6gk8', '_TZE200_ttcovulf']),
         model: 'ZG-204ZL',
