@@ -6350,7 +6350,7 @@ const definitions: Definition[] = [
                 [107, 'indicator', tuya.valueConverter.onOff],
                 [121, 'battery', tuya.valueConverter.raw],
                 [122, 'motion_detection_mode', tuya.valueConverterBasic.lookup({
-                    'Only PIR': tuya.enum(0), 'PIR+Dadar': tuya.enum(1), 'Only Dadar': tuya.enum(2),
+                    'only_pir': tuya.enum(0), 'pir_and_dadar': tuya.enum(1), 'only_dadar': tuya.enum(2),
                 })],
                 [123, 'motion_detection_sensitivity', tuya.valueConverter.raw],
 
