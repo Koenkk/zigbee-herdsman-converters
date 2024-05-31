@@ -28,8 +28,8 @@ function fillImageInfo(meta: KeyValueAny) {
 
     // If no fields provided - get them from the image file
     const buffer = common.readLocalFile(meta.url);
-    const start = buffer.indexOf(common.upgradeFileIdentifier);
-    const image = common.parseImage(buffer.slice(start));
+    const start = buffer.indexOf(common.UPGRADE_FILE_IDENTIFIER);
+    const image = common.parseImage(buffer.subarray(start));
 
     // Will fill only those fields that were absent
     if (!meta.hasOwnProperty('imageType')) meta.imageType = image.header.imageType;
