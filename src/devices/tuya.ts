@@ -6212,8 +6212,11 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint [{modelID: 'TS0601', manufacturerName: '_TZE200_8isdky6j'}
-            ,{modelID: 'TS0225', manufacturerName: '_TZE200_p6fuhvez'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_8isdky6j'}
+            ,{modelID: 'TS0225', manufacturerName: '_TZE200_p6fuhvez'}
+        ],
+      
         model: 'ZG-225Z',
         vendor: 'TuYa',
         description: 'Gas sensor',
