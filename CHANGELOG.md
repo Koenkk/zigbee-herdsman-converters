@@ -1,5 +1,19 @@
 # Changelog
 
+## [19.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.46.0...v19.47.0) (2024-05-31)
+
+
+### Features
+
+* Support new features for TuYa ZG-225Z and ZG-204ZM ([#7553](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7553)) ([058eac7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/058eac74b03e1833881233b86d0dfa48dde27dc5))
+
+
+### Bug Fixes
+
+* **detect:** Detect `SV01-612-EP-1.4` as Keen Home SV01 ([#7581](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7581)) ([3f27d31](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f27d317c451e1e1d5b46312277d09025909cefa))
+* Enforce no floating promises with eslint ([#7583](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7583)) ([ed0704b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ed0704b42b3dee3e477dfd1194a100be83bcbd7f))
+* Expose message to TuYa valueConverters https://github.com/Koenkk/zigbee-herdsman-converters/pull/7271 ([2c3667b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2c3667bc328e2522e3941274391c9ceee6d00e34))
+
 ## [19.46.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.45.0...v19.46.0) (2024-05-30)
 
 
