@@ -56,7 +56,7 @@ const sonoffExtend = {
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
             },
             commands: {
-                protocolData: {ID: 0x01, parameters: [{name: 'data', type: 1001}]}, // BuffaloZclDataType.LIST_UINT8
+                protocolData: {ID: 0x01, parameters: [{name: 'data', type: BuffaloZclDataType.LIST_UINT8}]},
             },
             commandsResponse: {},
         },
