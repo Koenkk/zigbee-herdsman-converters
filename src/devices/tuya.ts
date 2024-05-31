@@ -6212,11 +6212,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_8isdky6j'}
-            ,{modelID: 'TS0225', manufacturerName: '_TZE200_p6fuhvez'}
-        ],
-      
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8isdky6j'},{modelID: 'TS0225', manufacturerName: '_TZE200_p6fuhvez'}],
         model: 'ZG-225Z',
         vendor: 'TuYa',
         description: 'Gas sensor',
@@ -6348,7 +6344,7 @@ const definitions: Definition[] = [
             e.enum('motion_detection_mode', ea.STATE_SET, ['Only PIR', 'PIR+Dadar', 'Only Dadar'])
             .withDescription('Motion detection mode (Firmware version>=0122052017)'),
             e.numeric('motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
-                .withDescription('Motion detection sensitivity (Firmware version>=0122052017)'),
+                .withDescription('Motion detection sensitivity (Firmware version>=0122052017)')
         ],
         meta: {
             tuyaDatapoints: [
