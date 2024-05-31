@@ -267,11 +267,11 @@ export namespace Tuya {
     export interface DpValue {dp: number, datatype: number, data: Buffer | number[]}
     export interface ValueConverterSingle {
         to?: (value: unknown, meta?: Tz.Meta) => unknown,
-        from?: (value: unknown, meta?: Fz.Meta, options?: KeyValue, publish?: Publish) => number|string|boolean|KeyValue|null,
+        from?: (value: unknown, meta?: Fz.Meta, options?: KeyValue, publish?: Publish, msg?: Fz.Message) => number|string|boolean|KeyValue|null,
     }
     export interface ValueConverterMulti {
         to?: (value: unknown, meta?: Tz.Meta) => unknown,
-        from?: (value: unknown, meta?: Fz.Meta, options?: KeyValue, publish?: Publish) => KeyValue,
+        from?: (value: unknown, meta?: Fz.Meta, options?: KeyValue, publish?: Publish, msg?: Fz.Message) => KeyValue,
     }
     export interface MetaTuyaDataPointsMeta {skip?: (meta: Tz.Meta) => boolean, optimistic?: boolean}
     export type MetaTuyaDataPointsSingle = [number, string, Tuya.ValueConverterSingle, MetaTuyaDataPointsMeta?];
