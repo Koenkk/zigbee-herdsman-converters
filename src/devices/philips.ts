@@ -7,7 +7,7 @@ import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {philipsOnOff, philipsLight, philipsFz, philipsTz} from '../lib/philips';
-import {quirkCheckinInterval} from '../lib/modernExtend';
+import {deviceEndpoints, quirkCheckinInterval} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -1112,6 +1112,16 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip outdoor 2m',
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
+    },
+    {
+        zigbeeModel: ['LCW004'],
+        model: '046677585235',
+        vendor: 'Philips',
+        description: 'Hue Dymera indoor and outdoor wall light',
+        extend: [
+            deviceEndpoints({endpoints: {'top': 11, 'bottom': 12}}),
+            philipsLight({colorTemp: {range: [153, 500]}, color: true, endpointNames: ['top', 'bottom']}),
+        ],
     },
     {
         zigbeeModel: ['LCA001', 'LCA002', 'LCA003'],
@@ -3334,14 +3344,14 @@ const definitions: Definition[] = [
         zigbeeModel: ['LCX012'],
         model: '929003535301',
         vendor: 'Philips',
-        description: 'Hue Festavia gradient light string 250',
+        description: 'Hue Festavia gradient light string 250 (1st-gen)',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}})],
     },
     {
-        zigbeeModel: ['LCX017'],
-        model: '929003674601',
+        zigbeeModel: ['LCX015'],
+        model: '9290036744',
         vendor: 'Philips',
-        description: 'Hue Festavia gradient light string 500',
+        description: 'Hue Festavia gradient light string 250',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}})],
     },
     {
@@ -3349,6 +3359,13 @@ const definitions: Definition[] = [
         model: '9290036745',
         vendor: 'Philips',
         description: 'Hue Festavia gradient light string 100',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}})],
+    },
+    {
+        zigbeeModel: ['LCX017'],
+        model: '929003674601',
+        vendor: 'Philips',
+        description: 'Hue Festavia gradient light string 500',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}})],
     },
     {
@@ -3546,13 +3563,6 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue white ambiance MR16 with Bluetooth',
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ['LCX015'],
-        model: '9290036744',
-        vendor: 'Philips',
-        description: 'Hue Festavia gradient light string 250',
-        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle']}})],
     },
     {
         zigbeeModel: ['915005914501'],

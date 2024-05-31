@@ -8,7 +8,7 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_arge1ptm', '_TZE200_anv5ujhv']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_arge1ptm', '_TZE200_anv5ujhv', '_TZE200_xlppj4f5']),
         model: 'QT-05M',
         vendor: 'QOTO',
         description: 'Solar powered garden watering timer',

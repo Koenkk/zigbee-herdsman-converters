@@ -43,20 +43,6 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter,
-    ISM300Z3_on_off: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
-                const property = utils.postfixWithEndpointName('state', msg, model, meta);
-                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
-            } else if (msg.data.hasOwnProperty(0x9000)) {
-                const value = msg.data[0x9000];
-                const lookup = {0: 'auto', 1: 'push', 2: 'latch'};
-                return {operation_mode: utils.getFromLookup(value, lookup)};
-            }
-        },
-    } satisfies Fz.Converter,
     GCM300Z_valve_status: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -168,45 +154,6 @@ const tzLocal = {
                 break;
             }
             await endpoint.write('genAnalogInput', payload);
-        },
-    } satisfies Tz.Converter,
-    ISM300Z3_on_off: {
-        key: ['state', 'operation_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const endpoint = meta.device.getEndpoint(1);
-            if (key === 'state') {
-                // @ts-expect-error
-                const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
-                utils.validateValue(state, ['toggle', 'off', 'on']);
-                await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
-                if (state === 'toggle') {
-                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
-                    return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
-                } else {
-                    return {state: {state: state.toUpperCase()}};
-                }
-            } else if (key === 'operation_mode') {
-                const lookup = {'auto': 0, 'push': 1, 'latch': 2};
-                const payload = {0x9000: {value: utils.getFromLookup(value, lookup), type: 0x20}}; // INT8U
-                await entity.write('genOnOff', payload);
-                await endpoint.read('genOnOff', [0x9000]);
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            if (key === 'operation_mode') {
-                const endpoint = meta.device.getEndpoint(1);
-                await endpoint.read('genOnOff', [0x9000]);
-            } else {
-                await entity.read('genOnOff', ['onOff']);
-            }
-        },
-    } satisfies Tz.Converter,
-    ISM300Z3_rf_pairing: {
-        key: ['rf_pairing'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {'l1': 1, 'l2': 2, 'l3': 3};
-            const payload = {0x9001: {value: utils.getFromLookup(value, lookup), type: 0x20}}; // INT8U
-            await entity.write('genOnOff', payload);
         },
     } satisfies Tz.Converter,
     GCM300Z_valve_status: {
@@ -716,26 +663,35 @@ const definitions: Definition[] = [
         model: 'ISM300Z3',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart inner switch 3 gang',
-        fromZigbee: [fzLocal.ISM300Z3_on_off],
-        toZigbee: [tzLocal.ISM300Z3_on_off, tzLocal.ISM300Z3_rf_pairing],
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.enum('operation_mode', ea.ALL, ['auto', 'push', 'latch'])
-                .withDescription('Operation mode: "auto" - toggle by S/W, "push" - for momentary S/W, "latch" - sync S/W'),
-            e.enum('rf_pairing', ea.SET, ['l1', 'l2', 'l3'])
-                .withDescription('Enable RF pairing mode each button l1, l2, l3')],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await device.getEndpoint(1).read('genOnOff', [0x9000]);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-            await reporting.onOff(device.getEndpoint(3));
-        },
+        extend: [
+            onOff({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: false}),
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
+            enumLookup({
+                name: 'operation_mode',
+                lookup: {'auto': 0, 'push': 1, 'latch': 2},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9000, type: 0x20},
+                description: 'switch type: "auto" - toggle by S/W, "push" - for momentary S/W, "latch" - sync S/W.',
+                endpointName: 'l1',
+            }),
+            enumLookup({
+                name: 'rf_pairing',
+                lookup: {'none': 0, 'l1': 1, 'l2': 2, 'l3': 3},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9001, type: 0x20},
+                description: 'Enable RF pairing mode each button l1, l2, l3. It is supported only in repeat mode.',
+                endpointName: 'l1',
+            }),
+            enumLookup({
+                name: 'switch_3way_mode',
+                lookup: {'disable': 0, 'enable': 1},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x900f, type: 0x20},
+                description: 'If the 3-way switch setting is enabled, the 1st and 3rd switches are used. ' +
+                             'At this time, connect the remote switch to SW3.',
+                endpointName: 'l1',
+            }),
+        ],
     },
     {
         zigbeeModel: ['GCM-300Z'],
@@ -856,6 +812,40 @@ const definitions: Definition[] = [
                 reporting: {min: 0, max: '1_HOUR', change: 1},
             }),
         ],
+    },
+    {
+        zigbeeModel: ['TCM-300Z'],
+        model: 'TCM-300Z',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS Zigbee thermostat',
+        fromZigbee: [fz.thermostat, fz.hvac_user_interface],
+        toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature,
+            tz.thermostat_keypad_lockout],
+        exposes: [
+            e.climate()
+                .withSystemMode(['off', 'heat', 'cool'])
+                .withLocalTemperature()
+                .withSetpoint('occupied_heating_setpoint', 10, 70, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 10, 70, 0.5),
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1', 'lock2', 'lock3'])
+                .withDescription('Enables or disables the device’s buttons.  ' +
+                                             'Lock1 locks the temperature setting and the cooling/heating mode button input.  ' +
+                                             'Lock2 locks the power button input.  ' +
+                                             'Lock3 locks all button inputs.'),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacUserInterfaceCfg']);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
+            await reporting.thermostatTemperature(endpoint, {min: 10, max: 600, change: 0.1});
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: 600});
+            await reporting.thermostatKeypadLockMode(endpoint, {min: 0, max: 600});
+            await endpoint.read('hvacThermostat', ['systemMode', 'occupiedHeatingSetpoint', 'occupiedCoolingSetpoint', 'localTemp']);
+            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
+        },
     },
 ];
 

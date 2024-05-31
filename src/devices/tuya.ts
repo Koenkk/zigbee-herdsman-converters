@@ -589,7 +589,8 @@ const fzLocal = {
                 result['max_brightness'] = utils.mapNumberRange(msg.data['64516'], 0, 1000, 1, 255);
             }
             if (msg.data.hasOwnProperty('61440')) {
-                result['brightness'] = utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255);
+                const propertyName = utils.postfixWithEndpointName('brightness', msg, model, meta);
+                result[propertyName] = utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255);
             }
             return result;
         },
@@ -1445,6 +1446,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Lidl', 'HG07834B', 'Livarno Lux E14 candle RGB', ['_TZ3000_th6zqqy6', '_TZ3000_wr6g6olr']),
             tuya.whitelabel('Lidl', 'HG08131C', 'Livarno Home outdoor E27 bulb in set with flare', ['_TZ3000_q50zhdsc']),
             tuya.whitelabel('Lidl', 'HG07834C', 'Livarno Lux E27 bulb RGB', ['_TZ3000_qd7hej8u']),
+            tuya.whitelabel('MiBoxer', 'FUT037Z+', 'RGB led controller', ['_TZB210_417ikxay']),
             tuya.whitelabel('Lidl', 'HG08383B', 'Livarno outdoor LED light chain', ['_TZ3000_bwlvyjwk']),
             tuya.whitelabel('Lidl', 'HG08383A', 'Livarno outdoor LED light chain', ['_TZ3000_taspddvq']),
             tuya.whitelabel('Garza Smart', 'Garza-Standard-A60', 'Standard A60 bulb', ['_TZ3210_sln7ah6r']),
@@ -1453,7 +1455,6 @@ const definitions: Definition[] = [
             tuya.whitelabel('Lidl', 'HG08008', 'Livarno Home LED ceiling light', ['_TZ3210_p9ao60da']),
             tuya.whitelabel('Lidl', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
             tuya.whitelabel('Lidl', '399629_2110', 'Livarno Lux Ceiling Panel RGB+CCT', ['_TZ3210_c0s1xloa', '_TZ3210_x13bu7za']),
-            tuya.whitelabel('TuYa', 'TS0505B_1_3', 'Zigbee 10W Downlight RGB CCW', ['_TZ3210_it1u8ahz']),
             tuya.whitelabel('Nous', 'P3Z', 'Smart light bulb', ['_TZ3210_cieijuw1']),
             tuya.whitelabel('Moes', 'ZLD-RCW_1', 'RGB+CCT Zigbee LED controller', ['_TZ3000_7hcgjxpc']),
             tuya.whitelabel('Moes', 'ZB-TD5-RCW-GU10', 'RGB+CCT 4.7W GU10 LED bulb', ['_TZ3210_rcggc0ys']),
@@ -2282,7 +2283,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mwvfvw8g', '_TZE200_wnp4d4va', '_TZE200_cduqh1l0']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mwvfvw8g', '_TZE200_wnp4d4va', '_TZE200_cduqh1l0', '_TZE200_emxxanvi']),
         model: 'TS0601_switch_6_gang',
         vendor: 'TuYa',
         description: '6 gang switch',
@@ -2721,7 +2722,7 @@ const definitions: Definition[] = [
             {vendor: 'LoraTap', model: 'SS6400ZB'}, {vendor: 'Moes', model: 'ZT-SY-EU-G-4S-WH-MS'},
             tuya.whitelabel('Moes', 'ZT-SR-EU4', 'Star Ring 4 Gang Scene Switch', ['_TZ3000_a4xycprs']),
             tuya.whitelabel('TuYa', 'TS0044_1', 'Zigbee 4 button remote - 12 scene',
-                ['_TZ3000_dziaict4', '_TZ3000_mh9px7cq']),
+                ['_TZ3000_dziaict4', '_TZ3000_mh9px7cq', '_TZ3000_j61x9rxn']),
             tuya.whitelabel('TuYa', 'TM-YKQ004', 'Zigbee 4 button remote - 12 scene', ['_TZ3000_u3nv1jwk']),
         ],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
@@ -2952,7 +2953,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_xkap8wtb', '_TZ3000_qnejhcsu', '_TZ3000_x3ewpzyr',
-            '_TZ3000_mkhkxx1p', '_TZ3000_tgddllx4', '_TZ3000_kqvb5akv', '_TZ3000_g92baclx', '_TZ3000_qlai3277']),
+            '_TZ3000_mkhkxx1p', '_TZ3000_tgddllx4', '_TZ3000_kqvb5akv', '_TZ3000_g92baclx', '_TZ3000_qlai3277', '_TZ3000_qaabwu5c']),
         model: 'TS0001_power',
         description: 'Switch with power monitoring',
         vendor: 'TuYa',
@@ -2976,6 +2977,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Nous', 'B2Z', '1 gang switch with power monitoring', ['_TZ3000_qlai3277']),
             tuya.whitelabel('Colorock', 'CR-MNZ1', '1 gang switch 30A with power monitoring', ['_TZ3000_tgddllx4']),
+            tuya.whitelabel('Nous', 'L6Z', 'Switch with power monitoring', ['_TZ3000_qaabwu5c']),
         ],
     },
     {
@@ -3327,6 +3329,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_yia0p3tr'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rsj5pu8y'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_xu4a5rhj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_2odrmqwq'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'TuYa',
@@ -3464,6 +3467,26 @@ const definitions: Definition[] = [
             // Tuya ZigBee Intelligent Curtain Blind Switch Electric Motorized Curtain Roller
             tuya.whitelabel('Lilistore', 'TS0601_lilistore', 'Cover motor', ['_TZE204_r0jdjrvi']),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_p2qzzazi']),
+        model: 'TS0601_cover_9',
+        vendor: 'TuYa',
+        description: 'Cover motor',
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'position', tuya.valueConverter.raw],
+                [5, 'motor_direction', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'reversed': tuya.enum(1)})],
+                [101, 'battery', tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         zigbeeModel: ['kud7u2l'],
@@ -5370,7 +5393,10 @@ const definitions: Definition[] = [
         toZigbee: [tz.TS0210_sensitivity],
         exposes: [e.battery(), e.battery_voltage(), e.vibration(),
             e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(50)
-                .withDescription('Sensitivty of the sensor, press button on the device right before changing this')],
+                .withDescription(
+                    'Sensitivty of the sensor (0 = highest sensitivity, 50 = lowest sensitivity). ' +
+                    'Press button on the device right before changing this',
+                )],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8ply8mjj']),
@@ -5501,6 +5527,30 @@ const definitions: Definition[] = [
         },
         exposes: [e.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
             e.binary('garage_door_contact', ea.STATE, false, true)
+                .withDescription('Indicates if the garage door contact is closed (= true) or open (= false)')],
+    },
+    {
+        fingerprint: [{modelID: 'TS0603', manufacturerName: '_TZE608_c75zqghm'}],
+        model: 'TS0603',
+        vendor: 'TuYa',
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.raw],
+                [3, 'garage_door_contact', tuya.valueConverter.trueFalseInvert],
+                [12, null, null],
+            ],
+        },
+        description: 'Garage door opener',
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.binary('state', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
+            e.binary('garage_door_contact', ea.STATE, true, false)
                 .withDescription('Indicates if the garage door contact is closed (= true) or open (= false)')],
     },
     {
@@ -6313,7 +6363,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: '1 channel dimmer',
         extend: [light({powerOnBehavior: false, configureReporting: true})],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E],
+        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E, fz.on_off],
         toZigbee: [tzLocal.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tzLocal.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],
         configure: tuya.configureMagicPacket,
@@ -6598,7 +6648,7 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cayepv1a', '_TZ3000_lepzuhto', '_TZ3000_qystbcjg']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cayepv1a', '_TZ3000_lepzuhto', '_TZ3000_qystbcjg', '_TZ3000_zrm3oxsh']),
         model: 'TS011F_with_threshold',
         description: 'Din rail switch with power monitoring and threshold settings',
         vendor: 'TuYa',
@@ -6649,6 +6699,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Tongou', 'TO-Q-SY2-163JZT', 'Smart circuit breaker', ['_TZ3000_cayepv1a']),
             tuya.whitelabel('EARU', 'EAKCB-T-M-Z', 'Smart circuit breaker', ['_TZ3000_lepzuhto']),
+            tuya.whitelabel('EARU', 'EAYCB-Z-2P', 'Smart circuit breaker with Leakage Protection', ['_TZ3000_zrm3oxsh']),
             tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart Circuit Breaker', ['_TZ3000_qystbcjg']),
         ],
     },
@@ -7814,7 +7865,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ijxvkhd0']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ijxvkhd0', '_TZE204_7gclukjs']),
         model: 'ZY-M100-24G',
         vendor: 'TuYa',
         description: '24G MmWave radar human presence motion sensor',
@@ -8527,6 +8578,26 @@ const definitions: Definition[] = [
             ],
         },
         whiteLabel: [{vendor: 'ELECTSMART', model: 'EST-120Z'}],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dsagrkvg']),
+        model: 'ZPV-01',
+        vendor: 'Novato',
+        description: 'Battery powered smart valve',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.switch().setAccess('state', ea.STATE_SET),
+            e.enum('valve_state', ea.STATE, ['close', 'unknown', 'open']).withDescription('State of the valve'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [8, 'valve_state', tuya.valueConverterBasic.lookup({'unknown': tuya.enum(0), 'open': tuya.enum(1), 'closed': tuya.enum(2)})],
+            ],
+        },
     },
 ];
 

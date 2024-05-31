@@ -3,20 +3,14 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import {battery, deviceEndpoints, enumLookup, EnumLookupArgs, humidity, numeric, NumericArgs, onOff, temperature} from '../lib/modernExtend';
+import {
+    battery, deviceEndpoints, humidity, numeric, NumericArgs, onOff, temperature, windowCovering,
+} from '../lib/modernExtend';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 
 const nodonModernExtend = {
-    rollerShutterCalibration: (args?: Partial<EnumLookupArgs>) => enumLookup({
-        name: 'calibration',
-        lookup: {'stop': 0, 'start': 2},
-        cluster: 'closuresWindowCovering',
-        attribute: 'windowCoveringMode',
-        access: 'ALL',
-        description: 'Automatic calibration of the roller shutter.',
-    }),
     calibrationVerticalRunTimeUp: (args?: Partial<NumericArgs>) => numeric({
         name: 'calibration_vertical_run_time_up',
         unit: '10 ms',
@@ -96,22 +90,13 @@ const definitions: Definition[] = [
         model: 'SIN-4-RS-20',
         vendor: 'NodOn',
         description: 'Roller shutter relay switch',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-            await reporting.currentPositionTiltPercentage(endpoint);
-        },
         extend: [
-            nodonModernExtend.rollerShutterCalibration(),
+            windowCovering({controls: ['tilt', 'lift'], coverMode: true}),
             nodonModernExtend.calibrationVerticalRunTimeUp(),
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
         ],
-        exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -119,22 +104,13 @@ const definitions: Definition[] = [
         model: 'SIN-4-RS-20_PRO',
         vendor: 'NodOn',
         description: 'Roller shutter relay switch',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-            await reporting.currentPositionTiltPercentage(endpoint);
-        },
         extend: [
-            nodonModernExtend.rollerShutterCalibration(),
+            windowCovering({controls: ['tilt', 'lift'], coverMode: true}),
             nodonModernExtend.calibrationVerticalRunTimeUp(),
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
         ],
-        exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },
     {

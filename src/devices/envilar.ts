@@ -60,6 +60,7 @@ const definitions: Definition[] = [
         vendor: 'Envilar',
         description: '1 channel high power box relay',
         extend: [onOff({powerOnBehavior: true}), identify(), electricityMeter()],
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9101SAC-HP-SWITCH-B'}],
     },
 ];
 
