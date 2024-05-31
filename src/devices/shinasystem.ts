@@ -46,10 +46,10 @@ const fzLocal = {
     GCM300Z_valve_status: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
+        convert: async (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
                 const endpoint = meta.device.getEndpoint(1);
-                endpoint.read('genOnOff', [0x9007]); // for update : close_remain_timeout
+                await endpoint.read('genOnOff', [0x9007]); // for update : close_remain_timeout
                 return {gas_valve_state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
             }
         },

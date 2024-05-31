@@ -45,11 +45,11 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
         //       we only restore if true, to save unneeded network writes
         const colorOptions = state.color_options as KeyValue;
         if (colorOptions?.execute_if_off === true) {
-            device.endpoints[0].write('lightingColorCtrl', {'options': 1});
+            await device.endpoints[0].write('lightingColorCtrl', {'options': 1});
         }
         const levelConfig = state.level_config as KeyValue;
         if (levelConfig?.execute_if_off === true) {
-            device.endpoints[0].write('genLevelCtrl', {'options': 1});
+            await device.endpoints[0].write('genLevelCtrl', {'options': 1});
         }
         if (levelConfig?.on_level !== undefined) {
             const onLevelRaw = levelConfig.on_level;
@@ -62,7 +62,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
             if (onLevel > 255) onLevel = 254;
             if (onLevel < 1) onLevel = 1;
 
-            device.endpoints[0].write('genLevelCtrl', {onLevel: onLevel});
+            await device.endpoints[0].write('genLevelCtrl', {onLevel: onLevel});
         }
     }
 };

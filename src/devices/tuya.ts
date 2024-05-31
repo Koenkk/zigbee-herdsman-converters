@@ -6677,7 +6677,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
-            endpoint.command('genBasic', 'tuyaSetup', {});
+            await endpoint.command('genBasic', 'tuyaSetup', {});
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});

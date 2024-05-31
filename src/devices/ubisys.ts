@@ -229,7 +229,7 @@ const ubisys = {
                     await sleepSeconds(2);
                     // re-read and dump all relevant attributes
                     log('  Done - will now read back the results.');
-                    ubisys.tz.configure_j1.convertGet(entity, key, meta);
+                    await ubisys.tz.configure_j1.convertGet(entity, key, meta);
                 }
             },
             convertGet: async (entity, key, meta) => {
@@ -287,7 +287,7 @@ const ubisys = {
                     await entity.write('manuSpecificUbisysDimmerSetup',
                         {'mode': utils.getFromLookup(phaseControl, phaseControlValues)}, manufacturerOptions.ubisysNull);
                 }
-                ubisys.tz.dimmer_setup.convertGet(entity, key, meta);
+                await ubisys.tz.dimmer_setup.convertGet(entity, key, meta);
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities'], manufacturerOptions.ubisysNull);
@@ -301,7 +301,7 @@ const ubisys = {
                 if (key === 'minimum_on_level') {
                     await entity.write('genLevelCtrl', {'ubisysMinimumOnLevel': value}, manufacturerOptions.ubisys);
                 }
-                ubisys.tz.dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
+                await ubisys.tz.dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('genLevelCtrl', ['ubisysMinimumOnLevel'], manufacturerOptions.ubisys);

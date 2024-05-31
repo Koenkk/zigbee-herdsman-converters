@@ -448,7 +448,7 @@ const definitions: Definition[] = [
                 const endpoint = device.getEndpoint(1);
                 const hours24 = 1000 * 60 * 60 * 24;
                 // Device does not ask for the time with binding, therefore we write the time every 24 hours
-                const interval = setInterval(async () => syncTime(endpoint), hours24);
+                const interval = setInterval(async () => await syncTime(endpoint), hours24);
                 globalStore.putValue(device, 'time', interval);
             }
         },
@@ -648,7 +648,7 @@ const definitions: Definition[] = [
             );
 
             // Device does not asks for the time with binding, we need to write time during configure
-            syncTime(endpoint);
+            await syncTime(endpoint);
 
             // Trigger initial read
             await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint']);

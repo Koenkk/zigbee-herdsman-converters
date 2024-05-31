@@ -539,7 +539,7 @@ const definitions: Definition[] = [
             const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000);
             // Time-master + synchronised
             const values = {timeStatus: 3, time: time, timeZone: ((new Date()).getTimezoneOffset() * -1) * 60};
-            endpoint.write('genTime', values);
+            await endpoint.write('genTime', values);
         },
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pm25(), e.hcho(), e.voc(), e.aqi(), e.pm10(),
             e.enum('battery_state', ea.STATE, ['not_charging', 'charging', 'charged'])],
