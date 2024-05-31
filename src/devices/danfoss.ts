@@ -215,7 +215,7 @@ const definitions: Definition[] = [
             const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000);
             // Time-master + synchronised
             const values = {timeStatus: 3, time: time, timeZone: ((new Date()).getTimezoneOffset() * -1) * 60};
-            endpoint.write('genTime', values);
+            await endpoint.write('genTime', values);
         },
     },
     {

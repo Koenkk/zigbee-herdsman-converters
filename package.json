@@ -67,5 +67,13 @@
     "ts-jest": "^29.1.2",
     "ts-morph": "^22.0.0",
     "typescript": "^5.4.5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "test/",
+      "src/"
+    ]
   }
 }

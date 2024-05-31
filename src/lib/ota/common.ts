@@ -535,52 +535,64 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
 
         const answerNextImageRequest = () => {
             waiters.nextImageRequest = endpoint.waitForCommand('genOta', 'queryNextImageRequest', null, maxTimeout);
-            waiters.nextImageRequest.promise.then((payload) => {
-                answerNextImageRequest();
-                sendQueryNextImageResponse(endpoint, image, payload.header.transactionSequenceNumber);
-            });
+            waiters.nextImageRequest.promise.then(
+                (payload) => {
+                    answerNextImageRequest();
+                    sendQueryNextImageResponse(endpoint, image, payload.header.transactionSequenceNumber);
+                },
+                () => {
+                    cancelWaiters(waiters);
+                    reject(new Error(`OTA: Failed queryNextImageRequest`));
+                }
+            );
         };
 
         // No need to timeout here, will already be done in answerNextImageBlockRequest
         waiters.upgradeEndRequest = endpoint.waitForCommand('genOta', 'upgradeEndRequest', null, maxTimeout);
-        waiters.upgradeEndRequest.promise.then((data) => {
-            logger.debug(`Got upgrade end request for '${device.ieeeAddr}' (${device.modelID}): ${JSON.stringify(data.payload)}`, NS);
-            cancelWaiters(waiters);
+        waiters.upgradeEndRequest.promise.then(
+            (data) => {
+                logger.debug(`Got upgrade end request for '${device.ieeeAddr}' (${device.modelID}): ${JSON.stringify(data.payload)}`, NS);
+                cancelWaiters(waiters);
 
-            if (data.payload.status === 0) {
-                const payload = {
-                    manufacturerCode: image.header.manufacturerCode, imageType: image.header.imageType,
-                    fileVersion: image.header.fileVersion, currentTime: 0, upgradeTime: 1,
-                };
+                if (data.payload.status === 0) {
+                    const payload = {
+                        manufacturerCode: image.header.manufacturerCode, imageType: image.header.imageType,
+                        fileVersion: image.header.fileVersion, currentTime: 0, upgradeTime: 1,
+                    };
 
-                endpoint.commandResponse('genOta', 'upgradeEndResponse', payload, null, data.header.transactionSequenceNumber).then(
-                    () => {
-                        logger.debug(`Update succeeded, waiting for device announce`, NS);
-                        onProgress(100, null);
+                    endpoint.commandResponse('genOta', 'upgradeEndResponse', payload, null, data.header.transactionSequenceNumber).then(
+                        () => {
+                            logger.debug(`Update succeeded, waiting for device announce`, NS);
+                            onProgress(100, null);
 
-                        let timer: ReturnType<typeof setTimeout> = null;
-                        const cb = () => {
-                            logger.debug(`Got device announce or timed out, call resolve`, NS);
-                            clearInterval(timer);
-                            device.removeListener('deviceAnnounce', cb);
-                            resolve(image.header.fileVersion);
-                        };
-                        timer = setTimeout(cb, 120 * 1000); // timeout after 2 minutes
-                        device.once('deviceAnnounce', cb);
-                    },
-                    (e) => {
-                        const message = `OTA: Upgrade end response failed (${e.message})`;
-                        logger.debug(message, NS);
-                        reject(new Error(message));
-                    },
-                );
-            } else {
-                // @ts-expect-error
-                const error = `Update failed with reason: '${endRequestCodeLookup[data.payload.status]}'`;
-                logger.debug(error, NS);
-                reject(new Error(error));
+                            let timer: ReturnType<typeof setTimeout> = null;
+                            const cb = () => {
+                                logger.debug(`Got device announce or timed out, call resolve`, NS);
+                                clearInterval(timer);
+                                device.removeListener('deviceAnnounce', cb);
+                                resolve(image.header.fileVersion);
+                            };
+                            timer = setTimeout(cb, 120 * 1000); // timeout after 2 minutes
+                            device.once('deviceAnnounce', cb);
+                        },
+                        (e) => {
+                            const message = `OTA: Upgrade end response failed (${e.message})`;
+                            logger.debug(message, NS);
+                            reject(new Error(message));
+                        },
+                    );
+                } else {
+                    // @ts-expect-error
+                    const error = `Update failed with reason: '${endRequestCodeLookup[data.payload.status]}'`;
+                    logger.debug(error, NS);
+                    reject(new Error(error));
+                }
+            },
+            () => {
+                cancelWaiters(waiters);
+                reject(new Error(`OTA: Failed upgradeEndRequest`));
             }
-        });
+        );
 
         logger.debug(`Starting upgrade`, NS);
         answerNextImageBlockOrPageRequest();

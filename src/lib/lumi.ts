@@ -1501,7 +1501,7 @@ export const lumiModernExtend = {
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'manuSpecificLumi',
             type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
+            convert: async (model, msg, publish, options, meta) => {
                 // At least the Aqara TVOC sensor does not send a deviceAnnounce after comming back online.
                 // The reconfigureReportingsOnDeviceAnnounce modernExtend is not usable because of this,
                 //  there is however an outage counter published in the 'special' buffer  data reported
@@ -1520,12 +1520,12 @@ export const lumiModernExtend = {
                             for (const endpoint of meta.device.endpoints) {
                                 // restore bindings
                                 for (const b of endpoint.binds) {
-                                    endpoint.bind(b.cluster.name, b.target);
+                                    await endpoint.bind(b.cluster.name, b.target);
                                 }
 
                                 // restore reporting
                                 for (const c of endpoint.configuredReportings) {
-                                    endpoint.configureReporting(c.cluster.name, [{
+                                    await endpoint.configureReporting(c.cluster.name, [{
                                         attribute: c.attribute.name, minimumReportInterval: c.minimumReportInterval,
                                         maximumReportInterval: c.maximumReportInterval, reportableChange: c.reportableChange,
                                     }]);
