@@ -6227,6 +6227,29 @@ const definitions: Definition[] = [
             ],
         },
     },
+     {
+        fingerprint: tuya.fingerprint('TS0225', ['_TZE200_p6fuhvez']),
+        model: 'ZG-225Z',
+        vendor: 'TuYa',
+        description: 'Gas sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+     
+        exposes: [e.gas(), tuya.exposes.gasValue().withUnit('ppm'),
+             e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])
+                .withDescription('Gas sensor sensitivity'),
+             e.enum('ring', ea.STATE_SET, ['ring1', 'ring2'])
+                .withDescription('Ring'),
+            ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'gas', tuya.valueConverter.trueFalse0],
+                [2, 'gas_value', tuya.valueConverter.raw],
+                [101, 'sensitivity',tuya.valueConverterBasic.lookup({'low': tuya.enum(0), 'medium': tuya.enum(1), 'high': tuya.enum(2)})],
+                [6, 'ring',tuya.valueConverterBasic.lookup({'ring1': tuya.enum(0), 'ring2': tuya.enum(1)})],
+            ],
+        },
+    },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_3towulqd', '_TZE200_1ibpyhdc', '_TZE200_bh3n6gk8', '_TZE200_ttcovulf']),
         model: 'ZG-204ZL',
@@ -6333,9 +6356,10 @@ const definitions: Definition[] = [
             e.numeric('static_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
                 .withDescription('Static detection sensitivity'),
             e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED indicator mode'),
-            e.enum('motion_detection_mode', ea.STATE_SET, ['Only PIR', 'PIR+Dadar', 'Only Dadar']).withDescription('Motion detection mode'),
+            e.enum('motion_detection_mode', ea.STATE_SET, ['Only PIR', 'PIR+Dadar', 'Only Dadar'])
+            .withDescription('Motion detection mode (Firmware version>=0122052017)'),
             e.numeric('motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
-                .withDescription('Motion detection sensitivity'),
+                .withDescription('Motion detection sensitivity (Firmware version>=0122052017)'),
         ],
         meta: {
             tuyaDatapoints: [
