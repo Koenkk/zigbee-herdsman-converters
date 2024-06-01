@@ -204,7 +204,7 @@ describe.skip('OTA', () => {
         // ['10F2-7B09-0000-0004-01090206-spo-fmi4.ota.zigbee', {hardwareVersionMin: 0, hardwareVersionMax: 4, fileVersion: 17367558}, false],
         // ['100B-0112-01002400-ConfLightBLE-Lamps-EFR32MG13.zigbee', {fileVersion: 16786432, fileSize: 439622}, false],
         // ['10005778-10.1-TRADFRI-onoff-shortcut-control-2.2.010.ota.ota.signed', {fileVersion: 570492465}, false],
-        // ['A60_DIM_Z3_IM003D_00103101-encrypted_11_20_2018_Tue_122925_01_withoutMF.ota', {fileVersion: 1061121, fileSize: 182876}, true],
+        ['A60_DIM_Z3_IM003D_00103101-encrypted_11_20_2018_Tue_122925_01_withoutMF.ota', {fileVersion: 1061121, fileSize: 182876}, true],
     ])('Updates to latest for %s', async (filename, imageMeta, suppressElementImageParseFailure) => {
         const data = readFileSync(join(__dirname, 'stub', 'otaImageFiles', filename));
         const start = data.indexOf(UPGRADE_FILE_IDENTIFIER);

@@ -11,6 +11,7 @@ import {Zcl} from 'zigbee-herdsman';
 import {logger} from '../logger';
 import https from 'https';
 import tls from 'tls';
+import {sleep} from '../utils';
 
 interface Request {cancel: () => void, promise: Promise<{header: Zh.ZclHeader, payload: KeyValue}>}
 interface Waiters {imageBlockOrPageRequest?: Request, upgradeEndRequest?: Request}
@@ -587,7 +588,7 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
                     const delay = (blockResponseTime - lastBlockResponseTime);
 
                     if (delay < IMAGE_BLOCK_RESPONSE_DELAY) {
-                        await new Promise<void>((resolve) => setTimeout(resolve, IMAGE_BLOCK_RESPONSE_DELAY - delay));
+                        await sleep(IMAGE_BLOCK_RESPONSE_DELAY - delay);
                     }
 
                     lastBlockResponseTime = blockResponseTime;
