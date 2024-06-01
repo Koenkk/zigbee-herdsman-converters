@@ -68,6 +68,7 @@ const definitions: Definition[] = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_7ytb3h8u'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_7ytb3h8u'},
         ],
         exposes: [
             ...exportTemplates.giexWaterValve.exposes,
