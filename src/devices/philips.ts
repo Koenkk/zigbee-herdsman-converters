@@ -7,7 +7,7 @@ import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {philipsOnOff, philipsLight, philipsFz, philipsTz} from '../lib/philips';
-import {deviceEndpoints, quirkCheckinInterval} from '../lib/modernExtend';
+import {deviceEndpoints, quirkCheckinInterval, identify} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
