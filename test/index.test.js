@@ -480,7 +480,7 @@ describe('index.js', () => {
         const TS0502A_match = await index.findByDevice(TS0502A)
         expect(TS0502A_match.model).toBe('TS0502A');
         expect(TS0502A_match.description).toBe('Light controller');
-        expect(TS0502A_match.vendor).toBe('TuYa');
+        expect(TS0502A_match.vendor).toBe('Tuya');
     });
 
     it('Check if all exposes have a color temp range', () => {

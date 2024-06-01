@@ -27,7 +27,7 @@ const definitions: Definition[] = [
         model: 'SZ-T04',
         vendor: 'Nous',
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'TH01Z', 'Temperature and humidity sensor with clock', ['_TZE200_locansqn']),
+            tuya.whitelabel('Tuya', 'TH01Z', 'Temperature and humidity sensor with clock', ['_TZE200_locansqn']),
         ],
         description: 'Temperature and humidity sensor with clock',
         fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],

@@ -769,7 +769,7 @@ const dataPoints = {
     moes105DimmerLevel1: 2,
     moes105DimmerState2: 7,
     moes105DimmerLevel2: 8,
-    // TuYa Radar Sensor
+    // Tuya Radar Sensor
     trsPresenceState: 1,
     trsSensitivity: 2,
     trsMotionState: 102,
@@ -778,7 +778,7 @@ const dataPoints = {
     trsScene: 112,
     trsMotionDirection: 114,
     trsMotionSpeed: 115,
-    // TuYa Radar Sensor with fall function
+    // Tuya Radar Sensor with fall function
     trsfPresenceState: 1,
     trsfSensitivity: 2,
     trsfMotionState: 102,
@@ -945,7 +945,7 @@ const dataPoints = {
     connecteTempProgram: 105,
     connecteOpenWindow: 106,
     connecteMaxProtectTemp: 107,
-    // TuYa Smart Human Presence Sensor
+    // Tuya Smart Human Presence Sensor
     tshpsPresenceState: 1,
     tshpscSensitivity: 2,
     tshpsMinimumRange: 3,
@@ -956,7 +956,7 @@ const dataPoints = {
     tshpsIlluminanceLux: 104,
     tshpsCLI: 103, // not recognize
     tshpsSelfTest: 6, // not recognize
-    // TuYa Luminance Motion sensor
+    // Tuya Luminance Motion sensor
     lmsState: 1,
     lmsBattery: 4,
     lmsSensitivity: 9,
@@ -5708,7 +5708,7 @@ const toZigbee1 = {
                     value = invert ? 100 - value : value;
                     await sendDataPointValue(entity, dataPoints.coverPosition, value);
                 } else {
-                    throw new Error('TuYa_cover_control: Curtain motor position is out of range');
+                    throw new Error('Tuya_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
                 const stateEnums = getCoverStateEnums(meta.device.manufacturerName);
@@ -5729,7 +5729,7 @@ const toZigbee1 = {
                     await sendDataPointEnum(entity, dataPoints.state, stateEnums.stop);
                     break;
                 default:
-                    throw new Error('TuYa_cover_control: Invalid command received');
+                    throw new Error('Tuya_cover_control: Invalid command received');
                 }
             }
         },
@@ -5747,7 +5747,7 @@ const toZigbee2 = {
                 if (value >= 0 && value <= 100) {
                     await sendDataPointValue(entity, dataPoints.coverPosition, value);
                 } else {
-                    throw new Error('TuYa_cover_control: Curtain motor position is out of range');
+                    throw new Error('Tuya_cover_control: Curtain motor position is out of range');
                 }
                 break;
             }
@@ -5770,7 +5770,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(entity, dataPoints.state, stateEnums.stop);
                     break;
                 default:
-                    throw new Error('TuYa_cover_control: Invalid command received');
+                    throw new Error('Tuya_cover_control: Invalid command received');
                 }
                 break;
             }
@@ -7200,7 +7200,7 @@ const toZigbee2 = {
 
             if (value.motor_speed != undefined) {
                 if (value.motor_speed < 0 || value.motor_speed > 255) {
-                    throw new Error('TuYa_cover_control: Motor speed is out of range');
+                    throw new Error('Tuya_cover_control: Motor speed is out of range');
                 }
 
                 logger.info(`Setting motor speed to ${value.motor_speed}`, 'zhc:legacy:tz:tuya_cover_options');
@@ -8079,7 +8079,7 @@ const toZigbee2 = {
                     value = invert ? 100 - value : value;
                     await sendDataPointValue(entity, dataPoints.coverPosition, value);
                 } else {
-                    throw new Error('TuYa_cover_control: Curtain motor position is out of range');
+                    throw new Error('Tuya_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
                 const stateEnums = getCoverStateEnums(meta.device.manufacturerName);

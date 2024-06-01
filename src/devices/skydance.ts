@@ -58,7 +58,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS0503B', manufacturerName: '_TZB210_zdvrsts8'}],
         model: 'WZ5_rgb_1',
-        vendor: 'TuYa',
+        vendor: 'Tuya',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB mode)',
         extend: [tuya.modernExtend.tuyaLight({color: {modes: ['hs', 'xy']}})],
     },

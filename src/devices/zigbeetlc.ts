@@ -205,7 +205,7 @@ const definitions = [
         ],
         // TS0201 with ZigbeeTLc firmware
         model: 'TS0201-z',
-        vendor: 'TuYa',
+        vendor: 'Tuya',
         description: 'Temperature & Humidity Sensor (pvxx/ZigbeeTLc)',
         extend: [
             temperature({reporting: {min: 10, max: 300, change: 10}}),

@@ -132,9 +132,9 @@ export interface DefinitionMeta {
      */
     turnsOffAtBrightness1?: boolean;
     tuyaThermostatPreset?: {[s: number]: string},
-    /** TuYa specific thermostat options */
+    /** Tuya specific thermostat options */
     tuyaThermostatSystemMode?: {[s: number]: string},
-    /** TuYa specific thermostat options */
+    /** Tuya specific thermostat options */
     tuyaThermostatPresetToSystemMode?: {[s: number]: string},
     /**
      * see `toZigbee.light_color`

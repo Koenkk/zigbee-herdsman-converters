@@ -201,7 +201,7 @@ export async function onEventSetTime(type: OnEventType, data: KeyValue, device: 
 export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, device: Zh.Device) {
     // FIXME: What actually nextLocalTimeUpdate/forceTimeUpdate do?
     //  I did not find any timers or something else where it was used.
-    //  Actually, there are two ways to set time on TuYa MCU devices:
+    //  Actually, there are two ways to set time on Tuya MCU devices:
     //  1. Respond to the `commandMcuSyncTime` event
     //  2. Just send `mcuSyncTime` anytime (by 1-hour timer or something else)
 
@@ -379,7 +379,7 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
         const endpoint = device.endpoints[0];
         await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
     } catch (e) {
-        // Fails for some TuYa devices with UNSUPPORTED_ATTRIBUTE, ignore that.
+        // Fails for some Tuya devices with UNSUPPORTED_ATTRIBUTE, ignore that.
         // e.g. https://github.com/Koenkk/zigbee2mqtt/issues/14857
         if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
             logger.debug('configureMagicPacket failed, ignoring...', NS);

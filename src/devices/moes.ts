@@ -380,7 +380,7 @@ const definitions: Definition[] = [
             }
         },
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'iH-F8260', 'Universal smart IR remote control', ['_TZ3290_gnl5a6a5xvql7c2a']),
+            tuya.whitelabel('Tuya', 'iH-F8260', 'Universal smart IR remote control', ['_TZ3290_gnl5a6a5xvql7c2a']),
         ],
     },
     {
