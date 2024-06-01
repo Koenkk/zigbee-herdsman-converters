@@ -335,7 +335,7 @@ const ubisys = {
                                 selector: {},
                                 dataType: Zcl.DataType.ARRAY,
                                 elementData: {
-                                    elementType: 'data8',
+                                    elementType: Zcl.DataType.DATA8,
                                     elements: value.input_configurations,
                                 },
                             }],
@@ -344,7 +344,7 @@ const ubisys = {
                     } else {
                         await devMgmtEp.write(
                             'manuSpecificUbisysDeviceSetup',
-                            {[attributeInputConfigurations.name]: {elementType: 'data8', elements: value.input_configurations}},
+                            {[attributeInputConfigurations.name]: {elementType: Zcl.DataType.DATA8, elements: value.input_configurations}},
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -360,7 +360,7 @@ const ubisys = {
                                 selector: {},
                                 dataType: Zcl.DataType.ARRAY,
                                 elementData: {
-                                    elementType: 'octetStr',
+                                    elementType: Zcl.DataType.OCTET_STR,
                                     elements: value.input_actions,
                                 },
                             }],
@@ -369,7 +369,7 @@ const ubisys = {
                     } else {
                         await devMgmtEp.write(
                             'manuSpecificUbisysDeviceSetup',
-                            {[attributeInputActions.name]: {elementType: 'octetStr', elements: value.input_actions}},
+                            {[attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: value.input_actions}},
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -563,7 +563,7 @@ const ubisys = {
                                 selector: {},
                                 dataType: Zcl.DataType.ARRAY,
                                 elementData: {
-                                    elementType: 'octetStr',
+                                    elementType: Zcl.DataType.OCTET_STR,
                                     elements: resultingInputActions,
                                 },
                             }],
@@ -572,7 +572,7 @@ const ubisys = {
                     } else {
                         await devMgmtEp.write(
                             'manuSpecificUbisysDeviceSetup',
-                            {[attributeInputActions.name]: {elementType: 'octetStr', elements: resultingInputActions}},
+                            {[attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: resultingInputActions}},
                             manufacturerOptions.ubisysNull,
                         );
                     }
