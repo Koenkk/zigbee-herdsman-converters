@@ -1,5 +1,13 @@
 # Changelog
 
+## [19.47.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.47.0...v19.47.1) (2024-06-01)
+
+
+### Bug Fixes
+
+* **ignore:** Fix TS0001_switch_1_gang whitelabels ([0f3b6f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f3b6f2cb5d0e6e147c6f9ab0591267d8838d881))
+* **ignore:** Update zh to 0.49.2 ([29ed735](https://github.com/Koenkk/zigbee-herdsman-converters/commit/29ed735a39b4b01606aa1b918a8646e68d631684))
+
 ## [19.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.46.0...v19.47.0) (2024-05-31)
 
 
