@@ -2825,7 +2825,7 @@ const definitions: Definition[] = [
         model: '929003597901',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle round panel light',
-        extend: [identify(), philipsLight({colorTemp: {range: [153,454]}})],
+        extend: [identify(), philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['3418331P6'],
