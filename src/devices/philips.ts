@@ -7,7 +7,7 @@ import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {philipsOnOff, philipsLight, philipsFz, philipsTz} from '../lib/philips';
-import {deviceEndpoints, quirkCheckinInterval} from '../lib/modernExtend';
+import {deviceEndpoints, quirkCheckinInterval, identify} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -2819,6 +2819,13 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle round panel light',
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['929003597901'],
+        model: '929003597901',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle round panel light',
+        extend: [identify(), philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['3418331P6'],
