@@ -17,12 +17,14 @@ const definitions: Definition[] = [
         model: 'FUT089Z',
         vendor: 'MiBoxer',
         description: 'RGB+CCT Remote',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp,
+            fz.command_move_to_hue_and_saturation],
         toZigbee: [],
         whiteLabel: [
             tuya.whitelabel('Ledron', 'YK-16', 'RGB+CCT Remote', ['_TZ3000_zwszqdpy']),
         ],
-        exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move',
+            'move_to_hue_and_saturation'])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
