@@ -1,5 +1,22 @@
 # Changelog
 
+## [19.49.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.48.0...v19.49.0) (2024-06-02)
+
+
+### Features
+
+* Support `move_to_hue_and_saturation` action for MiBoxer FUT089Z ([#7595](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7595)) ([b1b6399](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b1b63993779b58228589225a6154429d287a5be8))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZB210_wxazcmsh` as MiBoxer FUT037Z+ ([#7592](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7592)) ([cb73277](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb73277cee49aa353f9b6e4150b06cdd29d809d1))
+* **detect:** Detect `_TZE204_myd45weu` as Tuya TS0601_soil ([#7593](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7593)) ([9ac8b3d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9ac8b3db959a9b58ae3db7391e1b5c2bad716dfa))
+* **detect:** Detect `_TZE284_cjbofhxw` as Tuya PJ-1203-W [@lyonelf](https://github.com/lyonelf) https://github.com/Koenkk/zigbee2mqtt/issues/22784 ([d935abb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d935abb18658fb2d59fe5c35f87ffcbe50b32cbe))
+* Disable OTA for Ledvance 74746 https://github.com/Koenkk/zigbee2mqtt/issues/20983 ([4ef710a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ef710acf0fdf08d4112e25cb0e8dbc0669157d2))
+* **ignore:** update dependencies ([#7594](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7594)) ([dd81383](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dd81383380cc9c99cc7305f85433719ff2b7a458))
+* WISZB-120: Use "battery_voltage" instead of "voltage" ([#7597](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7597)) ([c806775](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c80677579655a8be6bfb4dbd1831b55125c9032c))
+
 ## [19.48.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.47.1...v19.48.0) (2024-06-01)
 
 
