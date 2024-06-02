@@ -4566,7 +4566,7 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_cjbofhxw']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_cjbofhxw', '_TZE284_cjbofhxw']),
         model: 'PJ-MGW1203',
         vendor: 'Tuya',
         description: 'Clamp meter',
@@ -4582,6 +4582,9 @@ const definitions: Definition[] = [
                 [101, 'energy', tuya.valueConverter.divideBy1000],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('Tuya', 'PJ-1203-W', 'Electricity energy monitor', ['_TZE284_cjbofhxw']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_bkkmqmyo', '_TZE200_eaac7dkw', '_TZE204_wbhaespm', '_TZE204_bkkmqmyo']),
