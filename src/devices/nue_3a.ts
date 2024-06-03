@@ -198,7 +198,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['LXN56-TS27LX1.2'],
         model: 'LXN56-TS27LX1.2',
         vendor: 'Nue / 3A',
-        description: 'Smart Double GPO',
+        description: 'Smart double GPO',
         extend: [
             deviceEndpoints({endpoints: {'left': 11, 'right': 12}}),
             onOff({endpointNames: ['left', 'right']}),
