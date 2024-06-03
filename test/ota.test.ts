@@ -177,6 +177,11 @@ describe('OTA', () => {
     
             return {cancel: (): void => waitress.remove(waiter.ID), promise: waiter.start().promise};
         }
+
+        public async defaultResponse(commandID: number, status: number, clusterID: number, transactionSequenceNumber: number, options?: unknown)
+            : Promise<void> {
+            // triggered when `upgradeEndRequest` fails, per spec
+        }
     }
     
     class MockDevice extends EventEmitter {

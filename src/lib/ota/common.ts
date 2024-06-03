@@ -695,11 +695,21 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
         }
     } else {
         /**
-         * TODO:
          * For other status value received such as INVALID_IMAGE, REQUIRE_MORE_IMAGE, or ABORT,
          * the upgrade server SHALL not send Upgrade End Response command but it SHALL send default
          * response command with status of success and it SHALL wait for the client to reinitiate the upgrade process.
          */
+        try {
+            await endpoint.defaultResponse(
+                Zcl.Clusters.genOta.commands.upgradeEndRequest.ID,
+                Zcl.Status.SUCCESS,
+                Zcl.Clusters.genOta.ID,
+                endResult.header.transactionSequenceNumber
+            );
+        } catch (error) {
+            logger.debug(`Upgrade end request default response failed: ${error}`, NS);
+        }
+
         throw new Error(`Update failed with reason: '${Zcl.Status[endResult.payload.status as number]}'`);
     }
 }
