@@ -8,6 +8,7 @@ import {
     binary, enumLookup, forcePowerSource, numeric, onOff,
     customTimeResponse, battery, ota, deviceAddCustomCluster,
     temperature, humidity, bindCluster,
+    iasZoneAlarm,
 } from '../lib/modernExtend';
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -37,7 +38,6 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-// const sonoffPrivateCluster = 0xFC11;
 const sonoffExtend = {
     addCustomClusterEwelink: () => deviceAddCustomCluster(
         'customClusterEwelink',
@@ -813,17 +813,10 @@ const definitions: Definition[] = [
         model: 'SNZB-05P',
         vendor: 'SONOFF',
         description: 'Zigbee water sensor',
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        exposes: [e.water_leak(), e.battery_low(), e.battery()],
         extend: [
-            ota(),
+            battery(),
+            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']}),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
-        },
     },
     {
         zigbeeModel: ['SNZB-06P'],
