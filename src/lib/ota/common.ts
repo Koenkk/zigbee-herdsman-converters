@@ -645,7 +645,6 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
     logger.debug(`Starting update`, NS);
 
     // `answerNextImageBlockOrPageRequest` is recursive and never resolves, so will only stop before `upgradeEndRequest` resolves if it throws
-    // eslint-disable-next-line no-useless-catch
     await Promise.race([
         new Promise<void>((_, reject) => answerNextImageBlockOrPageRequest(reject)),
         waiters.upgradeEndRequest.promise,
