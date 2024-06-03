@@ -515,7 +515,7 @@ export async function isNewImageAvailable(current: Ota.ImageInfo, device: Zh.Dev
 export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress, getNewImage: GetNewImage, getImageMeta: Ota.GetImageMeta = null,
     downloadImage: DownloadImage = null, suppressElementImageParseFailure: boolean = false): Promise<number> {
     const logId = `'${device.ieeeAddr}' (${device.modelID})`;
-    logger.debug(`Updating to latest ${logId}`, NS);
+    logger.debug(`Updating ${logId} to latest`, NS);
 
     const endpoint = getOTAEndpoint(device);
     assert(endpoint != null, `Failed to find an endpoint which supports the OTA cluster for ${logId}`);
@@ -540,9 +540,43 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
     const startTime = Date.now();
     let ended: boolean = false;
 
-    const answerNextImageBlockOrPageRequest = async () => {
+    const sendImageBlockResponse = async (imageBlockRequest: CommandResult, pageOffset: number, pageSize: number): Promise<number> => {
+        // Reduce network congestion by throttling response if necessary
+        {
+            const blockResponseTime = Date.now();
+            const delay = (blockResponseTime - lastBlockResponseTime);
+
+            if (delay < IMAGE_BLOCK_RESPONSE_DELAY) {
+                await sleep(IMAGE_BLOCK_RESPONSE_DELAY - delay);
+            }
+
+            lastBlockResponseTime = blockResponseTime;
+        }
+
+        try {
+            const blockPayload = getImageBlockResponsePayload(image, imageBlockRequest, pageOffset, pageSize);
+
+            await endpoint.commandResponse(
+                'genOta',
+                'imageBlockResponse',
+                blockPayload,
+                null,
+                imageBlockRequest.header.transactionSequenceNumber,
+            );
+
+            pageOffset += blockPayload.dataSize;
+        } catch (error) {
+            // Shit happens, device will probably do a new imageBlockRequest so don't care.
+            logger.debug(`Image block response failed: ${error}`, NS);
+        }
+
+        lastUpdate = callOnProgress(startTime, lastUpdate, imageBlockRequest, image, onProgress);
+
+        return pageOffset;
+    };
+
+    const answerNextImageBlockOrPageRequest = async (reject: (reason: Error) => void) => {
         if (ended) {
-            cancelWaiters(waiters);
             return;
         }
 
@@ -581,78 +615,49 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
             let pageOffset = 0;
             let pageSize = 0;
 
-            const sendImageBlockResponse = async (imageBlockRequest: CommandResult) => {
-                // Reduce network congestion by throttling response if necessary
-                {
-                    const blockResponseTime = Date.now();
-                    const delay = (blockResponseTime - lastBlockResponseTime);
-
-                    if (delay < IMAGE_BLOCK_RESPONSE_DELAY) {
-                        await sleep(IMAGE_BLOCK_RESPONSE_DELAY - delay);
-                    }
-
-                    lastBlockResponseTime = blockResponseTime;
-                }
-
-                try {
-                    const blockPayload = getImageBlockResponsePayload(image, imageBlockRequest, pageOffset, pageSize);
-
-                    await endpoint.commandResponse(
-                        'genOta',
-                        'imageBlockResponse',
-                        blockPayload,
-                        null,
-                        imageBlockRequest.header.transactionSequenceNumber,
-                    );
-
-                    pageOffset += blockPayload.dataSize;
-                } catch (error) {
-                    // Shit happens, device will probably do a new imageBlockRequest so don't care.
-                    logger.debug(`Image block response failed: ${error}`, NS);
-                }
-
-                lastUpdate = callOnProgress(startTime, lastUpdate, imageBlockRequest, image, onProgress);
-            };
-
             if ('pageSize' in result.payload) {
                 // imagePageRequest
                 pageSize = result.payload.pageSize as number;
 
                 const handleImagePageRequestBlocks = async (imagePageRequest: CommandResult) => {
                     if (pageOffset < pageSize) {
-                        await sendImageBlockResponse(imagePageRequest);
+                        pageOffset = await sendImageBlockResponse(imagePageRequest, pageOffset, pageSize);
                         await handleImagePageRequestBlocks(imagePageRequest);
-                    } else {
-                        await answerNextImageBlockOrPageRequest();
                     }
                 };
 
                 await handleImagePageRequestBlocks(result);
             } else {
                 // imageBlockRequest
-                await sendImageBlockResponse(result);
-                await answerNextImageBlockOrPageRequest();
+                pageOffset = await sendImageBlockResponse(result, pageOffset, pageSize);
             }
+
+            await answerNextImageBlockOrPageRequest(reject);
         } catch (error) {
             cancelWaiters(waiters);
-            throw new Error(`Timeout. Device did not start/finish firmware download after being notified. (${error})`);
+            reject(new Error(`Timeout. Device did not start/finish firmware download after being notified. (${error})`));
         }
     };
 
     // No need to timeout here, will already be done in answerNextImageBlockOrPageRequest
     waiters.upgradeEndRequest = endpoint.waitForCommand('genOta', 'upgradeEndRequest', null, MAX_TIMEOUT);
 
-    logger.debug(`Starting upgrade`, NS);
+    logger.debug(`Starting update`, NS);
 
     // `answerNextImageBlockOrPageRequest` is recursive and never resolves, so will only stop before `upgradeEndRequest` resolves if it throws
-    await Promise.race([answerNextImageBlockOrPageRequest(), waiters.upgradeEndRequest.promise]);
+    // eslint-disable-next-line no-useless-catch
+    await Promise.race([
+        new Promise<void>((_, reject) => answerNextImageBlockOrPageRequest(reject)),
+        waiters.upgradeEndRequest.promise,
+    ]);
+
+    cancelWaiters(waiters);
 
     ended = true;
     // already resolved when this is reached
     const endResult = await waiters.upgradeEndRequest.promise;
-    logger.debug(`Got upgrade end request for ${logId}: ${JSON.stringify(endResult.payload)}`, NS);
 
-    cancelWaiters(waiters);
+    logger.debug(`Got upgrade end request for ${logId}: ${JSON.stringify(endResult.payload)}`, NS);
 
     if (endResult.payload.status === Zcl.Status.SUCCESS) {
         const payload = {
