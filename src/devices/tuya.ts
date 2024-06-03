@@ -7874,7 +7874,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ijxvkhd0', '_TZE204_7gclukjs']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ijxvkhd0']),
         model: 'ZY-M100-24G',
         vendor: 'Tuya',
         description: '24G MmWave radar human presence motion sensor',
@@ -7920,6 +7920,55 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_7gclukjs']),
+        model: 'ZY-M100-24G',
+        vendor: 'TuYa',
+        description: '24G MmWave radar human presence motion sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum('state', ea.STATE, ['none', 'presence', 'move']).
+                withDescription('Presence state sensor'),
+            e.presence().withDescription('Occupancy'),
+            e.numeric('distance', ea.STATE).withDescription('Target distance'),
+            e.illuminance_lux().withDescription('Illuminance sensor'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Motion Sensitivity'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Presence Sensitivity'),
+            e.numeric('detection_distance_min', ea.STATE_SET).withValueMin(0)
+                .withValueMax(8.25)
+                .withValueStep(0.75)
+                .withUnit('m').withDescription('Minimum range'),
+            e.numeric('detection_distance_max', ea.STATE_SET).withValueMin(0.75)
+                .withValueMax(9.00)
+                .withValueStep(0.75)
+                .withUnit('m').withDescription('Maximum range'),
+            e.numeric('presence_timeout', ea.STATE_SET).withValueMin(1)
+                .withValueMax(1500)
+                .withValueStep(1)
+                .withUnit('s').withDescription('Fade time'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [104, 'presence', tuya.valueConverter.trueFalse1],
+                [2, 'move_sensitivity', tuya.valueConverter.divideBy10FromOnly],
+                [102, 'presence_sensitivity', tuya.valueConverter.divideBy10FromOnly],
+                [3, 'detection_distance_min', tuya.valueConverter.divideBy100],
+                [4, 'detection_distance_max', tuya.valueConverter.divideBy100],
+                [9, 'distance', tuya.valueConverter.divideBy100],
+                [105, 'presence_timeout', tuya.valueConverter.raw],
+                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [1, 'state', tuya.valueConverterBasic.lookup({ 'none': 0, 'presence': 1, 'move': 2 })],
+            ],
+        },
+    },    
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e9ajs4ft']),
         model: 'CTL-R1-TY-Zigbee',
