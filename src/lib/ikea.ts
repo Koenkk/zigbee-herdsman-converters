@@ -2,7 +2,7 @@ import {Fz, Tz, OnEvent, Configure, KeyValue, Range, ModernExtend, Expose, KeyVa
 import {presets, access, options} from '../lib/exposes';
 import {
     postfixWithEndpointName, precisionRound, isObject, replaceInArray, isLegacyEnabled, hasAlreadyProcessedMessage,
-    getFromLookup, mapNumberRange, getEndpointName,
+    assertString, getFromLookup, mapNumberRange, getEndpointName,
 } from '../lib/utils';
 import {
     LightArgs, light as lightDontUse, ota, ReportingConfigWithoutAttribute,
@@ -184,7 +184,7 @@ export function ikeaAirPurifier(): ModernExtend {
             'unknown',
         ]).withDescription('Calculated air quality'),
         presets.binary('led_enable', access.ALL, true, false).withDescription('Controls the LED').withCategory('config'),
-        presets.binary('child_lock', access.ALL, true, false).withDescription('Controls physical input on the device').withCategory('config'),
+        presets.binary('child_lock', access.ALL, 'LOCK', 'UNLOCK').withDescription('Controls physical input on the device').withCategory('config'),
         presets.binary('replace_filter', access.STATE_GET, true, false)
             .withDescription('Indicates if the filter is older than 6 months and needs replacing')
             .withCategory('diagnostic'),
@@ -242,7 +242,7 @@ export function ikeaAirPurifier(): ModernExtend {
                 }
 
                 if (msg.data.hasOwnProperty('childLock')) {
-                    state['child_lock'] = (msg.data['childLock'] == 0);
+                    state['child_lock'] = ((msg.data['childLock'] == 0) ? 'UNLOCK' : 'LOCK');
                 }
 
                 if (msg.data.hasOwnProperty('fanSpeed')) {
@@ -325,8 +325,9 @@ export function ikeaAirPurifier(): ModernExtend {
         {
             key: ['child_lock'],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write('manuSpecificIkeaAirPurifier', {'childLock': ((value) ? 0 : 1)}, manufacturerOptions);
-                return {state: {child_lock: ((value) ? true : false)}};
+                assertString(value);
+                await entity.write('manuSpecificIkeaAirPurifier', {'childLock': ((value.toLowerCase() === 'unlock') ? 0 : 1)}, manufacturerOptions);
+                return {state: {child_lock: ((value.toLowerCase() === 'lock') ? 'LOCK' : 'UNLOCK')}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificIkeaAirPurifier', ['childLock']);
