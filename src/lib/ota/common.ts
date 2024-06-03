@@ -575,11 +575,7 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
         return pageOffset;
     };
 
-    const answerNextImageBlockOrPageRequest = async (reject: (reason: Error) => void) => {
-        if (ended) {
-            return;
-        }
-
+    const sendImage = async () => {
         let imageBlockOrPageRequestTimeoutMs: number = 150000;
         // increase the upgradeEndReq wait time to solve the problem of OTA timeout failure of Sonoff Devices
         // (https://github.com/Koenkk/zigbee-herdsman-converters/issues/6657)
@@ -600,55 +596,52 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
             imageBlockOrPageRequestTimeoutMs = 30 * 60 * 1000;
         }
 
-        const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, imageBlockOrPageRequestTimeoutMs);
-        const imagePageRequest = endpoint.waitForCommand('genOta', 'imagePageRequest', null, imageBlockOrPageRequestTimeoutMs);
-        waiters.imageBlockOrPageRequest = {
-            promise: Promise.race([imageBlockRequest.promise, imagePageRequest.promise]),
-            cancel: () => {
-                imageBlockRequest.cancel();
-                imagePageRequest.cancel();
-            },
-        };
+        while (!ended) {
+            const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, imageBlockOrPageRequestTimeoutMs);
+            const imagePageRequest = endpoint.waitForCommand('genOta', 'imagePageRequest', null, imageBlockOrPageRequestTimeoutMs);
+            waiters.imageBlockOrPageRequest = {
+                promise: Promise.race([imageBlockRequest.promise, imagePageRequest.promise]),
+                cancel: () => {
+                    imageBlockRequest.cancel();
+                    imagePageRequest.cancel();
+                },
+            };
 
-        try {
-            const result = await waiters.imageBlockOrPageRequest.promise;
-            let pageOffset = 0;
-            let pageSize = 0;
+            try {
+                const result = await waiters.imageBlockOrPageRequest.promise;
+                let pageOffset = 0;
+                let pageSize = 0;
 
-            if ('pageSize' in result.payload) {
-                // imagePageRequest
-                pageSize = result.payload.pageSize as number;
+                if ('pageSize' in result.payload) {
+                    // imagePageRequest
+                    pageSize = result.payload.pageSize as number;
 
-                const handleImagePageRequestBlocks = async (imagePageRequest: CommandResult) => {
-                    if (pageOffset < pageSize) {
-                        pageOffset = await sendImageBlockResponse(imagePageRequest, pageOffset, pageSize);
-                        await handleImagePageRequestBlocks(imagePageRequest);
-                    }
-                };
+                    const handleImagePageRequestBlocks = async (imagePageRequest: CommandResult) => {
+                        if (pageOffset < pageSize) {
+                            pageOffset = await sendImageBlockResponse(imagePageRequest, pageOffset, pageSize);
+                            await handleImagePageRequestBlocks(imagePageRequest);
+                        }
+                    };
 
-                await handleImagePageRequestBlocks(result);
-            } else {
-                // imageBlockRequest
-                pageOffset = await sendImageBlockResponse(result, pageOffset, pageSize);
+                    await handleImagePageRequestBlocks(result);
+                } else {
+                    // imageBlockRequest
+                    pageOffset = await sendImageBlockResponse(result, pageOffset, pageSize);
+                }
+            } catch (error) {
+                cancelWaiters(waiters);
+                throw new Error(`Timeout. Device did not start/finish firmware download after being notified. (${error})`);
             }
-
-            await answerNextImageBlockOrPageRequest(reject);
-        } catch (error) {
-            cancelWaiters(waiters);
-            reject(new Error(`Timeout. Device did not start/finish firmware download after being notified. (${error})`));
         }
     };
 
-    // No need to timeout here, will already be done in answerNextImageBlockOrPageRequest
+    // will eventually time out in `sendImage` if this never resolves when it's supposed to
     waiters.upgradeEndRequest = endpoint.waitForCommand('genOta', 'upgradeEndRequest', null, MAX_TIMEOUT);
 
     logger.debug(`Starting update`, NS);
 
-    // `answerNextImageBlockOrPageRequest` is recursive and never resolves, so will only stop before `upgradeEndRequest` resolves if it throws
-    await Promise.race([
-        new Promise<void>((_, reject) => answerNextImageBlockOrPageRequest(reject)),
-        waiters.upgradeEndRequest.promise,
-    ]);
+    // `sendImage` is looping and never resolves, so will only stop before `upgradeEndRequest` resolves if it throws
+    await Promise.race([sendImage(), waiters.upgradeEndRequest.promise]);
 
     cancelWaiters(waiters);
 
