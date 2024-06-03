@@ -7922,15 +7922,15 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_7gclukjs']),
-        model: 'ZY-M100-24G',
-        vendor: 'TuYa',
+        model: 'ZY-M100-24GV2',
+        vendor: 'Tuya',
         description: '24G MmWave radar human presence motion sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.enum('state', ea.STATE, ['none', 'presence', 'move']).
-                withDescription('Presence state sensor'),
+            e.enum('state', ea.STATE, ['none', 'presence', 'move'])
+                .withDescription('Presence state sensor'),
             e.presence().withDescription('Occupancy'),
             e.numeric('distance', ea.STATE).withDescription('Target distance'),
             e.illuminance_lux().withDescription('Illuminance sensor'),
@@ -7965,10 +7965,10 @@ const definitions: Definition[] = [
                 [9, 'distance', tuya.valueConverter.divideBy100],
                 [105, 'presence_timeout', tuya.valueConverter.raw],
                 [103, 'illuminance_lux', tuya.valueConverter.raw],
-                [1, 'state', tuya.valueConverterBasic.lookup({ 'none': 0, 'presence': 1, 'move': 2 })],
+                [1, 'state', tuya.valueConverterBasic.lookup({'none': 0, 'presence': 1, 'move': 2})],
             ],
         },
-    },    
+    },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e9ajs4ft']),
         model: 'CTL-R1-TY-Zigbee',
