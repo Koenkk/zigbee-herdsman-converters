@@ -87,7 +87,7 @@ const definitions: Definition[] = [
                 .withDescription('Cycle irrigation interval'),
         ],
         whiteLabel: [
-            tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_7ytb3h8u', '_TZE204_4fblxpma]),
+            tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_7ytb3h8u', '_TZE204_4fblxpma']),
         ],
     },
 ];
