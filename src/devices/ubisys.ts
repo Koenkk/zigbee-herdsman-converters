@@ -229,7 +229,7 @@ const ubisys = {
                     await sleepSeconds(2);
                     // re-read and dump all relevant attributes
                     log('  Done - will now read back the results.');
-                    ubisys.tz.configure_j1.convertGet(entity, key, meta);
+                    await ubisys.tz.configure_j1.convertGet(entity, key, meta);
                 }
             },
             convertGet: async (entity, key, meta) => {
@@ -287,7 +287,7 @@ const ubisys = {
                     await entity.write('manuSpecificUbisysDimmerSetup',
                         {'mode': utils.getFromLookup(phaseControl, phaseControlValues)}, manufacturerOptions.ubisysNull);
                 }
-                ubisys.tz.dimmer_setup.convertGet(entity, key, meta);
+                await ubisys.tz.dimmer_setup.convertGet(entity, key, meta);
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities'], manufacturerOptions.ubisysNull);
@@ -301,7 +301,7 @@ const ubisys = {
                 if (key === 'minimum_on_level') {
                     await entity.write('genLevelCtrl', {'ubisysMinimumOnLevel': value}, manufacturerOptions.ubisys);
                 }
-                ubisys.tz.dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
+                await ubisys.tz.dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('genLevelCtrl', ['ubisysMinimumOnLevel'], manufacturerOptions.ubisys);
@@ -335,7 +335,7 @@ const ubisys = {
                                 selector: {},
                                 dataType: Zcl.DataType.ARRAY,
                                 elementData: {
-                                    elementType: 'data8',
+                                    elementType: Zcl.DataType.DATA8,
                                     elements: value.input_configurations,
                                 },
                             }],
@@ -344,7 +344,7 @@ const ubisys = {
                     } else {
                         await devMgmtEp.write(
                             'manuSpecificUbisysDeviceSetup',
-                            {[attributeInputConfigurations.name]: {elementType: 'data8', elements: value.input_configurations}},
+                            {[attributeInputConfigurations.name]: {elementType: Zcl.DataType.DATA8, elements: value.input_configurations}},
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -360,7 +360,7 @@ const ubisys = {
                                 selector: {},
                                 dataType: Zcl.DataType.ARRAY,
                                 elementData: {
-                                    elementType: 'octetStr',
+                                    elementType: Zcl.DataType.OCTET_STR,
                                     elements: value.input_actions,
                                 },
                             }],
@@ -369,7 +369,7 @@ const ubisys = {
                     } else {
                         await devMgmtEp.write(
                             'manuSpecificUbisysDeviceSetup',
-                            {[attributeInputActions.name]: {elementType: 'octetStr', elements: value.input_actions}},
+                            {[attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: value.input_actions}},
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -563,7 +563,7 @@ const ubisys = {
                                 selector: {},
                                 dataType: Zcl.DataType.ARRAY,
                                 elementData: {
-                                    elementType: 'octetStr',
+                                    elementType: Zcl.DataType.OCTET_STR,
                                     elements: resultingInputActions,
                                 },
                             }],
@@ -572,7 +572,7 @@ const ubisys = {
                     } else {
                         await devMgmtEp.write(
                             'manuSpecificUbisysDeviceSetup',
-                            {[attributeInputActions.name]: {elementType: 'octetStr', elements: resultingInputActions}},
+                            {[attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: resultingInputActions}},
                             manufacturerOptions.ubisysNull,
                         );
                     }

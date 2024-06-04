@@ -1,5 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 import {Definition} from '../lib/types';
+import * as ota from '../lib/ota';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
     temperature, humidity, occupancy, illuminance, windowCovering,
@@ -942,6 +943,7 @@ const definitions: Definition[] = [
         model: 'E2112',
         vendor: 'IKEA',
         description: 'VINDSTYRKA air quality and humidity sensor',
+        ota: ota.zigbeeOTA,
         extend: [
             deviceAddCustomCluster(
                 'pm25Measurement',
@@ -959,7 +961,6 @@ const definitions: Definition[] = [
             pm25({reporting: {min: '1_MINUTE', max: '2_MINUTES', change: 2}}),
             ikeaVoc(),
             identify(),
-            ikeaOta(),
         ],
     },
     {

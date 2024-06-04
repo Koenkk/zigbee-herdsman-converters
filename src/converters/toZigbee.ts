@@ -630,6 +630,22 @@ const converters2 = {
             await entity.read('closuresWindowCovering', [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']);
         },
     } satisfies Tz.Converter,
+    cover_mode: {
+        key: ['cover_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertObject(value, key);
+            const windowCoveringMode =
+                (value.reversed ? 1 : 0) << 0 |
+                (value.calibration ? 1 : 0) << 1 |
+                (value.maintenance ? 1 : 0) << 2 |
+                (value.led ? 1 : 0) << 3;
+            await entity.write('closuresWindowCovering', {windowCoveringMode}, utils.getOptions(meta.mapped, entity));
+            return {state: {cover_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresWindowCovering', ['windowCoveringMode']);
+        },
+    } satisfies Tz.Converter,
     occupancy_timeout: {
         // Sets delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],
@@ -1246,9 +1262,9 @@ const converters2 = {
                     const transition = meta.message.transition ?? 15;
                     utils.assertNumber(transition, 'transition');
                     const speed = Math.min(255, Math.max(1, Math.round(255 / transition)));
-                    converters2.light_hue_saturation_move.convertSet(entity, 'hue_move', speed, meta);
+                    await converters2.light_hue_saturation_move.convertSet(entity, 'hue_move', speed, meta);
                 } else if (value === 'stop_colorloop') {
-                    converters2.light_hue_saturation_move.convertSet(entity, 'hue_move', 'stop', meta);
+                    await converters2.light_hue_saturation_move.convertSet(entity, 'hue_move', 'stop', meta);
                 } else {
                     const payload = {effectid: utils.getFromLookup(value, lookup), effectvariant: 0};
                     await entity.command('genIdentify', 'triggerEffect', payload, utils.getOptions(meta.mapped, entity));
@@ -4173,7 +4189,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
             const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
-            entity.write('hvacUserInterfaceCfg', {keypadLockout});
+            await entity.write('hvacUserInterfaceCfg', {keypadLockout});
             entity.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout});
             return {state: {keypad_lockout: value}};
         },
@@ -4259,7 +4275,7 @@ const converters2 = {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
-            entity.write('hvacThermostat', {localTemperatureCalibration: Math.round(value * 10)},
+            await entity.write('hvacThermostat', {localTemperatureCalibration: Math.round(value * 10)},
                 {srcEndpoint: 11, disableDefaultResponse: true});
             return {state: {local_temperature_calibration: value}};
         },

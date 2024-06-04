@@ -201,7 +201,7 @@ export async function onEventSetTime(type: OnEventType, data: KeyValue, device: 
 export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, device: Zh.Device) {
     // FIXME: What actually nextLocalTimeUpdate/forceTimeUpdate do?
     //  I did not find any timers or something else where it was used.
-    //  Actually, there are two ways to set time on TuYa MCU devices:
+    //  Actually, there are two ways to set time on Tuya MCU devices:
     //  1. Respond to the `commandMcuSyncTime` event
     //  2. Just send `mcuSyncTime` anytime (by 1-hour timer or something else)
 
@@ -379,7 +379,7 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
         const endpoint = device.endpoints[0];
         await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
     } catch (e) {
-        // Fails for some TuYa devices with UNSUPPORTED_ATTRIBUTE, ignore that.
+        // Fails for some Tuya devices with UNSUPPORTED_ATTRIBUTE, ignore that.
         // e.g. https://github.com/Koenkk/zigbee2mqtt/issues/14857
         if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
             logger.debug('configureMagicPacket failed, ignoring...', NS);
@@ -1137,7 +1137,8 @@ const tuyaTz = {
             'buzzer_feedback', 'rf_pairing', 'max_temperature_alarm', 'min_temperature_alarm', 'max_humidity_alarm', 'min_humidity_alarm',
             'temperature_periodic_report', 'humidity_periodic_report', 'temperature_sensitivity', 'humidity_sensitivity', 'temperature_alarm',
             'humidity_alarm', 'move_sensitivity', 'radar_range', 'presence_timeout', 'update_frequency', 'remote_pair', 'motor_working_mode',
-            'restart_mode', 'rf_remote_control',
+            'restart_mode', 'rf_remote_control', 'motion_detection_sensitivity', 'motion_detection_mode', 'vacation', 'keysound', 'handlesound',
+            'calibrate',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
@@ -1385,9 +1386,9 @@ const tuyaFz = {
                 const value = getDataValue(dpValue);
                 if (dpEntry?.[2]?.from) {
                     if (dpEntry[1]) {
-                        result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish);
+                        result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish, msg);
                     } else {
-                        Object.assign(result, dpEntry[2].from(value, meta, options, publish));
+                        Object.assign(result, dpEntry[2].from(value, meta, options, publish, msg));
                     }
                 } else {
                     logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' with value ${value}`, NS);

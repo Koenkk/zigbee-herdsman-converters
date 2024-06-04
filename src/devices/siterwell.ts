@@ -29,7 +29,7 @@ const definitions: Definition[] = [
             legacy.tz.tuya_thermostat_comfort_temp, legacy.tz.tuya_thermostat_eco_temp, legacy.tz.tuya_thermostat_force,
             legacy.tz.tuya_thermostat_preset, legacy.tz.tuya_thermostat_boost_time],
         whiteLabel: [{vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
-            {vendor: 'TuYa', description: 'Głowica termostatyczna', model: 'GTZ02'},
+            {vendor: 'Tuya', description: 'Głowica termostatyczna', model: 'GTZ02'},
             {vendor: 'Revolt', description: 'Thermostatic Radiator Valve Controller', model: 'NX-4911'},
             {vendor: 'Unitec', description: 'Thermostatic Radiator Valve Controller', model: '30946'},
             {vendor: 'Tesla Smart', description: 'Thermostatic Radiator Valve Controller', model: 'TSL-TRV-GS361A'},

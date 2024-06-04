@@ -29,7 +29,7 @@ const definitions: Definition[] = [
         model: '74746',
         vendor: 'LEDVANCE',
         description: 'LEDVANCE 74746 Sylvania smart+ Zigbee dimmable edge-lit panel',
-        extend: [ledvanceLight({colorTemp: {range: [200, 370]}, color: true})],
+        extend: [ledvanceLight({colorTemp: {range: [200, 370]}, color: true, ota: null})],
     },
     {
         zigbeeModel: ['Panel TW 620 UGR19'],
