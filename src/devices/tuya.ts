@@ -6139,6 +6139,58 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_j7sgd8po']),
+        model: 'SODA_S8',
+        vendor: 'Tuya',
+        description: 'SODA S8 premium window handle',
+        extend: [],
+        toZigbee: [tuya.tz.datapoints],
+        fromZigbee: [tuya.fz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.battery(), e.battery_low(),
+            e.binary('vacation', ea.STATE_SET, 'ON', 'OFF').withDescription('Vacation mode'),
+            e.enum('alarm', ea.STATE, ['ALARM', 'IDLE']).withDescription('Alarm'),
+            e.binary('alarm_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Alarm enable'),
+            e.binary('handlesound', ea.STATE_SET, 'ON', 'OFF').withDescription('Handle closed sound'),
+            e.enum('opening_mode', ea.STATE, ['closed', 'tilted']).withDescription('Window tilt'),
+            e.temperature(), e.humidity(),
+            e.binary('keysound', ea.STATE_SET, 'ON', 'OFF').withDescription('Key beep sound'),
+            e.enum('sensitivity', ea.STATE_SET, ['off', 'low', 'medium', 'high', 'max']).withDescription('Sensitivity of the alarm sensor'),
+            e.enum('position', ea.STATE, ['up', 'right', 'down', 'left']),
+            e.enum('button_left', ea.STATE, ['released', 'pressed']),
+            e.enum('button_right', ea.STATE, ['released', 'pressed']),
+            e.numeric('duration', ea.STATE_SET).withValueMin(0).withValueMax(300).withValueStep(1)
+                .withUnit('sec').withDescription('Duration of the alarm').withPreset('default', 180, 'Default value'),
+            e.numeric('update_frequency', ea.STATE_SET).withUnit('min').withDescription('Update frequency').withValueMin(0).withValueMax(700)
+                .withPreset('default', 20, 'Default value'),
+            e.enum('calibrate', ea.STATE_SET, ['clear', 'execute']),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [3, 'battery', tuya.valueConverter.raw],
+                [8, 'temperature', tuya.valueConverter.divideBy10],
+                [101, 'humidity', tuya.valueConverter.raw],
+                [102, 'alarm', tuya.valueConverterBasic.lookup({'IDLE': tuya.enum(0), 'ALARM': tuya.enum(1)})],
+                [103, 'opening_mode', tuya.valueConverterBasic.lookup({'closed': tuya.enum(0), 'tilted': tuya.enum(1)})],
+                [104, 'position', tuya.valueConverterBasic.lookup(
+                    {'left': tuya.enum(4), 'up': tuya.enum(1), 'down': tuya.enum(2), 'right': tuya.enum(3)})],
+                [105, 'button_left', tuya.valueConverterBasic.lookup({'released': tuya.enum(0), 'pressed': tuya.enum(1)})],
+                [106, 'button_right', tuya.valueConverterBasic.lookup({'released': tuya.enum(0), 'pressed': tuya.enum(1)})],
+                [107, 'vacation', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
+                [108, 'sensitivity', tuya.valueConverterBasic.lookup(
+                    {'off': tuya.enum(0), 'low': tuya.enum(1), 'medium': tuya.enum(2), 'high': tuya.enum(3), 'max': tuya.enum(4)})],
+                [109, 'alarm_switch', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
+                [110, 'update_frequency', tuya.valueConverter.raw],
+                [111, 'keysound', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
+                [112, 'battery_low', tuya.valueConverterBasic.lookup({'ON': tuya.enum(0), 'OFF': tuya.enum(1)})],
+                [113, 'duration', tuya.valueConverter.raw],
+                [114, 'handlesound', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
+                [120, 'calibrate', tuya.valueConverterBasic.lookup({'clear': tuya.enum(0), 'execute': tuya.enum(1)})],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ysm4dsb1']),
         model: 'RSH-HS06',
         vendor: 'Tuya',
@@ -7877,7 +7929,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ijxvkhd0', '_TZE204_7gclukjs']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ijxvkhd0']),
         model: 'ZY-M100-24G',
         vendor: 'Tuya',
         description: '24G MmWave radar human presence motion sensor',
@@ -7920,6 +7972,55 @@ const definitions: Definition[] = [
                 [102, 'illuminance_treshold_max', tuya.valueConverter.raw],
                 [103, 'illuminance_treshold_min', tuya.valueConverter.raw],
                 [105, 'state', tuya.valueConverterBasic.lookup({'none': 0, 'presence': 1, 'move': 2})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_7gclukjs']),
+        model: 'ZY-M100-24GV2',
+        vendor: 'Tuya',
+        description: '24G MmWave radar human presence motion sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum('state', ea.STATE, ['none', 'presence', 'move'])
+                .withDescription('Presence state sensor'),
+            e.presence().withDescription('Occupancy'),
+            e.numeric('distance', ea.STATE).withDescription('Target distance'),
+            e.illuminance_lux().withDescription('Illuminance sensor'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Motion Sensitivity'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Presence Sensitivity'),
+            e.numeric('detection_distance_min', ea.STATE_SET).withValueMin(0)
+                .withValueMax(8.25)
+                .withValueStep(0.75)
+                .withUnit('m').withDescription('Minimum range'),
+            e.numeric('detection_distance_max', ea.STATE_SET).withValueMin(0.75)
+                .withValueMax(9.00)
+                .withValueStep(0.75)
+                .withUnit('m').withDescription('Maximum range'),
+            e.numeric('presence_timeout', ea.STATE_SET).withValueMin(1)
+                .withValueMax(1500)
+                .withValueStep(1)
+                .withUnit('s').withDescription('Fade time'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [104, 'presence', tuya.valueConverter.trueFalse1],
+                [2, 'move_sensitivity', tuya.valueConverter.divideBy10FromOnly],
+                [102, 'presence_sensitivity', tuya.valueConverter.divideBy10FromOnly],
+                [3, 'detection_distance_min', tuya.valueConverter.divideBy100],
+                [4, 'detection_distance_max', tuya.valueConverter.divideBy100],
+                [9, 'distance', tuya.valueConverter.divideBy100],
+                [105, 'presence_timeout', tuya.valueConverter.raw],
+                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [1, 'state', tuya.valueConverterBasic.lookup({'none': 0, 'presence': 1, 'move': 2})],
             ],
         },
     },

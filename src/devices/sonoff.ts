@@ -1,5 +1,4 @@
 import {Zcl} from 'zigbee-herdsman';
-import {BuffaloZclDataType} from 'zigbee-herdsman/dist/zspec/zcl/definition/enums';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -9,6 +8,7 @@ import {
     binary, enumLookup, forcePowerSource, numeric, onOff,
     customTimeResponse, battery, ota, deviceAddCustomCluster,
     temperature, humidity, bindCluster,
+    iasZoneAlarm,
 } from '../lib/modernExtend';
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -17,6 +17,11 @@ import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
 const {ewelinkAction} = ewelinkModernExtend;
 
 const NS = 'zhc:sonoff';
+const manufacturerOptions = {
+    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD,
+    disableDefaultResponse: false,
+};
+const defaultResponseOptions = {disableDefaultResponse: false};
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -33,7 +38,6 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const sonoffPrivateCluster = 0xFC11;
 const sonoffExtend = {
     addCustomClusterEwelink: () => deviceAddCustomCluster(
         'customClusterEwelink',
@@ -41,13 +45,18 @@ const sonoffExtend = {
             ID: 0xfc11,
             attributes: {
                 radioPower: {ID: 0x0012, type: Zcl.DataType.INT16},
+                radioPowerWithManuCode: {
+                    ID: 0x0012,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD,
+                },
                 delayedPowerOnState: {ID: 0x0014, type: Zcl.DataType.BOOLEAN},
                 delayedPowerOnTime: {ID: 0x0015, type: Zcl.DataType.UINT16},
                 externalTriggerMode: {ID: 0x0016, type: Zcl.DataType.UINT8},
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
             },
             commands: {
-                protocolData: {ID: 0x01, parameters: [{name: 'data', type: BuffaloZclDataType.LIST_UINT8}]},
+                protocolData: {ID: 0x01, parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
             },
             commandsResponse: {},
         },
@@ -62,12 +71,7 @@ const sonoffExtend = {
             .withFeature(e.numeric('inching_time', ea.SET).withDescription('Delay time for executing a inching action.')
                 .withUnit('seconds').withValueMin(0.5).withValueMax(3599.5).withValueStep(0.5))
             .withFeature(e.binary('inching_mode', ea.SET, 'ON', 'OFF').withDescription('Set inching off or inching on mode.').withValueToggle('ON'));
-        const fromZigbee: Fz.Converter[] = [{
-            cluster: sonoffPrivateCluster.toString(),
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-            },
-        }];
+        const fromZigbee: Fz.Converter[] = [];
         const toZigbee: Tz.Converter[] = [{
             key: ['inching_control_set'],
             convertSet: async (entity, key, value, meta) => {
@@ -245,7 +249,7 @@ const sonoffExtend = {
             .withFeature(e.numeric('irrigation_interval', ea.STATE_SET).withDescription('Time interval between two adjacent irrigatio' +
             'n').withUnit('seconds').withValueMin(0).withValueMax(86400));
         const fromZigbee: Fz.Converter[] = [{
-            cluster: sonoffPrivateCluster.toString(),
+            cluster: 'customClusterEwelink',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const attributeKey = 0x5008;// attr
@@ -307,11 +311,11 @@ const sonoffExtend = {
                 payloadValue[10] = value[irrigationInterval as keyof typeof value];
 
                 const payload = {[0x5008]: {value: payloadValue, type: 0x42}};
-                await entity.write(sonoffPrivateCluster, payload);
+                await entity.write('customClusterEwelink', payload, defaultResponseOptions);
                 return {state: {[key]: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read(sonoffPrivateCluster, [0x5008]);
+                await entity.read('customClusterEwelink', [0x5008], defaultResponseOptions);
             },
         }];
 
@@ -333,7 +337,7 @@ const sonoffExtend = {
             .withFeature(e.numeric('irrigation_interval', ea.STATE_SET).withDescription('Time interval between two adjacent irrigatio' +
             'n').withUnit('seconds').withValueMin(0).withValueMax(86400));
         const fromZigbee: Fz.Converter[] = [{
-            cluster: sonoffPrivateCluster.toString(),
+            cluster: 'customClusterEwelink',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const attributeKey = 0x5009;// attr
@@ -395,11 +399,11 @@ const sonoffExtend = {
                 payloadValue[10] = value[irrigationInterval as keyof typeof value];
 
                 const payload = {[0x5009]: {value: payloadValue, type: 0x42}};
-                await entity.write(sonoffPrivateCluster, payload);
+                await entity.write('customClusterEwelink', payload, defaultResponseOptions);
                 return {state: {[key]: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read(sonoffPrivateCluster, [0x5009]);
+                await entity.read('customClusterEwelink', [0x5009], defaultResponseOptions);
             },
         }];
 
@@ -410,7 +414,7 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    externalTriggerMode: (): ModernExtend => {
+    externalSwitchTriggerMode: (): ModernExtend => {
         const clusterName = 'customClusterEwelink';
         const attributeName = 'externalTriggerMode';
         const exposes = e.enum('external_trigger_mode', ea.ALL, ['edge', 'pulse',
@@ -418,20 +422,20 @@ const sonoffExtend = {
             'following(off), following(on). The appropriate triggering mode can be selected according to the type of ' +
             'external switch to achieve a better use experience.');
         const fromZigbee: Fz.Converter[] = [{
-            cluster: 'manuSpecificeWeLink',
+            cluster: clusterName,
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const lookup:KeyValue = {'edge': 0, 'pulse': 1, 'following(off)': 2, 'following(on)': 130};
-                logger.debug(`from zigbee msg.data['externalSwitchTriggerType'] ${msg.data['externalSwitchTriggerType']}`, NS);
-                if (msg.data.hasOwnProperty('externalSwitchTriggerType')) {
+                // logger.debug(`from zigbee msg.data['externalTriggerMode'] ${msg.data['externalTriggerMode']}`, NS);
+                if (msg.data.hasOwnProperty('externalTriggerMode')) {
                     let switchType = 'edge';
                     for (const name in lookup) {
-                        if (lookup[name] === msg.data['externalSwitchTriggerType']) {
+                        if (lookup[name] === msg.data['externalTriggerMode']) {
                             switchType = name;
                             break;
                         }
                     }
-                    logger.debug(`form zigbee switchType ${switchType}`, NS);
+                    // logger.debug(`form zigbee switchType ${switchType}`, NS);
                     return {['external_trigger_mode']: switchType};
                 }
             },
@@ -443,11 +447,14 @@ const sonoffExtend = {
                 value = value.toLowerCase();
                 const lookup = {'edge': 0, 'pulse': 1, 'following(off)': 2, 'following(on)': 130};
                 const tmpValue = utils.getFromLookup(value, lookup);
-                await entity.write(clusterName, {[attributeName]: {value: tmpValue, type: Zcl.DataType.UINT8}});
+                await entity.write(
+                    clusterName,
+                    {[attributeName]: tmpValue},
+                    defaultResponseOptions);
                 return {state: {[key]: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read(clusterName, [attributeName]);
+                await entity.read(clusterName, [attributeName], defaultResponseOptions);
             },
         }];
         return {
@@ -802,6 +809,16 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['SNZB-05P'],
+        model: 'SNZB-05P',
+        vendor: 'SONOFF',
+        description: 'Zigbee water sensor',
+        extend: [
+            battery(),
+            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']}),
+        ],
+    },
+    {
         zigbeeModel: ['SNZB-06P'],
         model: 'SNZB-06P',
         vendor: 'SONOFF',
@@ -1021,29 +1038,31 @@ const definitions: Definition[] = [
             e.numeric('flow', ea.STATE).withDescription('Current water flow').withUnit('m³/h'),
         ],
         extend: [
+            ota(),
             battery(),
-            enumLookup({
-                name: 'current_device_status',
-                lookup: {'normal_state': 0, 'water_shortage': 1, 'water_leakage': 2, 'water_shortage & water_leakage': 3},
-                cluster: 0xFC11,
-                attribute: {ID: 0x500C, type: 0x20},
-                description: 'The water valve is in normal state, water shortage or water leakage',
-                access: 'STATE_GET',
-            }),
             onOff({
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: true,
             }),
+            sonoffExtend.addCustomClusterEwelink(),
+            enumLookup({
+                name: 'current_device_status',
+                lookup: {'normal_state': 0, 'water_shortage': 1, 'water_leakage': 2, 'water_shortage & water_leakage': 3},
+                cluster: 'customClusterEwelink',
+                attribute: {ID: 0x500C, type: 0x20},
+                description: 'The water valve is in normal state, water shortage or water leakage',
+                access: 'STATE_GET',
+            }),
             sonoffExtend.cyclicTimedIrrigation(),
             sonoffExtend.cyclicQuantitativeIrrigation(),
-            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msFlowMeasurement']);
-            await endpoint.read(0xFC11, [0x500C]);
+            await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
+            await endpoint.read('customClusterEwelink', [0x500C]);
         },
     },
     {
@@ -1058,14 +1077,20 @@ const definitions: Definition[] = [
             binary({
                 name: 'rf_turbo_mode',
                 cluster: 'customClusterEwelink',
-                attribute: 'radioPower',
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
+                attribute: 'radioPowerWithManuCode',
+                zigbeeCommandOptions: manufacturerOptions,
                 description: 'Enable/disable Radio power turbo mode',
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
             }),
             sonoffExtend.inchingControlSet(),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
+            await endpoint.read('customClusterEwelink', ['radioPowerWithManuCode'], manufacturerOptions);
+        },
     },
     {
         zigbeeModel: ['ZBMINIR2'],
@@ -1112,12 +1137,14 @@ const definitions: Definition[] = [
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
-            sonoffExtend.externalTriggerMode(),
+            sonoffExtend.externalSwitchTriggerMode(),
             sonoffExtend.inchingControlSet(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('customClusterEwelink', [0x0012, 0x0014, 0x0015, 0x0016, 0x0017]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'customClusterEwelink']);
+            await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
+            await endpoint.read('customClusterEwelink', ['radioPower', 0x0014, 0x0015, 0x0016, 0x0017], defaultResponseOptions);
         },
     },
 ];
