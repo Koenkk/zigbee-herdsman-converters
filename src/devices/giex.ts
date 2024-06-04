@@ -87,6 +87,7 @@ const definitions: Definition[] = [
         ],
         whiteLabel: [
             tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_7ytb3h8u']),
+            tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_4fblxpma']),
         ],
     },
 ];
