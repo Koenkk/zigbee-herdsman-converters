@@ -69,6 +69,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_7ytb3h8u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_7ytb3h8u'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_4fblxpma'},
         ],
         exposes: [
             ...exportTemplates.giexWaterValve.exposes,
@@ -86,8 +87,7 @@ const definitions: Definition[] = [
                 .withDescription('Cycle irrigation interval'),
         ],
         whiteLabel: [
-            tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_7ytb3h8u']),
-            tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_4fblxpma']),
+            tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_7ytb3h8u', '_TZE204_4fblxpma]),
         ],
     },
 ];
