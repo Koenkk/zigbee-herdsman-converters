@@ -6061,7 +6061,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_7v1k4vufotpowp9z'}],
+        fingerprint: tuya.fingerprint('TS1201', ['_TZ3290_7v1k4vufotpowp9z', '_TZ3290_rlkmy85q4pzoxobl']),
         model: 'ZS06',
         vendor: 'Tuya',
         description: 'Universal smart IR remote control',
@@ -6071,6 +6071,9 @@ const definitions: Definition[] = [
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
+        whiteLabel: [
+            tuya.whitelabel('Tuya', 'UFO-R4Z', 'Universal smart IR remote control', ['_TZ3290_rlkmy85q4pzoxobl']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_itnrsufe'}],
