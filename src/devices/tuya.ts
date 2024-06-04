@@ -8702,7 +8702,7 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.enum('child_lock', ea.STATE_SET, ['lock','unlock']).withLabel('Child lock'),
+            e.enum('child_lock', ea.STATE_SET, ['lock', 'unlock']).withLabel('Child lock'),
             e.enum('eco_mode', ea.STATE_SET, ['off', 'on']).withLabel('ECO mode').withDescription('Default: Off'),
             e.numeric('eco_temperature', ea.STATE_SET).withValueMin(5).withValueMax(30).withValueStep(1).withUnit('°C')
                 .withDescription('Max temperature in ECO mode. Default: 20'),
@@ -8728,7 +8728,7 @@ const definitions: Definition[] = [
             e.numeric('max_temperature_limit', ea.STATE_SET).withValueMin(25).withValueMax(70).withValueStep(1).withUnit('°C')
                 .withLabel('High temperature protection').withDescription('Default: 45'),
             e.temperature_sensor_select(['IN', 'OU', 'AL']).withLabel('Sensor').withDescription('Choose which sensor to use. Default: AL'),
-            e.numeric('external_temperature_input',ea.STATE).withLabel('Floor temperature').withUnit('°C')
+            e.numeric('external_temperature_input', ea.STATE).withLabel('Floor temperature').withUnit('°C')
                 .withDescription('Temperature from floor sensor'),
             e.numeric('brightness', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(1)
                 .withLabel('Screen brightness 06:00 - 22:00')
