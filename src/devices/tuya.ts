@@ -6396,7 +6396,7 @@ const definitions: Definition[] = [
             e.numeric('static_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
                 .withDescription('Static detection sensitivity'),
             e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED indicator mode'),
-            e.enum('motion_detection_mode', ea.STATE_SET, ['only_pir', 'pir_and_dadar', 'only_dadar'])
+            e.enum('motion_detection_mode', ea.STATE_SET, ['only_pir', 'pir_and_radar', 'only_radar'])
                 .withDescription('Motion detection mode (Firmware version>=0122052017)'),
             e.numeric('motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
                 .withDescription('Motion detection sensitivity (Firmware version>=0122052017)'),
@@ -6414,7 +6414,7 @@ const definitions: Definition[] = [
                 [107, 'indicator', tuya.valueConverter.onOff],
                 [121, 'battery', tuya.valueConverter.raw],
                 [122, 'motion_detection_mode', tuya.valueConverterBasic.lookup({
-                    'only_pir': tuya.enum(0), 'pir_and_dadar': tuya.enum(1), 'only_dadar': tuya.enum(2),
+                    'only_pir': tuya.enum(0), 'pir_and_radar': tuya.enum(1), 'only_radar': tuya.enum(2),
                 })],
                 [123, 'motion_detection_sensitivity', tuya.valueConverter.raw],
 
