@@ -1812,7 +1812,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE284_g2e6cpnw']),
-        model: 'TS0601_soil',
+        model: 'TS0601_soil_2',
         vendor: 'Tuya',
         description: 'Soil sensor',
         fromZigbee: [tuya.fz.datapoints],
