@@ -1114,6 +1114,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
     },
     {
+        zigbeeModel: ['LWF004'],
+        model: '8719514329843',
+        vendor: 'Philips',
+        description: 'Hue A60 - E27 smart bulb - 800 lumen',
+        extend: [philipsLight()],
+    },
+    {
         zigbeeModel: ['LCW004'],
         model: '046677585235',
         vendor: 'Philips',
