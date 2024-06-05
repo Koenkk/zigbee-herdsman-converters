@@ -1,5 +1,20 @@
 # Changelog
 
+## [19.51.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.50.1...v19.51.0) (2024-06-05)
+
+
+### Features
+
+* **add:** 8719514329843 https://github.com/Koenkk/zigbee2mqtt/issues/22937 ([bd855f8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bd855f897af86f1cf9a97dbb956d294c12de1f71))
+* Optimize OTA ([#7585](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7585)) ([d96e000](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d96e0004b94d9e8b96886cbbe526da2214d60b4d))
+
+
+### Bug Fixes
+
+* Enable OTA for frient EMIZB-141 https://github.com/Koenkk/zigbee-OTA/pull/502 ([7237acb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7237acbe9a7a3796725c341294a3be08a6c212ac))
+* Fix definition generator for lights only supporting `genLevelCtrl` https://github.com/Koenkk/zigbee2mqtt/issues/22937 ([b7575ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b7575fffaec883fb2b36877764308c3e7ab8e182))
+* Fix typo in ZG-204ZM (`dadar` -&gt; `radar`) https://github.com/Koenkk/zigbee-herdsman-converters/issues/7590 ([cf870f6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cf870f6992d4b33338eb142bb437377b35125f09))
+
 ## [19.50.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.50.0...v19.50.1) (2024-06-04)
 
 
