@@ -201,7 +201,7 @@ const inputExtenders: Extender[] = [
     [['msRelativeHumidity'], async (d, eps) => [new Generator({extend: m.humidity, args: maybeEndpointArgs(d, eps), source: 'humidity'})]],
     [['msCO2'], async (d, eps) => [new Generator({extend: m.co2, args: maybeEndpointArgs(d, eps), source: 'co2'})]],
     [['genPowerCfg'], async (d, eps) => [new Generator({extend: m.battery, source: 'battery'})]],
-    [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
+    [['genOnOff', 'genLevelCtrl', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],
     [['closuresDoorLock'], extenderLock],
     [['msIlluminanceMeasurement'], async (d, eps) => [
@@ -261,7 +261,7 @@ async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promis
 async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     const generated: GeneratedExtend[] = [];
 
-    const lightEndpoints = endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'));
+    const lightEndpoints = endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl') || e.supportsInputCluster('genLevelCtrl'));
     const onOffEndpoints = endpoints.filter((e) => lightEndpoints.findIndex((ep) => e.ID === ep.ID) === -1);
 
     if (onOffEndpoints.length !== 0) {
@@ -274,7 +274,10 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
 
     for (const endpoint of lightEndpoints) {
         // In case read fails, support all features with 31
-        const colorCapabilities = await getClusterAttributeValue<number>(endpoint, 'lightingColorCtrl', 'colorCapabilities', 31);
+        let colorCapabilities = 0;
+        if (endpoint.supportsInputCluster('lightingColorCtrl')) {
+            colorCapabilities = await getClusterAttributeValue<number>(endpoint, 'lightingColorCtrl', 'colorCapabilities', 31);
+        }
         const supportsHueSaturation = (colorCapabilities & 1<<0) > 0;
         const supportsEnhancedHueSaturation = (colorCapabilities & 1<<1) > 0;
         const supportsColorXY = (colorCapabilities & 1<<3) > 0;
