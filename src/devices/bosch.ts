@@ -742,6 +742,12 @@ const boschExtend = {
                 if (data.hasOwnProperty('calibrationClosingTime')) {
                     result.calibration_closing_time = msg.data['calibrationClosingTime']/10;
                 }
+                if (data.hasOwnProperty('calibrationShutterButtonHoldTime')) {
+                    result.calibration_shutter_button_hold_time = msg.data['calibrationShutterButtonHoldTime']/10;
+                }
+                if (data.hasOwnProperty('calibrationShutterDelayStartTime')) {
+                    result.calibration_shutter_delay_start_time = msg.data['calibrationShutterDelayStartTime']/10;
+                }
                 if (data.hasOwnProperty('childLock')) {
                     const property = utils.postfixWithEndpointName('child_lock', msg, model, meta);
                     result[property] = msg.data['childLock'] === 1 ? 'ON' : 'OFF';
@@ -814,7 +820,8 @@ const boschExtend = {
                 }
             },
         }, {
-            key: ['calibration', 'calibration_closing_time', 'calibration_opening_time'],
+            key: ['calibration', 'calibration_closing_time', 'calibration_opening_time',
+                'calibration_shutter_button_hold_time', 'calibration_shutter_delay_start_time'],
             convertSet: async (entity, key, value, meta) => {
                 if (key === 'calibration_opening_time') {
                     const number = utils.toNumber(value, 'calibration_opening_time');
@@ -828,6 +835,18 @@ const boschExtend = {
                     await entity.write('boschSpecific', {calibrationClosingTime: index});
                     return {state: {calibration_closing_time: number}};
                 }
+                if (key === 'calibration_shutter_button_hold_time') {
+                    const number = utils.toNumber(value, 'calibration_shutter_button_hold_time');
+                    const index = number * 10;
+                    await entity.write('boschSpecific', {calibrationShutterButtonHoldTime: index});
+                    return {state: {calibration_shutter_button_hold_time: number}};
+                }
+                if (key === 'calibration_shutter_delay_start_time') {
+                    const number = utils.toNumber(value, 'calibration_shutter_delay_start_time');
+                    const index = number * 10;
+                    await entity.write('boschSpecific', {calibrationShutterDelayStartTime: index});
+                    return {state: {calibration_shutter_delay_start_time: number}};
+                }
             },
             convertGet: async (entity, key, meta) => {
                 switch (key) {
@@ -836,6 +855,12 @@ const boschExtend = {
                     break;
                 case 'calibration_closing_time':
                     await entity.read('boschSpecific', ['calibrationClosingTime']);
+                    break;
+                case 'calibration_shutter_button_hold_time':
+                    await entity.read('boschSpecific', ['calibrationShutterButtonHoldTime']);
+                    break;
+                case 'calibration_shutter_delay_start_time':
+                    await entity.read('boschSpecific', ['calibrationShutterDelayStartTime']);
                     break;
                 default:
                     throw new Error(`Unhandled key boschExtend.bmct.toZigbee.convertGet ${key}`);
@@ -1756,7 +1781,9 @@ const definitions: Definition[] = [
                         switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8},
                         calibrationOpeningTime: {ID: 0x0002, type: Zcl.DataType.UINT32},
                         calibrationClosingTime: {ID: 0x0003, type: Zcl.DataType.UINT32},
+                        calibrationShutterButtonHoldTime: {ID: 0x0005, type: Zcl.DataType.UINT8},
                         childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN},
+                        calibrationShutterDelayStartTime: {ID: 0x000F, type: Zcl.DataType.UINT8},
                         motorState: {ID: 0x0013, type: Zcl.DataType.ENUM8},
                     },
                     commands: {},
@@ -1769,8 +1796,8 @@ const definitions: Definition[] = [
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'closuresWindowCovering', 'boschSpecific']);
             await reporting.currentPositionLiftPercentage(endpoint1);
-            await endpoint1.read('boschSpecific', ['deviceMode', 'switchType',
-                'calibrationOpeningTime', 'calibrationClosingTime', 'childLock', 'motorState']).catch((e) => {});
+            await endpoint1.read('boschSpecific', ['deviceMode', 'switchType', 'calibrationOpeningTime', 'calibrationClosingTime',
+                'calibrationShutterButtonHoldTime', 'calibrationShutterDelayStartTime', 'childLock', 'motorState']).catch((e) => {});
             const endpoint2 = device.getEndpoint(2);
             await endpoint2.read('boschSpecific', ['childLock']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff']).catch((e) => {});
@@ -1817,6 +1844,10 @@ const definitions: Definition[] = [
                 e.enum('motor_state', ea.STATE, Object.keys(stateMotor))
                     .withDescription('Shutter motor actual state '),
                 e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
+                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('shutter_button_hold_time')
+                    .withDescription('Time to press until long press ').withValueStep(0.1).withValueMin(0).withValueMax(2.55),
+                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('shutter_delay_start_time')
+                    .withDescription('Delay between press event and motor start').withValueStep(0.1).withValueMin(0).withValueMax(2.55),
                 e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('closing_time')
                     .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
                 e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('opening_time')
