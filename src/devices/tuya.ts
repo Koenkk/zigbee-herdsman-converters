@@ -8712,6 +8712,76 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_d9mzkhoq']),
+        model: 'YK-S03',
+        vendor: 'Tuya',
+        description: 'Smart pH and Chlorine Tester for Swimming Pool',
+        whiteLabel: [{vendor: 'YINMIK', model: 'YK-S03'}],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        // Don't query too often. Values are not always updated, https://github.com/Koenkk/zigbee2mqtt/issues/18704
+        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true, queryIntervalSeconds: 5 * 60}), // Every 5 min
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.numeric('tds', ea.STATE).withUnit('ppm').withDescription('Total Dissolved Solids'),
+            e.temperature(), e.battery(),
+            e.numeric('ph', ea.STATE).withUnit('pH').withDescription('pH value, if the pH value is lower than 6.5, it means that the water quality ' +
+                'is too acidic and has impurities, and it is necessary to add disinfectant water for disinfection'),
+            e.numeric('ec', ea.STATE).withUnit('µS/cm').withDescription('Electrical conductivity'),
+            e.numeric('orp', ea.STATE).withUnit('mV').withDescription('Oxidation Reduction Potential value. If the ORP value is above 850mv, it ' +
+                'means that the disinfectant has been added too much, and it is necessary to add water or change the water for neutralization. ' +
+                'If the ORP value is below 487mv, it means that too little disinfectant has been added and the pool needs to be disinfected again'),
+            e.numeric('free_chlorine', ea.STATE).withUnit('mg/L').withDescription('Free chlorine value. The water in the swimming pool should ' +
+                'be between 6.5-8ph and ORP should be between 487-840mv, and the chlorine value will be displayed normally. Chlorine will not ' +
+                'be displayed if either value is out of range'),
+            e.binary('backlight', ea.STATE, true, false).withDescription('Indicates if backlight is turned on or not'),
+            e.numeric('backlightvalue', ea.STATE).withDescription('Backlight Value'),
+            e.numeric('ph_max', ea.STATE_SET).withUnit('pH').withDescription('pH maximal value').withValueMin(0).withValueMax(20),
+            e.numeric('ph_min', ea.STATE_SET).withUnit('pH').withDescription('pH minimal value').withValueMin(0).withValueMax(20),
+            e.numeric('ec_max', ea.STATE_SET).withUnit('µS/cm').withDescription('Electrical Conductivity maximal value')
+                .withValueMin(0).withValueMax(100),
+            e.numeric('ec_min', ea.STATE_SET).withUnit('µS/cm').withDescription('Electrical Conductivity minimal value')
+                .withValueMin(0).withValueMax(100),
+            e.numeric('orp_max', ea.STATE_SET).withUnit('mV').withDescription('Oxidation Reduction Potential maximal value')
+                .withValueMin(0).withValueMax(1000),
+            e.numeric('orp_min', ea.STATE_SET).withUnit('mV').withDescription('Oxidation Reduction Potential minimal value')
+                .withValueMin(0).withValueMax(1000),
+            e.numeric('free_chlorine_max', ea.STATE_SET).withUnit('mg/L').withDescription('Free Chlorine maximal value')
+                .withValueMin(0).withValueMax(15),
+            e.numeric('free_chlorine_min', ea.STATE_SET).withUnit('mg/L').withDescription('Free Chlorine minimal value')
+                .withValueMin(0).withValueMax(15),
+            e.numeric('salinity', ea.STATE).withUnit('ppm').withDescription('Salt value'),
+
+        ],
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [1, 'tds', tuya.valueConverter.raw],
+                [2, 'temperature', tuya.valueConverter.divideBy10],
+                [7, 'battery', tuya.valueConverter.raw],
+                [10, 'ph', tuya.valueConverter.divideBy100],
+                [11, 'ec', tuya.valueConverter.raw],
+                [101, 'orp', tuya.valueConverter.raw],
+                [102, 'free_chlorine', tuya.valueConverter.divideBy10],
+                [104, 'backlight', tuya.valueConverter.trueFalse0],
+                [105, 'backlightvalue', tuya.valueConverter.raw],
+                [106, 'ph_max', tuya.valueConverter.divideBy10],
+                [107, 'ph_min', tuya.valueConverter.divideBy10],
+                [108, 'ec_max', tuya.valueConverter.raw],
+                [109, 'ec_min', tuya.valueConverter.raw],
+                [110, 'orp_max', tuya.valueConverter.raw],
+                [111, 'orp_min', tuya.valueConverter.raw],
+                [112, 'free_chlorine_max', tuya.valueConverter.divideBy10],
+                [113, 'free_chlorine_min', tuya.valueConverter.divideBy10],
+                [114, null, null], // Unknown value
+                [115, null, null], // Unknown value
+                [116, null, null], // Unknown value
+                [117, 'salinity', tuya.valueConverter.raw],
+                [118, null, null], // Unknown value
+            ],
+        },
+    },
 ];
 
 export default definitions;
