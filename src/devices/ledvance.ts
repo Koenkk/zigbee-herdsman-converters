@@ -318,6 +318,13 @@ const definitions: Definition[] = [
         description: 'SMART+ Outdoor Plug EU',
         extend: [ledvanceOnOff({powerOnBehavior: false})],
     },
+    {
+        zigbeeModel: ['LEDVANCE DIM'],
+        model: '4058075528215',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Filament Classic Globe E27',
+        extend: [ledvanceLight({})],
+    },
 ];
 
 export default definitions;
