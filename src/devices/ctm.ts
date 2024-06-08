@@ -7,7 +7,7 @@ import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {battery, temperature} from 'src/lib/modernExtend';
+import {battery, temperature} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
