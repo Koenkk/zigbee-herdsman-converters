@@ -707,6 +707,22 @@ export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExt
     );
 }
 
+// Seems to be present on newer IKEA devices like: VINDSTYRKA, RODRET, and BADRING
+//  Also observed on some older devices that had a post DIRIGERA release fw update.
+//  No attributes known.
+export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
+    return deviceAddCustomCluster(
+        'manuSpecificIkeaUnknown',
+        {
+            ID: 0xfc7c,
+            manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+            attributes: {},
+            commands: {},
+            commandsResponse: {},
+        },
+    );
+}
+
 export const legacy = {
     fromZigbee: {
         E1744_play_pause: {
