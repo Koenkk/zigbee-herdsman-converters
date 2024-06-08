@@ -25,13 +25,6 @@ const definitions: Definition[] = [
         extend: [ledvanceLight({colorTemp: {range: undefined}})],
     },
     {
-        zigbeeModel: ['TUBE_T8_CON_600_7.5W_840ZBV\u0000'],
-        model: 'ST8EM-CON',
-        vendor: 'LEDVANCE',
-        description: 'SubstiTUBE T8 EM connected 7.5 W/4000 K 600 mm',
-        extend: [ledvanceLight()],
-    },
-    {
         zigbeeModel: ['Panel Light 2x2 TW'],
         model: '74746',
         vendor: 'LEDVANCE',
@@ -291,7 +284,7 @@ const definitions: Definition[] = [
         extend: [ledvanceLight({})],
     },
     {
-        zigbeeModel: ['Connected Tube Value II'],
+        zigbeeModel: ['Connected Tube Value II', 'TUBE_T8_CON_600_7.5W_840ZBV\u0000'],
         model: 'ST8EM-CON',
         vendor: 'LEDVANCE',
         description: 'SubstiTUBE connected advanced ultra output',
