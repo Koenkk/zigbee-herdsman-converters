@@ -14,6 +14,7 @@ import {
     tradfriRequestedBrightness, tradfriCommandsOnOff,
     tradfriCommandsLevelCtrl, styrbarCommandOn,
     ikeaDotsClick, ikeaArrowClick, ikeaMediaCommands,
+    addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaAirPurifier,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
 } from '../lib/ikea';
@@ -398,7 +399,7 @@ const definitions: Definition[] = [
         model: 'LED1537R6/LED1739R5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, white spectrum, 400 lm',
-        extend: [ikeaLight({colorTemp: true}), identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 W 400lm'],
@@ -673,6 +674,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'FYRTUR roller blind, block-out',
         extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
             ikeaConfigureGenPollCtrl(),
             windowCovering({controls: ['lift']}),
             identify(),
@@ -686,6 +688,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'KADRILJ roller blind',
         extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
             ikeaConfigureGenPollCtrl(),
             windowCovering({controls: ['lift']}),
             identify(),
@@ -699,6 +702,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'PRAKTLYSING cellular blind',
         extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
             ikeaConfigureGenPollCtrl(),
             windowCovering({controls: ['lift']}),
             identify(),
@@ -712,6 +716,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TREDANSEN cellular blind, block-out',
         extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
             ikeaConfigureGenPollCtrl(),
             windowCovering({controls: ['lift']}),
             identify(),
@@ -806,6 +811,7 @@ const definitions: Definition[] = [
         ],
         meta: {disableActionGroup: true},
         extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off'], legacyAction: true}),
@@ -821,6 +827,7 @@ const definitions: Definition[] = [
         description: 'KNYCKLAN open/close water valve remote',
         meta: {disableActionGroup: true},
         extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off']}),
@@ -835,6 +842,7 @@ const definitions: Definition[] = [
         description: 'TRADFRI shortcut button',
         meta: {disableActionGroup: true},
         extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
             identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_stop']}),
@@ -899,6 +907,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'RODRET wireless dimmer/power switch',
         extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
             bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
             identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off']}),
@@ -913,6 +922,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'SOMRIG shortcut button',
         extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
             bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             identify({isSleepy: true}),
@@ -944,6 +954,7 @@ const definitions: Definition[] = [
         description: 'VINDSTYRKA air quality and humidity sensor',
         ota: ota.zigbeeOTA,
         extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
             addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
             deviceAddCustomCluster(
                 'pm25Measurement',
@@ -995,6 +1006,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'BADRING water leakage sensor',
         extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
             iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
             identify({isSleepy: true}),
             battery(),
