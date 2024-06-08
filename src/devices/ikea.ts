@@ -13,8 +13,9 @@ import {
     ikeaVoc, ikeaConfigureGenPollCtrl, tradfriOccupancy,
     tradfriRequestedBrightness, tradfriCommandsOnOff,
     tradfriCommandsLevelCtrl, styrbarCommandOn,
-    ikeaDotsClick, ikeaArrowClick,
-    ikeaMediaCommands, addCustomClusterManuSpecificIkeaAirPurifier,
+    ikeaDotsClick, ikeaArrowClick, ikeaMediaCommands,
+    addCustomClusterManuSpecificIkeaAirPurifier,
+    addCustomClusterManuSpecificIkeaVocIndexMeasurement,
 } from '../lib/ikea';
 
 const definitions: Definition[] = [
@@ -943,6 +944,7 @@ const definitions: Definition[] = [
         description: 'VINDSTYRKA air quality and humidity sensor',
         ota: ota.zigbeeOTA,
         extend: [
+            addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
             deviceAddCustomCluster(
                 'pm25Measurement',
                 {

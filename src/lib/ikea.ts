@@ -375,7 +375,7 @@ export function ikeaVoc(args?: Partial<NumericArgs>) {
     return numeric({
         name: 'voc_index',
         label: 'VOC index',
-        cluster: 'msIkeaVocIndexMeasurement',
+        cluster: 'manuSpecificIkeaVocIndexMeasurement',
         attribute: 'measuredValue',
         reporting: {min: '1_MINUTE', max: '2_MINUTES', change: 1},
         description: 'Sensirion VOC index',
@@ -683,6 +683,23 @@ export function addCustomClusterManuSpecificIkeaAirPurifier(): ModernExtend {
                 fanMode: {ID: 0x0006, type: Zcl.DataType.UINT8},
                 fanSpeed: {ID: 0x0007, type: Zcl.DataType.UINT8},
                 deviceRunTime: {ID: 0x0008, type: Zcl.DataType.UINT32},
+            },
+            commands: {},
+            commandsResponse: {},
+        },
+    );
+}
+
+export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExtend {
+    return deviceAddCustomCluster(
+        'manuSpecificIkeaVocIndexMeasurement',
+        {
+            ID: 0xfc7e,
+            manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+            attributes: {
+                measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
+                measuredMinValue: {ID: 0x0001, type: Zcl.DataType.SINGLE_PREC},
+                measuredMaxValue: {ID: 0x0002, type: Zcl.DataType.SINGLE_PREC},
             },
             commands: {},
             commandsResponse: {},
