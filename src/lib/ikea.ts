@@ -7,18 +7,19 @@ import {
 import {
     LightArgs, light as lightDontUse, ota, ReportingConfigWithoutAttribute,
     timeLookup, numeric, NumericArgs, setupConfigureForBinding,
-    setupConfigureForReporting,
+    setupConfigureForReporting, deviceAddCustomCluster,
 } from '../lib/modernExtend';
+
 import {tradfri as ikea} from '../lib/ota';
 
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
+import {Zcl} from 'zigbee-herdsman';
 import * as semver from 'semver';
 
-export const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
+export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
 
 const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
     /**
@@ -664,6 +665,29 @@ export function ikeaMediaCommands(): ModernExtend {
     const configure: Configure[] = [setupConfigureForBinding('genLevelCtrl', 'output')];
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
+}
+
+export function addCustomClusterManuSpecificIkeaAirPurifier(): ModernExtend {
+    return deviceAddCustomCluster(
+        'manuSpecificIkeaAirPurifier',
+        {
+            ID: 0xfc7d,
+            manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+            attributes: {
+                filterRunTime: {ID: 0x0000, type: Zcl.DataType.UINT32},
+                replaceFilter: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                filterLifeTime: {ID: 0x0002, type: Zcl.DataType.UINT32},
+                controlPanelLight: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
+                particulateMatter25Measurement: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                childLock: {ID: 0x0005, type: Zcl.DataType.BOOLEAN},
+                fanMode: {ID: 0x0006, type: Zcl.DataType.UINT8},
+                fanSpeed: {ID: 0x0007, type: Zcl.DataType.UINT8},
+                deviceRunTime: {ID: 0x0008, type: Zcl.DataType.UINT32},
+            },
+            commands: {},
+            commandsResponse: {},
+        },
+    );
 }
 
 export const legacy = {

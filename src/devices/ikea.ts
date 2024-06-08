@@ -11,13 +11,10 @@ import {
     ikeaConfigureRemote, ikeaLight, ikeaOta, ikeaConfigureStyrbar,
     ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
     ikeaVoc, ikeaConfigureGenPollCtrl, tradfriOccupancy,
-    tradfriRequestedBrightness,
-    tradfriCommandsOnOff,
-    tradfriCommandsLevelCtrl,
-    styrbarCommandOn,
-    ikeaDotsClick,
-    ikeaArrowClick,
-    ikeaMediaCommands,
+    tradfriRequestedBrightness, tradfriCommandsOnOff,
+    tradfriCommandsLevelCtrl, styrbarCommandOn,
+    ikeaDotsClick, ikeaArrowClick,
+    ikeaMediaCommands, addCustomClusterManuSpecificIkeaAirPurifier,
 } from '../lib/ikea';
 
 const definitions: Definition[] = [
@@ -732,6 +729,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
         extend: [
+            addCustomClusterManuSpecificIkeaAirPurifier(),
             ikeaAirPurifier(),
             identify(),
             ikeaOta(),
