@@ -1845,9 +1845,9 @@ const definitions: Definition[] = [
                     .withDescription('Shutter motor actual state '),
                 e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
                 e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('shutter_button_hold_time')
-                    .withDescription('Time to press until long press ').withValueStep(0.1).withValueMin(0).withValueMax(2.55),
+                    .withDescription('Time to press until long press ').withValueStep(0.1).withValueMin(0).withValueMax(25.5),
                 e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('shutter_delay_start_time')
-                    .withDescription('Delay between press event and motor start').withValueStep(0.1).withValueMin(0).withValueMax(2.55),
+                    .withDescription('Delay between press event and motor start').withValueStep(0.1).withValueMin(0).withValueMax(25.5),
                 e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('closing_time')
                     .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
                 e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('opening_time')
