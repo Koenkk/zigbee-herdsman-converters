@@ -11,13 +11,11 @@ import {
     ikeaConfigureRemote, ikeaLight, ikeaOta, ikeaConfigureStyrbar,
     ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
     ikeaVoc, ikeaConfigureGenPollCtrl, tradfriOccupancy,
-    tradfriRequestedBrightness,
-    tradfriCommandsOnOff,
-    tradfriCommandsLevelCtrl,
-    styrbarCommandOn,
-    ikeaDotsClick,
-    ikeaArrowClick,
-    ikeaMediaCommands,
+    tradfriRequestedBrightness, tradfriCommandsOnOff,
+    tradfriCommandsLevelCtrl, styrbarCommandOn,
+    ikeaDotsClick, ikeaArrowClick, ikeaMediaCommands,
+    addCustomClusterManuSpecificIkeaAirPurifier,
+    addCustomClusterManuSpecificIkeaVocIndexMeasurement,
 } from '../lib/ikea';
 
 const definitions: Definition[] = [
@@ -732,6 +730,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
         extend: [
+            addCustomClusterManuSpecificIkeaAirPurifier(),
             ikeaAirPurifier(),
             identify(),
             ikeaOta(),
@@ -945,6 +944,7 @@ const definitions: Definition[] = [
         description: 'VINDSTYRKA air quality and humidity sensor',
         ota: ota.zigbeeOTA,
         extend: [
+            addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
             deviceAddCustomCluster(
                 'pm25Measurement',
                 {
