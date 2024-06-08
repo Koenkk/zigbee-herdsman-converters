@@ -150,6 +150,8 @@ export async function onEventMeasurementPoll(type: OnEventType, data: OnEventDat
         clearTimeout(globalStore.getValue(device, 'measurement_poll'));
         globalStore.clearValue(device, 'measurement_poll');
     } else if (!globalStore.hasValue(device, 'measurement_poll')) {
+        const disabled=utils.isBoolean(options && options?.disabled) && options.disabled;
+        if (disabled) return;
         const seconds = utils.toNumber(
             options && options.measurement_poll_interval ? options.measurement_poll_interval : 60, 'measurement_poll_interval');
         if (seconds === -1) return;
