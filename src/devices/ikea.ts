@@ -250,7 +250,8 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E26/E27, color/white spectum, globe, opal, 600 lm',
         extend: [
-            addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
+            addCustomClusterManuSpecificIkeaUnknown(),
+            ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
             identify(),
         ],
     },
@@ -424,7 +425,8 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, color/white spectrum, 345/380 lm',
         extend: [
-            addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
+            addCustomClusterManuSpecificIkeaUnknown(),
+            ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
             identify(),
         ],
     },
