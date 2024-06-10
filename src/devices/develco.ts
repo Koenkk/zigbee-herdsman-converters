@@ -848,7 +848,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['SIRZB-110'],
+        zigbeeModel: ['SIRZB-110', 'SIRZB-111'],
         model: 'SIRZB-110',
         vendor: 'Develco',
         description: 'Customizable siren',
@@ -870,6 +870,9 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {default: 43};
         },
+        whiteLabel: [
+            {model: 'SIRZB-111', vendor: 'Develco', description: 'Customizable siren', fingerprint: [{modelID: 'SIRZB-111'}]},
+        ],
         exposes: [e.battery(), e.battery_low(), e.test(), e.warning(), e.squawk(),
             e.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(900)
                 .withDescription('Max duration of the siren'),
