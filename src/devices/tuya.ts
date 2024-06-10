@@ -8441,7 +8441,7 @@ const definitions: Definition[] = [
                 [10, 'ph', tuya.valueConverter.divideBy100],
                 [11, 'ec', tuya.valueConverter.raw],
                 [101, 'orp', tuya.valueConverter.raw],
-                [102, 'free_chlorine', tuya.valueConverter.raw],
+                [102, 'free_chlorine', tuya.valueConverter.divideBy10],
                 // [105, 'backlightvalue', tuya.valueConverter.raw],
                 [106, 'ph_max', tuya.valueConverter.divideBy10],
                 [107, 'ph_min', tuya.valueConverter.divideBy10],
