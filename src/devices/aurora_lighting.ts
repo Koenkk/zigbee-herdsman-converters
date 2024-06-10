@@ -292,7 +292,7 @@ const definitions: Definition[] = [
         model: 'AU-A1ZB110',
         vendor: 'Aurora Lighting',
         description: 'AOne 1-10V in-line dimmer',
-        extend: [identify(), light()],
+        extend: [identify(), light({powerOnBehavior: false})],
     },
 ];
 
