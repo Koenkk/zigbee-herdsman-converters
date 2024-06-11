@@ -1625,12 +1625,13 @@ const definitions: Definition[] = [
             tuya.whitelabel('Luminea', 'ZX-5311', 'Motion sensor', ['_TZ3000_jmrgyl7o']),
             tuya.whitelabel('Tuya', 'ZP01', 'Motion sensor', ['_TZ3000_lf56vpxj']),
             tuya.whitelabel('Tuya', 'HW500A', 'Motion sensor', ['_TZ3000_bsvqrxru']),
+            tuya.whitelabel('Nedis', 'ZBSM10WT', 'Motion sensor', ['_TZ3000_nss8amz9']),
         ],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: (device, options) => {
             const exps: Expose[] = [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()];
-            if (!device || device.manufacturerName !== '_TZ3000_bsvqrxru') {
+            if (!device || !['_TZ3000_bsvqrxru', '_TZ3000_nss8amz9'].includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
             exps.push(e.linkquality());
