@@ -8747,13 +8747,6 @@ const definitions: Definition[] = [
             e.switch(),
             tuya.exposes.batteryState(),
             e.switch(),
-            e.quantitative_watering(),
-            e.flow_switch(),
-            e.child_lock(),
-            e.surplus_flow(),
-            e.single_watering_duration(),
-            e.interface_refresh(),
-            e.single_watering_amount(),
         ],
         meta: {
             tuyaDatapoints: [
