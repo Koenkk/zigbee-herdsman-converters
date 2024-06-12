@@ -1881,6 +1881,11 @@ const tuyaModernExtend = {
         const fromZigbee: Fz.Converter[] = [tuyaFz.on_off_action];
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    dpChildLock(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
+        const {readOnly} = args;
+        return tuyaModernExtend.dpBinary({name: 'child_lock', type: dataTypes.bool,
+            valueOn: ['LOCK', true], valueOff: ['UNLOCK', false], expose: e.child_lock().setAccess('state', readOnly ? ea.STATE : ea.STATE_SET), ...args});
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
