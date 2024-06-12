@@ -204,7 +204,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_gubdgai2'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_gubdgai2'}, {modelID: 'TS0601', manufacturerName: '_TZE200_vdiuwbkq'}],
         model: 'M515EGBZTN',
         vendor: 'Zemismart',
         description: 'Roller shade driver',
