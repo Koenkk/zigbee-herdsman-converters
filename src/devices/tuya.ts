@@ -8702,32 +8702,6 @@ const definitions: Definition[] = [
             ],
         },
     },
-    {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6', '_TZ3210_hzdhb62z', '_TZ3210_v5yquxma']),
-        model: 'QADZ1',
-        vendor: 'QA',
-        description: '1 channel dimmer',
-        extend: [light({powerOnBehavior: false, configureReporting: true, effect: false})],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E, fz.on_off],
-        toZigbee: [tzLocal.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tzLocal.TS110E_options],
-        exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
-        configure: tuya.configureMagicPacket,
-    },
-    {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_tkkb1ym8']),
-        model: 'QADZ2',
-        vendor: 'QA',
-        description: '2 channel dimmer',
-        extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            light({endpointNames: ['l1', 'l2'], powerOnBehavior: false, configureReporting: true, effect: false}),
-        ],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E, fz.on_off],
-        toZigbee: [tzLocal.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tzLocal.TS110E_options],
-        exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
-        configure: tuya.configureMagicPacket,
-    },
 ];
 
 export default definitions;

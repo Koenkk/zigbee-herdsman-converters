@@ -4,10 +4,137 @@ import * as tuya from '../lib/tuya';
 import * as reporting from '../lib/reporting';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {Definition} from '../lib/types';
-import {deviceEndpoints, actionEnumLookup} from '../lib/modernExtend';
+import * as utils from '../lib/utils';
+import {KeyValue, Definition, Tz, Fz} from '../lib/types';
+import {deviceEndpoints, actionEnumLookup, light} from '../lib/modernExtend';
+import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
+
+const tzLocal = {
+    TS110E_options: {
+        key: ['min_brightness', 'max_brightness', 'light_type', 'switch_type'],
+        convertSet: async (entity, key, value, meta) => {
+            let payload = null;
+            if (key === 'min_brightness' || key == 'max_brightness') {
+                const id = key === 'min_brightness' ? 64515 : 64516;
+                payload = {[id]: {value: utils.mapNumberRange(utils.toNumber(value, key), 1, 255, 0, 1000), type: 0x21}};
+            } else if (key === 'light_type' || key === 'switch_type') {
+                utils.assertString(value, 'light_type/switch_type');
+                const lookup: KeyValue = key === 'light_type' ? {led: 0, incandescent: 1, halogen: 2} : {momentary: 0, toggle: 1, state: 2};
+                payload = {64514: {value: lookup[value], type: 0x20}};
+            }
+            await entity.write('genLevelCtrl', payload, utils.getOptions(meta.mapped, entity));
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            let id = null;
+            if (key === 'min_brightness') id = 64515;
+            if (key === 'max_brightness') id = 64516;
+            if (key === 'light_type' || key === 'switch_type') id = 64514;
+            await entity.read('genLevelCtrl', [id]);
+        },
+    } satisfies Tz.Converter,
+    TS110E_onoff_brightness: {
+        key: ['state', 'brightness'],
+        convertSet: async (entity, key, value, meta) => {
+            const {message, state} = meta;
+            if (message.state === 'OFF' || (message.hasOwnProperty('state') && !message.hasOwnProperty('brightness'))) {
+                return await tz.on_off.convertSet(entity, key, value, meta);
+            } else if (message.hasOwnProperty('brightness')) {
+                // set brightness
+                if (state.state === 'OFF') {
+                    await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
+                }
+
+                const brightness = utils.toNumber(message.brightness, 'brightness');
+                const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
+                await entity.command('genLevelCtrl', 'moveToLevelTuya', {level, transtime: 100}, utils.getOptions(meta.mapped, entity));
+                return {state: {state: 'ON', brightness}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (key === 'state') await tz.on_off.convertGet(entity, key, meta);
+            if (key === 'brightness') await entity.read('genLevelCtrl', [61440]);
+        },
+    } satisfies Tz.Converter,
+    TS110E_light_onoff_brightness: {
+        ...tz.light_onoff_brightness,
+        convertSet: async (entity, key, value, meta) => {
+            const {message} = meta;
+            if (message.state === 'ON' || (typeof message.brightness === 'number' && message.brightness > 1)) {
+                // Does not turn off with physical press when turned on with just moveToLevelWithOnOff, required on before.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15902#issuecomment-1382848150
+                await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
+            }
+            return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
+};
+
+const fzLocal = {
+    TS110E: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (msg.data.hasOwnProperty('64515')) {
+                result['min_brightness'] = utils.mapNumberRange(msg.data['64515'], 0, 1000, 1, 255);
+            }
+            if (msg.data.hasOwnProperty('64516')) {
+                result['max_brightness'] = utils.mapNumberRange(msg.data['64516'], 0, 1000, 1, 255);
+            }
+            if (msg.data.hasOwnProperty('61440')) {
+                const propertyName = utils.postfixWithEndpointName('brightness', msg, model, meta);
+                result[propertyName] = utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255);
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    TS110E_light_type: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (msg.data.hasOwnProperty('64514')) {
+                const lookup: KeyValue = {0: 'led', 1: 'incandescent', 2: 'halogen'};
+                result['light_type'] = lookup[msg.data['64514']];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    TS110E_switch_type: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (msg.data.hasOwnProperty('64514')) {
+                const lookup: KeyValue = {0: 'momentary', 1: 'toggle', 2: 'state'};
+                const propertyName = utils.postfixWithEndpointName('switch_type', msg, model, meta);
+                result[propertyName] = lookup[msg.data['64514']];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    scene_recall: {
+        cluster: 'genScenes',
+        type: 'commandRecall',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const payload = {action: postfixWithEndpointName(`scene_${msg.data.sceneid}`, msg, model, meta)};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter,
+    scenes_recall_scene_65029: {
+        cluster: '65029',
+        type: ['raw', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const id = meta.device.modelID === '005f0c3b' ? msg.data[0] : msg.data[msg.data.length - 1];
+            return {action: `scene_${id}`};
+        },
+    } satisfies Fz.Converter,
+};
 
 const definitions: Definition[] = [
     {
@@ -381,6 +508,31 @@ const definitions: Definition[] = [
                 await reporting.batteryVoltage(endpoint);
             } catch (error) {/* Fails for some*/}
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6', '_TZ3210_hzdhb62z', '_TZ3210_v5yquxma']),
+        model: 'QADZ1',
+        vendor: 'QA',
+        description: 'Dimmer 1 channel',
+        extend: [light({powerOnBehavior: false, configureReporting: true, effect: false})],
+        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E, fz.on_off],
+        toZigbee: [tzLocal.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tzLocal.TS110E_options],
+        exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
+        configure: tuya.configureMagicPacket,
+    },
+    {
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_tkkb1ym8']),
+        model: 'QADZ2',
+        vendor: 'QA',
+        description: 'Dimmer 2 channel',
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            light({endpointNames: ['l1', 'l2'], powerOnBehavior: false, configureReporting: true, effect: false})],
+        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E, fz.on_off],
+        toZigbee: [tzLocal.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tzLocal.TS110E_options],
+        exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
+        configure: tuya.configureMagicPacket,
     },
 ];
 
