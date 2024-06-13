@@ -258,6 +258,21 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['SLZB-06p7'],
+        model: 'SLZB-06p7',
+        vendor: 'SMLIGHT',
+        description: 'Router',
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        exposes: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+            await endpoint.configureReporting('genBasic', payload);
+        },
+    },
+    {
         zigbeeModel: ['lumi.router'],
         model: 'CC2530.ROUTER',
         vendor: 'Custom devices (DiY)',

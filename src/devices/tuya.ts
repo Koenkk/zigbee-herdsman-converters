@@ -8396,14 +8396,18 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_v1jqz5cy']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_v1jqz5cy', '_TZE200_d9mzkhoq']),
         model: 'BLE-YL01',
         vendor: 'Tuya',
         description: 'Smart WiFi Zigbee chlorine meter',
+        whiteLabel: [
+            tuya.whitelabel('Tuya', 'BLE-YL01', 'Smart WiFi Zigbee chlorine meter', ['_TZE200_v1jqz5cy']),
+            tuya.whitelabel('Tuya', 'YK-S03', 'Smart pH and Chlorine Tester for Swimming Pool', ['_TZE200_d9mzkhoq']),
+        ],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        // Query every 10 minutes, otherwise values don't update https://github.com/Koenkk/zigbee2mqtt/issues/18704
-        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true, queryIntervalSeconds: 10 * 60}),
+        // Don't query too often. Values are not always updated. https://github.com/Koenkk/zigbee2mqtt/issues/18704
+        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true, queryIntervalSeconds: 5 * 60}),
         configure: tuya.configureMagicPacket,
         exposes: [
             e.numeric('tds', ea.STATE).withUnit('ppm').withDescription('Total Dissolved Solids'),
