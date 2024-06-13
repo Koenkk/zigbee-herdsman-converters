@@ -25,10 +25,10 @@ const definition = {
         e.local_temperature(),
         e.numeric('occupied_heating_setpoint', ea.ALL).withUnit('°C').withDescription('Occupied heating setpoint'),
         e.numeric('occupied_cooling_setpoint', ea.ALL).withUnit('°C').withDescription('Specifies the cooling mode setpoint when the room is occupied.'),
-        exposes.enum('system_mode', ea.ALL, ['off', 'auto', 'cool', 'heat', 'fan_only', 'dry'])
+        exposes.Enum('system_mode', ea.ALL, ['off', 'auto', 'cool', 'heat', 'fan_only', 'dry'])
             .withDescription('Specifies the current operating mode of the thermostat.'),
         e.switch(),
-        exposes.enum('fan_mode', ea.ALL, ['off', 'low', 'medium', 'high', 'on', 'auto']).withDescription('Fan mode'),
+        exposes.Enum('fan_mode', ea.ALL, ['off', 'low', 'medium', 'high', 'on', 'auto']).withDescription('Fan mode'),
     ],
     endpoint: (device) => {
         return { 'system': 1 };
