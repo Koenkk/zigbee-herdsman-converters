@@ -3,7 +3,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as legacy from '../lib/legacy';
-import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
@@ -323,18 +322,6 @@ const definitions: Definition[] = [
             e.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('s')
                 .withDescription('Boost Time Setting 0 sec - 900 sec, (default = 300 sec)').withValueMin(0)
                 .withValueMax(900).withValueStep(1)],
-    },
-    {
-        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
-        model: 'MS-108ZR',
-        vendor: 'Moes',
-        description: 'Zigbee + RF curtain switch module',
-        meta: {coverInverted: true},
-        ota: ota.zigbeeOTA,
-        fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
-        exposes: [e.cover_position(), e.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
-            e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nhyj64w2'}],
