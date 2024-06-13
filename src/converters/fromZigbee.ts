@@ -1733,7 +1733,7 @@ const converters1 = {
     } satisfies Fz.Converter,
     checkin_presence: {
         cluster: 'genPollCtrl',
-        type: ['commandCheckIn'],
+        type: ['commandCheckin'],
         options: [exposes.options.presence_timeout()],
         convert: (model, msg, publish, options, meta) => {
             const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
