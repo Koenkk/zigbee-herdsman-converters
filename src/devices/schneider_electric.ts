@@ -1598,6 +1598,20 @@ const definitions: Definition[] = [
         ],
     },
     {
+        zigbeeModel: ['A3N33SR800ZB_xx_C1'],
+        model: 'E8333SRY800ZB_NEW',
+        vendor: 'Schneider Electric',
+        description: 'Wiser AvatarOn 3G onoff switch',
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 10, 'l2': 11, 'l3': 12}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: false}),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
+        ],
+    },
+    {
         zigbeeModel: ['E8333SRY800ZB'],
         model: 'E8333SRY800ZB',
         vendor: 'Schneider Electric',
