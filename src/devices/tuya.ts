@@ -8750,7 +8750,7 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'switch', tuya.valueConverter.onOff],
+                [1, 'state', tuya.valueConverter.onOff],
                 [3, 'status', tuya.valueConverter.onOff],
                 [5, 'countdown', tuya.valueConverter.raw],
                 [6, 'countdownLeft', tuya.valueConverter.raw],
