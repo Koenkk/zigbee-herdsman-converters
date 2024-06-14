@@ -8793,7 +8793,7 @@ const definitions: Definition[] = [
                 [108, 'single_watering_amount', tuya.valueConverter.raw],
             ],
         },
-    }
+    },
 ];
 
 export default definitions;
