@@ -1218,7 +1218,7 @@ export function commandsScenes(args?: CommandsScenesArgs) {
     args = {commands: ['recall', 'store', 'add', 'remove', 'remove_all'], bind: true, ...args};
     let actions = args.commands!;
     if (args.endpointNames) {
-        actions = args.commands!.map(c => args.endpointNames!.map(e => `${c}_${e}`)).flat();
+        actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
     }
     const exposesArray = [
         e.enum('action', ea.STATE, actions).withDescription('Triggered scene action (e.g. recall a scene)'),
@@ -1232,11 +1232,11 @@ export function commandsScenes(args?: CommandsScenesArgs) {
         'commandRemoveAll': 'remove_all',
     };
 
-    const fromZigbee = [
+    const fromZigbee: Fz.Converter[] = [
         {
             cluster: 'genScenes',
             type: ['commandRecall', 'commandStore', 'commandAdd', 'commandRemove', 'commandRemoveAll'],
-            convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
+            convert: (model, msg, publish, options, meta) => {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
                 let trailing = '';
                 if (msg.type === 'commandRecall' || msg.type === 'commandStore') {
