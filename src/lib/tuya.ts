@@ -24,7 +24,7 @@ export const dataTypes = {
     bitmap: 5, // [ 1,2,4 bytes ] as bits
 };
 
-function convertBufferToNumber(chunks: Buffer | number[]) {
+export function convertBufferToNumber(chunks: Buffer | number[]) {
     let value = 0;
     for (let i = 0; i < chunks.length; i++) {
         value = value << 8;
@@ -1429,7 +1429,7 @@ const tuyaFz = {
 };
 export {tuyaFz as fz};
 
-function getHandlersForDP(name: string, dp: number, type: number, converter: Tuya.ValueConverterSingle,
+export function getHandlersForDP(name: string, dp: number, type: number, converter: Tuya.ValueConverterSingle,
     readOnly?: boolean, skip?: (meta: Tz.Meta) => boolean, endpoint?: string, useGlobalSequence?: boolean): [Fz.Converter[], Tz.Converter[]] {
     const keyName = (endpoint) ? `${name}_${endpoint}` : name;
     const fromZigbee: Fz.Converter[] = [{

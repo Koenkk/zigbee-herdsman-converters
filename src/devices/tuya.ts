@@ -10,7 +10,7 @@ import * as globalStore from '../lib/store';
 import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
+import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString, ModernExtend} from '../lib/types';
 import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify,
     actionEnumLookup, commandsOnOff, commandsLevelCtrl} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
@@ -784,6 +784,58 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
 };
+
+
+const dpTHZBSettings = (): ModernExtend => {
+    let exp = e.composite('auto_settings', 'auto_settings', ea.STATE_SET)
+        .withFeature(
+            e.enum('enabled', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Enable auto settings'),
+        )
+        .withFeature(
+            e.enum('temp_greater_then', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Greater action'),
+        )
+        .withFeature(
+            e.numeric('temp_greater_value', ea.STATE_SET)
+                .withValueMin(-20)
+                .withValueMax(80)
+                .withValueStep(0.1)
+                .withUnit('*C')
+                .withDescription('Temperature greater than value'),
+        )
+        .withFeature(
+            e.enum('temp_lower_then', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Lower action'),
+        )
+        .withFeature(
+            e.numeric('temp_lower_value', ea.STATE_SET)
+                .withValueMin(-20)
+                .withValueMax(80)
+                .withValueStep(0.1)
+                .withUnit('*C')
+                .withDescription('Temperature lower than value'),
+    );
+
+
+
+    const handlers: [Fz.Converter[], Tz.Converter[]] = tuya.getHandlersForDP('auto_settings', 0x77, tuya.dataTypes.string, {
+        from: (value: string) => {
+            const buf = Buffer.from(value, 'hex');
+            const enabled = buf[0];
+            const gr = buf[1];
+            const gr_value = tuya.convertBufferToNumber(buf.subarray(2, 6));
+            const gr_action = buf[7];
+            const lo = buf[8];
+            const lo_value = tuya.convertBufferToNumber(buf.subarray(9, 13));
+            const lo_action = buf[14];
+            return '';
+        },
+        to: (value: string) => {
+            return '';
+        },
+    });
+
+    return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
+};
+
 
 const definitions: Definition[] = [
     {
@@ -8792,6 +8844,7 @@ const definitions: Definition[] = [
                 valueOff: ['OFF', 0],
                 description: 'Manual mode or automatic',
             }),
+            dpTHZBSettings(),
         ],
     },
 ];
