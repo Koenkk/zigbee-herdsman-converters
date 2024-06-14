@@ -1,16 +1,8 @@
-import {Zcl, ZSpec} from 'zigbee-herdsman';
+import {Definition, Device, Endpoint, Logger} from 'zigbee-herdsman-converters';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import * as utils from '../lib/utils';
-import * as constants from '../lib/constants';
-import * as globalStore from '../lib/store';
-import {
-    Tz, Fz, Definition, KeyValue, ModernExtend, Expose,
-} from '../lib/types';
-import {logger} from '../lib/logger';
-import {Endpoint, Device} from 'zigbee-herdsman/dist/controller/model';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -46,15 +38,15 @@ const definition: Definition = {
     endpoint: (device: Device): { [key: string]: number } => {
         return { 'system': 1 };
     },
-    meta: { configureKey: 1 },
-    configure: async (device: Device, coordinatorEndpoint: Endpoint, logger: any): Promise<void> => {
+    meta: { configureKey: 1 } as any,
+    configure: async (device: Device, coordinatorEndpoint: Endpoint, logger: Logger): Promise<void> => {
         const endpoint = device.getEndpoint(1);
-        await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl', 'genOnOff']);
-        await reporting.thermostatTemperature(endpoint);
-        await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-        await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
-        await reporting.onOff(endpoint);
-        await reporting.fanMode(endpoint);
+        await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl', 'genOnOff'], logger);
+        await reporting.thermostatTemperature(endpoint, logger);
+        await reporting.thermostatOccupiedHeatingSetpoint(endpoint, logger);
+        await reporting.thermostatOccupiedCoolingSetpoint(endpoint, logger);
+        await reporting.onOff(endpoint, logger);
+        await reporting.fanMode(endpoint, logger);
     },
     device: {
         type: 'climate',
