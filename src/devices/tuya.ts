@@ -8735,18 +8735,36 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_rzrrjkz2']),
-        model: 'TS0601',
-        vendor: 'Tuya',
+        fingerprint: tuya.fingerprint('NAS-WV03B', ['_TZE204_rzrrjkz2']),
+        model: 'NAS-WV03B',
+        vendor: 'NEO',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         description: 'Smart Sprinkler Timer',
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.switch(),
-            tuya.exposes.batteryState(),
-            e.switch(),
+            e.switch().withEndpoint('switch').withDescription('Switch'),
+            e.enum('status', ea.STATE, ['off', 'auto', 'disabled']).withDescription('Status'),
+            e.numeric('countdown', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(240).withDescription('Countdown'),
+            e.numeric('countdown_left', ea.STATE).withUnit('min').withValueMin(1).withValueMax(240).withDescription('Countdown Left'),
+            e.numeric('water_current', ea.STATE).withUnit('L/min').withValueMin(0).withValueMax(3785.41).withValueStep(0.001).withDescription('Current Water Flow (L/min)'),
+            e.numeric('battery_percentage', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Battery Percentage'),
+            e.numeric('water_total', ea.STATE).withUnit('L').withValueMin(0).withValueMax(378541.0).withValueStep(0.001).withDescription('Total Water Flow (L)'),
+            e.enum('weather_delay', ea.STATE_SET, ['24h', '48h', '72h', 'cancel']).withDescription('Weather Delay'),
+            e.text('normal_timer', ea.STATE_SET).withDescription('Normal Timer'),
+            e.switch().withEndpoint('weather_switch').withDescription('Weather Switch'),
+            e.switch().withEndpoint('switch_enabled').withDescription('Switch Enabled'),
+            e.numeric('surplus_flow', ea.STATE).withDescription('Surplus Flow'),
+            e.numeric('single_watering_duration', ea.STATE).withDescription('Single Watering Duration'),
+            e.numeric('interface_refresh', ea.STATE).withDescription('Interface Refresh'),
+            e.numeric('single_watering_amount', ea.STATE).withDescription('Single Watering Amount'),
+            e.binary('fault', ea.STATE).withDescription('Fault Status'),
+            e.numeric('quantitative_watering', ea.STATE).withDescription('Quantitative Watering'),
+            e.switch().withEndpoint('total_flow_reset_switch').withDescription('Total Flow Reset Switch'),
+            e.switch().withEndpoint('flow_switch').withDescription('Flow Switch'),
+            e.switch().withEndpoint('child_lock').withDescription('Child Lock'),
+            e.numeric('smart_irrigation', ea.STATE).withDescription('Smart Irrigation')
         ],
         meta: {
             tuyaDatapoints: [
@@ -8772,7 +8790,7 @@ const definitions: Definition[] = [
                 [108, 'single_watering_amount', tuya.valueConverter.raw],
             ],
         },
-    },
+    }
 ];
 
 export default definitions;
