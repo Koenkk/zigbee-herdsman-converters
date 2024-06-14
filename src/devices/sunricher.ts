@@ -19,6 +19,10 @@ import {
     temperature,
     humidity,
     illuminance,
+    commandsOnOff,
+    commandsLevelCtrl,
+    commandsColorCtrl,
+    commandsScenes,
 } from '../lib/modernExtend';
 import {logger} from '../lib/logger';
 
@@ -67,6 +71,27 @@ async function syncTime(endpoint: Zh.Endpoint) {
 }
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['ZG2858A'],
+        model: 'ZG2858A',
+        vendor: 'Sunricher',
+        description: 'Zigbee handheld remote RGBCCT 3 channels',
+        extend: [
+            deviceEndpoints({
+                'endpoints': {
+                    '1': 1,
+                    '2': 2,
+                    '3': 3,
+                },
+            }),
+            battery(),
+            identify(),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            commandsColorCtrl(),
+            commandsScenes(),
+        ],
+    },
     {
         zigbeeModel: ['HK-SL-DIM-US-A'],
         model: 'HK-SL-DIM-US-A',
@@ -311,24 +336,6 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
-        },
-    },
-    {
-        zigbeeModel: ['ZG2858A'],
-        model: 'ZG2858A',
-        vendor: 'Sunricher',
-        description: 'Zigbee handheld remote RGBCCT 3 channels',
-        fromZigbee: [fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
-            fz.command_step, fz.command_recall, fz.command_on, fz.command_off, fz.command_toggle, fz.command_stop,
-            fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation, fz.command_move_to_hue_and_saturation],
-        exposes: [e.battery(), e.action([
-            'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down',
-            'recall_*', 'on', 'off', 'toggle', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
-            'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'hue_stop'])],
-        toZigbee: [],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {ep1: 1, ep2: 2, ep3: 3};
         },
     },
     {
