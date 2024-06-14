@@ -8762,11 +8762,12 @@ const definitions: Definition[] = [
             e.numeric('interface_refresh', ea.STATE).withDescription('Interface Refresh'),
             e.numeric('single_watering_amount', ea.STATE).withDescription('Single Watering Amount'),
             e.binary('fault', ea.STATE, 'DETECTED', 'NOT_DETECTED').withDescription('Fault Status'),
-            e.numeric('quantitative_watering', ea.STATE_SET).withUnit('L').withValueMin(0).withValueMax(10000).withDescription('Quantitative Watering'),
+            e.numeric('quantitative_watering', ea.STATE_SET).withUnit('L').withValueMin(0).withValueMax(10000)
+                .withDescription('Quantitative Watering'),
             e.binary('total_flow_reset_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Total Flow Reset Switch'),
             e.binary('flow_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Flow Switch'),
             e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
-            e.numeric('smart_irrigation', ea.STATE).withDescription('Smart Irrigation')
+            e.numeric('smart_irrigation', ea.STATE).withDescription('Smart Irrigation'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -8793,7 +8794,6 @@ const definitions: Definition[] = [
             ],
         },
     }
-
 ];
 
 export default definitions;
