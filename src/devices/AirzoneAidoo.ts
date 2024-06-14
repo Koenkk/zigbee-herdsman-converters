@@ -1,11 +1,11 @@
 import {Definition} from 'zigbee-herdsman-converters/lib/types';
-import {presets, access} from 'zigbee2mqtt/lib/exposes';
-import * as fz from 'zigbee2mqtt/lib/converters/fromZigbee';
-import * as tz from 'zigbee2mqtt/lib/converters/toZigbee';
-import * as reporting from 'zigbee2mqtt/lib/reporting';
+import {presets, access} from 'zigbee-herdsman-converters/lib/exposes';
+import * as fz from 'zigbee-herdsman-converters/converters/fromZigbee';
+import * as tz from 'zzigbee-herdsman-converters/converters/toZigbee';
+import * as reporting from 'zigbee-herdsman-converters/lib/reporting';
 import {Endpoint} from 'zigbee-herdsman/dist/controller/model';
 
-const definition: Definition = {
+
     zigbeeModel: ['Aidoo Zigbee'],
     model: 'Aidoo Zigbee AZAI6ZBEMHI',
     vendor: 'Airzone',
