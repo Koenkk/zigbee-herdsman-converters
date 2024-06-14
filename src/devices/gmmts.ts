@@ -460,7 +460,7 @@ function ticmeterConverter(msg: Fz.Message) {
                 break;
             }
 
-            if(found.attr == 'uptime') {
+            if (found.attr == 'uptime') {
                 value = value / 1000; // convert ms to s
             }
 
