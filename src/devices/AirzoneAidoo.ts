@@ -1,15 +1,20 @@
-import {Definition} from 'zigbee-herdsman-converters/lib/types';
-import {presets, access} from 'zigbee-herdsman-converters/lib/exposes';
-import * as fz from 'zigbee-herdsman-converters/converters/fromZigbee';
-import * as tz from 'zigbee-herdsman-converters/converters/toZigbee';
-import * as reporting from 'zigbee-herdsman-converters/lib/reporting';
-import {Endpoint} from 'zigbee-herdsman/dist/controller/model';
+import {Zcl, ZSpec} from 'zigbee-herdsman';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import * as utils from '../lib/utils';
+import * as constants from '../lib/constants';
+import * as globalStore from '../lib/store';
+import {
+    Tz, Fz, Definition, KeyValue, ModernExtend, Expose,
+} from '../lib/types';
+import {logger} from '../lib/logger';
 const e = exposes.presets;
 const ea = exposes.access;
 
 
-
-const definition: Definition = {
+const definition = {
     zigbeeModel: ['Aidoo Zigbee'],
     model: 'Aidoo Zigbee AZAI6ZBEMHI',
     vendor: 'Airzone',
@@ -24,24 +29,19 @@ const definition: Definition = {
         tz.fan_mode,
     ],
     exposes: [
-        presets.local_temperature(),
-        presets.numeric('occupied_heating_setpoint', access.ALL)
-            .withUnit('°C')
-            .withDescription('Occupied heating setpoint'),
-        presets.numeric('occupied_cooling_setpoint', access.ALL)
-            .withUnit('°C')
-            .withDescription('Specifies the cooling mode setpoint when the room is occupied.'),
-        presets.enum('system_mode', access.ALL, ['off', 'auto', 'cool', 'heat', 'fan_only', 'dry'])
-            .withDescription('Specifies the current operating mode of the thermostat. Supported values are:\n- 0x00 = OFF\n- 0x01 = Auto\n- 0x03 = Cool\n- 0x04 = Heat\n- 0x07 = Fan Only\n- 0x08 = Dry'),
-        presets.binary('switch', access.ALL),
-        presets.enum('fan_mode', access.ALL, ['off', 'low', 'medium', 'high', 'on', 'auto'])
-            .withDescription('Fan mode'),
+        e.climate()
+            .withLocalTemperature()
+            .withSystemMode(['off', 'auto', 'cool', 'heat', 'fan_only', 'dry'])
+            .withFanMode(['off', 'low', 'medium', 'high', 'on', 'auto'])
+            .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+            .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5),
+        e.switch(),
     ],
-    endpoint: (device: any): { [key: string]: number } => {
+    endpoint: (device) => {
         return { 'system': 1 };
     },
     meta: { configureKey: 1 },
-    configure: async (device: any, coordinatorEndpoint: Endpoint, logger: any): Promise<void> => {
+    configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint = device.getEndpoint(1);
         await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl', 'genOnOff']);
         await reporting.thermostatTemperature(endpoint);
@@ -49,19 +49,6 @@ const definition: Definition = {
         await reporting.onOff(endpoint);
         await reporting.fanMode(endpoint);
     },
-    device: {
-        type: 'climate',
-        features: [
-            presets.climate()
-                .withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'cool', 'heat', 'fan_only', 'dry'])
-                .withRunningState(['idle', 'heat', 'cool'])
-                .withFanMode(['off', 'low', 'medium', 'high', 'on', 'auto'])
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5)
-        ]
-    },
-    ha_category: 'climate'
 };
 
-export default definition;
+module.exports = definition;
