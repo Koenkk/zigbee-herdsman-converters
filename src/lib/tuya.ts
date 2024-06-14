@@ -144,7 +144,7 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
 }
 
 export async function onEventMeasurementPoll(type: OnEventType, data: OnEventData, device: Zh.Device, options: KeyValue,
-    electricalMeasurement=true, metering=false) {
+    electricalMeasurement=true, metering=false, OnOff=false) {
     const endpoint = device.getEndpoint(1);
     if (type === 'stop') {
         clearTimeout(globalStore.getValue(device, 'measurement_poll'));
@@ -161,6 +161,9 @@ export async function onEventMeasurementPoll(type: OnEventType, data: OnEventDat
                     }
                     if (metering) {
                         await endpoint.read('seMetering', ['currentSummDelivered']);
+                    }
+                    if (OnOff) {
+                        await endpoint.read('genOnOff', ['onOff']);
                     }
                 } catch (error) {/* Do nothing*/}
                 setTimer();

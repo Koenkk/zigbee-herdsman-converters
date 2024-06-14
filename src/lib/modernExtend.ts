@@ -1391,7 +1391,7 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
 // Uses Electrical Measurement and/or Metering, but for simplicity was put here.
 type MultiplierDivisor = {multiplier?: number, divisor?: number}
 export interface ElectricityMeterArgs {
-    cluster?: 'both' | 'metering' | 'electrical',
+    cluster?: 'both' | 'metering' | 'electrical' | 'honyar',
     current?: false | MultiplierDivisor,
     power?: false | MultiplierDivisor,
     voltage?: false | MultiplierDivisor,
@@ -1453,6 +1453,14 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         fromZigbee = [fz.electrical_measurement];
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent];
         delete configureLookup.seMetering;
+    } else if (args.cluster === 'honyar') {
+        exposes = [
+            e.power().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET),
+            e.current().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
+        ];
+        fromZigbee = [fz.electrical_measurement, fz.honyer_metering];
+        toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.currentsummdelivered];
+        delete configureLookup.seMetering.power;
     }
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};

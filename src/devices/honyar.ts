@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff, electricityMeter} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -126,6 +126,24 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint2);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint3);
+        },
+    },
+    {
+        zigbeeModel: ['000a0abb\u0000', 'RH5000_SmartOutlet'],
+        model: 'IHC8223AL',
+        vendor: 'Honyar',
+        description: 'Smart Power Socket 10A (with power monitoring)',
+        // configureReporting fails for this device
+        extend: [
+            onOff({powerOnBehavior: false, configureReporting: false}),
+            electricityMeter({cluster: 'honyar', configureReporting: false}),
+        ],
+        options: [exposes.options.measurement_poll_interval()],
+        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, true, true),
+        // Device does not support configureReporting.
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
         },
     },
 ];
