@@ -66,7 +66,7 @@ const individualLedEffects: { [key: string]: number } = {
     clear_effect: 255,
 };
 
-const fanModes: { [key: string]: number } = {low: 2, smart: 4, medium: 86, high: 170, on: 255};
+const fanModes: { [key: string]: number } = {off: 0, low: 2, smart: 4, medium: 86, high: 170, on: 255};
 const breezemodes: string[] = ['off', 'low', 'medium', 'high'];
 
 const INOVELLI = 0x122f;
@@ -103,6 +103,9 @@ const intToFanMode = (value: number) => {
     }
     if (value == 4) {
         selectedMode = 'smart';
+    }
+    if (value == 0) {
+        selectedMode = 'off';
     }
     return selectedMode;
 };
