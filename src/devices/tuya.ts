@@ -8744,7 +8744,7 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.switch().withEndpoint('switch').withDescription('Switch'),
+            e.switch(),
             e.enum('status', ea.STATE, ['off', 'auto', 'disabled']).withDescription('Status'),
             e.numeric('countdown', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(240).withDescription('Countdown'),
             e.numeric('countdown_left', ea.STATE).withUnit('min').withValueMin(1).withValueMax(240).withDescription('Countdown Left'),
