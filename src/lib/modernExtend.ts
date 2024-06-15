@@ -1208,56 +1208,6 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
     return result;
 }
 
-interface CommandsScenesArgs {
-    commands?: string[];
-    bind?: boolean;
-    endpointNames?: string[];
-}
-
-export function commandsScenes(args?: CommandsScenesArgs) {
-    args = {commands: ['recall', 'store', 'add', 'remove', 'remove_all'], bind: true, ...args};
-    let actions = args.commands!;
-    if (args.endpointNames) {
-        actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
-    }
-    const exposesArray = [
-        e.enum('action', ea.STATE, actions).withDescription('Triggered scene action (e.g. recall a scene)'),
-    ];
-
-    const actionPayloadLookup: { [key: string]: string } = {
-        'commandRecall': 'recall',
-        'commandStore': 'store',
-        'commandAdd': 'add',
-        'commandRemove': 'remove',
-        'commandRemoveAll': 'remove_all',
-    };
-
-    const fromZigbee: Fz.Converter[] = [
-        {
-            cluster: 'genScenes',
-            type: ['commandRecall', 'commandStore', 'commandAdd', 'commandRemove', 'commandRemoveAll'],
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                let trailing = '';
-                if (msg.type === 'commandRecall' || msg.type === 'commandStore') {
-                    trailing = `_${msg.data.sceneid}`;
-                }
-                const payload = {
-                    action: postfixWithEndpointName(actionPayloadLookup[msg.type] + trailing, msg, model, meta),
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-    ];
-
-    const result: ModernExtend = {exposes: exposesArray, fromZigbee, isModernExtend: true};
-
-    if (args.bind) result.configure = [setupConfigureForBinding('genScenes', 'output', args.endpointNames)];
-
-    return result;
-}
-
 // #endregion
 
 // #region Security and Safety
@@ -1559,6 +1509,55 @@ export function ota(definition?: DefinitionOta): ModernExtend {
 // #endregion
 
 // #region Other extends
+
+export interface CommandsScenesArgs {
+    commands?: string[];
+    bind?: boolean;
+    endpointNames?: string[];
+}
+export function commandsScenes(args?: CommandsScenesArgs) {
+    args = {commands: ['recall', 'store', 'add', 'remove', 'remove_all'], bind: true, ...args};
+    let actions = args.commands!;
+    if (args.endpointNames) {
+        actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
+    }
+    const exposesArray = [
+        e.enum('action', ea.STATE, actions).withDescription('Triggered scene action (e.g. recall a scene)'),
+    ];
+
+    const actionPayloadLookup: { [key: string]: string } = {
+        'commandRecall': 'recall',
+        'commandStore': 'store',
+        'commandAdd': 'add',
+        'commandRemove': 'remove',
+        'commandRemoveAll': 'remove_all',
+    };
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'genScenes',
+            type: ['commandRecall', 'commandStore', 'commandAdd', 'commandRemove', 'commandRemoveAll'],
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                let trailing = '';
+                if (msg.type === 'commandRecall' || msg.type === 'commandStore') {
+                    trailing = `_${msg.data.sceneid}`;
+                }
+                const payload = {
+                    action: postfixWithEndpointName(actionPayloadLookup[msg.type] + trailing, msg, model, meta),
+                };
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+    ];
+
+    const result: ModernExtend = {exposes: exposesArray, fromZigbee, isModernExtend: true};
+
+    if (args.bind) result.configure = [setupConfigureForBinding('genScenes', 'output', args.endpointNames)];
+
+    return result;
+}
 
 export interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
