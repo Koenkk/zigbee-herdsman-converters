@@ -8735,8 +8735,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['NAS-WV03B'],
-        model: 'NAS-WV03B',
+        zigbeeModel: ['_NAS-WV03B'],
+        model: '_NAS-WV03B',
         vendor: 'NEO',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
