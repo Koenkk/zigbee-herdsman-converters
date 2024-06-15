@@ -77,13 +77,7 @@ const definitions: Definition[] = [
         vendor: 'Sunricher',
         description: 'Zigbee handheld remote RGBCCT 3 channels',
         extend: [
-            deviceEndpoints({
-                'endpoints': {
-                    '1': 1,
-                    '2': 2,
-                    '3': 3,
-                },
-            }),
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
             battery(),
             identify(),
             commandsOnOff(),
