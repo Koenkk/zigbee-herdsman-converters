@@ -785,55 +785,82 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
+const modernExtendLocal = {
+    dpTHZBSettings(): ModernExtend {
+        let exp = e.composite('auto_settings', 'auto_settings', ea.STATE_SET)
+            .withFeature(
+                e.enum('enabled', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Enable auto settings'),
+            )
+            .withFeature(
+                e.enum('temp_greater_then', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Greater action'),
+            )
+            .withFeature(
+                e.numeric('temp_greater_value', ea.STATE_SET)
+                    .withValueMin(-20)
+                    .withValueMax(80)
+                    .withValueStep(0.1)
+                    .withUnit('*C')
+                    .withDescription('Temperature greater than value'),
+            )
+            .withFeature(
+                e.enum('temp_lower_then', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Lower action'),
+            )
+            .withFeature(
+                e.numeric('temp_lower_value', ea.STATE_SET)
+                    .withValueMin(-20)
+                    .withValueMax(80)
+                    .withValueStep(0.1)
+                    .withUnit('*C')
+                    .withDescription('Temperature lower than value'),
+        );
 
-const dpTHZBSettings = (): ModernExtend => {
-    let exp = e.composite('auto_settings', 'auto_settings', ea.STATE_SET)
-        .withFeature(
-            e.enum('enabled', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Enable auto settings'),
-        )
-        .withFeature(
-            e.enum('temp_greater_then', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Greater action'),
-        )
-        .withFeature(
-            e.numeric('temp_greater_value', ea.STATE_SET)
-                .withValueMin(-20)
-                .withValueMax(80)
-                .withValueStep(0.1)
-                .withUnit('*C')
-                .withDescription('Temperature greater than value'),
-        )
-        .withFeature(
-            e.enum('temp_lower_then', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Lower action'),
-        )
-        .withFeature(
-            e.numeric('temp_lower_value', ea.STATE_SET)
-                .withValueMin(-20)
-                .withValueMax(80)
-                .withValueStep(0.1)
-                .withUnit('*C')
-                .withDescription('Temperature lower than value'),
-    );
+        const handlers: [Fz.Converter[], Tz.Converter[]] = tuya.getHandlersForDP('auto_settings', 0x77, tuya.dataTypes.string, {
+            from: (value: string) => {
+                let result = {
+                    enabled: 'none',
+                    temp_greater_then: 'none',
+                    temp_greater_value: 0,
+                    temp_lower_then: 'none',
+                    temp_lower_value: 0,
+                };
+                const buf = Buffer.from(value, 'hex');
+                if (buf.length > 0) {
+                    const enabled = buf[0];
+                    const gr = buf[1];
+                    const gr_value = tuya.convertBufferToNumber(buf.subarray(2, 6));
+                    const gr_action = buf[7];
+                    const lo = buf[8];
+                    const lo_value = tuya.convertBufferToNumber(buf.subarray(9, 13));
+                    const lo_action = buf[14];
+                    result = {
+                        enabled: {0x00: 'on', 0x80: 'off'}[enabled],
+                        temp_greater_then: (gr !== 0xFF) ? {0x01: 'on', 0x00: 'off'}[gr_action] : 'none',
+                        temp_greater_value: gr_value,
+                        temp_lower_then: (lo !== 0xFF) ? {0x01: 'on', 0x00: 'off'}[lo_action] : 'none',
+                        temp_lower_value: lo_value,
+                    };
+                }
+                return result;
+            },
+            to: (value: any) => {
+                let result = '';
+                if (value.enabled !== 'none') {
+                    const enabled = utils.getFromLookup(value.enabled, {'on': 0x00, 'off': 0x80});
+                    const gr = (value.temp_greater_then == 'none') ? 0xFF : 0x00;
+                    const gr_value = Buffer.from(tuya.convertDecimalValueTo4ByteHexArray(value.temp_greater_value));
+                    const gr_action = utils.getFromLookup(value.temp_greater_then, {'on': 0x01, 'off': 0x00, 'none': 0x00});
+                    const lo = (value.temp_lower_then == 'none') ? 0xFF : 0x00;
+                    const lo_value = Buffer.from(tuya.convertDecimalValueTo4ByteHexArray(value.temp_lower_value));
+                    const lo_action = utils.getFromLookup(value.temp_lower_then, {'on': 0x01, 'off': 0x00, 'none': 0x00});
+                    result = `${(enabled).toString(16)}${(gr).toString(16)}${gr_value.toString('hex')}`+
+                        `${(gr_action).toString(16)}${(lo).toString(16)}${lo_value.toString('hex')}${(lo_action).toString(16)}`;
+                }
+                return result;
+            },
+        });
 
-
-
-    const handlers: [Fz.Converter[], Tz.Converter[]] = tuya.getHandlersForDP('auto_settings', 0x77, tuya.dataTypes.string, {
-        from: (value: string) => {
-            const buf = Buffer.from(value, 'hex');
-            const enabled = buf[0];
-            const gr = buf[1];
-            const gr_value = tuya.convertBufferToNumber(buf.subarray(2, 6));
-            const gr_action = buf[7];
-            const lo = buf[8];
-            const lo_value = tuya.convertBufferToNumber(buf.subarray(9, 13));
-            const lo_action = buf[14];
-            return '';
-        },
-        to: (value: string) => {
-            return '';
-        },
-    });
-
-    return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
+        return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
+    },
 };
 
 
@@ -8844,7 +8871,7 @@ const definitions: Definition[] = [
                 valueOff: ['OFF', 0],
                 description: 'Manual mode or automatic',
             }),
-            dpTHZBSettings(),
+            modernExtendLocal.dpTHZBSettings(),
         ],
     },
 ];

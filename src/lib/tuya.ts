@@ -127,7 +127,7 @@ function getDataValue(dpValue: Tuya.DpValue) {
     }
 }
 
-function convertDecimalValueTo4ByteHexArray(value: number) {
+export function convertDecimalValueTo4ByteHexArray(value: number) {
     const hexValue = Number(value).toString(16).padStart(8, '0');
     const chunk1 = hexValue.substring(0, 2);
     const chunk2 = hexValue.substring(2, 4);
