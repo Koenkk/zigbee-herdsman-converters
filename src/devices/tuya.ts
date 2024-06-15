@@ -8735,7 +8735,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('NAS-WV03B', ['_TZE204_rzrrjkz2']),
+        zigbeeModel: ['NAS-WV03B'],
         model: 'NAS-WV03B',
         vendor: 'NEO',
         fromZigbee: [tuya.fz.datapoints],
