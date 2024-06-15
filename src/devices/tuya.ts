@@ -8740,7 +8740,7 @@ const definitions: Definition[] = [
         vendor: 'NEO',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        description: 'Smart Sprinkler Timer',
+        description: 'Smart sprinkler timer',
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
