@@ -1,3 +1,4 @@
+import {Definition, Device, Endpoint, Logger} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
