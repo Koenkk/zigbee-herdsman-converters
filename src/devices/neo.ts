@@ -148,11 +148,11 @@ const definitions: Definition[] = [
             e.binary('total_flow_reset_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Total flow reset switch'),
             e.numeric('quantitative_watering', ea.STATE_SET).withUnit('L').withValueMin(0).withValueMax(10000)
                 .withDescription('Quantitative watering'),
-            e.binary('flow_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Flow wwitch'),
+            e.binary('flow_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Flow switch'),
             e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child lock'),
             e.numeric('surplus_flow', ea.STATE).withDescription('Surplus flow'),
-            e.numeric('single_watering_duration', ea.STATE).withDescription('Single Watering duration'),
-            e.numeric('single_watering_amount', ea.STATE).withDescription('Single Watering amount'),                   
+            e.numeric('single_watering_duration', ea.STATE).withDescription('Single watering duration'),
+            e.numeric('single_watering_amount', ea.STATE).withDescription('Single watering amount'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -160,7 +160,7 @@ const definitions: Definition[] = [
                 [3, 'status', tuya.valueConverter.onOff],
                 [5, 'countdown', tuya.valueConverter.raw],
                 [6, 'countdown_left', tuya.valueConverter.raw],
-                [9, 'water_current', tuya.valueConverter.raw],  
+                [9, 'water_current', tuya.valueConverter.raw],
                 [11, 'battery_percentage', tuya.valueConverter.batteryState],
                 [15, 'water_total', tuya.valueConverter.raw],
                 [19, 'fault', tuya.valueConverter.raw],
