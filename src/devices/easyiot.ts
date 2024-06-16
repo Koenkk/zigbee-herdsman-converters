@@ -11,7 +11,7 @@ const e = exposes.presets;
 const fzLocal = {
     easyiot_ir_recv_command: {
         cluster: 'tunneling',
-        type: ['transferDataResp'],
+        type: ['commandTransferDataResp'],
         convert: (model, msg, publish, options, meta) => {
             logger.debug(`"easyiot_ir_recv_command" received (msg:${JSON.stringify(msg.data)})`, NS);
             const hexString = msg.data.data.toString('hex');
@@ -22,7 +22,7 @@ const fzLocal = {
 
     easyiot_tts_recv_status: {
         cluster: 'tunneling',
-        type: ['transferDataResp'],
+        type: ['commandTransferDataResp'],
         convert: (model, msg, publish, options, meta) => {
             logger.debug(`"easyiot_tts_recv_status" received (msg:${JSON.stringify(msg.data)})`, NS);
             const hexString = msg.data.data.toString('hex');

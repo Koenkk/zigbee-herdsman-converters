@@ -1,7 +1,7 @@
 import {
     identify, light, onOff, quirkCheckinInterval,
     deviceAddCustomCluster, binary, numeric, enumLookup,
-    battery, humidity, iasZoneAlarm, bindCluster,
+    battery, humidity, iasZoneAlarm, bindCluster, ota,
 } from '../lib/modernExtend';
 import {Zcl, ZSpec} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
@@ -10,7 +10,6 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import * as constants from '../lib/constants';
-import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
 import {
     Tz, Fz, Definition, KeyValue, ModernExtend, Expose,
@@ -737,16 +736,16 @@ const boschExtend = {
                     result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data['switchType']);
                 }
                 if (data.hasOwnProperty('calibrationOpeningTime')) {
-                    result.calibration_opening_time = msg.data['calibrationOpeningTime']/10;
+                    result.calibration_opening_time = msg.data['calibrationOpeningTime'] / 10;
                 }
                 if (data.hasOwnProperty('calibrationClosingTime')) {
-                    result.calibration_closing_time = msg.data['calibrationClosingTime']/10;
+                    result.calibration_closing_time = msg.data['calibrationClosingTime'] / 10;
                 }
-                if (data.hasOwnProperty('calibrationShutterButtonHoldTime')) {
-                    result.calibration_shutter_button_hold_time = msg.data['calibrationShutterButtonHoldTime']/10;
+                if (data.hasOwnProperty('calibrationButtonHoldTime')) {
+                    result.calibration_button_hold_time = msg.data['calibrationButtonHoldTime'] / 10;
                 }
-                if (data.hasOwnProperty('calibrationShutterDelayStartTime')) {
-                    result.calibration_shutter_delay_start_time = msg.data['calibrationShutterDelayStartTime']/10;
+                if (data.hasOwnProperty('calibrationMotorStartDelay')) {
+                    result.calibration_motor_start_delay = msg.data['calibrationMotorStartDelay'] / 10;
                 }
                 if (data.hasOwnProperty('childLock')) {
                     const property = utils.postfixWithEndpointName('child_lock', msg, model, meta);
@@ -820,8 +819,12 @@ const boschExtend = {
                 }
             },
         }, {
-            key: ['calibration', 'calibration_closing_time', 'calibration_opening_time',
-                'calibration_shutter_button_hold_time', 'calibration_shutter_delay_start_time'],
+            key: [
+                'calibration_closing_time',
+                'calibration_opening_time',
+                'calibration_button_hold_time',
+                'calibration_motor_start_delay',
+            ],
             convertSet: async (entity, key, value, meta) => {
                 if (key === 'calibration_opening_time') {
                     const number = utils.toNumber(value, 'calibration_opening_time');
@@ -835,17 +838,17 @@ const boschExtend = {
                     await entity.write('boschSpecific', {calibrationClosingTime: index});
                     return {state: {calibration_closing_time: number}};
                 }
-                if (key === 'calibration_shutter_button_hold_time') {
-                    const number = utils.toNumber(value, 'calibration_shutter_button_hold_time');
+                if (key === 'calibration_button_hold_time') {
+                    const number = utils.toNumber(value, 'calibration_button_hold_time');
                     const index = number * 10;
                     await entity.write('boschSpecific', {calibrationShutterButtonHoldTime: index});
-                    return {state: {calibration_shutter_button_hold_time: number}};
+                    return {state: {calibration_button_hold_time: number}};
                 }
-                if (key === 'calibration_shutter_delay_start_time') {
-                    const number = utils.toNumber(value, 'calibration_shutter_delay_start_time');
+                if (key === 'calibration_motor_start_delay') {
+                    const number = utils.toNumber(value, 'calibration_motor_start_delay');
                     const index = number * 10;
-                    await entity.write('boschSpecific', {calibrationShutterDelayStartTime: index});
-                    return {state: {calibration_shutter_delay_start_time: number}};
+                    await entity.write('boschSpecific', {calibrationMotorStartDelay: index});
+                    return {state: {calibration_motor_start_delay: number}};
                 }
             },
             convertGet: async (entity, key, meta) => {
@@ -856,11 +859,11 @@ const boschExtend = {
                 case 'calibration_closing_time':
                     await entity.read('boschSpecific', ['calibrationClosingTime']);
                     break;
-                case 'calibration_shutter_button_hold_time':
+                case 'calibration_button_hold_time':
                     await entity.read('boschSpecific', ['calibrationShutterButtonHoldTime']);
                     break;
-                case 'calibration_shutter_delay_start_time':
-                    await entity.read('boschSpecific', ['calibrationShutterDelayStartTime']);
+                case 'calibration_motor_start_delay':
+                    await entity.read('boschSpecific', ['calibrationMotorStartDelay']);
                     break;
                 default:
                     throw new Error(`Unhandled key boschExtend.bmct.toZigbee.convertGet ${key}`);
@@ -1117,9 +1120,6 @@ const definitions: Definition[] = [
         model: 'BWA-1',
         vendor: 'Bosch',
         description: 'Smart water alarm',
-        exposes: [],
-        fromZigbee: [],
-        toZigbee: [],
         extend: [
             deviceAddCustomCluster(
                 'boschSpecific',
@@ -1171,9 +1171,6 @@ const definitions: Definition[] = [
         model: 'BSD-2',
         vendor: 'Bosch',
         description: 'Smoke alarm II',
-        exposes: [],
-        fromZigbee: [],
-        toZigbee: [],
         extend: [
             deviceAddCustomCluster(
                 'ssIasZone',
@@ -1258,7 +1255,6 @@ const definitions: Definition[] = [
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
-        ota: ota.zigbeeOTA,
         exposes: [
             e.climate()
                 .withLocalTemperature(ea.STATE_GET, 'Temperature used by the heating algorithm. ' +
@@ -1353,6 +1349,7 @@ const definitions: Definition[] = [
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
+            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1434,6 +1431,7 @@ const definitions: Definition[] = [
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
+            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1500,6 +1498,7 @@ const definitions: Definition[] = [
             boschExtend.childLock(),
             boschExtend.displayOntime(),
             boschExtend.displayBrightness(),
+            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1531,9 +1530,6 @@ const definitions: Definition[] = [
         model: '8750001213',
         vendor: 'Bosch',
         description: 'Twinguard',
-        exposes: [],
-        fromZigbee: [],
-        toZigbee: [],
         extend: [
             deviceAddCustomCluster(
                 'twinguardSmokeDetector',
@@ -1665,9 +1661,9 @@ const definitions: Definition[] = [
         model: 'BSP-FZ2',
         vendor: 'Bosch',
         description: 'Plug compact EU',
-        ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.power_on_behavior],
+        extend: [ota()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
@@ -1690,9 +1686,6 @@ const definitions: Definition[] = [
         model: 'BSEN-C2',
         vendor: 'Bosch',
         description: 'Door/window contact II',
-        exposes: [],
-        fromZigbee: [],
-        toZigbee: [],
         extend: [
             boschExtend.doorWindowContact(false),
             battery({
@@ -1715,9 +1708,6 @@ const definitions: Definition[] = [
         model: 'BSEN-CV',
         vendor: 'Bosch',
         description: 'Door/window contact II plus',
-        exposes: [],
-        fromZigbee: [],
-        toZigbee: [],
         extend: [
             boschExtend.doorWindowContact(true),
             battery({
@@ -1740,7 +1730,6 @@ const definitions: Definition[] = [
         model: 'BMCT-DZ',
         vendor: 'Bosch',
         description: 'Phase-cut dimmer',
-        ota: ota.zigbeeOTA,
         extend: [identify(), light({configureReporting: true, effect: false})],
     },
     {
@@ -1781,9 +1770,9 @@ const definitions: Definition[] = [
                         switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8},
                         calibrationOpeningTime: {ID: 0x0002, type: Zcl.DataType.UINT32},
                         calibrationClosingTime: {ID: 0x0003, type: Zcl.DataType.UINT32},
-                        calibrationShutterButtonHoldTime: {ID: 0x0005, type: Zcl.DataType.UINT8},
+                        calibrationButtonHoldTime: {ID: 0x0005, type: Zcl.DataType.UINT8},
                         childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN},
-                        calibrationShutterDelayStartTime: {ID: 0x000F, type: Zcl.DataType.UINT8},
+                        calibrationMotorStartDelay: {ID: 0x000f, type: Zcl.DataType.UINT8},
                         motorState: {ID: 0x0013, type: Zcl.DataType.ENUM8},
                     },
                     commands: {},
@@ -1794,17 +1783,31 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'closuresWindowCovering', 'boschSpecific']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, [
+                'genIdentify', 'closuresWindowCovering', 'boschSpecific',
+            ]);
             await reporting.currentPositionLiftPercentage(endpoint1);
-            await endpoint1.read('boschSpecific', ['deviceMode', 'switchType', 'calibrationOpeningTime', 'calibrationClosingTime',
-                'calibrationShutterButtonHoldTime', 'calibrationShutterDelayStartTime', 'childLock', 'motorState']).catch((e) => {});
+            await endpoint1.read('boschSpecific', [
+                'deviceMode',
+                'switchType',
+                'motorState',
+                'childLock',
+                'calibrationOpeningTime',
+                'calibrationClosingTime',
+                'calibrationButtonHoldTime',
+                'calibrationMotorStartDelay',
+            ]);
             const endpoint2 = device.getEndpoint(2);
             await endpoint2.read('boschSpecific', ['childLock']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff']).catch((e) => {});
+            await reporting.bind(endpoint2, coordinatorEndpoint, [
+                'genIdentify', 'genOnOff',
+            ]);
             await reporting.onOff(endpoint2);
             const endpoint3 = device.getEndpoint(3);
-            await endpoint3.read('boschSpecific', ['childLock']).catch((e) => {});
-            await reporting.bind(endpoint3, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
+            await endpoint3.read('boschSpecific', ['childLock']);
+            await reporting.bind(endpoint3, coordinatorEndpoint, [
+                'genIdentify', 'genOnOff',
+            ]);
             await reporting.onOff(endpoint3);
         },
         exposes: (device, options) => {
@@ -1842,16 +1845,21 @@ const definitions: Definition[] = [
             const coverExposes = [
                 e.cover_position(),
                 e.enum('motor_state', ea.STATE, Object.keys(stateMotor))
-                    .withDescription('Shutter motor actual state '),
-                e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
-                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('shutter_button_hold_time')
-                    .withDescription('Time to press until long press ').withValueStep(0.1).withValueMin(0).withValueMax(25.5),
-                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('shutter_delay_start_time')
-                    .withDescription('Delay between press event and motor start').withValueStep(0.1).withValueMin(0).withValueMax(25.5),
-                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('closing_time')
-                    .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
-                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('opening_time')
-                    .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
+                    .withDescription('Current shutter motor state'),
+                e.binary('child_lock', ea.ALL, 'ON', 'OFF')
+                    .withDescription('Enable/Disable child lock'),
+                e.numeric('calibration_closing_time', ea.ALL).withUnit('s')
+                    .withDescription('Calibrate shutter closing time')
+                    .withValueMin(1).withValueMax(90).withValueStep(0.1),
+                e.numeric('calibration_opening_time', ea.ALL).withUnit('s')
+                    .withDescription('Calibrate shutter opening time')
+                    .withValueMin(1).withValueMax(90).withValueStep(0.1),
+                e.numeric('calibration_button_hold_time', ea.ALL).withUnit('s')
+                    .withDescription('Time to hold for long press')
+                    .withValueMin(0.1).withValueMax(2).withValueStep(0.1),
+                e.numeric('calibration_motor_start_delay', ea.ALL).withUnit('s')
+                    .withDescription('Delay between command and motor start')
+                    .withValueMin(0).withValueMax(20).withValueStep(0.1),
             ];
 
             if (device) {
@@ -1873,7 +1881,6 @@ const definitions: Definition[] = [
         model: 'BHI-US',
         vendor: 'Bosch',
         description: 'Universal Switch II',
-        ota: ota.zigbeeOTA,
         fromZigbee: [fzLocal.bhius_button_press, fzLocal.bhius_config, fz.battery],
         toZigbee: [tzLocal.bhius_config],
         exposes: [
