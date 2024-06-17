@@ -827,11 +827,11 @@ const modernExtendLocal = {
                 if (buf.length > 0) {
                     const enabled = buf[0];
                     const gr = buf[1];
-                    const gr_value = tuya.convertBufferToNumber(buf.subarray(2, 6));
-                    const gr_action = buf[7];
-                    const lo = buf[8];
-                    const lo_value = tuya.convertBufferToNumber(buf.subarray(9, 13));
-                    const lo_action = buf[14];
+                    const gr_value = buf.readInt32LE(2) / 10;
+                    const gr_action = buf[6];
+                    const lo = buf[7];
+                    const lo_value = buf.readInt32LE(8) / 10;
+                    const lo_action = buf[13];
                     result = {
                         enabled: {0x00: 'on', 0x80: 'off'}[enabled],
                         temp_greater_then: (gr !== 0xFF) ? {0x01: 'on', 0x00: 'off'}[gr_action] : 'none',
@@ -847,13 +847,18 @@ const modernExtendLocal = {
                 if (value.enabled !== 'none') {
                     const enabled = utils.getFromLookup(value.enabled, {'on': 0x00, 'off': 0x80});
                     const gr = (value.temp_greater_then == 'none') ? 0xFF : 0x00;
-                    const gr_value = Buffer.from(tuya.convertDecimalValueTo4ByteHexArray(value.temp_greater_value));
                     const gr_action = utils.getFromLookup(value.temp_greater_then, {'on': 0x01, 'off': 0x00, 'none': 0x00});
                     const lo = (value.temp_lower_then == 'none') ? 0xFF : 0x00;
-                    const lo_value = Buffer.from(tuya.convertDecimalValueTo4ByteHexArray(value.temp_lower_value));
                     const lo_action = utils.getFromLookup(value.temp_lower_then, {'on': 0x01, 'off': 0x00, 'none': 0x00});
-                    result = `${(enabled).toString(16)}${(gr).toString(16)}${gr_value.toString('hex')}`+
-                        `${(gr_action).toString(16)}${(lo).toString(16)}${lo_value.toString('hex')}${(lo_action).toString(16)}`;
+                    const buf = Buffer.alloc(13);
+                    buf.writeUInt8(enabled, 0);
+                    buf.writeUInt8(gr, 1);
+                    buf.writeInt32LE(value.temp_greater_value*10, 2);
+                    buf.writeUInt8(gr_action, 6);
+                    buf.writeUInt8(lo, 7);
+                    buf.writeInt32LE(value.temp_lower_value*10, 8);
+                    buf.writeUInt8(lo_action, 12);
+                    result = buf.toString('hex');
                 }
                 return result;
             },
@@ -8818,6 +8823,9 @@ const definitions: Definition[] = [
         model: 'TYZGTH1CH-D1RF',
         vendor: 'Mumubiz',
         description: 'Smart switch with temperature/humidity sensor',
+        meta: {
+            tuyaSendCommand: 'sendData',
+        },
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, switchType: false}),
