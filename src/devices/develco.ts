@@ -352,7 +352,11 @@ const definitions: Definition[] = [
             await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
+            /*
+                seMetering.instantaneousDemand and haElectricalMeasurement.activePower both return the same thing
+                spot checks indicate both return the exact same value, no point in having both report
+            */
+            // await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
             await reporting.acFrequency(endpoint);
             // read develco specific attribute for sw and hw version
             await develco.configure.read_sw_hw_version(device);
@@ -381,7 +385,11 @@ const definitions: Definition[] = [
             await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
+            /*
+                seMetering.instantaneousDemand and haElectricalMeasurement.activePower both return the same thing
+                spot checks indicate both return the exact same value, no point in having both report
+            */
+            // await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
             // read develco specific attribute for sw and hw version
             await develco.configure.read_sw_hw_version(device);
         },
