@@ -1389,12 +1389,13 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0505B', ['_TZB210_3zfp8mki']),
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZB210_3zfp8mki', '_TZB210_gj0ccsar']),
         model: 'TS0505B_3',
         vendor: 'Tuya',
         description: 'Zigbee RGB+CCT light',
         whiteLabel: [
             tuya.whitelabel('Skydance', 'WZ5_dim_2', 'Zigbee & RF 5 in 1 LED controller (DIM mode)', ['_TZB210_3zfp8mki']),
+            tuya.whitelabel('QA', 'QADZC5', '5 in 1 LED controller', ['_TZB210_gj0ccsar']),
         ],
         extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['hs'], applyRedFix: true, enhancedHue: false}})],
         configure: async (device, coordinatorEndpoint) => {
@@ -2096,26 +2097,20 @@ const definitions: Definition[] = [
             tuya.whitelabel('Zemismart', 'ZN-LC1E', 'Smart curtain/shutter switch', ['_TZ3000_74hsp7qy']),
             tuya.whitelabel('Nous', 'L12Z', 'Smart ZigBee Curtain Module L12Z', ['_TZ3000_jwv3cwak']),
             tuya.whitelabel('Danor', 'SK-Z802C-US', 'Smart curtain/shutter switch', ['_TZ3000_8h7wgocw']),
-        ],
-        exposes: [e.cover_position(), tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn(),
-            e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']), e.binary('calibration', ea.ALL, 'ON', 'OFF'),
-            e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
-            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')],
-    },
-    {
-        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
-        model: 'MS-108ZR',
-        vendor: 'Moes',
-        description: 'Zigbee + RF curtain switch module',
-        meta: {coverInverted: true},
-        whiteLabel: [
+            tuya.whitelabel('Moes', 'MS-108ZR', 'Zigbee + RF curtain switch module', ['_TZ3000_1dd0d5yi']),
             tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc']),
         ],
-        ota: ota.zigbeeOTA,
-        fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
-        exposes: [e.cover_position(), e.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
-            e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
+        exposes: (device) => {
+            const exps = [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+                e.binary('calibration', ea.ALL, 'ON', 'OFF'),
+                e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
+                e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')];
+            if (!device || device.manufacturerName !== ('_TZ3210_xbpt8ewc' || '_TZ3000_1dd0d5yi')) {
+                exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
+            }
+            exps.push(e.linkquality());
+            return exps;
+        },
     },
     {
         zigbeeModel: ['qnazj70', 'kjintbl'],
@@ -5999,7 +5994,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS1201', ['_TZ3290_7v1k4vufotpowp9z', '_TZ3290_rlkmy85q4pzoxobl']),
+        fingerprint: tuya.fingerprint('TS1201', ['_TZ3290_7v1k4vufotpowp9z', '_TZ3290_rlkmy85q4pzoxobl', '_TZ3290_lypnqvlem5eq1ree']),
         model: 'ZS06',
         vendor: 'Tuya',
         description: 'Universal smart IR remote control',
@@ -6011,7 +6006,7 @@ const definitions: Definition[] = [
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
         whiteLabel: [
             tuya.whitelabel('Tuya', 'UFO-R4Z', 'Universal smart IR remote control', ['_TZ3290_rlkmy85q4pzoxobl']),
-            tuya.whitelabel('QA', 'QAIRZPRO', 'Infrared hub pro', ['_TZ3290_jxvzqatwgsaqzx1u']),
+            tuya.whitelabel('QA', 'QAIRZPRO', 'Infrared hub pro', ['_TZ3290_jxvzqatwgsaqzx1u', '_TZ3290_lypnqvlem5eq1ree']),
         ],
     },
     {
@@ -8002,14 +7997,14 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e', '_TZE204_iaeejhvf', '_TZE204_mtoaryre',
-            '_TZE200_mp902om5', '_TZE204_pfayrzcw']),
+            '_TZE200_mp902om5', '_TZE204_pfayrzcw', '_TZE284_4qznlkbu']),
         model: 'MTG075-ZB-RL',
         vendor: 'Tuya',
         description: '2.4G/5.8G human presence sensor with relay',
         whiteLabel: [
             tuya.whitelabel('Tuya', 'MTG275-ZB-RL', '2.4G/5.8G MmWave radar human presence motion sensor', ['_TZE204_dtzziy1e']),
             tuya.whitelabel('Tuya', 'MTG035-ZB-RL', 'Human presence sensor with relay', ['_TZE204_pfayrzcw']),
-            tuya.whitelabel('QA', 'QASZ24R', 'mmWave 24 Ghz sensor with relay', ['_TZE204_4qznlkbu']),
+            tuya.whitelabel('QA', 'QASZ24R', 'mmWave 24 Ghz sensor with relay', ['_TZE284_4qznlkbu']),
         ],
         configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
