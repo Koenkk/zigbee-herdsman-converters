@@ -84,7 +84,7 @@ const definitions: Definition[] = [
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             deviceEndpoints({endpoints: {'l1': 1}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ['l1'], powerOnBehavior1: true}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ['l1']}),
         ],
     },
     {
@@ -95,7 +95,7 @@ const definitions: Definition[] = [
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             deviceEndpoints({endpoints: {'l1': 1}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ['l1'], powerOnBehavior1: true, switchType: true}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ['l1'], switchType: true}),
         ],
     },
     {
@@ -106,7 +106,7 @@ const definitions: Definition[] = [
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2'], powerOnBehavior1: true, switchType: true}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2'], switchType: true}),
         ],
     },
     {
@@ -117,7 +117,7 @@ const definitions: Definition[] = [
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3'], powerOnBehavior1: true, switchType: true}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3'], switchType: true}),
         ],
     },
     {
@@ -128,7 +128,7 @@ const definitions: Definition[] = [
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3', 'l4'], powerOnBehavior1: true, switchType: true}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3', 'l4'], switchType: true}),
         ],
     },
     {
@@ -141,7 +141,7 @@ const definitions: Definition[] = [
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             deviceEndpoints({endpoints: {'l1': 1}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ['l1'], powerOnBehavior1: true, backlightModeOffOn: true}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ['l1'], backlightModeOffOn: true}),
         ],
     },
     {
@@ -154,7 +154,7 @@ const definitions: Definition[] = [
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2'], powerOnBehavior1: true, backlightModeOffOn: true}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2'], backlightModeOffOn: true}),
         ],
     },
     {
@@ -167,7 +167,7 @@ const definitions: Definition[] = [
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ['left', 'center', 'right'], powerOnBehavior1: true, backlightModeOffOn: true}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ['left', 'center', 'right'], backlightModeOffOn: true}),
         ],
     },
     {
