@@ -354,6 +354,8 @@ const definitions: Definition[] = [
             await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
             await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
             await reporting.acFrequency(endpoint);
+            // read develco specific attribute for sw and hw version
+            await develco.configure.read_sw_hw_version(device);
         },
         endpoint: (device) => {
             return {default: 2};
@@ -380,6 +382,8 @@ const definitions: Definition[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
             await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
+            // read develco specific attribute for sw and hw version
+            await develco.configure.read_sw_hw_version(device);
         },
         endpoint: (device) => {
             return {default: 2};
