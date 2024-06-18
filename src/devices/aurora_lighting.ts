@@ -5,7 +5,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 import * as utils from '../lib/utils';
-import {light} from '../lib/modernExtend';
+import {identify, light} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 
 const ea = exposes.access;
@@ -286,6 +286,13 @@ const definitions: Definition[] = [
         },
         // Two gang battery rotary dimmer with endpoint IDs 1 and 2
         ...batteryRotaryDimmer(1, 2),
+    },
+    {
+        zigbeeModel: ['NPD3032'],
+        model: 'AU-A1ZB110',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 1-10V in-line dimmer',
+        extend: [identify(), light({powerOnBehavior: false})],
     },
 ];
 

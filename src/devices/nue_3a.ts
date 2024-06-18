@@ -200,7 +200,7 @@ const definitions: Definition[] = [
         vendor: 'Nue / 3A',
         description: 'Smart double GPO',
         extend: [
-            deviceEndpoints({endpoints: {'left': 11, 'right': 12}}),
+            deviceEndpoints({endpoints: {'left': 1, 'right': 2}}),
             onOff({endpointNames: ['left', 'right']}),
         ],
     },
