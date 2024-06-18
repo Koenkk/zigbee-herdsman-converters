@@ -1,7 +1,8 @@
 import {
     identify, light, onOff, quirkCheckinInterval,
     deviceAddCustomCluster, binary, numeric, enumLookup,
-    battery, humidity, iasZoneAlarm, bindCluster, ota,
+    battery, humidity, iasZoneAlarm, bindCluster,
+    ota, deviceEndpoints,
 } from '../lib/modernExtend';
 import {Zcl, ZSpec} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
