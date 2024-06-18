@@ -326,6 +326,66 @@ const boschExtend = {
             isModernExtend: true,
         };
     },
+    roomThermostat: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e.climate()
+                .withLocalTemperature()
+                .withSetpoint('occupied_heating_setpoint', 4.5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 4.5, 30, 0.5)
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
+                .withSystemMode(['off', 'heat', 'cool'])
+                .withRunningState(['idle', 'heat', 'cool']),
+        ];
+        const fromZigbee: Fz.Converter[] = [
+            fz.thermostat,
+            fz.hvac_user_interface,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_programming_operation_mode, // NOTE: Only 0x0 & 0x1 supported
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
+            tz.thermostat_temperature_setpoint_hold,
+            tz.thermostat_temperature_display_mode,
+        ];
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    radiatorThermostat: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e.climate()
+                .withLocalTemperature(ea.STATE_GET, 'Temperature used by the heating algorithm. Might be a remote sensor.')
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSystemMode(['heat'])
+                .withPiHeatingDemand(ea.ALL)
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
+        ];
+        const fromZigbee: Fz.Converter[] = [
+            fz.thermostat,
+            fz.hvac_user_interface,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            tz.thermostat_system_mode,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
+            tz.thermostat_keypad_lockout,
+        ];
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
     doorWindowContact: (hasVibrationSensor?: boolean): ModernExtend => {
         const exposes: Expose[] = [
             e.binary('contact', ea.STATE, false, true)
@@ -718,7 +778,7 @@ const boschExtend = {
             'OFF': 0x00,
             'ON': 0x01,
         };
-        const fromZigbee: Fz.Converter[] = [{
+        const fromZigbee: Fz.Converter[] = [fz.on_off, fz.power_on_behavior, fz.cover_position_tilt, {
             cluster: 'boschSpecific',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
@@ -757,7 +817,7 @@ const boschExtend = {
                 return result;
             },
         }];
-        const toZigbee: Tz.Converter[] = [{
+        const toZigbee: Tz.Converter[] = [tz.power_on_behavior, tz.cover_position_tilt, {
             key: [
                 'device_mode',
                 'switch_type',
@@ -841,7 +901,7 @@ const boschExtend = {
                 if (key === 'calibration_button_hold_time') {
                     const number = utils.toNumber(value, 'calibration_button_hold_time');
                     const index = number * 10;
-                    await entity.write('boschSpecific', {calibrationShutterButtonHoldTime: index});
+                    await entity.write('boschSpecific', {calibrationButtonHoldTime: index});
                     return {state: {calibration_button_hold_time: number}};
                 }
                 if (key === 'calibration_motor_start_delay') {
@@ -860,7 +920,7 @@ const boschExtend = {
                     await entity.read('boschSpecific', ['calibrationClosingTime']);
                     break;
                 case 'calibration_button_hold_time':
-                    await entity.read('boschSpecific', ['calibrationShutterButtonHoldTime']);
+                    await entity.read('boschSpecific', ['calibrationButtonHoldTime']);
                     break;
                 case 'calibration_motor_start_delay':
                     await entity.read('boschSpecific', ['calibrationMotorStartDelay']);
@@ -1255,29 +1315,10 @@ const definitions: Definition[] = [
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
-        exposes: [
-            e.climate()
-                .withLocalTemperature(ea.STATE_GET, 'Temperature used by the heating algorithm. ' +
-                'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).')
-                .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSystemMode(['heat'])
-                .withPiHeatingDemand(ea.ALL)
-                .withRunningState(['idle', 'heat'], ea.STATE_GET),
-        ],
-        fromZigbee: [
-            fz.thermostat,
-        ],
-        toZigbee: [
-            tz.thermostat_system_mode,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature,
-            tz.thermostat_keypad_lockout,
-        ],
         extend: [
             boschExtend.hvacThermostatCluster(),
             boschExtend.hvacUserInterfaceCfgCluster(),
+            boschExtend.radiatorThermostat(),
             battery({
                 percentage: true,
                 lowStatus: false,
@@ -1385,33 +1426,10 @@ const definitions: Definition[] = [
         model: 'BTH-RM',
         vendor: 'Bosch',
         description: 'Room thermostat II (Battery model)',
-        exposes: [
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 4.5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 4.5, 30, 0.5)
-                .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSystemMode(['off', 'heat', 'cool'])
-                .withRunningState(['idle', 'heat', 'cool']),
-        ],
-        fromZigbee: [
-            fz.thermostat,
-            fz.hvac_user_interface,
-        ],
-        toZigbee: [
-            tz.thermostat_system_mode,
-            tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_programming_operation_mode, // NOTE: Only 0x0 & 0x1 supported
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature,
-            tz.thermostat_temperature_setpoint_hold,
-            tz.thermostat_temperature_display_mode,
-        ],
         extend: [
             boschExtend.hvacThermostatCluster(),
             boschExtend.hvacUserInterfaceCfgCluster(),
+            boschExtend.roomThermostat(),
             battery({
                 voltageToPercentage: {min: 4400, max: 6400},
                 percentage: true,
@@ -1464,33 +1482,10 @@ const definitions: Definition[] = [
         model: 'BTH-RM230Z',
         vendor: 'Bosch',
         description: 'Room thermostat II 230V',
-        exposes: [
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 4.5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 4.5, 30, 0.5)
-                .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSystemMode(['off', 'heat', 'cool'])
-                .withRunningState(['idle', 'heat', 'cool']),
-        ],
-        fromZigbee: [
-            fz.thermostat,
-            fz.hvac_user_interface,
-        ],
-        toZigbee: [
-            tz.thermostat_system_mode,
-            tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_programming_operation_mode, // NOTE: Only 0x0 & 0x1 supported
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature,
-            tz.thermostat_temperature_setpoint_hold,
-            tz.thermostat_temperature_display_mode,
-        ],
         extend: [
             boschExtend.hvacThermostatCluster(),
             boschExtend.hvacUserInterfaceCfgCluster(),
+            boschExtend.roomThermostat(),
             humidity(),
             boschExtend.operatingMode(),
             boschExtend.windowDetection(),
@@ -1744,22 +1739,8 @@ const definitions: Definition[] = [
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
         description: 'Light/shutter control unit II',
-        fromZigbee: [
-            fz.on_off,
-            fz.power_on_behavior,
-            fz.cover_position_tilt,
-        ],
-        toZigbee: [
-            tz.power_on_behavior,
-            tz.cover_position_tilt,
-        ],
-        meta: {
-            multiEndpoint: true,
-        },
-        endpoint: (device) => {
-            return {'left': 2, 'right': 3};
-        },
         extend: [
+            deviceEndpoints({endpoints: {'left': 2, 'right': 3}}),
             deviceAddCustomCluster(
                 'boschSpecific',
                 {
@@ -1835,8 +1816,8 @@ const definitions: Definition[] = [
             const lightExposes = [
                 e.switch().withEndpoint('left'),
                 e.switch().withEndpoint('right'),
-                e.power_on_behavior().withEndpoint('right'),
                 e.power_on_behavior().withEndpoint('left'),
+                e.power_on_behavior().withEndpoint('right'),
                 e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left')
                     .withDescription('Enable/Disable child lock'),
                 e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
