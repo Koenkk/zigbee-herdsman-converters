@@ -1,5 +1,14 @@
 # Changelog
 
+## [19.57.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.57.0...v19.57.1) (2024-06-18)
+
+
+### Bug Fixes
+
+* **detect:** Detect `TRADFRI bulb E26 WS globe 1100lm` as IKEA LED2201G8 ([#7651](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7651)) ([85c0ed5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/85c0ed5285f898960a8bcdf45c76323f0061320b))
+* **ignore:** Add qa to /devices/index.ts ([#7650](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7650)) ([940dffe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/940dffe7739b2cb10f4e024dc8401b39c8307488))
+* SPLZB-132: read develco specific sw/hw versions ([#7653](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7653)) ([a03a5e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a03a5e99684b1bf164a4b7f71cadd7b8979951e8))
+
 ## [19.57.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.56.0...v19.57.0) (2024-06-16)
 
 
