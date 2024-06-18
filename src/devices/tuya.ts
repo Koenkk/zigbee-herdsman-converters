@@ -1347,6 +1347,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Lidl', 'HG08131C', 'Livarno Home outdoor E27 bulb in set with flare', ['_TZ3000_q50zhdsc']),
             tuya.whitelabel('Lidl', 'HG07834C', 'Livarno Lux E27 bulb RGB', ['_TZ3000_qd7hej8u']),
             tuya.whitelabel('MiBoxer', 'FUT037Z+', 'RGB led controller', ['_TZB210_417ikxay', '_TZB210_wxazcmsh']),
+            tuya.whitelabel('MiBoxer', 'E2-ZR', '2 in 1 led controller', ['_TZB210_ayx58ft5']),
             tuya.whitelabel('Lidl', 'HG08383B', 'Livarno outdoor LED light chain', ['_TZ3000_bwlvyjwk']),
             tuya.whitelabel('Lidl', 'HG08383A', 'Livarno outdoor LED light chain', ['_TZ3000_taspddvq']),
             tuya.whitelabel('Garza Smart', 'Garza-Standard-A60', 'Standard A60 bulb', ['_TZ3210_sln7ah6r']),
@@ -1526,12 +1527,13 @@ const definitions: Definition[] = [
             tuya.whitelabel('Luminea', 'ZX-5311', 'Motion sensor', ['_TZ3000_jmrgyl7o']),
             tuya.whitelabel('Tuya', 'ZP01', 'Motion sensor', ['_TZ3000_lf56vpxj']),
             tuya.whitelabel('Tuya', 'HW500A', 'Motion sensor', ['_TZ3000_bsvqrxru']),
+            tuya.whitelabel('Nedis', 'ZBSM10WT', 'Motion sensor', ['_TZ3000_nss8amz9']),
         ],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: (device, options) => {
             const exps: Expose[] = [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()];
-            if (!device || device.manufacturerName !== '_TZ3000_bsvqrxru') {
+            if (!device || !['_TZ3000_bsvqrxru', '_TZ3000_nss8amz9'].includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
             exps.push(e.linkquality());
@@ -1708,6 +1710,24 @@ const definitions: Definition[] = [
                 [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
                 [14, 'battery_state', tuya.valueConverter.batteryState],
                 [15, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_g2e6cpnw']),
+        model: 'TS0601_soil_2',
+        vendor: 'Tuya',
+        description: 'Soil sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.temperature(), e.soil_moisture(), e.battery(), tuya.exposes.batteryState()],
+        meta: {
+            tuyaDatapoints: [
+                [3, 'soil_moisture', tuya.valueConverter.raw],
+                [5, 'temperature', tuya.valueConverter.divideBy10],
+                [102, 'battery_state', tuya.valueConverter.batteryState],
+                [110, 'battery', tuya.valueConverter.divideBy10],
             ],
         },
     },
@@ -2090,6 +2110,21 @@ const definitions: Definition[] = [
             }
             return exps;
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
+        model: 'MS-108ZR',
+        vendor: 'Moes',
+        description: 'Zigbee + RF curtain switch module',
+        meta: {coverInverted: true},
+        whiteLabel: [
+            tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc']),
+        ],
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
+        exposes: [e.cover_position(), e.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
+            e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
     },
     {
         zigbeeModel: ['qnazj70', 'kjintbl'],
@@ -3217,6 +3252,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_zxxfv8wi'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_1fuxihti'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_1fuxihti'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_57hjqelq'},
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_hsgrhjpf'},
@@ -3239,6 +3275,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_rsj5pu8y'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_xu4a5rhj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_2odrmqwq'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_lh3arisb'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'Tuya',
@@ -3264,6 +3301,7 @@ const definitions: Definition[] = [
             {vendor: 'Quoya', model: 'AT8510-TY'},
             tuya.whitelabel('Somgoms', 'ZSTY-SM-1DMZG-US-W_1', 'Curtain switch', ['_TZE200_axgvo9jh']),
             tuya.whitelabel('HUARUI', 'CMD900LE', 'Lithium battery intelligent curtain opening and closing motor', ['_TZE200_zxxfv8wi']),
+            tuya.whitelabel('Novato', 'WPK', 'Smart curtain track', ['_TZE204_lh3arisb']),
         ],
         fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.tuya_cover_control, legacy.toZigbee.tuya_cover_options],
@@ -8274,14 +8312,18 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_v1jqz5cy']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_v1jqz5cy', '_TZE200_d9mzkhoq']),
         model: 'BLE-YL01',
         vendor: 'Tuya',
         description: 'Smart WiFi Zigbee chlorine meter',
+        whiteLabel: [
+            tuya.whitelabel('Tuya', 'BLE-YL01', 'Smart WiFi Zigbee chlorine meter', ['_TZE200_v1jqz5cy']),
+            tuya.whitelabel('Tuya', 'YK-S03', 'Smart pH and Chlorine Tester for Swimming Pool', ['_TZE200_d9mzkhoq']),
+        ],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        // Query every 10 minutes, otherwise values don't update https://github.com/Koenkk/zigbee2mqtt/issues/18704
-        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true, queryIntervalSeconds: 10 * 60}),
+        // Don't query too often. Values are not always updated. https://github.com/Koenkk/zigbee2mqtt/issues/18704
+        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true, queryIntervalSeconds: 5 * 60}),
         configure: tuya.configureMagicPacket,
         exposes: [
             e.numeric('tds', ea.STATE).withUnit('ppm').withDescription('Total Dissolved Solids'),
@@ -8321,7 +8363,7 @@ const definitions: Definition[] = [
                 [10, 'ph', tuya.valueConverter.divideBy100],
                 [11, 'ec', tuya.valueConverter.raw],
                 [101, 'orp', tuya.valueConverter.raw],
-                [102, 'free_chlorine', tuya.valueConverter.raw],
+                [102, 'free_chlorine', tuya.valueConverter.divideBy10],
                 // [105, 'backlightvalue', tuya.valueConverter.raw],
                 [106, 'ph_max', tuya.valueConverter.divideBy10],
                 [107, 'ph_min', tuya.valueConverter.divideBy10],

@@ -7,18 +7,19 @@ import {
 import {
     LightArgs, light as lightDontUse, ota, ReportingConfigWithoutAttribute,
     timeLookup, numeric, NumericArgs, setupConfigureForBinding,
-    setupConfigureForReporting,
+    setupConfigureForReporting, deviceAddCustomCluster,
 } from '../lib/modernExtend';
+
 import {tradfri as ikea} from '../lib/ota';
 
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
+import {Zcl} from 'zigbee-herdsman';
 import * as semver from 'semver';
 
-export const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
+export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
 
 const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
     /**
@@ -374,7 +375,7 @@ export function ikeaVoc(args?: Partial<NumericArgs>) {
     return numeric({
         name: 'voc_index',
         label: 'VOC index',
-        cluster: 'msIkeaVocIndexMeasurement',
+        cluster: 'manuSpecificIkeaVocIndexMeasurement',
         attribute: 'measuredValue',
         reporting: {min: '1_MINUTE', max: '2_MINUTES', change: 1},
         description: 'Sensirion VOC index',
@@ -664,6 +665,62 @@ export function ikeaMediaCommands(): ModernExtend {
     const configure: Configure[] = [setupConfigureForBinding('genLevelCtrl', 'output')];
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
+}
+
+export function addCustomClusterManuSpecificIkeaAirPurifier(): ModernExtend {
+    return deviceAddCustomCluster(
+        'manuSpecificIkeaAirPurifier',
+        {
+            ID: 0xfc7d,
+            manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+            attributes: {
+                filterRunTime: {ID: 0x0000, type: Zcl.DataType.UINT32},
+                replaceFilter: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                filterLifeTime: {ID: 0x0002, type: Zcl.DataType.UINT32},
+                controlPanelLight: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
+                particulateMatter25Measurement: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                childLock: {ID: 0x0005, type: Zcl.DataType.BOOLEAN},
+                fanMode: {ID: 0x0006, type: Zcl.DataType.UINT8},
+                fanSpeed: {ID: 0x0007, type: Zcl.DataType.UINT8},
+                deviceRunTime: {ID: 0x0008, type: Zcl.DataType.UINT32},
+            },
+            commands: {},
+            commandsResponse: {},
+        },
+    );
+}
+
+export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExtend {
+    return deviceAddCustomCluster(
+        'manuSpecificIkeaVocIndexMeasurement',
+        {
+            ID: 0xfc7e,
+            manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+            attributes: {
+                measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
+                measuredMinValue: {ID: 0x0001, type: Zcl.DataType.SINGLE_PREC},
+                measuredMaxValue: {ID: 0x0002, type: Zcl.DataType.SINGLE_PREC},
+            },
+            commands: {},
+            commandsResponse: {},
+        },
+    );
+}
+
+// Seems to be present on newer IKEA devices like: VINDSTYRKA, RODRET, and BADRING
+//  Also observed on some older devices that had a post DIRIGERA release fw update.
+//  No attributes known.
+export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
+    return deviceAddCustomCluster(
+        'manuSpecificIkeaUnknown',
+        {
+            ID: 0xfc7c,
+            manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+            attributes: {},
+            commands: {},
+            commandsResponse: {},
+        },
+    );
 }
 
 export const legacy = {

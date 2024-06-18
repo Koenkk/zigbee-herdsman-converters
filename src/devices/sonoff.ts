@@ -866,7 +866,6 @@ const definitions: Definition[] = [
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.battery(),
-            e.battery_low(),
         ],
         fromZigbee: [
             fz.thermostat,
