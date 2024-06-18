@@ -2108,23 +2108,9 @@ const definitions: Definition[] = [
             if (!device || device.manufacturerName !== ('_TZ3210_xbpt8ewc' || '_TZ3000_1dd0d5yi')) {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
+            exps.push(e.linkquality());
             return exps;
         },
-    },
-    {
-        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
-        model: 'MS-108ZR',
-        vendor: 'Moes',
-        description: 'Zigbee + RF curtain switch module',
-        meta: {coverInverted: true},
-        whiteLabel: [
-            tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc']),
-        ],
-        ota: ota.zigbeeOTA,
-        fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
-        exposes: [e.cover_position(), e.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
-            e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
     },
     {
         zigbeeModel: ['qnazj70', 'kjintbl'],
