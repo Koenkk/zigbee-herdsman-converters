@@ -298,6 +298,7 @@ import zemismart from './zemismart';
 import zen from './zen';
 import zigbeetlc from './zigbeetlc';
 import zipato from './zipato';
+import qa from './qa';
 
 export default [
     ...acova,
@@ -600,4 +601,5 @@ export default [
     ...zen,
     ...zigbeetlc,
     ...zipato,
+    ...qa,
 ];

@@ -1,5 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Tz, KeyValueAny} from '../lib/types';
+import {Tz, KeyValue, KeyValueAny} from '../lib/types';
 import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
 import * as libColor from '../lib/color';
@@ -4470,6 +4470,64 @@ const converters3 = {
             } else {
                 throw new Error('LevelControl not supported on this endpoint.');
             }
+        },
+    } satisfies Tz.Converter,
+    TS110E_options: {
+        key: ['min_brightness', 'max_brightness', 'light_type', 'switch_type'],
+        convertSet: async (entity, key, value, meta) => {
+            let payload = null;
+            if (key === 'min_brightness' || key == 'max_brightness') {
+                const id = key === 'min_brightness' ? 64515 : 64516;
+                payload = {[id]: {value: utils.mapNumberRange(utils.toNumber(value, key), 1, 255, 0, 1000), type: 0x21}};
+            } else if (key === 'light_type' || key === 'switch_type') {
+                utils.assertString(value, 'light_type/switch_type');
+                const lookup: KeyValue = key === 'light_type' ? {led: 0, incandescent: 1, halogen: 2} : {momentary: 0, toggle: 1, state: 2};
+                payload = {64514: {value: lookup[value], type: 0x20}};
+            }
+            await entity.write('genLevelCtrl', payload, utils.getOptions(meta.mapped, entity));
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            let id = null;
+            if (key === 'min_brightness') id = 64515;
+            if (key === 'max_brightness') id = 64516;
+            if (key === 'light_type' || key === 'switch_type') id = 64514;
+            await entity.read('genLevelCtrl', [id]);
+        },
+    } satisfies Tz.Converter,
+    TS110E_onoff_brightness: {
+        key: ['state', 'brightness'],
+        convertSet: async (entity, key, value, meta) => {
+            const {message, state} = meta;
+            if (message.state === 'OFF' || (message.hasOwnProperty('state') && !message.hasOwnProperty('brightness'))) {
+                return await converters1.on_off.convertSet(entity, key, value, meta);
+            } else if (message.hasOwnProperty('brightness')) {
+                // set brightness
+                if (state.state === 'OFF') {
+                    await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
+                }
+
+                const brightness = utils.toNumber(message.brightness, 'brightness');
+                const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
+                await entity.command('genLevelCtrl', 'moveToLevelTuya', {level, transtime: 100}, utils.getOptions(meta.mapped, entity));
+                return {state: {state: 'ON', brightness}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (key === 'state') await converters1.on_off.convertGet(entity, key, meta);
+            if (key === 'brightness') await entity.read('genLevelCtrl', [61440]);
+        },
+    } satisfies Tz.Converter,
+    TS110E_light_onoff_brightness: {
+        ...converters2.light_onoff_brightness,
+        convertSet: async (entity, key, value, meta) => {
+            const {message} = meta;
+            if (message.state === 'ON' || (typeof message.brightness === 'number' && message.brightness > 1)) {
+                // Does not turn off with physical press when turned on with just moveToLevelWithOnOff, required on before.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15902#issuecomment-1382848150
+                await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
+            }
+            return converters2.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
 };
