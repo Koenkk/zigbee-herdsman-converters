@@ -1638,7 +1638,7 @@ const tuyaModernExtend = {
         return {exposes: [exp], fromZigbee, toZigbee, isModernExtend: true};
     },
     dpTemperature(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'temperature', type: dataTypes.number, readOnly: true, expose: e.temperature(), ...args});
+        return tuyaModernExtend.dpNumeric({name: 'temperature', type: dataTypes.number, readOnly: true, scale: 10, expose: e.temperature(), ...args});
     },
     dpHumidity(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
         return tuyaModernExtend.dpNumeric({name: 'humidity', type: dataTypes.number, readOnly: true, expose: e.humidity(), ...args});

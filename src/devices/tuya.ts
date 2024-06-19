@@ -8831,6 +8831,7 @@ const definitions: Definition[] = [
             tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, switchType: false}),
             tuya.modernExtend.dpChildLock({dp: 0x6f}),
             tuya.modernExtend.dpTemperature({dp: 0x66}),
+            tuya.modernExtend.dpHumidity({dp: 0x67}),
             tuya.modernExtend.dpNumeric({
                 dp: 0x6c,
                 name: 'temperature_calibration',
