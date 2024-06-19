@@ -333,19 +333,19 @@ const definitions: Definition[] = [
         },
     },
     {
-    zigbeeModel: ['ZG2819S-RGBW'],
-    model: 'ZG2819S-RGBW',
-    vendor: 'Sunricher',
-    description: 'Zigbee handheld remote RGBW 4 channels',
-    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall,
-        fz.command_move_hue, fz.command_move_to_color, fz.command_move_to_color_temp],
-    exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
-        'brightness_move_down', 'brightness_stop', 'recall_*', 'hue_move', 'color_temperature_move',
-        'color_move', 'hue_stop'])],
-    toZigbee: [],
-    meta: {multiEndpoint: true},
-    endpoint: (device) => {    
-        return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
+        zigbeeModel: ['ZG2819S-RGBW'],
+        model: 'ZG2819S-RGBW',
+        vendor: 'Sunricher',
+        description: 'Zigbee handheld remote RGBW 4 channels',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall,
+            fz.command_move_hue, fz.command_move_to_color, fz.command_move_to_color_temp],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
+            'brightness_move_down', 'brightness_stop', 'recall_*', 'hue_move', 'color_temperature_move',
+            'color_move', 'hue_stop'])],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {    
+            return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
         },
     },
     {
