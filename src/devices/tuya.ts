@@ -2272,14 +2272,17 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_gbagoilo']),
         model: 'MG-ZG01W',
         vendor: 'Tuya',
-        description: '1 gang switch',
-        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET)],
+        description: '1 gang switch with power meter',
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), e.voltage(), e.current(), e.power()],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff],
+                [21, 'current', tuya.valueConverter.divideBy1000],
+                [22, 'power', tuya.valueConverter.divideBy10],
+                [23, 'voltage', tuya.valueConverter.divideBy10],
             ],
         },
         endpoint: (device) => {
