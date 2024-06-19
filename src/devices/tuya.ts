@@ -686,7 +686,7 @@ const fzLocal = {
 
 const modernExtendLocal = {
     dpTHZBSettings(): ModernExtend {
-        let exp = e.composite('auto_settings', 'auto_settings', ea.STATE_SET)
+        const exp = e.composite('auto_settings', 'auto_settings', ea.STATE_SET)
             .withFeature(
                 e.enum('enabled', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Enable auto settings'),
             )
@@ -711,7 +711,7 @@ const modernExtendLocal = {
                     .withValueStep(0.1)
                     .withUnit('*C')
                     .withDescription('Temperature lower than value'),
-        );
+            );
 
         const handlers: [Fz.Converter[], Tz.Converter[]] = tuya.getHandlersForDP('auto_settings', 0x77, tuya.dataTypes.string, {
             from: (value: string) => {
@@ -726,37 +726,37 @@ const modernExtendLocal = {
                 if (buf.length > 0) {
                     const enabled = buf[0];
                     const gr = buf[1];
-                    const gr_value = buf.readInt32LE(2) / 10;
-                    const gr_action = buf[6];
+                    const grValue = buf.readInt32LE(2) / 10;
+                    const grAction = buf[6];
                     const lo = buf[7];
-                    const lo_value = buf.readInt32LE(8) / 10;
-                    const lo_action = buf[13];
+                    const loValue = buf.readInt32LE(8) / 10;
+                    const loAction = buf[13];
                     result = {
                         enabled: {0x00: 'on', 0x80: 'off'}[enabled],
-                        temp_greater_then: (gr !== 0xFF) ? {0x01: 'on', 0x00: 'off'}[gr_action] : 'none',
-                        temp_greater_value: gr_value,
-                        temp_lower_then: (lo !== 0xFF) ? {0x01: 'on', 0x00: 'off'}[lo_action] : 'none',
-                        temp_lower_value: lo_value,
+                        temp_greater_then: (gr !== 0xFF) ? {0x01: 'on', 0x00: 'off'}[grAction] : 'none',
+                        temp_greater_value: grValue,
+                        temp_lower_then: (lo !== 0xFF) ? {0x01: 'on', 0x00: 'off'}[loAction] : 'none',
+                        temp_lower_value: loValue,
                     };
                 }
                 return result;
             },
-            to: (value: any) => {
+            to: (value: KeyValueAny) => {
                 let result = '';
                 if (value.enabled !== 'none') {
                     const enabled = utils.getFromLookup(value.enabled, {'on': 0x00, 'off': 0x80});
                     const gr = (value.temp_greater_then == 'none') ? 0xFF : 0x00;
-                    const gr_action = utils.getFromLookup(value.temp_greater_then, {'on': 0x01, 'off': 0x00, 'none': 0x00});
+                    const grAction = utils.getFromLookup(value.temp_greater_then, {'on': 0x01, 'off': 0x00, 'none': 0x00});
                     const lo = (value.temp_lower_then == 'none') ? 0xFF : 0x00;
-                    const lo_action = utils.getFromLookup(value.temp_lower_then, {'on': 0x01, 'off': 0x00, 'none': 0x00});
+                    const loAction = utils.getFromLookup(value.temp_lower_then, {'on': 0x01, 'off': 0x00, 'none': 0x00});
                     const buf = Buffer.alloc(13);
                     buf.writeUInt8(enabled, 0);
                     buf.writeUInt8(gr, 1);
                     buf.writeInt32LE(value.temp_greater_value*10, 2);
-                    buf.writeUInt8(gr_action, 6);
+                    buf.writeUInt8(grAction, 6);
                     buf.writeUInt8(lo, 7);
                     buf.writeInt32LE(value.temp_lower_value*10, 8);
-                    buf.writeUInt8(lo_action, 12);
+                    buf.writeUInt8(loAction, 12);
                     result = buf.toString('hex');
                 }
                 return result;
