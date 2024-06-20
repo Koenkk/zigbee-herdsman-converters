@@ -2380,6 +2380,23 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
+    livolo_hygrometer_state: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data[10];
+            switch (dp) {
+            case 14:
+                return {
+                    temperature: Number(msg.data[13]),
+                };
+            case 12:
+                return {
+                    humidity: Number(msg.data[13]),
+                };
+            }
+        },
+    } satisfies Fz.Converter,
     livolo_pir_state: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2458,6 +2475,10 @@ const converters1 = {
             [124,210,21,216,128,  225,52,225,34,0,75,18,0,  19,13,0]       after interview
             [122,209,             245,94,225,34,0,75,18,0,  7,1,7,1,1,11]  occupancy: true
             [122,209,             245,94,225,34,0,75,18,0,  7,1,7,1,0,11]  occupancy: false
+
+            hygrometer
+            [122,209,             191,22,3,24,0,75,18,0, 14,1,8,21,14,11]  temperature: 21 degrees Celcius
+            [122,209,             191,22,3,24,0,75,18,0, 12,1,9,73,12,11]  humidity: 73%
             */
             const malformedHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x00]);
             const infoHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x80]);
@@ -2505,6 +2526,11 @@ const converters1 = {
                 if (msg.data.includes(Buffer.from([19, 13, 0]), 13)) {
                     logger.debug('Detected Livolo Pir Sensor', NS);
                     meta.device.modelID = 'TI0001-pir';
+                    meta.device.save();
+                }
+                if (msg.data.includes(Buffer.from([19, 15, 0]), 13)) {
+                    logger.debug('Detected Livolo Digital Hygrometer', NS);
+                    meta.device.modelID = 'TI0001-hygrometer';
                     meta.device.save();
                 }
             }
