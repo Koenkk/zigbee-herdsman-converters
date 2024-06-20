@@ -1108,9 +1108,9 @@ const tuyaTz = {
         },
         // The response contains the value but as the data type, randomly
         // causing malformed messages
-        //convertGet: async (entity, key, meta) => {
+        // convertGet: async (entity, key, meta) => {
         //    await entity.read('lightingColorCtrl', [0xf102]);
-        //},
+        // },
     } satisfies Tz.Converter,
     color_power_on_behavior: {
         key: ['color_power_on_behavior'],
