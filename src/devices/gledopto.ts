@@ -810,7 +810,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         description: 'Zigbee 100W Floodlight RGB+CCT (pro)',
         extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true})],
-    },    
+    },
     {
         zigbeeModel: ['GL-G-001Z'],
         model: 'GL-G-001Z',
