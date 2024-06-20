@@ -4,6 +4,7 @@ import adeo from './adeo';
 import adurosmart from './adurosmart';
 import aeotec from './aeotec';
 import airam from './airam';
+import airzone_aidoo from './airzone_aidoo';
 import ajax_online from './ajax_online';
 import akuvox from './akuvox';
 import alchemy from './alchemy';
@@ -307,6 +308,7 @@ export default [
     ...adurosmart,
     ...aeotec,
     ...airam,
+    ...airzone_aidoo,
     ...ajax_online,
     ...akuvox,
     ...alchemy,

@@ -24,7 +24,7 @@ export const dataTypes = {
     bitmap: 5, // [ 1,2,4 bytes ] as bits
 };
 
-function convertBufferToNumber(chunks: Buffer | number[]) {
+export function convertBufferToNumber(chunks: Buffer | number[]) {
     let value = 0;
     for (let i = 0; i < chunks.length; i++) {
         value = value << 8;
@@ -127,7 +127,7 @@ function getDataValue(dpValue: Tuya.DpValue) {
     }
 }
 
-function convertDecimalValueTo4ByteHexArray(value: number) {
+export function convertDecimalValueTo4ByteHexArray(value: number) {
     const hexValue = Number(value).toString(16).padStart(8, '0');
     const chunk1 = hexValue.substring(0, 2);
     const chunk2 = hexValue.substring(2, 4);
@@ -1083,7 +1083,7 @@ const tuyaTz = {
             await entity.write('genOnOff', {0x8000: {value: v, type: 0x10}});
         },
     } satisfies Tz.Converter,
-    min_brightness: {
+    min_brightness_attribute: {
         key: ['min_brightness'],
         convertSet: async (entity, key, value, meta) => {
             const number = utils.toNumber(value, `min_brightness`);
@@ -1097,6 +1097,20 @@ const tuyaTz = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', [0xfc00]);
         },
+    } satisfies Tz.Converter,
+    min_brightness_command: {
+        key: ['min_brightness'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            const payload = {minimum: value};
+            await entity.command('lightingColorCtrl', 'tuyaSetMinimumBrightness', payload);
+            return {state: {min_brightness: value}};
+        },
+        // The response contains the value but as the data type, randomly
+        // causing malformed messages
+        // convertGet: async (entity, key, meta) => {
+        //    await entity.read('lightingColorCtrl', [0xf102]);
+        // },
     } satisfies Tz.Converter,
     color_power_on_behavior: {
         key: ['color_power_on_behavior'],
@@ -1362,7 +1376,7 @@ const tuyaFz = {
             }
         },
     } satisfies Fz.Converter,
-    min_brightness: {
+    min_brightness_attribute: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -1429,7 +1443,7 @@ const tuyaFz = {
 };
 export {tuyaFz as fz};
 
-function getHandlersForDP(name: string, dp: number, type: number, converter: Tuya.ValueConverterSingle,
+export function getHandlersForDP(name: string, dp: number, type: number, converter: Tuya.ValueConverterSingle,
     readOnly?: boolean, skip?: (meta: Tz.Meta) => boolean, endpoint?: string, useGlobalSequence?: boolean): [Fz.Converter[], Tz.Converter[]] {
     const keyName = (endpoint) ? `${name}_${endpoint}` : name;
     const fromZigbee: Fz.Converter[] = [{
@@ -1638,7 +1652,7 @@ const tuyaModernExtend = {
         return {exposes: [exp], fromZigbee, toZigbee, isModernExtend: true};
     },
     dpTemperature(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'temperature', type: dataTypes.number, readOnly: true, expose: e.temperature(), ...args});
+        return tuyaModernExtend.dpNumeric({name: 'temperature', type: dataTypes.number, readOnly: true, scale: 10, expose: e.temperature(), ...args});
     },
     dpHumidity(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
         return tuyaModernExtend.dpNumeric({name: 'humidity', type: dataTypes.number, readOnly: true, expose: e.humidity(), ...args});
@@ -1684,8 +1698,8 @@ const tuyaModernExtend = {
         return tuyaModernExtend.dpEnumLookup({name: 'power_on_behavior', lookup: lookup, type: dataTypes.enum,
             expose: e.power_on_behavior(Object.keys(lookup)).withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
     },
-    tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: boolean, switchType?: boolean}) {
-        args = {minBrightness: false, powerOnBehavior: false, switchType: false, ...args};
+    tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: 'none' | 'attribute' | 'command', switchType?: boolean}) {
+        args = {minBrightness: 'none', powerOnBehavior: false, switchType: false, ...args};
         if (args.colorTemp) {
             args.colorTemp = {startup: false, ...args.colorTemp};
         }
@@ -1715,10 +1729,13 @@ const tuyaModernExtend = {
             result.exposes.push(tuyaExposes.switchType());
         }
 
-        if (args.minBrightness) {
-            result.fromZigbee.push(tuyaFz.min_brightness);
-            result.toZigbee.push(tuyaTz.min_brightness);
+        if (args.minBrightness === 'attribute') {
+            result.fromZigbee.push(tuyaFz.min_brightness_attribute);
+            result.toZigbee.push(tuyaTz.min_brightness_attribute);
             result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness() : e);
+        } else if (args.minBrightness === 'command') {
+            result.toZigbee.push(tuyaTz.min_brightness_command);
+            result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness().setAccess('min_brightness', ea.STATE_SET) : e);
         }
 
         if (args.color) {
@@ -1880,6 +1897,10 @@ const tuyaModernExtend = {
         const exposes: Expose[] = [e.action(actions)];
         const fromZigbee: Fz.Converter[] = [tuyaFz.on_off_action];
         return {exposes, fromZigbee, isModernExtend: true};
+    },
+    dpChildLock(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
+        return tuyaModernExtend.dpBinary({name: 'child_lock', type: dataTypes.bool,
+            valueOn: ['LOCK', true], valueOff: ['UNLOCK', false], expose: e.child_lock(), ...args});
     },
 };
 export {tuyaModernExtend as modernExtend};
