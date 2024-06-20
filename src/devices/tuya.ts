@@ -10,7 +10,7 @@ import * as globalStore from '../lib/store';
 import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
+import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString, ModernExtend} from '../lib/types';
 import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify,
     actionEnumLookup, commandsOnOff, commandsLevelCtrl,
     electricityMeter} from '../lib/modernExtend';
@@ -684,6 +684,90 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
 };
+
+const modernExtendLocal = {
+    dpTHZBSettings(): ModernExtend {
+        const exp = e.composite('auto_settings', 'auto_settings', ea.STATE_SET)
+            .withFeature(
+                e.enum('enabled', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Enable auto settings'),
+            )
+            .withFeature(
+                e.enum('temp_greater_then', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Greater action'),
+            )
+            .withFeature(
+                e.numeric('temp_greater_value', ea.STATE_SET)
+                    .withValueMin(-20)
+                    .withValueMax(80)
+                    .withValueStep(0.1)
+                    .withUnit('*C')
+                    .withDescription('Temperature greater than value'),
+            )
+            .withFeature(
+                e.enum('temp_lower_then', ea.STATE_SET, ['on', 'off', 'none']).withDescription('Lower action'),
+            )
+            .withFeature(
+                e.numeric('temp_lower_value', ea.STATE_SET)
+                    .withValueMin(-20)
+                    .withValueMax(80)
+                    .withValueStep(0.1)
+                    .withUnit('*C')
+                    .withDescription('Temperature lower than value'),
+            );
+
+        const handlers: [Fz.Converter[], Tz.Converter[]] = tuya.getHandlersForDP('auto_settings', 0x77, tuya.dataTypes.string, {
+            from: (value: string) => {
+                let result = {
+                    enabled: 'none',
+                    temp_greater_then: 'none',
+                    temp_greater_value: 0,
+                    temp_lower_then: 'none',
+                    temp_lower_value: 0,
+                };
+                const buf = Buffer.from(value, 'hex');
+                if (buf.length > 0) {
+                    const enabled = buf[0];
+                    const gr = buf[1];
+                    const grValue = buf.readInt32LE(2) / 10;
+                    const grAction = buf[6];
+                    const lo = buf[7];
+                    const loValue = buf.readInt32LE(8) / 10;
+                    const loAction = buf[13];
+                    result = {
+                        enabled: {0x00: 'on', 0x80: 'off'}[enabled],
+                        temp_greater_then: (gr !== 0xFF) ? {0x01: 'on', 0x00: 'off'}[grAction] : 'none',
+                        temp_greater_value: grValue,
+                        temp_lower_then: (lo !== 0xFF) ? {0x01: 'on', 0x00: 'off'}[loAction] : 'none',
+                        temp_lower_value: loValue,
+                    };
+                }
+                return result;
+            },
+            to: (value: KeyValueAny) => {
+                let result = '';
+                if (value.enabled !== 'none') {
+                    const enabled = utils.getFromLookup(value.enabled, {'on': 0x00, 'off': 0x80});
+                    const gr = (value.temp_greater_then == 'none') ? 0xFF : 0x00;
+                    const grAction = utils.getFromLookup(value.temp_greater_then, {'on': 0x01, 'off': 0x00, 'none': 0x00});
+                    const lo = (value.temp_lower_then == 'none') ? 0xFF : 0x00;
+                    const loAction = utils.getFromLookup(value.temp_lower_then, {'on': 0x01, 'off': 0x00, 'none': 0x00});
+                    const buf = Buffer.alloc(13);
+                    buf.writeUInt8(enabled, 0);
+                    buf.writeUInt8(gr, 1);
+                    buf.writeInt32LE(value.temp_greater_value*10, 2);
+                    buf.writeUInt8(grAction, 6);
+                    buf.writeUInt8(lo, 7);
+                    buf.writeInt32LE(value.temp_lower_value*10, 8);
+                    buf.writeUInt8(loAction, 12);
+                    result = buf.toString('hex');
+                }
+                return result;
+            },
+        });
+
+        return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
+    },
+};
+
 
 const definitions: Definition[] = [
     {
@@ -8658,6 +8742,71 @@ const definitions: Definition[] = [
                 [8, 'valve_state', tuya.valueConverterBasic.lookup({'unknown': tuya.enum(0), 'open': tuya.enum(1), 'closed': tuya.enum(2)})],
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3218_7fiyo3kv']),
+        model: 'TYZGTH1CH-D1RF',
+        vendor: 'Mumubiz',
+        description: 'Smart switch with temperature/humidity sensor',
+        meta: {
+            tuyaSendCommand: 'sendData',
+        },
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, switchType: false}),
+            tuya.modernExtend.dpChildLock({dp: 0x6f}),
+            tuya.modernExtend.dpTemperature({dp: 0x66}),
+            tuya.modernExtend.dpHumidity({dp: 0x67}),
+            tuya.modernExtend.dpNumeric({
+                dp: 0x6c,
+                name: 'temperature_calibration',
+                type: tuya.dataTypes.number,
+                valueMin: -10,
+                valueMax: 10,
+                valueStep: 0.1,
+                unit: '°C',
+                scale: 10,
+                description: 'Temperature calibration',
+            }),
+            tuya.modernExtend.dpNumeric({
+                dp: 0x6d,
+                name: 'humidity_calibration',
+                type: tuya.dataTypes.number,
+                valueMin: -10,
+                valueMax: 10,
+                unit: '%',
+                description: 'Humidity calibration',
+            }),
+            tuya.modernExtend.dpNumeric({
+                dp: 0x71,
+                name: 'temperature_sensitivity',
+                type: tuya.dataTypes.number,
+                valueMin: 0.1,
+                valueMax: 1,
+                valueStep: 0.1,
+                unit: '°C',
+                scale: 10,
+                description: 'Temperature sensitivity',
+            }),
+            tuya.modernExtend.dpNumeric({
+                dp: 0x70,
+                name: 'humidity_sensitivity',
+                type: tuya.dataTypes.number,
+                valueMin: 1,
+                valueMax: 10,
+                unit: '%',
+                description: 'Humidity sensitivity',
+            }),
+            tuya.modernExtend.dpBinary({
+                name: 'manual_mode',
+                dp: 0x65,
+                type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Manual mode or automatic',
+            }),
+            modernExtendLocal.dpTHZBSettings(),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS000F', ['_TZ3218_ya5d6wth']),
