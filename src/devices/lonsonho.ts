@@ -112,7 +112,7 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-D02-TRIAC-LN',
         vendor: 'Lonsonho',
         description: '1 gang smart dimmer switch module with neutral',
-        extend: [tuya.modernExtend.tuyaLight({minBrightness: true})],
+        extend: [tuya.modernExtend.tuyaLight({minBrightness: 'attribute'})],
     },
     {
         fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}],
@@ -121,7 +121,7 @@ const definitions: Definition[] = [
         description: '2 gang smart dimmer switch module with neutral',
         extend: [
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            tuya.modernExtend.tuyaLight({minBrightness: true, endpointNames: ['l1', 'l2']}),
+            tuya.modernExtend.tuyaLight({minBrightness: 'attribute', endpointNames: ['l1', 'l2']}),
         ],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
