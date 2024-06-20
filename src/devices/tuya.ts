@@ -12,7 +12,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
 import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify,
-    actionEnumLookup, commandsOnOff, commandsLevelCtrl} from '../lib/modernExtend';
+    actionEnumLookup, commandsOnOff, commandsLevelCtrl,
+    electricityMeter} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
 
@@ -2587,6 +2588,17 @@ const definitions: Definition[] = [
                 await reporting.onOff(endpoint);
             }
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_bep7ccew']),
+        model: 'TS011F_2_gang_power',
+        vendor: 'Tuya',
+        description: '2 gang socket with power monitoring and USB',
+        extend: [
+            deviceEndpoints({endpoints: {left: 1, right: 2}, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']}),
+            onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2']}),
+            identify(), electricityMeter(),
+        ],
     },
     {
         zigbeeModel: ['TS0041'],
