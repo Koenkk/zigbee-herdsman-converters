@@ -1735,7 +1735,7 @@ const tuyaModernExtend = {
             result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness() : e);
         } else if (args.minBrightness === 'command') {
             result.toZigbee.push(tuyaTz.min_brightness_command);
-            result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness().setAccess('state', ea.STATE_SET) : e);
+            result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness().setAccess('min_brightness', ea.STATE_SET) : e);
         }
 
         if (args.color) {
