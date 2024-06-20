@@ -4,6 +4,7 @@ import adeo from './adeo';
 import adurosmart from './adurosmart';
 import aeotec from './aeotec';
 import airam from './airam';
+import airzone from './airzone';
 import ajax_online from './ajax_online';
 import akuvox from './akuvox';
 import alchemy from './alchemy';
