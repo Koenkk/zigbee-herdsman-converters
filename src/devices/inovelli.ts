@@ -509,13 +509,6 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
             'New behavior cycles through the levels set by P131-133. Down Always Off is like the new behavior but ' +
             'down always turns the switch off instead of going to next lower speed.',
     },
-    fanTimerMode: {
-        ID: 121,
-        dataType: Zcl.DataType.BOOLEAN,
-        displayType: 'enum',
-        values: {'Disabled': 0, 'Enabled': 1},
-        description: 'Enable or disable advanced timer mode to have the switch act like a bathroom fan timer',
-    },
     fanControlMode: {
         ID: 130,
         dataType: Zcl.DataType.UINT8,
@@ -978,6 +971,13 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
         ...COMMON_ATTRIBUTES.outputMode,
         values: {'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1},
         description: 'Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.',
+    },
+    fanTimerMode: {
+        ID: 121,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Enabled': 1},
+        description: 'Enable or disable advanced timer mode to have the switch act like a bathroom fan timer',
     },
 };
 
@@ -1748,6 +1748,21 @@ const fzLocal = {
             return msg.data;
         },
     } satisfies Fz.Converter,
+    vzm36_fan_mode: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID == 2) {
+              if (msg.data.hasOwnProperty('currentLevel')) {
+                  const mode = intToFanMode(msg.data['currentLevel'] || 1);
+                  return {
+                      fan_mode: mode,
+                  };
+              }
+            }
+            return msg.data;
+        },
+    } satisfies Fz.Converter,
     fan_state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -2378,7 +2393,7 @@ const definitions: Definition[] = [
             fz.identify,
             fzLocal.brightness,
             fzLocal.vzm36_fan_light_state,
-            fzLocal.fan_mode,
+            fzLocal.vzm36_fan_mode,
             fzLocal.breeze_mode,
             fzLocal.inovelli(VZM36_ATTRIBUTES),
         ],
