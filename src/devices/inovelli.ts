@@ -1753,12 +1753,12 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 2) {
-              if (msg.data.hasOwnProperty('currentLevel')) {
-                  const mode = intToFanMode(msg.data['currentLevel'] || 1);
-                  return {
-                      fan_mode: mode,
-                  };
-              }
+                if (msg.data.hasOwnProperty('currentLevel')) {
+                    const mode = intToFanMode(msg.data['currentLevel'] || 1);
+                    return {
+                        fan_mode: mode,
+                    };
+                }
             }
             return msg.data;
         },
