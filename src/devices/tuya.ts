@@ -8649,13 +8649,7 @@ const definitions: Definition[] = [
         vendor: 'Mumubiz',
         description: '4 channel changeover contact with temperature and humidity sensing',
         extend: [
-            tuya.modernExtend.tuyaOnOff(
-                {
-                    powerOnBehavior2: true,
-                    onOffCountdown: true,
-                    endpoints: ['l1', 'l2', 'l3', 'l4'],
-                }
-            ),
+            tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
             tuya.modernExtend.dpTemperature({dp: 102, scale: 10}),
             tuya.modernExtend.dpHumidity({dp: 103}),
         ],
