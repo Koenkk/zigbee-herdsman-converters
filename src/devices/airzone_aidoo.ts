@@ -41,4 +41,5 @@ const definition: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definition;
