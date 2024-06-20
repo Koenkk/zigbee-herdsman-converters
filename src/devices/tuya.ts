@@ -12,7 +12,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString, ModernExtend} from '../lib/types';
 import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify,
-    actionEnumLookup, commandsOnOff, commandsLevelCtrl} from '../lib/modernExtend';
+    actionEnumLookup, commandsOnOff, commandsLevelCtrl,
+    electricityMeter} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
 
@@ -2356,14 +2357,17 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_gbagoilo']),
         model: 'MG-ZG01W',
         vendor: 'Tuya',
-        description: '1 gang switch',
-        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET)],
+        description: '1 gang switch with power meter',
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), e.voltage(), e.current(), e.power()],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff],
+                [21, 'current', tuya.valueConverter.divideBy1000],
+                [22, 'power', tuya.valueConverter.divideBy10],
+                [23, 'voltage', tuya.valueConverter.divideBy10],
             ],
         },
         endpoint: (device) => {
@@ -2668,6 +2672,17 @@ const definitions: Definition[] = [
                 await reporting.onOff(endpoint);
             }
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_bep7ccew']),
+        model: 'TS011F_2_gang_power',
+        vendor: 'Tuya',
+        description: '2 gang socket with power monitoring and USB',
+        extend: [
+            deviceEndpoints({endpoints: {left: 1, right: 2}, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']}),
+            onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2']}),
+            identify(), electricityMeter(),
+        ],
     },
     {
         zigbeeModel: ['TS0041'],
@@ -6078,7 +6093,8 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS1201', ['_TZ3290_7v1k4vufotpowp9z', '_TZ3290_rlkmy85q4pzoxobl', '_TZ3290_lypnqvlem5eq1ree']),
+        fingerprint: tuya.fingerprint('TS1201', ['_TZ3290_7v1k4vufotpowp9z', '_TZ3290_rlkmy85q4pzoxobl',
+            '_TZ3290_jxvzqatwgsaqzx1u', '_TZ3290_lypnqvlem5eq1ree']),
         model: 'ZS06',
         vendor: 'Tuya',
         description: 'Universal smart IR remote control',
@@ -8573,14 +8589,17 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_l6llgoxq']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_l6llgoxq', '_TZE204_kobbcyum']),
         model: 'EA4161C-BI',
         vendor: 'Tuya',
         description: 'Single-phase multifunction energy meter (DIN Module)',
         fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        whiteLabel: [{vendor: 'XOCA', model: 'DAC4121C'}],
+        whiteLabel: [
+            {vendor: 'XOCA', model: 'DAC4121C'},
+            tuya.whitelabel('Tongou', 'TOWSMR1', 'Single-phase multifunction energy meter (DIN Module)', ['_TZE204_kobbcyum']),
+        ],
         exposes: [e.current(), e.power(), e.voltage(), e.energy(), e.text('meter_id', ea.STATE).withDescription('Meter ID (ID of device)')],
         meta: {
             tuyaDatapoints: [
@@ -8788,6 +8807,28 @@ const definitions: Definition[] = [
             }),
             modernExtendLocal.dpTHZBSettings(),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3218_ya5d6wth']),
+        model: 'TYZGTH4CH-D1RF',
+        vendor: 'Mumubiz',
+        description: '4 channel changeover contact with temperature and humidity sensing',
+        extend: [
+            tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
+            tuya.modernExtend.dpTemperature({dp: 102, scale: 10}),
+            tuya.modernExtend.dpHumidity({dp: 103}),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        exposes: [],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2, 3, 4]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
+            }
+        },
     },
 ];
 
