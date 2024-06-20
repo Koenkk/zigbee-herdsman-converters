@@ -18,10 +18,12 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.currentSummReceived(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 5, max: 3600, change: 0});
+            await reporting.currentSummReceived(endpoint, {min: 5, max: 3600, change: 0});
             await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
                 acPowerMultiplier: 1, acPowerDivisor: 1});
+            await endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
         },
     },
     {
@@ -42,10 +44,12 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.currentSummReceived(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 5, max: 3600, change: 0});
+            await reporting.currentSummReceived(endpoint, {min: 5, max: 3600, change: 0});
             await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
                 acPowerMultiplier: 1, acPowerDivisor: 1});
+            await endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
         },
     },
 ];
