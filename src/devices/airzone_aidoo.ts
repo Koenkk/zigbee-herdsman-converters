@@ -6,7 +6,7 @@ import * as reporting from '../lib/reporting';
 
 const e = exposes.presets;
 
-const definition: Definition[] = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['Aidoo Zigbee'],
         model: 'AZAI6ZBEMHI',
@@ -42,4 +42,4 @@ const definition: Definition[] = [
 ];
 
 export default definitions;
-module.exports = definition;
+module.exports = definitions;
