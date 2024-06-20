@@ -8644,6 +8644,28 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3218_ya5d6wth']),
+        model: 'TYZGTH4CH-D1RF',
+        vendor: 'Mumubiz',
+        description: '4 channel changeover contact with temperature and humidity sensing',
+        extend: [
+            tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
+            tuya.modernExtend.dpTemperature({dp: 102, scale: 10}),
+            tuya.modernExtend.dpHumidity({dp: 103}),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        exposes: [],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2, 3, 4]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
+            }
+        },
+    },
 ];
 
 export default definitions;
