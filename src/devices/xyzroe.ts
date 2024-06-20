@@ -133,6 +133,24 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    ZigDC_interval: {
+        key: ['interval'],
+        convertSet: async (entity, key, value, meta) => {
+            const epId = 2;
+            const endpoint = meta.device.getEndpoint(epId);
+            const value2 = parseInt(value);
+    
+            if (!isNaN(value2) && value2 > 0) {
+                await endpoint.configureReporting('genOnOff', [{
+                    attribute: 'onOff',
+                    minimumReportInterval: value2,
+                    maximumReportInterval: value2,
+                    reportableChange: 0,
+                }]);
+            }
+            return;
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -222,6 +240,47 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    ZigDC_ina3221: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            const endpoint = msg.endpoint.ID;
+            if (endpoint == 3 || endpoint == 5) {
+                const parts = msg.data.description.split(',');
+                const numbers = parts[1].split('-');
+                const param = parts[0];
+                const addr = parseInt(numbers[0], 10);
+                const ch = parseInt(numbers[1], 10);
+                const isCurrent = param === "A";
+                const name = isCurrent ? 'current' : 'voltage';
+                const alt = isCurrent ? 'voltage' : 'current';
+                const baseCh = (addr === 41) ? 1 : 4;
+                const suffix = `_ch${baseCh + ch - 1}`;
+                const otherKey = alt + suffix;
+                const otherValue = meta.state[otherKey];
+                const value = msg.data['presentValue'] * (isCurrent ? 30 : 1);
+                const power = value * otherValue;
+                payload[`power${suffix}`] = power;
+                payload[`${name}${suffix}`] = value;
+                return payload;
+            }
+        },
+    } satisfies Fz.Converter,
+    ZigDC_uptime: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            const channel = msg.endpoint.ID;
+            if (channel == 1) {
+                const name = 'uptime';
+                payload[name] = msg.data['presentValue'];
+                return payload;
+            }
+            return;
+        },
+    } satisfies Fz.Converter,
 };
 
 
@@ -267,7 +326,54 @@ const definitions: Definition[] = [
             await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
         },
     },
-
+    {
+        zigbeeModel: ['ZigDC'],
+        model: 'ZigDC',
+        vendor: 'xyzroe',
+        description: 'ZigDC',
+        fromZigbee: [fz.ignore_basic_report, fz.temperature, fz.humidity, fzLocal.ZigDC_ina3221, fzLocal.ZigDC_uptime], // fz.ptvo_on_off_config, 
+        toZigbee: [tzLocal.ZigDC_interval], //tz.ptvo_on_off_config, 
+        exposes: [
+            e.current().withAccess(ea.STATE).withEndpoint('ch1'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch1'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch1'),
+            e.current().withAccess(ea.STATE).withEndpoint('ch2'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch2'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch2'),
+            e.current().withAccess(ea.STATE).withEndpoint('ch3'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch3'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch3'),
+            e.current().withAccess(ea.STATE).withEndpoint('ch4'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch4'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch4'),
+            e.current().withAccess(ea.STATE).withEndpoint('ch5'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch5'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch5'),
+            e.current().withAccess(ea.STATE).withEndpoint('ch6'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch6'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch6'),
+            e.temperature().withEndpoint('l6'),
+            e.humidity().withEndpoint('l6'),
+            e.action(['single', 'double', 'triple', 'hold', 'release']),
+            e.cpu_temperature().withProperty('temperature').withEndpoint('l2'),
+            ...ptvo_on_off_config_exposes('l7', 'IN1'),
+            ...ptvo_on_off_config_exposes('l8', 'IN2'),
+            ...ptvo_on_off_config_exposes('l1', 'BTN'),
+            exposes.numeric('uptime', ea.STATE).withDescription('Uptime').withUnit('sec'),
+            exposes.numeric('interval', ea.SET).withDescription('Reporting interval').withUnit('sec'),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l5: 5, l6: 6, l7: 7, l8: 8};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
+            const endpoint2 = device.getEndpoint(2);
+            await endpoint2.configureReporting('genOnOff', [
+                { attribute: 'onOff', minimumReportInterval: 20, maximumReportInterval: 120 }]);
+        },
+    },
 ];
 
 export default definitions;
