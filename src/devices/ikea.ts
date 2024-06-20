@@ -214,10 +214,11 @@ const definitions: Definition[] = [
         zigbeeModel: [
             'TRADFRI bulb E27 WS globe 1055lm',
             'TRADFRI bulb E26 WS globe 1055lm',
+            'TRADFRI bulb E26 WS globe 1100lm',
         ],
         model: 'LED2201G8',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/27, white spectrum, globe, opal, 1055 lm',
+        description: 'TRADFRI bulb E26/27, white spectrum, globe, opal, 1055/1100 lm',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {

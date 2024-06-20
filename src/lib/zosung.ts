@@ -123,7 +123,7 @@ export const fzZosung = {
     } satisfies Fz.Converter,
     zosung_send_ir_code_03: {
         cluster: 'zosungIRTransmit',
-        type: ['zosungSendIRCode03Resp'],
+        type: ['commandZosungSendIRCode03Resp'],
         convert: async (model, msg, publish, options, meta) => {
             logger.debug(`"IR-Message-Code03" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
@@ -163,7 +163,7 @@ export const fzZosung = {
     } satisfies Fz.Converter,
     zosung_send_ir_code_05: {
         cluster: 'zosungIRTransmit',
-        type: ['zosungSendIRCode05Resp'],
+        type: ['commandZosungSendIRCode05Resp'],
         convert: async (model, msg, publish, options, meta) => {
             logger.debug(`"IR-Message-Code05" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
