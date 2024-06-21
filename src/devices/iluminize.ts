@@ -173,13 +173,13 @@ const definitions: Definition[] = [
         vendor: 'Iluminize',
         description: 'Zigbee handheld remote RGBW 4 channels',
         extend: [
-            deviceEndpoints({"endpoints":{"ep1":1,"ep2":2,"ep3":3,"ep4":4}}),
+            deviceEndpoints({endpoints: {'ep1': 1, 'ep2': 2, 'ep3': 3, 'ep4': 4}}),
             battery(),
             identify(),
             commandsOnOff(),
             commandsLevelCtrl(),
             commandsColorCtrl(),
-            commandsScenes()
+            commandsScenes(),
         ],
         meta: {multiEndpoint: true},
     },
