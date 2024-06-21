@@ -3,7 +3,17 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
-import {light, onOff} from '../lib/modernExtend';
+import {
+    deviceEndpoints,
+    light, 
+    onOff,
+    battery,
+    identify,
+    commandsOnOff,
+    commandsLevelCtrl,
+    commandsColorCtrl,
+    commandsScenes,
+} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -162,27 +172,16 @@ const definitions: Definition[] = [
         model: '511.344',
         vendor: 'Iluminize',
         description: 'Zigbee handheld remote RGBW 4 channels',
-        fromZigbee: [fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
-            fz.command_step, fz.command_recall, fz.command_on, fz.command_off],
-        exposes: [e.battery(), e.action([
-            'color_move', 'color_temperature_move', 'hue_move', 'hue_stop', 'brightness_step_up', 'brightness_step_down',
-            'recall_*', 'on', 'off']),
-        e.composite('action_color', 'action_color', ea.STATE)
-            .withFeature(e.numeric('x', ea.STATE))
-            .withFeature(e.numeric('y', ea.STATE))
-            .withDescription('Only shows the transmitted color in X7Y-Mode. Noch changes possible.'),
-        e.numeric('action_color_temperature', ea.STATE).withUnit('mired')
-            .withDescription('color temperature value. Fixed values for each key press: 145, 175, 222, 304, 480 mired'),
-        e.numeric('action_group', ea.STATE)
-            .withDescription('Shows the zigbee2mqtt group bound to the active data point EP(1-4).'),
-        e.numeric('action_transition_time', ea.STATE),
-        e.numeric('action_step_size', ea.STATE),
-        e.numeric('action_rate', ea.STATE)],
-        toZigbee: [],
+        extend: [
+            deviceEndpoints({"endpoints":{"ep1":1,"ep2":2,"ep3":3,"ep4":4}}),
+            battery(),
+            identify(),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            commandsColorCtrl(),
+            commandsScenes()
+        ],
         meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
-        },
     },
     {
         zigbeeModel: ['511.324'],
