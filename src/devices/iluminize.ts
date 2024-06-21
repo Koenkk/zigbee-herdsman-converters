@@ -5,7 +5,7 @@ import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
 import {
     deviceEndpoints,
-    light, 
+    light,
     onOff,
     battery,
     identify,
