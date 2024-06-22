@@ -437,6 +437,7 @@ const definitions: Definition[] = [
             'TRADFRIbulbGU10WS345lm',
             'TRADFRI bulb GU10 WS 345lm',
             'TRADFRIbulbGU10WS380lm',
+            'TRADFRI bulb GU10 WS 380lm',
         ],
         model: 'LED2005R5/LED2106R3',
         vendor: 'IKEA',
