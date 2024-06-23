@@ -1745,15 +1745,6 @@ const definitions: Definition[] = [
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
         description: 'Light/shutter control unit II',
-        fromZigbee: [
-            fz.on_off,
-            fz.power_on_behavior,
-            fz.cover_position_tilt,
-        ],
-        toZigbee: [
-            tz.power_on_behavior,
-            tz.cover_position_tilt,
-        ],
         extend: [
             deviceEndpoints({endpoints: {'left': 2, 'right': 3}}),
             deviceAddCustomCluster(
