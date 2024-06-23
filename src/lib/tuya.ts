@@ -350,7 +350,7 @@ const tuyaExposes = {
     batteryState: () => e.enum('battery_state', ea.STATE, ['low', 'medium', 'high']).withDescription('State of the battery'),
     doNotDisturb: () => e.binary('do_not_disturb', ea.STATE_SET, true, false)
         .withDescription('Do not disturb mode, when enabled this function will keep the light OFF after a power outage'),
-    colorPowerOnBehavior: () => e.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
+    colorPowerOnBehavior: () => e.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'customized'])
         .withDescription('Power on behavior state'),
     switchMode: () => e.enum('switch_mode', ea.STATE_SET, ['switch', 'scene'])
         .withDescription('Sets the mode of the switch to act as a switch or as a scene'),
@@ -1115,7 +1115,7 @@ const tuyaTz = {
     color_power_on_behavior: {
         key: ['color_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
-            const v = utils.getFromLookup(value, {'initial': 0, 'previous': 1, 'cutomized': 2});
+            const v = utils.getFromLookup(value, {'initial': 0, 'previous': 1, 'customized': 2});
             await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {mode: v*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
             return {state: {color_power_on_behavior: value}};
         },
