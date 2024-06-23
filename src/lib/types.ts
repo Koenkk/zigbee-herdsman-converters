@@ -160,6 +160,10 @@ export interface DefinitionMeta {
      * @defaultValue false
      */
     coverPositionTiltDisableReport?: boolean,
+    /**
+     * Override the Home Assistant discovery payload.
+     */
+    overrideHaConfig?: { [s: string]: string | Array<string> },
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
