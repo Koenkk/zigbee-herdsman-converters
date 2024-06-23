@@ -1,5 +1,14 @@
 # Changelog
 
+## [19.59.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.59.0...v19.59.1) (2024-06-23)
+
+
+### Bug Fixes
+
+* Add 4512727 as whitelabel to EnOcean PTM 215Z ([#7675](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7675)) ([3ed341f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3ed341f56d9503312d52b78f5f444bac145aef69))
+* Fix 'customized' spelling for Tuya `color_power_on_behavior` ([#7673](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7673)) ([daa6b98](https://github.com/Koenkk/zigbee-herdsman-converters/commit/daa6b98bc72d6785e1ff4ac4a4763e03e29ee3a5))
+* Omit battery_low for Tuya TS0203  models that don't have it ([#7677](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7677)) ([cbaa6f4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cbaa6f45dcb61822ed7a44493ec304b386aaf08a))
+
 ## [19.59.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.58.0...v19.59.0) (2024-06-22)
 
 
