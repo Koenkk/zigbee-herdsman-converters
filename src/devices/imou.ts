@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import {battery, forceDeviceType, iasWarning, iasZoneAlarm} from '../lib/modernExtend';
+import {battery, forceDeviceType, iasWarning, iasZoneAlarm, identify} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -23,6 +23,17 @@ const definitions: Definition[] = [
             iasZoneAlarm({zoneType: 'alarm', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
         ],
         meta: {disableDefaultResponse: true},
+    },
+    {
+        zigbeeModel: ['ZD1-EN'],
+        model: 'ZD1-EN',
+        vendor: 'IMOU',
+        description: 'Door & window sensor',
+        extend: [
+            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            identify({isSleepy: true}),
+            battery(),
+        ],
     },
 ];
 
