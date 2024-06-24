@@ -8845,6 +8845,45 @@ const definitions: Definition[] = [
             }
         },
     },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS011F',
+                manufacturerName: '_TZ3000_xeumnff9',
+            },
+        ],
+        model: 'ZMO-606-P2',
+        vendor: 'Zemismart',
+        description: 'Zemismart Smart 2 Poles Outlet (20A + 10A)',
+        extend: [deviceEndpoints({"endpoints":{"1":1,"2":2}}), identify(), onOff({"powerOnBehavior":false,"endpointNames":["1","2"]})],
+        meta: {"multiEndpoint":true},
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0003',
+                manufacturerName: '_TZ3000_aknpkt02',
+            },
+        ],
+        model: 'ZMO-606-S2',
+        vendor: 'Zemismart',
+        description: 'Zemismart Smart 2 Gangs Switch with Outlet',
+        extend: [deviceEndpoints({"endpoints":{"1":1,"2":2,"3":3}}), identify(), onOff({"powerOnBehavior":false,"endpointNames":["1","2","3"]})],
+        meta: {"multiEndpoint":true},
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS011F',
+                manufacturerName: '_TZ3000_b1q8kwmh',
+            },
+        ],
+        model: 'ZMO-606-20A',
+        vendor: 'Zemismart',
+        description: 'Zemismart Smart 20A Outlet',
+        extend: [identify(), onOff({"powerOnBehavior":false})],
+        meta: {},
+    },
 ];
 
 export default definitions;
