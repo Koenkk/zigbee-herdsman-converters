@@ -8855,7 +8855,11 @@ const definitions: Definition[] = [
         model: 'ZMO-606-P2',
         vendor: 'Zemismart',
         description: 'Zemismart Smart 2 Poles Outlet (20A + 10A)',
-        extend: [deviceEndpoints({'endpoints': {'1': 1, '2': 2}}), identify(), onOff({'powerOnBehavior': false, 'endpointNames': ['1', '2']})],
+        extend: [
+            deviceEndpoints({'endpoints': {'1': 1, '2': 2}}),
+            identify(), 
+            tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true, endpoints: ['1', '2']}),
+        ],
         meta: {'multiEndpoint': true},
     },
     {
@@ -8871,7 +8875,7 @@ const definitions: Definition[] = [
         extend: [
             deviceEndpoints({'endpoints': {'1': 1, '2': 2, '3': 3}}),
             identify(),
-            onOff({'powerOnBehavior': false, 'endpointNames': ['1', '2', '3']}),
+            tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, endpoints: ['1', '2', '3']}),
         ],
         meta: {'multiEndpoint': true},
     },
@@ -8885,7 +8889,7 @@ const definitions: Definition[] = [
         model: 'ZMO-606-20A',
         vendor: 'Zemismart',
         description: 'Zemismart Smart 20A Outlet',
-        extend: [identify(), onOff({'powerOnBehavior': false})],
+        extend: [identify(), tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true})],
         meta: {},
     },
 ];
