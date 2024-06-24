@@ -1,7 +1,8 @@
 import {
     identify, light, onOff, quirkCheckinInterval,
     deviceAddCustomCluster, binary, numeric, enumLookup,
-    battery, humidity, iasZoneAlarm, bindCluster, ota,
+    battery, humidity, iasZoneAlarm, bindCluster,
+    ota, deviceEndpoints,
 } from '../lib/modernExtend';
 import {Zcl, ZSpec} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
@@ -718,7 +719,7 @@ const boschExtend = {
             'OFF': 0x00,
             'ON': 0x01,
         };
-        const fromZigbee: Fz.Converter[] = [{
+        const fromZigbee: Fz.Converter[] = [fz.on_off, fz.power_on_behavior, fz.cover_position_tilt, {
             cluster: 'boschSpecific',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
@@ -757,7 +758,7 @@ const boschExtend = {
                 return result;
             },
         }];
-        const toZigbee: Tz.Converter[] = [{
+        const toZigbee: Tz.Converter[] = [tz.power_on_behavior, tz.cover_position_tilt, {
             key: [
                 'device_mode',
                 'switch_type',
@@ -841,7 +842,7 @@ const boschExtend = {
                 if (key === 'calibration_button_hold_time') {
                     const number = utils.toNumber(value, 'calibration_button_hold_time');
                     const index = number * 10;
-                    await entity.write('boschSpecific', {calibrationShutterButtonHoldTime: index});
+                    await entity.write('boschSpecific', {calibrationButtonHoldTime: index});
                     return {state: {calibration_button_hold_time: number}};
                 }
                 if (key === 'calibration_motor_start_delay') {
@@ -860,7 +861,7 @@ const boschExtend = {
                     await entity.read('boschSpecific', ['calibrationClosingTime']);
                     break;
                 case 'calibration_button_hold_time':
-                    await entity.read('boschSpecific', ['calibrationShutterButtonHoldTime']);
+                    await entity.read('boschSpecific', ['calibrationButtonHoldTime']);
                     break;
                 case 'calibration_motor_start_delay':
                     await entity.read('boschSpecific', ['calibrationMotorStartDelay']);
@@ -1744,22 +1745,8 @@ const definitions: Definition[] = [
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
         description: 'Light/shutter control unit II',
-        fromZigbee: [
-            fz.on_off,
-            fz.power_on_behavior,
-            fz.cover_position_tilt,
-        ],
-        toZigbee: [
-            tz.power_on_behavior,
-            tz.cover_position_tilt,
-        ],
-        meta: {
-            multiEndpoint: true,
-        },
-        endpoint: (device) => {
-            return {'left': 2, 'right': 3};
-        },
         extend: [
+            deviceEndpoints({endpoints: {'left': 2, 'right': 3}}),
             deviceAddCustomCluster(
                 'boschSpecific',
                 {
@@ -1835,8 +1822,8 @@ const definitions: Definition[] = [
             const lightExposes = [
                 e.switch().withEndpoint('left'),
                 e.switch().withEndpoint('right'),
-                e.power_on_behavior().withEndpoint('right'),
                 e.power_on_behavior().withEndpoint('left'),
+                e.power_on_behavior().withEndpoint('right'),
                 e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left')
                     .withDescription('Enable/Disable child lock'),
                 e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
@@ -1910,6 +1897,19 @@ const definitions: Definition[] = [
             e.text('config_led_bottom_right_longpress', ea.ALL).withLabel('LED config (bottom right long press)')
                 .withDescription(labelLongPress)
                 .withCategory('config'),
+            e.action([
+                'button_top_left_release',
+                'button_top_right_release',
+                'button_bottom_left_release',
+                'button_bottom_right_release',
+                'button_top_left_longpress',
+                'button_top_right_longpress',
+                'button_bottom_left_longpress',
+                'button_bottom_right_longpress',
+                'button_top_left_longpress_release',
+                'button_top_right_longpress_release',
+                'button_bottom_left_longpress_release',
+                'button_bottom_right_longpress_release']),
         ],
         extend: [
             deviceAddCustomCluster(

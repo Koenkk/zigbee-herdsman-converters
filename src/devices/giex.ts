@@ -67,6 +67,7 @@ const definitions: Definition[] = [
         model: 'QT06_2',
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_a7sghmms'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_7ytb3h8u'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_7ytb3h8u'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_4fblxpma'},
