@@ -834,7 +834,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('QA', 'QASD1', 'Door sensor', ['_TZ3000_udyjylt7']),
         ],
         exposes: (device, options) => {
-            const exps: Expose[] = [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()];
+            const exps: Expose[] = [e.contact(), e.battery(), e.battery_voltage()];
             const noTamperModels = [ // manufacturerName for models without a tamper sensor
                 '_TZ3000_2mbfxlzr', // Tuya MC500A
                 '_TZ3000_n2egfsli', // Tuya 19DZT
@@ -845,6 +845,14 @@ const definitions: Definition[] = [
             ];
             if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
+            }
+            const noBatteryLowModels = [
+                '_TZ3000_26fmupbb',
+                '_TZ3000_oxslv1c9',
+                '_TZ3000_osu834un',
+            ];
+            if (!device || !noBatteryLowModels.includes(device.manufacturerName)) {
+                exps.push(e.battery_low());
             }
             exps.push(e.linkquality());
             return exps;

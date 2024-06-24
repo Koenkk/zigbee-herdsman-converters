@@ -122,9 +122,10 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_uab532m0']),
         zigbeeModel: ['NAS-WV03B'],
         model: 'NAS-WV03B',
-        vendor: 'NEO',
+        vendor: 'Neo',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         description: 'Smart sprinkler timer',
