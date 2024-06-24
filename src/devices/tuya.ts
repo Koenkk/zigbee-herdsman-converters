@@ -8855,8 +8855,8 @@ const definitions: Definition[] = [
         model: 'ZMO-606-P2',
         vendor: 'Zemismart',
         description: 'Zemismart Smart 2 Poles Outlet (20A + 10A)',
-        extend: [deviceEndpoints({'endpoints': {'1': 1,'2': 2}}), identify(), onOff({'powerOnBehavior': false,'endpointNames': ['1','2']})],
-        meta: {'multiEndpoint':true},
+        extend: [deviceEndpoints({'endpoints': {'1': 1, '2': 2}}), identify(), onOff({'powerOnBehavior': false, 'endpointNames': ['1', '2']})],
+        meta: {'multiEndpoint': true},
     },
     {
         fingerprint: [
@@ -8868,8 +8868,8 @@ const definitions: Definition[] = [
         model: 'ZMO-606-S2',
         vendor: 'Zemismart',
         description: 'Zemismart Smart 2 Gangs Switch with Outlet',
-        extend: [deviceEndpoints({'endpoints': {'1': 1,'2': 2,'3': 3}}), identify(), onOff({'powerOnBehavior': false,'endpointNames': ['1','2','3']})],
-        meta: {'multiEndpoint':true},
+        extend: [deviceEndpoints({'endpoints': {'1': 1, '2': 2, '3': 3}}), identify(), onOff({'powerOnBehavior': false, 'endpointNames': ['1', '2', '3']})],
+        meta: {'multiEndpoint': true},
     },
     {
         fingerprint: [
