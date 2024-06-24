@@ -1897,6 +1897,19 @@ const definitions: Definition[] = [
             e.text('config_led_bottom_right_longpress', ea.ALL).withLabel('LED config (bottom right long press)')
                 .withDescription(labelLongPress)
                 .withCategory('config'),
+            e.action([
+                'button_top_left_release',
+                'button_top_right_release',
+                'button_bottom_left_release',
+                'button_bottom_right_release',
+                'button_top_left_longpress',
+                'button_top_right_longpress',
+                'button_bottom_left_longpress',
+                'button_bottom_right_longpress',
+                'button_top_left_longpress_release',
+                'button_top_right_longpress_release',
+                'button_bottom_left_longpress_release',
+                'button_bottom_right_longpress_release']),
         ],
         extend: [
             deviceAddCustomCluster(
