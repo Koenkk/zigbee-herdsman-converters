@@ -9,8 +9,8 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const buttonModesList = {
-    'single click': 0x01,
-    'multi click': 0x02,
+    'single_click': 0x01,
+    'multi_click': 0x02,
 };
 
 const inputLinkList = {
@@ -35,9 +35,9 @@ const bindCommandList = {
 
 const switchTypesList = {
     'switch': 0x00,
-    'single click': 0x01,
-    'multi-click': 0x02,
-    'reset to defaults': 0xff,
+    'single_click': 0x01,
+    'multi_click': 0x02,
+    'reset_to_defaults': 0xff,
 };
 
 const switchActionsList = {
@@ -66,11 +66,6 @@ function getSortedList(source: { [key: string]: number }): string[] {
 
     return result;
 }
-
-const getKey = (object: { [key: string]: number }, value: number) => {
-    return Object.keys(object).find((key) => object[key] === value);
-};
-
 
 function zigDcInputConfigExposes(epName: string, desc: string) {
     const features = [];
@@ -340,13 +335,13 @@ const fzLocal = {
         cluster: 'genOnOffSwitchCfg',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            const channel = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const channel = utils.getKey(model.endpoint(msg.device), msg.endpoint.ID);
             const {switchActions, switchType} = msg.data;
             const bindCommand = msg.data[0x4002];
             return {
-                [`switch_type_${channel}`]: getKey(switchTypesList, switchType),
-                [`switch_actions_${channel}`]: getKey(switchActionsList, switchActions),
-                [`bind_command_${channel}`]: getKey(bindCommandList, bindCommand),
+                [`switch_type_${channel}`]: utils.getKey(switchTypesList, switchType),
+                [`switch_actions_${channel}`]: utils.getKey(switchActionsList, switchActions),
+                [`bind_command_${channel}`]: utils.getKey(bindCommandList, bindCommand),
             };
         },
     } satisfies Fz.Converter,
