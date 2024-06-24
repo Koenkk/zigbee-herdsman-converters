@@ -6,7 +6,8 @@ import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
 import * as tuya from '../lib/tuya';
-import {forcePowerSource, light, onOff} from '../lib/modernExtend';
+import {forcePowerSource, light, onOff, identify, deviceEndpoints} from '../lib/modernExtend';
+
 
 const ea = exposes.access;
 
@@ -278,6 +279,35 @@ const definitions: Definition[] = [
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_xeumnff9']),
+        model: 'ZMO-606-P2',
+        vendor: 'Zemismart',
+        description: 'Smart 2 poles outlet (20A + 10A)',
+        extend: [
+            deviceEndpoints({'endpoints': {'l1': 1, 'l2': 2}}),
+            identify(),
+            tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true, endpoints: ['l1', 'l2']}),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_aknpkt02']),
+        model: 'ZMO-606-S2',
+        vendor: 'Zemismart',
+        description: 'Smart 2 gangs switch with outlet',
+        extend: [
+            deviceEndpoints({'endpoints': {'l1': 1, 'l2': 2, 'l3': 3}}),
+            identify(),
+            tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3']}),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_b1q8kwmh']),
+        model: 'ZMO-606-20A',
+        vendor: 'Zemismart',
+        description: 'Smart 20A outlet',
+        extend: [identify(), tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true})],
     },
 ];
 
