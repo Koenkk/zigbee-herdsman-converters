@@ -8857,7 +8857,7 @@ const definitions: Definition[] = [
         description: 'Zemismart Smart 2 Poles Outlet (20A + 10A)',
         extend: [
             deviceEndpoints({'endpoints': {'1': 1, '2': 2}}),
-            identify(), 
+            identify(),
             tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true, endpoints: ['1', '2']}),
         ],
         meta: {'multiEndpoint': true},
