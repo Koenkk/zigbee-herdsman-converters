@@ -1002,7 +1002,6 @@ const definitions: Definition[] = [
             (await Promise.allSettled(unsuscribe.map((e) => endpoint.configureReporting(e.cluster.name, reporting.payload(e.attribute.name, e.minimumReportInterval, 65535, e.reportableChange), {manufacturerCode: null}))))
                 .filter((e) => e.status == 'rejected')
                 .forEach((e) => {
-                    // @ts-expect-error
                     throw e.reason;
                 });
 
@@ -1027,7 +1026,6 @@ const definitions: Definition[] = [
             (await Promise.allSettled(configReportings))
                 .filter((e) => e.status == 'rejected')
                 .forEach((e) => {
-                    // @ts-expect-error
                     throw e.reason;
                 });
         },
