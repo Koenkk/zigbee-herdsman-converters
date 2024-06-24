@@ -1,5 +1,17 @@
 # Changelog
 
+## [19.59.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.59.1...v19.59.2) (2024-06-24)
+
+
+### Bug Fixes
+
+* BHI-US: Add missing expose of button actions ([#7679](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7679)) ([15ac786](https://github.com/Koenkk/zigbee-herdsman-converters/commit/15ac7861bd31e53c3b9803100f2b455a9213f320))
+* **detect:** Detect `_TZ3000_okaz9tjs` as Elivco LSPA9 ([#7684](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7684)) ([30de4a9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30de4a923d58380cf92b8832a1d23324a0a5aa04))
+* **detect:** Detect `_TZE204_a7sghmms` as Giex QT06_2 ([#7680](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7680)) ([c8622be](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c8622becf0662a57244134396eacd808cede7b1a))
+* **detect:** Detect `_TZE204_rzrrjkz2` as Neo NAS-WV03B ([#7688](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7688)) ([6b609b8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6b609b8d13632ba1c1bfeee5e3b85c83f2f74983))
+* Improve Third Reality 3RSS009Z battery % calculation ([#7682](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7682)) ([483befe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/483befe2e4dc2d5c64ea638716cd96e5da789648))
+* Minor `modernExtend` updates for Bosch BMCT-SLZ ([#7654](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7654)) ([f65c5b5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f65c5b5d5e2a65ff1db1a65df284362d058e709b))
+
 ## [19.59.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.59.0...v19.59.1) (2024-06-23)
 
 
