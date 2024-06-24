@@ -8869,7 +8869,9 @@ const definitions: Definition[] = [
         vendor: 'Zemismart',
         description: 'Zemismart Smart 2 Gangs Switch with Outlet',
         extend: [
-            deviceEndpoints({'endpoints': {'1': 1, '2': 2, '3': 3}}), identify(), onOff({'powerOnBehavior': false, 'endpointNames': ['1', '2', '3']})
+            deviceEndpoints({'endpoints': {'1': 1, '2': 2, '3': 3}}),
+            identify(),
+            onOff({'powerOnBehavior': false, 'endpointNames': ['1', '2', '3']}),
         ],
         meta: {'multiEndpoint': true},
     },
