@@ -3025,7 +3025,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_aaifmpuq', '_TZ3000_irrmjcgi']),
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_aaifmpuq', '_TZ3000_irrmjcgi', '_TZ3000_huvxrx4i']),
         model: 'TS0002_power',
         vendor: 'Tuya',
         description: '2 gang switch with power monitoring',
