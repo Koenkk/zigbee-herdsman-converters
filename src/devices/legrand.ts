@@ -62,14 +62,23 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'BTicino', model: 'FC80CC'}],
         extend: [onOff(), electricityMeter({cluster: 'electrical'})],
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tzLegrand.auto_mode],
+        fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta, fz.electrical_measurement],
+        toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tzLegrand.auto_mode, tz.electrical_measurement_power],
         exposes: [
+            e.power(),
             e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('Switch: allow manual on/off, auto uses contact\'s C1/C2 wired actions for Peak/Off-Peak electricity rates'),
             e.enum('auto_mode', ea.STATE_SET, ['off', 'auto', 'on_override'])
                 .withDescription('Off/auto/on (override) (works only if device is set to "auto" mode)'),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.onOff(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            await endpoint.read('haElectricalMeasurement', ['activePower']);
+        },
     },
     {
         zigbeeModel: [' Teleruptor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
