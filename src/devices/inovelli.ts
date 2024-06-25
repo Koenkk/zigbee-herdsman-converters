@@ -1028,6 +1028,18 @@ const VZM36_ATTRIBUTES : {[s: string]: Attribute} = {
         max: 254,
         description: 'Level of power output during Quick Start Light time (P23).',
     },
+    leadingTrailingEdge: {
+        ID: 26,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: 'enum',
+        values: {'Leading Edge': 0, 'Trailing Edge': 1},
+        min: 0,
+        max: 1,
+        description: 'Leading Edge has a value of 0 and is the default value, whereas Trailing Edge has a value of ' +
+        '1. Please note that Trailing Edge is only available on neutral single-pole and neutral multi-way with an ' +
+        'aux/add-on switch (multi-way with a dumb/existing switch and non-neutral setups are not supported and ' +
+        'will default back to Leading Edge).',
+    },
     smartBulbMode_1: {...COMMON_ATTRIBUTES.smartBulbMode},
     ledColorWhenOn_1: {...COMMON_ATTRIBUTES.ledColorWhenOn},
     ledIntensityWhenOn_1: {...COMMON_ATTRIBUTES.ledIntensityWhenOn},
