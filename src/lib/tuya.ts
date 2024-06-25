@@ -5,7 +5,9 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import * as modernExtend from './modernExtend';
-import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString} from './types';
+import {
+    Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString, DefinitionExposesFunction,
+} from './types';
 import {logger} from './logger';
 // import {Color} from './color';
 
@@ -1732,10 +1734,11 @@ const tuyaModernExtend = {
         if (args.minBrightness === 'attribute') {
             result.fromZigbee.push(tuyaFz.min_brightness_attribute);
             result.toZigbee.push(tuyaTz.min_brightness_attribute);
-            result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness() : e);
+            result.exposes = result.exposes.map((e) => typeof e !== 'function' && utils.isLightExpose(e) ? e.withMinBrightness() : e);
         } else if (args.minBrightness === 'command') {
             result.toZigbee.push(tuyaTz.min_brightness_command);
-            result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness().setAccess('min_brightness', ea.STATE_SET) : e);
+            result.exposes = result.exposes.map((e) => typeof e !== 'function' && utils.isLightExpose(e) ?
+                e.withMinBrightness().setAccess('min_brightness', ea.STATE_SET) : e);
         }
 
         if (args.color) {
@@ -1750,7 +1753,8 @@ const tuyaModernExtend = {
         indicatorMode?: boolean, backlightModeOffNormalInverted?: boolean, backlightModeOffOn?: boolean, electricalMeasurements?: boolean,
         electricalMeasurementsFzConverter?: Fz.Converter, childLock?: boolean, switchMode?: boolean, onOffCountdown?: boolean,
     }={}): ModernExtend => {
-        const exposes: Expose[] = args.endpoints ? args.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
+        const exposes: (Expose | DefinitionExposesFunction)[] =
+            args.endpoints ? args.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
         const fromZigbee: Fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
         const toZigbee: Tz.Converter[] = [];
         if (args.onOffCountdown) {
