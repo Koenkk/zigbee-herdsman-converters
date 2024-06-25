@@ -1,5 +1,13 @@
 # Changelog
 
+## [19.60.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.60.0...v19.60.1) (2024-06-25)
+
+
+### Bug Fixes
+
+* Allow `exposes` in `ModernExtend` interface to be a function https://github.com/Koenkk/zigbee-herdsman-converters/pull/7683 ([059dfb8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/059dfb88464287ac63da5cff880db97ce1fe1ba4))
+* **ignore:** fix fd2e5f54563861b58324f4db08f36a507a13df63 ([1f5eb4e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1f5eb4ec6850e2859694d0510cb9025360b43a36))
+
 ## [19.60.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.59.2...v19.60.0) (2024-06-25)
 
 
