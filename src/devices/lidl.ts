@@ -10,7 +10,7 @@ import * as tuya from '../lib/tuya';
 import * as globalStore from '../lib/store';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
-import {battery, iasZoneAlarm} from 'src/lib/modernExtend';
+import {battery, iasZoneAlarm} from '../lib/modernExtend';
 
 const valueConverterLocal = {
     wateringState: {
