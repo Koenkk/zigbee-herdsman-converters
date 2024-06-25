@@ -10,6 +10,7 @@ import * as tuya from '../lib/tuya';
 import * as globalStore from '../lib/store';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
+import {battery, iasZoneAlarm} from 'src/lib/modernExtend';
 
 const valueConverterLocal = {
     wateringState: {
@@ -298,14 +299,7 @@ const definitions: Definition[] = [
         model: 'HG06336',
         vendor: 'Lidl',
         description: 'Silvercrest smart window and door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.battery],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        extend: [iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper']}), battery()],
     },
     {
         fingerprint: [{modelID: 'TS1001', manufacturerName: '_TYZB01_bngwdjsr'}],
