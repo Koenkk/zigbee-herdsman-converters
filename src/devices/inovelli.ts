@@ -1028,7 +1028,7 @@ const VZM36_ATTRIBUTES : {[s: string]: Attribute} = {
         max: 254,
         description: 'Level of power output during Quick Start Light time (P23).',
     },
-    leadingTrailingEdge: {
+    leadingTrailingEdge_1: {
         ID: 26,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: 'enum',
