@@ -596,7 +596,7 @@ const definitions: Definition[] = [
             await reporting.powerFactor(endpoint, {min: 10, max: 600, change: 1});
             await reporting.rmsVoltage(endpoint, {min: 5, max: 600, change: 1});
             await reporting.rmsCurrent(endpoint, {min: 5, max: 600, change: 1});
-            await reporting.currentSummDelivered(endpoint, {min: 1, max: 600, change: 5});
+            await reporting.currentSummDelivered(endpoint, {min: 1, max: 600, change: [0, 5]});
             await reporting.temperature(endpoint, {min: 20, max: 300, change: 10});
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acFrequencyMultiplier: 1, acFrequencyDivisor: 10});
             await endpoint.configureReporting('haElectricalMeasurement', [{
