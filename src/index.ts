@@ -114,11 +114,9 @@ function processExtensions(definition: Definition): Definition {
             return !allExposes.find((e) => typeof e === 'function');
         }
         let allExposes: (Expose | DefinitionExposesFunction)[] = [];
-        const addToAllExposes = (expose: Expose[] | DefinitionExposesFunction) => {
-            typeof expose === 'function' ? allExposes.push(expose) : allExposes.push(...expose);
+        if (definitionExposes) {
+            typeof definitionExposes === 'function' ? allExposes.push(definitionExposes) : allExposes.push(...definitionExposes);
         }
-
-        if (definitionExposes) addToAllExposes(definitionExposes);
         toZigbee = [...toZigbee ?? []];
         fromZigbee = [...fromZigbee ?? []];
 
@@ -131,7 +129,7 @@ function processExtensions(definition: Definition): Definition {
             }
             if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
             if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
-            if (ext.exposes) addToAllExposes(ext.exposes);
+            if (ext.exposes) allExposes.push(...ext.exposes);
             if (ext.meta) meta = {...ext.meta, ...meta};
             // Filter `undefined` configures, e.g. returned by setupConfigureForReporting.
             if (ext.configure) configures.push(...ext.configure.filter((c) => c));
