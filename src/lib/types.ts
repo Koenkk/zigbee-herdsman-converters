@@ -172,7 +172,7 @@ export type OnEvent = (type: OnEventType, data: OnEventData, device: Zh.Device, 
 export interface ModernExtend {
     fromZigbee?: Fz.Converter[],
     toZigbee?: Tz.Converter[],
-    exposes?: Expose[],
+    exposes?: (Expose | DefinitionExposesFunction)[],
     configure?: Configure[],
     meta?: DefinitionMeta,
     ota?: DefinitionOta,

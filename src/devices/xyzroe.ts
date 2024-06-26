@@ -9,8 +9,8 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const buttonModesList = {
-    'single click': 0x01,
-    'multi click': 0x02,
+    'single_click': 0x01,
+    'multi_click': 0x02,
 };
 
 const inputLinkList = {
@@ -33,6 +33,19 @@ const bindCommandList = {
     'recall_scene_5': 0x0B,
 };
 
+const switchTypesList = {
+    'switch': 0x00,
+    'single_click': 0x01,
+    'multi_click': 0x02,
+    'reset_to_defaults': 0xff,
+};
+
+const switchActionsList = {
+    on: 0x00,
+    off: 0x01,
+    toggle: 0x02,
+};
+
 function getSortedList(source: { [key: string]: number }): string[] {
     const keysSorted: [string, number][] = [];
 
@@ -52,6 +65,17 @@ function getSortedList(source: { [key: string]: number }): string[] {
     });
 
     return result;
+}
+
+function zigDcInputConfigExposes(epName: string, desc: string) {
+    const features = [];
+    features.push(e.enum('switch_type', exposes.access.ALL,
+        getSortedList(switchTypesList)).withEndpoint(epName).withDescription(desc));
+    features.push(e.enum('switch_actions', exposes.access.ALL,
+        getSortedList(switchActionsList)).withEndpoint(epName));
+    features.push(e.enum('bind_command', exposes.access.ALL,
+        getSortedList(bindCommandList)).withEndpoint(epName));
+    return features;
 }
 
 const tzLocal = {
@@ -131,6 +155,48 @@ const tzLocal = {
                 }]);
                 return {state: {[key]: value}};
             }
+        },
+    } satisfies Tz.Converter,
+    ZigDC_interval: {
+        key: ['interval'],
+        convertSet: async (entity, key, value, meta) => {
+            const epId = 2;
+            const endpoint = meta.device.getEndpoint(epId);
+            const value2 = parseInt(value.toString());
+            if (!isNaN(value2) && value2 > 0) {
+                await endpoint.configureReporting('genOnOff', [{
+                    attribute: 'onOff',
+                    minimumReportInterval: value2,
+                    maximumReportInterval: value2,
+                    reportableChange: 0,
+                }]);
+            }
+            return;
+        },
+    } satisfies Tz.Converter,
+    ZigDC_input_config: {
+        key: ['switch_type', 'switch_actions', 'bind_command'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOffSwitchCfg', ['switchType', 'switchActions', 0x4001, 0x4002]);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            let payload;
+            let data;
+            switch (key) {
+            case 'switch_type':
+                data = utils.getFromLookup(value, switchTypesList);
+                payload = {switchType: data};
+                break;
+            case 'switch_actions':
+                data = utils.getFromLookup(value, switchActionsList);
+                payload = {switchActions: data};
+                break;
+            case 'bind_command':
+                data = utils.getFromLookup(value, bindCommandList);
+                payload = {0x4002: {value: data, type: 32 /* uint8 */}};
+                break;
+            }
+            await entity.write('genOnOffSwitchCfg', payload);
         },
     } satisfies Tz.Converter,
 };
@@ -222,6 +288,63 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    ZigDC_ina3221: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: { [key: string]: number } = {};
+            const endpoint = msg.endpoint.ID;
+
+            if (endpoint === 3 || endpoint === 5) {
+                const parts = msg.data.description.split(',');
+                const numbers = parts[1].split('-');
+                const param = parts[0];
+                const addr = parseInt(numbers[0], 10);
+                const ch = parseInt(numbers[1], 10);
+                const isCurrent = param === 'A';
+                const name = isCurrent ? 'current' : 'voltage';
+                const alt = isCurrent ? 'voltage' : 'current';
+                const baseCh = (addr === 41) ? 1 : 4;
+                const suffix = `_ch${baseCh + ch - 1}`;
+                const otherKey = alt + suffix;
+                const otherValue = meta.state[otherKey] as number;
+                const value = msg.data['presentValue'] * (isCurrent ? 30 : 1);
+                const power = value * otherValue;
+
+                payload[`power${suffix}`] = power;
+                payload[`${name}${suffix}`] = value;
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter,
+    ZigDC_uptime: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: { [key: string]: number } = {};
+            const channel = msg.endpoint.ID;
+
+            if (channel === 1) {
+                payload['uptime'] = msg.data['presentValue'];
+            }
+
+            return payload;
+        },
+    } satisfies Fz.Converter,
+    ZigDC_input_config: {
+        cluster: 'genOnOffSwitchCfg',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const channel = utils.getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const {switchActions, switchType} = msg.data;
+            const bindCommand = msg.data[0x4002];
+            return {
+                [`switch_type_${channel}`]: utils.getKey(switchTypesList, switchType),
+                [`switch_actions_${channel}`]: utils.getKey(switchActionsList, switchActions),
+                [`bind_command_${channel}`]: utils.getKey(bindCommandList, bindCommand),
+            };
+        },
+    } satisfies Fz.Converter,
 };
 
 
@@ -267,7 +390,55 @@ const definitions: Definition[] = [
             await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
         },
     },
-
+    {
+        zigbeeModel: ['ZigDC'],
+        model: 'ZigDC',
+        vendor: 'xyzroe',
+        description: 'ZigDC',
+        fromZigbee: [fz.ignore_basic_report, fz.temperature, fz.humidity, fzLocal.ZigDC_ina3221, fzLocal.ZigDC_uptime, fzLocal.ZigDC_input_config],
+        toZigbee: [tzLocal.ZigDC_interval, tzLocal.ZigDC_input_config],
+        exposes: [
+            e.current().withAccess(ea.STATE).withEndpoint('ch1'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch1'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch1'),
+            e.current().withAccess(ea.STATE).withEndpoint('ch2'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch2'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch2'),
+            e.current().withAccess(ea.STATE).withEndpoint('ch3'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch3'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch3'),
+            e.current().withAccess(ea.STATE).withEndpoint('ch4'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch4'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch4'),
+            e.current().withAccess(ea.STATE).withEndpoint('ch5'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch5'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch5'),
+            e.current().withAccess(ea.STATE).withEndpoint('ch6'),
+            e.voltage().withAccess(ea.STATE).withEndpoint('ch6'),
+            e.power().withAccess(ea.STATE).withEndpoint('ch6'),
+            e.temperature().withEndpoint('l6'),
+            e.humidity().withEndpoint('l6'),
+            e.action(['single', 'double', 'triple', 'hold', 'release']),
+            e.cpu_temperature().withProperty('temperature').withEndpoint('l2'),
+            ...zigDcInputConfigExposes('l7', 'IN1'),
+            ...zigDcInputConfigExposes('l8', 'IN2'),
+            ...zigDcInputConfigExposes('l1', 'BTN'),
+            e.numeric('uptime', ea.STATE).withDescription('Uptime').withUnit('sec'),
+            e.numeric('interval', ea.SET).withValueMin(5).withValueMax(600).withValueStep(1)
+                .withDescription('Reporting interval').withUnit('sec'),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l5: 5, l6: 6, l7: 7, l8: 8};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
+            const endpoint2 = device.getEndpoint(2);
+            await endpoint2.configureReporting('genOnOff', [
+                {attribute: 'onOff', minimumReportInterval: 20, maximumReportInterval: 120, reportableChange: 0.1}]);
+        },
+    },
 ];
 
 export default definitions;

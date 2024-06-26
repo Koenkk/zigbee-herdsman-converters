@@ -824,6 +824,7 @@ const definitions: Definition[] = [
             {vendor: 'Tesla Smart', model: 'TSL-SEN-DOOR'},
             {vendor: 'Cleverio', model: 'SS100'},
             tuya.whitelabel('Niceboy', 'ORBIS Windows & Door Sensor', 'Door sensor', ['_TZ3000_qrldbmfn']),
+            tuya.whitelabel('Tuya', 'ZD06', 'Door window sensor', ['_TZ3000_rcuyhwe3']),
             tuya.whitelabel('Tuya', 'ZD08', 'Door sensor', ['_TZ3000_7d8yme6f']),
             tuya.whitelabel('Tuya', 'MC500A', 'Door sensor', ['_TZ3000_2mbfxlzr']),
             tuya.whitelabel('Tuya', '19DZT', 'Door sensor', ['_TZ3000_n2egfsli']),
@@ -836,6 +837,7 @@ const definitions: Definition[] = [
         exposes: (device, options) => {
             const exps: Expose[] = [e.contact(), e.battery(), e.battery_voltage()];
             const noTamperModels = [ // manufacturerName for models without a tamper sensor
+                '_TZ3000_rcuyhwe3', // Tuya ZD06
                 '_TZ3000_2mbfxlzr', // Tuya MC500A
                 '_TZ3000_n2egfsli', // Tuya 19DZT
                 '_TZ3000_yfekcy3n', // Tuya DS04
@@ -1835,8 +1837,8 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems', '_TZE200_la2c2uo9', '_TZE200_579lguh2',
             '_TZE200_vucankjx', '_TZE200_4mh6tyyo', '_TZE204_hlx9tnzb', '_TZE204_n9ctkb6j', '_TZE204_9qhuzgo0', '_TZE200_9cxuhakf',
             '_TZE200_a0syesf5', '_TZE200_3p5ydos3', '_TZE200_swaamsoy', '_TZE200_ojzhk75b', '_TZE200_w4cryh2i', '_TZE200_dfxkcots',
-            '_TZE200_9i9dt8is', '_TZE200_ctq0k47x', '_TZE200_ebwgzdqq', '_TZE200_whpb9yts', '_TZE204_vevc4c6g', '_TZE200_0nauxa0p']),
-        model: 'TS0601_dimmer_1',
+            '_TZE200_9i9dt8is', '_TZE200_ctq0k47x', '_TZE200_ebwgzdqq', '_TZE204_vevc4c6g', '_TZE200_0nauxa0p']),
+        model: 'TS0601_dimmer_1_gang_1',
         vendor: 'Tuya',
         description: '1 gang smart dimmer',
         fromZigbee: [tuya.fz.datapoints],
@@ -1873,6 +1875,29 @@ const definitions: Definition[] = [
             tuya.whitelabel('Mercator Ikuü', 'SSWRM-ZB', 'Rotary dimmer mechanism', ['_TZE200_a0syesf5']),
             tuya.whitelabel('Lonsonho', 'EDM-1ZBB-EU', 'Smart Dimmer Switch', ['_TZE200_0nauxa0p']),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_whpb9yts']),
+        model: 'TS0601_dimmer_1_gang_2',
+        vendor: 'Tuya',
+        description: '1 gang smart dimmer',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.lightBrightness(), tuya.exposes.countdown(), tuya.exposes.lightType(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET)],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [3, 'brightness', tuya.valueConverter.scale0_254to0_1000],
+                [4, 'light_type', tuya.valueConverter.lightType],
+                [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
+                [6, 'countdown', tuya.valueConverter.countdown],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
+                [21, 'backlight_mode', tuya.valueConverter.backlightModeOffNormalInverted],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_fjjbhx9d', '_TZE200_e3oitdyu', '_TZE200_gwkapsoq', '_TZE204_zenj4lxv']),
@@ -3025,7 +3050,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_aaifmpuq', '_TZ3000_irrmjcgi']),
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_aaifmpuq', '_TZ3000_irrmjcgi', '_TZ3000_huvxrx4i']),
         model: 'TS0002_power',
         vendor: 'Tuya',
         description: '2 gang switch with power monitoring',
@@ -4336,6 +4361,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Moes', 'MOES_plug', 'Smart plug (with power monitoring)', ['_TZ3000_yujkchbz']),
             tuya.whitelabel('Moes', 'ZK-EU', 'Smart wallsocket (with power monitoring)', ['_TZ3000_ss98ec5d']),
             tuya.whitelabel('Nous', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_ksw8qtmt']),
+            tuya.whitelabel('Elivco', 'LSPA9', 'Smart plug (with power monitoring)', ['_TZ3000_okaz9tjs']),
         ],
         ota: ota.zigbeeOTA,
         extend: [tuya.modernExtend.tuyaOnOff({

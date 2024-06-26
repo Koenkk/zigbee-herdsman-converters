@@ -60,10 +60,10 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'DIN contactor module',
         whiteLabel: [{vendor: 'BTicino', model: 'FC80CC'}],
-        extend: [onOff(), electricityMeter({cluster: 'electrical'})],
+        extend: [onOff(), electricityMeter({cluster: 'electrical', voltage: false, current: false})],
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tzLegrand.auto_mode],
+        fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta, fz.electrical_measurement],
+        toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tzLegrand.auto_mode, tz.electrical_measurement_power],
         exposes: [
             e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('Switch: allow manual on/off, auto uses contact\'s C1/C2 wired actions for Peak/Off-Peak electricity rates'),

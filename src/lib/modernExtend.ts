@@ -6,6 +6,7 @@ import * as globalLegacy from '../lib/legacy';
 import {
     Fz, Tz, ModernExtend, Range, Zh, DefinitionOta, OnEvent, Access,
     KeyValueString, KeyValue, Configure, Expose, DefinitionMeta, KeyValueAny,
+    DefinitionExposesFunction,
 } from './types';
 import {zigbeeOTA} from '../lib/ota';
 import * as globalStore from '../lib/store';
@@ -633,7 +634,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
     args = {reporting: true, reportingConfig: {min: '10_SECONDS', max: '1_MINUTE', change: 0}, ...args};
 
     const templateExposes: Expose[] = [e.occupancy().withAccess(ea.STATE_GET)];
-    const exposes: Expose[] = args.endpointNames ?
+    const exposes: (Expose | DefinitionExposesFunction)[] = args.endpointNames ?
         templateExposes.map((exp) => args.endpointNames.map((ep) => exp.withEndpoint(ep))).flat() : templateExposes;
 
     const fromZigbee: Fz.Converter[] = [{
