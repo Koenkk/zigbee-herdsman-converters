@@ -133,6 +133,10 @@ const schneiderElectricExtend = {
                 motorTypeChannel2: {ID: 0x0004, type: Zcl.DataType.UINT8},
                 curtainStatusChannel1: {ID: 0x0005, type: Zcl.DataType.UINT8},
                 curtainStatusChannel2: {ID: 0x0006, type: Zcl.DataType.UINT8},
+                key1EventNotification: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                key2EventNotification: {ID: 0x0021, type: Zcl.DataType.UINT8},
+                key3EventNotification: {ID: 0x0022, type: Zcl.DataType.UINT8},
+                key4EventNotification: {ID: 0x0023, type: Zcl.DataType.UINT8},
             },
             commands: {},
             commandsResponse: {},
@@ -279,6 +283,22 @@ const schneiderElectricExtend = {
             ],
         };
     },
+    visaKeyEventNotification: (key: '1' | '2' | '3' | '4'): ModernExtend => {
+        return {
+            isModernExtend: true,
+            fromZigbee: [
+                {
+                    cluster: 'visaConfiguration',
+                    type: ['attributeReport'],
+                    convert: (model, msg, publish, options, meta) => {
+                        return {
+                            [`key${key}_event_notification`]: msg.data[`key${key}EventNotification`],
+                        };
+                    },
+                },
+            ]
+        };
+    }
 };
 
 const tzLocal = {
@@ -1584,6 +1604,20 @@ const definitions: Definition[] = [
         ],
     },
     {
+        zigbeeModel: ['E8331SRY800ZB'],
+        model: 'E8331SRY800ZB',
+        vendor: 'Schneider Electric',
+        description: 'Wiser AvatarOn 1G onoff switch',
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 10}}),
+            onOff({endpointNames: ['l1'], powerOnBehavior: false}),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
+        ],
+    },
+    {
         zigbeeModel: ['E8332SRY800ZB'],
         model: 'E8332SRY800ZB',
         vendor: 'Schneider Electric',
@@ -1599,9 +1633,9 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['A3N33SR800ZB_xx_C1'],
-        model: 'E8333SRY800ZB_NEW',
+        model: 'E8332SRY800ZB_NEW',
         vendor: 'Schneider Electric',
-        description: 'Wiser AvatarOn 3G onoff switch',
+        description: 'Wiser AvatarOn 2G onoff switch',
         extend: [
             deviceEndpoints({endpoints: {'l1': 10, 'l2': 11, 'l3': 12}}),
             onOff({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: false}),
@@ -1641,6 +1675,21 @@ const definitions: Definition[] = [
             schneiderElectricExtend.visaConfigCurtainStatus(2),
         ],
     },
+    {
+        zigbeeModel: ['E8334RWMZB'],
+        model : 'E8334RWMZB',
+        vendor: 'Schneider Electric',
+        description: 'Wiser AvatarOn 4K Freelocate',
+        extend: [
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaKeyEventNotification('1'),
+            schneiderElectricExtend.visaKeyEventNotification('2'),
+            schneiderElectricExtend.visaKeyEventNotification('3'),
+            schneiderElectricExtend.visaKeyEventNotification('4'),
+        ],
+    }
 ];
 
 export default definitions;
