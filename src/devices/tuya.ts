@@ -816,7 +816,7 @@ const definitions: Definition[] = [
         model: 'TS0203',
         vendor: 'Tuya',
         description: 'Door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.batteryIgnoringPercentage, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         whiteLabel: [
             {vendor: 'CR Smart Home', model: 'TS0203'},

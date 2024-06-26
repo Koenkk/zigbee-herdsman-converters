@@ -1,12 +1,20 @@
+import * as utils from '../lib/utils';
 import {
-    precisionRound, mapNumberRange, isLegacyEnabled, toLocalISOString, numberWithinRange, hasAlreadyProcessedMessage,
-    addActionGroup, postfixWithEndpointName, getKey, batteryVoltageToPercentage,
+    addActionGroup,
+    batteryVoltageToPercentage,
+    getKey,
+    hasAlreadyProcessedMessage,
+    isLegacyEnabled,
+    mapNumberRange,
+    numberWithinRange,
+    postfixWithEndpointName,
+    precisionRound,
+    toLocalISOString,
 } from '../lib/utils';
-import {Fz, KeyValue, KeyValueAny, KeyValueNumberString} from '../lib/types';
+import {Definition, Fz, KeyValue, KeyValueAny, KeyValueNumberString} from '../lib/types';
 import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
 import * as libColor from '../lib/color';
-import * as utils from '../lib/utils';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 
@@ -14,6 +22,42 @@ const NS = 'zhc:fz';
 const defaultSimulatedBrightness = 255;
 const e = exposes.presets;
 const ea = exposes.access;
+
+function setBatteryAlarmState(msg: Fz.Message, payload: KeyValueAny) {
+    if (msg.data.hasOwnProperty('batteryAlarmState')) {
+        const battery1Low = (
+            msg.data.batteryAlarmState & 1 << 0 ||
+            msg.data.batteryAlarmState & 1 << 1 ||
+            msg.data.batteryAlarmState & 1 << 2 ||
+            msg.data.batteryAlarmState & 1 << 3
+        ) > 0;
+        const battery2Low = (
+            msg.data.batteryAlarmState & 1 << 10 ||
+            msg.data.batteryAlarmState & 1 << 11 ||
+            msg.data.batteryAlarmState & 1 << 12 ||
+            msg.data.batteryAlarmState & 1 << 13
+        ) > 0;
+        const battery3Low = (
+            msg.data.batteryAlarmState & 1 << 20 ||
+            msg.data.batteryAlarmState & 1 << 21 ||
+            msg.data.batteryAlarmState & 1 << 22 ||
+            msg.data.batteryAlarmState & 1 << 23
+        ) > 0;
+        payload.battery_low = battery1Low || battery2Low || battery3Low;
+    }
+}
+
+function setBatteryPercentageFromVoltage(msg: Fz.Message, payload: KeyValueAny, model: Definition) {
+    if (msg.data.hasOwnProperty('batteryVoltage') && (msg.data['batteryVoltage'] < 255)) {
+        // Deprecated: voltage is = mV now but should be V
+        payload.voltage = msg.data['batteryVoltage'] * 100;
+
+        if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+            logger.debug(`Setting battery percentage for ${msg.device.networkAddress} based on voltage.`, NS);
+            payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
+        }
+    }
+}
 
 const converters1 = {
     // #region Generic/recommended converters
@@ -351,7 +395,9 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
+
             if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
+                logger.debug(`Setting battery percentage for ${msg.device.networkAddress} based on the reported attribute.`, NS);
                 // Some devices do not comply to the ZCL and report a
                 // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                 const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
@@ -360,36 +406,21 @@ const converters1 = {
                 payload.battery = precisionRound(percentage, 2);
             }
 
-            if (msg.data.hasOwnProperty('batteryVoltage') && (msg.data['batteryVoltage'] < 255)) {
-                // Deprecated: voltage is = mV now but should be V
-                payload.voltage = msg.data['batteryVoltage'] * 100;
+            setBatteryPercentageFromVoltage(msg, payload, model);
+            setBatteryAlarmState(msg, payload);
 
-                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
-                }
-            }
-
-            if (msg.data.hasOwnProperty('batteryAlarmState')) {
-                const battery1Low = (
-                    msg.data.batteryAlarmState & 1<<0 ||
-                    msg.data.batteryAlarmState & 1<<1 ||
-                    msg.data.batteryAlarmState & 1<<2 ||
-                    msg.data.batteryAlarmState & 1<<3
-                ) > 0;
-                const battery2Low = (
-                    msg.data.batteryAlarmState & 1<<10 ||
-                    msg.data.batteryAlarmState & 1<<11 ||
-                    msg.data.batteryAlarmState & 1<<12 ||
-                    msg.data.batteryAlarmState & 1<<13
-                ) > 0;
-                const battery3Low = (
-                    msg.data.batteryAlarmState & 1<<20 ||
-                    msg.data.batteryAlarmState & 1<<21 ||
-                    msg.data.batteryAlarmState & 1<<22 ||
-                    msg.data.batteryAlarmState & 1<<23
-                ) > 0;
-                payload.battery_low = battery1Low || battery2Low || battery3Low;
-            }
+            return payload;
+        },
+    } satisfies Fz.Converter,
+    batteryIgnoringPercentage: {
+        // Some devices report battery percentage, but the value isn't correct. Use this converter to force
+        // calculating the percentage from the voltage only.
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            setBatteryPercentageFromVoltage(msg, payload, model);
+            setBatteryAlarmState(msg, payload);
 
             return payload;
         },
