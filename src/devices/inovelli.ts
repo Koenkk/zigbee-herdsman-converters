@@ -1030,7 +1030,7 @@ const VZM36_ATTRIBUTES : {[s: string]: Attribute} = {
     },
     leadingTrailingEdge_1: {
         ID: 26,
-        dataType: Zcl.DataType.BOOLEAN,
+        dataType: Zcl.DataType.UINT8,
         displayType: 'enum',
         values: {'Leading Edge': 0, 'Trailing Edge': 1},
         min: 0,
