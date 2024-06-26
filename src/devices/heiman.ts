@@ -8,7 +8,8 @@ import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
-import {light, battery, iasZoneAlarm} from '../lib/modernExtend';
+import {light, battery, iasZoneAlarm, illuminance, occupancy, identify, ota, numeric} from '../lib/modernExtend';
+import {Zcl} from 'zigbee-herdsman';
 
 const definitions: Definition[] = [
     {
@@ -730,6 +731,39 @@ const definitions: Definition[] = [
         extend: [
             battery({voltageToPercentage: '3V_2500', voltage: true}),
             iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+        ],
+    },
+    {
+        zigbeeModel: [
+            'HS8OS-N-3.0',
+            'HS8OS-EM-3.0',
+            'HS8OS-EF-3.0',
+            'HS8OS-EF1-3.0',
+            'HS8OS-EF2-3.0',
+        ],
+        model: 'HS8OS',
+        vendor: 'HEIMAN',
+        description: 'Ceiling embedded occupancy sensor',
+        extend: [
+            illuminance(),
+            occupancy({ultrasonicConfig: ['otu_delay']}),
+            identify(),
+            numeric({
+                name: 'illuminance_threshold',
+                cluster: 'msIlluminanceMeasurement',
+                attribute: {ID: 0xF000, type: Zcl.DataType.INT16},
+                description: 'Controls illuminance threshold for sending commands',
+                valueMin: 0,
+                valueMax: 1000,
+                unit: 'lx',
+                entityCategory: 'config',
+                read: true,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
+            }),
+            // radar settings (?)
+            // diagnostics
+            // illuminance SensorStatus
+            ota(),
         ],
     },
 ];
