@@ -296,9 +296,9 @@ const schneiderElectricExtend = {
                         };
                     },
                 },
-            ]
+            ],
         };
-    }
+    },
 };
 
 const tzLocal = {
@@ -1677,7 +1677,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['E8334RWMZB'],
-        model : 'E8334RWMZB',
+        model: 'E8334RWMZB',
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 4K Freelocate',
         extend: [
@@ -1689,7 +1689,7 @@ const definitions: Definition[] = [
             schneiderElectricExtend.visaKeyEventNotification('3'),
             schneiderElectricExtend.visaKeyEventNotification('4'),
         ],
-    }
+    },
 ];
 
 export default definitions;
