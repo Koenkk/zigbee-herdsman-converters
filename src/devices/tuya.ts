@@ -3940,16 +3940,15 @@ const definitions: Definition[] = [
             '_TZE200_bvu2wnxz', /* model: 'ME167', vendor: 'AVATTO' */
             '_TZE200_6rdj8dzm', /* model: 'ME167', vendor: 'AVATTO' */
             '_TZE200_p3dbf6qs', /* model: 'ME168', vendor: 'AVATTO' */
-            '_TZE200_rxntag7i', /* model: 'ME168', vendor: 'AVATTO' */
         ]),
         model: 'TS0601_thermostat_3',
-        vendor: 'Tuya',
+        vendor: 'TuYa',
         description: 'Thermostatic radiator valve',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         whiteLabel: [
             tuya.whitelabel('AVATTO', 'ME167', 'Thermostatic radiator valve', ['_TZE200_bvu2wnxz', '_TZE200_6rdj8dzm']),
-            tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_p3dbf6qs', '_TZE200_rxntag7i']),
+            tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_p3dbf6qs']),
         ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
@@ -3973,8 +3972,8 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [2, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'heat': tuya.enum(1), 'off': tuya.enum(2)})],
-                [3, 'running_state', tuya.valueConverterBasic.lookup({'heat': tuya.enum(0), 'idle': tuya.enum(1)})],
+                [2, 'system_mode', tuya.valueConverterBasic.lookup({ 'auto': tuya.enum(0), 'heat': tuya.enum(1), 'off': tuya.enum(2) })],
+                [3, 'running_state', tuya.valueConverterBasic.lookup({ 'heat': tuya.enum(0), 'idle': tuya.enum(1) })],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [7, 'child_lock', tuya.valueConverter.lockUnlock],
@@ -3985,6 +3984,59 @@ const definitions: Definition[] = [
                 [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
                 [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
                 [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [35, null, tuya.valueConverter.errorOrBatteryLow],
+                [36, 'frost_protection', tuya.valueConverter.onOff],
+                [39, 'scale_protection', tuya.valueConverter.onOff],
+                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration2],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_rxntag7i', /* model: 'ME168', vendor: 'AVATTO' */
+        ]),
+        model: 'TS0601_thermostat_3',
+        vendor: 'TuYa',
+        description: 'Thermostatic radiator valve',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        whiteLabel: [
+            tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_rxntag7i']),
+        ],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.child_lock(), e.battery_low(),
+            e.climate()
+                .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(['auto', 'heat', 'off'], ea.STATE_SET)
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            e.binary('scale_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('If the heat sink is not fully opened within ' +
+                'two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be ' +
+                'able to be used. To ensure normal use of the heat sink, the controller will automatically open the valve fully every ' +
+                'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
+                'again.'),
+            e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('When the room temperature is lower than ' +
+                '5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.'),
+            e.numeric('error', ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [2, 'system_mode', tuya.valueConverterBasic.lookup({ 'auto': tuya.enum(0), 'heat': tuya.enum(1), 'off': tuya.enum(2) })],
+                [3, 'running_state', tuya.valueConverterBasic.lookup({ 'heat': tuya.enum(0), 'idle': tuya.enum(1) })],
+                [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [5, 'local_temperature', tuya.valueConverter.divideBy10],
+                [7, 'child_lock', tuya.valueConverter.lockUnlock],
+                [28, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP6WithDayNumber(1)],
+                [29, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDP6WithDayNumber(2)],
+                [30, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDP6WithDayNumber(3)],
+                [31, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDP6WithDayNumber(4)],
+                [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDP6WithDayNumber(5)],
+                [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDP6WithDayNumber(6)],
+                [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDP6WithDayNumber(7)],
                 [35, null, tuya.valueConverter.errorOrBatteryLow],
                 [36, 'frost_protection', tuya.valueConverter.onOff],
                 [39, 'scale_protection', tuya.valueConverter.onOff],
