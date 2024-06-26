@@ -395,7 +395,6 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
-
             if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
                 logger.debug(`Setting battery percentage for ${msg.device.networkAddress} based on the reported attribute.`, NS);
                 // Some devices do not comply to the ZCL and report a
