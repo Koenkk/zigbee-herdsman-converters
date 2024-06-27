@@ -7097,10 +7097,10 @@ const toZigbee2 = {
             // @ts-expect-error
             const awayPresetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null, Number);
             const schedulePresetId = utils.getKey(
-                // @ts-expect-error
                 utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'),
                 'schedule',
                 null,
+                // @ts-expect-error
                 Number,
             );
             if (awayPresetId !== null) {
@@ -7900,25 +7900,25 @@ const toZigbee2 = {
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
                 case 'switch_type':
-                    // @ts-ignore
                     await sendDataPointEnum(
                         entity,
                         dataPoints.fantemExtSwitchType,
+                        // @ts-expect-error
                         {unknown: 0, toggle: 1, momentary: 2, rotary: 3, auto_config: 4}[value],
                         'sendData',
                     );
                     break;
                 case 'load_detection_mode':
-                    // @ts-ignore
                     await sendDataPointEnum(
                         entity,
                         dataPoints.fantemLoadDetectionMode,
+                        // @ts-expect-error
                         {none: 0, first_power_on: 1, every_power_on: 2}[value],
                         'sendData',
                     );
                     break;
                 case 'control_mode':
-                    // @ts-ignore
+                    // @ts-expect-error
                     await sendDataPointEnum(entity, dataPoints.fantemControlMode, {ext_switch: 0, remote: 1, both: 2}[value], 'sendData');
                     break;
                 default: // Unknown key
