@@ -1757,8 +1757,7 @@ const definitions: Definition[] = [
                         (value, index, self) =>
                             index ===
                             self.findIndex(
-                                (t) =>
-                                    t.property === value.property, // Remove duplicates
+                                (t) => t.property === value.property, // Remove duplicates
                             ),
                     );
             } else {

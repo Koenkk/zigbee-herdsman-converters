@@ -23,8 +23,8 @@ export interface KeyValueString {
 export interface KeyValueNumberString {
     [s: number]: string;
 }
-// eslint-disable-next-line
 export interface KeyValueAny {
+    // eslint-disable-next-line
     [s: string]: any;
 }
 export type Publish = (payload: KeyValue) => void;
