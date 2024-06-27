@@ -1,12 +1,12 @@
-import {Definition, Fz, KeyValue} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import {battery, iasZoneAlarm} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
+import {Definition, Fz, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 

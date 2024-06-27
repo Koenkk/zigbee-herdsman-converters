@@ -1,12 +1,13 @@
-import * as exposes from '../lib/exposes';
+import {Definition, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
+import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
-import {Definition, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
-import {getFromLookup} from '../lib/utils';
-import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
-import {battery, lock} from '../lib/modernExtend';
+import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
+import {battery, lock} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {getFromLookup} from '../lib/utils';
 
 const NS = 'zhc:yale';
 const e = exposes.presets;

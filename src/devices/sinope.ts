@@ -1,16 +1,17 @@
 import {Zcl} from 'zigbee-herdsman';
-import * as exposes from '../lib/exposes';
+
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
-import * as utils from '../lib/utils';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
-import {precisionRound} from '../lib/utils';
 import {onOff, electricityMeter, light} from '../lib/modernExtend';
+import {precisionRound} from '../lib/utils';
 
 const manuSinope = {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES};
 

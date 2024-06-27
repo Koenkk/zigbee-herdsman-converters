@@ -1,8 +1,8 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {Definition, Fz} from '../lib/types';
+import * as exposes from '../lib/exposes';
 import {onOff} from '../lib/modernExtend';
+import {Definition, Fz} from '../lib/types';
 
 const ea = exposes.access;
 const e = exposes.presets;

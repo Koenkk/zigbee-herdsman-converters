@@ -1,9 +1,10 @@
-import * as modernExtend from './modernExtend';
-import {isObject} from './utils';
+import {Zcl} from 'zigbee-herdsman';
+
+import * as ota from '../lib/ota';
 import {Tz, Fz, KeyValue} from '../lib/types';
 import * as utils from '../lib/utils';
-import {Zcl} from 'zigbee-herdsman';
-import * as ota from '../lib/ota';
+import * as modernExtend from './modernExtend';
+import {isObject} from './utils';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
 

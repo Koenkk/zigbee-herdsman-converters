@@ -1,6 +1,4 @@
-import {Definition, ModernExtend, Fz, Expose, Configure, OnEvent} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import * as globalStore from '../lib/store';
 import {
     battery,
     electricityMeter,
@@ -11,6 +9,8 @@ import {
     setupConfigureForReading,
     setupConfigureForReporting,
 } from '../lib/modernExtend';
+import * as globalStore from '../lib/store';
+import {Definition, ModernExtend, Fz, Expose, Configure, OnEvent} from '../lib/types';
 
 const e = exposes.presets;
 

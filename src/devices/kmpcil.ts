@@ -1,11 +1,12 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Fz, KeyValue, Publish} from '../lib/types';
-import * as exposes from '../lib/exposes';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
+import {Definition, Fz, KeyValue, Publish} from '../lib/types';
 import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;

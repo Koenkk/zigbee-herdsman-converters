@@ -1,6 +1,6 @@
+import {logger} from '../logger';
 import {Zh, Ota} from '../types';
 import * as common from './common';
-import {logger} from '../logger';
 const axios = common.getAxios();
 
 const firmwareManifest = 'https://update.gammatroniques.fr/ticmeter/manifest.json';

@@ -1,8 +1,8 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 

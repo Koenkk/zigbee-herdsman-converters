@@ -1,16 +1,16 @@
-import {Definition, Fz, Tz, KeyValue, Publish} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
+import {Definition, Fz, Tz, KeyValue, Publish} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
-import * as tuya from '../lib/tuya';
-import * as globalStore from '../lib/store';
-import * as ota from '../lib/ota';
-import * as utils from '../lib/utils';
 import {battery, iasZoneAlarm} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import * as globalStore from '../lib/store';
+import * as tuya from '../lib/tuya';
+import * as utils from '../lib/utils';
 
 const valueConverterLocal = {
     wateringState: {

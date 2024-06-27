@@ -1,16 +1,17 @@
-import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
-import tz from '../converters/toZigbee';
-import * as ota from '../lib/ota';
-import * as utils from '../lib/utils';
-import * as reporting from '../lib/reporting';
-import * as constants from '../lib/constants';
+import * as semver from 'semver';
 import {Zcl} from 'zigbee-herdsman';
+
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
+import {logger} from '../lib/logger';
+import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
 import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
 import {ubisysModernExtend} from '../lib/ubisys';
-import * as semver from 'semver';
-import {logger} from '../lib/logger';
+import * as utils from '../lib/utils';
 
 const NS = 'zhc:ubisys';
 const e = exposes.presets;

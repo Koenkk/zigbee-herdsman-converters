@@ -1,11 +1,12 @@
+import assert from 'assert';
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, KeyValue, Tz} from '../lib/types';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Definition, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
-import assert from 'assert';
 const e = exposes.presets;
 const ea = exposes.access;
 

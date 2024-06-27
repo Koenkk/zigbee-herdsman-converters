@@ -1,7 +1,7 @@
-import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
-import * as exposes from '../lib/exposes';
+import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import {Zh, Definition} from '../lib/types';
 

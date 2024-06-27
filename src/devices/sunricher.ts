@@ -1,13 +1,11 @@
 import {Zcl} from 'zigbee-herdsman';
-import * as exposes from '../lib/exposes';
+
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
-import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
-import * as utils from '../lib/utils';
-import {Definition, Fz, Zh} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
+import {logger} from '../lib/logger';
 import {
     deviceEndpoints,
     electricityMeter,
@@ -24,7 +22,10 @@ import {
     commandsColorCtrl,
     commandsScenes,
 } from '../lib/modernExtend';
-import {logger} from '../lib/logger';
+import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import {Definition, Fz, Zh} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const NS = 'zhc:sunricher';
 const e = exposes.presets;

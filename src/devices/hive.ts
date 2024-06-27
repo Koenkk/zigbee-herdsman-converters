@@ -1,10 +1,10 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as globalStore from '../lib/store';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;

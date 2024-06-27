@@ -1,8 +1,9 @@
 const url = 'https://eu.salusconnect.io/demo/default/status/firmware?timestamp=0';
-import * as common from './common';
 import tar from 'tar-stream';
-import {Zh, Ota, KeyValue, KeyValueAny} from '../types';
+
 import {logger} from '../logger';
+import {Zh, Ota, KeyValue, KeyValueAny} from '../types';
+import * as common from './common';
 
 const NS = 'zhc:ota:salus';
 const axios = common.getAxios();

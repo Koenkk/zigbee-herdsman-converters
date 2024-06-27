@@ -1,8 +1,8 @@
-import {Definition, Fz} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {Definition, Fz} from '../lib/types';
 const e = exposes.presets;
 
 const NS = 'zhc:ewelink';

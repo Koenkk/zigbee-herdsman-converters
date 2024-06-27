@@ -1,8 +1,9 @@
-import {Fz, Tz, ModernExtend, Configure} from './types';
-import {presets as e, access as ea} from './exposes';
-import {numeric, NumericArgs, deviceAddCustomCluster, setupConfigureForReporting} from './modernExtend';
 import {Zcl} from 'zigbee-herdsman';
+
+import {presets as e, access as ea} from './exposes';
 import {logger} from './logger';
+import {numeric, NumericArgs, deviceAddCustomCluster, setupConfigureForReporting} from './modernExtend';
+import {Fz, Tz, ModernExtend, Configure} from './types';
 
 const NS = 'zhc:ubisys';
 

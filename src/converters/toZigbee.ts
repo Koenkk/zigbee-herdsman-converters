@@ -1,13 +1,14 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Tz, KeyValue, KeyValueAny} from '../lib/types';
-import * as globalStore from '../lib/store';
-import * as constants from '../lib/constants';
+
 import * as libColor from '../lib/color';
-import * as utils from '../lib/utils';
-import * as light from '../lib/light';
-import * as legacy from '../lib/legacy';
+import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
+import * as light from '../lib/light';
 import {logger} from '../lib/logger';
+import * as globalStore from '../lib/store';
+import {Tz, KeyValue, KeyValueAny} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const NS = 'zhc:tz';
 const manufacturerOptions = {

@@ -1,8 +1,9 @@
 import {Definition} from 'src/lib/types';
+
 import * as exposes from '../lib/exposes';
-import * as tuya from '../lib/tuya';
-import * as ota from '../lib/ota';
 import {light} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import * as tuya from '../lib/tuya';
 
 const e = exposes.presets;
 const ea = exposes.access;

@@ -1,17 +1,17 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
 import {
     light, numeric, binary, enumLookup, forceDeviceType,
     temperature, humidity, forcePowerSource, quirkAddEndpointCluster,
     quirkCheckinInterval, customTimeResponse, deviceEndpoints, battery,
 } from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
-import * as globalStore from '../lib/store';
 import * as lumi from '../lib/lumi';
+import * as globalStore from '../lib/store';
 const {
     lumiAction, lumiOperationMode, lumiPowerOnBehavior, lumiZigbeeOTA,
     lumiSwitchType, lumiAirQuality, lumiVoc, lumiDisplayUnit, lumiLight,
@@ -21,8 +21,8 @@ const {
     lumiClickMode, lumiSlider, lumiSetEventMode, lumiSwitchMode, lumiVibration,
     lumiKnobRotation, lumiCommandMode, lumiBattery,
 } = lumi.modernExtend;
-import {Definition} from '../lib/types';
 import {logger} from '../lib/logger';
+import {Definition} from '../lib/types';
 
 const NS = 'zhc:lumi';
 const {manufacturerCode} = lumi;

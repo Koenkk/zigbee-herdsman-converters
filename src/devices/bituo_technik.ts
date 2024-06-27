@@ -1,6 +1,6 @@
+import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import fz from '../converters/fromZigbee';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
 

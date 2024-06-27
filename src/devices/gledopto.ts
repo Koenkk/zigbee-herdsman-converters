@@ -1,12 +1,12 @@
-import {Configure, Definition, KeyValue, OnEventType, Zh, Tz, ModernExtend} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import * as globalStore from '../lib/store';
-import * as utils from '../lib/utils';
-import * as ota from '../lib/ota';
 import tz from '../converters/toZigbee';
 import * as libColor from '../lib/color';
-import {light, LightArgs, OnOffArgs, onOff} from '../lib/modernExtend';
+import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
+import {light, LightArgs, OnOffArgs, onOff} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import * as globalStore from '../lib/store';
+import {Configure, Definition, KeyValue, OnEventType, Zh, Tz, ModernExtend} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const NS = 'zhc:gledopto';
 const e = exposes.presets;

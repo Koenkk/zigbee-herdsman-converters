@@ -1,14 +1,15 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Definition} from '../lib/types';
+
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import * as ota from '../lib/ota';
 import {
     battery, deviceEndpoints, humidity, numeric, NumericArgs, onOff, temperature, windowCovering,
 } from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
-import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 
 const nodonModernExtend = {
     calibrationVerticalRunTimeUp: (args?: Partial<NumericArgs>) => numeric({

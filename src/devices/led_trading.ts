@@ -1,11 +1,11 @@
-import {Definition, Fz} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import * as exposes from '../lib/exposes';
-import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {Definition, Fz} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const NS = 'zhc:led_trading';
 const e = exposes.presets;

@@ -1,13 +1,14 @@
 import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import {KeyValue, Definition, Tz, Fz} from '../lib/types';
-import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
-import * as utils from '../lib/utils';
-import * as ota from '../lib/ota';
+import * as exposes from '../lib/exposes';
 import {battery, temperature, identify, light} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {KeyValue, Definition, Tz, Fz} from '../lib/types';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 

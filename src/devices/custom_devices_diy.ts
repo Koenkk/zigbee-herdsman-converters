@@ -1,14 +1,14 @@
 import {Zcl} from 'zigbee-herdsman';
-import * as exposes from '../lib/exposes';
+
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import {Definition, Tz, Fz, KeyValue, KeyValueAny, Zh, Expose} from '../lib/types';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {Definition, Tz, Fz, KeyValue, KeyValueAny, Zh, Expose} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
-import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib/utils';
 import {
     light,
     onOff,
@@ -22,6 +22,7 @@ import {
     deviceEndpoints,
     commandsOnOff,
 } from '../lib/modernExtend';
+import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib/utils';
 
 const switchTypesList = {
     'switch': 0x00,

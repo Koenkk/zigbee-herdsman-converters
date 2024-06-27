@@ -1,6 +1,6 @@
-import {Definition} from '../lib/types';
-import * as ota from '../lib/ota';
 import {battery, deviceEndpoints, light} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {

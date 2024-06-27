@@ -1,7 +1,8 @@
-import * as exposes from '../lib/exposes';
+import {Definition, Fz, KeyValue} from 'src/lib/types';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {Definition, Fz, KeyValue} from 'src/lib/types';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;

@@ -1,24 +1,25 @@
 import {Zcl} from 'zigbee-herdsman';
 import {ClusterDefinition} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
-import tz from '../converters/toZigbee';
+
 import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 import * as globalLegacy from '../lib/legacy';
+import {logger} from '../lib/logger';
+import {zigbeeOTA} from '../lib/ota';
+import * as globalStore from '../lib/store';
+import {presets as e, access as ea, options as opt, Cover} from './exposes';
+import {configure as lightConfigure} from './light';
 import {
     Fz, Tz, ModernExtend, Range, Zh, DefinitionOta, OnEvent, Access,
     KeyValueString, KeyValue, Configure, Expose, DefinitionMeta, KeyValueAny,
     DefinitionExposesFunction,
 } from './types';
-import {zigbeeOTA} from '../lib/ota';
-import * as globalStore from '../lib/store';
-import {presets as e, access as ea, options as opt, Cover} from './exposes';
-import {configure as lightConfigure} from './light';
 import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
     noOccupancySince, precisionRound, batteryVoltageToPercentage, getOptions,
     hasAlreadyProcessedMessage, addActionGroup, isLegacyEnabled,
 } from './utils';
-import {logger} from '../lib/logger';
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: 'input' | 'output') {
     if (!device.endpoints) {

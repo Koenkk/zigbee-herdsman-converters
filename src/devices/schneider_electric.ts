@@ -1,13 +1,10 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Fz, Tz, KeyValue, ModernExtend} from '../lib/types';
-import * as exposes from '../lib/exposes';
+
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
-import * as reporting from '../lib/reporting';
-import * as utils from '../lib/utils';
-import * as ota from '../lib/ota';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import {
     onOff,
     commandsOnOff,
@@ -20,6 +17,10 @@ import {
     deviceEndpoints,
     deviceAddCustomCluster,
 } from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {Definition, Fz, Tz, KeyValue, ModernExtend} from '../lib/types';
+import * as utils from '../lib/utils';
 import {postfixWithEndpointName} from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;

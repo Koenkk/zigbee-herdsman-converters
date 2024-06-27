@@ -1,19 +1,20 @@
 import {Zcl} from 'zigbee-herdsman';
-import * as exposes from '../lib/exposes';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
-import * as reporting from '../lib/reporting';
+import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
+import * as exposes from '../lib/exposes';
+import {logger} from '../lib/logger';
 import {
     binary, enumLookup, forcePowerSource, numeric, onOff,
     customTimeResponse, battery, ota, deviceAddCustomCluster,
     temperature, humidity, bindCluster,
     iasZoneAlarm,
 } from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
-import {logger} from '../lib/logger';
-import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
 const {ewelinkAction} = ewelinkModernExtend;
 
 const NS = 'zhc:sonoff';

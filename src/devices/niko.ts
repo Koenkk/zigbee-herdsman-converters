@@ -1,9 +1,9 @@
-import {Definition, Fz, Tz, KeyValue} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as utils from '../lib/utils';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 

@@ -1,12 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Definition} from '../lib/types';
-import * as ota from '../lib/ota';
-import {
-    onOff, battery, iasZoneAlarm, identify, forcePowerSource,
-    temperature, humidity, occupancy, illuminance, windowCovering,
-    commandsOnOff, commandsLevelCtrl, commandsWindowCovering, pm25,
-    linkQuality, deviceEndpoints, deviceAddCustomCluster, bindCluster,
-} from '../lib/modernExtend';
+
 import {
     ikeaConfigureRemote, ikeaLight, ikeaOta, ikeaConfigureStyrbar,
     ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
@@ -18,6 +11,14 @@ import {
     addCustomClusterManuSpecificIkeaAirPurifier,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
 } from '../lib/ikea';
+import {
+    onOff, battery, iasZoneAlarm, identify, forcePowerSource,
+    temperature, humidity, occupancy, illuminance, windowCovering,
+    commandsOnOff, commandsLevelCtrl, commandsWindowCovering, pm25,
+    linkQuality, deviceEndpoints, deviceAddCustomCluster, bindCluster,
+} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     // #region light

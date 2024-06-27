@@ -1,8 +1,8 @@
 const url = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.json';
 const caBundleUrl = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/cacerts.pem';
-import * as common from './common';
-import {Zh, Ota, KeyValueAny} from '../types';
 import {logger} from '../logger';
+import {Zh, Ota, KeyValueAny} from '../types';
+import * as common from './common';
 
 const NS = 'zhc:ota';
 const axios = common.getAxios();

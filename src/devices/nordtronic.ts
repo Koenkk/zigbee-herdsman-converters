@@ -1,4 +1,3 @@
-import {Definition} from '../lib/types';
 import {
     light,
     onOff,
@@ -9,6 +8,7 @@ import {
     commandsLevelCtrl,
     commandsColorCtrl,
 } from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {

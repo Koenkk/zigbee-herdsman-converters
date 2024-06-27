@@ -1,5 +1,5 @@
-import {Definition} from '../lib/types';
 import {battery, forceDeviceType, iasWarning, iasZoneAlarm} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {

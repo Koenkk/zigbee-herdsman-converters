@@ -1,6 +1,6 @@
-import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {Definition} from '../lib/types';
 const fz = {...require('../converters/fromZigbee'), legacy: legacy.fromZigbee};
 const tz = {...require('../converters/toZigbee'), legacy: legacy.toZigbee};
 const e = exposes.presets;

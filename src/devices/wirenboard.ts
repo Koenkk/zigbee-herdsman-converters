@@ -1,13 +1,13 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
+import * as reporting from '../lib/reporting';
 import {Configure, Definition, Fz, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
-import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
 import * as modernExtend from '../lib/modernExtend';
+import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
 const {
     forcePowerSource, temperature, humidity, co2, deviceEndpoints,
     onOff, illuminance, occupancy, ota,

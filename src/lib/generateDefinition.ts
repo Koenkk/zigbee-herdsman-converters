@@ -1,11 +1,12 @@
+import * as zh from 'zigbee-herdsman/dist';
+import {Endpoint} from 'zigbee-herdsman/dist/controller/model';
 import {Cluster} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
+
+import {logger} from './logger';
+import * as m from './modernExtend';
+import {philipsLight} from './philips';
 import {Definition, ModernExtend, Zh} from './types';
 import {getClusterAttributeValue} from './utils';
-import * as m from './modernExtend';
-import * as zh from 'zigbee-herdsman/dist';
-import {philipsLight} from './philips';
-import {Endpoint} from 'zigbee-herdsman/dist/controller/model';
-import {logger} from './logger';
 
 const NS = 'zhc:gendef';
 

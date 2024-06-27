@@ -1,8 +1,9 @@
-import * as globalStore from './store';
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Expose, Fz, KeyValue, KeyValueAny, Publish, Tz, Zh} from './types';
+
 import {Feature, Light, Numeric} from './exposes';
 import {logger} from './logger';
+import * as globalStore from './store';
+import {Definition, Expose, Fz, KeyValue, KeyValueAny, Publish, Tz, Zh} from './types';
 
 const NS = 'zhc:utils';
 

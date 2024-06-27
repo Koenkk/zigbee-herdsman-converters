@@ -1,8 +1,8 @@
+import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
-import * as utils from '../lib/utils';
-import fz from '../converters/fromZigbee';
 import {KeyValue, Definition, Tz, Fz} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;

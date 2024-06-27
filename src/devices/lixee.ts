@@ -1,15 +1,16 @@
-import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import * as globalStore from '../lib/store';
-import {repInterval} from '../lib/constants';
-import * as reporting from '../lib/reporting';
 import fz from '../converters/fromZigbee';
+import {repInterval} from '../lib/constants';
+import * as exposes from '../lib/exposes';
+import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
 const ea = exposes.access;
 const e = exposes.presets;
-import * as utils from '../lib/utils';
-import * as ota from '../lib/ota';
 import {Buffer} from 'buffer';
+
 import {logger} from '../lib/logger';
+import * as ota from '../lib/ota';
+import * as utils from '../lib/utils';
 
 const NS = 'zhc:lixee';
 /* Start ZiPulses */

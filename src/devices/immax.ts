@@ -1,11 +1,11 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import * as tuya from '../lib/tuya';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import {light} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;

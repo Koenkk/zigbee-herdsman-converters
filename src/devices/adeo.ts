@@ -1,9 +1,9 @@
-import {Definition, Fz, Tz} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import {electricityMeter, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {Definition, Fz, Tz} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;

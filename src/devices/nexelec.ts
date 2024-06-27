@@ -1,5 +1,5 @@
-import {Definition} from '../lib/types';
 import {temperature, humidity, co2, battery, identify} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {

@@ -1,14 +1,14 @@
+import * as libColor from '../lib/color';
+import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
+import {logger} from '../lib/logger';
+import * as globalStore from '../lib/store';
+import {Fz, KeyValue, KeyValueAny, KeyValueNumberString} from '../lib/types';
 import {
     precisionRound, mapNumberRange, isLegacyEnabled, toLocalISOString, numberWithinRange, hasAlreadyProcessedMessage,
     addActionGroup, postfixWithEndpointName, getKey, batteryVoltageToPercentage,
 } from '../lib/utils';
-import {Fz, KeyValue, KeyValueAny, KeyValueNumberString} from '../lib/types';
-import * as globalStore from '../lib/store';
-import * as constants from '../lib/constants';
-import * as libColor from '../lib/color';
 import * as utils from '../lib/utils';
-import * as exposes from '../lib/exposes';
-import {logger} from '../lib/logger';
 
 const NS = 'zhc:fz';
 const defaultSimulatedBrightness = 255;

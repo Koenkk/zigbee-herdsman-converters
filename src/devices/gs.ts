@@ -1,8 +1,8 @@
-import {Definition} from '../lib/types';
 import {
     light, onOff, electricityMeter, iasZoneAlarm,
     temperature, humidity, battery, ignoreClusterReport, iasWarning, identify,
 } from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {

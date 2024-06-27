@@ -1,10 +1,10 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
+import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import * as legacy from '../lib/legacy';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 

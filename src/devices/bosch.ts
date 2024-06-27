@@ -1,21 +1,22 @@
+import {Zcl, ZSpec} from 'zigbee-herdsman';
+
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
+import {logger} from '../lib/logger';
 import {
     identify, light, onOff, quirkCheckinInterval,
     deviceAddCustomCluster, binary, numeric, enumLookup,
     battery, humidity, iasZoneAlarm, bindCluster,
     ota, deviceEndpoints,
 } from '../lib/modernExtend';
-import {Zcl, ZSpec} from 'zigbee-herdsman';
-import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import * as utils from '../lib/utils';
-import * as constants from '../lib/constants';
 import * as globalStore from '../lib/store';
 import {
     Tz, Fz, Definition, KeyValue, ModernExtend, Expose,
 } from '../lib/types';
-import {logger} from '../lib/logger';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 

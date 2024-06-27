@@ -1,16 +1,17 @@
-import crypto from 'crypto';
-import {HttpsProxyAgent} from 'https-proxy-agent';
-import {Zh, Ota, KeyValueAny, KeyValue, OtaUpdateAvailableResult} from '../types';
 import assert from 'assert';
-import crc32 from 'buffer-crc32';
 import axios from 'axios';
-import * as URI from 'uri-js';
+import crc32 from 'buffer-crc32';
+import crypto from 'crypto';
 import {readFileSync} from 'fs';
-import path from 'path';
-import {Zcl} from 'zigbee-herdsman';
-import {logger} from '../logger';
 import https from 'https';
+import {HttpsProxyAgent} from 'https-proxy-agent';
+import path from 'path';
 import tls from 'tls';
+import * as URI from 'uri-js';
+import {Zcl} from 'zigbee-herdsman';
+
+import {logger} from '../logger';
+import {Zh, Ota, KeyValueAny, KeyValue, OtaUpdateAvailableResult} from '../types';
 import {sleep} from '../utils';
 
 interface Request {cancel: () => void, promise: Promise<{header: Zh.ZclHeader, payload: KeyValue}>}

@@ -1,8 +1,8 @@
-import {Definition} from '../lib/types';
+import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import tz from '../converters/toZigbee';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 
 const definitions: Definition[] = [

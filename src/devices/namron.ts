@@ -1,15 +1,16 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Fz, Tz, KeyValue} from '../lib/types';
-import * as exposes from '../lib/exposes';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
+import {forcePowerSource, light, onOff} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import * as ota from '../lib/ota';
-import * as utils from '../lib/utils';
-import {forcePowerSource, light, onOff} from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
+import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const ea = exposes.access;
 const e = exposes.presets;

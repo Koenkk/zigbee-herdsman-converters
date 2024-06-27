@@ -1,15 +1,15 @@
-import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import * as globalStore from '../lib/store';
-import * as reporting from '../lib/reporting';
+import {Buffer} from 'buffer';
+import {Zcl} from 'zigbee-herdsman';
+import {Device} from 'zigbee-herdsman/dist/controller/model';
+
 import fz from '../converters/fromZigbee';
 import {repInterval} from '../lib/constants';
-
-import * as ota from '../lib/ota';
-import {Buffer} from 'buffer';
-import {Device} from 'zigbee-herdsman/dist/controller/model';
+import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {Zcl} from 'zigbee-herdsman';
+import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
 
 const ea = exposes.access;
 const e = exposes.presets;

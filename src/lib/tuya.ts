@@ -1,14 +1,14 @@
-import * as constants from './constants';
-import * as globalStore from './store';
-import * as exposes from './exposes';
-import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
-import * as utils from './utils';
+import tz from '../converters/toZigbee';
+import * as constants from './constants';
+import * as exposes from './exposes';
+import {logger} from './logger';
 import * as modernExtend from './modernExtend';
+import * as globalStore from './store';
 import {
     Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString, DefinitionExposesFunction,
 } from './types';
-import {logger} from './logger';
+import * as utils from './utils';
 // import {Color} from './color';
 
 const NS = 'zhc:tuya';

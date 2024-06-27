@@ -1,13 +1,14 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
+
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import * as ota from '../lib/ota';
-import * as reporting from '../lib/reporting';
-import {philipsOnOff, philipsLight, philipsFz, philipsTz} from '../lib/philips';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import {deviceEndpoints, quirkCheckinInterval, identify} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import {philipsOnOff, philipsLight, philipsFz, philipsTz} from '../lib/philips';
+import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;

@@ -1,12 +1,12 @@
-import {Configure, Definition, Fz, OnEvent, Tz, Zh} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Configure, Definition, Fz, OnEvent, Tz, Zh} from '../lib/types';
 const e = exposes.presets;
-import * as utils from '../lib/utils';
 import {identify, light} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as utils from '../lib/utils';
 
 const ea = exposes.access;
 

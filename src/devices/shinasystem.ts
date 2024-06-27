@@ -1,12 +1,12 @@
-import {Definition, Fz, Tz} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
 import {onOff, numeric, enumLookup, deviceEndpoints} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
+import {Definition, Fz, Tz} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;

@@ -1,14 +1,14 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import * as tuya from '../lib/tuya';
 import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
-import * as zosung from '../lib/zosung';
 import {onOff, deviceEndpoints, actionEnumLookup, battery} from '../lib/modernExtend';
+import * as zosung from '../lib/zosung';
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;

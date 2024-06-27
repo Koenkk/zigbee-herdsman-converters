@@ -1,15 +1,16 @@
-import {ColorXY, ColorRGB} from './color';
-import * as ota from './ota';
-import * as exposes from './exposes';
-import tz from '../converters/toZigbee';
-import * as libColor from './color';
-import * as utils from './utils';
 import {Zcl} from 'zigbee-herdsman';
+
+import tz from '../converters/toZigbee';
+import {ColorXY, ColorRGB} from './color';
+import * as libColor from './color';
+import * as exposes from './exposes';
+import {logger} from './logger';
+import * as modernExtend from './modernExtend';
+import * as ota from './ota';
 import * as globalStore from './store';
 import {Fz, KeyValue, KeyValueAny, Tz} from './types';
-import * as modernExtend from './modernExtend';
+import * as utils from './utils';
 import {isObject} from './utils';
-import {logger} from './logger';
 
 const NS = 'zhc:philips';
 const ea = exposes.access;
