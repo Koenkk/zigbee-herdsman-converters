@@ -43,11 +43,11 @@ async function untar(tarStream: NodeJS.ReadStream) {
         extract.on('entry', (headers, stream, next) => {
             const buffers: Buffer[] = [];
 
-            stream.on('data', function(data) {
+            stream.on('data', function (data) {
                 buffers.push(data);
             });
 
-            stream.on('end', function() {
+            stream.on('end', function () {
                 result.push({
                     headers,
                     data: Buffer.concat(buffers),
@@ -82,7 +82,7 @@ async function downloadImage(meta: KeyValueAny) {
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, requestPayload:Ota.ImageInfo=null) {
+export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
     return common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 

@@ -1,15 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {
-    battery,
-    binary,
-    enumLookup,
-    humidity,
-    numeric,
-    ota,
-    quirkAddEndpointCluster,
-    temperature,
-} from '../lib/modernExtend';
+import {battery, binary, enumLookup, humidity, numeric, ota, quirkAddEndpointCluster, temperature} from '../lib/modernExtend';
 
 const extend = {
     comfortDisplay: binary({
@@ -72,17 +63,8 @@ const extend = {
     }),
     endpointQuirk: quirkAddEndpointCluster({
         endpointID: 1,
-        outputClusters: [
-            'genOta',
-        ],
-        inputClusters: [
-            'genBasic',
-            'genPowerCfg',
-            'genIdentify',
-            'hvacUserInterfaceCfg',
-            'msTemperatureMeasurement',
-            'msRelativeHumidity',
-        ],
+        outputClusters: ['genOta'],
+        inputClusters: ['genBasic', 'genPowerCfg', 'genIdentify', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement', 'msRelativeHumidity'],
     }),
     humidityCalibration: numeric({
         name: 'humidity_calibration',
@@ -117,7 +99,7 @@ const extend = {
     }),
     tempDisplayMode: enumLookup({
         name: 'temperature_display_mode',
-        lookup: {'celsius': 0, 'fahrenheit': 1},
+        lookup: {celsius: 0, fahrenheit: 1},
         cluster: 'hvacUserInterfaceCfg',
         attribute: 'tempDisplayMode',
         description: 'The unit of the temperature displayed on the device screen.',

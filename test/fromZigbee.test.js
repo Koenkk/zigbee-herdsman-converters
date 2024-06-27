@@ -5,19 +5,11 @@ const fs = require('fs');
 
 describe('converters/fromZigbee', () => {
     describe('tuya', () => {
-        const meta = {device: {ieeeAddr: "0x123456789abcdef"}};
+        const meta = {device: {ieeeAddr: '0x123456789abcdef'}};
         describe('wls100z_water_leak', () => {
             it.each([
-                [
-                    'water_leak',
-                    [legacy.dpValueFromEnum(legacy.dataPoints.wlsWaterLeak, 0)],
-                    {water_leak: true},
-                ],
-                [
-                    'no water_leak',
-                    [legacy.dpValueFromEnum(legacy.dataPoints.wlsWaterLeak, 1)],
-                    {water_leak: false},
-                ],
+                ['water_leak', [legacy.dpValueFromEnum(legacy.dataPoints.wlsWaterLeak, 0)], {water_leak: true}],
+                ['no water_leak', [legacy.dpValueFromEnum(legacy.dataPoints.wlsWaterLeak, 1)], {water_leak: false}],
                 [
                     'water leak & battery',
                     [
@@ -28,29 +20,17 @@ describe('converters/fromZigbee', () => {
                 ],
                 [
                     'battery & unknown DP',
-                    [
-                        legacy.dpValueFromBool(255, false),
-                        legacy.dpValueFromIntValue(legacy.dataPoints.wlsBatteryPercentage, 75),
-                    ],
+                    [legacy.dpValueFromBool(255, false), legacy.dpValueFromIntValue(legacy.dataPoints.wlsBatteryPercentage, 75)],
                     {battery: 75},
                 ],
-            ])
-            ("Receives '%s' indication", (_name, dpValues, result) => {
+            ])("Receives '%s' indication", (_name, dpValues, result) => {
                 expect(legacy.fromZigbee.wls100z_water_leak.convert(null, {data: {dpValues}}, null, null, meta)).toEqual(result);
             });
         });
         describe('tuya_smart_vibration_sensor', () => {
             it.each([
-                [
-                    'no contact',
-                    [legacy.dpValueFromBool(legacy.dataPoints.state, false)],
-                    {contact: true},
-                ],
-                [
-                    'no vibration',
-                    [legacy.dpValueFromEnum(legacy.dataPoints.tuyaVibration, 0)],
-                    {vibration: false},
-                ],
+                ['no contact', [legacy.dpValueFromBool(legacy.dataPoints.state, false)], {contact: true}],
+                ['no vibration', [legacy.dpValueFromEnum(legacy.dataPoints.tuyaVibration, 0)], {vibration: false}],
                 [
                     'contact & vibration & battery',
                     [
@@ -60,8 +40,7 @@ describe('converters/fromZigbee', () => {
                     ],
                     {contact: false, battery: 97, vibration: true},
                 ],
-            ])
-            ("Receives '%s' indication", (_name, dpValues, result) => {
+            ])("Receives '%s' indication", (_name, dpValues, result) => {
                 expect(legacy.fromZigbee.tuya_smart_vibration_sensor.convert(null, {data: {dpValues}}, null, null, meta)).toEqual(result);
             });
         });

@@ -48,10 +48,8 @@ const definitions: Definition[] = [
         model: 'LA-5KEY-RGBW',
         vendor: 'Ynoa',
         description: '5 key control for RGBW light',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_color_temp,
-            fz.command_move_to_color, fz.command_move_to_level, fz.battery],
-        exposes: [e.battery(), e.battery_low(), e.action(['on', 'off', 'brightness_move_to_level',
-            'color_temperature_move', 'color_move'])],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_color_temp, fz.command_move_to_color, fz.command_move_to_level, fz.battery],
+        exposes: [e.battery(), e.battery_low(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move', 'color_move'])],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

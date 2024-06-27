@@ -161,7 +161,9 @@ const definitions: Definition[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some*/}
+            } catch (error) {
+                /* Fails for some*/
+            }
         },
         exposes: [e.cover_position(), e.battery()],
     },
@@ -230,7 +232,11 @@ const definitions: Definition[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 3600000, multiplier: 1});
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 10,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: 1000,
+                acPowerMultiplier: 1,
                 acPowerDivisor: 10,
             });
             device.save();
@@ -286,7 +292,11 @@ const definitions: Definition[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 3600000, multiplier: 1});
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 10,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: 1000,
+                acPowerMultiplier: 1,
                 acPowerDivisor: 10,
             });
             device.save();

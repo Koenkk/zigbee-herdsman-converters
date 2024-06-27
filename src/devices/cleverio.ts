@@ -15,8 +15,11 @@ const definitions: Definition[] = [
         description: 'Smart siren',
         fromZigbee: [fz.ts0216_siren, fz.ias_alarm_only_alarm_1, fz.power_source],
         toZigbee: [tz.warning, tz.ts0216_volume],
-        exposes: [e.warning(), e.binary('alarm', ea.STATE, true, false),
-            e.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren')],
+        exposes: [
+            e.warning(),
+            e.binary('alarm', ea.STATE, true, false),
+            e.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren'),
+        ],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

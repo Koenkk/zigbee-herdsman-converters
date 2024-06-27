@@ -83,7 +83,7 @@ const definitions: Definition[] = [
         description: 'Quirky smart switch',
         extend: [onOff()],
         endpoint: (device) => {
-            return {'default': 2};
+            return {default: 2};
         },
     },
     {

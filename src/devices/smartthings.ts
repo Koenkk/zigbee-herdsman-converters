@@ -37,8 +37,12 @@ const definitions: Definition[] = [
         vendor: 'SmartThings',
         description: 'Arrival sensor',
         fromZigbee: [fz.STS_PRS_251_presence, fz.battery, legacy.fz.STS_PRS_251_beeping],
-        exposes: [e.battery(), e.presence(), e.action(['beeping']),
-            e.enum('beep', ea.SET, ['2', '5', '10', '15', '30']).withDescription('Trigger beep for x seconds')],
+        exposes: [
+            e.battery(),
+            e.presence(),
+            e.action(['beeping']),
+            e.enum('beep', ea.SET, ['2', '5', '10', '15', '30']).withDescription('Trigger beep for x seconds'),
+        ],
         toZigbee: [tz.STS_PRS_251_beep],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -84,8 +88,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC};
-            await reporting.bind(endpoint, coordinatorEndpoint,
-                ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
             const payloadA = reporting.payload('acceleration', 10, constants.repInterval.MINUTE, 1);
@@ -100,8 +103,7 @@ const definitions: Definition[] = [
             device.powerSource = 'Battery';
             device.save();
         },
-        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
-            e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
     },
     {
         zigbeeModel: ['3200-Sgb'],
@@ -167,7 +169,9 @@ const definitions: Definition[] = [
             try {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/11706
                 await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            } catch (error) {/* Fails for some*/}
+            } catch (error) {
+                /* Fails for some*/
+            }
             await reporting.activePower(endpoint);
             await reporting.rmsCurrent(endpoint);
             await reporting.rmsVoltage(endpoint, {change: 10});
@@ -270,8 +274,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.SMARTTHINGS_INC};
-            await reporting.bind(endpoint, coordinatorEndpoint,
-                ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x01, type: 0x20}}, options);
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0002: {value: 0x0276, type: 0x21}}, options);
             await reporting.temperature(endpoint);
@@ -288,10 +291,7 @@ const definitions: Definition[] = [
             device.powerSource = 'Battery';
             device.save();
         },
-        exposes: [
-            e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
-            e.moving(), e.x_axis(), e.y_axis(), e.z_axis(),
-        ],
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
     },
     {
         zigbeeModel: ['multi'],
@@ -303,8 +303,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD};
-            await reporting.bind(endpoint, coordinatorEndpoint,
-                ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x14, type: 0x20}}, options);
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -317,10 +316,7 @@ const definitions: Definition[] = [
             const payloadZ = reporting.payload('z_axis', 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
         },
-        exposes: [
-            e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
-            e.moving(), e.x_axis(), e.y_axis(), e.z_axis(),
-        ],
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
     },
     {
         zigbeeModel: ['3310-S'],
@@ -337,17 +333,17 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.temperature(endpoint);
 
-            const payload = [{
-                attribute: 'measuredValue',
-                minimumReportInterval: 10,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 10,
-            }];
-            await endpoint.configureReporting(
-                'manuSpecificCentraliteHumidity',
-                payload,
-                {manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC},
-            );
+            const payload = [
+                {
+                    attribute: 'measuredValue',
+                    minimumReportInterval: 10,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 10,
+                },
+            ];
+            await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, {
+                manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
+            });
 
             await reporting.batteryVoltage(endpoint);
         },
@@ -454,8 +450,13 @@ const definitions: Definition[] = [
         model: 'IM6001-BTP01',
         vendor: 'SmartThings',
         description: 'Button',
-        fromZigbee: [fz.command_status_change_notification_action, legacy.fz.st_button_state, fz.battery, fz.temperature,
-            fz.ignore_iaszone_attreport],
+        fromZigbee: [
+            fz.command_status_change_notification_action,
+            legacy.fz.st_button_state,
+            fz.battery,
+            fz.temperature,
+            fz.ignore_iaszone_attreport,
+        ],
         exposes: [e.action(['off', 'single', 'double', 'hold']), e.battery(), e.temperature()],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {

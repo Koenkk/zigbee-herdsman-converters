@@ -8,7 +8,6 @@ const e = exposes.presets;
 import {forcePowerSource, light, onOff, identify, deviceEndpoints} from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 
-
 const ea = exposes.access;
 
 const definitions: Definition[] = [
@@ -19,13 +18,18 @@ const definitions: Definition[] = [
         description: 'Tubular motor',
         fromZigbee: [legacy.fromZigbee.tuya_cover, tuya.fz.datapoints],
         toZigbee: [legacy.toZigbee.tuya_cover_control, tuya.tz.datapoints],
-        exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
             e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Motor direction').withCategory('config'),
-            e.enum('motor_working_mode', ea.STATE_SET, ['continuous', 'intermittently']).withDescription('Motor operating mode')
+            e
+                .enum('motor_working_mode', ea.STATE_SET, ['continuous', 'intermittently'])
+                .withDescription('Motor operating mode')
                 .withCategory('config'),
             e.enum('remote_pair', ea.STATE_SET, ['on', 'off']).withDescription('Remote control pairing mode').withCategory('config'),
             e.enum('upper_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set / Reset the upper stroke limit').withCategory('config'),
-            e.enum('middle_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set / Reset the middle stroke limit')
+            e
+                .enum('middle_stroke_limit', ea.STATE_SET, ['SET', 'RESET'])
+                .withDescription('Set / Reset the middle stroke limit')
                 .withCategory('config'),
             e.enum('lower_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set / Reset the lower stroke limit').withCategory('config'),
         ],
@@ -33,11 +37,11 @@ const definitions: Definition[] = [
             // All datapoints go in here
             tuyaDatapoints: [
                 [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
-                [101, 'remote_pair', tuya.valueConverterBasic.lookup({'on': true, 'off': false})],
-                [103, 'upper_stroke_limit', tuya.valueConverterBasic.lookup({'SET': true, 'RESET': false})],
-                [104, 'middle_stroke_limit', tuya.valueConverterBasic.lookup({'SET': true, 'RESET': false})],
-                [105, 'lower_stroke_limit', tuya.valueConverterBasic.lookup({'SET': true, 'RESET': false})],
-                [106, 'motor_working_mode', tuya.valueConverterBasic.lookup({'continuous': tuya.enum(0), 'intermittently': tuya.enum(1)})],
+                [101, 'remote_pair', tuya.valueConverterBasic.lookup({on: true, off: false})],
+                [103, 'upper_stroke_limit', tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+                [104, 'middle_stroke_limit', tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+                [105, 'lower_stroke_limit', tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+                [106, 'motor_working_mode', tuya.valueConverterBasic.lookup({continuous: tuya.enum(0), intermittently: tuya.enum(1)})],
             ],
         },
     },
@@ -72,14 +76,17 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_vjhcenzo'}, {modelID: 'TS0003', manufacturerName: '_TZ3000_f09j9qjb'}],
+        fingerprint: [
+            {modelID: 'TS0003', manufacturerName: '_TZ3000_vjhcenzo'},
+            {modelID: 'TS0003', manufacturerName: '_TZ3000_f09j9qjb'},
+        ],
         model: 'TB25',
         vendor: 'Zemismart',
         description: 'Smart light switch and socket - 2 gang with neutral wire',
         extend: [tuya.modernExtend.tuyaOnOff({endpoints: ['left', 'center', 'right']})],
         meta: {multiEndpoint: true},
         endpoint: () => {
-            return {'left': 1, 'center': 2, 'right': 3};
+            return {left: 1, center: 2, right: 3};
         },
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -105,13 +112,29 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fromZigbee.ZMRM02],
         toZigbee: [],
         onEvent: tuya.onEventSetTime,
-        exposes: [e.battery(), e.action([
-            'button_1_hold', 'button_1_single', 'button_1_double',
-            'button_2_hold', 'button_2_single', 'button_2_double',
-            'button_3_hold', 'button_3_single', 'button_3_double',
-            'button_4_hold', 'button_4_single', 'button_4_double',
-            'button_5_hold', 'button_5_single', 'button_5_double',
-            'button_6_hold', 'button_6_single', 'button_6_double'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'button_1_hold',
+                'button_1_single',
+                'button_1_double',
+                'button_2_hold',
+                'button_2_single',
+                'button_2_double',
+                'button_3_hold',
+                'button_3_single',
+                'button_3_double',
+                'button_4_hold',
+                'button_4_single',
+                'button_4_double',
+                'button_5_hold',
+                'button_5_single',
+                'button_5_double',
+                'button_6_hold',
+                'button_6_single',
+                'button_6_double',
+            ]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_zigisuyh', '_TZ3000_v4mevirn', '_TZ3000_mlswgkc3']),
@@ -120,7 +143,7 @@ const definitions: Definition[] = [
         description: 'Zigbee smart outlet universal socket with USB port',
         extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, endpoints: ['l1', 'l2']})],
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
+            return {l1: 1, l2: 2};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -147,32 +170,55 @@ const definitions: Definition[] = [
             e.cover_position().setAccess('position', ea.STATE_SET),
             e.battery(),
             e.enum('program', ea.SET, ['set_bottom', 'set_upper', 'reset']).withDescription('Set the upper/bottom limit'),
-            e.enum('click_control', ea.SET, ['upper', 'upper_micro', 'lower', 'lower_micro'])
+            e
+                .enum('click_control', ea.SET, ['upper', 'upper_micro', 'lower', 'lower_micro'])
                 .withDescription('Control motor in steps (ignores set limits; normal/micro = 120deg/5deg movement)'),
             e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Motor direction'),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverterBasic.lookup(
-                    (options) => options.invert_cover ?
-                        {'OPEN': tuya.enum(2), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(0)} :
-                        {'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)},
-                )],
+                [
+                    1,
+                    'state',
+                    tuya.valueConverterBasic.lookup((options) =>
+                        options.invert_cover
+                            ? {OPEN: tuya.enum(2), STOP: tuya.enum(1), CLOSE: tuya.enum(0)}
+                            : {OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)},
+                    ),
+                ],
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.coverPosition],
                 [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
-                [7, 'work_state', tuya.valueConverterBasic.lookup(
-                    (options) => options.invert_cover ?
-                        {'opening': tuya.enum(1), 'closing': tuya.enum(0)} :
-                        {'opening': tuya.enum(0), 'closing': tuya.enum(1)},
-                )],
+                [
+                    7,
+                    'work_state',
+                    tuya.valueConverterBasic.lookup((options) =>
+                        options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
+                    ),
+                ],
                 [13, 'battery', tuya.valueConverter.raw],
-                [101, 'program', tuya.valueConverterBasic.lookup((options) => options.invert_cover ?
-                    {'set_bottom': tuya.enum(0), 'set_upper': tuya.enum(1), 'reset': tuya.enum(4)} :
-                    {'set_bottom': tuya.enum(1), 'set_upper': tuya.enum(0), 'reset': tuya.enum(4)}, null)],
-                [101, 'click_control', tuya.valueConverterBasic.lookup((options) => options.invert_cover ?
-                    {'lower': tuya.enum(2), 'upper': tuya.enum(3), 'lower_micro': tuya.enum(5), 'upper_micro': tuya.enum(6)} :
-                    {'lower': tuya.enum(3), 'upper': tuya.enum(2), 'lower_micro': tuya.enum(6), 'upper_micro': tuya.enum(5)}, null)],
+                [
+                    101,
+                    'program',
+                    tuya.valueConverterBasic.lookup(
+                        (options) =>
+                            options.invert_cover
+                                ? {set_bottom: tuya.enum(0), set_upper: tuya.enum(1), reset: tuya.enum(4)}
+                                : {set_bottom: tuya.enum(1), set_upper: tuya.enum(0), reset: tuya.enum(4)},
+                        null,
+                    ),
+                ],
+                [
+                    101,
+                    'click_control',
+                    tuya.valueConverterBasic.lookup(
+                        (options) =>
+                            options.invert_cover
+                                ? {lower: tuya.enum(2), upper: tuya.enum(3), lower_micro: tuya.enum(5), upper_micro: tuya.enum(6)}
+                                : {lower: tuya.enum(3), upper: tuya.enum(2), lower_micro: tuya.enum(6), upper_micro: tuya.enum(5)},
+                        null,
+                    ),
+                ],
                 [103, 'battery', tuya.valueConverter.raw],
             ],
         },
@@ -184,34 +230,37 @@ const definitions: Definition[] = [
         description: 'Zigbee/RF curtain converter',
         fromZigbee: [legacy.fz.ZMAM02_cover],
         toZigbee: [legacy.tz.ZMAM02_cover],
-        exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
-            e.composite('options', 'options', ea.STATE)
-                .withFeature(e.numeric('motor_speed', ea.STATE)
-                    .withValueMin(0)
-                    .withValueMax(255)
-                    .withDescription('Motor speed')),
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e
+                .composite('options', 'options', ea.STATE)
+                .withFeature(e.numeric('motor_speed', ea.STATE).withValueMin(0).withValueMax(255).withDescription('Motor speed')),
             e.enum('motor_working_mode', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02MotorWorkingMode)),
             e.numeric('percent_state', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
             e.enum('mode', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Mode)),
             e.enum('motor_direction', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Direction)),
             e.enum('border', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Border)),
-        // ---------------------------------------------------------------------------------
-        // DP exists, but not used at the moment
-        // e.numeric('percent_control', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
-        // exposes.enum('work_state', ea.STATE, Object.values(tuya.ZMAM02.AM02WorkState)),
-        // e.numeric('countdown_left', ea.STATE).withUnit('s'),
-        // e.numeric('time_total', ea.STATE).withUnit('ms'),
-        // exposes.enum('situation_set', ea.STATE, Object.values(tuya.ZMAM02.AM02Situation)),
+            // ---------------------------------------------------------------------------------
+            // DP exists, but not used at the moment
+            // e.numeric('percent_control', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
+            // exposes.enum('work_state', ea.STATE, Object.values(tuya.ZMAM02.AM02WorkState)),
+            // e.numeric('countdown_left', ea.STATE).withUnit('s'),
+            // e.numeric('time_total', ea.STATE).withUnit('ms'),
+            // exposes.enum('situation_set', ea.STATE, Object.values(tuya.ZMAM02.AM02Situation)),
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_gubdgai2'}, {modelID: 'TS0601', manufacturerName: '_TZE200_vdiuwbkq'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_gubdgai2'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_vdiuwbkq'},
+        ],
         model: 'M515EGBZTN',
         vendor: 'Zemismart',
         description: 'Roller shade driver',
         fromZigbee: [legacy.fz.ZMAM02_cover],
         toZigbee: [legacy.tz.ZMAM02_cover],
-        exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
             e.enum('motor_direction', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Direction)),
             e.enum('border', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Border)),
         ],
@@ -227,20 +276,25 @@ const definitions: Definition[] = [
         extend: [forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}, {modelID: 'TS0601', manufacturerName: '_TZE200_shkxsgis'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_shkxsgis'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_shkxsgis'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_shkxsgis'},
+        ],
         model: 'TB26-4',
         vendor: 'Zemismart',
         description: '4-gang smart wall switch',
-        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+        exposes: [
+            e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
+            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET),
+        ],
         fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
+            return {l1: 1, l2: 1, l3: 1, l4: 1};
         },
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -252,21 +306,26 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_9mahtqtg'}, {modelID: 'TS0601', manufacturerName: '_TZE200_r731zlxk'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_9mahtqtg'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_r731zlxk'},
+        ],
         model: 'TB26-6',
         vendor: 'Zemismart',
         description: '6-gang smart wall switch',
-        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+        exposes: [
+            e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l5').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l6').setAccess('state', ea.STATE_SET)],
+            e.switch().withEndpoint('l6').setAccess('state', ea.STATE_SET),
+        ],
         fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
+            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
         },
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -286,7 +345,7 @@ const definitions: Definition[] = [
         vendor: 'Zemismart',
         description: 'Smart 2 poles outlet (20A + 10A)',
         extend: [
-            deviceEndpoints({'endpoints': {'l1': 1, 'l2': 2}}),
+            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             identify(),
             tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true, endpoints: ['l1', 'l2']}),
         ],
@@ -297,7 +356,7 @@ const definitions: Definition[] = [
         vendor: 'Zemismart',
         description: 'Smart 2 gangs switch with outlet',
         extend: [
-            deviceEndpoints({'endpoints': {'l1': 1, 'l2': 2, 'l3': 3}}),
+            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             identify(),
             tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3']}),
         ],

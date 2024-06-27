@@ -2,9 +2,7 @@ const libColor = require('../src/lib/color');
 
 describe('lib/color.js', () => {
     describe('ColorRGB', () => {
-        test.each([
-            [{red: 0.5, green: 0.5, blue: 0.5}],
-        ])('.{from,to}Object() - %j', (color) => {
+        test.each([[{red: 0.5, green: 0.5, blue: 0.5}]])('.{from,to}Object() - %j', (color) => {
             expect(libColor.ColorRGB.fromObject(color).toObject()).toEqual(color);
         });
 
@@ -29,15 +27,24 @@ describe('lib/color.js', () => {
         });
 
         test.each([
-            [{red: 1.0, green: 1.0, blue: 1.0}, {red: 1.0, green: 1.0, blue: 1.0}],
-            [{red: 0.5, green: 0.5, blue: 0.5}, {red: 0.2140, green: 0.2140, blue: 0.2140}],
-            [{red: 0.0, green: 0.0, blue: 0.0}, {red: 0.0, green: 0.0, blue: 0.0}],
+            [
+                {red: 1.0, green: 1.0, blue: 1.0},
+                {red: 1.0, green: 1.0, blue: 1.0},
+            ],
+            [
+                {red: 0.5, green: 0.5, blue: 0.5},
+                {red: 0.214, green: 0.214, blue: 0.214},
+            ],
+            [
+                {red: 0.0, green: 0.0, blue: 0.0},
+                {red: 0.0, green: 0.0, blue: 0.0},
+            ],
         ])('.gammaCorrected - %j', (input, output) => {
             expect(libColor.ColorRGB.fromObject(input).gammaCorrected().rounded(4).toObject()).toStrictEqual(output);
         });
 
-        expect(libColor.ColorRGB.fromHex("#663399").toHEX()).toBe("#663399");
-        expect(libColor.ColorRGB.fromHex("#020202").toHEX()).toBe("#020202");
+        expect(libColor.ColorRGB.fromHex('#663399').toHEX()).toBe('#663399');
+        expect(libColor.ColorRGB.fromHex('#020202').toHEX()).toBe('#020202');
     });
 
     describe('ColorHSV', () => {
@@ -54,14 +61,23 @@ describe('lib/color.js', () => {
 
         test.each([
             ...cases,
-            [{hue: 359.31231, saturation: 99.969123, value: 99.983131}, {hue: 359.3, saturation: 100, value: 100}]
+            [
+                {hue: 359.31231, saturation: 99.969123, value: 99.983131},
+                {hue: 359.3, saturation: 100, value: 100},
+            ],
         ])('.{from,to}Object(), rounded - %j', (input, output) => {
             expect(libColor.ColorHSV.fromObject(input).rounded(1).toObject()).toStrictEqual(output || input);
         });
 
         test.each([
-            [{hue: 0, saturation: 100, value: 100}, {h: 0, s: 100, v: 100}],
-            [{hue: 0, saturation: 100}, {h: 0, s: 100}],
+            [
+                {hue: 0, saturation: 100, value: 100},
+                {h: 0, s: 100, v: 100},
+            ],
+            [
+                {hue: 0, saturation: 100},
+                {h: 0, s: 100},
+            ],
             [{hue: 0}, {h: 0}],
             [{saturation: 100}, {s: 100}],
         ])('.toObject() short - %j', (input, output) => {
@@ -98,9 +114,7 @@ describe('lib/color.js', () => {
     });
 
     describe('ColorXY', () => {
-        test.each([
-            [{x: 5, y: 0.5}],
-        ])('.{from,to}Object() - %j', (color) => {
+        test.each([[{x: 5, y: 0.5}]])('.{from,to}Object() - %j', (color) => {
             expect(libColor.ColorXY.fromObject(color).toObject()).toStrictEqual(color);
         });
 
@@ -112,11 +126,7 @@ describe('lib/color.js', () => {
             expect(libColor.ColorXY.fromObject(xy).toRGB().rounded(4).toObject()).toStrictEqual(rgb, 4);
         });
 
-        test.each([
-            [500],
-            [370],
-            [150],
-        ])('.{to,from}Mireds() - %j', (mireds) => {
+        test.each([[500], [370], [150]])('.{to,from}Mireds() - %j', (mireds) => {
             const asXY = libColor.ColorXY.fromMireds(mireds);
             const backConv = asXY.toMireds();
             const error = Math.abs(backConv - mireds);
@@ -170,11 +180,7 @@ describe('lib/color.js', () => {
             }
         });
 
-        test.each([
-            [{}],
-            [{v: 100}],
-            [{unknown_property: 42}],
-        ])('.fromConverterArg() invalid - %j', (value) => {
+        test.each([[{}], [{v: 100}], [{unknown_property: 42}]])('.fromConverterArg() invalid - %j', (value) => {
             expect(() => libColor.Color.fromConverterArg(value)).toThrow();
         });
     });

@@ -16,9 +16,11 @@ export function precisionRound(number: number, precision: number): number {
         const factor = Math.pow(10, precision);
         return Math.round(number * factor) / factor;
     } else if (typeof precision === 'object') {
-        const thresholds = Object.keys(precision).map(Number).sort((a, b) => b - a);
+        const thresholds = Object.keys(precision)
+            .map(Number)
+            .sort((a, b) => b - a);
         for (const t of thresholds) {
-            if (! isNaN(t) && number >= t) {
+            if (!isNaN(t) && number >= t) {
                 return precisionRound(number, precision[t]);
             }
         }
@@ -29,19 +31,28 @@ export function precisionRound(number: number, precision: number): number {
 export function toLocalISOString(dDate: Date) {
     const tzOffset = -dDate.getTimezoneOffset();
     const plusOrMinus = tzOffset >= 0 ? '+' : '-';
-    const pad = function(num: number) {
+    const pad = function (num: number) {
         const norm = Math.floor(Math.abs(num));
         return (norm < 10 ? '0' : '') + norm;
     };
 
-    return dDate.getFullYear() +
-        '-' + pad(dDate.getMonth() + 1) +
-        '-' + pad(dDate.getDate()) +
-        'T' + pad(dDate.getHours()) +
-        ':' + pad(dDate.getMinutes()) +
-        ':' + pad(dDate.getSeconds()) +
-        plusOrMinus + pad(tzOffset / 60) +
-        ':' + pad(tzOffset % 60);
+    return (
+        dDate.getFullYear() +
+        '-' +
+        pad(dDate.getMonth() + 1) +
+        '-' +
+        pad(dDate.getDate()) +
+        'T' +
+        pad(dDate.getHours()) +
+        ':' +
+        pad(dDate.getMinutes()) +
+        ':' +
+        pad(dDate.getSeconds()) +
+        plusOrMinus +
+        pad(tzOffset / 60) +
+        ':' +
+        pad(tzOffset % 60)
+    );
 }
 
 export function numberWithinRange(number: number, min: number, max: number) {
@@ -65,13 +76,13 @@ export function numberWithinRange(number: number, min: number, max: number) {
  * @param number - of decimal places to which result should be rounded
  * @returns value mapped to new range
  */
-export function mapNumberRange(value: number, fromLow: number, fromHigh: number, toLow: number, toHigh: number, precision=0): number {
-    const mappedValue = toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
+export function mapNumberRange(value: number, fromLow: number, fromHigh: number, toLow: number, toHigh: number, precision = 0): number {
+    const mappedValue = toLow + ((value - fromLow) * (toHigh - toLow)) / (fromHigh - fromLow);
     return precisionRound(mappedValue, precision);
 }
 
 const transactionStore: {[s: string]: number[]} = {};
-export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number=null, key: string=null) {
+export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number = null, key: string = null) {
     if (model.meta && model.meta.publishDuplicateTransaction) return false;
     const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
     key = key || msg.device.ieeeAddr;
@@ -82,35 +93,57 @@ export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, I
 }
 
 export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
-    temperature: 2, humidity: 2, pressure: 1, pm25: 0, power: 2, current: 2, current_phase_b: 2, current_phase_c: 2,
-    voltage: 2, voltage_phase_b: 2, voltage_phase_c: 2, power_phase_b: 2, power_phase_c: 2, energy: 2, device_temperature: 0,
-    soil_moisture: 2, co2: 0, illuminance: 0, illuminance_lux: 0, voc: 0, formaldehyd: 0, co: 0,
+    temperature: 2,
+    humidity: 2,
+    pressure: 1,
+    pm25: 0,
+    power: 2,
+    current: 2,
+    current_phase_b: 2,
+    current_phase_c: 2,
+    voltage: 2,
+    voltage_phase_b: 2,
+    voltage_phase_c: 2,
+    power_phase_b: 2,
+    power_phase_c: 2,
+    energy: 2,
+    device_temperature: 0,
+    soil_moisture: 2,
+    co2: 0,
+    illuminance: 0,
+    illuminance_lux: 0,
+    voc: 0,
+    formaldehyd: 0,
+    co: 0,
 };
 export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
-    return type.startsWith('current') || type.startsWith('energy') || type.startsWith('voltage') || type.startsWith('power') ||
-        type.startsWith('illuminance');
+    return (
+        type.startsWith('current') ||
+        type.startsWith('energy') ||
+        type.startsWith('voltage') ||
+        type.startsWith('power') ||
+        type.startsWith('illuminance')
+    );
 }
 export function calibrateAndPrecisionRoundOptions(number: number, options: KeyValue, type: string) {
     // Calibrate
     const calibrateKey = `${type}_calibration`;
-    let calibrationOffset = toNumber(
-        options && options.hasOwnProperty(calibrateKey) ? options[calibrateKey] : 0, calibrateKey);
+    let calibrationOffset = toNumber(options && options.hasOwnProperty(calibrateKey) ? options[calibrateKey] : 0, calibrateKey);
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
-        calibrationOffset = number * calibrationOffset / 100;
+        calibrationOffset = (number * calibrationOffset) / 100;
     }
     number = number + calibrationOffset;
 
     // Precision round
     const precisionKey = `${type}_precision`;
     const defaultValue = calibrateAndPrecisionRoundOptionsDefaultPrecision[type] || 0;
-    const precision = toNumber(
-        options && options.hasOwnProperty(precisionKey) ? options[precisionKey] : defaultValue, precisionKey);
+    const precision = toNumber(options && options.hasOwnProperty(precisionKey) ? options[precisionKey] : defaultValue, precisionKey);
     return precisionRound(number, precision);
 }
 
-export function toPercentage(value: number, min: number, max: number, log=false) {
+export function toPercentage(value: number, min: number, max: number, log = false) {
     if (value > max) {
         value = max;
     } else if (value < min) {
@@ -143,10 +176,12 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message, definiti
         meta = {device: null};
     }
 
-    if (definition.meta && definition.meta.multiEndpoint &&
-            (!definition.meta.multiEndpointSkip || !definition.meta.multiEndpointSkip.includes(value))) {
-        const endpointName = definition.hasOwnProperty('endpoint') ?
-            getKey(definition.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
+    if (
+        definition.meta &&
+        definition.meta.multiEndpoint &&
+        (!definition.meta.multiEndpointSkip || !definition.meta.multiEndpointSkip.includes(value))
+    ) {
+        const endpointName = definition.hasOwnProperty('endpoint') ? getKey(definition.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
 
         // NOTE: endpointName can be undefined if we have a definition.endpoint and the endpoint is
         //       not listed.
@@ -168,7 +203,7 @@ export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta)
 export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T, fallback?: T, convertTo?: (v: unknown) => T) {
     for (const key in object) {
         // @ts-expect-error
-        if (object[key]===value) {
+        if (object[key] === value) {
             return convertTo ? convertTo(key) : key;
         }
     }
@@ -176,7 +211,7 @@ export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T,
     return fallback;
 }
 
-export function batteryVoltageToPercentage(voltage: number, option: string | {min: number, max: number}) {
+export function batteryVoltageToPercentage(voltage: number, option: string | {min: number; max: number}) {
     let percentage = null;
     if (option === '3V_2100') {
         if (voltage < 2100) {
@@ -215,8 +250,8 @@ export function batteryVoltageToPercentage(voltage: number, option: string | {mi
     } else if (option === 'Add_1V_42V_CSM300z2v2') {
         voltage = voltage + 1000;
         percentage = toPercentage(voltage, 2900, 4100);
-    // Generic converter that expects an option object with min and max values
-    // I.E. meta: {battery: {voltageToPercentage: {min: 1900, max: 3000}}}
+        // Generic converter that expects an option object with min and max values
+        // I.E. meta: {battery: {voltageToPercentage: {min: 1900, max: 3000}}}
     } else if (typeof option === 'object') {
         percentage = toPercentage(voltage, option.min, option.max);
     } else {
@@ -228,8 +263,13 @@ export function batteryVoltageToPercentage(voltage: number, option: string | {mi
 
 // groupStrategy: allEqual: return only if all members in the groups have the same meta property value.
 //                first: return the first property
-export function getMetaValue<T>(entity: Zh.Group | Zh.Endpoint, definition: Definition | Definition[], key: string,
-    groupStrategy='first', defaultValue: T=undefined): T {
+export function getMetaValue<T>(
+    entity: Zh.Group | Zh.Endpoint,
+    definition: Definition | Definition[],
+    key: string,
+    groupStrategy = 'first',
+    defaultValue: T = undefined,
+): T {
     if (isGroup(entity) && entity.members.length > 0) {
         const values = [];
         for (let i = 0; i < entity.members.length; i++) {
@@ -247,7 +287,7 @@ export function getMetaValue<T>(entity: Zh.Group | Zh.Endpoint, definition: Defi
             }
         }
 
-        if (groupStrategy === 'allEqual' && (new Set(values)).size === 1) {
+        if (groupStrategy === 'allEqual' && new Set(values).size === 1) {
             // @ts-expect-error
             return values[0];
         }
@@ -276,7 +316,7 @@ export function isInRange(min: number, max: number, value: number) {
     return value >= min && value <= max;
 }
 
-export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[], errorIfNotInArray=true) {
+export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[], errorIfNotInArray = true) {
     const clone = [...arr];
     for (let i = 0; i < oldElements.length; i++) {
         const index = clone.indexOf(oldElements[i]);
@@ -319,7 +359,10 @@ export function toSnakeCase(value: string | KeyValueAny) {
         }
         return value;
     } else {
-        return value.replace(/\.?([A-Z])/g, (x, y) => '_' + y.toLowerCase()).replace(/^_/, '').replace('_i_d', '_id');
+        return value
+            .replace(/\.?([A-Z])/g, (x, y) => '_' + y.toLowerCase())
+            .replace(/^_/, '')
+            .replace('_i_d', '_id');
     }
 }
 
@@ -352,7 +395,7 @@ export function saveSceneState(entity: Zh.Endpoint, sceneID: number, groupID: nu
     entity.save();
 }
 
-export function deleteSceneState(entity: Zh.Endpoint, sceneID: number=null, groupID: number=null) {
+export function deleteSceneState(entity: Zh.Endpoint, sceneID: number = null, groupID: number = null) {
     if (entity.meta.scenes) {
         if (sceneID == null && groupID == null) {
             entity.meta.scenes = {};
@@ -416,12 +459,12 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
     }
 }
 
-export function getOptions(definition: Definition | Definition[], entity: Zh.Endpoint | Zh.Group, options={}) {
+export function getOptions(definition: Definition | Definition[], entity: Zh.Endpoint | Zh.Group, options = {}) {
     const allowed = ['disableDefaultResponse', 'timeout'];
     return getMetaValues(definition, entity, allowed, options);
 }
 
-export function getMetaValues(definitions: Definition | Definition[], entity: Zh.Endpoint | Zh.Group, allowed?: string[], options={}) {
+export function getMetaValues(definitions: Definition | Definition[], entity: Zh.Endpoint | Zh.Group, allowed?: string[], options = {}) {
     const result: KeyValue = {...options};
     for (const definition of Array.isArray(definitions) ? definitions : [definitions]) {
         if (definition && definition.meta) {
@@ -466,9 +509,9 @@ export async function getClusterAttributeValue<T>(endpoint: Zh.Endpoint, cluster
 }
 
 export function normalizeCelsiusVersionOfFahrenheit(value: number) {
-    const fahrenheit = (value * 1.8) + 32;
+    const fahrenheit = value * 1.8 + 32;
     const roundedFahrenheit = Number((Math.round(Number((fahrenheit * 2).toFixed(1))) / 2).toFixed(1));
-    return Number(((roundedFahrenheit - 32)/1.8).toFixed(2));
+    return Number(((roundedFahrenheit - 32) / 1.8).toFixed(2));
 }
 
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: 'start' | 'stop') {
@@ -559,7 +602,7 @@ export function toNumber(value: unknown, property?: string): number {
     return result;
 }
 
-export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V=undefined, keyIsBool: boolean=false): V {
+export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V = undefined, keyIsBool: boolean = false): V {
     let result = undefined;
     if (!keyIsBool) {
         if (typeof value === 'string') {
@@ -573,7 +616,7 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
         // Silly hack, but boolean is not supported as index
         if (typeof value === 'boolean') {
             const stringValue = value.toString();
-            result = (lookup[stringValue] ?? lookup[stringValue.toLowerCase()] ?? lookup[stringValue.toUpperCase()]);
+            result = lookup[stringValue] ?? lookup[stringValue.toLowerCase()] ?? lookup[stringValue.toUpperCase()];
         } else {
             throw new Error(`Expected boolean, got: ${typeof value}`);
         }
@@ -584,7 +627,7 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
     return result ?? defaultValue;
 }
 
-export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string=undefined): string {
+export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string = undefined): string {
     for (const entry of Object.entries(lookup)) {
         if (entry[1] === value) {
             return entry[0];

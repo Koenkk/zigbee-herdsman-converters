@@ -37,8 +37,10 @@ const definitions: Definition[] = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
-                      '\u0000\u0000\u0000\u0000\u0000', 'ZLL-NonColorController'],
+        zigbeeModel: [
+            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' + '\u0000\u0000\u0000\u0000\u0000',
+            'ZLL-NonColorController',
+        ],
         model: 'ZYCT-202',
         vendor: 'Trust',
         description: 'Remote control',
@@ -57,11 +59,21 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             // https://github.com/Koenkk/zigbee2mqtt/issues/8027#issuecomment-904783277
-            {modelID: 'ZLL-ColorTempera', manufacturerName: 'Trust International B.V.\u0000', applicationVersion: 1, endpoints: [
-                {ID: 1, profileID: 49246, deviceID: 544,
-                    inputClusters: [0, 4, 3, 6, 8, 5, 768, 65535, 65535, 25], outputClusters: [0, 4, 3, 6, 8, 5, 768, 25]},
-                {ID: 2, profileID: 49246, deviceID: 4096, inputClusters: [4096], outputClusters: [4096]},
-            ]},
+            {
+                modelID: 'ZLL-ColorTempera',
+                manufacturerName: 'Trust International B.V.\u0000',
+                applicationVersion: 1,
+                endpoints: [
+                    {
+                        ID: 1,
+                        profileID: 49246,
+                        deviceID: 544,
+                        inputClusters: [0, 4, 3, 6, 8, 5, 768, 65535, 65535, 25],
+                        outputClusters: [0, 4, 3, 6, 8, 5, 768, 25],
+                    },
+                    {ID: 2, profileID: 49246, deviceID: 4096, inputClusters: [4096], outputClusters: [4096]},
+                ],
+            },
         ],
         zigbeeModel: ['ZLL-ColorTempera', 'ZLL-ColorTemperature'],
         model: 'ZLED-TUNE9',
@@ -72,18 +84,28 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             // https://github.com/Koenkk/zigbee2mqtt/issues/8027#issuecomment-904783277
-            {modelID: 'ZLL-ExtendedColo', manufacturerName: 'Trust International B.V.\u0000', applicationVersion: 1, endpoints: [
-                {ID: 1, profileID: 49246, deviceID: 4096, inputClusters: [4096], outputClusters: [4096]},
-                {ID: 2, profileID: 49246, deviceID: 528,
-                    inputClusters: [0, 4, 3, 6, 8, 5, 768, 65535, 25], outputClusters: [0, 4, 3, 6, 8, 5, 768, 25]},
-            ]},
+            {
+                modelID: 'ZLL-ExtendedColo',
+                manufacturerName: 'Trust International B.V.\u0000',
+                applicationVersion: 1,
+                endpoints: [
+                    {ID: 1, profileID: 49246, deviceID: 4096, inputClusters: [4096], outputClusters: [4096]},
+                    {
+                        ID: 2,
+                        profileID: 49246,
+                        deviceID: 528,
+                        inputClusters: [0, 4, 3, 6, 8, 5, 768, 65535, 25],
+                        outputClusters: [0, 4, 3, 6, 8, 5, 768, 25],
+                    },
+                ],
+            },
         ],
         model: 'ZLED-RGB9',
         vendor: 'Trust',
         description: 'Smart RGB LED bulb',
         extend: [light({colorTemp: {range: [153, 500]}, color: true, powerOnBehavior: false})],
         endpoint: (device) => {
-            return {'default': 2};
+            return {default: 2};
         },
     },
     {

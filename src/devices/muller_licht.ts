@@ -112,8 +112,10 @@ const definitions: Definition[] = [
         extend: [mullerLichtLight({colorTemp: {range: undefined}, color: true})],
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_mntza0sw'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_r0vzq1oj'}],
+        fingerprint: [
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_mntza0sw'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_r0vzq1oj'},
+        ],
         model: '404062',
         vendor: 'Müller Licht',
         description: 'Kea RGB+CCT',
@@ -126,11 +128,36 @@ const definitions: Definition[] = [
         model: 'MLI-404011/MLI-404049',
         description: 'Tint remote control',
         vendor: 'Müller Licht',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, legacy.fz.tint404011_brightness_updown_click,
-            legacy.fz.tint404011_move_to_color_temp, legacy.fz.tint404011_move_to_color, fz.tint_scene,
-            legacy.fz.tint404011_brightness_updown_release, legacy.fz.tint404011_brightness_updown_hold],
-        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
-            'brightness_stop', 'color_temperature_move', 'color_move', 'scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_toggle,
+            legacy.fz.tint404011_brightness_updown_click,
+            legacy.fz.tint404011_move_to_color_temp,
+            legacy.fz.tint404011_move_to_color,
+            fz.tint_scene,
+            legacy.fz.tint404011_brightness_updown_release,
+            legacy.fz.tint404011_brightness_updown_hold,
+        ],
+        exposes: [
+            e.action([
+                'on',
+                'off',
+                'brightness_step_up',
+                'brightness_step_down',
+                'brightness_move_up',
+                'brightness_move_down',
+                'brightness_stop',
+                'color_temperature_move',
+                'color_move',
+                'scene_1',
+                'scene_2',
+                'scene_3',
+                'scene_4',
+                'scene_5',
+                'scene_6',
+            ]),
+        ],
         toZigbee: [],
     },
     {
@@ -139,8 +166,19 @@ const definitions: Definition[] = [
         description: 'Tint dim remote control',
         vendor: 'Müller Licht',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall, fz.command_store],
-        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
-            'brightness_stop', 'recall_1', 'store_1'])],
+        exposes: [
+            e.action([
+                'on',
+                'off',
+                'brightness_step_up',
+                'brightness_step_down',
+                'brightness_move_up',
+                'brightness_move_down',
+                'brightness_stop',
+                'recall_1',
+                'store_1',
+            ]),
+        ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -160,17 +198,48 @@ const definitions: Definition[] = [
         model: '404022/404049C',
         description: 'Tint dim remote control',
         vendor: 'Müller Licht',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_move_to_color_temp,
-            fz.command_move_to_color, fz.tint_scene],
-        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
-            'brightness_stop', 'color_temperature_move', 'color_move', 'scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_move_to_color_temp,
+            fz.command_move_to_color,
+            fz.tint_scene,
+        ],
+        exposes: [
+            e.action([
+                'on',
+                'off',
+                'brightness_step_up',
+                'brightness_step_down',
+                'brightness_move_up',
+                'brightness_move_down',
+                'brightness_stop',
+                'color_temperature_move',
+                'color_move',
+                'scene_1',
+                'scene_2',
+                'scene_3',
+                'scene_4',
+                'scene_5',
+                'scene_6',
+            ]),
+        ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             device.powerSource = 'Battery';
             device.save();
         },
-        whiteLabel: [{vendor: 'Müller Licht', model: '404049D', description: 'Tint dim remote control',
-            fingerprint: [{modelID: 'Remote Control', manufacturerName: 'MLI'}]}],
+        whiteLabel: [
+            {
+                vendor: 'Müller Licht',
+                model: '404049D',
+                description: 'Tint dim remote control',
+                fingerprint: [{modelID: 'Remote Control', manufacturerName: 'MLI'}],
+            },
+        ],
     },
     {
         zigbeeModel: ['tint-ColorTemperature', 'tint-ColorTemperature2'],
@@ -180,14 +249,20 @@ const definitions: Definition[] = [
         extend: [mullerLichtLight({colorTemp: {range: [153, 555]}})],
     },
     {
-        fingerprint: [{
-            // Identify through fingerprint as modelID is the same as Sunricher ZG192910-4
-            type: 'Router', manufacturerID: 4635, manufacturerName: 'MLI', modelID: 'CCT Lighting',
-            powerSource: 'Mains (single phase)', endpoints: [
-                {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
-                {ID: 242, profileID: 41440, deviceID: 102, inputClusters: [33], outputClusters: [33]},
-            ],
-        }],
+        fingerprint: [
+            {
+                // Identify through fingerprint as modelID is the same as Sunricher ZG192910-4
+                type: 'Router',
+                manufacturerID: 4635,
+                manufacturerName: 'MLI',
+                modelID: 'CCT Lighting',
+                powerSource: 'Mains (single phase)',
+                endpoints: [
+                    {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
+                    {ID: 242, profileID: 41440, deviceID: 102, inputClusters: [33], outputClusters: [33]},
+                ],
+            },
+        ],
         model: '404031',
         vendor: 'Müller Licht',
         description: 'Tint Armaro',

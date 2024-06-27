@@ -8,19 +8,9 @@ const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
 
-const switchTypeValues = [
-    'maintained_state',
-    'maintained_toggle',
-    'momentary_state',
-    'momentary_press',
-    'momentary_release',
-];
+const switchTypeValues = ['maintained_state', 'maintained_toggle', 'momentary_state', 'momentary_press', 'momentary_release'];
 
-const defaultOnOffStateValues = [
-    'on',
-    'off',
-    'previous',
-];
+const defaultOnOffStateValues = ['on', 'off', 'previous'];
 
 const fzPerenio = {
     diagnostic: {
@@ -45,9 +35,9 @@ const fzPerenio = {
             const switchTypeLookup: KeyValue = {
                 0x0001: 'momentary_state',
                 0x0010: 'maintained_state',
-                0x00CC: 'maintained_toggle',
-                0x00CD: 'momentary_release',
-                0x00DC: 'momentary_press',
+                0x00cc: 'maintained_toggle',
+                0x00cd: 'momentary_release',
+                0x00dc: 'momentary_press',
             };
             if (msg.data.hasOwnProperty('presentValue')) {
                 const property = utils.postfixWithEndpointName('switch_type', msg, model, meta);
@@ -129,11 +119,11 @@ const tzPerenio = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
             const switchTypeLookup: KeyValue = {
-                'momentary_state': 0x0001,
-                'maintained_state': 0x0010,
-                'maintained_toggle': 0x00CC,
-                'momentary_release': 0x00CD,
-                'momentary_press': 0x00DC,
+                momentary_state: 0x0001,
+                maintained_state: 0x0010,
+                maintained_toggle: 0x00cc,
+                momentary_release: 0x00cd,
+                momentary_press: 0x00dc,
             };
             await entity.write('genMultistateValue', {presentValue: switchTypeLookup[value]}, utils.getOptions(meta.mapped, entity));
             return {state: {switch_type: value}};
@@ -147,11 +137,11 @@ const tzPerenio = {
         convertSet: async (entity, key, val, meta) => {
             utils.assertString(val, key);
             const powerOnStateLookup: KeyValue = {
-                'off': 0,
-                'on': 1,
-                'previous': 2,
+                off: 0,
+                on: 1,
+                previous: 2,
             };
-            await entity.write(64635, {0: {value: powerOnStateLookup[val], type: 0x20}}, {manufacturerCode: 0x007B});
+            await entity.write(64635, {0: {value: powerOnStateLookup[val], type: 0x20}}, {manufacturerCode: 0x007b});
             return {state: {default_on_off_state: val}};
         },
         convertGet: async (entity, key, meta) => {
@@ -161,7 +151,7 @@ const tzPerenio = {
     alarms_reset: {
         key: ['alarm_voltage_min', 'alarm_voltage_max', 'alarm_power_max', 'alarm_consumed_energy'],
         convertSet: async (entity, key, val, meta) => {
-            await entity.write(64635, {1: {value: 0, type: 0x20}}, {manufacturerCode: 0x007B});
+            await entity.write(64635, {1: {value: 0, type: 0x20}}, {manufacturerCode: 0x007b});
             return {state: {alarm_voltage_min: false, alarm_voltage_max: false, alarm_power_max: false, alarm_consumed_energy: false}};
         },
         convertGet: async (entity, key, meta) => {
@@ -172,35 +162,35 @@ const tzPerenio = {
         key: ['voltage_min', 'voltage_max', 'power_max', 'consumed_energy_limit'],
         convertSet: async (entity, key, val, meta) => {
             switch (key) {
-            case 'voltage_min':
-                await entity.write(64635, {4: {value: val, type: 0x21}}, {manufacturerCode: 0x007B});
-                break;
-            case 'voltage_max':
-                await entity.write(64635, {5: {value: val, type: 0x21}}, {manufacturerCode: 0x007B});
-                break;
-            case 'power_max':
-                await entity.write(64635, {11: {value: val, type: 0x21}}, {manufacturerCode: 0x007B});
-                break;
-            case 'consumed_energy_limit':
-                await entity.write(64635, {15: {value: val, type: 0x21}}, {manufacturerCode: 0x007B});
-                break;
+                case 'voltage_min':
+                    await entity.write(64635, {4: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    break;
+                case 'voltage_max':
+                    await entity.write(64635, {5: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    break;
+                case 'power_max':
+                    await entity.write(64635, {11: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    break;
+                case 'consumed_energy_limit':
+                    await entity.write(64635, {15: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    break;
             }
             return {state: {[key]: val}};
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
-            case 'voltage_min':
-                await entity.read(64635, [4]);
-                break;
-            case 'voltage_max':
-                await entity.read(64635, [5]);
-                break;
-            case 'power_max':
-                await entity.read(64635, [11]);
-                break;
-            case 'consumed_energy_limit':
-                await entity.read(64635, [15]);
-                break;
+                case 'voltage_min':
+                    await entity.read(64635, [4]);
+                    break;
+                case 'voltage_max':
+                    await entity.read(64635, [5]);
+                    break;
+                case 'power_max':
+                    await entity.read(64635, [11]);
+                    break;
+                case 'consumed_energy_limit':
+                    await entity.read(64635, [15]);
+                    break;
             }
         },
     } satisfies Tz.Converter,
@@ -309,23 +299,28 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(endpoint10, coordinatorEndpoint, ['haDiagnostic']);
-            const payload = [{
-                attribute: 'onOff',
-                minimumReportInterval: 0,
-                maximumReportInterval: 3600,
-                reportableChange: 0,
-            }];
-            const payloadDiagnostic = [{
-                attribute: 'lastMessageLqi',
-                minimumReportInterval: 5,
-                maximumReportInterval: 60,
-                reportableChange: 0,
-            }, {
-                attribute: 'lastMessageRssi',
-                minimumReportInterval: 5,
-                maximumReportInterval: 60,
-                reportableChange: 0,
-            }];
+            const payload = [
+                {
+                    attribute: 'onOff',
+                    minimumReportInterval: 0,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                },
+            ];
+            const payloadDiagnostic = [
+                {
+                    attribute: 'lastMessageLqi',
+                    minimumReportInterval: 5,
+                    maximumReportInterval: 60,
+                    reportableChange: 0,
+                },
+                {
+                    attribute: 'lastMessageRssi',
+                    minimumReportInterval: 5,
+                    maximumReportInterval: 60,
+                    reportableChange: 0,
+                },
+            ];
             await endpoint1.configureReporting('genOnOff', payload);
             await endpoint2.configureReporting('genOnOff', payload);
             await endpoint10.configureReporting('haDiagnostic', payloadDiagnostic);
@@ -342,10 +337,8 @@ const definitions: Definition[] = [
             e.switch().withEndpoint('l2'),
             e.power_on_behavior().withEndpoint('l2'),
             e.enum('switch_type', ea.ALL, switchTypeValues).withEndpoint('l2'),
-            e.numeric('last_message_lqi', ea.STATE).withUnit('lqi')
-                .withDescription('LQI seen by the device').withValueMin(0).withValueMax(255),
-            e.numeric('last_message_rssi', ea.STATE).withUnit('dB')
-                .withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
+            e.numeric('last_message_lqi', ea.STATE).withUnit('lqi').withDescription('LQI seen by the device').withValueMin(0).withValueMax(255),
+            e.numeric('last_message_rssi', ea.STATE).withUnit('dB').withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
         ],
     },
     {
@@ -358,31 +351,39 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 64635]);
-            const payload = [{
-                attribute: 'onOff',
-                minimumReportInterval: 1,
-                maximumReportInterval: 3600,
-                reportableChange: 0,
-            }];
+            const payload = [
+                {
+                    attribute: 'onOff',
+                    minimumReportInterval: 1,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                },
+            ];
             await endpoint.configureReporting('genOnOff', payload);
-            await endpoint.configureReporting(64635, [{
-                attribute: {ID: 0x000a, type: 0x21},
-                minimumReportInterval: 5,
-                maximumReportInterval: 60,
-                reportableChange: 0,
-            }]);
-            await endpoint.configureReporting(64635, [{
-                attribute: {ID: 0x000e, type: 0x23},
-                minimumReportInterval: 5,
-                maximumReportInterval: 60,
-                reportableChange: 0,
-            }]);
-            await endpoint.configureReporting(64635, [{
-                attribute: {ID: 0x0003, type: 0x21},
-                minimumReportInterval: 5,
-                maximumReportInterval: 5,
-                reportableChange: 0,
-            }]);
+            await endpoint.configureReporting(64635, [
+                {
+                    attribute: {ID: 0x000a, type: 0x21},
+                    minimumReportInterval: 5,
+                    maximumReportInterval: 60,
+                    reportableChange: 0,
+                },
+            ]);
+            await endpoint.configureReporting(64635, [
+                {
+                    attribute: {ID: 0x000e, type: 0x23},
+                    minimumReportInterval: 5,
+                    maximumReportInterval: 60,
+                    reportableChange: 0,
+                },
+            ]);
+            await endpoint.configureReporting(64635, [
+                {
+                    attribute: {ID: 0x0003, type: 0x21},
+                    minimumReportInterval: 5,
+                    maximumReportInterval: 5,
+                    reportableChange: 0,
+                },
+            ]);
             await endpoint.read(64635, [0, 1, 2, 3]);
             await endpoint.read(64635, [4, 5, 11, 15]);
         },
@@ -392,25 +393,27 @@ const definitions: Definition[] = [
             e.numeric('rms_voltage', ea.STATE).withUnit('V').withDescription('RMS voltage'),
             e.numeric('active_power', ea.STATE).withUnit('W').withDescription('Active power'),
             e.numeric('consumed_energy', ea.STATE).withUnit('W*h').withDescription('Consumed energy'),
-            e.binary('alarm_voltage_min', ea.ALL, true, false)
+            e
+                .binary('alarm_voltage_min', ea.ALL, true, false)
                 .withDescription('Indicates if the alarm is triggered on the voltage drop below the limit, allows to reset alarms'),
-            e.binary('alarm_voltage_max', ea.ALL, true, false)
+            e
+                .binary('alarm_voltage_max', ea.ALL, true, false)
                 .withDescription('Indicates if the alarm is triggered on the voltage rise above the limit, allows to reset alarms'),
-            e.binary('alarm_power_max', ea.ALL, true, false)
+            e
+                .binary('alarm_power_max', ea.ALL, true, false)
                 .withDescription('Indicates if the alarm is triggered on the active power rise above the limit, allows to reset alarms'),
-            e.binary('alarm_consumed_energy', ea.ALL, true, false)
-                .withDescription(
-                    'Indicates if the alarm is triggered when the consumption energy limit is reached, allows to reset alarms'),
-            e.numeric('voltage_min', ea.ALL).withValueMin(0).withValueMax(253)
-                .withDescription('Minimum allowable voltage limit for alarms.'),
-            e.numeric('voltage_max', ea.ALL).withValueMin(0).withValueMax(253)
-                .withDescription('Maximum allowable voltage limit for alarms.'),
-            e.numeric('power_max', ea.ALL).withValueMin(0).withValueMax(65534)
-                .withDescription('Maximum allowable power limit for alarms.'),
-            e.numeric('consumed_energy_limit', ea.ALL).withValueMin(0).withValueMax(65534)
+            e
+                .binary('alarm_consumed_energy', ea.ALL, true, false)
+                .withDescription('Indicates if the alarm is triggered when the consumption energy limit is reached, allows to reset alarms'),
+            e.numeric('voltage_min', ea.ALL).withValueMin(0).withValueMax(253).withDescription('Minimum allowable voltage limit for alarms.'),
+            e.numeric('voltage_max', ea.ALL).withValueMin(0).withValueMax(253).withDescription('Maximum allowable voltage limit for alarms.'),
+            e.numeric('power_max', ea.ALL).withValueMin(0).withValueMax(65534).withDescription('Maximum allowable power limit for alarms.'),
+            e
+                .numeric('consumed_energy_limit', ea.ALL)
+                .withValueMin(0)
+                .withValueMax(65534)
                 .withDescription('Limit of electric energy consumption in kW*h. 0 value represents no limit'),
-            e.numeric('rssi', ea.STATE).withUnit('dB')
-                .withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
+            e.numeric('rssi', ea.STATE).withUnit('dB').withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
         ],
         ota: ota.zigbeeOTA,
     },

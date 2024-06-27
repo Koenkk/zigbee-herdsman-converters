@@ -1,4 +1,3 @@
-
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
@@ -9,8 +8,8 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const buttonModesList = {
-    'single_click': 0x01,
-    'multi_click': 0x02,
+    single_click: 0x01,
+    multi_click: 0x02,
 };
 
 const inputLinkList = {
@@ -20,24 +19,24 @@ const inputLinkList = {
 
 const bindCommandList = {
     'on/off': 0x00,
-    'toggle': 0x01,
-    'change_level_up': 0x02,
-    'change_level_down': 0x03,
-    'change_level_up_with_off': 0x04,
-    'change_level_down_with_off': 0x05,
-    'recall_scene_0': 0x06,
-    'recall_scene_1': 0x07,
-    'recall_scene_2': 0x08,
-    'recall_scene_3': 0x09,
-    'recall_scene_4': 0x0A,
-    'recall_scene_5': 0x0B,
+    toggle: 0x01,
+    change_level_up: 0x02,
+    change_level_down: 0x03,
+    change_level_up_with_off: 0x04,
+    change_level_down_with_off: 0x05,
+    recall_scene_0: 0x06,
+    recall_scene_1: 0x07,
+    recall_scene_2: 0x08,
+    recall_scene_3: 0x09,
+    recall_scene_4: 0x0a,
+    recall_scene_5: 0x0b,
 };
 
 const switchTypesList = {
-    'switch': 0x00,
-    'single_click': 0x01,
-    'multi_click': 0x02,
-    'reset_to_defaults': 0xff,
+    switch: 0x00,
+    single_click: 0x01,
+    multi_click: 0x02,
+    reset_to_defaults: 0xff,
 };
 
 const switchActionsList = {
@@ -46,7 +45,7 @@ const switchActionsList = {
     toggle: 0x02,
 };
 
-function getSortedList(source: { [key: string]: number }): string[] {
+function getSortedList(source: {[key: string]: number}): string[] {
     const keysSorted: [string, number][] = [];
 
     for (const key in source) {
@@ -69,12 +68,9 @@ function getSortedList(source: { [key: string]: number }): string[] {
 
 function zigDcInputConfigExposes(epName: string, desc: string) {
     const features = [];
-    features.push(e.enum('switch_type', exposes.access.ALL,
-        getSortedList(switchTypesList)).withEndpoint(epName).withDescription(desc));
-    features.push(e.enum('switch_actions', exposes.access.ALL,
-        getSortedList(switchActionsList)).withEndpoint(epName));
-    features.push(e.enum('bind_command', exposes.access.ALL,
-        getSortedList(bindCommandList)).withEndpoint(epName));
+    features.push(e.enum('switch_type', exposes.access.ALL, getSortedList(switchTypesList)).withEndpoint(epName).withDescription(desc));
+    features.push(e.enum('switch_actions', exposes.access.ALL, getSortedList(switchActionsList)).withEndpoint(epName));
+    features.push(e.enum('bind_command', exposes.access.ALL, getSortedList(bindCommandList)).withEndpoint(epName));
     return features;
 }
 
@@ -88,18 +84,18 @@ const tzLocal = {
             let payload;
             let data;
             switch (key) {
-            case 'button_mode':
-                data = utils.getFromLookup(value, buttonModesList);
-                payload = {buttonMode: data};
-                break;
-            case 'link_to_output':
-                data = utils.getFromLookup(value, inputLinkList);
-                payload = {0x4001: {value: data, type: 32 /* uint8 */}};
-                break;
-            case 'bind_command':
-                data = utils.getFromLookup(value, bindCommandList);
-                payload = {0x4002: {value: data, type: 32 /* uint8 */}};
-                break;
+                case 'button_mode':
+                    data = utils.getFromLookup(value, buttonModesList);
+                    payload = {buttonMode: data};
+                    break;
+                case 'link_to_output':
+                    data = utils.getFromLookup(value, inputLinkList);
+                    payload = {0x4001: {value: data, type: 32 /* uint8 */}};
+                    break;
+                case 'bind_command':
+                    data = utils.getFromLookup(value, bindCommandList);
+                    payload = {0x4002: {value: data, type: 32 /* uint8 */}};
+                    break;
             }
             await entity.write('genOnOffSwitchCfg', payload);
         },
@@ -144,15 +140,17 @@ const tzLocal = {
             utils.assertNumber(value, key);
             utils.assertEndpoint(entity);
             if (key === 'restart') {
-                await entity.command('genOnOff', 'onWithTimedOff', {ctrlbits: 0, ontime: Math.round(value*10), offwaittime: 0});
+                await entity.command('genOnOff', 'onWithTimedOff', {ctrlbits: 0, ontime: Math.round(value * 10), offwaittime: 0});
                 return {state: {[key]: value}};
             } else if (key === 'interval') {
-                await entity.configureReporting('genOnOff', [{
-                    attribute: 'onOff',
-                    minimumReportInterval: value,
-                    maximumReportInterval: value,
-                    reportableChange: 0,
-                }]);
+                await entity.configureReporting('genOnOff', [
+                    {
+                        attribute: 'onOff',
+                        minimumReportInterval: value,
+                        maximumReportInterval: value,
+                        reportableChange: 0,
+                    },
+                ]);
                 return {state: {[key]: value}};
             }
         },
@@ -164,12 +162,14 @@ const tzLocal = {
             const endpoint = meta.device.getEndpoint(epId);
             const value2 = parseInt(value.toString());
             if (!isNaN(value2) && value2 > 0) {
-                await endpoint.configureReporting('genOnOff', [{
-                    attribute: 'onOff',
-                    minimumReportInterval: value2,
-                    maximumReportInterval: value2,
-                    reportableChange: 0,
-                }]);
+                await endpoint.configureReporting('genOnOff', [
+                    {
+                        attribute: 'onOff',
+                        minimumReportInterval: value2,
+                        maximumReportInterval: value2,
+                        reportableChange: 0,
+                    },
+                ]);
             }
             return;
         },
@@ -183,18 +183,18 @@ const tzLocal = {
             let payload;
             let data;
             switch (key) {
-            case 'switch_type':
-                data = utils.getFromLookup(value, switchTypesList);
-                payload = {switchType: data};
-                break;
-            case 'switch_actions':
-                data = utils.getFromLookup(value, switchActionsList);
-                payload = {switchActions: data};
-                break;
-            case 'bind_command':
-                data = utils.getFromLookup(value, bindCommandList);
-                payload = {0x4002: {value: data, type: 32 /* uint8 */}};
-                break;
+                case 'switch_type':
+                    data = utils.getFromLookup(value, switchTypesList);
+                    payload = {switchType: data};
+                    break;
+                case 'switch_actions':
+                    data = utils.getFromLookup(value, switchActionsList);
+                    payload = {switchActions: data};
+                    break;
+                case 'bind_command':
+                    data = utils.getFromLookup(value, bindCommandList);
+                    payload = {0x4002: {value: data, type: 32 /* uint8 */}};
+                    break;
             }
             await entity.write('genOnOffSwitchCfg', payload);
         },
@@ -242,10 +242,10 @@ const fzLocal = {
                         let val = utils.precisionRound(valRaw, 1);
 
                         const nameLookup: KeyValueAny = {
-                            'C': 'temperature',
-                            'V': 'voltage',
-                            'A': 'current',
-                            'W': 'power',
+                            C: 'temperature',
+                            V: 'voltage',
+                            A: 'current',
+                            W: 'power',
                         };
 
                         let nameAlt = '';
@@ -260,7 +260,7 @@ const fzLocal = {
 
                         if (nameAlt === undefined) {
                             const valueIndex = parseInt(unit, 10);
-                            if (! isNaN(valueIndex)) {
+                            if (!isNaN(valueIndex)) {
                                 nameAlt = 'val' + unit;
                             }
                         }
@@ -280,8 +280,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
                 const payload: KeyValueAny = {};
-                const endpointName = model.hasOwnProperty('endpoint') ?
-                    utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
+                const endpointName = model.hasOwnProperty('endpoint') ? utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
                 const state = msg.data['onOff'] === 1 ? 'OFF' : 'ON';
                 payload[`state_${endpointName}`] = state;
                 return payload;
@@ -292,7 +291,7 @@ const fzLocal = {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const payload: { [key: string]: number } = {};
+            const payload: {[key: string]: number} = {};
             const endpoint = msg.endpoint.ID;
 
             if (endpoint === 3 || endpoint === 5) {
@@ -304,7 +303,7 @@ const fzLocal = {
                 const isCurrent = param === 'A';
                 const name = isCurrent ? 'current' : 'voltage';
                 const alt = isCurrent ? 'voltage' : 'current';
-                const baseCh = (addr === 41) ? 1 : 4;
+                const baseCh = addr === 41 ? 1 : 4;
                 const suffix = `_ch${baseCh + ch - 1}`;
                 const otherKey = alt + suffix;
                 const otherValue = meta.state[otherKey] as number;
@@ -321,7 +320,7 @@ const fzLocal = {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const payload: { [key: string]: number } = {};
+            const payload: {[key: string]: number} = {};
             const channel = msg.endpoint.ID;
 
             if (channel === 1) {
@@ -347,15 +346,11 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-
 function zigusbBtnConfigExposes(epName: string) {
     const features = [];
-    features.push(e.enum('button_mode', exposes.access.ALL,
-        getSortedList(buttonModesList)).withEndpoint(epName));
-    features.push(e.enum('link_to_output', exposes.access.ALL,
-        getSortedList(inputLinkList)).withEndpoint(epName));
-    features.push(e.enum('bind_command', exposes.access.ALL,
-        getSortedList(bindCommandList)).withEndpoint(epName));
+    features.push(e.enum('button_mode', exposes.access.ALL, getSortedList(buttonModesList)).withEndpoint(epName));
+    features.push(e.enum('link_to_output', exposes.access.ALL, getSortedList(inputLinkList)).withEndpoint(epName));
+    features.push(e.enum('bind_command', exposes.access.ALL, getSortedList(bindCommandList)).withEndpoint(epName));
     return features;
 }
 
@@ -365,22 +360,42 @@ const definitions: Definition[] = [
         model: 'ZigUSB',
         vendor: 'xyzroe',
         description: 'Zigbee USB power monitor and switch',
-        fromZigbee: [fz.ignore_basic_report, fzLocal.zigusb_on_off_invert, fzLocal.zigusb_analog_input, fz.temperature,
-            fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fzLocal.zigusb_button_config],
+        fromZigbee: [
+            fz.ignore_basic_report,
+            fzLocal.zigusb_on_off_invert,
+            fzLocal.zigusb_analog_input,
+            fz.temperature,
+            fz.ptvo_multistate_action,
+            legacy.fz.ptvo_switch_buttons,
+            fzLocal.zigusb_button_config,
+        ],
         toZigbee: [tzLocal.zigusb_restart_interval, tzLocal.zigusb_on_off_invert, tz.ptvo_switch_analog_input, tzLocal.zigusb_button_config],
-        exposes: [e.switch().withEndpoint('l1'),
-            e.numeric('restart', ea.SET).withEndpoint('l1').withValueMin(1).withValueMax(30).withValueStep(1)
-                .withDescription('OFF time').withUnit('seconds'),
+        exposes: [
+            e.switch().withEndpoint('l1'),
+            e
+                .numeric('restart', ea.SET)
+                .withEndpoint('l1')
+                .withValueMin(1)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription('OFF time')
+                .withUnit('seconds'),
             ...zigusbBtnConfigExposes('l1'),
-            e.action(['single', 'double', 'triple'])
-                .withDescription('Single click works only with NO link to output'),
+            e.action(['single', 'double', 'triple']).withDescription('Single click works only with NO link to output'),
             e.current().withAccess(ea.STATE).withEndpoint('l2'),
             e.voltage().withAccess(ea.STATE).withEndpoint('l2'),
             e.power().withAccess(ea.STATE).withEndpoint('l2'),
-            e.numeric('interval', ea.SET).withEndpoint('l2').withValueMin(1).withValueMax(3600).withValueStep(1)
-                .withDescription('Reporting interval').withUnit('sec'),
+            e
+                .numeric('interval', ea.SET)
+                .withEndpoint('l2')
+                .withValueMin(1)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withDescription('Reporting interval')
+                .withUnit('sec'),
             e.cpu_temperature().withProperty('temperature').withEndpoint('l4'),
-            e.numeric('uptime', ea.STATE).withEndpoint('l5').withDescription('CC2530').withUnit('seconds')],
+            e.numeric('uptime', ea.STATE).withEndpoint('l5').withDescription('CC2530').withUnit('seconds'),
+        ],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2, l4: 4, l5: 5};
@@ -424,8 +439,7 @@ const definitions: Definition[] = [
             ...zigDcInputConfigExposes('l8', 'IN2'),
             ...zigDcInputConfigExposes('l1', 'BTN'),
             e.numeric('uptime', ea.STATE).withDescription('Uptime').withUnit('sec'),
-            e.numeric('interval', ea.SET).withValueMin(5).withValueMax(600).withValueStep(1)
-                .withDescription('Reporting interval').withUnit('sec'),
+            e.numeric('interval', ea.SET).withValueMin(5).withValueMax(600).withValueStep(1).withDescription('Reporting interval').withUnit('sec'),
         ],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -436,7 +450,8 @@ const definitions: Definition[] = [
             await endpoint1.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
             const endpoint2 = device.getEndpoint(2);
             await endpoint2.configureReporting('genOnOff', [
-                {attribute: 'onOff', minimumReportInterval: 20, maximumReportInterval: 120, reportableChange: 0.1}]);
+                {attribute: 'onOff', minimumReportInterval: 20, maximumReportInterval: 120, reportableChange: 0.1},
+            ]);
         },
     },
 ];

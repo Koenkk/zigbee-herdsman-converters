@@ -2,7 +2,7 @@ import {Zh, Ota} from '../types';
 import * as common from './common';
 import * as zigbeeOTA from './zigbeeOTA';
 
-export async function isUpdateAvailable(device: Zh.Device, requestPayload:Ota.ImageInfo=null) {
+export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
     if (device.modelID === 'PP-WHT-US') {
         // see https://github.com/Koenkk/zigbee-OTA/pull/14
         const scenesEndpoint = device.endpoints.find((e) => e.supportsOutputCluster('genScenes'));

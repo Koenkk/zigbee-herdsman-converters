@@ -17,10 +17,7 @@ const definitions: Definition[] = [
         model: 'SP-PS2-02',
         vendor: 'Spotmau',
         description: 'Smart wall switch - 2 gang',
-        extend: [
-            deviceEndpoints({endpoints: {'left': 16, 'right': 17}}),
-            onOff({endpointNames: ['left', 'right']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {left: 16, right: 17}}), onOff({endpointNames: ['left', 'right']})],
     },
 ];
 

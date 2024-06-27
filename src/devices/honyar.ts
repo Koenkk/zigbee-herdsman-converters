@@ -14,10 +14,7 @@ const definitions: Definition[] = [
         model: 'U86K31ND6',
         vendor: 'Honyar',
         description: '3 gang switch ',
-        extend: [
-            deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
-            onOff({endpointNames: ['left', 'center', 'right']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), onOff({endpointNames: ['left', 'center', 'right']})],
     },
     {
         zigbeeModel: ['HY0043'],
@@ -46,8 +43,7 @@ const definitions: Definition[] = [
         description: 'Smart power socket 10A with USB (with power monitoring)',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power(), e.current(), e.voltage(),
-            e.energy()],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power(), e.current(), e.voltage(), e.energy()],
         meta: {multiEndpoint: true, multiEndpointSkip: ['energy', 'current', 'voltage', 'power']},
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -63,8 +59,14 @@ const definitions: Definition[] = [
             await reporting.currentSummDelivered(endpoint, {min: 10});
             await reporting.readMeteringMultiplierDivisor(endpoint);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acVoltageMultiplier: 1,
-                acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1, acPowerDivisor: 10});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 10,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: 1000,
+                acPowerMultiplier: 1,
+                acPowerDivisor: 10,
+            });
             device.save();
         },
     },
@@ -92,7 +94,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
         endpoint: (device) => {
-            return {'left': 1, 'right': 2};
+            return {left: 1, right: 2};
         },
         meta: {multiEndpoint: true, disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -113,7 +115,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.switch().withEndpoint('center')],
         endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
+            return {left: 1, center: 2, right: 3};
         },
         meta: {multiEndpoint: true, disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {

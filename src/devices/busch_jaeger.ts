@@ -35,7 +35,7 @@ const definitions: Definition[] = [
         vendor: 'Busch-Jaeger',
         description: 'Zigbee Light Link power supply/relay/dimmer/wall-switch',
         endpoint: (device) => {
-            return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'relay': 0x12};
+            return {row_1: 0x0a, row_2: 0x0b, row_3: 0x0c, row_4: 0x0d, relay: 0x12};
         },
         exposes: (device, options) => {
             const expose = [];
@@ -52,12 +52,30 @@ const definitions: Definition[] = [
             }
             // Not all devices support all actions (depends on number of rocker rows and if relay/dimmer is installed),
             // but defining all possible actions here won't do any harm.
-            expose.push(e.action([
-                'row_1_on', 'row_1_off', 'row_1_up', 'row_1_down', 'row_1_stop',
-                'row_2_on', 'row_2_off', 'row_2_up', 'row_2_down', 'row_2_stop',
-                'row_3_on', 'row_3_off', 'row_3_up', 'row_3_down', 'row_3_stop',
-                'row_4_on', 'row_4_off', 'row_4_up', 'row_4_down', 'row_4_stop',
-            ]));
+            expose.push(
+                e.action([
+                    'row_1_on',
+                    'row_1_off',
+                    'row_1_up',
+                    'row_1_down',
+                    'row_1_stop',
+                    'row_2_on',
+                    'row_2_off',
+                    'row_2_up',
+                    'row_2_down',
+                    'row_2_stop',
+                    'row_3_on',
+                    'row_3_off',
+                    'row_3_up',
+                    'row_3_down',
+                    'row_3_stop',
+                    'row_4_on',
+                    'row_4_off',
+                    'row_4_up',
+                    'row_4_down',
+                    'row_4_stop',
+                ]),
+            );
             expose.push(e.linkquality());
 
             return expose;
@@ -113,8 +131,16 @@ const definitions: Definition[] = [
                 await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
             }
         },
-        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, legacy.fz.RM01_on_click, legacy.fz.RM01_off_click,
-            legacy.fz.RM01_up_hold, legacy.fz.RM01_down_hold, legacy.fz.RM01_stop],
+        fromZigbee: [
+            fz.ignore_basic_report,
+            fz.on_off,
+            fz.brightness,
+            legacy.fz.RM01_on_click,
+            legacy.fz.RM01_off_click,
+            legacy.fz.RM01_up_hold,
+            legacy.fz.RM01_down_hold,
+            legacy.fz.RM01_stop,
+        ],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
         onEvent: async (type, data, device) => {
             const switchEndpoint = device.getEndpoint(0x12);

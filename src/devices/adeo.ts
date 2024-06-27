@@ -16,9 +16,9 @@ const fzLocal = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 contact: !((zoneStatus & 1) > 0),
-                vibration: (zoneStatus & 1<<1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
+                vibration: (zoneStatus & (1 << 1)) > 0,
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
             };
         },
     } satisfies Fz.Converter,
@@ -42,8 +42,14 @@ const definitions: Definition[] = [
         description: 'ENKI LEXMAN wireless smart door window sensor with vibration',
         fromZigbee: [fzLocal.LDSENK08, fz.battery],
         toZigbee: [tzLocal.LDSENK08_sensitivity],
-        exposes: [e.battery_low(), e.contact(), e.vibration(), e.tamper(), e.battery(),
-            e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(4).withDescription('Sensitivity of the motion sensor')],
+        exposes: [
+            e.battery_low(),
+            e.contact(),
+            e.vibration(),
+            e.tamper(),
+            e.battery(),
+            e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(4).withDescription('Sensitivity of the motion sensor'),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -226,12 +232,41 @@ const definitions: Definition[] = [
         model: 'HR-C99C-Z-C045',
         vendor: 'ADEO',
         description: 'RGB CTT LEXMAN ENKI remote control',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.command_step_color_temperature,
-            fz.command_step_hue, fz.command_step_saturation, fz.color_stop_raw, fz.scenes_recall_scene_65024, fz.ignore_genOta],
+        fromZigbee: [
+            fz.battery,
+            fz.command_on,
+            fz.command_off,
+            fz.command_step,
+            fz.command_stop,
+            fz.command_step_color_temperature,
+            fz.command_step_hue,
+            fz.command_step_saturation,
+            fz.color_stop_raw,
+            fz.scenes_recall_scene_65024,
+            fz.ignore_genOta,
+        ],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['on', 'off', 'scene_1', 'scene_2', 'scene_3', 'scene_4', 'color_saturation_step_up',
-            'color_saturation_step_down', 'color_stop', 'color_hue_step_up', 'color_hue_step_down',
-            'color_temperature_step_up', 'color_temperature_step_down', 'brightness_step_up', 'brightness_step_down', 'brightness_stop'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on',
+                'off',
+                'scene_1',
+                'scene_2',
+                'scene_3',
+                'scene_4',
+                'color_saturation_step_up',
+                'color_saturation_step_down',
+                'color_stop',
+                'color_hue_step_up',
+                'color_hue_step_down',
+                'color_temperature_step_up',
+                'color_temperature_step_down',
+                'brightness_step_up',
+                'brightness_step_down',
+                'brightness_stop',
+            ]),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genOnOff', 'genPowerCfg', 'lightingColorCtrl', 'genLevelCtrl'];
@@ -275,9 +310,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.ias_siren],
         toZigbee: [tz.warning],
         exposes: [e.warning(), e.battery(), e.battery_low(), e.tamper()],
-        extend: [
-            quirkCheckinInterval(0),
-        ],
+        extend: [quirkCheckinInterval(0)],
         configure: async (device, coordinatorEndpoint) => {
             await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
         },
@@ -351,12 +384,7 @@ const definitions: Definition[] = [
         description: 'Equation pilot wire heating module',
         fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
         toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
-        exposes: [
-            e.switch(),
-            e.power(),
-            e.energy(),
-            e.pilot_wire_mode(),
-        ],
+        exposes: [e.switch(), e.power(), e.energy(), e.pilot_wire_mode()],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);

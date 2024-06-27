@@ -12,9 +12,9 @@ const fzLocal = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 contact: !((zoneStatus & 1) > 0),
-                vibration: (zoneStatus & 1<<1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
+                vibration: (zoneStatus & (1 << 1)) > 0,
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
             };
         },
     } satisfies Fz.Converter,

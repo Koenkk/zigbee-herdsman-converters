@@ -13,8 +13,9 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
         throw new Error(`GMMTS OTA: No builds available for ${device.modelID}`);
     }
 
-    const appUrl: { path: string, offset: number, type: string, ota: string } | undefined =
-     releases.builds[0].parts.find((part: { type: string }) => part.type === 'app');
+    const appUrl: {path: string; offset: number; type: string; ota: string} | undefined = releases.builds[0].parts.find(
+        (part: {type: string}) => part.type === 'app',
+    );
 
     logger.info(`GMMTS OTA: Using firmware file ` + appUrl.path + ` for ${device.modelID}`, 'TICMeter');
     const image = common.parseImage((await common.getAxios().get(appUrl.ota, {responseType: 'arraybuffer'})).data);
@@ -35,7 +36,7 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, requestPayload:Ota.ImageInfo=null) {
+export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
     return common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 

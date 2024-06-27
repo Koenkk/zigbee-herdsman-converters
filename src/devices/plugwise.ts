@@ -54,9 +54,8 @@ const tzLocal = {
     plugwise_calibrate_valve: {
         key: ['calibrate_valve'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('hvacThermostat', 'plugwiseCalibrateValve', {},
-                {srcEndpoint: 11, disableDefaultResponse: true});
-            return {state: {'calibrate_valve': value}};
+            await entity.command('hvacThermostat', 'plugwiseCalibrateValve', {}, {srcEndpoint: 11, disableDefaultResponse: true});
+            return {state: {calibrate_valve: value}};
         },
     } satisfies Tz.Converter,
     plugwise_valve_position: {
@@ -133,19 +132,25 @@ const definitions: Definition[] = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
         },
-        exposes: [e.battery(),
-            e.numeric('pi_heating_demand', ea.STATE_GET).withValueMin(0).withValueMax(100).withUnit('%')
+        exposes: [
+            e.battery(),
+            e
+                .numeric('pi_heating_demand', ea.STATE_GET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withUnit('%')
                 .withDescription('Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open'),
             e.numeric('local_temperature', ea.STATE).withUnit('°C').withDescription('Current temperature measured on the device'),
-            e.numeric('valve_position', ea.ALL).withValueMin(0).withValueMax(100)
-                .withDescription('Directly control the radiator valve. The values range from 0 (valve ' +
-                    'closed) to 100 (valve fully open)'),
-            e.enum('force', ea.ALL, ['standard', 'high', 'very_high'])
+            e
+                .numeric('valve_position', ea.ALL)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription('Directly control the radiator valve. The values range from 0 (valve ' + 'closed) to 100 (valve fully open)'),
+            e
+                .enum('force', ea.ALL, ['standard', 'high', 'very_high'])
                 .withDescription('How hard the motor pushes the valve. The closer to the boiler, the higher the force needed'),
-            e.enum('radio_strength', ea.ALL, ['normal', 'high'])
-                .withDescription('Transmits with higher power when range is not sufficient'),
-            e.binary('calibrate_valve', ea.STATE_SET, 'calibrate', 'idle')
-                .withDescription('Calibrates valve on next wakeup'),
+            e.enum('radio_strength', ea.ALL, ['normal', 'high']).withDescription('Transmits with higher power when range is not sufficient'),
+            e.binary('calibrate_valve', ea.STATE_SET, 'calibrate', 'idle').withDescription('Calibrates valve on next wakeup'),
         ],
     },
     {
@@ -154,18 +159,17 @@ const definitions: Definition[] = [
         vendor: 'Plugwise',
         description: 'Lisa zone thermostat',
         fromZigbee: [fz.thermostat, fz.temperature, fz.battery],
-        toZigbee: [
-            tz.thermostat_system_mode,
-            tz.thermostat_occupied_heating_setpoint,
-        ],
+        toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'hvacThermostat']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.thermostatTemperature(endpoint);
         },
-        exposes: [e.battery(),
-            e.climate()
+        exposes: [
+            e.battery(),
+            e
+                .climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.ALL)
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(['off', 'auto'], ea.ALL),

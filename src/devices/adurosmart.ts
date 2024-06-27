@@ -43,7 +43,7 @@ const definitions: Definition[] = [
         description: 'ERIA colors and white shades smart light bulb A19/BR30',
         extend: [light({colorTemp: {range: undefined}, color: {applyRedFix: true}})],
         endpoint: (device) => {
-            return {'default': 2};
+            return {default: 2};
         },
     },
     {

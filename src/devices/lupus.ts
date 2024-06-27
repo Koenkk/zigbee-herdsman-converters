@@ -55,10 +55,7 @@ const definitions: Definition[] = [
         model: '12127',
         vendor: 'Lupus',
         description: '2 channel relay',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
     },
 ];
 

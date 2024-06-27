@@ -16,10 +16,7 @@ const definitions: Definition[] = [
         model: 'TERNCY-WS01',
         vendor: 'TERNCY',
         description: 'Smart light switch - 4 gang without neutral wire',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}), onOff({endpointNames: ['l1', 'l2', 'l3', 'l4']})],
     },
     {
         zigbeeModel: ['DL001'],
@@ -44,8 +41,7 @@ const definitions: Definition[] = [
         vendor: 'TERNCY',
         description: 'Awareness switch',
         fromZigbee: [fz.terncy_temperature, fz.occupancy_with_timeout, fz.illuminance, fz.terncy_raw, legacy.fz.terncy_raw, fz.battery],
-        exposes: [e.temperature(), e.occupancy(), e.illuminance_lux(), e.illuminance(),
-            e.action(['single', 'double', 'triple', 'quadruple'])],
+        exposes: [e.temperature(), e.occupancy(), e.illuminance_lux(), e.illuminance(), e.action(['single', 'double', 'triple', 'quadruple'])],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
     },
@@ -58,8 +54,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         ota: ota.zigbeeOTA,
         meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'rotate']),
-            e.text('direction', ea.STATE)],
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'rotate']), e.text('direction', ea.STATE)],
     },
     {
         zigbeeModel: ['TERNCY-LS01'],

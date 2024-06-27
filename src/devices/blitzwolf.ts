@@ -16,7 +16,6 @@ const definitions: Definition[] = [
         exposes: [e.occupancy()],
     },
     {
-
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_aneiicmq'}],
         model: 'BW-SS7_1gang',
         vendor: 'BlitzWolf',

@@ -81,7 +81,9 @@ const definitions: Definition[] = [
             tz.thermostat_system_mode,
         ],
         exposes: [
-            e.climate().withSetpoint('occupied_heating_setpoint', 4, 40, 0.1)
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 4, 40, 0.1)
                 .withSetpoint('occupied_cooling_setpoint', 4, 40, 0.1)
                 .withLocalTemperature()
                 .withSystemMode(['heat', 'cool']),

@@ -15,8 +15,10 @@ const definitions: Definition[] = [
         description: 'Thermostat',
         fromZigbee: [fz.on_off, fz.thermostat],
         toZigbee: [tz.on_off, tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint],
-        exposes: [e.climate().withLocalTemperature().withSetpoint('occupied_heating_setpoint', 5, 40, 0.5).withSystemMode(['off', 'auto', 'heat']),
-            e.binary('state', ea.ALL, 'ON', 'OFF').withDescription('Turn on or off.')],
+        exposes: [
+            e.climate().withLocalTemperature().withSetpoint('occupied_heating_setpoint', 5, 40, 0.5).withSystemMode(['off', 'auto', 'heat']),
+            e.binary('state', ea.ALL, 'ON', 'OFF').withDescription('Turn on or off.'),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genOnOff', 'hvacThermostat'];

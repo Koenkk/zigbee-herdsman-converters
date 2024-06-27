@@ -53,30 +53,32 @@ const definitions: Definition[] = [
             } catch (e) {
                 e;
             }
-            const payload = [{
-                attribute: 'rmsVoltagePhB',
-                minimumReportInterval: 60,
-                maximumReportInterval: 3600,
-                reportableChange: 0,
-            },
-            {
-                attribute: 'rmsVoltagePhC',
-                minimumReportInterval: 60,
-                maximumReportInterval: 3600,
-                reportableChange: 0,
-            },
-            {
-                attribute: 'rmsCurrentPhB',
-                minimumReportInterval: 60,
-                maximumReportInterval: 3600,
-                reportableChange: 0,
-            },
-            {
-                attribute: 'rmsCurrentPhC',
-                minimumReportInterval: 60,
-                maximumReportInterval: 3600,
-                reportableChange: 0,
-            }];
+            const payload = [
+                {
+                    attribute: 'rmsVoltagePhB',
+                    minimumReportInterval: 60,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                },
+                {
+                    attribute: 'rmsVoltagePhC',
+                    minimumReportInterval: 60,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                },
+                {
+                    attribute: 'rmsCurrentPhB',
+                    minimumReportInterval: 60,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                },
+                {
+                    attribute: 'rmsCurrentPhC',
+                    minimumReportInterval: 60,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                },
+            ];
             await endpoint.configureReporting('haElectricalMeasurement', payload);
             await reporting.rmsVoltage(endpoint, {min: 60, max: 3600, change: 0});
             await reporting.rmsCurrent(endpoint, {min: 60, max: 3600, change: 0});
@@ -85,16 +87,34 @@ const definitions: Definition[] = [
             await reporting.currentSummReceived(endpoint);
             await reporting.temperature(endpoint, {min: 60, max: 3600, change: 0});
         },
-        exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
-            e.voltage_phase_c(), e.temperature()],
+        exposes: [
+            e.power(),
+            e.energy(),
+            e.current(),
+            e.voltage(),
+            e.current_phase_b(),
+            e.voltage_phase_b(),
+            e.current_phase_c(),
+            e.voltage_phase_c(),
+            e.temperature(),
+        ],
     },
     {
         zigbeeModel: ['Motion Sensor'],
         model: 'HSE2927E',
         vendor: 'Datek',
         description: 'Eva motion sensor',
-        fromZigbee: [fz.battery, fz.occupancy, fz.occupancy_timeout, fz.illuminance, fz.temperature,
-            fz.ias_enroll, fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.led_on_motion],
+        fromZigbee: [
+            fz.battery,
+            fz.occupancy,
+            fz.occupancy_timeout,
+            fz.illuminance,
+            fz.temperature,
+            fz.ias_enroll,
+            fz.ias_occupancy_alarm_1,
+            fz.ias_occupancy_alarm_1_report,
+            fz.led_on_motion,
+        ],
         toZigbee: [tz.occupancy_timeout, tz.led_on_motion],
         configure: async (device, coordinatorEndpoint) => {
             const options = {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS};
@@ -104,28 +124,43 @@ const definitions: Definition[] = [
             await reporting.occupancy(endpoint);
             await reporting.temperature(endpoint);
             await reporting.illuminance(endpoint);
-            const payload = [{
-                attribute: {ID: 0x4000, type: 0x10},
-            }];
+            const payload = [
+                {
+                    attribute: {ID: 0x4000, type: 0x10},
+                },
+            ];
             // @ts-expect-error
             await endpoint.configureReporting('ssIasZone', payload, options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('ssIasZone', [0x4000], options);
         },
-        exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.illuminance_lux(), e.illuminance(),
+        exposes: [
+            e.temperature(),
+            e.occupancy(),
+            e.battery_low(),
+            e.illuminance_lux(),
+            e.illuminance(),
             e.binary('led_on_motion', ea.ALL, true, false).withDescription('Enable/disable LED on motion'),
-            e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)],
+            e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535),
+        ],
     },
     {
         zigbeeModel: ['ID Lock 150', 'ID Lock 202'],
         model: '0402946',
         vendor: 'Datek',
         description: 'Zigbee module for ID lock',
-        fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event,
-            fz.idlock, fz.idlock_fw, fz.lock_pin_code_response],
-        toZigbee: [tz.lock, tz.lock_sound_volume, tz.idlock_master_pin_mode, tz.idlock_rfid_enable,
-            tz.idlock_service_mode, tz.idlock_lock_mode, tz.idlock_relock_enabled, tz.pincode_lock],
+        fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.idlock, fz.idlock_fw, fz.lock_pin_code_response],
+        toZigbee: [
+            tz.lock,
+            tz.lock_sound_volume,
+            tz.idlock_master_pin_mode,
+            tz.idlock_rfid_enable,
+            tz.idlock_service_mode,
+            tz.idlock_lock_mode,
+            tz.idlock_relock_enabled,
+            tz.pincode_lock,
+        ],
         meta: {pinCodeCount: 109},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -133,36 +168,38 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            const payload = [{
-                attribute: {ID: 0x4000, type: 0x10},
-                minimumReportInterval: 0,
-                maximumReportInterval: repInterval.HOUR,
-                reportableChange: 1,
-            },
-            {
-                attribute: {ID: 0x4001, type: 0x10},
-                minimumReportInterval: 0,
-                maximumReportInterval: repInterval.HOUR,
-                reportableChange: 1,
-            },
-            {
-                attribute: {ID: 0x4003, type: 0x20},
-                minimumReportInterval: 0,
-                maximumReportInterval: repInterval.HOUR,
-                reportableChange: 1,
-            },
-            {
-                attribute: {ID: 0x4004, type: 0x20},
-                minimumReportInterval: 0,
-                maximumReportInterval: repInterval.HOUR,
-                reportableChange: 1,
-            },
-            {
-                attribute: {ID: 0x4005, type: 0x10},
-                minimumReportInterval: 0,
-                maximumReportInterval: repInterval.HOUR,
-                reportableChange: 1,
-            }];
+            const payload = [
+                {
+                    attribute: {ID: 0x4000, type: 0x10},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: repInterval.HOUR,
+                    reportableChange: 1,
+                },
+                {
+                    attribute: {ID: 0x4001, type: 0x10},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: repInterval.HOUR,
+                    reportableChange: 1,
+                },
+                {
+                    attribute: {ID: 0x4003, type: 0x20},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: repInterval.HOUR,
+                    reportableChange: 1,
+                },
+                {
+                    attribute: {ID: 0x4004, type: 0x20},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: repInterval.HOUR,
+                    reportableChange: 1,
+                },
+                {
+                    attribute: {ID: 0x4005, type: 0x10},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: repInterval.HOUR,
+                    reportableChange: 1,
+                },
+            ];
             await endpoint.configureReporting('closuresDoorLock', payload, options);
             await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume', 'doorState']);
             await endpoint.read('closuresDoorLock', [0x4000, 0x4001, 0x4003, 0x4004, 0x4005], options);
@@ -170,7 +207,8 @@ const definitions: Definition[] = [
         },
         onEvent: async (type, data, device) => {
             // When we receive a code updated message, lets read the new value
-            if (data.type === 'commandProgrammingEventNotification' &&
+            if (
+                data.type === 'commandProgrammingEventNotification' &&
                 data.cluster === 'closuresDoorLock' &&
                 data.data &&
                 data.data.userid !== undefined &&
@@ -180,16 +218,23 @@ const definitions: Definition[] = [
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});
             }
         },
-        exposes: [e.lock(), e.battery(), e.pincode(), e.door_state(),
-            e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
+        exposes: [
+            e.lock(),
+            e.battery(),
+            e.pincode(),
+            e.door_state(),
+            e.lock_action(),
+            e.lock_action_source_name(),
+            e.lock_action_user(),
             e.enum('sound_volume', ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock'),
             e.binary('master_pin_mode', ea.ALL, true, false).withDescription('Allow Master PIN Unlock'),
             e.binary('rfid_enable', ea.ALL, true, false).withDescription('Allow RFID to Unlock'),
-            e.binary('relock_enabled', ea.ALL, true, false).withDescription( 'Allow Auto Re-Lock'),
-            e.enum('lock_mode', ea.ALL, ['auto_off_away_off', 'auto_on_away_off', 'auto_off_away_on',
-                'auto_on_away_on']).withDescription('Lock-Mode of the Lock'),
-            e.enum('service_mode', ea.ALL, ['deactivated', 'random_pin_1x_use',
-                'random_pin_24_hours']).withDescription('Service Mode of the Lock')],
+            e.binary('relock_enabled', ea.ALL, true, false).withDescription('Allow Auto Re-Lock'),
+            e
+                .enum('lock_mode', ea.ALL, ['auto_off_away_off', 'auto_on_away_off', 'auto_off_away_on', 'auto_on_away_on'])
+                .withDescription('Lock-Mode of the Lock'),
+            e.enum('service_mode', ea.ALL, ['deactivated', 'random_pin_1x_use', 'random_pin_24_hours']).withDescription('Service Mode of the Lock'),
+        ],
     },
     {
         zigbeeModel: ['Water Sensor'],
@@ -223,14 +268,15 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'genOnOff',
-                'genLevelCtrl', 'msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'genOnOff', 'genLevelCtrl', 'msTemperatureMeasurement']);
             await reporting.batteryVoltage(endpoint);
             await reporting.temperature(endpoint, {min: constants.repInterval.MINUTES_10, max: constants.repInterval.HOUR, change: 100});
         },
-        exposes: [e.battery(), e.temperature(),
-            e.action(['recall_1', 'recall_2', 'recall_3', 'recall_4', 'on', 'off',
-                'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
+        exposes: [
+            e.battery(),
+            e.temperature(),
+            e.action(['recall_1', 'recall_2', 'recall_3', 'recall_4', 'on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
+        ],
     },
     {
         zigbeeModel: ['Door/Window Sensor'],

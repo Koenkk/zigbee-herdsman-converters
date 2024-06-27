@@ -39,8 +39,11 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
 
     while (imageMatch != null) {
         logger.debug(`Image found: ${imageMatch[0]}`, NS);
-        if (parseInt(imageMatch[1], 16) === current.imageType &&
-            parseInt(imageMatch[2], 16) <= device.hardwareVersion && device.hardwareVersion <= parseInt(imageMatch[3], 16)) {
+        if (
+            parseInt(imageMatch[1], 16) === current.imageType &&
+            parseInt(imageMatch[2], 16) <= device.hardwareVersion &&
+            device.hardwareVersion <= parseInt(imageMatch[3], 16)
+        ) {
             if (highestMatch === null || parseInt(highestMatch[4], 16) < parseInt(imageMatch[4], 16)) {
                 highestMatch = imageMatch;
             }
@@ -64,7 +67,7 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, requestPayload:Ota.ImageInfo=null) {
+export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
     return common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 

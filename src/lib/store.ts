@@ -20,7 +20,7 @@ export function hasValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string
     return store.has(entityKey) && store.get(entityKey).hasOwnProperty(key);
 }
 
-export function getValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string, default_:unknown=undefined) {
+export function getValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string, default_: unknown = undefined) {
     const entityKey = getEntityKey(entity);
     if (store.has(entityKey) && store.get(entityKey).hasOwnProperty(key)) {
         return store.get(entityKey)[key];

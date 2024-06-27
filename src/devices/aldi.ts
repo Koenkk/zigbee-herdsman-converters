@@ -9,8 +9,9 @@ const definitions: Definition[] = [
         model: '141L100RC',
         vendor: 'Aldi',
         description: 'MEGOS switch and dimming light remote control',
-        exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
-            'brightness_move_down'])],
+        exposes: [
+            e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down']),
+        ],
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
         toZigbee: [],
     },

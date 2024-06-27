@@ -19,10 +19,7 @@ const definitions: Definition[] = [
         model: 'GWA1522',
         description: 'Switch actuator 2 channels with input',
         vendor: 'Gewiss',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         zigbeeModel: ['GWA1531_Shutter'],

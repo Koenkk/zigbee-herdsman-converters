@@ -12,13 +12,24 @@ const definitions: Definition[] = [
         vendor: 'LUX',
         description: 'KONOz thermostat',
         fromZigbee: [fz.battery, fz.thermostat, fz.fan, fz.thermostat_weekly_schedule],
-        toZigbee: [tz.thermostat_local_temperature,
-            tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower, tz.thermostat_running_state,
-            tz.fan_mode, tz.thermostat_system_mode,
-            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_running_state,
+            tz.fan_mode,
+            tz.thermostat_system_mode,
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_relay_status_log,
+        ],
         exposes: [
-            e.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 0.05)
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 10, 30, 0.05)
                 .withSetpoint('occupied_cooling_setpoint', 10, 30, 0.05)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool'])

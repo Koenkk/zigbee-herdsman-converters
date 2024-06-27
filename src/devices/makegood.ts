@@ -11,7 +11,7 @@ const definitions: Definition[] = [
         extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, endpoints: ['l1', 'l2'], electricalMeasurements: true})],
         meta: {multiEndpointSkip: ['power', 'current', 'voltage', 'energy'], multiEndpoint: true},
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
+            return {l1: 1, l2: 2};
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

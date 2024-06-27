@@ -24,7 +24,7 @@ const fzLocal = {
             const zoneStatus = msg.data.zoneStatus;
             return {
                 water_leak: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
+                tamper: (zoneStatus & (1 << 2)) > 0,
             };
         },
     } satisfies Fz.Converter,
@@ -37,8 +37,7 @@ const fzLocal = {
             delete msg['running_state'];
             const result: KeyValue = {};
             const occupancyLookup = {0: 'unoccupied', 1: 'occupied'};
-            const cycleOutputLookup = {15: '15_sec', 300: '5_min', 600: '10_min',
-                900: '15_min', 1200: '20_min', 1800: '30_min', 65535: 'off'};
+            const cycleOutputLookup = {15: '15_sec', 300: '5_min', 600: '10_min', 900: '15_min', 1200: '20_min', 1800: '30_min', 65535: 'off'};
 
             if (msg.data.hasOwnProperty('1024')) {
                 result.thermostat_occupancy = utils.getFromLookup(msg.data['1024'], occupancyLookup);
@@ -225,8 +224,16 @@ const fzLocal = {
                 result.minimum_brightness = msg.data['minimumBrightness'];
             }
             if (msg.data.hasOwnProperty('actionReport')) {
-                const lookup = {1: 'up_clickdown', 2: 'up_single', 3: 'up_hold', 4: 'up_double',
-                    17: 'down_clickdown', 18: 'down_single', 19: 'down_hold', 20: 'down_double'};
+                const lookup = {
+                    1: 'up_clickdown',
+                    2: 'up_single',
+                    3: 'up_hold',
+                    4: 'up_double',
+                    17: 'down_clickdown',
+                    18: 'down_single',
+                    19: 'down_hold',
+                    20: 'down_double',
+                };
                 result.action = utils.getFromLookup(msg.data['actionReport'], lookup);
             }
             if (msg.data.hasOwnProperty('keypadLockout')) {
@@ -247,7 +254,7 @@ const tzLocal = {
             const sinopeOccupancy = {0: 'unoccupied', 1: 'occupied'};
             const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
             await entity.write('hvacThermostat', {SinopeOccupancy}, manuSinope);
-            return {state: {'thermostat_occupancy': value}};
+            return {state: {thermostat_occupancy: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['SinopeOccupancy'], manuSinope);
@@ -259,7 +266,7 @@ const tzLocal = {
             const sinopeBacklightParam = {0: 'on_demand', 1: 'sensing'};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
             await entity.write('hvacThermostat', {SinopeBacklight}, manuSinope);
-            return {state: {'backlight_auto_dim': value}};
+            return {state: {backlight_auto_dim: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['SinopeBacklight'], manuSinope);
@@ -270,7 +277,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'15_sec': 15, '5_min': 300, '10_min': 600, '15_min': 900, '20_min': 1200, '30_min': 1800};
             await entity.write('hvacThermostat', {SinopeMainCycleOutput: utils.getFromLookup(value, lookup)}, manuSinope);
-            return {state: {'main_cycle_output': value}};
+            return {state: {main_cycle_output: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['SinopeMainCycleOutput'], manuSinope);
@@ -280,15 +287,16 @@ const tzLocal = {
         // TH1400ZB specific
         key: ['aux_cycle_output'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'off': 65535, '15_sec': 15, '5_min': 300, '10_min': 600, '15_min': 900, '20_min': 1200, '30_min': 1800};
+            const lookup = {off: 65535, '15_sec': 15, '5_min': 300, '10_min': 600, '15_min': 900, '20_min': 1200, '30_min': 1800};
             await entity.write('hvacThermostat', {SinopeAuxCycleOutput: utils.getFromLookup(value, lookup)});
-            return {state: {'aux_cycle_output': value}};
+            return {state: {aux_cycle_output: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['SinopeAuxCycleOutput']);
         },
     } satisfies Tz.Converter,
-    enable_outdoor_temperature: { // DEPRECATED: Use Second Display Mode or control via the timeout
+    enable_outdoor_temperature: {
+        // DEPRECATED: Use Second Display Mode or control via the timeout
         key: ['enable_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
@@ -307,7 +315,7 @@ const tzLocal = {
     second_display_mode: {
         key: ['second_display_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'auto': 0, 'setpoint': 1, 'outdoor temp': 2};
+            const lookup = {auto: 0, setpoint: 1, 'outdoor temp': 2};
             await entity.write('manuSpecificSinope', {secondScreenBehavior: utils.getFromLookup(value, lookup)});
             return {state: {second_display_mode: value}};
         },
@@ -362,7 +370,7 @@ const tzLocal = {
             if (typeof value !== 'string') {
                 return;
             }
-            const lookup = {'ambiant': 1, 'floor': 2};
+            const lookup = {ambiant: 1, floor: 2};
             value = value.toLowerCase();
             // @ts-expect-error
             if (lookup.hasOwnProperty(value)) {
@@ -381,7 +389,7 @@ const tzLocal = {
             // @ts-expect-error
             if ((value >= 5 && value <= 36) || value == 'off') {
                 // @ts-expect-error
-                await entity.write('manuSpecificSinope', {ambiantMaxHeatSetpointLimit: (value == 'off' ? -32768 : value * 100)});
+                await entity.write('manuSpecificSinope', {ambiantMaxHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
                 return {readAfterWriteTime: 250, state: {ambiant_max_heat_setpoint: value}};
             }
         },
@@ -396,7 +404,7 @@ const tzLocal = {
             // @ts-expect-error
             if ((value >= 5 && value <= 34) || value == 'off') {
                 // @ts-expect-error
-                await entity.write('manuSpecificSinope', {floorMinHeatSetpointLimit: (value == 'off' ? -32768 : value * 100)});
+                await entity.write('manuSpecificSinope', {floorMinHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
                 return {readAfterWriteTime: 250, state: {floor_min_heat_setpoint: value}};
             }
         },
@@ -411,7 +419,7 @@ const tzLocal = {
             // @ts-expect-error
             if ((value >= 7 && value <= 36) || value == 'off') {
                 // @ts-expect-error
-                await entity.write('manuSpecificSinope', {floorMaxHeatSetpointLimit: (value == 'off' ? -32768 : value * 100)});
+                await entity.write('manuSpecificSinope', {floorMaxHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
                 return {readAfterWriteTime: 250, state: {floor_max_heat_setpoint: value}};
             }
         },
@@ -526,11 +534,11 @@ const tzLocal = {
         // DM25x0ZB and SW2500ZB
         key: ['led_color_on'],
         convertSet: async (entity, key, value: KeyValueAny, meta) => {
-            const r = (value.r >= 0 && value.r <= 255) ? value.r : 0;
-            const g = (value.g >= 0 && value.g <= 255) ? value.g : 0;
-            const b = (value.b >= 0 && value.b <= 255) ? value.b : 0;
+            const r = value.r >= 0 && value.r <= 255 ? value.r : 0;
+            const g = value.g >= 0 && value.g <= 255 ? value.g : 0;
+            const b = value.b >= 0 && value.b <= 255 ? value.b : 0;
 
-            const valueHex = r + g * 256 + (b * 256 ** 2);
+            const valueHex = r + g * 256 + b * 256 ** 2;
             await entity.write('manuSpecificSinope', {ledColorOn: valueHex});
         },
     } satisfies Tz.Converter,
@@ -538,9 +546,9 @@ const tzLocal = {
         // DM25x0ZB and SW2500ZB
         key: ['led_color_off'],
         convertSet: async (entity, key, value: KeyValueAny, meta) => {
-            const r = (value.r >= 0 && value.r <= 255) ? value.r : 0;
-            const g = (value.g >= 0 && value.g <= 255) ? value.g : 0;
-            const b = (value.b >= 0 && value.b <= 255) ? value.b : 0;
+            const r = value.r >= 0 && value.r <= 255 ? value.r : 0;
+            const g = value.g >= 0 && value.g <= 255 ? value.g : 0;
+            const b = value.b >= 0 && value.b <= 255 ? value.b : 0;
 
             const valueHex = r + g * 256 + b * 256 ** 2;
             await entity.write('manuSpecificSinope', {ledColorOff: valueHex});
@@ -578,7 +586,7 @@ const tzLocal = {
         // SW2500ZB
         key: ['keypad_lockout'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'unlock': 0, 'lock': 1};
+            const lookup = {unlock: 0, lock: 1};
             await entity.write('manuSpecificSinope', {keypadLockout: utils.getFromLookup(value, lookup)});
             return {state: {keypad_lockout: value}};
         },
@@ -604,63 +612,112 @@ const definitions: Definition[] = [
         model: 'TH1123ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
-            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.second_display_mode,
-            tzLocal.thermostat_outdoor_temperature, tzLocal.outdoor_temperature_timeout, tzLocal.thermostat_occupancy,
-            tzLocal.main_cycle_output, tz.electrical_measurement_power],
+        fromZigbee: [
+            fzLocal.thermostat,
+            fzLocal.sinope,
+            legacy.fz.hvac_user_interface,
+            fz.electrical_measurement,
+            fz.metering,
+            fz.ignore_temperature_report,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tzLocal.backlight_autodim,
+            tzLocal.thermostat_time,
+            tzLocal.time_format,
+            tzLocal.enable_outdoor_temperature,
+            tzLocal.second_display_mode,
+            tzLocal.thermostat_outdoor_temperature,
+            tzLocal.outdoor_temperature_timeout,
+            tzLocal.thermostat_occupancy,
+            tzLocal.main_cycle_output,
+            tz.electrical_measurement_power,
+        ],
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand()
                 .withRunningState(['idle', 'heat'], ea.STATE),
-            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
-                .withDescription('Occupancy state of the thermostat'),
-            e.enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
-                .withDescription('Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
-                    'in "outdoor temp" mode when expired.'),
-            e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
+            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied']).withDescription('Occupancy state of the thermostat'),
+            e
+                .enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
+                .withDescription(
+                    'Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
+                        'in "outdoor temp" mode when expired.',
+                ),
+            e
+                .numeric('thermostat_outdoor_temperature', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(-99.5)
+                .withValueMax(99.5)
+                .withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
-                .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
+            e
+                .numeric('outdoor_temperature_timeout', ea.ALL)
+                .withUnit('s')
+                .withValueMin(30)
+                .withValueMax(64800)
+                .withPreset('15 min', 900, '15 minutes')
+                .withPreset('30 min', 1800, '30 minutes')
+                .withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
-            e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+            e
+                .binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
                 .withDescription('DEPRECATED: Use second_display_mode or control via outdoor_temperature_timeout'),
-            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+            e
+                .enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
                 .withDescription('The temperature format displayed on the thermostat screen'),
-            e.enum('time_format', ea.ALL, ['24h', '12h'])
-                .withDescription('The time format featured on the thermostat display'),
-            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
-                .withDescription('Control backlight dimming behavior'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
-                .withDescription('Enables or disables the device’s buttons'),
-            e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min'])
-                .withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
+            e.enum('time_format', ea.ALL, ['24h', '12h']).withDescription('The time format featured on the thermostat display'),
+            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
+            e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
+            e.power().withAccess(ea.STATE_GET),
+            e.current(),
+            e.voltage(),
+            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
-                'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
-                'manuSpecificSinope'];
+                'genBasic',
+                'genIdentify',
+                'genGroups',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement',
+                'haElectricalMeasurement',
+                'seMetering',
+                'manuSpecificSinope',
+            ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
 
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
-            await endpoint.configureReporting('msTemperatureMeasurement', [{
-                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
+            await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // Disable default reporting
+            await endpoint.configureReporting('msTemperatureMeasurement', [
+                {
+                    attribute: 'tolerance',
+                    minimumReportInterval: 1,
+                    maximumReportInterval: 0xffff,
+                    reportableChange: 1,
+                },
+            ]);
             try {
                 await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {/* Not all support this */}
+            } catch (error) {
+                /* Not all support this */
+            }
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
@@ -669,7 +726,7 @@ const definitions: Definition[] = [
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
             } catch (error) {
-                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {'acPowerMultiplier': 1, 'acPowerDivisor': 1});
+                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
             }
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
@@ -680,63 +737,112 @@ const definitions: Definition[] = [
         model: 'TH1124ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
-            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.second_display_mode,
-            tzLocal.thermostat_outdoor_temperature, tzLocal.outdoor_temperature_timeout, tzLocal.thermostat_occupancy,
-            tzLocal.main_cycle_output, tz.electrical_measurement_power],
+        fromZigbee: [
+            fzLocal.thermostat,
+            fzLocal.sinope,
+            legacy.fz.hvac_user_interface,
+            fz.electrical_measurement,
+            fz.metering,
+            fz.ignore_temperature_report,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tzLocal.backlight_autodim,
+            tzLocal.thermostat_time,
+            tzLocal.time_format,
+            tzLocal.enable_outdoor_temperature,
+            tzLocal.second_display_mode,
+            tzLocal.thermostat_outdoor_temperature,
+            tzLocal.outdoor_temperature_timeout,
+            tzLocal.thermostat_occupancy,
+            tzLocal.main_cycle_output,
+            tz.electrical_measurement_power,
+        ],
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand()
                 .withRunningState(['idle', 'heat'], ea.STATE),
-            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
-                .withDescription('Occupancy state of the thermostat'),
-            e.enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
-                .withDescription('Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
-                    'in "outdoor temp" mode when expired.'),
-            e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
+            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied']).withDescription('Occupancy state of the thermostat'),
+            e
+                .enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
+                .withDescription(
+                    'Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
+                        'in "outdoor temp" mode when expired.',
+                ),
+            e
+                .numeric('thermostat_outdoor_temperature', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(-99.5)
+                .withValueMax(99.5)
+                .withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
-                .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
+            e
+                .numeric('outdoor_temperature_timeout', ea.ALL)
+                .withUnit('s')
+                .withValueMin(30)
+                .withValueMax(64800)
+                .withPreset('15 min', 900, '15 minutes')
+                .withPreset('30 min', 1800, '30 minutes')
+                .withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
-            e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+            e
+                .binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
                 .withDescription('DEPRECATED: Use second_display_mode or control via outdoor_temperature_timeout'),
-            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+            e
+                .enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
                 .withDescription('The temperature format displayed on the thermostat screen'),
-            e.enum('time_format', ea.ALL, ['24h', '12h'])
-                .withDescription('The time format featured on the thermostat display'),
-            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
-                .withDescription('Control backlight dimming behavior'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
-                .withDescription('Enables or disables the device’s buttons'),
-            e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min'])
-                .withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
+            e.enum('time_format', ea.ALL, ['24h', '12h']).withDescription('The time format featured on the thermostat display'),
+            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
+            e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
+            e.power().withAccess(ea.STATE_GET),
+            e.current(),
+            e.voltage(),
+            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
-                'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
-                'manuSpecificSinope'];
+                'genBasic',
+                'genIdentify',
+                'genGroups',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement',
+                'haElectricalMeasurement',
+                'seMetering',
+                'manuSpecificSinope',
+            ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
 
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
-            await endpoint.configureReporting('msTemperatureMeasurement', [{
-                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
+            await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // Disable default reporting
+            await endpoint.configureReporting('msTemperatureMeasurement', [
+                {
+                    attribute: 'tolerance',
+                    minimumReportInterval: 1,
+                    maximumReportInterval: 0xffff,
+                    reportableChange: 1,
+                },
+            ]);
             try {
                 await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {/* Not all support this */}
+            } catch (error) {
+                /* Not all support this */
+            }
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
@@ -745,7 +851,7 @@ const definitions: Definition[] = [
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
             } catch (error) {
-                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {'acPowerMultiplier': 1, 'acPowerDivisor': 1});
+                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
             }
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
@@ -756,68 +862,115 @@ const definitions: Definition[] = [
         model: 'TH1123ZB-G2',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
-            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.second_display_mode,
-            tzLocal.thermostat_outdoor_temperature, tzLocal.outdoor_temperature_timeout, tzLocal.thermostat_occupancy,
-            tzLocal.main_cycle_output, tz.electrical_measurement_power],
+        fromZigbee: [
+            fzLocal.thermostat,
+            fzLocal.sinope,
+            legacy.fz.hvac_user_interface,
+            fz.electrical_measurement,
+            fz.metering,
+            fz.ignore_temperature_report,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tzLocal.backlight_autodim,
+            tzLocal.thermostat_time,
+            tzLocal.time_format,
+            tzLocal.enable_outdoor_temperature,
+            tzLocal.second_display_mode,
+            tzLocal.thermostat_outdoor_temperature,
+            tzLocal.outdoor_temperature_timeout,
+            tzLocal.thermostat_occupancy,
+            tzLocal.main_cycle_output,
+            tz.electrical_measurement_power,
+        ],
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand()
                 .withRunningState(['idle', 'heat'], ea.STATE),
-            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
-                .withDescription('Occupancy state of the thermostat'),
-            e.enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
-                .withDescription('Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
-                    'in "outdoor temp" mode when expired.'),
-            e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
+            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied']).withDescription('Occupancy state of the thermostat'),
+            e
+                .enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
+                .withDescription(
+                    'Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
+                        'in "outdoor temp" mode when expired.',
+                ),
+            e
+                .numeric('thermostat_outdoor_temperature', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(-99.5)
+                .withValueMax(99.5)
+                .withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
-                .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
+            e
+                .numeric('outdoor_temperature_timeout', ea.ALL)
+                .withUnit('s')
+                .withValueMin(30)
+                .withValueMax(64800)
+                .withPreset('15 min', 900, '15 minutes')
+                .withPreset('30 min', 1800, '30 minutes')
+                .withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
-            e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+            e
+                .binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
                 .withDescription('DEPRECATED: Use second_display_mode or control via outdoor_temperature_timeout'),
-            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+            e
+                .enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
                 .withDescription('The temperature format displayed on the thermostat screen'),
-            e.enum('time_format', ea.ALL, ['24h', '12h'])
-                .withDescription('The time format featured on the thermostat display'),
-            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
-                .withDescription('Control backlight dimming behavior'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
-                .withDescription('Enables or disables the device’s buttons'),
-            e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min'])
-                .withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
+            e.enum('time_format', ea.ALL, ['24h', '12h']).withDescription('The time format featured on the thermostat display'),
+            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
+            e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
+            e.power().withAccess(ea.STATE_GET),
+            e.current(),
+            e.voltage(),
+            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
-                'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
-                'manuSpecificSinope'];
+                'genBasic',
+                'genIdentify',
+                'genGroups',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement',
+                'haElectricalMeasurement',
+                'seMetering',
+                'manuSpecificSinope',
+            ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds); // This G2 version has limited memory space
             const thermostatDate = new Date();
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
             const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
             await endpoint.write('manuSpecificSinope', {currentTimeToDisplay}, manuSinope);
-            await endpoint.write('manuSpecificSinope', {'secondScreenBehavior': 0}, manuSinope); // Mode auto
+            await endpoint.write('manuSpecificSinope', {secondScreenBehavior: 0}, manuSinope); // Mode auto
 
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
 
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
-            await endpoint.configureReporting('msTemperatureMeasurement', [{
-                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
+            await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // Disable default reporting
+            await endpoint.configureReporting('msTemperatureMeasurement', [
+                {
+                    attribute: 'tolerance',
+                    minimumReportInterval: 1,
+                    maximumReportInterval: 0xffff,
+                    reportableChange: 1,
+                },
+            ]);
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
@@ -827,10 +980,12 @@ const definitions: Definition[] = [
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
 
             // Disable default reporting (not used by Sinope)
-            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xFFFF});
+            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
-            } catch (error) {/* Do nothing */}
+            } catch (error) {
+                /* Do nothing */
+            }
         },
     },
     {
@@ -838,68 +993,115 @@ const definitions: Definition[] = [
         model: 'TH1124ZB-G2',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
-            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.second_display_mode,
-            tzLocal.thermostat_outdoor_temperature, tzLocal.outdoor_temperature_timeout, tzLocal.thermostat_occupancy,
-            tzLocal.main_cycle_output, tz.electrical_measurement_power],
+        fromZigbee: [
+            fzLocal.thermostat,
+            fzLocal.sinope,
+            legacy.fz.hvac_user_interface,
+            fz.electrical_measurement,
+            fz.metering,
+            fz.ignore_temperature_report,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tzLocal.backlight_autodim,
+            tzLocal.thermostat_time,
+            tzLocal.time_format,
+            tzLocal.enable_outdoor_temperature,
+            tzLocal.second_display_mode,
+            tzLocal.thermostat_outdoor_temperature,
+            tzLocal.outdoor_temperature_timeout,
+            tzLocal.thermostat_occupancy,
+            tzLocal.main_cycle_output,
+            tz.electrical_measurement_power,
+        ],
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand()
                 .withRunningState(['idle', 'heat'], ea.STATE),
-            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
-                .withDescription('Occupancy state of the thermostat'),
-            e.enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
-                .withDescription('Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
-                    'in "outdoor temp" mode when expired.'),
-            e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
+            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied']).withDescription('Occupancy state of the thermostat'),
+            e
+                .enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
+                .withDescription(
+                    'Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
+                        'in "outdoor temp" mode when expired.',
+                ),
+            e
+                .numeric('thermostat_outdoor_temperature', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(-99.5)
+                .withValueMax(99.5)
+                .withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
-                .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
+            e
+                .numeric('outdoor_temperature_timeout', ea.ALL)
+                .withUnit('s')
+                .withValueMin(30)
+                .withValueMax(64800)
+                .withPreset('15 min', 900, '15 minutes')
+                .withPreset('30 min', 1800, '30 minutes')
+                .withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
-            e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+            e
+                .binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
                 .withDescription('DEPRECATED: Use second_display_mode or control via outdoor_temperature_timeout'),
-            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+            e
+                .enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
                 .withDescription('The temperature format displayed on the thermostat screen'),
-            e.enum('time_format', ea.ALL, ['24h', '12h'])
-                .withDescription('The time format featured on the thermostat display'),
-            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
-                .withDescription('Control backlight dimming behavior'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
-                .withDescription('Enables or disables the device’s buttons'),
-            e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min'])
-                .withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
+            e.enum('time_format', ea.ALL, ['24h', '12h']).withDescription('The time format featured on the thermostat display'),
+            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
+            e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
+            e.power().withAccess(ea.STATE_GET),
+            e.current(),
+            e.voltage(),
+            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
-                'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
-                'manuSpecificSinope'];
+                'genBasic',
+                'genIdentify',
+                'genGroups',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement',
+                'haElectricalMeasurement',
+                'seMetering',
+                'manuSpecificSinope',
+            ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds); // This G2 version has limited memory space
             const thermostatDate = new Date();
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
             const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
             await endpoint.write('manuSpecificSinope', {currentTimeToDisplay}, manuSinope);
-            await endpoint.write('manuSpecificSinope', {'secondScreenBehavior': 0}, manuSinope); // Mode auto
+            await endpoint.write('manuSpecificSinope', {secondScreenBehavior: 0}, manuSinope); // Mode auto
 
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
 
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
-            await endpoint.configureReporting('msTemperatureMeasurement', [{
-                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
+            await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // Disable default reporting
+            await endpoint.configureReporting('msTemperatureMeasurement', [
+                {
+                    attribute: 'tolerance',
+                    minimumReportInterval: 1,
+                    maximumReportInterval: 0xffff,
+                    reportableChange: 1,
+                },
+            ]);
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
@@ -909,10 +1111,12 @@ const definitions: Definition[] = [
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
 
             // Disable default reporting (not used by Sinope)
-            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xFFFF});
+            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
-            } catch (error) {/* Do nothing */}
+            } catch (error) {
+                /* Do nothing */
+            }
         },
     },
     {
@@ -923,72 +1127,127 @@ const definitions: Definition[] = [
         whiteLabel: [
             {model: 'TH1320ZB-04', vendor: 'Sinopé', description: 'Zigbee smart floor heating thermostat', fingerprint: [{modelID: 'TH1320ZB-04'}]},
         ],
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
-            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.second_display_mode,
-            tzLocal.thermostat_outdoor_temperature, tzLocal.outdoor_temperature_timeout, tzLocal.thermostat_occupancy,
-            tzLocal.floor_control_mode, tzLocal.ambiant_max_heat_setpoint, tzLocal.floor_min_heat_setpoint,
-            tzLocal.floor_max_heat_setpoint, tzLocal.temperature_sensor, tz.electrical_measurement_power],
+        fromZigbee: [
+            fzLocal.thermostat,
+            fzLocal.sinope,
+            legacy.fz.hvac_user_interface,
+            fz.electrical_measurement,
+            fz.metering,
+            fz.ignore_temperature_report,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tzLocal.backlight_autodim,
+            tzLocal.thermostat_time,
+            tzLocal.time_format,
+            tzLocal.enable_outdoor_temperature,
+            tzLocal.second_display_mode,
+            tzLocal.thermostat_outdoor_temperature,
+            tzLocal.outdoor_temperature_timeout,
+            tzLocal.thermostat_occupancy,
+            tzLocal.floor_control_mode,
+            tzLocal.ambiant_max_heat_setpoint,
+            tzLocal.floor_min_heat_setpoint,
+            tzLocal.floor_max_heat_setpoint,
+            tzLocal.temperature_sensor,
+            tz.electrical_measurement_power,
+        ],
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 36, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 5, 36, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand()
                 .withRunningState(['idle', 'heat'], ea.STATE),
-            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
-                .withDescription('Occupancy state of the thermostat'),
-            e.enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
-                .withDescription('Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
-                    'in "outdoor temp" mode when expired.'),
-            e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
+            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied']).withDescription('Occupancy state of the thermostat'),
+            e
+                .enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
+                .withDescription(
+                    'Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
+                        'in "outdoor temp" mode when expired.',
+                ),
+            e
+                .numeric('thermostat_outdoor_temperature', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(-99.5)
+                .withValueMax(99.5)
+                .withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
-                .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
+            e
+                .numeric('outdoor_temperature_timeout', ea.ALL)
+                .withUnit('s')
+                .withValueMin(30)
+                .withValueMax(64800)
+                .withPreset('15 min', 900, '15 minutes')
+                .withPreset('30 min', 1800, '30 minutes')
+                .withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
-            e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+            e
+                .binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
                 .withDescription('DEPRECATED: Use second_display_mode or control via outdoor_temperature_timeout'),
-            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+            e
+                .enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
                 .withDescription('The temperature format displayed on the thermostat screen'),
-            e.enum('time_format', ea.ALL, ['24h', '12h'])
-                .withDescription('The time format featured on the thermostat display'),
-            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
-                .withDescription('Control backlight dimming behavior'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
-                .withDescription('Enables or disables the device’s buttons'),
-            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy()],
+            e.enum('time_format', ea.ALL, ['24h', '12h']).withDescription('The time format featured on the thermostat display'),
+            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
+            e.power().withAccess(ea.STATE_GET),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
-                'haElectricalMeasurement', 'msTemperatureMeasurement', 'seMetering', 'manuSpecificSinope'];
+                'genBasic',
+                'genIdentify',
+                'genGroups',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'haElectricalMeasurement',
+                'msTemperatureMeasurement',
+                'seMetering',
+                'manuSpecificSinope',
+            ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             try {
                 await reporting.readMeteringMultiplierDivisor(endpoint);
-            } catch (error) {/* Do nothing*/}
+            } catch (error) {
+                /* Do nothing*/
+            }
             try {
                 await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            } catch (error) {/* Do nothing*/}
+            } catch (error) {
+                /* Do nothing*/
+            }
             try {
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
             } catch (error) {
-                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {'acPowerMultiplier': 1, 'acPowerDivisor': 1});
+                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
             }
             try {
                 await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
                 await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            } catch (error) {/* Do nothing*/}
+            } catch (error) {
+                /* Do nothing*/
+            }
             try {
                 await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
                 await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-            } catch (error) {/* Do nothing*/}
+            } catch (error) {
+                /* Do nothing*/
+            }
 
             try {
                 await reporting.thermostatKeypadLockMode(endpoint);
@@ -996,11 +1255,13 @@ const definitions: Definition[] = [
                 // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
             }
 
-            await endpoint.configureReporting('manuSpecificSinope', [{attribute: 'GFCiStatus', minimumReportInterval: 1,
-                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
-            await endpoint.configureReporting('manuSpecificSinope', [{attribute: 'floorLimitStatus', minimumReportInterval: 1,
-                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // disable reporting
+            await endpoint.configureReporting('manuSpecificSinope', [
+                {attribute: 'GFCiStatus', minimumReportInterval: 1, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1},
+            ]);
+            await endpoint.configureReporting('manuSpecificSinope', [
+                {attribute: 'floorLimitStatus', minimumReportInterval: 1, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1},
+            ]);
+            await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // disable reporting
         },
     },
     {
@@ -1008,18 +1269,45 @@ const definitions: Definition[] = [
         model: 'TH1400ZB',
         vendor: 'Sinopé',
         description: 'Zigbee low volt thermostat',
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
-            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.second_display_mode,
-            tzLocal.thermostat_outdoor_temperature, tzLocal.outdoor_temperature_timeout, tzLocal.thermostat_occupancy,
-            tzLocal.floor_control_mode, tzLocal.ambiant_max_heat_setpoint, tzLocal.floor_min_heat_setpoint,
-            tzLocal.floor_max_heat_setpoint, tzLocal.temperature_sensor, tz.thermostat_min_heat_setpoint_limit,
-            tz.thermostat_max_heat_setpoint_limit, tzLocal.connected_load, tzLocal.aux_connected_load, tzLocal.main_cycle_output,
-            tzLocal.aux_cycle_output, tzLocal.pump_protection],
+        fromZigbee: [
+            fzLocal.thermostat,
+            fzLocal.sinope,
+            legacy.fz.hvac_user_interface,
+            fz.electrical_measurement,
+            fz.metering,
+            fz.ignore_temperature_report,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tzLocal.backlight_autodim,
+            tzLocal.thermostat_time,
+            tzLocal.time_format,
+            tzLocal.enable_outdoor_temperature,
+            tzLocal.second_display_mode,
+            tzLocal.thermostat_outdoor_temperature,
+            tzLocal.outdoor_temperature_timeout,
+            tzLocal.thermostat_occupancy,
+            tzLocal.floor_control_mode,
+            tzLocal.ambiant_max_heat_setpoint,
+            tzLocal.floor_min_heat_setpoint,
+            tzLocal.floor_max_heat_setpoint,
+            tzLocal.temperature_sensor,
+            tz.thermostat_min_heat_setpoint_limit,
+            tz.thermostat_max_heat_setpoint_limit,
+            tzLocal.connected_load,
+            tzLocal.aux_connected_load,
+            tzLocal.main_cycle_output,
+            tzLocal.aux_cycle_output,
+            tzLocal.pump_protection,
+        ],
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 36, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 5, 36, 0.5)
                 .withLocalTemperature()
@@ -1028,61 +1316,96 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.max_heat_setpoint_limit(5, 36, 0.5),
             e.min_heat_setpoint_limit(5, 36, 0.5),
-            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
-                .withDescription('Occupancy state of the thermostat'),
-            e.enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
-                .withDescription('Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
-                    'in "outdoor temp" mode when expired.'),
-            e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
+            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied']).withDescription('Occupancy state of the thermostat'),
+            e
+                .enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
+                .withDescription(
+                    'Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
+                        'in "outdoor temp" mode when expired.',
+                ),
+            e
+                .numeric('thermostat_outdoor_temperature', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(-99.5)
+                .withValueMax(99.5)
+                .withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
-                .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
+            e
+                .numeric('outdoor_temperature_timeout', ea.ALL)
+                .withUnit('s')
+                .withValueMin(30)
+                .withValueMax(64800)
+                .withPreset('15 min', 900, '15 minutes')
+                .withPreset('30 min', 1800, '30 minutes')
+                .withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
-            e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+            e
+                .binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
                 .withDescription('DEPRECATED: Use second_display_mode or control via outdoor_temperature_timeout'),
-            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+            e
+                .enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
                 .withDescription('The temperature format displayed on the thermostat screen'),
-            e.enum('time_format', ea.ALL, ['24h', '12h'])
-                .withDescription('The time format featured on the thermostat display'),
-            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
-                .withDescription('The display backlight behavior'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
-                .withDescription('Enables or disables the device’s buttons'),
-            e.numeric('connected_load', ea.ALL)
-                .withUnit('W').withValueMin(1).withValueMax(20000)
+            e.enum('time_format', ea.ALL, ['24h', '12h']).withDescription('The time format featured on the thermostat display'),
+            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('The display backlight behavior'),
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
+            e
+                .numeric('connected_load', ea.ALL)
+                .withUnit('W')
+                .withValueMin(1)
+                .withValueMax(20000)
                 .withDescription('The power in watts of the electrical load connected to the device'),
-            e.enum('floor_control_mode', ea.ALL, ['ambiant', 'floor'])
-                .withDescription('Control mode using floor or ambient temperature'),
-            e.numeric('floor_max_heat_setpoint', ea.ALL)
-                .withUnit('°C').withValueMin(7).withValueMax(36).withValueStep(0.5)
+            e.enum('floor_control_mode', ea.ALL, ['ambiant', 'floor']).withDescription('Control mode using floor or ambient temperature'),
+            e
+                .numeric('floor_max_heat_setpoint', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(7)
+                .withValueMax(36)
+                .withValueStep(0.5)
                 .withPreset('off', 'off', 'Use minimum permitted value')
                 .withDescription('The maximum floor temperature limit of the floor when in ambient control mode'),
-            e.numeric('floor_min_heat_setpoint', ea.ALL)
-                .withUnit('°C').withValueMin(5).withValueMax(34).withValueStep(0.5)
+            e
+                .numeric('floor_min_heat_setpoint', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(5)
+                .withValueMax(34)
+                .withValueStep(0.5)
                 .withPreset('off', 'off', 'Use minimum permitted value')
                 .withDescription('The minimum floor temperature limit of the floor when in ambient control mode'),
-            e.numeric('ambiant_max_heat_setpoint', ea.ALL)
-                .withUnit('°C').withValueMin(5).withValueMax(36).withValueStep(0.5)
+            e
+                .numeric('ambiant_max_heat_setpoint', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(5)
+                .withValueMax(36)
+                .withValueStep(0.5)
                 .withPreset('off', 'off', 'Use minimum permitted value')
                 .withDescription('The maximum ambient temperature limit when in floor control mode'),
-            e.enum('floor_temperature_sensor', ea.ALL, ['10k', '12k'])
-                .withDescription('The floor sensor'),
-            e.enum('main_cycle_output', ea.ALL, ['15_sec', '5_min', '10_min', '15_min', '20_min', '30_min'])
+            e.enum('floor_temperature_sensor', ea.ALL, ['10k', '12k']).withDescription('The floor sensor'),
+            e
+                .enum('main_cycle_output', ea.ALL, ['15_sec', '5_min', '10_min', '15_min', '20_min', '30_min'])
                 .withDescription('The length of the control cycle according to the type of load connected to the thermostats'),
-            e.enum('aux_cycle_output', ea.ALL, ['off', '15_sec', '5_min', '10_min', '15_min', '20_min', '30_min'])
+            e
+                .enum('aux_cycle_output', ea.ALL, ['off', '15_sec', '5_min', '10_min', '15_min', '20_min', '30_min'])
                 .withDescription('The length of the control cycle according to the type of auxiliary load connected to the thermostats'),
-            e.binary('pump_protection', ea.ALL, 'ON', 'OFF')
-                .withDescription('This function prevents the seizure of the pump'),
-            e.numeric('aux_connected_load', ea.ALL)
-                .withUnit('W').withValueMin(0).withValueMax(20000)
+            e.binary('pump_protection', ea.ALL, 'ON', 'OFF').withDescription('This function prevents the seizure of the pump'),
+            e
+                .numeric('aux_connected_load', ea.ALL)
+                .withUnit('W')
+                .withValueMin(0)
+                .withValueMax(20000)
                 .withDescription('The power in watts of the heater connected to the auxiliary output of the thermostat'),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat',
-                'hvacUserInterfaceCfg', 'msTemperatureMeasurement', 'manuSpecificSinope'];
+                'genBasic',
+                'genIdentify',
+                'genGroups',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement',
+                'manuSpecificSinope',
+            ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -1090,16 +1413,36 @@ const definitions: Definition[] = [
 
             try {
                 await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {/* Not all support this */}
+            } catch (error) {
+                /* Not all support this */
+            }
 
-            await endpoint.read('hvacThermostat', ['occupiedHeatingSetpoint', 'localTemp', 'systemMode', 'pIHeatingDemand',
-                'SinopeBacklight', 'maxHeatSetpointLimit', 'minHeatSetpointLimit', 'SinopeMainCycleOutput', 'SinopeAuxCycleOutput']);
+            await endpoint.read('hvacThermostat', [
+                'occupiedHeatingSetpoint',
+                'localTemp',
+                'systemMode',
+                'pIHeatingDemand',
+                'SinopeBacklight',
+                'maxHeatSetpointLimit',
+                'minHeatSetpointLimit',
+                'SinopeMainCycleOutput',
+                'SinopeAuxCycleOutput',
+            ]);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
-            await endpoint.read('manuSpecificSinope', ['timeFormatToDisplay', 'connectedLoad', 'auxConnectedLoad', 'floorControlMode',
-                'floorMinHeatSetpointLimit', 'floorMaxHeatSetpointLimit', 'ambiantMaxHeatSetpointLimit', 'outdoorTempToDisplayTimeout',
-                'temperatureSensor', 'pumpProtection']);
+            await endpoint.read('manuSpecificSinope', [
+                'timeFormatToDisplay',
+                'connectedLoad',
+                'auxConnectedLoad',
+                'floorControlMode',
+                'floorMinHeatSetpointLimit',
+                'floorMaxHeatSetpointLimit',
+                'ambiantMaxHeatSetpointLimit',
+                'outdoorTempToDisplayTimeout',
+                'temperatureSensor',
+                'pumpProtection',
+            ]);
 
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // disable reporting
+            await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // disable reporting
         },
     },
     {
@@ -1107,47 +1450,76 @@ const definitions: Definition[] = [
         model: 'TH1500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee dual pole line volt thermostat',
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
-            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.second_display_mode,
-            tzLocal.thermostat_outdoor_temperature, tzLocal.outdoor_temperature_timeout, tzLocal.thermostat_occupancy],
+        fromZigbee: [
+            fzLocal.thermostat,
+            fzLocal.sinope,
+            legacy.fz.hvac_user_interface,
+            fz.electrical_measurement,
+            fz.metering,
+            fz.ignore_temperature_report,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tzLocal.backlight_autodim,
+            tzLocal.thermostat_time,
+            tzLocal.time_format,
+            tzLocal.enable_outdoor_temperature,
+            tzLocal.second_display_mode,
+            tzLocal.thermostat_outdoor_temperature,
+            tzLocal.outdoor_temperature_timeout,
+            tzLocal.thermostat_occupancy,
+        ],
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand()
                 .withRunningState(['idle', 'heat'], ea.STATE),
-            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
-                .withDescription('Occupancy state of the thermostat'),
-            e.enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
-                .withDescription('Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
-                    'in "outdoor temp" mode when expired.'),
-            e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
+            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied']).withDescription('Occupancy state of the thermostat'),
+            e
+                .enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
+                .withDescription(
+                    'Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
+                        'in "outdoor temp" mode when expired.',
+                ),
+            e
+                .numeric('thermostat_outdoor_temperature', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(-99.5)
+                .withValueMax(99.5)
+                .withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
-                .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
+            e
+                .numeric('outdoor_temperature_timeout', ea.ALL)
+                .withUnit('s')
+                .withValueMin(30)
+                .withValueMax(64800)
+                .withPreset('15 min', 900, '15 minutes')
+                .withPreset('30 min', 1800, '30 minutes')
+                .withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
-            e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+            e
+                .binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
                 .withDescription('DEPRECATED: Use second_display_mode or control via outdoor_temperature_timeout'),
-            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+            e
+                .enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
                 .withDescription('The temperature format displayed on the thermostat screen'),
-            e.enum('time_format', ea.ALL, ['24h', '12h'])
-                .withDescription('The time format featured on the thermostat display'),
-            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
-                .withDescription('Control backlight dimming behavior'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
-                .withDescription('Enables or disables the device’s buttons'),
+            e.enum('time_format', ea.ALL, ['24h', '12h']).withDescription('The time format featured on the thermostat display'),
+            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = [
-                'genBasic', 'genIdentify', 'genGroups',
-                'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
+            const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -1160,31 +1532,52 @@ const definitions: Definition[] = [
         vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
         fromZigbee: [fz.on_off, fzLocal.sinope, fz.metering],
-        toZigbee: [tz.on_off, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
-            tzLocal.led_color_on, tzLocal.led_color_off, tzLocal.keypad_lockout, tzLocal.connected_load],
-        exposes: [e.switch(),
+        toZigbee: [
+            tz.on_off,
+            tzLocal.timer_seconds,
+            tzLocal.led_intensity_on,
+            tzLocal.led_intensity_off,
+            tzLocal.led_color_on,
+            tzLocal.led_color_off,
+            tzLocal.keypad_lockout,
+            tzLocal.connected_load,
+        ],
+        exposes: [
+            e.switch(),
             e.action(['up_single', 'up_double', 'up_hold', 'down_single', 'down_double', 'down_hold']),
-            e.numeric('timer_seconds', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)
-                .withPreset('Disabled', 0, 'disabled').withDescription('Automatically turn off load after x seconds'),
-            e.numeric('led_intensity_on', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
+            e
+                .numeric('timer_seconds', ea.ALL)
+                .withUnit('s')
+                .withValueMin(0)
+                .withValueMax(65535)
+                .withPreset('Disabled', 0, 'disabled')
+                .withDescription('Automatically turn off load after x seconds'),
+            e
+                .numeric('led_intensity_on', ea.ALL)
+                .withUnit('%')
+                .withValueMin(0)
+                .withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
-            e.numeric('led_intensity_off', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
+            e
+                .numeric('led_intensity_off', ea.ALL)
+                .withUnit('%')
+                .withValueMin(0)
+                .withValueMax(100)
                 .withDescription('Control status LED intensity when load OFF'),
-            e.composite('led_color_on', 'led_color_on', ea.SET)
+            e
+                .composite('led_color_on', 'led_color_on', ea.SET)
                 .withFeature(e.numeric('r', ea.SET))
                 .withFeature(e.numeric('g', ea.SET))
                 .withFeature(e.numeric('b', ea.SET))
                 .withDescription('Control status LED color when load ON'),
-            e.composite('led_color_off', 'led_color_off', ea.SET)
+            e
+                .composite('led_color_off', 'led_color_off', ea.SET)
                 .withFeature(e.numeric('r', ea.SET))
                 .withFeature(e.numeric('g', ea.SET))
                 .withFeature(e.numeric('b', ea.SET))
                 .withDescription('Control status LED color when load OFF'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock'])
-                .withDescription('Enables or disables the device’s buttons'),
-            e.numeric('connected_load', ea.ALL)
-                .withUnit('W').withValueMin(0).withValueMax(1800)
-                .withDescription('Load connected in watt'),
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock']).withDescription('Enables or disables the device’s buttons'),
+            e.numeric('connected_load', ea.ALL).withUnit('W').withValueMin(0).withValueMax(1800).withDescription('Load connected in watt'),
             e.energy(),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -1195,13 +1588,17 @@ const definitions: Definition[] = [
             try {
                 await reporting.readMeteringMultiplierDivisor(endpoint);
                 await reporting.currentSummDelivered(endpoint, {min: 10, max: 300, change: [0, 10]});
-            } catch (error) {/* Do nothing*/}
-            const payload = [{
-                attribute: 'actionReport',
-                minimumReportInterval: 0,
-                maximumReportInterval: 0,
-                reportableChange: 0,
-            }];
+            } catch (error) {
+                /* Do nothing*/
+            }
+            const payload = [
+                {
+                    attribute: 'actionReport',
+                    minimumReportInterval: 0,
+                    maximumReportInterval: 0,
+                    reportableChange: 0,
+                },
+            ];
             await endpoint.configureReporting('manuSpecificSinope', payload);
         },
     },
@@ -1212,27 +1609,48 @@ const definitions: Definition[] = [
         description: 'Zigbee smart dimmer',
         extend: [light({configureReporting: true})],
         fromZigbee: [fzLocal.sinope],
-        toZigbee: [tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
-            tzLocal.minimum_brightness, tzLocal.led_color_on, tzLocal.led_color_off],
+        toZigbee: [
+            tzLocal.timer_seconds,
+            tzLocal.led_intensity_on,
+            tzLocal.led_intensity_off,
+            tzLocal.minimum_brightness,
+            tzLocal.led_color_on,
+            tzLocal.led_color_off,
+        ],
         exposes: [
-            e.numeric('timer_seconds', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)
-                .withPreset('Disabled', 0, 'disabled').withDescription('Automatically turn off load after x seconds'),
-            e.numeric('led_intensity_on', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
+            e
+                .numeric('timer_seconds', ea.ALL)
+                .withUnit('s')
+                .withValueMin(0)
+                .withValueMax(65535)
+                .withPreset('Disabled', 0, 'disabled')
+                .withDescription('Automatically turn off load after x seconds'),
+            e
+                .numeric('led_intensity_on', ea.ALL)
+                .withUnit('%')
+                .withValueMin(0)
+                .withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
-            e.numeric('led_intensity_off', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
+            e
+                .numeric('led_intensity_off', ea.ALL)
+                .withUnit('%')
+                .withValueMin(0)
+                .withValueMax(100)
                 .withDescription('Control status LED when load OFF'),
-            e.numeric('minimum_brightness', ea.ALL).withValueMin(0).withValueMax(3000)
-                .withDescription('Control minimum dimmer brightness'),
-            e.composite('led_color_on', 'led_color_on', ea.SET)
+            e.numeric('minimum_brightness', ea.ALL).withValueMin(0).withValueMax(3000).withDescription('Control minimum dimmer brightness'),
+            e
+                .composite('led_color_on', 'led_color_on', ea.SET)
                 .withFeature(e.numeric('r', ea.SET))
                 .withFeature(e.numeric('g', ea.SET))
                 .withFeature(e.numeric('b', ea.SET))
                 .withDescription('Control status LED color when load ON'),
-            e.composite('led_color_off', 'led_color_off', ea.SET)
+            e
+                .composite('led_color_off', 'led_color_off', ea.SET)
                 .withFeature(e.numeric('r', ea.SET))
                 .withFeature(e.numeric('g', ea.SET))
                 .withFeature(e.numeric('b', ea.SET))
-                .withDescription('Control status LED color when load OFF')],
+                .withDescription('Control status LED color when load OFF'),
+        ],
     },
     {
         zigbeeModel: ['DM2550ZB'],
@@ -1241,27 +1659,48 @@ const definitions: Definition[] = [
         description: 'Zigbee Adaptive phase smart dimmer',
         extend: [light({configureReporting: true})],
         fromZigbee: [fzLocal.sinope],
-        toZigbee: [tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
-            tzLocal.minimum_brightness, tzLocal.led_color_on, tzLocal.led_color_off],
+        toZigbee: [
+            tzLocal.timer_seconds,
+            tzLocal.led_intensity_on,
+            tzLocal.led_intensity_off,
+            tzLocal.minimum_brightness,
+            tzLocal.led_color_on,
+            tzLocal.led_color_off,
+        ],
         exposes: [
-            e.numeric('timer_seconds', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)
-                .withPreset('Disabled', 0, 'disabled').withDescription('Automatically turn off load after x seconds'),
-            e.numeric('led_intensity_on', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
+            e
+                .numeric('timer_seconds', ea.ALL)
+                .withUnit('s')
+                .withValueMin(0)
+                .withValueMax(65535)
+                .withPreset('Disabled', 0, 'disabled')
+                .withDescription('Automatically turn off load after x seconds'),
+            e
+                .numeric('led_intensity_on', ea.ALL)
+                .withUnit('%')
+                .withValueMin(0)
+                .withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
-            e.numeric('led_intensity_off', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
+            e
+                .numeric('led_intensity_off', ea.ALL)
+                .withUnit('%')
+                .withValueMin(0)
+                .withValueMax(100)
                 .withDescription('Control status LED when load OFF'),
-            e.numeric('minimum_brightness', ea.ALL).withValueMin(0).withValueMax(3000)
-                .withDescription('Control minimum dimmer brightness'),
-            e.composite('led_color_on', 'led_color_on', ea.SET)
+            e.numeric('minimum_brightness', ea.ALL).withValueMin(0).withValueMax(3000).withDescription('Control minimum dimmer brightness'),
+            e
+                .composite('led_color_on', 'led_color_on', ea.SET)
                 .withFeature(e.numeric('r', ea.SET))
                 .withFeature(e.numeric('g', ea.SET))
                 .withFeature(e.numeric('b', ea.SET))
                 .withDescription('Control status LED color when load ON'),
-            e.composite('led_color_off', 'led_color_off', ea.SET)
+            e
+                .composite('led_color_off', 'led_color_off', ea.SET)
                 .withFeature(e.numeric('r', ea.SET))
                 .withFeature(e.numeric('g', ea.SET))
                 .withFeature(e.numeric('b', ea.SET))
-                .withDescription('Control status LED color when load OFF')],
+                .withDescription('Control status LED color when load OFF'),
+        ],
     },
     {
         zigbeeModel: ['SP2600ZB'],
@@ -1416,26 +1855,27 @@ const definitions: Definition[] = [
         model: 'VA4220ZB',
         vendor: 'Sinopé',
         description: 'Sedna smart water valve',
-        fromZigbee: [fz.ignore_iaszone_statuschange, fz.cover_position_via_brightness, fz.cover_state_via_onoff,
-            fz.battery, fz.metering],
+        fromZigbee: [fz.ignore_iaszone_statuschange, fz.cover_position_via_brightness, fz.cover_state_via_onoff, fz.battery, fz.metering],
         toZigbee: [tz.cover_via_brightness],
         meta: {battery: {voltageToPercentage: {min: 5400, max: 6800}}},
         exposes: [e.valve_switch(), e.valve_position(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = [
-                'genBasic', 'genGroups', 'genOnOff', 'ssIasZone', 'genLevelCtrl',
-                'genPowerCfg', 'seMetering', 'manuSpecificSinope'];
+            const binds = ['genBasic', 'genGroups', 'genOnOff', 'ssIasZone', 'genLevelCtrl', 'genPowerCfg', 'seMetering', 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint); // valve position
             try {
                 await reporting.batteryVoltage(endpoint);
-            } catch (error) {/* Do Nothing */}
+            } catch (error) {
+                /* Do Nothing */
+            }
             try {
                 await reporting.batteryAlarmState(endpoint);
-            } catch (error) {/* Do Nothing */}
+            } catch (error) {
+                /* Do Nothing */
+            }
         },
     },
     {
@@ -1447,16 +1887,24 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
         toZigbee: [tzLocal.low_water_temp_protection],
         exposes: [
-            e.numeric('low_water_temp_protection', ea.ALL).withUnit('°C').withValueMin(0).withValueMax(65).withValueStep(1)
+            e
+                .numeric('low_water_temp_protection', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(0)
+                .withValueMax(65)
+                .withValueStep(1)
                 .withDescription('Temperature at which water heating will resume automatically (default: 45°C)'),
-            e.water_leak(), e.temperature()],
+            e.water_leak(),
+            e.temperature(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'ssIasZone', 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.temperature(endpoint, {min: 60, max: 60, change: 0}); // divider 100: 0.1C
-            await endpoint.configureReporting('ssIasZone', [{attribute: 'zoneStatus', minimumReportInterval: 1,
-                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
+            await endpoint.configureReporting('ssIasZone', [
+                {attribute: 'zoneStatus', minimumReportInterval: 1, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1},
+            ]);
         },
     },
     {
@@ -1466,9 +1914,12 @@ const definitions: Definition[] = [
         description: 'Tank level monitor',
         fromZigbee: [fz.battery, fz.temperature, fzLocal.tank_level],
         toZigbee: [],
-        exposes: [e.battery_low(), e.battery(), e.temperature(),
-            e.numeric('tank_level', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100)
-                .withDescription('Percent volume remaining in tank')],
+        exposes: [
+            e.battery_low(),
+            e.battery(),
+            e.temperature(),
+            e.numeric('tank_level', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Percent volume remaining in tank'),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'msTemperatureMeasurement', 'genAnalogInput'];
