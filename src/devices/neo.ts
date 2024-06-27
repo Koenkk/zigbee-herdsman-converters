@@ -5,7 +5,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
 import {Definition} from '../lib/types';
-
+const GALLON_TO_LITER = 3.78541;
 const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_d0yu2xgi'}],
@@ -132,13 +132,14 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.switch(),
-            e.enum('status', ea.STATE, ['off', 'auto', 'disabled']).withDescription('Status'),
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the valve On or Off'),
+            e.enum('status', ea.STATE, ['0', '1', '2', '3']).withDescription('Status'),
             e.numeric('countdown', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(240).withDescription('Countdown'),
             e.numeric('countdown_left', ea.STATE).withUnit('min').withValueMin(1).withValueMax(240).withDescription('Countdown left'),
             e.numeric('water_current', ea.STATE).withUnit('L/min').withValueMin(0).withValueMax(3785.41).withValueStep(0.001)
                 .withDescription('Current water flow (L/min)'),
-            e.numeric('battery_percentage', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Battery percentage'),
+            e.numeric('water_current_raw', ea.STATE).withUnit('gal/min').withValueMin(0).withValueMax(1000).withValueStep(0.001),
+            e.battery(),
             e.numeric('water_total', ea.STATE).withUnit('L').withValueMin(0).withValueMax(378541.0).withValueStep(0.001)
                 .withDescription('Total water flow (L)'),
             e.binary('fault', ea.STATE, 'DETECTED', 'NOT_DETECTED').withDescription('Fault status'),
@@ -158,19 +159,29 @@ const definitions: Definition[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff],
-                [3, 'status', tuya.valueConverter.onOff],
+                [3, 'status', tuya.valueConverterBasic.lookup({'Off': 0, 'one': 1, 'Child lock activated': 2, 'On': 3, 'Button_On': 4})],
                 [5, 'countdown', tuya.valueConverter.raw],
                 [6, 'countdown_left', tuya.valueConverter.raw],
-                [9, 'water_current', tuya.valueConverter.raw],
-                [11, 'battery_percentage', tuya.valueConverter.batteryState],
-                [15, 'water_total', tuya.valueConverter.raw],
+                [9, 'water_current_raw', tuya.valueConverter.raw],
+                [9, 'water_current', {
+                    from: (v) => (v * GALLON_TO_LITER / 1000).toFixed(1), 
+                    to: (v) => Math.round((parseFloat(v) / GALLON_TO_LITER) * 1000) 
+                }],
+                [11, 'battery', tuya.valueConverter.raw],
+                [15, 'water_total', {
+                    from: (v) => (v * GALLON_TO_LITER / 1000).toFixed(1), 
+                    to: (v) => Math.round((parseFloat(v) / GALLON_TO_LITER) * 1000) 
+                }],
                 [19, 'fault', tuya.valueConverter.raw],
                 [37, 'weather_delay', tuya.valueConverter.raw],
                 [38, 'normal_timer', tuya.valueConverter.raw],
                 [42, 'switch_enabled', tuya.valueConverter.onOff],
                 [47, 'smart_irrigation', tuya.valueConverter.raw],
                 [101, 'total_flow_reset_switch', tuya.valueConverter.onOff],
-                [102, 'quantitative_watering', tuya.valueConverter.raw],
+                [102, 'quantitative_watering', {
+                    from: (v) => (v * GALLON_TO_LITER / 1000).toFixed(1), 
+                    to: (v) => Math.round((parseFloat(v) / GALLON_TO_LITER) * 1000) 
+                }],
                 [103, 'flow_switch', tuya.valueConverter.onOff],
                 [104, 'child_lock', tuya.valueConverter.onOff],
                 [105, 'surplus_flow', tuya.valueConverter.raw],
