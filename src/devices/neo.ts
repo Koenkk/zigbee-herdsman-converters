@@ -164,9 +164,13 @@ const definitions: Definition[] = [
                 [6, 'countdown_left', tuya.valueConverter.raw],
                 [9, 'water_current_raw', tuya.valueConverter.raw],
                 [9, 'water_current', {
-                    const value = Number(v);
-                    from: (v) => (v * GALLON_TO_LITER / 1000).toFixed(1), 
-                    to: (v) => Math.round((parseFloat(v) / GALLON_TO_LITER) * 1000) 
+                    from: (v) => {
+                        const value = Number(v);
+                        if (isNaN(value)) {
+                            throw new Error('The value is not a valid number');
+                        }
+                        return (value * GALLON_TO_LITER / 1000).toFixed(1);
+                    },
                 }],
                 [11, 'battery', tuya.valueConverter.raw],
                 [15, 'water_total', {
