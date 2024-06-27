@@ -3,11 +3,12 @@
         "es6": true,
         "node": true
     },
-    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "google"],
+    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
     "parser": "@typescript-eslint/parser",
     "plugins": [
         "@typescript-eslint",
-        "eslint-plugin-tsdoc"
+        "eslint-plugin-tsdoc",
+        "perfectionist"
     ],
     "root": true,
     "parserOptions": {
@@ -15,15 +16,50 @@
     },
     "rules": {
         "require-jsdoc": "off",
-        "indent": ["error", 4],
         "no-prototype-builtins": "off",
-        "max-len": ["error", { "code": 150 }],
         "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/ban-ts-comment": "off",
         "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-floating-promises": "error",
         "tsdoc/syntax": "warn",
-        "valid-jsdoc": "off"
+        "valid-jsdoc": "off",
+        "perfectionist/sort-imports": [
+            "error",
+            {
+              "groups": [
+                "type",
+                [
+                  "builtin",
+                  "external"
+                ],
+                "internal-type",
+                "internal",
+                [
+                  "parent-type",
+                  "sibling-type",
+                  "index-type"
+                ],
+                [
+                  "parent",
+                  "sibling",
+                  "index"
+                ],
+                "object",
+                "unknown"
+              ],
+              "custom-groups": {
+                "value": {},
+                "type": {}
+              },
+              "newlines-between": "always",
+              "internal-pattern": [
+                "~/**"
+              ],
+              "type": "natural",
+              "order": "asc",
+              "ignore-case": false
+            }
+        ]
     },
     "overrides": [
         {

@@ -2754,7 +2754,6 @@ const definitions: Definition[] = [
         extend: [quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
         exposes: [e.battery(), e.battery_voltage(),
             e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'hold_left', 'hold_right']),
-            // eslint-disable-next-line max-len
             e.enum('click_mode', ea.ALL, ['fast', 'multi']).withDescription('Click mode, fast: only supports single click which will be send immediately after clicking, multi: supports more events like double and hold'),
         ],
         fromZigbee: [lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],

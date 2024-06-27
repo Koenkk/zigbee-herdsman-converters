@@ -1,6 +1,3 @@
-/* eslint max-len: 0 */
-/* eslint camelcase: 0 */
-
 import assert from 'assert';
 import {Access, Range} from './types';
 import {getLabelFromName} from './utils';

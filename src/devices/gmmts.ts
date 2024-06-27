@@ -1,6 +1,4 @@
 import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
-/* eslint-disable max-len */
-/* eslint-disable no-multi-spaces */
 import * as exposes from '../lib/exposes';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';

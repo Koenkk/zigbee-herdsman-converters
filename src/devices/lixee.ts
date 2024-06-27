@@ -1,6 +1,4 @@
 import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
-/* eslint-disable camelcase */
-/* eslint-disable max-len */
 import * as exposes from '../lib/exposes';
 import * as globalStore from '../lib/store';
 import {repInterval} from '../lib/constants';

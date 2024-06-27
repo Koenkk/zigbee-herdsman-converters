@@ -3676,7 +3676,8 @@ const converters2 = {
 
             const state: KeyValueAny = {};
             const extensionfieldsets = [];
-            for (let [attribute, val] of Object.entries(value)) {
+            for (const attribute of Object.keys(value)) {
+                let val = value[attribute];
                 if (attribute === 'state') {
                     extensionfieldsets.push({'clstId': 6, 'len': 1, 'extField': [val.toLowerCase() === 'on' ? 1 : 0]});
                     state['state'] = val.toUpperCase();

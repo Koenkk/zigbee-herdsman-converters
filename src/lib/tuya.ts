@@ -465,91 +465,6 @@ export const valueConverterBasic = {
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
     },
-    // color1000: () => {
-    //     return {
-    //         // eslint-disable-next-line
-    //         to: (value: any, meta?: Tz.Meta) => {
-    //             const make4sizedString = (v: string) => {
-    //                 if (v.length >= 4) {
-    //                     return v;
-    //                 } else if (v.length === 3) {
-    //                     return '0' + v;
-    //                 } else if (v.length === 2) {
-    //                     return '00' + v;
-    //                 } else if (v.length === 1) {
-    //                     return '000' + v;
-    //                 } else {
-    //                     return '0000';
-    //                 }
-    //             };
-
-    //             const fillInHSB = (h: number, s: number, b: number, state: KeyValueAny) => {
-    //                 // Define default values. Device expects leading zero in string.
-    //                 const hsb = {
-    //                     h: '0168', // 360
-    //                     s: '03e8', // 1000
-    //                     b: '03e8', // 1000
-    //                 };
-
-    //                 if (h) {
-    //                     // The device expects 0-359
-    //                     if (h >= 360) {
-    //                         h = 359;
-    //                     }
-    //                     hsb.h = make4sizedString(h.toString(16));
-    //                 } else if (state.color && state.color.hue) {
-    //                     hsb.h = make4sizedString(state.color.hue.toString(16));
-    //                 }
-
-    //                 // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
-    //                 // The device expects a round number, otherwise everything breaks
-    //                 if (s) {
-    //                     hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
-    //                 } else if (state.color && state.color.saturation) {
-    //                     hsb.s = make4sizedString(utils.mapNumberRange(state.color.saturation, 0, 100, 0, 1000).toString(16));
-    //                 }
-
-    //                 // Scale 0-255 to 0-1000 what the device expects.
-    //                 if (b != null) {
-    //                     hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
-    //                 } else if (state.brightness != null) {
-    //                     hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
-    //                 }
-    //                 return hsb;
-    //             };
-    //             const newColor = Color.fromConverterArg(value);
-    //             let hsv;
-    //             if (newColor.isRGB()) {
-    //                 hsv = newColor.rgb.toHSV();
-    //             } else {
-    //                 if (newColor.isHSV()) {
-    //                     hsv = newColor.hsv;
-    //                 }
-    //             }
-    //             const hsb = fillInHSB(
-    //                 utils.precisionRound(hsv.hue, 0) || null,
-    //                 utils.precisionRound(hsv.saturation, 0) || null,
-    //                 utils.precisionRound(hsv.brightness, 0) || null,
-    //                 meta.state,
-    //             );
-    //             const data: string = hsb.h + hsb.s + hsb.b;
-
-    //             return data;
-    //         },
-    //         // eslint-disable-next-line
-    //         from: (value: any) => {
-    //             const result: KeyValueAny = {};
-    //             const h = parseInt(value.substring(0, 4), 16);
-    //             const s = parseInt(value.substring(4, 8), 16);
-    //             const b = parseInt(value.substring(8, 12), 16);
-    //             result.color_mode = 'hs';
-    //             result.color = {hue: h, saturation: utils.mapNumberRange(s, 0, 1000, 0, 100)};
-    //             result.brightness = utils.mapNumberRange(b, 0, 1000, 0, 255);
-
-    //             return result;
-    //         },
-    //     };
-    // },
 };
 
 export const valueConverter = {
@@ -1695,7 +1610,8 @@ const tuyaModernExtend = {
             valueOn: ['ON', true], valueOff: ['OFF', false], expose: e.switch().setAccess('state', readOnly ? ea.STATE : ea.STATE_SET), ...args});
     },
     dpPowerOnBehavior(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
-        let {readOnly, lookup} = args;
+        const {readOnly} = args;
+        let {lookup} = args;
         lookup = lookup || {'off': 0, 'on': 1, 'previous': 2};
         return tuyaModernExtend.dpEnumLookup({name: 'power_on_behavior', lookup: lookup, type: dataTypes.enum,
             expose: e.power_on_behavior(Object.keys(lookup)).withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
@@ -1846,7 +1762,8 @@ const tuyaModernExtend = {
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
     },
     dpBacklightMode(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
-        let {readOnly, lookup} = args;
+        const {readOnly} = args;
+        let {lookup} = args;
         lookup = lookup || {'off': 0, 'normal': 1, 'inverted': 2};
         return tuyaModernExtend.dpEnumLookup({name: 'backlight_mode', lookup: lookup, type: dataTypes.enum,
             expose: tuyaExposes.backlightModeOffNormalInverted().withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
