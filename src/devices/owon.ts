@@ -441,6 +441,13 @@ const definitions: Definition[] = [
         description: 'Door/window sensor',
         extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
     },
+    {
+        zigbeeModel: ['SPM915'],
+        model: 'SPM915',
+        vendor: 'OWON',
+        description: 'Sleeping pad monitor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
+    },
 ];
 
 export default definitions;
