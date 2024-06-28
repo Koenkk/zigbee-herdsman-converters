@@ -570,7 +570,7 @@ export class Color {
      * @param value - converter value argument
      * @returns Color object
      */
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static fromConverterArg(value: any): Color {
         if (value.hasOwnProperty('x') && value.hasOwnProperty('y')) {
             const xy = ColorXY.fromObject(value);

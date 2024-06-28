@@ -24,7 +24,6 @@ const definitions: Definition[] = [
         extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
-        // eslint-disable-next-line
         zigbeeModel: [
             '\u0000\u0002\u0000\u0004\u0000\f^I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e',
             '\u0000\u0002\u0000\u0004^��&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e',
@@ -35,7 +34,6 @@ const definitions: Definition[] = [
         extend: [light()],
     },
     {
-        // eslint-disable-next-line
         zigbeeModel: [
             '\u0000\u0002\u0000\u0004\u0012 �P\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e',
         ],
@@ -52,7 +50,6 @@ const definitions: Definition[] = [
         extend: [light({colorTemp: {range: undefined}})],
     },
     {
-        // eslint-disable-next-line
         zigbeeModel: [
             '\u0000\u0002\u0000\u0004T\u0002\u000eZ\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e',
             '\u0000\u0002\u0000\u0004\u0000\f]�\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e',
@@ -68,7 +65,6 @@ const definitions: Definition[] = [
         extend: [light()],
     },
     {
-        // eslint-disable-next-line
         zigbeeModel: [
             '\u0000\u0002\u0000\u0004�V\u0000\n\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e',
             '\u0000\u0002\u0000\u0004��"�\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u000e',

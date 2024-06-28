@@ -226,7 +226,6 @@ const definitions: Definition[] = [
             e.binary('led_enable', ea.STATE_SET, true, false).withDescription('Enabled LED'),
             e.binary('reporting_enable', ea.STATE_SET, true, false).withDescription('Enabled reporting'),
             e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
-            // eslint-disable-next-line
             e.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds'),
         ],
     },

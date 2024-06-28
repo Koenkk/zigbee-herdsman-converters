@@ -552,7 +552,7 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
     return numbers.map((v) => v.toString(16).padStart(hexLength, '0')).join(':');
 }
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function assertObject(value: unknown, property?: string): asserts value is {[s: string]: any} {
     const isObject = typeof value === 'object' && !Array.isArray(value) && value !== null;
     if (!isObject) {
@@ -574,7 +574,7 @@ export function isNumber(value: unknown): value is number {
     return typeof value === 'number';
 }
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isObject(value: unknown): value is {[s: string]: any} {
     return typeof value === 'object' && !Array.isArray(value);
 }

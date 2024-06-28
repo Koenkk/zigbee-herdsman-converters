@@ -43,6 +43,7 @@ const convertMultiByteNumberPayloadToSingleDecimalNumber = (chunks: any) => {
 };
 
 function getDataValue(dpValue: any) {
+    let dataString = '';
     switch (dpValue.datatype) {
         case dataTypes.raw:
             return dpValue.data;
@@ -51,8 +52,6 @@ function getDataValue(dpValue: any) {
         case dataTypes.value:
             return convertMultiByteNumberPayloadToSingleDecimalNumber(dpValue.data);
         case dataTypes.string:
-            // eslint-disable-next-line
-            let dataString = '';
             // Don't use .map here, doesn't work: https://github.com/Koenkk/zigbee-herdsman-converters/pull/1799/files#r530377091
             for (let i = 0; i < dpValue.data.length; ++i) {
                 dataString += String.fromCharCode(dpValue.data[i]);
@@ -1111,6 +1110,7 @@ function getMetaValue(entity: any, definition: any, key: string, groupStrategy =
 }
 
 const tuyaGetDataValue = (dataType: any, data: any) => {
+    let dataString = '';
     switch (dataType) {
         case dataTypes.raw:
             return data;
@@ -1119,8 +1119,6 @@ const tuyaGetDataValue = (dataType: any, data: any) => {
         case dataTypes.value:
             return convertMultiByteNumberPayloadToSingleDecimalNumber(data);
         case dataTypes.string:
-            // eslint-disable-next-line
-            let dataString = '';
             // Don't use .map here, doesn't work: https://github.com/Koenkk/zigbee-herdsman-converters/pull/1799/files#r530377091
             for (let i = 0; i < data.length; ++i) {
                 dataString += String.fromCharCode(data[i]);
@@ -4443,7 +4441,6 @@ const fromZigbee1 = {
         convert: (model, msg, publish, options, meta) => {
             const separateWhite = model.meta && model.meta.separateWhite;
             const result: KeyValueAny = {};
-            // eslint-disable-next-line no-unused-vars
             for (const [i, dpValue] of msg.data.dpValues.entries()) {
                 const dp = dpValue.dp;
                 const value = getDataValue(dpValue);

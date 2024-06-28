@@ -3390,7 +3390,6 @@ const converters1 = {
             const payload: KeyValueAny = {};
             if (msg.data.hasOwnProperty('acceleration')) payload.moving = msg.data['acceleration'] === 1;
 
-            // eslint-disable-next-line
             // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy#L222
             /*
                 The axes reported by the sensor are mapped differently in the SmartThings DTH.

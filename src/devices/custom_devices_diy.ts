@@ -531,7 +531,7 @@ const definitions: Definition[] = [
         },
         meta: {multiEndpoint: true, tuyaThermostatPreset: legacy.fz /* for subclassed custom converters */},
         endpoint: (device) => {
-            // eslint-disable-next-line
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const endpointList: any = [];
             const deviceConfig = ptvoGetMetaOption(device, 'device_config', '');
             if (deviceConfig === '') {

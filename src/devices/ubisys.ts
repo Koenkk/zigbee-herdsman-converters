@@ -124,9 +124,9 @@ const ubisys = {
                     let operationalStatus = 0;
                     do {
                         await sleepSeconds(2);
-                        operationalStatus =
-                            // @ts-expect-error
-                            (await entity.read('closuresWindowCovering', ['operationalStatus'])).operationalStatus;
+                        const response = await entity.read('closuresWindowCovering', ['operationalStatus']);
+                        // @ts-expect-error
+                        operationalStatus = response.operationalStatus;
                     } while (operationalStatus != 0);
                     await sleepSeconds(2);
                 };

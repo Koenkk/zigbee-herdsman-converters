@@ -24,7 +24,7 @@ export interface KeyValueNumberString {
     [s: number]: string;
 }
 export interface KeyValueAny {
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [s: string]: any;
 }
 export type Publish = (payload: KeyValue) => void;
@@ -257,7 +257,7 @@ export type Definition = {
 
 export namespace Fz {
     export interface Message {
-        // eslint-disable-next-line
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data: any;
         endpoint: Zh.Endpoint;
         device: Zh.Device;
