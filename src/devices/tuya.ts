@@ -833,6 +833,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Moes', 'ZSS-X-GWM-C', 'Door/window magnetic sensor', ['_TZ3000_gntwytxo']),
             tuya.whitelabel('Luminea', 'ZX-5232', 'Smart door and window sensor', ['_TZ3000_4ugnzsli']),
             tuya.whitelabel('QA', 'QASD1', 'Door sensor', ['_TZ3000_udyjylt7']),
+            tuya.whitelabel('Nous', 'E3', 'Door sensor', ['_TZ3000_v7chgqso']),
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [e.contact(), e.battery(), e.battery_voltage()];
@@ -1391,6 +1392,9 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genOnOff', ['onOff', 'moesStartUpOnOff']);
         },
+        whiteLabel: [
+            tuya.whitelabel('Nous', 'LZ3', 'Smart water/gas valve', ['_TZ3000_abjodzas']),
+        ],
     },
     {
         zigbeeModel: ['CK-BL702-AL-01(7009_Z102LG03-1)', 'CK-BL702-AL-01(7009_Z102LG04-2)'],
@@ -2224,6 +2228,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Danor', 'SK-Z802C-US', 'Smart curtain/shutter switch', ['_TZ3000_8h7wgocw']),
             tuya.whitelabel('Moes', 'MS-108ZR', 'Zigbee + RF curtain switch module', ['_TZ3000_1dd0d5yi']),
             tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc']),
+            tuya.whitelabel('Nous', 'B4Z', 'Curtain switch', ['_TZ3000_yruungrl']),
         ],
         exposes: (device) => {
             const exps = [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
