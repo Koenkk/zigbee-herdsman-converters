@@ -2738,6 +2738,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'},
             tuya.whitelabel('Tuya', 'SH-SC07', 'Button scene switch', ['_TZ3000_mrpevh8p']),
             tuya.whitelabel('Tuya', 'MINI-ZSB', 'Smart button', ['_TZ3000_qgwcxxws']),
+            tuya.whitelabel('Nous', 'LZ4', 'Wireless switch button', ['_TZ3000_6km7djcm']),
         ],
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
