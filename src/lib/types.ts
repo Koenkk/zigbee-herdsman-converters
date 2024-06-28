@@ -42,6 +42,10 @@ export type WhiteLabel =
     {vendor: string, model: string, description?: string};
 export interface OtaUpdateAvailableResult {available: boolean, currentFileVersion: number, otaFileVersion: number}
 
+export interface MockProperty {property: string, value: KeyValue | string}
+// eslint-disable-next-line camelcase
+export interface DiscoveryEntry {mockProperties: MockProperty[], type: string, object_id: string, discovery_payload: KeyValue}
+
 export interface DefinitionMeta {
     separateWhite?: boolean,
     /**
@@ -161,9 +165,9 @@ export interface DefinitionMeta {
      */
     coverPositionTiltDisableReport?: boolean,
     /**
-     * Override the Home Assistant discovery payload.
+     * Override the Home Assistant discovery payload using a custom function.
      */
-    overrideHaConfig?: { [s: string]: string | Array<string> },
+    overrideHaConfig?(configs: DiscoveryEntry[]): void,
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
