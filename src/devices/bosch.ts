@@ -382,8 +382,8 @@ const boschExtend = {
             e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
             e.binary('test', ea.STATE, true, false).withDescription('Indicates whether the device is currently performing a test')
                 .withCategory('diagnostic'),
-            e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm siren').withCategory('config'),
-            e.binary('alarm_burglar', ea.ALL, 'ON', 'OFF').withDescription('Toggle the burglar alarm siren').withCategory('config'),
+            e.binary('alarm_smoke', ea.ALL, true, false).withDescription('Toggle the smoke alarm siren').withCategory('config'),
+            e.binary('alarm_burglar', ea.ALL, true, false).withDescription('Toggle the burglar alarm siren').withCategory('config'),
         ];
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'ssIasZone',
@@ -408,12 +408,20 @@ const boschExtend = {
             key: ['alarm_smoke', 'alarm_burglar'],
             convertSet: async (entity, key, value, meta) => {
                 if (key === 'alarm_smoke') {
-                    const index = utils.getFromLookup(value, smokeAlarm);
+                    let transformedValue = 'OFF';
+                    if (value === true) {
+                        transformedValue = 'ON';
+                    }
+                    const index = utils.getFromLookup(transformedValue, smokeAlarm);
                     await entity.command('ssIasZone', 'boschSmokeAlarmSiren', {data: index}, manufacturerOptions);
                     return {state: {alarm_smoke: value}};
                 }
                 if (key === 'alarm_burglar') {
-                    const index = utils.getFromLookup(value, burglarAlarm);
+                    let transformedValue = 'OFF';
+                    if (value === true) {
+                        transformedValue = 'ON';
+                    }
+                    const index = utils.getFromLookup(transformedValue, burglarAlarm);
                     await entity.command('ssIasZone', 'boschSmokeAlarmSiren', {data: index}, manufacturerOptions);
                     return {state: {alarm_burglar: value}};
                 }
