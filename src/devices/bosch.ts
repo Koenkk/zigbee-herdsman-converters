@@ -14,7 +14,6 @@ import * as constants from '../lib/constants';
 import * as globalStore from '../lib/store';
 import {
     Tz, Fz, Definition, KeyValue, ModernExtend, Expose,
-    MockProperty, DiscoveryEntry,
 } from '../lib/types';
 import {logger} from '../lib/logger';
 const e = exposes.presets;
