@@ -411,8 +411,8 @@ const boschExtend = {
                 .binary('test', ea.STATE, true, false)
                 .withDescription('Indicates whether the device is currently performing a test')
                 .withCategory('diagnostic'),
-            e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm siren').withCategory('config'),
-            e.binary('alarm_burglar', ea.ALL, 'ON', 'OFF').withDescription('Toggle the burglar alarm siren').withCategory('config'),
+            e.binary('alarm_smoke', ea.ALL, true, false).withDescription('Toggle the smoke alarm siren').withCategory('config'),
+            e.binary('alarm_burglar', ea.ALL, true, false).withDescription('Toggle the burglar alarm siren').withCategory('config'),
         ];
         const fromZigbee: Fz.Converter[] = [
             {
@@ -440,12 +440,20 @@ const boschExtend = {
                 key: ['alarm_smoke', 'alarm_burglar'],
                 convertSet: async (entity, key, value, meta) => {
                     if (key === 'alarm_smoke') {
-                        const index = utils.getFromLookup(value, smokeAlarm);
+                        let transformedValue = 'OFF';
+                        if (value === true) {
+                            transformedValue = 'ON';
+                        }
+                        const index = utils.getFromLookup(transformedValue, smokeAlarm);
                         await entity.command('ssIasZone', 'boschSmokeAlarmSiren', {data: index}, manufacturerOptions);
                         return {state: {alarm_smoke: value}};
                     }
                     if (key === 'alarm_burglar') {
-                        const index = utils.getFromLookup(value, burglarAlarm);
+                        let transformedValue = 'OFF';
+                        if (value === true) {
+                            transformedValue = 'ON';
+                        }
+                        const index = utils.getFromLookup(transformedValue, burglarAlarm);
                         await entity.command('ssIasZone', 'boschSmokeAlarmSiren', {data: index}, manufacturerOptions);
                         return {state: {alarm_burglar: value}};
                     }
@@ -1345,6 +1353,24 @@ const definitions: Definition[] = [
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
+        meta: {
+            overrideHaConfig: (configs) => {
+                const entry = configs.findIndex((e) => e.type === 'climate');
+                if (entry) {
+                    const commandTopic = configs[entry].discovery_payload.mode_command_topic as string;
+                    configs[entry].discovery_payload.mode_command_topic = commandTopic.substring(0, commandTopic.lastIndexOf('/system_mode'));
+                    configs[entry].discovery_payload.mode_command_template =
+                        `{% set values = ` +
+                        `{ 'auto':'schedule','heat':'manual','off':'pause'} %}` +
+                        `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}`;
+                    configs[entry].discovery_payload.mode_state_template =
+                        `{% set values = ` +
+                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
+                        `{% set value = value_json.operating_mode %}{{ values[value] if value in values.keys() else 'off' }}`;
+                    configs[entry].discovery_payload.modes = ['off', 'heat', 'auto'];
+                }
+            },
+        },
         exposes: [
             e
                 .climate()

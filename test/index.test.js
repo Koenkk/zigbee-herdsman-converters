@@ -323,6 +323,7 @@ describe('index.js', () => {
                         'publishDuplicateTransaction',
                         'tuyaSendCommand',
                         'coverPositionTiltDisableReport',
+                        'overrideHaConfig',
                     ],
                     Object.keys(device.meta),
                 );
