@@ -1,5 +1,23 @@
 # Changelog
 
+## [19.61.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.60.1...v19.61.0) (2024-06-29)
+
+
+### Features
+
+* **add:** E8334RWMZB, E8331SRY800ZB ([#7700](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7700)) ([f745d05](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f745d05306c65ea402b3a72094ce915d95c54690))
+* **add:** SPM915 [@mario42004](https://github.com/mario42004) https://github.com/Koenkk/zigbee2mqtt/issues/23172 ([bc53254](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc532543fa8964797276bfdf8ac45a9d57f710be))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_v7chgqso` as Nous E3, `_TZ3000_abjodzasas` as Nous LZ3, `_TZ3000_yruungrl` as Nous B4Z and `_TZ3000_6km7djcm` as Nous LZ4 ([#7705](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7705)) ([578ec18](https://github.com/Koenkk/zigbee-herdsman-converters/commit/578ec18fe0c03efc339b4502b7a994a9e04fbfaa))
+* Fix Bosch BSD-2 alarm states ([#7703](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7703)) ([d54c804](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d54c80455f12d82851004726c338036cc9397326))
+* Fix energy reporting change for ShinaSystem PMM-300Z1, PMM-300Z2 and PMM-300Z3 ([#7697](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7697)) ([e84de6a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e84de6ac05589ba42e40fafff898256dd7982c13))
+* Fix HA discovery for Bosch BTH-RA ([#7685](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7685)) ([caf39c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/caf39c1367d27894cd2c670bfc0b2b014ecd611b))
+* Fix leadingTrailingEdge for Inovelli VZM36 ([#7696](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7696)) ([9bc3d95](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9bc3d9500d1aabcf020b87f25b4a5d1223a4bf00))
+* Implement prettier ([#7702](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7702)) ([607a13e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/607a13e9a112abbf1a8d34fcabee8f82a07f80a8))
+
 ## [19.60.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.60.0...v19.60.1) (2024-06-25)
 
 
