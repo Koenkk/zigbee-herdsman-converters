@@ -639,11 +639,12 @@ describe('index.js', () => {
             'occupancy',
             'tamper',
             'battery_low',
-            'battery',
             'linkquality',
+            'temperature',
             'illuminance_lux',
             'illuminance',
-            'temperature',
+            'battery',
+            'voltage',
         ]);
     });
 

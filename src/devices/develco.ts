@@ -6,7 +6,7 @@ import * as constants from '../lib/constants';
 import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {humidity, illuminance} from '../lib/modernExtend';
+import {battery, humidity, illuminance} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -441,20 +441,26 @@ const definitions: Definition[] = [
             {vendor: 'Frient', model: '94430', description: 'Smart Intelligent Smoke Alarm'},
             {vendor: 'Cavius', model: '2103', description: 'RF SMOKE ALARM, 5 YEAR 65MM'},
         ],
-        fromZigbee: [fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            develcoModernExtend.temperature(),
+            develcoModernExtend.temperature(), // TODO: ep 38
+            battery({
+                voltageToPercentage: '3V_2500',
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
-            await reporting.batteryVoltage(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -463,7 +469,6 @@ const definitions: Definition[] = [
             return {default: 35};
         },
         exposes: [
-            e.battery(),
             e.smoke(),
             e.battery_low(),
             e.test(),
@@ -507,20 +512,26 @@ const definitions: Definition[] = [
         vendor: 'Develco',
         description: 'Fire detector with siren',
         whiteLabel: [{vendor: 'Frient', model: '94431', description: 'Smart Intelligent Heat Alarm'}],
-        fromZigbee: [fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            develcoModernExtend.temperature(),
+            develcoModernExtend.temperature(), // TODO: ep 38
+            battery({
+                voltageToPercentage: '3V_2500',
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
-            await reporting.batteryVoltage(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -529,7 +540,6 @@ const definitions: Definition[] = [
             return {default: 35};
         },
         exposes: [
-            e.battery(),
             e.smoke(),
             e.battery_low(),
             e.test(),
@@ -546,78 +556,101 @@ const definitions: Definition[] = [
         model: 'WISZB-120',
         vendor: 'Develco',
         description: 'Window sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.battery_voltage()],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        exposes: [e.contact(), e.battery_low(), e.tamper()],
         ota: ota.zigbeeOTA,
+        endpoint: (device) => {
+            return {default: 35};
+        },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            develcoModernExtend.temperature(),
+            develcoModernExtend.temperature(), // TODO: ep 38
+            battery({
+                voltageToPercentage: '3V_2500',
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint35 = device.getEndpoint(35);
-            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint35);
-        },
     },
     {
         zigbeeModel: ['WISZB-121'],
         model: 'WISZB-121',
         vendor: 'Develco',
         description: 'Window sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        exposes: [e.contact(), e.battery_low(), e.tamper()],
         ota: ota.zigbeeOTA,
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint35 = device.getEndpoint(35);
-            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint35);
+        endpoint: (device) => {
+            return {default: 35};
         },
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            battery({
+                voltageToPercentage: '3V_2500',
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
+        ],
     },
     {
         zigbeeModel: ['WISZB-137'],
         model: 'WISZB-137',
         vendor: 'Develco',
         description: 'Vibration sensor',
-        fromZigbee: [fz.battery, fz.ias_vibration_alarm_1],
+        fromZigbee: [fz.ias_vibration_alarm_1],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
-        exposes: [e.battery_low(), e.battery(), e.vibration(), e.tamper()],
+        exposes: [e.battery_low(), e.vibration(), e.tamper()],
+        endpoint: (device) => {
+            return {default: 38};
+        },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
+            battery({
+                voltageToPercentage: '3V_2100',
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint38 = device.getEndpoint(38);
-            await reporting.bind(endpoint38, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint38);
-        },
     },
     {
         zigbeeModel: ['WISZB-138', 'GWA1513_WindowSensor'],
         model: 'WISZB-138',
         vendor: 'Develco',
         description: 'Window sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.contact(), e.battery(), e.battery_low()],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        exposes: [e.contact(), e.battery_low()],
+        endpoint: (device) => {
+            return {default: 35};
+        },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
+            battery({
+                voltageToPercentage: '3V_2500',
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint35 = device.getEndpoint(35);
-            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint35);
-        },
     },
     {
         zigbeeModel: ['MOSZB-130'],
@@ -633,7 +666,7 @@ const definitions: Definition[] = [
         model: 'MOSZB-140',
         vendor: 'Develco',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, develco.fz.led_control, develco.fz.ias_occupancy_timeout],
+        fromZigbee: [fz.ias_occupancy_alarm_1, develco.fz.led_control, develco.fz.ias_occupancy_timeout],
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
         exposes: (device, options) => {
             const dynExposes = [];
@@ -643,7 +676,6 @@ const definitions: Definition[] = [
             }
             dynExposes.push(e.tamper());
             dynExposes.push(e.battery_low());
-            dynExposes.push(e.battery());
             if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
                 dynExposes.push(
                     e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
@@ -653,23 +685,27 @@ const definitions: Definition[] = [
             return dynExposes;
         },
         ota: ota.zigbeeOTA,
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
         endpoint: (device) => {
             return {default: 35};
         },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            illuminance(),
-            develcoModernExtend.temperature(),
+            develcoModernExtend.temperature(), // TODO: ep 38
+            illuminance(), // TODO: ep 39
+            battery({
+                voltageToPercentage: '3V_2500',
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint35 = device.getEndpoint(35);
-            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint35, {min: constants.repInterval.HOUR, max: 43200, change: 100});
-
             // zigbee2mqtt#14277 some features are not available on older firmwares
             // modernExtend's readGenBasicPrimaryVersions is called before this one, should be fine
+            const endpoint35 = device.getEndpoint(35);
             if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
                 await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
             }
@@ -694,23 +730,25 @@ const definitions: Definition[] = [
         model: 'HMSZB-110',
         vendor: 'Develco',
         description: 'Temperature & humidity sensor',
-        fromZigbee: [fz.battery],
-        toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [e.battery()],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
+        endpoint: (device) => {
+            return {default: 38};
+        },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
             humidity(),
+            battery({
+                voltageToPercentage: '3V_2500_3200',
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
             develcoModernExtend.batteryLowAA(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(38);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg']);
-            await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});
-        },
     },
     {
         zigbeeModel: ['ZHEMI101'],
@@ -773,19 +811,26 @@ const definitions: Definition[] = [
         model: 'FLSZB-110',
         vendor: 'Develco',
         description: 'Flood alarm device ',
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [e.battery_low(), e.tamper(), e.water_leak(), e.battery_voltage()],
+        exposes: [e.battery_low(), e.tamper(), e.water_leak()],
+        endpoint: (device) => {
+            return {default: 35};
+        },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            develcoModernExtend.temperature(),
+            develcoModernExtend.temperature(), // TODO: ep 38
+            battery({
+                voltageToPercentage: {min: 2800, max: 3000},
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint35 = device.getEndpoint(35);
-            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
-        },
     },
     {
         zigbeeModel: ['AQSZB-110'],
@@ -793,9 +838,9 @@ const definitions: Definition[] = [
         vendor: 'Develco',
         description: 'Air quality sensor',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.battery],
-        toZigbee: [],
-        exposes: [e.battery()],
+        endpoint: (device) => {
+            return {default: 38};
+        },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoAirQuality(),
@@ -804,32 +849,40 @@ const definitions: Definition[] = [
             develcoModernExtend.airQuality(),
             develcoModernExtend.temperature(),
             humidity(),
+            battery({
+                voltageToPercentage: '3V_2500',
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
             develcoModernExtend.batteryLowAA(),
         ],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(38);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});
-        },
     },
     {
         zigbeeModel: ['SIRZB-110', 'SIRZB-111'],
         model: 'SIRZB-110',
         vendor: 'Develco',
         description: 'Customizable siren',
-        fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_wd, fz.ias_siren],
+        fromZigbee: [fz.ias_enroll, fz.ias_wd, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
+            battery({
+                voltageToPercentage: '3V_2500',
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(43);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
-            await reporting.batteryVoltage(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBasic']);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('ssIasWd', ['maxDuration']);
 
@@ -841,7 +894,6 @@ const definitions: Definition[] = [
         },
         whiteLabel: [{model: 'SIRZB-111', vendor: 'Develco', description: 'Customizable siren', fingerprint: [{modelID: 'SIRZB-111'}]}],
         exposes: [
-            e.battery(),
             e.battery_low(),
             e.test(),
             e.warning(),
@@ -858,7 +910,6 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Frient', model: 'KEPZB-110'}],
         fromZigbee: [
             fz.command_arm_with_transaction,
-            fz.battery,
             fz.command_emergency,
             fz.ias_no_alarm,
             fz.ignore_iaszone_attreport,
@@ -866,9 +917,7 @@ const definitions: Definition[] = [
         ],
         toZigbee: [tz.arm_mode],
         exposes: [
-            e.battery(),
             e.battery_low(),
-            e.battery_voltage(),
             e.tamper(),
             e.text('action_code', ea.STATE).withDescription('Pin code introduced.'),
             e.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
@@ -876,13 +925,22 @@ const definitions: Definition[] = [
             e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency']),
         ],
         ota: ota.zigbeeOTA,
-        meta: {battery: {voltageToPercentage: '4LR6AA1_5v'}},
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            battery({
+                voltageToPercentage: '4LR6AA1_5v',
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(44);
-            const clusters = ['genPowerCfg', 'ssIasZone', 'ssIasAce', 'genIdentify'];
+            const clusters = ['ssIasZone', 'ssIasAce', 'genIdentify'];
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
-            await reporting.batteryVoltage(endpoint);
         },
         endpoint: (device) => {
             return {default: 44};
@@ -955,15 +1013,25 @@ const definitions: Definition[] = [
         model: 'SBTZB-110',
         vendor: 'Develco',
         description: 'Smart button',
-        fromZigbee: [fz.ewelink_action, fz.battery],
+        fromZigbee: [fz.ewelink_action],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [e.battery(), e.battery_voltage(), e.action(['single'])],
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
+        exposes: [e.action(['single'])],
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            battery({
+                voltageToPercentage: {min: 2200, max: 3000},
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(32);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genIdentify']);
-            await reporting.batteryVoltage(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genIdentify']);
         },
         endpoint: (device) => {
             return {default: 32};
