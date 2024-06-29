@@ -6,7 +6,7 @@ import * as constants from '../lib/constants';
 import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {illuminance} from '../lib/modernExtend';
+import {humidity, illuminance} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -694,21 +694,21 @@ const definitions: Definition[] = [
         model: 'HMSZB-110',
         vendor: 'Develco',
         description: 'Temperature & humidity sensor',
-        fromZigbee: [fz.battery, fz.humidity],
+        fromZigbee: [fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [e.battery(), e.humidity()],
+        exposes: [e.battery()],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            develcoModernExtend.batteryLowAA(),
             develcoModernExtend.temperature(),
+            humidity(),
+            develcoModernExtend.batteryLowAA(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(38);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg']);
-            await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
             await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});
         },
     },
@@ -793,9 +793,9 @@ const definitions: Definition[] = [
         vendor: 'Develco',
         description: 'Air quality sensor',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.humidity],
+        fromZigbee: [fz.battery],
         toZigbee: [],
-        exposes: [e.humidity(), e.battery()],
+        exposes: [e.battery()],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoAirQuality(),
@@ -803,13 +803,13 @@ const definitions: Definition[] = [
             develcoModernExtend.voc(),
             develcoModernExtend.airQuality(),
             develcoModernExtend.temperature(),
+            humidity(),
             develcoModernExtend.batteryLowAA(),
         ],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(38);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg']);
-            await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});
         },
     },
