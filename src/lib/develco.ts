@@ -126,4 +126,34 @@ export const develcoModernExtend = {
 
         return {exposes: [expose], fromZigbee, isModernExtend: true};
     },
+    batteryLowAA: (): ModernExtend => {
+        /*
+         * Per the technical documentation for AQSZB-110:
+         * To detect low battery the system can monitor the "BatteryVoltage" by setting up a reporting interval of every 12 hour.
+         * When a voltage of 2.5V is measured the battery should be replaced.
+         * Low batt LED indication–RED LED will blink twice every 60 second.
+         *
+         * Similar notes found in other 2x AA powered Develco devices like HMSZB-110 and MOSZB-140
+         */
+        const clusterName = 'genPowerCfg';
+        const attributeName = 'BatteryVoltage';
+        const propertyName = 'battery_low';
+
+        const expose = e.battery_low();
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: clusterName,
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.hasOwnProperty(attributeName) && msg.data[attributeName] < 255) {
+                        const voltage = parseInt(msg.data[attributeName]);
+                        return {[propertyName]: voltage <= 25};
+                    }
+                },
+            },
+        ];
+
+        return {exposes: [expose], fromZigbee, isModernExtend: true};
+    },
 };

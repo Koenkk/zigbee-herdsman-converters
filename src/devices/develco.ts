@@ -3,9 +3,9 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
+import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {develcoModernExtend} from '../lib/develco';
 import {illuminance} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
@@ -127,21 +127,6 @@ const develco = {
                 if (msg.data.hasOwnProperty('statusFlags')) {
                     result.fault = msg.data['statusFlags'] === 1;
                 }
-                return result;
-            },
-        } satisfies Fz.Converter,
-        voc_battery: {
-            cluster: 'genPowerCfg',
-            type: ['attributeReport', 'readResponse'],
-            convert: async (model, msg, publish, options, meta) => {
-                /*
-                 * Per the technical documentation for AQSZB-110:
-                 * To detect low battery the system can monitor the "BatteryVoltage" by setting up a reporting interval of every 12 hour.
-                 * When a voltage of 2.5V is measured the battery should be replaced.
-                 * Low batt LED indication–RED LED will blink twice every 60 second.
-                 */
-                const result = await fz.battery.convert(model, msg, publish, options, meta);
-                if (result) result.battery_low = result.voltage <= 2500;
                 return result;
             },
         } satisfies Fz.Converter,
@@ -729,9 +714,13 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, develco.fz.temperature, fz.humidity],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [e.battery(), e.battery_low(), e.temperature(), e.humidity()],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            develcoModernExtend.batteryLowAA(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(38);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
@@ -819,16 +808,17 @@ const definitions: Definition[] = [
         model: 'AQSZB-110',
         vendor: 'Develco',
         description: 'Air quality sensor',
-        fromZigbee: [develco.fz.voc_battery, develco.fz.temperature, fz.humidity],
-        toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [e.temperature(), e.humidity(), e.battery(), e.battery_low()],
+        fromZigbee: [develco.fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.battery()],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoAirQuality(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.voc(),
             develcoModernExtend.airQuality(),
+            develcoModernExtend.batteryLowAA(),
         ],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
