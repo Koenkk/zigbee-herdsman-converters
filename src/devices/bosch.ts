@@ -1264,6 +1264,23 @@ const definitions: Definition[] = [
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
+        meta: {
+            overrideHaConfig: (configs) => {
+                const entry = configs.findIndex((e) => e.type === 'climate');
+                if (entry) {
+                    const commandTopic = configs[entry].discovery_payload.mode_command_topic as string;
+                    configs[entry].discovery_payload.mode_command_topic =
+                        commandTopic.substring(0, commandTopic.lastIndexOf('/system_mode'));
+                    configs[entry].discovery_payload.mode_command_template = `{% set values = ` +
+                        `{ 'auto':'schedule','heat':'manual','off':'pause'} %}` +
+                        `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}`;
+                    configs[entry].discovery_payload.mode_state_template = `{% set values = ` +
+                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
+                        `{% set value = value_json.operating_mode %}{{ values[value] if value in values.keys() else 'off' }}`;
+                    configs[entry].discovery_payload.modes = ['off', 'heat', 'auto'];
+                }
+            },
+        },
         exposes: [
             e.climate()
                 .withLocalTemperature(ea.STATE_GET, 'Temperature used by the heating algorithm. ' +
