@@ -8,6 +8,17 @@ import {Fz, Tz, ModernExtend, Configure} from './types';
 const NS = 'zhc:develco';
 
 export const develcoModernExtend = {
+    addCustomClusterManuSpecificDevelcoGenBasic: () =>
+        deviceAddCustomCluster('genBasic', {
+            ID: 0x0000,
+            attributes: {
+                develcoPrimarySwVersion: {ID: 0x8000, type: Zcl.DataType.OCTET_STR, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
+                develcoPrimaryHwVersion: {ID: 0x8020, type: Zcl.DataType.OCTET_STR, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
+                develcoLedControl: {ID: 0x8100, type: Zcl.DataType.BITMAP8, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     addCustomClusterManuSpecificDevelcoAirQuality: () =>
         deviceAddCustomCluster('manuSpecificDevelcoAirQuality', {
             ID: 0xfc03,
