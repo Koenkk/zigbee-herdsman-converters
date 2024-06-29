@@ -6,6 +6,7 @@ import {numeric, NumericArgs, deviceAddCustomCluster, setupConfigureForReporting
 import {Fz, Tz, ModernExtend, Configure} from './types';
 
 const NS = 'zhc:develco';
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
 export const develcoModernExtend = {
     addCustomClusterManuSpecificDevelcoGenBasic: () =>
@@ -32,4 +33,35 @@ export const develcoModernExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    readGenBasicPrimaryVersions: (): ModernExtend => {
+        /*
+         * Develco (and there B2C brand Frient) do not use swBuildId
+         *  The versions are stored in develcoPrimarySwVersion and develcoPrimaryHwVersion, we read them during configure.
+         */
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                for (const ep of device.endpoints) {
+                    if (ep.supportsInputCluster('genBasic')) {
+                        try {
+                            const data = await ep.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
+
+                            if (data.hasOwnProperty('develcoPrimarySwVersion')) {
+                                device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
+                            }
+
+                            if (data.hasOwnProperty('develcoPrimaryHwVersion')) {
+                                device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
+                            }
+
+                            device.save();
+                        } catch (error) {
+                            /* catch timeouts of sleeping devices */
+                        }
+                        break;
+                    }
+                }
+            },
+        ];
+        return {configure, isModernExtend: true};
+    },
 };
