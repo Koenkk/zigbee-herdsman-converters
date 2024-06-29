@@ -2,7 +2,7 @@ import {Zcl} from 'zigbee-herdsman';
 
 import {presets as e, access as ea} from './exposes';
 import {logger} from './logger';
-import {numeric, NumericArgs, deviceAddCustomCluster, setupConfigureForReporting} from './modernExtend';
+import {numeric, NumericArgs, ScaleFunction, deviceAddCustomCluster, setupConfigureForReporting} from './modernExtend';
 import {Fz, Tz, ModernExtend, Configure} from './types';
 
 const NS = 'zhc:develco';
@@ -74,7 +74,12 @@ export const develcoModernExtend = {
             // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
             // "The mean molar mass of this mixture is 110 g/mol and hence,
             // 1 ppb TVOC corresponds to 4.5 μg/m3."
-            scale: 4.5,
+            scale: (value: number, type: 'from' | 'to') => {
+                if (type === 'from') {
+                    return value * 4.5;
+                }
+                return value;
+            },
             unit: 'µg/m³',
             access: 'STATE_GET',
             ...args,
