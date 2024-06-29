@@ -637,13 +637,13 @@ describe('index.js', () => {
         const exposes = MOSZB140.exposes();
         expect(exposes.map((e) => e.name)).toStrictEqual([
             'occupancy',
-            'temperature',
             'tamper',
             'battery_low',
             'battery',
             'linkquality',
             'illuminance_lux',
             'illuminance',
+            'temperature',
         ]);
     });
 
