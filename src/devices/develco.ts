@@ -5,6 +5,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
+import {develcoModernExtend} from '../lib/develco';
 import {illuminance} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
@@ -152,7 +153,7 @@ const develco = {
             },
         } satisfies Fz.Converter,
         voc: {
-            cluster: 'develcoSpecificAirQuality',
+            cluster: 'manuSpecificDevelcoAirQuality',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
@@ -884,17 +885,18 @@ const definitions: Definition[] = [
                 .enum('air_quality', ea.STATE, ['excellent', 'good', 'moderate', 'poor', 'unhealthy', 'out_of_range', 'unknown'])
                 .withDescription('Measured air quality'),
         ],
+        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoAirQuality()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(38);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'develcoSpecificAirQuality',
+                'manuSpecificDevelcoAirQuality',
                 'msTemperatureMeasurement',
                 'msRelativeHumidity',
                 'genPowerCfg',
             ]);
             await endpoint.configureReporting(
-                'develcoSpecificAirQuality',
+                'manuSpecificDevelcoAirQuality',
                 [{attribute: 'measuredValue', minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 10}],
                 manufacturerOptions,
             );
