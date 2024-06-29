@@ -2,7 +2,15 @@ import {Zcl} from 'zigbee-herdsman';
 
 import {presets as e, access as ea} from './exposes';
 import {logger} from './logger';
-import {numeric, NumericArgs, ScaleFunction, temperature, deviceAddCustomCluster, setupConfigureForReporting} from './modernExtend';
+import {
+    numeric,
+    NumericArgs,
+    ScaleFunction,
+    temperature,
+    deviceTemperature,
+    deviceAddCustomCluster,
+    setupConfigureForReporting,
+} from './modernExtend';
 import {Fz, Tz, ModernExtend, Configure} from './types';
 
 const NS = 'zhc:develco';
@@ -163,6 +171,12 @@ export const develcoModernExtend = {
     },
     temperature: (args?: Partial<NumericArgs>) =>
         temperature({
+            valueIgnore: [0xffff, -0x8000],
+            ...args,
+        }),
+    deviceTemperature: (args?: Partial<NumericArgs>) =>
+        deviceTemperature({
+            reporting: {min: '5_MINUTES', max: '1_HOUR', change: 2}, // Device temperature reports with 2 degree change
             valueIgnore: [0xffff, -0x8000],
             ...args,
         }),
