@@ -130,39 +130,6 @@ const develco = {
                 return result;
             },
         } satisfies Fz.Converter,
-        voc: {
-            cluster: 'manuSpecificDevelcoAirQuality',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
-                // "The mean molar mass of this mixture is 110 g/mol and hence,
-                // 1 ppb TVOC corresponds to 4.5 μg/m3."
-                const vocPpb = parseFloat(msg.data['measuredValue']);
-                const voc = vocPpb * 4.5;
-                const vocProperty = utils.postfixWithEndpointName('voc', msg, model, meta);
-
-                // from aqszb-110-technical-manual-air-quality-sensor-04-08-20.pdf page 6, section 2.2 voc
-                // this contains a ppb to level mapping table.
-                let airQuality;
-                const airQualityProperty = utils.postfixWithEndpointName('air_quality', msg, model, meta);
-                if (vocPpb <= 65) {
-                    airQuality = 'excellent';
-                } else if (vocPpb <= 220) {
-                    airQuality = 'good';
-                } else if (vocPpb <= 660) {
-                    airQuality = 'moderate';
-                } else if (vocPpb <= 2200) {
-                    airQuality = 'poor';
-                } else if (vocPpb <= 5500) {
-                    airQuality = 'unhealthy';
-                } else if (vocPpb > 5500) {
-                    airQuality = 'out_of_range';
-                } else {
-                    airQuality = 'unknown';
-                }
-                return {[vocProperty]: voc, [airQualityProperty]: airQuality};
-            },
-        } satisfies Fz.Converter,
         voc_battery: {
             cluster: 'genPowerCfg',
             type: ['attributeReport', 'readResponse'],
@@ -852,39 +819,21 @@ const definitions: Definition[] = [
         model: 'AQSZB-110',
         vendor: 'Develco',
         description: 'Air quality sensor',
-        fromZigbee: [develco.fz.voc, develco.fz.voc_battery, develco.fz.temperature, fz.humidity],
+        fromZigbee: [develco.fz.voc_battery, develco.fz.temperature, fz.humidity],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [
-            e.voc(),
-            e.temperature(),
-            e.humidity(),
-            e.battery(),
-            e.battery_low(),
-            e
-                .enum('air_quality', ea.STATE, ['excellent', 'good', 'moderate', 'poor', 'unhealthy', 'out_of_range', 'unknown'])
-                .withDescription('Measured air quality'),
-        ],
+        exposes: [e.temperature(), e.humidity(), e.battery(), e.battery_low()],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoAirQuality(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
+            develcoModernExtend.voc(),
+            develcoModernExtend.airQuality(),
         ],
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoAirQuality()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(38);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'manuSpecificDevelcoAirQuality',
-                'msTemperatureMeasurement',
-                'msRelativeHumidity',
-                'genPowerCfg',
-            ]);
-            await endpoint.configureReporting(
-                'manuSpecificDevelcoAirQuality',
-                [{attribute: 'measuredValue', minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 10}],
-                manufacturerOptions,
-            );
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
             await reporting.temperature(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
             await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
             await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});

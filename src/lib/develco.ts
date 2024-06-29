@@ -64,4 +64,66 @@ export const develcoModernExtend = {
         ];
         return {configure, isModernExtend: true};
     },
+    voc: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'voc',
+            cluster: 'manuSpecificDevelcoAirQuality',
+            attribute: 'measuredValue',
+            reporting: {min: '1_MINUTE', max: '1_HOUR', change: 10},
+            description: 'Measured VOC value',
+            // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
+            // "The mean molar mass of this mixture is 110 g/mol and hence,
+            // 1 ppb TVOC corresponds to 4.5 μg/m3."
+            scale: 4.5,
+            unit: 'µg/m³',
+            access: 'STATE_GET',
+            ...args,
+        }),
+    airQuality: (): ModernExtend => {
+        // NOTE: do not setup reporting, this is hanled by the voc() modernExtend
+
+        const clusterName = 'manuSpecificDevelcoAirQuality';
+        const attributeName = 'measuredValue';
+        const propertyName = 'air_quality';
+        const access = ea.STATE;
+
+        const expose = e
+            .enum('air_quality', access, ['excellent', 'good', 'moderate', 'poor', 'unhealthy', 'out_of_range', 'unknown'])
+            .withDescription('Measured air quality');
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: clusterName,
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.hasOwnProperty(attributeName)) {
+                        const vocPpb = parseFloat(msg.data[attributeName]);
+
+                        // from aqszb-110-technical-manual-air-quality-sensor-04-08-20.pdf page 6, section 2.2 voc
+                        // this contains a ppb to level mapping table.
+                        let airQuality;
+                        if (vocPpb <= 65) {
+                            airQuality = 'excellent';
+                        } else if (vocPpb <= 220) {
+                            airQuality = 'good';
+                        } else if (vocPpb <= 660) {
+                            airQuality = 'moderate';
+                        } else if (vocPpb <= 2200) {
+                            airQuality = 'poor';
+                        } else if (vocPpb <= 5500) {
+                            airQuality = 'unhealthy';
+                        } else if (vocPpb > 5500) {
+                            airQuality = 'out_of_range';
+                        } else {
+                            airQuality = 'unknown';
+                        }
+
+                        return {[propertyName]: airQuality};
+                    }
+                },
+            },
+        ];
+
+        return {exposes: [expose], fromZigbee, isModernExtend: true};
+    },
 };
