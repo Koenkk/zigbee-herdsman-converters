@@ -1,8 +1,8 @@
 const url = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.json';
 const caBundleUrl = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/cacerts.pem';
-import * as common from './common';
-import {Zh, Ota, KeyValueAny} from '../types';
 import {logger} from '../logger';
+import {Zh, Ota, KeyValueAny} from '../types';
+import * as common from './common';
 
 const NS = 'zhc:ota';
 const axios = common.getAxios();
@@ -20,9 +20,7 @@ function fillImageInfo(meta: KeyValueAny) {
     }
 
     // Nothing to do if needed fields were filled already
-    if (meta.hasOwnProperty('imageType') &&
-        meta.hasOwnProperty('manufacturerCode') &&
-        meta.hasOwnProperty('fileVersion')) {
+    if (meta.hasOwnProperty('imageType') && meta.hasOwnProperty('manufacturerCode') && meta.hasOwnProperty('fileVersion')) {
         return meta;
     }
 
@@ -51,7 +49,7 @@ async function getIndex() {
         const localIndex = await common.getOverrideIndexFile(overrideIndexFileName);
 
         // Resulting index will have overridden items first
-        return localIndex.concat(mainIndex).map((item: KeyValueAny) => common.isValidUrl(item.url) ? item : fillImageInfo(item));
+        return localIndex.concat(mainIndex).map((item: KeyValueAny) => (common.isValidUrl(item.url) ? item : fillImageInfo(item)));
     }
     return mainIndex;
 }
@@ -63,9 +61,15 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
     // However Gledopto pro products use the same imageType (0) for every device while the image is different.
     // For this case additional identification through the modelId is done.
     // In the case of Tuya and Moes, additional identification is carried out through the manufacturerName.
-    const image = images.find((i: KeyValueAny) => i.imageType === current.imageType && i.manufacturerCode === current.manufacturerCode &&
-        (!i.minFileVersion || current.fileVersion >= i.minFileVersion) && (!i.maxFileVersion || current.fileVersion <= i.maxFileVersion) &&
-        (!i.modelId || i.modelId === device.modelID) && (!i.manufacturerName || i.manufacturerName.includes(device.manufacturerName)));
+    const image = images.find(
+        (i: KeyValueAny) =>
+            i.imageType === current.imageType &&
+            i.manufacturerCode === current.manufacturerCode &&
+            (!i.minFileVersion || current.fileVersion >= i.minFileVersion) &&
+            (!i.maxFileVersion || current.fileVersion <= i.maxFileVersion) &&
+            (!i.modelId || i.modelId === device.modelID) &&
+            (!i.manufacturerName || i.manufacturerName.includes(device.manufacturerName)),
+    );
 
     if (!image) {
         return null;
@@ -113,7 +117,7 @@ export async function getFirmwareFile(image: KeyValueAny) {
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, requestPayload:Ota.ImageInfo=null) {
+export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
     return common.isUpdateAvailable(device, requestPayload, isNewImageAvailable, getImageMeta);
 }
 

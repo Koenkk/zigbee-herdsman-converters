@@ -1,12 +1,12 @@
-import {Configure, Definition, KeyValue, OnEventType, Zh, Tz, ModernExtend} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import * as globalStore from '../lib/store';
-import * as utils from '../lib/utils';
-import * as ota from '../lib/ota';
 import tz from '../converters/toZigbee';
 import * as libColor from '../lib/color';
-import {light, LightArgs, OnOffArgs, onOff} from '../lib/modernExtend';
+import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
+import {light, LightArgs, OnOffArgs, onOff} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import * as globalStore from '../lib/store';
+import {Configure, Definition, KeyValue, OnEventType, Zh, Tz, ModernExtend} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const NS = 'zhc:gledopto';
 const e = exposes.presets;
@@ -117,10 +117,15 @@ function gledoptoLight(args?: LightArgs) {
     args = {powerOnBehavior: false, ...args};
     if (args.color) args.color = {modes: ['xy', 'hs'], ...(utils.isObject(args.color) ? args.color : {})};
     const result = light(args);
-    result.toZigbee = utils.replaceInArray(result.toZigbee,
+    result.toZigbee = utils.replaceInArray(
+        result.toZigbee,
         [tz.light_onoff_brightness, tz.light_colortemp, tz.light_color, tz.light_color_colortemp],
-        [tzLocal.gledopto_light_onoff_brightness, tzLocal.gledopto_light_colortemp, tzLocal.gledopto_light_color,
-            tzLocal.gledopto_light_color_colortemp],
+        [
+            tzLocal.gledopto_light_onoff_brightness,
+            tzLocal.gledopto_light_colortemp,
+            tzLocal.gledopto_light_color,
+            tzLocal.gledopto_light_color_colortemp,
+        ],
         false,
     );
     return result;
@@ -175,10 +180,15 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-H-001', endpoints: [
-                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-                {ID: 13, profileID: 49246, deviceID: 528, inputClusters: [4096], outputClusters: [4096]},
-            ]},
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GL-H-001',
+                endpoints: [
+                    {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 528, inputClusters: [4096], outputClusters: [4096]},
+                ],
+            },
         ],
         model: 'GL-H-001',
         vendor: 'Gledopto',
@@ -203,10 +213,15 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['GL-C-006'],
         fingerprint: [
-            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GLEDOPTO', endpoints: [
-                {ID: 11, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
-            ]},
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GLEDOPTO',
+                endpoints: [
+                    {ID: 11, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                ],
+            },
         ],
         model: 'GL-C-006',
         vendor: 'Gledopto',
@@ -238,19 +253,34 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
-                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-                {ID: 13, profileID: 49246, deviceID: 528, inputClusters: [4096], outputClusters: [4096]},
-            ]},
-            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
-                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-                {ID: 12, profileID: 260, deviceID: 258, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
-            ]},
-            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
-                {ID: 11, profileID: 260, deviceID: 269, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: [25]},
-                {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
-            ]},
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GL-C-007',
+                endpoints: [
+                    {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 528, inputClusters: [4096], outputClusters: [4096]},
+                ],
+            },
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GL-C-007',
+                endpoints: [
+                    {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 12, profileID: 260, deviceID: 258, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                ],
+            },
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GL-C-007',
+                endpoints: [
+                    {ID: 11, profileID: 260, deviceID: 269, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: [25]},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
         ],
         model: 'GL-C-007-1ID', // 1 ID controls white and color together
         // Only enable disableDefaultResponse for the second fingerprint:
@@ -262,16 +292,26 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
-                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
-                {ID: 15, profileID: 49246, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-            ]},
-            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GLEDOPTO', endpoints: [
-                {ID: 10, profileID: 49246, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8], outputClusters: []},
-                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
-            ]},
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GL-C-007',
+                endpoints: [
+                    {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                    {ID: 15, profileID: 49246, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                ],
+            },
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GLEDOPTO',
+                endpoints: [
+                    {ID: 10, profileID: 49246, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8], outputClusters: []},
+                    {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                ],
+            },
         ],
         model: 'GL-C-007-2ID', // 2 ID controls white and color separate
         vendor: 'Gledopto',
@@ -307,17 +347,27 @@ const definitions: Definition[] = [
         fingerprint: [
             // Although the device announces modelID GL-C-007, this is clearly a GL-C-008
             // https://github.com/Koenkk/zigbee2mqtt/issues/3525
-            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
-                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
-                {ID: 15, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-            ]},
-            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
-                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-                {ID: 12, profileID: 260, deviceID: 258, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
-                {ID: 15, profileID: 49246, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-            ]},
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GL-C-007',
+                endpoints: [
+                    {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                    {ID: 15, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                ],
+            },
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GL-C-007',
+                endpoints: [
+                    {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 12, profileID: 260, deviceID: 258, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                    {ID: 15, profileID: 49246, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                ],
+            },
         ],
         model: 'GL-C-008-2ID', // 2 ID controls color temperature and color separate
         vendor: 'Gledopto',
@@ -333,10 +383,15 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GLEDOPTO', endpoints: [
-                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
-                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
-            ]},
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GLEDOPTO',
+                endpoints: [
+                    {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                ],
+            },
         ],
         zigbeeModel: ['GL-C-008'],
         model: 'GL-C-008-1ID', // 1 ID controls color temperature and color separate
@@ -367,17 +422,25 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB+CCT (pro)',
-        whiteLabel: [{vendor: 'Gledopto', model: 'GL-C-001P'}, {vendor: 'Gledopto', model: 'GL-C-002P'}],
+        whiteLabel: [
+            {vendor: 'Gledopto', model: 'GL-C-001P'},
+            {vendor: 'Gledopto', model: 'GL-C-002P'},
+        ],
         extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true}), gledoptoConfigureReadModelID()],
         meta: {disableDefaultResponse: true},
     },
     {
         zigbeeModel: ['GL-C-009'],
         fingerprint: [
-            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GLEDOPTO', endpoints: [
-                {ID: 11, profileID: 49246, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8], outputClusters: []},
-                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
-            ]},
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GLEDOPTO',
+                endpoints: [
+                    {ID: 11, profileID: 49246, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                ],
+            },
         ],
         model: 'GL-C-009',
         vendor: 'Gledopto',

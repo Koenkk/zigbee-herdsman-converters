@@ -1,14 +1,14 @@
-import {Definition, Zh, Reporting} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
+import {Definition, Zh, Reporting} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
-import * as tuya from '../lib/tuya';
 import {light, battery, iasZoneAlarm} from '../lib/modernExtend';
+import * as tuya from '../lib/tuya';
 
 const definitions: Definition[] = [
     {
@@ -19,7 +19,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery(), e.illuminance()],
-        configure: async (device, cordinatorEndpoint)=>{
+        configure: async (device, cordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, cordinatorEndpoint, ['msOccupancySensing', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint1);
@@ -92,9 +92,19 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
-        zigbeeModel: ['SMOK_V16', 'SMOK_V15', 'b5db59bfd81e4f1f95dc57fdbba17931', '98293058552c49f38ad0748541ee96ba', 'SMOK_YDLV10',
-            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626', 'c3442b4ac59b4ba1a83119d938f283ab',
-            'SmokeSensor-EF-3.0', 'SMOK_HV14'],
+        zigbeeModel: [
+            'SMOK_V16',
+            'SMOK_V15',
+            'b5db59bfd81e4f1f95dc57fdbba17931',
+            '98293058552c49f38ad0748541ee96ba',
+            'SMOK_YDLV10',
+            'FB56-SMF02HM1.4',
+            'SmokeSensor-N-3.0',
+            '319fa36e7384414a9ea62cba8f6e7626',
+            'c3442b4ac59b4ba1a83119d938f283ab',
+            'SmokeSensor-EF-3.0',
+            'SMOK_HV14',
+        ],
         model: 'HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
@@ -278,8 +288,10 @@ const definitions: Definition[] = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'},
-            {modelID: 'TS0216', manufacturerName: '_TYZB01_4obovpbi'}],
+        fingerprint: [
+            {modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'},
+            {modelID: 'TS0216', manufacturerName: '_TYZB01_4obovpbi'},
+        ],
         zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0'],
         model: 'HS2WD-E',
         vendor: 'HEIMAN',
@@ -354,7 +366,10 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
-        fingerprint: [{modelID: 'SOS-EM', manufacturerName: 'HEIMAN'}, {modelID: 'SOS-EF-3.0', manufacturerName: 'HEIMAN'}],
+        fingerprint: [
+            {modelID: 'SOS-EM', manufacturerName: 'HEIMAN'},
+            {modelID: 'SOS-EF-3.0', manufacturerName: 'HEIMAN'},
+        ],
         model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
@@ -387,8 +402,15 @@ const definitions: Definition[] = [
         model: 'HS2WDSC-E',
         vendor: 'HEIMAN',
         description: 'Remote dimmer and temperature control',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_color,
-            fz.command_move_to_color_temp],
+        fromZigbee: [
+            fz.battery,
+            fz.command_on,
+            fz.command_off,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_move_to_color,
+            fz.command_move_to_color_temp,
+        ],
         exposes: [e.battery(), e.action(['on', 'off', 'move', 'stop', 'color_move', 'color_temperature_move'])],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -465,7 +487,10 @@ const definitions: Definition[] = [
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'Vibration-EF_3.0', manufacturerName: 'HEIMAN'}, {modelID: 'Vibration-EF-3.0', manufacturerName: 'HEIMAN'}],
+        fingerprint: [
+            {modelID: 'Vibration-EF_3.0', manufacturerName: 'HEIMAN'},
+            {modelID: 'Vibration-EF-3.0', manufacturerName: 'HEIMAN'},
+        ],
         model: 'HS1VS-EF',
         vendor: 'HEIMAN',
         description: 'Vibration sensor',
@@ -518,8 +543,14 @@ const definitions: Definition[] = [
 
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'genTime', 'msTemperatureMeasurement', 'msRelativeHumidity', 'pm25Measurement',
-                'heimanSpecificFormaldehydeMeasurement', 'heimanSpecificAirQuality']);
+                'genPowerCfg',
+                'genTime',
+                'msTemperatureMeasurement',
+                'msRelativeHumidity',
+                'pm25Measurement',
+                'heimanSpecificFormaldehydeMeasurement',
+                'heimanSpecificAirQuality',
+            ]);
 
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.temperature(endpoint);
@@ -536,13 +567,22 @@ const definitions: Definition[] = [
 
             // Seems that it is bug in HEIMAN, device does not asks for the time with binding
             // So, we need to write time during configure
-            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000);
+            const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
             // Time-master + synchronised
-            const values = {timeStatus: 3, time: time, timeZone: ((new Date()).getTimezoneOffset() * -1) * 60};
+            const values = {timeStatus: 3, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
             await endpoint.write('genTime', values);
         },
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pm25(), e.hcho(), e.voc(), e.aqi(), e.pm10(),
-            e.enum('battery_state', ea.STATE, ['not_charging', 'charging', 'charged'])],
+        exposes: [
+            e.battery(),
+            e.temperature(),
+            e.humidity(),
+            e.pm25(),
+            e.hcho(),
+            e.voc(),
+            e.aqi(),
+            e.pm10(),
+            e.enum('battery_state', ea.STATE, ['not_charging', 'charging', 'charged']),
+        ],
     },
     {
         fingerprint: [{modelID: 'IRControl-EM', manufacturerName: 'HEIMAN'}],
@@ -620,8 +660,7 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await reporting.deviceTemperature(device.getEndpoint(1));
         },
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            e.device_temperature()],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'), e.device_temperature()],
     },
     {
         zigbeeModel: ['TemperLight'],

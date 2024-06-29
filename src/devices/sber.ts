@@ -1,6 +1,6 @@
-import {Definition} from '../lib/types';
 import {battery, humidity, iasZoneAlarm, ignoreClusterReport, temperature} from '../lib/modernExtend';
 import {modernExtend as tuyaModernExtend} from '../lib/tuya';
+import {Definition} from '../lib/types';
 const {tuyaMagicPacket, tuyaOnOffActionLegacy} = tuyaModernExtend;
 
 const definitions: Definition[] = [
@@ -35,11 +35,11 @@ const definitions: Definition[] = [
             tuyaOnOffActionLegacy({actions: ['single', 'double', 'hold']}),
             battery({percentageReporting: false}),
             /*
-            * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
-            * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
-            * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
-            * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
-            */
+             * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
+             * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
+             * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
+             * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
+             */
         ],
     },
     {
@@ -47,11 +47,7 @@ const definitions: Definition[] = [
         model: 'SBDV-00079',
         vendor: 'Sber',
         description: 'Smart temperature and humidity sensor',
-        extend: [
-            temperature(),
-            humidity(),
-            battery({voltage: true, voltageReporting: true}),
-        ],
+        extend: [temperature(), humidity(), battery({voltage: true, voltageReporting: true})],
     },
     {
         fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_c8bqthpo'}],

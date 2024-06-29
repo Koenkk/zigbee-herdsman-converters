@@ -1,26 +1,41 @@
-import crypto from 'crypto';
-import {HttpsProxyAgent} from 'https-proxy-agent';
-import {Zh, Ota, KeyValueAny, KeyValue, OtaUpdateAvailableResult} from '../types';
 import assert from 'assert';
-import crc32 from 'buffer-crc32';
 import axios from 'axios';
-import * as URI from 'uri-js';
+import crc32 from 'buffer-crc32';
+import crypto from 'crypto';
 import {readFileSync} from 'fs';
-import path from 'path';
-import {Zcl} from 'zigbee-herdsman';
-import {logger} from '../logger';
 import https from 'https';
+import {HttpsProxyAgent} from 'https-proxy-agent';
+import path from 'path';
 import tls from 'tls';
+import * as URI from 'uri-js';
+import {Zcl} from 'zigbee-herdsman';
+
+import {logger} from '../logger';
+import {Zh, Ota, KeyValueAny, KeyValue, OtaUpdateAvailableResult} from '../types';
 import {sleep} from '../utils';
 
-interface Request {cancel: () => void, promise: Promise<{header: Zh.ZclHeader, payload: KeyValue}>}
-interface Waiters {imageBlockOrPageRequest?: Request, upgradeEndRequest?: Request}
+interface Request {
+    cancel: () => void;
+    promise: Promise<{header: Zh.ZclHeader; payload: KeyValue}>;
+}
+interface Waiters {
+    imageBlockOrPageRequest?: Request;
+    upgradeEndRequest?: Request;
+}
 type CommandResult = {header: Zcl.Header; payload: KeyValueAny};
-type IsNewImageAvailable = (current: Ota.ImageInfo, device: Zh.Device, getImageMeta: Ota.GetImageMeta) =>
-    Promise<{available: number, currentFileVersion: number, otaFileVersion: number}>
+type IsNewImageAvailable = (
+    current: Ota.ImageInfo,
+    device: Zh.Device,
+    getImageMeta: Ota.GetImageMeta,
+) => Promise<{available: number; currentFileVersion: number; otaFileVersion: number}>;
 type DownloadImage = (meta: Ota.ImageMeta) => Promise<{data: Buffer}>;
-type GetNewImage = (current: Ota.Version, device: Zh.Device, getImageMeta: Ota.GetImageMeta, downloadImage: DownloadImage,
-    suppressElementImageParseFailure: boolean) => Promise<Ota.Image>;
+type GetNewImage = (
+    current: Ota.Version,
+    device: Zh.Device,
+    getImageMeta: Ota.GetImageMeta,
+    downloadImage: DownloadImage,
+    suppressElementImageParseFailure: boolean,
+) => Promise<Ota.Image>;
 type ImageBlockResponsePayload = {
     status: number;
     manufacturerCode: Zcl.ManufacturerCode;
@@ -37,9 +52,9 @@ let dataDir: string = null;
 
 const MAX_TIMEOUT = 2147483647; // +- 24 days
 const IMAGE_BLOCK_RESPONSE_DELAY = 250;
-export const UPGRADE_FILE_IDENTIFIER = Buffer.from([0x1E, 0xF1, 0xEE, 0x0B]);
+export const UPGRADE_FILE_IDENTIFIER = Buffer.from([0x1e, 0xf1, 0xee, 0x0b]);
 
-const VALID_SILABS_CRC = 0x2144DF1C;
+const VALID_SILABS_CRC = 0x2144df1c;
 const EBL_TAG_HEADER = 0x0;
 const EBL_TAG_ENC_HEADER = 0xfb05;
 const EBL_TAG_END = 0xfc04;
@@ -47,7 +62,6 @@ const EBL_PADDING = 0xff;
 const EBL_IMAGE_SIGNATURE = 0xe350;
 const GBL_TAG_HEADER = 0xeb17a603;
 const GBL_TAG_END = 0xfc0404fc;
-
 
 // ----
 // Helper functions
@@ -132,7 +146,7 @@ export function readLocalFile(fileName: string): Buffer {
     return readFileSync(fileName);
 }
 
-export async function getFirmwareFile(image: KeyValueAny): Promise<{ data: Buffer; }> {
+export async function getFirmwareFile(image: KeyValueAny): Promise<{data: Buffer}> {
     const urlOrName = image.url;
 
     // First try to download firmware file with the URL provided
@@ -380,8 +394,12 @@ async function requestOTA(endpoint: Zh.Endpoint): Promise<[transNum: number, Ota
     }
 }
 
-function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: CommandResult, pageOffset: number, pageSize: number)
-    : ImageBlockResponsePayload {
+function getImageBlockResponsePayload(
+    image: Ota.Image,
+    imageBlockRequest: CommandResult,
+    pageOffset: number,
+    pageSize: number,
+): ImageBlockResponsePayload {
     let start = imageBlockRequest.payload.fileOffset + pageOffset;
     // When the data size is too big, OTA gets unstable, so default it to 50 bytes maximum.
     // - Insta devices, OTA only works for data sizes 40 and smaller (= manufacturerCode 4474).
@@ -397,8 +415,11 @@ function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: Comma
     let dataSize = Math.min(maximumDataSize, imageBlockRequest.payload.maximumDataSize);
 
     // Hack for https://github.com/Koenkk/zigbee-OTA/issues/328 (Legrand OTA not working)
-    if (imageBlockRequest.payload.manufacturerCode === Zcl.ManufacturerCode.LEGRAND_GROUP && imageBlockRequest.payload.fileOffset === 50 &&
-        imageBlockRequest.payload.maximumDataSize === 12) {
+    if (
+        imageBlockRequest.payload.manufacturerCode === Zcl.ManufacturerCode.LEGRAND_GROUP &&
+        imageBlockRequest.payload.fileOffset === 50 &&
+        imageBlockRequest.payload.maximumDataSize === 12
+    ) {
         logger.info(`Detected Legrand firmware issue, attempting to reset the OTA stack`, NS);
         // The following vector seems to buffer overflow the device to reset the OTA stack!
         start = 78;
@@ -415,8 +436,11 @@ function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: Comma
         end = image.raw.length;
     }
 
-    logger.debug(`Request offsets: fileOffset=${imageBlockRequest.payload.fileOffset} pageOffset=${pageOffset} ` +
-        `maximumDataSize=${imageBlockRequest.payload.maximumDataSize}`, NS);
+    logger.debug(
+        `Request offsets: fileOffset=${imageBlockRequest.payload.fileOffset} pageOffset=${pageOffset} ` +
+            `maximumDataSize=${imageBlockRequest.payload.maximumDataSize}`,
+        NS,
+    );
     logger.debug(`Payload offsets: start=${start} end=${end} dataSize=${dataSize}`, NS);
 
     return {
@@ -430,13 +454,18 @@ function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: Comma
     };
 }
 
-function callOnProgress(startTime: number, lastUpdate: number, imageBlockRequest: CommandResult, image: Ota.Image, onProgress: Ota.OnProgress)
-    : number {
+function callOnProgress(
+    startTime: number,
+    lastUpdate: number,
+    imageBlockRequest: CommandResult,
+    image: Ota.Image,
+    onProgress: Ota.OnProgress,
+): number {
     const now = Date.now();
 
     // Call on progress every +- 30 seconds
-    if (lastUpdate === null || (now - lastUpdate) > 30000) {
-        const totalDuration = (now - startTime) / 1000;// in seconds
+    if (lastUpdate === null || now - lastUpdate > 30000) {
+        const totalDuration = (now - startTime) / 1000; // in seconds
         const bytesPerSecond = imageBlockRequest.payload.fileOffset / totalDuration;
         const remaining = (image.header.totalImageSize - imageBlockRequest.payload.fileOffset) / bytesPerSecond;
         let percentage = imageBlockRequest.payload.fileOffset / image.header.totalImageSize;
@@ -451,8 +480,12 @@ function callOnProgress(startTime: number, lastUpdate: number, imageBlockRequest
     }
 }
 
-export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo, isNewImageAvailable: IsNewImageAvailable = null,
-    getImageMeta: Ota.GetImageMeta = null): Promise<OtaUpdateAvailableResult> {
+export async function isUpdateAvailable(
+    device: Zh.Device,
+    requestPayload: Ota.ImageInfo,
+    isNewImageAvailable: IsNewImageAvailable = null,
+    getImageMeta: Ota.GetImageMeta = null,
+): Promise<OtaUpdateAvailableResult> {
     const logId = `'${device.ieeeAddr}' (${device.modelID})`;
     logger.debug(`Checking if an update is available for ${logId}`, NS);
 
@@ -480,8 +513,11 @@ export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.I
     return {...availableResult, available: availableResult.available < 0};
 }
 
-export async function isNewImageAvailable(current: Ota.ImageInfo, device: Zh.Device, getImageMeta: Ota.GetImageMeta)
-    : ReturnType<IsNewImageAvailable> {
+export async function isNewImageAvailable(
+    current: Ota.ImageInfo,
+    device: Zh.Device,
+    getImageMeta: Ota.GetImageMeta,
+): ReturnType<IsNewImageAvailable> {
     const currentS = JSON.stringify(current);
     logger.debug(`Is new image available for '${device.ieeeAddr}' (${device.modelID}), current '${currentS}'`, NS);
 
@@ -512,8 +548,14 @@ export async function isNewImageAvailable(current: Ota.ImageInfo, device: Zh.Dev
 /**
  * @see https://zigbeealliance.org/wp-content/uploads/2021/10/07-5123-08-Zigbee-Cluster-Library.pdf 11.12
  */
-export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress, getNewImage: GetNewImage, getImageMeta: Ota.GetImageMeta = null,
-    downloadImage: DownloadImage = null, suppressElementImageParseFailure: boolean = false): Promise<number> {
+export async function updateToLatest(
+    device: Zh.Device,
+    onProgress: Ota.OnProgress,
+    getNewImage: GetNewImage,
+    getImageMeta: Ota.GetImageMeta = null,
+    downloadImage: DownloadImage = null,
+    suppressElementImageParseFailure: boolean = false,
+): Promise<number> {
     const logId = `'${device.ieeeAddr}' (${device.modelID})`;
     logger.debug(`Updating ${logId} to latest`, NS);
 
@@ -544,7 +586,7 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
         // Reduce network congestion by throttling response if necessary
         {
             const blockResponseTime = Date.now();
-            const delay = (blockResponseTime - lastBlockResponseTime);
+            const delay = blockResponseTime - lastBlockResponseTime;
 
             if (delay < IMAGE_BLOCK_RESPONSE_DELAY) {
                 await sleep(IMAGE_BLOCK_RESPONSE_DELAY - delay);
@@ -556,13 +598,7 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
         try {
             const blockPayload = getImageBlockResponsePayload(image, imageBlockRequest, pageOffset, pageSize);
 
-            await endpoint.commandResponse(
-                'genOta',
-                'imageBlockResponse',
-                blockPayload,
-                null,
-                imageBlockRequest.header.transactionSequenceNumber,
-            );
+            await endpoint.commandResponse('genOta', 'imageBlockResponse', blockPayload, null, imageBlockRequest.header.transactionSequenceNumber);
 
             pageOffset += blockPayload.dataSize;
         } catch (error) {
@@ -653,8 +689,11 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
 
     if (endResult.payload.status === Zcl.Status.SUCCESS) {
         const payload = {
-            manufacturerCode: image.header.manufacturerCode, imageType: image.header.imageType,
-            fileVersion: image.header.fileVersion, currentTime: 0, upgradeTime: 1,
+            manufacturerCode: image.header.manufacturerCode,
+            imageType: image.header.imageType,
+            fileVersion: image.header.fileVersion,
+            currentTime: 0,
+            upgradeTime: 1,
         };
 
         try {
@@ -696,7 +735,7 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
                 Zcl.Clusters.genOta.commands.upgradeEndRequest.ID,
                 Zcl.Status.SUCCESS,
                 Zcl.Clusters.genOta.ID,
-                endResult.header.transactionSequenceNumber
+                endResult.header.transactionSequenceNumber,
             );
         } catch (error) {
             logger.debug(`Upgrade end request default response failed: ${error}`, NS);
@@ -706,8 +745,13 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
     }
 }
 
-export async function getNewImage(current: Ota.ImageInfo, device: Zh.Device, getImageMeta: Ota.GetImageMeta, downloadImage: DownloadImage,
-    suppressElementImageParseFailure: boolean): Promise<Ota.Image> {
+export async function getNewImage(
+    current: Ota.ImageInfo,
+    device: Zh.Device,
+    getImageMeta: Ota.GetImageMeta,
+    downloadImage: DownloadImage,
+    suppressElementImageParseFailure: boolean,
+): Promise<Ota.Image> {
     // TODO: better errors (these are reported in frontend notifies)
     const logId = `'${device.ieeeAddr}' (${device.modelID})`;
     const meta = await getImageMeta(current, device);
@@ -719,7 +763,7 @@ export async function getNewImage(current: Ota.ImageInfo, device: Zh.Device, get
 
     const download = downloadImage ? await downloadImage(meta) : await getAxios().get(meta.url, {responseType: 'arraybuffer'});
 
-    const checksum = (meta.sha512 || meta.sha256);
+    const checksum = meta.sha512 || meta.sha256;
 
     if (checksum) {
         const hash = crypto.createHash(meta.sha512 ? 'sha512' : 'sha256');

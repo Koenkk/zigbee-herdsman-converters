@@ -1,8 +1,8 @@
+import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
-import * as utils from '../lib/utils';
-import fz from '../converters/fromZigbee';
 import {KeyValue, Definition, Tz, Fz} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -12,21 +12,21 @@ const tzLocal = {
         key: ['motion_detection_distance', 'motion_detection_sensitivity', 'static_detection_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-            case 'motion_detection_distance': {
-                utils.assertNumber(value, 'motion_detection_distance');
-                await entity.write('manuSpecificTuya_2', {57355: {value, type: 0x21}});
-                break;
-            }
-            case 'motion_detection_sensitivity': {
-                utils.assertNumber(value, 'motion_detection_sensitivity');
-                await entity.write('manuSpecificTuya_2', {57348: {value, type: 0x20}});
-                break;
-            }
-            case 'static_detection_sensitivity': {
-                utils.assertNumber(value, 'static_detection_sensitivity');
-                await entity.write('manuSpecificTuya_2', {57349: {value, type: 0x20}});
-                break;
-            }
+                case 'motion_detection_distance': {
+                    utils.assertNumber(value, 'motion_detection_distance');
+                    await entity.write('manuSpecificTuya_2', {57355: {value, type: 0x21}});
+                    break;
+                }
+                case 'motion_detection_sensitivity': {
+                    utils.assertNumber(value, 'motion_detection_sensitivity');
+                    await entity.write('manuSpecificTuya_2', {57348: {value, type: 0x20}});
+                    break;
+                }
+                case 'static_detection_sensitivity': {
+                    utils.assertNumber(value, 'static_detection_sensitivity');
+                    await entity.write('manuSpecificTuya_2', {57349: {value, type: 0x20}});
+                    break;
+                }
             }
         },
     } satisfies Tz.Converter,
@@ -76,22 +76,39 @@ const definitions: Definition[] = [
         toZigbee: [tzLocal.TS0225, tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.occupancy().withDescription('Presence state'), e.illuminance().withUnit('lx'),
+            e.occupancy().withDescription('Presence state'),
+            e.illuminance().withUnit('lx'),
             e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('cm'),
-            e.numeric('motion_detection_distance', ea.STATE_SET).withValueMin(0).withValueMax(600)
-                .withValueStep(75).withDescription('Motion detection distance').withUnit('cm'),
+            e
+                .numeric('motion_detection_distance', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withValueStep(75)
+                .withDescription('Motion detection distance')
+                .withUnit('cm'),
             e.numeric('presence_keep_time', ea.STATE).withDescription('Presence keep time').withUnit('min'),
-            e.numeric('motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(5)
-                .withValueStep(1).withDescription('Motion detection sensitivity'),
-            e.numeric('static_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(5)
-                .withValueStep(1).withDescription('Static detection sensitivity'),
-            e.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(10000).withValueStep(1)
-                .withUnit('s').withDescription('Time after which the device will check again for presence'),
+            e
+                .numeric('motion_detection_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(5)
+                .withValueStep(1)
+                .withDescription('Motion detection sensitivity'),
+            e
+                .numeric('static_detection_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(5)
+                .withValueStep(1)
+                .withDescription('Static detection sensitivity'),
+            e
+                .numeric('fading_time', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10000)
+                .withValueStep(1)
+                .withUnit('s')
+                .withDescription('Time after which the device will check again for presence'),
         ],
         meta: {
-            tuyaDatapoints: [
-                [101, 'fading_time', tuya.valueConverter.raw],
-            ],
+            tuyaDatapoints: [[101, 'fading_time', tuya.valueConverter.raw]],
         },
     },
 ];

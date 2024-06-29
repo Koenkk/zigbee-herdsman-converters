@@ -1,8 +1,8 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 import {forcePowerSource, onOff} from '../lib/modernExtend';
 
@@ -84,15 +84,14 @@ const definitions: Definition[] = [
         description: 'Smart fob',
         fromZigbee: [fz.command_on_presence, fz.command_off, fz.battery, fz.checkin_presence],
         toZigbee: [],
-        exposes: [e.action(['on_1', 'off_1', 'on_2', 'off_2', 'on_3', 'off_3', 'on_4', 'off_4']),
-            e.battery(), e.presence()],
+        exposes: [e.action(['on_1', 'off_1', 'on_2', 'off_2', 'on_3', 'off_3', 'on_4', 'off_4']), e.battery(), e.presence()],
         meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genPowerCfg', 'genPollCtrl']);
             await reporting.batteryVoltage(endpoint1);
             const interval = 100 - 10; // 100 seconds is default timeout so set interval to 10 seconds before
-            await endpoint1.write('genPollCtrl', {'checkinInterval': (interval * 4)});
+            await endpoint1.write('genPollCtrl', {checkinInterval: interval * 4});
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             const endpoint3 = device.getEndpoint(3);

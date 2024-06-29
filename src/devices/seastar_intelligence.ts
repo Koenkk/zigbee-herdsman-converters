@@ -1,5 +1,5 @@
-import {Definition} from '../lib/types';
 import {light} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {
@@ -11,7 +11,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/5463
             const endpoint = device.endpoints.find((e) => e.inputClusters.includes(6)).ID;
-            return {'default': endpoint};
+            return {default: endpoint};
         },
     },
 ];

@@ -1,6 +1,4 @@
-import {Definition, ModernExtend, Fz, Expose, Configure, OnEvent} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import * as globalStore from '../lib/store';
 import {
     battery,
     electricityMeter,
@@ -11,23 +9,27 @@ import {
     setupConfigureForReading,
     setupConfigureForReporting,
 } from '../lib/modernExtend';
+import * as globalStore from '../lib/store';
+import {Definition, ModernExtend, Fz, Expose, Configure, OnEvent} from '../lib/types';
 
 const e = exposes.presets;
 
 function airQuality(): ModernExtend {
     const exposes: Expose[] = [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.eco2()];
 
-    const fromZigbee: Fz.Converter[] = [{
-        cluster: 'msTemperatureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-            const humidity = parseFloat(msg.data['minMeasuredValue']) / 100.0;
-            const eco2 = parseFloat(msg.data['maxMeasuredValue']);
-            const voc = parseFloat(msg.data['tolerance']);
-            return {temperature, humidity, eco2, voc};
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'msTemperatureMeasurement',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+                const humidity = parseFloat(msg.data['minMeasuredValue']) / 100.0;
+                const eco2 = parseFloat(msg.data['maxMeasuredValue']);
+                const voc = parseFloat(msg.data['tolerance']);
+                return {temperature, humidity, eco2, voc};
+            },
         },
-    }];
+    ];
 
     return {exposes, fromZigbee, isModernExtend: true};
 }
@@ -62,7 +64,7 @@ function electricityMeterPoll(): ModernExtend {
                 } catch (error) {
                     // Do nothing
                 }
-            }, 10*1000); // Every 10 seconds
+            }, 10 * 1000); // Every 10 seconds
             globalStore.putValue(device, 'interval', interval);
         }
     };
@@ -76,20 +78,14 @@ const definitions: Definition[] = [
         model: 'MCLH-07',
         vendor: 'LifeControl',
         description: 'Water leakage sensor',
-        extend: [
-            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
-            battery({dontDividePercentage: true}),
-        ],
+        extend: [iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), battery({dontDividePercentage: true})],
     },
     {
         zigbeeModel: ['Door_Sensor'],
         model: 'MCLH-04',
         vendor: 'LifeControl',
         description: 'Open and close sensor',
-        extend: [
-            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
-            battery({dontDividePercentage: true}),
-        ],
+        extend: [iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), battery({dontDividePercentage: true})],
     },
     {
         zigbeeModel: ['vivi ZLight'],
@@ -103,31 +99,21 @@ const definitions: Definition[] = [
         model: 'MCLH-03',
         vendor: 'LifeControl',
         description: 'Smart socket',
-        extend: [
-            onOff({powerOnBehavior: false}),
-            electricityMeter({configureReporting: false}),
-            electricityMeterPoll(),
-        ],
+        extend: [onOff({powerOnBehavior: false}), electricityMeter({configureReporting: false}), electricityMeterPoll()],
     },
     {
         zigbeeModel: ['Motion_Sensor'],
         model: 'MCLH-05',
         vendor: 'LifeControl',
         description: 'Motion sensor',
-        extend: [
-            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
-            battery({dontDividePercentage: true}),
-        ],
+        extend: [iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), battery({dontDividePercentage: true})],
     },
     {
         zigbeeModel: ['VOC_Sensor'],
         model: 'MCLH-08',
         vendor: 'LifeControl',
         description: 'Air quality sensor',
-        extend: [
-            airQuality(),
-            battery({dontDividePercentage: true}),
-        ],
+        extend: [airQuality(), battery({dontDividePercentage: true})],
     },
 ];
 

@@ -1,10 +1,10 @@
-import {Definition, Fz} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import * as utils from '../lib/utils';
-import * as reporting from '../lib/reporting';
 import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {Definition, Fz} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 
@@ -155,20 +155,14 @@ const definitions: Definition[] = [
         model: 'KK-LP-Q02D',
         vendor: 'Konke',
         description: 'Light years switch 2 gangs',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         zigbeeModel: ['3AFE292000068623'],
         model: 'KK-LP-Q03D',
         vendor: 'Konke',
         description: 'Light years switch 3 gangs',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}), onOff({endpointNames: ['l1', 'l2', 'l3']})],
     },
     {
         zigbeeModel: ['3AFE2610010C0021'],

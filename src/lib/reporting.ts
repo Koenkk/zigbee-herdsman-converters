@@ -10,7 +10,6 @@ export function payload(attribute: string | number, min: number, max: number, ch
         reportableChange: change,
     };
 
-
     if (overrides) {
         if (overrides.hasOwnProperty('min')) payload.minimumReportInterval = overrides.min;
         if (overrides.hasOwnProperty('max')) payload.maximumReportInterval = overrides.max;
@@ -53,9 +52,7 @@ export const currentPositionTiltPercentage = async (endpoint: Zh.Endpoint, overr
     await endpoint.configureReporting('closuresWindowCovering', p);
 };
 export const batteryPercentageRemaining = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-    const p = payload(
-        'batteryPercentageRemaining', repInterval.HOUR, repInterval.MAX, 0, overrides,
-    );
+    const p = payload('batteryPercentageRemaining', repInterval.HOUR, repInterval.MAX, 0, overrides);
     await endpoint.configureReporting('genPowerCfg', p);
     await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
 };

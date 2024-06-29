@@ -13,18 +13,6 @@ import {Ota} from '../types';
 
 const {setDataDir} = common;
 
-export {
-    inovelli,
-    ledvance,
-    salus,
-    lixee,
-    securifi,
-    tradfri,
-    ubisys,
-    zigbeeOTA,
-    jethome,
-    gmmts,
-    setDataDir,
-};
+export {inovelli, ledvance, salus, lixee, securifi, tradfri, ubisys, zigbeeOTA, jethome, gmmts, setDataDir};
 
 export type ImageInfo = Ota.ImageInfo;

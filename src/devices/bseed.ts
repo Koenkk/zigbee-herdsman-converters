@@ -1,12 +1,15 @@
-import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_yenbr4om'}, {modelID: 'TS0601', manufacturerName: '_TZE204_bdblidq3'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_yenbr4om'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_bdblidq3'},
+        ],
         model: 'BSEED_TS0601_cover',
         vendor: 'BSEED',
         description: 'Zigbee curtain switch',

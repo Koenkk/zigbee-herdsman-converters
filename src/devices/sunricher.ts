@@ -1,13 +1,11 @@
 import {Zcl} from 'zigbee-herdsman';
-import * as exposes from '../lib/exposes';
+
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
-import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
-import * as utils from '../lib/utils';
-import {Definition, Fz, Zh} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
+import {logger} from '../lib/logger';
 import {
     deviceEndpoints,
     electricityMeter,
@@ -24,7 +22,10 @@ import {
     commandsColorCtrl,
     commandsScenes,
 } from '../lib/modernExtend';
-import {logger} from '../lib/logger';
+import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import {Definition, Fz, Zh} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const NS = 'zhc:sunricher';
 const e = exposes.presets;
@@ -64,10 +65,12 @@ const fzLocal = {
 
 async function syncTime(endpoint: Zh.Endpoint) {
     try {
-        const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date()).getTimezoneOffset() * -1) * 60);
+        const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
         const values = {time: time};
         await endpoint.write('genTime', values);
-    } catch (error) {/* Do nothing*/}
+    } catch (error) {
+        /* Do nothing*/
+    }
 }
 
 const definitions: Definition[] = [
@@ -105,20 +108,14 @@ const definitions: Definition[] = [
         model: 'SR-ZG9023A-EU',
         vendor: 'Sunricher',
         description: '4 ports switch with 2 usb ports (no metering)',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']})],
     },
     {
         zigbeeModel: ['ON/OFF(2CH)'],
         model: 'UP-SA-9127D',
         vendor: 'Sunricher',
         description: 'LED-Trading 2 channel AC switch',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r54'}],
@@ -127,10 +124,17 @@ const definitions: Definition[] = [
         description: 'Zigbee 2 channel switch',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
         toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power(), e.current(),
-            e.voltage(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
+        exposes: [
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+            e.power_on_behavior(['off', 'on', 'previous']),
+        ],
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
+            return {l1: 1, l2: 2};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy', 'voltage', 'current']},
         configure: async (device, coordinatorEndpoint) => {
@@ -162,8 +166,7 @@ const definitions: Definition[] = [
         description: 'Zigbee wall remote control for single color, 1 zone',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['on', 'off',
-            'brightness_move_up', 'brightness_move_down', 'brightness_move_stop'])],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_move_stop'])],
     },
     {
         zigbeeModel: ['ZGRC-KEY-007'],
@@ -171,9 +174,23 @@ const definitions: Definition[] = [
         vendor: 'Sunricher',
         description: 'Zigbee 2 button wall switch',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action([
-            'on_1', 'off_1', 'stop_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
-            'on_2', 'off_2', 'stop_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on_1',
+                'off_1',
+                'stop_1',
+                'brightness_move_up_1',
+                'brightness_move_down_1',
+                'brightness_stop_1',
+                'on_2',
+                'off_2',
+                'stop_2',
+                'brightness_move_up_2',
+                'brightness_move_down_2',
+                'brightness_stop_2',
+            ]),
+        ],
         toZigbee: [],
         meta: {multiEndpoint: true},
     },
@@ -182,12 +199,32 @@ const definitions: Definition[] = [
         model: '50208693',
         vendor: 'Sunricher',
         description: 'Zigbee wall remote control for RGBW, 1 zone with 2 scenes',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery,
-            fz.command_recall, fz.command_step, fz.command_move_to_color, fz.command_move_to_color_temp],
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_move,
+            fz.command_stop,
+            fz.battery,
+            fz.command_recall,
+            fz.command_step,
+            fz.command_move_to_color,
+            fz.command_move_to_color_temp,
+        ],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['on', 'off',
-            'brightness_move_up', 'brightness_move_down', 'brightness_move_stop', 'brightness_step_up', 'brightness_step_down',
-            'recall_1', 'recall_2'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on',
+                'off',
+                'brightness_move_up',
+                'brightness_move_down',
+                'brightness_move_stop',
+                'brightness_step_up',
+                'brightness_step_down',
+                'recall_1',
+                'recall_2',
+            ]),
+        ],
     },
     {
         zigbeeModel: ['ZGRC-KEY-012'],
@@ -196,12 +233,36 @@ const definitions: Definition[] = [
         description: '5 zone remote and dimmer',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.action([
-            'on_1', 'off_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
-            'on_2', 'off_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
-            'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
-            'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4',
-            'on_5', 'off_5', 'brightness_move_up_5', 'brightness_move_down_5', 'brightness_stop_5'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on_1',
+                'off_1',
+                'brightness_move_up_1',
+                'brightness_move_down_1',
+                'brightness_stop_1',
+                'on_2',
+                'off_2',
+                'brightness_move_up_2',
+                'brightness_move_down_2',
+                'brightness_stop_2',
+                'on_3',
+                'off_3',
+                'brightness_move_up_3',
+                'brightness_move_down_3',
+                'brightness_stop_3',
+                'on_4',
+                'off_4',
+                'brightness_move_up_4',
+                'brightness_move_down_4',
+                'brightness_stop_4',
+                'on_5',
+                'off_5',
+                'brightness_move_up_5',
+                'brightness_move_down_5',
+                'brightness_stop_5',
+            ]),
+        ],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -216,9 +277,19 @@ const definitions: Definition[] = [
         model: 'SR-ZG9001K12-DIM-Z4',
         vendor: 'Sunricher',
         description: '4 zone remote and dimmer',
-        fromZigbee: [fz.battery, fz.command_move, legacy.fz.ZGRC013_brightness_onoff,
-            legacy.fz.ZGRC013_brightness, fz.command_stop, legacy.fz.ZGRC013_brightness_stop, fz.command_on,
-            legacy.fz.ZGRC013_cmdOn, fz.command_off, legacy.fz.ZGRC013_cmdOff, fz.command_recall],
+        fromZigbee: [
+            fz.battery,
+            fz.command_move,
+            legacy.fz.ZGRC013_brightness_onoff,
+            legacy.fz.ZGRC013_brightness,
+            fz.command_stop,
+            legacy.fz.ZGRC013_brightness_stop,
+            fz.command_on,
+            legacy.fz.ZGRC013_cmdOn,
+            fz.command_off,
+            legacy.fz.ZGRC013_cmdOff,
+            fz.command_recall,
+        ],
         exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'on', 'off', 'recall_*'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'RGB Genie', model: 'ZGRC-KEY-013'}],
@@ -236,8 +307,18 @@ const definitions: Definition[] = [
         vendor: 'Sunricher',
         description: 'Zigbee wireless touch dimmer switch',
         fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
-        exposes: [e.action(['recall_*', 'on', 'off', 'brightness_stop', 'brightness_move_down', 'brightness_move_up',
-            'brightness_step_down', 'brightness_step_up'])],
+        exposes: [
+            e.action([
+                'recall_*',
+                'on',
+                'off',
+                'brightness_stop',
+                'brightness_move_down',
+                'brightness_move_up',
+                'brightness_step_down',
+                'brightness_step_up',
+            ]),
+        ],
         toZigbee: [],
     },
     {
@@ -267,7 +348,10 @@ const definitions: Definition[] = [
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
         extend: [light({configureReporting: true}), electricityMeter()],
-        whiteLabel: [{vendor: 'YPHIX', model: '50208695'}, {vendor: 'Samotech', model: 'SM311'}],
+        whiteLabel: [
+            {vendor: 'YPHIX', model: '50208695'},
+            {vendor: 'Samotech', model: 'SM311'},
+        ],
     },
     {
         zigbeeModel: ['ZG2835'],
@@ -319,13 +403,41 @@ const definitions: Definition[] = [
         model: 'ZG2819S-CCT',
         vendor: 'Sunricher',
         description: 'Zigbee handheld remote CCT 4 channels',
-        fromZigbee: [fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
-            fz.command_step, fz.command_recall, fz.command_on, fz.command_off, fz.command_toggle, fz.command_stop,
-            fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation],
-        exposes: [e.battery(), e.action([
-            'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down',
-            'recall_*', 'on', 'off', 'toggle', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
-            'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'hue_stop'])],
+        fromZigbee: [
+            fz.battery,
+            fz.command_move_to_color,
+            fz.command_move_to_color_temp,
+            fz.command_move_hue,
+            fz.command_step,
+            fz.command_recall,
+            fz.command_on,
+            fz.command_off,
+            fz.command_toggle,
+            fz.command_stop,
+            fz.command_move,
+            fz.command_color_loop_set,
+            fz.command_ehanced_move_to_hue_and_saturation,
+        ],
+        exposes: [
+            e.battery(),
+            e.action([
+                'color_move',
+                'color_temperature_move',
+                'hue_move',
+                'brightness_step_up',
+                'brightness_step_down',
+                'recall_*',
+                'on',
+                'off',
+                'toggle',
+                'brightness_stop',
+                'brightness_move_up',
+                'brightness_move_down',
+                'color_loop_set',
+                'enhanced_move_to_hue_and_saturation',
+                'hue_stop',
+            ]),
+        ],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -348,8 +460,10 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000010.....$/},
-            {modelID: 'GreenPower_2', ieeeAddr: /^0x0000000001b.....$/}],
+        fingerprint: [
+            {modelID: 'GreenPower_2', ieeeAddr: /^0x00000000010.....$/},
+            {modelID: 'GreenPower_2', ieeeAddr: /^0x0000000001b.....$/},
+        ],
         model: 'SR-ZGP2801K2-DIM',
         vendor: 'Sunricher',
         description: 'Pushbutton transmitter module',
@@ -358,11 +472,13 @@ const definitions: Definition[] = [
         exposes: [e.action(['press_on', 'press_off', 'hold_on', 'hold_off', 'release'])],
     },
     {
-        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x000000005d5.....$/},
+        fingerprint: [
+            {modelID: 'GreenPower_2', ieeeAddr: /^0x000000005d5.....$/},
             {modelID: 'GreenPower_2', ieeeAddr: /^0x0000000057e.....$/},
             {modelID: 'GreenPower_2', ieeeAddr: /^0x000000001fa.....$/},
             {modelID: 'GreenPower_2', ieeeAddr: /^0x0000000034b.....$/},
-            {modelID: 'GreenPower_2', ieeeAddr: /^0x00000000f12.....$/}],
+            {modelID: 'GreenPower_2', ieeeAddr: /^0x00000000f12.....$/},
+        ],
         model: 'SR-ZGP2801K4-DIM',
         vendor: 'Sunricher',
         description: 'Pushbutton transmitter module',
@@ -377,8 +493,23 @@ const definitions: Definition[] = [
         description: 'Pushbutton transmitter module',
         fromZigbee: [fzLocal.sunricher_SRZGP2801K45C],
         toZigbee: [],
-        exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'high_low_release',
-            'cw_ww_release', 'cw_dec_ww_inc', 'ww_inc_cw_dec', 'r_g_b', 'b_g_r', 'rgb_release'])],
+        exposes: [
+            e.action([
+                'press_on',
+                'press_off',
+                'press_high',
+                'press_low',
+                'hold_high',
+                'hold_low',
+                'high_low_release',
+                'cw_ww_release',
+                'cw_dec_ww_inc',
+                'ww_inc_cw_dec',
+                'r_g_b',
+                'b_g_r',
+                'rgb_release',
+            ]),
+        ],
     },
     {
         zigbeeModel: ['ZG9092', 'HK-LN-HEATER-A'],
@@ -386,59 +517,77 @@ const definitions: Definition[] = [
         vendor: 'Sunricher',
         description: 'Touch thermostat',
         fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
-        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupancy,
-            tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature, tz.thermostat_outdoor_temperature,
-            tz.thermostat_system_mode, tz.thermostat_control_sequence_of_operation, tz.thermostat_running_state,
-            tz.namron_thermostat, tz.namron_thermostat_child_lock],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_occupancy,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
+            tz.thermostat_outdoor_temperature,
+            tz.thermostat_system_mode,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_running_state,
+            tz.namron_thermostat,
+            tz.namron_thermostat_child_lock,
+        ],
         exposes: [
-            e.numeric('outdoor_temperature', ea.STATE_GET).withUnit('°C')
-                .withDescription('Current temperature measured from the floor sensor'),
-            e.climate()
+            e.numeric('outdoor_temperature', ea.STATE_GET).withUnit('°C').withDescription('Current temperature measured from the floor sensor'),
+            e
+                .climate()
                 .withSetpoint('occupied_heating_setpoint', 0, 40, 0.1)
                 .withSetpoint('unoccupied_heating_setpoint', 0, 40, 0.1)
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
                 .withSystemMode(['off', 'auto', 'heat'])
                 .withRunningState(['idle', 'heat']),
-            e.binary('away_mode', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enable/disable away mode'),
-            e.binary('child_lock', ea.ALL, 'UNLOCK', 'LOCK')
-                .withDescription('Enables/disables physical input on the device'),
-            e.power(), e.current(), e.voltage(), e.energy(),
-            e.enum('lcd_brightness', ea.ALL, ['low', 'mid', 'high'])
-                .withDescription('OLED brightness when operating the buttons.  Default: Medium.'),
-            e.enum('button_vibration_level', ea.ALL, ['off', 'low', 'high'])
-                .withDescription('Key beep volume and vibration level.  Default: Low.'),
-            e.enum('floor_sensor_type', ea.ALL, ['10k', '15k', '50k', '100k', '12k'])
+            e.binary('away_mode', ea.ALL, 'ON', 'OFF').withDescription('Enable/disable away mode'),
+            e.binary('child_lock', ea.ALL, 'UNLOCK', 'LOCK').withDescription('Enables/disables physical input on the device'),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+            e.enum('lcd_brightness', ea.ALL, ['low', 'mid', 'high']).withDescription('OLED brightness when operating the buttons.  Default: Medium.'),
+            e.enum('button_vibration_level', ea.ALL, ['off', 'low', 'high']).withDescription('Key beep volume and vibration level.  Default: Low.'),
+            e
+                .enum('floor_sensor_type', ea.ALL, ['10k', '15k', '50k', '100k', '12k'])
                 .withDescription('Type of the external floor sensor.  Default: NTC 10K/25.'),
-            e.enum('sensor', ea.ALL, ['air', 'floor', 'both'])
-                .withDescription('The sensor used for heat control.  Default: Room Sensor.'),
-            e.enum('powerup_status', ea.ALL, ['default', 'last_status'])
-                .withDescription('The mode after a power reset.  Default: Previous Mode.'),
-            e.numeric('floor_sensor_calibration', ea.ALL)
+            e.enum('sensor', ea.ALL, ['air', 'floor', 'both']).withDescription('The sensor used for heat control.  Default: Room Sensor.'),
+            e.enum('powerup_status', ea.ALL, ['default', 'last_status']).withDescription('The mode after a power reset.  Default: Previous Mode.'),
+            e
+                .numeric('floor_sensor_calibration', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(-3).withValueMax(3).withValueStep(0.1)
+                .withValueMin(-3)
+                .withValueMax(3)
+                .withValueStep(0.1)
                 .withDescription('The tempearatue calibration for the external floor sensor, between -3 and 3 in 0.1°C.  Default: 0.'),
-            e.numeric('dry_time', ea.ALL)
+            e
+                .numeric('dry_time', ea.ALL)
                 .withUnit('min')
-                .withValueMin(5).withValueMax(100)
+                .withValueMin(5)
+                .withValueMax(100)
                 .withDescription('The duration of Dry Mode, between 5 and 100 minutes.  Default: 5.'),
-            e.enum('mode_after_dry', ea.ALL, ['off', 'manual', 'auto', 'away'])
-                .withDescription('The mode after Dry Mode.  Default: Auto.'),
-            e.enum('temperature_display', ea.ALL, ['room', 'floor'])
-                .withDescription('The temperature on the display.  Default: Room Temperature.'),
-            e.numeric('window_open_check', ea.ALL)
+            e.enum('mode_after_dry', ea.ALL, ['off', 'manual', 'auto', 'away']).withDescription('The mode after Dry Mode.  Default: Auto.'),
+            e.enum('temperature_display', ea.ALL, ['room', 'floor']).withDescription('The temperature on the display.  Default: Room Temperature.'),
+            e
+                .numeric('window_open_check', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(0).withValueMax(8).withValueStep(0.5)
+                .withValueMin(0)
+                .withValueMax(8)
+                .withValueStep(0.5)
                 .withDescription('The threshold to detect window open, between 0.0 and 8.0 in 0.5 °C.  Default: 0 (disabled).'),
-            e.numeric('hysterersis', ea.ALL)
+            e
+                .numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(0.5).withValueMax(2).withValueStep(0.1)
+                .withValueMin(0.5)
+                .withValueMax(2)
+                .withValueStep(0.1)
                 .withDescription('Hysteresis setting, between 0.5 and 2 in 0.1 °C.  Default: 0.5.'),
             e.enum('display_auto_off_enabled', ea.ALL, ['disabled', 'enabled']),
-            e.numeric('alarm_airtemp_overvalue', ea.ALL)
+            e
+                .numeric('alarm_airtemp_overvalue', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(20).withValueMax(60)
+                .withValueMin(20)
+                .withValueMax(60)
                 .withDescription('Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45.'),
         ],
         onEvent: async (type, data, device, options) => {
@@ -456,8 +605,15 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genIdentify', 'hvacThermostat', 'seMetering', 'haElectricalMeasurement', 'genAlarms',
-                'msOccupancySensing', 'genTime', 'hvacUserInterfaceCfg',
+                'genBasic',
+                'genIdentify',
+                'hvacThermostat',
+                'seMetering',
+                'haElectricalMeasurement',
+                'genAlarms',
+                'msOccupancySensing',
+                'genTime',
+                'hvacUserInterfaceCfg',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
@@ -473,12 +629,14 @@ const definitions: Definition[] = [
                 logger.debug(`Failed to setup keypadLockout reporting`, NS);
             }
 
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'occupancy',
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null,
-            }]);
+            await endpoint.configureReporting('hvacThermostat', [
+                {
+                    attribute: 'occupancy',
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                },
+            ]);
 
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier']);
             await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor']);
@@ -496,155 +654,183 @@ const definitions: Definition[] = [
             // OperateDisplayLcdBrightnesss
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x1000, type: 0x30},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x1000, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
                 options,
             );
             // ButtonVibrationLevel
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x1001, type: 0x30},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x1001, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
                 options,
             );
             // FloorSensorType
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x1002, type: 0x30},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x1002, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
                 options,
             );
             // ControlType
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x1003, type: 0x30},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x1003, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
                 options,
             );
             // PowerUpStatus
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x1004, type: 0x30},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x1004, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
                 options,
             );
             // FloorSensorCalibration
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x1005, type: 0x28},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 0,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x1005, type: 0x28},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: 0,
+                    },
+                ],
                 options,
             );
             // DryTime
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x1006, type: 0x20},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 0,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x1006, type: 0x20},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: 0,
+                    },
+                ],
                 options,
             );
             // ModeAfterDry
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x1007, type: 0x30},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x1007, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
                 options,
             );
             // TemperatureDisplay
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x1008, type: 0x30},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x1008, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
                 options,
             );
             // WindowOpenCheck
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x1009, type: 0x20},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 0,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x1009, type: 0x20},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: 0,
+                    },
+                ],
                 options,
             );
             // Hysterersis
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x100A, type: 0x20},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 0,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x100a, type: 0x20},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: 0,
+                    },
+                ],
                 options,
             );
             // DisplayAutoOffEnable
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x100B, type: 0x30},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x100b, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
                 options,
             );
             // AlarmAirTempOverValue
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x2001, type: 0x20},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 0,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x2001, type: 0x20},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: 0,
+                    },
+                ],
                 options,
             );
             // Away Mode Set
             await endpoint.configureReporting(
                 'hvacThermostat',
-                [{
-                    attribute: {ID: 0x2002, type: 0x30},
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                }],
+                [
+                    {
+                        attribute: {ID: 0x2002, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
                 options,
             );
 
@@ -655,12 +841,15 @@ const definitions: Definition[] = [
             await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint']);
             await endpoint.read('hvacThermostat', [0x1000, 0x1001, 0x1002, 0x1003], options);
             await endpoint.read('hvacThermostat', [0x1004, 0x1005, 0x1006, 0x1007], options);
-            await endpoint.read('hvacThermostat', [0x1008, 0x1009, 0x100A, 0x100B], options);
+            await endpoint.read('hvacThermostat', [0x1008, 0x1009, 0x100a, 0x100b], options);
             await endpoint.read('hvacThermostat', [0x2001, 0x2002], options);
         },
     },
     {
-        fingerprint: [{modelID: 'TERNCY-DC01', manufacturerName: 'Sunricher'}, {modelID: 'HK-SENSOR-CT-A', manufacturerName: 'Sunricher'}],
+        fingerprint: [
+            {modelID: 'TERNCY-DC01', manufacturerName: 'Sunricher'},
+            {modelID: 'HK-SENSOR-CT-A', manufacturerName: 'Sunricher'},
+        ],
         model: 'SR-ZG9010A',
         vendor: 'Sunricher',
         description: 'Door windows sensor',

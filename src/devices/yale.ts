@@ -1,38 +1,56 @@
-import * as exposes from '../lib/exposes';
+import {Definition, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
+import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
-import {Definition, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
-import {getFromLookup} from '../lib/utils';
-import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
-import {battery, lock} from '../lib/modernExtend';
+import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
+import {battery, lock} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {getFromLookup} from '../lib/utils';
 
 const NS = 'zhc:yale';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const lockExtend = (meta={}, lockStateOptions: Reporting.Override|false=null, binds=['closuresDoorLock', 'genPowerCfg']): ModernExtend => {
+const lockExtend = (meta = {}, lockStateOptions: Reporting.Override | false = null, binds = ['closuresDoorLock', 'genPowerCfg']): ModernExtend => {
     return {
-        fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response,
-            fz.lock_user_status_response],
+        fromZigbee: [
+            fz.lock,
+            fz.battery,
+            fz.lock_operation_event,
+            fz.lock_programming_event,
+            fz.lock_pin_code_response,
+            fz.lock_user_status_response,
+        ],
         toZigbee: [tz.lock, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume],
         meta: {pinCodeCount: 250, ...meta},
-        exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
-            e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume(), e.battery_low()],
-        configure: [async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            if (lockStateOptions !== false) {
-                await reporting.lockState(endpoint, lockStateOptions);
-            }
-            await reporting.batteryPercentageRemaining(endpoint);
-            try {
-                await reporting.batteryAlarmState(endpoint);
-            } catch (e) {
-                // Fails for some: https://github.com/Koenkk/zigbee-herdsman-converters/pull/5414
-            }
-        }],
+        exposes: [
+            e.lock(),
+            e.battery(),
+            e.pincode(),
+            e.lock_action(),
+            e.lock_action_source_name(),
+            e.lock_action_user(),
+            e.auto_relock_time().withValueMin(0).withValueMax(3600),
+            e.sound_volume(),
+            e.battery_low(),
+        ],
+        configure: [
+            async (device, coordinatorEndpoint) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, binds);
+                if (lockStateOptions !== false) {
+                    await reporting.lockState(endpoint, lockStateOptions);
+                }
+                await reporting.batteryPercentageRemaining(endpoint);
+                try {
+                    await reporting.batteryAlarmState(endpoint);
+                } catch (e) {
+                    // Fails for some: https://github.com/Koenkk/zigbee-herdsman-converters/pull/5414
+                }
+            },
+        ],
         isModernExtend: true,
     };
 };
@@ -201,13 +219,13 @@ const tzLocal = {
         key: ['auto_lock_time'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {
-                'off': 0,
+                off: 0,
                 '30seconds': 30,
                 '60seconds': 60,
                 '2minutes': 120,
                 '3minutes': 180,
             };
-            await entity.write('manuSpecificAssaDoorLock', {'autoLockTime': getFromLookup(value, lookup)}, {disableDefaultResponse: true});
+            await entity.write('manuSpecificAssaDoorLock', {autoLockTime: getFromLookup(value, lookup)}, {disableDefaultResponse: true});
             return {state: {auto_lock_time: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -218,11 +236,11 @@ const tzLocal = {
         key: ['volume'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {
-                'silent': 1,
-                'low': 2,
-                'high': 3,
+                silent: 1,
+                low: 2,
+                high: 3,
             };
-            await entity.write('manuSpecificAssaDoorLock', {'volume': getFromLookup(value, lookup)}, {disableDefaultResponse: true});
+            await entity.write('manuSpecificAssaDoorLock', {volume: getFromLookup(value, lookup)}, {disableDefaultResponse: true});
             return {state: {volume: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -399,15 +417,17 @@ const definitions: Definition[] = [
         extend: [lockExtend({battery: {dontDividePercentage: true}})],
     },
     {
-        fingerprint: [{
-            type: 'EndDevice',
-            manufacturerName: 'Yale',
-            manufacturerID: 43690,
-            powerSource: 'Battery',
-            endpoints: [
-                {ID: 1, profileID: 260, deviceID: 10, inputClusters: [0, 9, 10, 257, 64512, 1], outputClusters: []},
-                {ID: 196, profileID: 260, deviceID: 10, inputClusters: [1], outputClusters: []},
-            ]},
+        fingerprint: [
+            {
+                type: 'EndDevice',
+                manufacturerName: 'Yale',
+                manufacturerID: 43690,
+                powerSource: 'Battery',
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 10, inputClusters: [0, 9, 10, 257, 64512, 1], outputClusters: []},
+                    {ID: 196, profileID: 260, deviceID: 10, inputClusters: [1], outputClusters: []},
+                ],
+            },
         ],
         model: 'ZYA-C4-MOD-S',
         vendor: 'Yale',

@@ -1,7 +1,7 @@
-import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as tuya from '../lib/tuya';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -16,10 +16,7 @@ const definitions: Definition[] = [
         description: 'Zigbee & RF 5 in 1 LED controller (DIM mode)',
         fromZigbee: [legacy.fz.tuya_light_wz5],
         toZigbee: [legacy.tz.tuya_dimmer_state, legacy.tz.tuya_light_wz5],
-        exposes: [
-            e.light().withBrightness().setAccess('state',
-                ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
-        ],
+        exposes: [e.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
     },
     {
         fingerprint: [
@@ -34,8 +31,13 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.tuya_light_wz5],
         toZigbee: [legacy.tz.tuya_dimmer_state, legacy.tz.tuya_light_wz5],
         exposes: [
-            e.light().withBrightness().setAccess('state',
-                ea.STATE_SET).setAccess('brightness', ea.STATE_SET).withColorTemp([250, 454]).setAccess('color_temp', ea.STATE_SET),
+            e
+                .light()
+                .withBrightness()
+                .setAccess('state', ea.STATE_SET)
+                .setAccess('brightness', ea.STATE_SET)
+                .withColorTemp([250, 454])
+                .setAccess('color_temp', ea.STATE_SET),
         ],
         whiteLabel: [
             tuya.whitelabel('Ltech', 'TY-75-24-G2Z2_CCT', '150W 24V Zigbee CV tunable white LED driver', ['_TZE200_na98lvjp']),
@@ -53,8 +55,13 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.tuya_light_wz5],
         toZigbee: [legacy.tz.tuya_dimmer_state, legacy.tz.tuya_light_wz5],
         exposes: [
-            e.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
-                ea.STATE_SET).withColor(['hs']).setAccess('color_hs', ea.STATE_SET),
+            e
+                .light()
+                .withBrightness()
+                .setAccess('state', ea.STATE_SET)
+                .setAccess('brightness', ea.STATE_SET)
+                .withColor(['hs'])
+                .setAccess('color_hs', ea.STATE_SET),
         ],
     },
     {
@@ -75,10 +82,14 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.tuya_light_wz5],
         toZigbee: [legacy.tz.tuya_dimmer_state, legacy.tz.tuya_light_wz5],
         exposes: [
-            e.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
-                ea.STATE_SET).withColor(['hs']).setAccess('color_hs', ea.STATE_SET),
-            e.numeric('white_brightness', ea.STATE_SET).withValueMin(0).withValueMax(254).withDescription(
-                'White brightness of this light'),
+            e
+                .light()
+                .withBrightness()
+                .setAccess('state', ea.STATE_SET)
+                .setAccess('brightness', ea.STATE_SET)
+                .withColor(['hs'])
+                .setAccess('color_hs', ea.STATE_SET),
+            e.numeric('white_brightness', ea.STATE_SET).withValueMin(0).withValueMax(254).withDescription('White brightness of this light'),
         ],
         meta: {separateWhite: true},
     },
@@ -93,11 +104,16 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.tuya_light_wz5],
         toZigbee: [legacy.tz.tuya_dimmer_state, legacy.tz.tuya_light_wz5],
         exposes: [
-            e.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
-                ea.STATE_SET).withColor(['hs']).withColorTemp([250, 454]).setAccess('color_temp',
-                ea.STATE_SET).setAccess('color_hs', ea.STATE_SET),
-            e.numeric('white_brightness', ea.STATE_SET).withValueMin(0).withValueMax(254).withDescription(
-                'White brightness of this light'),
+            e
+                .light()
+                .withBrightness()
+                .setAccess('state', ea.STATE_SET)
+                .setAccess('brightness', ea.STATE_SET)
+                .withColor(['hs'])
+                .withColorTemp([250, 454])
+                .setAccess('color_temp', ea.STATE_SET)
+                .setAccess('color_hs', ea.STATE_SET),
+            e.numeric('white_brightness', ea.STATE_SET).withValueMin(0).withValueMax(254).withDescription('White brightness of this light'),
         ],
         meta: {separateWhite: true},
     },

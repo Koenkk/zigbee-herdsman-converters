@@ -1,8 +1,8 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -22,7 +22,8 @@ const definitions: Definition[] = [
             tz.fan_mode,
         ],
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'cool', 'heat', 'fan_only', 'dry'])
                 .withFanMode(['off', 'low', 'medium', 'high', 'on', 'auto'])

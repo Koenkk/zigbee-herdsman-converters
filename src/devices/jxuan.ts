@@ -1,6 +1,6 @@
-import {Definition} from '../lib/types';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import fz from '../converters/fromZigbee';

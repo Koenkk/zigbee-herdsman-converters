@@ -1,7 +1,7 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 import {light, onOff} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -13,8 +13,21 @@ const definitions: Definition[] = [
         description: 'Smart switch 4 buttons white',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['on_1', 'off_1', 'on_2', 'off_2', 'brightness_move_up_1', 'brightness_move_down_1',
-            'brightness_move_stop_1', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_move_stop_2'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on_1',
+                'off_1',
+                'on_2',
+                'off_2',
+                'brightness_move_up_1',
+                'brightness_move_down_1',
+                'brightness_move_stop_1',
+                'brightness_move_up_2',
+                'brightness_move_down_2',
+                'brightness_move_stop_2',
+            ]),
+        ],
         meta: {multiEndpoint: true},
     },
     {
@@ -24,8 +37,21 @@ const definitions: Definition[] = [
         description: 'Smart switch 4 buttons white',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['on_1', 'off_1', 'on_2', 'off_2', 'brightness_move_up_1', 'brightness_move_down_1',
-            'brightness_move_stop_1', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_move_stop_2'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on_1',
+                'off_1',
+                'on_2',
+                'off_2',
+                'brightness_move_up_1',
+                'brightness_move_down_1',
+                'brightness_move_stop_1',
+                'brightness_move_up_2',
+                'brightness_move_down_2',
+                'brightness_move_stop_2',
+            ]),
+        ],
         meta: {multiEndpoint: true},
     },
     {
@@ -186,13 +212,37 @@ const definitions: Definition[] = [
         model: '500.67',
         vendor: 'Paulmann',
         description: 'RGB remote control',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.command_step, fz.command_move_to_color_temp,
-            fz.command_move_to_color, fz.command_stop, fz.command_move, fz.command_color_loop_set,
-            fz.command_ehanced_move_to_hue_and_saturation, fz.tint_scene],
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_toggle,
+            fz.command_step,
+            fz.command_move_to_color_temp,
+            fz.command_move_to_color,
+            fz.command_stop,
+            fz.command_move,
+            fz.command_color_loop_set,
+            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.tint_scene,
+        ],
         toZigbee: [],
-        exposes: [e.action([
-            'on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move', 'brightness_stop',
-            'brightness_move_down', 'brightness_move_up', 'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*'])],
+        exposes: [
+            e.action([
+                'on',
+                'off',
+                'toggle',
+                'brightness_step_up',
+                'brightness_step_down',
+                'color_temperature_move',
+                'color_move',
+                'brightness_stop',
+                'brightness_move_down',
+                'brightness_move_up',
+                'color_loop_set',
+                'enhanced_move_to_hue_and_saturation',
+                'scene_*',
+            ]),
+        ],
     },
     {
         fingerprint: [{modelID: 'RGB', manufacturerName: 'Paulmann Licht GmbH'}],
