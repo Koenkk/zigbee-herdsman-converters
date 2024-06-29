@@ -2461,14 +2461,14 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data[12];
             switch (dp) {
-            case 13:
-                return {
-                    illuminance: Number(msg.data[13]),
-                };
-            case 14:
-                return {
-                    noise_detected: msg.data[13] > 2,
-                };
+                case 13:
+                    return {
+                        illuminance: Number(msg.data[13]),
+                    };
+                case 14:
+                    return {
+                        noise_detected: msg.data[13] > 2,
+                    };
             }
         },
     } satisfies Fz.Converter,

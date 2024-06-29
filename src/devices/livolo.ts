@@ -340,9 +340,7 @@ const definitions: Definition[] = [
         model: 'TI0001-illuminance',
         description: 'Zigbee Digital Illuminance and Sound Sensor',
         vendor: 'Livolo',
-        exposes: [
-            e.noise_detected(), e.illuminance().withUnit('%').withValueMin(0).withValueMax(100),
-        ],
+        exposes: [e.noise_detected(), e.illuminance().withUnit('%').withValueMin(0).withValueMax(100)],
         fromZigbee: [fz.livolo_illuminance_state],
         toZigbee: [],
         configure: poll,
@@ -354,7 +352,7 @@ const definitions: Definition[] = [
             if (['start', 'deviceAnnounce'].includes(type)) {
                 await poll(device);
                 if (!globalStore.hasValue(device, 'interval')) {
-                    const interval = setInterval(async () => await poll(device), 300*1000);
+                    const interval = setInterval(async () => await poll(device), 300 * 1000);
                     globalStore.putValue(device, 'interval', interval);
                 }
             }
@@ -363,8 +361,14 @@ const definitions: Definition[] = [
                 if (data.data[0] === 0x7a && data.data[1] === 0xd1) {
                     const endpoint = device.getEndpoint(6);
                     if (dp === 0x02) {
-                        const options = {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
-                            reservedBits: 3, direction: 1, writeUndiv: true};
+                        const options = {
+                            manufacturerCode: 0x1ad2,
+                            disableDefaultResponse: true,
+                            disableResponse: true,
+                            reservedBits: 3,
+                            direction: 1,
+                            writeUndiv: true,
+                        };
                         const payload = {0x2002: {value: [data.data[3], 0, 0, 0, 0, 0, 0], type: data.data[2]}};
                         await endpoint.readResponse('genPowerCfg', 0xe9, payload, options);
                     }
