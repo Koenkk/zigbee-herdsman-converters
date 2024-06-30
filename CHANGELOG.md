@@ -1,5 +1,20 @@
 # Changelog
 
+## [19.62.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.61.0...v19.62.0) (2024-06-30)
+
+
+### Features
+
+* **add:** TI0001-illuminance ([#7707](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7707)) ([09b6b36](https://github.com/Koenkk/zigbee-herdsman-converters/commit/09b6b369f85bf08470fd4cdf1f797e81086c8b21))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_mmkbptmx` as Tuya TS0004_switch_module ([#7712](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7712)) ([866c7cb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/866c7cbebd7d77b78c135a19228a11f4b3a66fdc))
+* **ignore:** update dependencies ([#7708](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7708)) ([2192c97](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2192c97a838166197f8dde0aac30a104ab6a1b34))
+* **ignore:** update dependencies ([#7713](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7713)) ([8be6da7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8be6da7e8ea258ddb097328c0b104d4e65db25e1))
+* Refactor develcoSpecificAirQuality into manuSpecificDevelcoAirQuality ([#7706](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7706)) ([fdcd407](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fdcd407b14bfb7860a27df1b67af7b8aeb6bedfa))
+
 ## [19.61.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.60.1...v19.61.0) (2024-06-29)
 
 
