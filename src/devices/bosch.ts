@@ -1227,7 +1227,7 @@ const definitions: Definition[] = [
             }),
             iasZoneAlarm({
                 zoneType: 'water_leak',
-                zoneAttributes: ['tamper'],
+                zoneAttributes: ['alarm_1', 'tamper'],
             }),
             battery({
                 percentage: true,
