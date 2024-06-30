@@ -338,7 +338,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['TI0001-illuminance'],
         model: 'TI0001-illuminance',
-        description: 'Zigbee Digital Illuminance and Sound Sensor',
+        description: 'Zigbee digital illuminance and sound sensor',
         vendor: 'Livolo',
         exposes: [e.noise_detected(), e.illuminance().withUnit('%').withValueMin(0).withValueMax(100)],
         fromZigbee: [fz.livolo_illuminance_state],
