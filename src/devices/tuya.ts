@@ -1938,8 +1938,13 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.temperature(), e.soil_moisture(), e.soil_temperature(), e.battery(), 
-            tuya.exposes.batteryState(), tuya.exposes.temperatureUnit(), e.detection_interval() 
+            e.temperature(),
+            e.soil_moisture(),
+            e.soil_temperature(),
+            e.battery(),
+            tuya.exposes.batteryState(),
+            tuya.exposes.temperatureUnit(),
+            e.detection_interval(),
         ],
         meta: {
             tuyaDatapoints: [
