@@ -8064,8 +8064,8 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
         whiteLabel: [
-            tuya.whitelabel('Homeetec', '37022474', '3 Gang switch with backlight', ['_TZ3000_pv4puuxi']),
-            tuya.whitelabel('RoomsAI', '37022474', '3 Gang switch with backlight', ['_TZ3000_avky2mvc']),
+            tuya.whitelabel('Homeetec', '37022474_1', '3 Gang switch with backlight', ['_TZ3000_pv4puuxi']),
+            tuya.whitelabel('RoomsAI', '37022474_2', '3 Gang switch with backlight', ['_TZ3000_avky2mvc']),
         ],
     },
     {
