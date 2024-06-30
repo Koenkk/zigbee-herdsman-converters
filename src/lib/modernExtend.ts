@@ -683,6 +683,20 @@ export function soilMoisture(args?: Partial<NumericArgs>) {
     });
 }
 
+export function soilTemperature(args?: Partial<NumericArgs>) {
+    return numeric({
+        name: 'soil_temperature',
+        cluster: 'msSoilTemperature',
+        attribute: 'measuredValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 100},
+        description: 'Measured soil temperature value',
+        unit: '°C',
+        scale: 100,
+        access: 'STATE_GET',
+        ...args,
+    });
+}
+
 export interface OccupancyArgs {
     pirConfig?: ('otu_delay' | 'uto_delay' | 'uto_threshold')[];
     ultrasonicConfig?: ('otu_delay' | 'uto_delay' | 'uto_threshold')[];
