@@ -232,6 +232,10 @@ export const soil_moisture = async (endpoint: Zh.Endpoint, overrides?: Reporting
     const p = payload('measuredValue', 10, repInterval.HOUR, 100, overrides);
     await endpoint.configureReporting('msSoilMoisture', p);
 };
+export const soil_temperature = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+    const p = payload('measuredValue', 10, repInterval.HOUR, 100, overrides);
+    await endpoint.configureReporting('msSoilTemperature', p);
+};
 export const acFrequency = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
     const p = payload('acFrequency', 5, repInterval.MINUTES_5, 10, overrides);
     await endpoint.configureReporting('haElectricalMeasurement', p);
@@ -287,4 +291,5 @@ exports.rmsVoltage = rmsVoltage;
 exports.powerFactor = powerFactor;
 exports.fanMode = fanMode;
 exports.soil_moisture = soil_moisture;
+exports.soil_temperature = soil_temperature;
 exports.acFrequency = acFrequency;

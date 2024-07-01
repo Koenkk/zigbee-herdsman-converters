@@ -109,6 +109,7 @@ export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
     energy: 2,
     device_temperature: 0,
     soil_moisture: 2,
+    soil_temperature: 2,
     co2: 0,
     illuminance: 0,
     illuminance_lux: 0,

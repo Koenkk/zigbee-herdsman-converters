@@ -1126,6 +1126,7 @@ export const presets = {
             .withCategory('config'),
     smoke: () => new Binary('smoke', access.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
     soil_moisture: () => new Numeric('soil_moisture', access.STATE).withUnit('%').withDescription('Measured soil moisture value'),
+    soil_temperature: () => new Numeric('soil_temperature', access.STATE).withUnit('°C').withDescription('Measured soil temperature value'),
     sos: () => new Binary('sos', access.STATE, true, false).withLabel('SOS').withDescription('SOS alarm'),
     sound_volume: () =>
         new Enum('sound_volume', access.ALL, ['silent_mode', 'low_volume', 'high_volume']).withDescription('Sound volume of the lock'),
