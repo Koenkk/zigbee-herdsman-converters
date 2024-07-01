@@ -3350,7 +3350,7 @@ const definitions: Definition[] = [
         ],
         onEvent: async (type, data, device, options) => {
             if (['_TZ3000_x3ewpzyr'].includes(device.manufacturerName)) {
-                await tuya.onEventMeasurementPoll(type, data, device, options, true, true)
+                await tuya.onEventMeasurementPoll(type, data, device, options, true, true);
             }
         },
     },
