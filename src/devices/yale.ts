@@ -1,13 +1,13 @@
-import {Definition, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
-import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
+import { Definition, Fz, ModernExtend, Reporting, Tz } from 'src/lib/types';
+import { KeyValue } from 'zigbee-herdsman/dist/controller/tstype';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {logger} from '../lib/logger';
-import {battery, lock} from '../lib/modernExtend';
+import { logger } from '../lib/logger';
+import { battery, lock } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {getFromLookup} from '../lib/utils';
+import { getFromLookup } from '../lib/utils';
 
 const NS = 'zhc:yale';
 const e = exposes.presets;
@@ -24,7 +24,7 @@ const lockExtend = (meta = {}, lockStateOptions: Reporting.Override | false = nu
             fz.lock_user_status_response,
         ],
         toZigbee: [tz.lock, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume],
-        meta: {pinCodeCount: 250, ...meta},
+        meta: { pinCodeCount: 250, ...meta },
         exposes: [
             e.lock(),
             e.battery(),
@@ -64,27 +64,27 @@ const fzLocal = {
             if (msg.data.clusterid == 64512) {
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
-                    9: {state: 'UNLOCKED', lock_state: 'not_fully_locked', alarm: 'deadbolt_jammed'},
-                    18: {action: 'keypad_lock', state: 'LOCKED', lock_state: 'locked'},
-                    19: {action: 'keypad_unlock', state: 'UNLOCKED', lock_state: 'unlocked'},
-                    21: {action: 'manual_lock_key_or_thumbturn', state: 'LOCKED', lock_state: 'locked'},
-                    22: {action: 'manual_unlock_key_or_thumbturn', state: 'UNLOCKED', lock_state: 'unlocked'},
-                    24: {action: 'lock_module', state: 'LOCKED', lock_state: 'locked'},
-                    25: {action: 'unlock_module', state: 'UNLOCKED', lock_state: 'unlocked'},
-                    27: {action: 'auto_lock', state: 'LOCKED', lock_state: 'locked'},
-                    32: {action: 'manual_lock_touch', state: 'LOCKED', lock_state: 'locked'},
-                    48: {alarm: 'lock_reset_to_factory_defaults'},
-                    112: {alarm: 'master_code_changed'},
-                    113: {alarm: 'duplicate_pin_code_error'},
-                    128: {alarm: 'battery_replaced', battery_low: false},
-                    129: {alarm: 'handing_cycle_completed_right'},
-                    130: {alarm: 'rf_module_power_cycled'},
-                    131: {alarm: 'handing_cycle_completed_left'},
-                    161: {alarm: 'tamper_alarm_keypad_attempts', tamper: true},
-                    162: {alarm: 'tamper_alarm_front_escutcheon', tamper: true},
-                    167: {alarm: 'tamper_alarm_low_battery', tamper: true, battery_low: true},
-                    168: {alarm: 'tamper_alarm_critical_battery', tamper: true, battery_low: true},
-                    169: {alarm: 'low_battery', battery_low: true},
+                    9: { state: 'UNLOCKED', lock_state: 'not_fully_locked', alarm: 'deadbolt_jammed' },
+                    18: { action: 'keypad_lock', state: 'LOCKED', lock_state: 'locked' },
+                    19: { action: 'keypad_unlock', state: 'UNLOCKED', lock_state: 'unlocked' },
+                    21: { action: 'manual_lock_key_or_thumbturn', state: 'LOCKED', lock_state: 'locked' },
+                    22: { action: 'manual_unlock_key_or_thumbturn', state: 'UNLOCKED', lock_state: 'unlocked' },
+                    24: { action: 'lock_module', state: 'LOCKED', lock_state: 'locked' },
+                    25: { action: 'unlock_module', state: 'UNLOCKED', lock_state: 'unlocked' },
+                    27: { action: 'auto_lock', state: 'LOCKED', lock_state: 'locked' },
+                    32: { action: 'manual_lock_touch', state: 'LOCKED', lock_state: 'locked' },
+                    48: { alarm: 'lock_reset_to_factory_defaults' },
+                    112: { alarm: 'master_code_changed' },
+                    113: { alarm: 'duplicate_pin_code_error' },
+                    128: { alarm: 'battery_replaced', battery_low: false },
+                    129: { alarm: 'handing_cycle_completed_right' },
+                    130: { alarm: 'rf_module_power_cycled' },
+                    131: { alarm: 'handing_cycle_completed_left' },
+                    161: { alarm: 'tamper_alarm_keypad_attempts', tamper: true },
+                    162: { alarm: 'tamper_alarm_front_escutcheon', tamper: true },
+                    167: { alarm: 'tamper_alarm_low_battery', tamper: true, battery_low: true },
+                    168: { alarm: 'tamper_alarm_critical_battery', tamper: true, battery_low: true },
+                    169: { alarm: 'low_battery', battery_low: true },
                 };
                 result = getFromLookup(alarmcode, lookup);
                 // reset tamper and battery_low values as these will not self clear and will also be re-reported by device
@@ -189,12 +189,12 @@ const fzLocal = {
             if (msg.data.clusterid == 64512) {
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
-                    9: {action: 'error_jammed', state: 'UNLOCK', lock_state: 'not_fully_locked'},
-                    21: {action: 'manual_lock', state: 'LOCK', lock_state: 'locked'},
-                    22: {action: 'manual_unlock', state: 'UNLOCK', lock_state: 'unlocked'},
-                    24: {action: 'lock', state: 'LOCK', lock_state: 'locked'},
-                    25: {action: 'unlock', state: 'UNLOCK', lock_state: 'unlocked'},
-                    27: {action: 'auto_lock', state: 'LOCK', lock_state: 'locked'},
+                    9: { action: 'error_jammed', state: 'UNLOCK', lock_state: 'not_fully_locked' },
+                    21: { action: 'manual_lock', state: 'LOCK', lock_state: 'locked' },
+                    22: { action: 'manual_unlock', state: 'UNLOCK', lock_state: 'unlocked' },
+                    24: { action: 'lock', state: 'LOCK', lock_state: 'locked' },
+                    25: { action: 'unlock', state: 'UNLOCK', lock_state: 'unlocked' },
+                    27: { action: 'auto_lock', state: 'LOCK', lock_state: 'locked' },
                 };
                 if (!(alarmcode in lookup)) {
                     result.action = 'unknown';
@@ -225,8 +225,8 @@ const tzLocal = {
                 '2minutes': 120,
                 '3minutes': 180,
             };
-            await entity.write('manuSpecificAssaDoorLock', {autoLockTime: getFromLookup(value, lookup)}, {disableDefaultResponse: true});
-            return {state: {auto_lock_time: value}};
+            await entity.write('manuSpecificAssaDoorLock', { autoLockTime: getFromLookup(value, lookup) }, { disableDefaultResponse: true });
+            return { state: { auto_lock_time: value } };
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificAssaDoorLock', ['autoLockTime']);
@@ -240,8 +240,8 @@ const tzLocal = {
                 low: 2,
                 high: 3,
             };
-            await entity.write('manuSpecificAssaDoorLock', {volume: getFromLookup(value, lookup)}, {disableDefaultResponse: true});
-            return {state: {volume: value}};
+            await entity.write('manuSpecificAssaDoorLock', { volume: getFromLookup(value, lookup) }, { disableDefaultResponse: true });
+            return { state: { volume: value } };
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificAssaDoorLock', ['volume']);
@@ -291,21 +291,21 @@ const definitions: Definition[] = [
         model: 'YMF30',
         vendor: 'Yale',
         description: 'Digital lock',
-        extend: [lockExtend({battery: {dontDividePercentage: true}})],
+        extend: [lockExtend({ battery: { dontDividePercentage: true } })],
     },
     {
         zigbeeModel: ['iZBModule01', '0700000001'],
         model: 'YMF40/YDM4109+/YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        extend: [lockExtend({battery: {dontDividePercentage: true}})],
+        extend: [lockExtend({ battery: { dontDividePercentage: true } })],
     },
     {
         zigbeeModel: ['YRD210 PB DB'],
         model: 'YRD210-HA-605',
         vendor: 'Yale',
         description: 'Real living keyless push button deadbolt lock',
-        extend: [lockExtend({battery: {dontDividePercentage: true}})],
+        extend: [lockExtend({ battery: { dontDividePercentage: true } })],
     },
     {
         zigbeeModel: ['YRL220 TS LL'],
@@ -313,7 +313,7 @@ const definitions: Definition[] = [
         model: 'YRL-220L',
         vendor: 'Yale',
         description: 'Real living keyless leveler lock',
-        extend: [lockExtend({battery: {dontDividePercentage: true}})],
+        extend: [lockExtend({ battery: { dontDividePercentage: true } })],
     },
     {
         zigbeeModel: ['YRD226/246 TSDB'],
@@ -327,28 +327,28 @@ const definitions: Definition[] = [
         model: 'YRD220/YRD221',
         vendor: 'Yale',
         description: 'Lockwood keyless push button deadbolt lock',
-        extend: [lockExtend({battery: {dontDividePercentage: true}})],
+        extend: [lockExtend({ battery: { dontDividePercentage: true } })],
     },
     {
         zigbeeModel: ['YRD246 TSDB'],
         model: 'YRD246HA20BP',
         vendor: 'Yale',
         description: 'Assure lock key free deadbolt with Zigbee',
-        extend: [lockExtend({battery: {dontDividePercentage: true}})],
+        extend: [lockExtend({ battery: { dontDividePercentage: true } })],
     },
     {
         zigbeeModel: ['YRM476 TS BLE'],
         model: 'YRM476',
         vendor: 'Yale',
         description: 'Assure lock',
-        extend: [battery(), lock({pinCodeCount: 250})],
+        extend: [battery(), lock({ pinCodeCount: 250 })],
     },
     {
         zigbeeModel: ['YRD216 PBDB'],
         model: 'YRD216-HA2-619',
         vendor: 'Yale',
         description: 'Real living keyless push button deadbolt lock',
-        extend: [lockExtend({battery: {dontDividePercentage: true}})],
+        extend: [lockExtend({ battery: { dontDividePercentage: true } })],
     },
     {
         zigbeeModel: ['YRL226L TS'],
@@ -376,6 +376,13 @@ const definitions: Definition[] = [
         model: 'YRD420-BLE',
         vendor: 'Yale',
         description: 'Assure lock 2',
+        extend: [lockExtend()],
+    },
+    {
+        zigbeeModel: ['YMC420', 'YMC 420', 'YMC420 W', 'YMC 420 W'],
+        model: 'YMC420-W',
+        vendor: 'Yale',
+        description: 'Fechadura Digital YMC 420 W',
         extend: [lockExtend()],
     },
     {
@@ -407,14 +414,14 @@ const definitions: Definition[] = [
         model: 'YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        extend: [lockExtend({battery: {dontDividePercentage: true}}, {max: 900}, ['closuresDoorLock'])],
+        extend: [lockExtend({ battery: { dontDividePercentage: true } }, { max: 900 }, ['closuresDoorLock'])],
     },
     {
         zigbeeModel: ['06ffff2027', '06e01d220c'],
         model: 'YMF40A RL',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        extend: [lockExtend({battery: {dontDividePercentage: true}})],
+        extend: [lockExtend({ battery: { dontDividePercentage: true } })],
     },
     {
         fingerprint: [
@@ -424,8 +431,8 @@ const definitions: Definition[] = [
                 manufacturerID: 43690,
                 powerSource: 'Battery',
                 endpoints: [
-                    {ID: 1, profileID: 260, deviceID: 10, inputClusters: [0, 9, 10, 257, 64512, 1], outputClusters: []},
-                    {ID: 196, profileID: 260, deviceID: 10, inputClusters: [1], outputClusters: []},
+                    { ID: 1, profileID: 260, deviceID: 10, inputClusters: [0, 9, 10, 257, 64512, 1], outputClusters: [] },
+                    { ID: 196, profileID: 260, deviceID: 10, inputClusters: [1], outputClusters: [] },
                 ],
             },
         ],
