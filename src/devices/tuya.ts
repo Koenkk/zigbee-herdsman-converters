@@ -3516,6 +3516,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'BSEED', model: 'TS0003', description: 'Zigbee switch'},
             tuya.whitelabel('Tuya', 'TS0003_1', '3 gang switch', ['_TZ3000_ouwfc1qj']),
+            tuya.whitelabel('Zemismart', 'TB26-1', '3 gang switch', ['_TZ3000_eqsair32']),
         ],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
