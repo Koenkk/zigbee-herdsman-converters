@@ -216,7 +216,16 @@ export function ikeaAirPurifier(): ModernExtend {
             .binary('replace_filter', access.STATE_GET, true, false)
             .withDescription('Indicates if the filter is older than 6 months and needs replacing')
             .withCategory('diagnostic'),
-        presets.numeric('filter_age', access.STATE_GET).withDescription('Time the filter has been used in minutes').withCategory('diagnostic'),
+        presets
+            .numeric('filter_age', access.STATE_GET)
+            .withUnit('minutes')
+            .withDescription('Duration the filter has been used')
+            .withCategory('diagnostic'),
+        presets
+            .numeric('device_age', access.STATE_GET)
+            .withUnit('minutes')
+            .withDescription('Duration the air purifier has been used')
+            .withCategory('diagnostic'),
     ];
 
     const fromZigbee: Fz.Converter[] = [
@@ -263,6 +272,10 @@ export function ikeaAirPurifier(): ModernExtend {
                     // Filter needs to be replaced after 6 months
                     state['replace_filter'] = parseInt(msg.data['filterRunTime']) >= 259200;
                     state['filter_age'] = parseInt(msg.data['filterRunTime']);
+                }
+
+                if (msg.data.hasOwnProperty('deviceRunTime')) {
+                    state['device_age'] = parseInt(msg.data['deviceRunTime']);
                 }
 
                 if (msg.data.hasOwnProperty('controlPanelLight')) {
@@ -348,6 +361,12 @@ export function ikeaAirPurifier(): ModernExtend {
             key: ['replace_filter', 'filter_age'],
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
+            },
+        },
+        {
+            key: ['device_age'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['deviceRunTime']);
             },
         },
         {
