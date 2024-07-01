@@ -379,6 +379,13 @@ const definitions: Definition[] = [
         extend: [lockExtend()],
     },
     {
+        zigbeeModel: ['YMC420', 'YMC 420', 'YMC420 W', 'YMC 420 W'],
+        model: 'YMC420-W',
+        vendor: 'Yale',
+        description: 'Fechadura Digital YMC 420 W',
+        extend: [lockExtend()],
+    },
+    {
         zigbeeModel: ['YRD430 TS', 'YRD430 PB'],
         model: 'YRD430-BLE',
         vendor: 'Yale',
