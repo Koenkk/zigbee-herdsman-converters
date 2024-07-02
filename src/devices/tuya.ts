@@ -10366,31 +10366,27 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_uxllnywp']),
-        model: 'RTC ZCZ03Z',
-        vendor: 'TuYa',
+        model: 'RT_ZCZ03Z',
+        vendor: 'Tuya',
         description: 'Human presence sensor 24G',
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: console.log,
-    
+        toZigbee: [tuya.tz.datapoints],    
         exposes: [
-            e.illuminance_lux(),
-            exposes.enum('presence_state', ea.STATE, ["none","large_move"])
-                .withDescription('Presence'),
-            exposes.numeric('detection_distance_max', ea.STATE_SET).withValueMin(0).withValueMax(840).withValueStep(1)
+            e.illuminance_lux(), e.presence(),
+            e.numeric('detection_distance_max', ea.STATE_SET).withValueMin(0).withValueMax(840).withValueStep(1)
                 .withDescription('Max detection distance').withUnit('cm'),
-            exposes.numeric('detection_distance_min', ea.STATE_SET).withValueMin(0).withValueMax(840).withValueStep(1)
+            e.numeric('detection_distance_min', ea.STATE_SET).withValueMin(0).withValueMax(840).withValueStep(1)
                 .withDescription('Min detection distance').withUnit('cm'),
                     e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('cm'),
-            exposes.numeric('fading_time', ea.STATE_SET).withValueMin(1).withValueMax(59).withValueStep(1)
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(1).withValueMax(59).withValueStep(1)
                 .withDescription('Delay time').withUnit('s'),
-            exposes.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1)
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1)
                 .withDescription('Presence sensitivity'),
             e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED Indicator'),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'presence_state', tuya.valueConverterBasic.lookup({'None': 0,'Someone': 4})],
+                [1, 'presence', tuya.valueConverter.trueFalse1],
                 [101, 'target_distance', tuya.valueConverter.raw],
                 [102, 'illuminance_lux', tuya.valueConverter.raw],
                 [103, 'fading_time', tuya.valueConverter.raw],
