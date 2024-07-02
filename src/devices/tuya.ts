@@ -7169,9 +7169,9 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_j7sgd8po']),
-        model: 'SODA_S8',
-        vendor: 'Tuya',
-        description: 'SODA S8 premium window handle',
+        model: 'S8',
+        vendor: 'SODA',
+        description: 'S8 premium window handle',
         extend: [],
         toZigbee: [tuya.tz.datapoints],
         fromZigbee: [tuya.fz.datapoints],
