@@ -356,10 +356,25 @@ const definitions: Definition[] = [
         vendor: 'Zemismart',
         description: 'Smart 2 gangs switch with outlet',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            identify(),
-            tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3']}),
+            tuya.modernExtend.tuyaOnOff({
+                powerOutageMemory: true, 
+                indicatorMode: true, 
+                onOffCountdown: true,
+                endpoints: ['l1', 'l2', 'l3']
+            }),
         ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const endpointID of [1, 2, 3]) {
+                const endpoint = device.getEndpoint(endpointID);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+                await reporting.onOff(endpoint);
+            }
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_b1q8kwmh']),
