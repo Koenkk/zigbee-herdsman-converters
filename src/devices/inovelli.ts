@@ -3,6 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {identify} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -78,6 +79,7 @@ interface Attribute {
     min?: number;
     max?: number;
     description: string;
+    category?: 'config' | 'diagnostic';
     unit?: string;
     displayType?: string;
     values?: {[s: string]: number};
@@ -143,19 +145,24 @@ const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesLis
             const enumE = e
                 .enum(key, ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL, Object.keys(ATTRIBUTES[key].values))
                 .withDescription(ATTRIBUTES[key].description);
+            if (!ATTRIBUTES[key].readOnly) {
+                enumE.withCategory(ATTRIBUTES[key].category ?? 'config');
+            }
             exposesList.push(enumE);
         } else if (ATTRIBUTES[key].displayType === 'binary' || ATTRIBUTES[key].displayType === 'switch') {
-            exposesList.push(
-                e
-                    .binary(
-                        key,
-                        ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
-                        // @ts-expect-error
-                        ATTRIBUTES[key].values.Enabled,
-                        ATTRIBUTES[key].values.Disabled,
-                    )
-                    .withDescription(ATTRIBUTES[key].description),
-            );
+            const binary = e
+                .binary(
+                    key,
+                    ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
+                    // @ts-expect-error
+                    ATTRIBUTES[key].values.Enabled,
+                    ATTRIBUTES[key].values.Disabled,
+                )
+                .withDescription(ATTRIBUTES[key].description);
+            if (!ATTRIBUTES[key].readOnly) {
+                binary.withCategory(ATTRIBUTES[key].category ?? 'config');
+            }
+            exposesList.push(binary);
         } else {
             const numeric = e
                 .numeric(key, ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL)
@@ -171,6 +178,9 @@ const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesLis
                 numeric.withUnit(ATTRIBUTES[key].unit);
             }
             numeric.withDescription(ATTRIBUTES[key].description);
+            if (!ATTRIBUTES[key].readOnly) {
+                numeric.withCategory(ATTRIBUTES[key].category ?? 'config');
+            }
             exposesList.push(numeric);
         }
     });
@@ -1754,7 +1764,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const exposesList: Expose[] = [
+const exposesListVZM31: Expose[] = [
     e.light_brightness(),
     e.power(),
     e.energy(),
@@ -1805,7 +1815,8 @@ const exposesList: Expose[] = [
                         'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
                         'Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
                 ),
-        ),
+        )
+        .withCategory('config'),
     e
         .composite('individual_led_effect', 'individual_led_effect', ea.STATE_SET)
         .withFeature(e.enum('led', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7']).withDescription('Individual LED to target.'))
@@ -1843,7 +1854,8 @@ const exposesList: Expose[] = [
                         'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
                         ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
                 ),
-        ),
+        )
+        .withCategory('config'),
 ];
 
 const exposesListVZM35: Expose[] = [
@@ -1933,7 +1945,8 @@ const exposesListVZM35: Expose[] = [
                         'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
                         ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
                 ),
-        ),
+        )
+        .withCategory('config'),
     e
         .composite('breeze mode', 'breezeMode', ea.STATE_SET)
         .withFeature(e.enum('speed1', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 1 Speed'))
@@ -1945,7 +1958,8 @@ const exposesListVZM35: Expose[] = [
         .withFeature(e.enum('speed4', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 4 Speed'))
         .withFeature(e.numeric('time4', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 4  '))
         .withFeature(e.enum('speed5', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 5 Speed'))
-        .withFeature(e.numeric('time5', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 5  ')),
+        .withFeature(e.numeric('time5', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 5  '))
+        .withCategory('config'),
 ];
 
 const exposesListVZM36: Expose[] = [
@@ -1964,16 +1978,17 @@ const exposesListVZM36: Expose[] = [
         .withFeature(e.enum('speed4', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 4 Speed'))
         .withFeature(e.numeric('time4', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 4  '))
         .withFeature(e.enum('speed5', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 5 Speed'))
-        .withFeature(e.numeric('time5', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 5  ')),
+        .withFeature(e.numeric('time5', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 5  '))
+        .withCategory('config'),
 ];
 
 // Populate exposes list from the attributes description
-attributesToExposeList(VZM31_ATTRIBUTES, exposesList);
+attributesToExposeList(VZM31_ATTRIBUTES, exposesListVZM31);
 attributesToExposeList(VZM35_ATTRIBUTES, exposesListVZM35);
 attributesToExposeList(VZM36_ATTRIBUTES, exposesListVZM36);
 
 // Put actions at the bottom of ui
-exposesList.push(
+exposesListVZM31.push(
     e.action([
         'down_single',
         'up_single',
@@ -2031,11 +2046,12 @@ const definitions: Definition[] = [
         model: 'VZM31-SN',
         vendor: 'Inovelli',
         description: '2-in-1 switch + dimmer',
-        exposes: exposesList,
+        exposes: exposesListVZM31.concat(identify().exposes as Expose[]),
         toZigbee: [
             tzLocal.light_onoff_brightness_inovelli,
             tz.power_on_behavior,
             tz.ignore_transition,
+            tz.identify,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
             tzLocal.inovelli_parameters(VZM31_ATTRIBUTES),
@@ -2078,6 +2094,7 @@ const definitions: Definition[] = [
         description: 'Fan controller',
         fromZigbee: [fzLocal.fan_state, fzLocal.fan_mode, fzLocal.breeze_mode, fzLocal.inovelli(VZM35_ATTRIBUTES)],
         toZigbee: [
+            tz.identify,
             tzLocal.fan_state,
             tzLocal.fan_mode,
             tzLocal.inovelli_led_effect,
@@ -2086,7 +2103,7 @@ const definitions: Definition[] = [
             tzLocal.inovelli_parameters_readOnly(VZM35_ATTRIBUTES),
             tzLocal.breezeMode,
         ],
-        exposes: exposesListVZM35,
+        exposes: exposesListVZM35.concat(identify().exposes as Expose[]),
         ota: ota.inovelli,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -2102,7 +2119,6 @@ const definitions: Definition[] = [
         vendor: 'Inovelli',
         description: 'Fan canopy module',
         fromZigbee: [
-            fz.identify,
             fzLocal.brightness,
             fzLocal.vzm36_fan_light_state,
             fzLocal.vzm36_fan_mode,
@@ -2110,6 +2126,7 @@ const definitions: Definition[] = [
             fzLocal.inovelli(VZM36_ATTRIBUTES),
         ],
         toZigbee: [
+            tz.identify,
             tzLocal.vzm36_fan_on_off, // Need to use VZM36 specific converter
             tzLocal.vzm36_fan_mode, // Need to use VZM36 specific converter
             tzLocal.light_onoff_brightness_inovelli,
@@ -2117,7 +2134,7 @@ const definitions: Definition[] = [
             tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES),
             tzLocal.vzm36_breezeMode,
         ],
-        exposes: exposesListVZM36,
+        exposes: exposesListVZM36.concat(identify().exposes as Expose[]),
         ota: ota.inovelli,
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
