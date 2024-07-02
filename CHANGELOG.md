@@ -1,5 +1,24 @@
 # Changelog
 
+## [19.63.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.62.0...v19.63.0) (2024-07-02)
+
+
+### Features
+
+* **add:** YMC420-W ([#7719](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7719)) ([7df9894](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7df9894acb4b904cc1f5a3799d9798ec86eb0edd))
+* Expose deviceRunTime for STARKVIND air purifier ([#7716](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7716)) ([8b07e08](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8b07e0864922d4694a61c5fd3a4bfa6d96d4d016))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_eqsair32` as Zemismart TB26-1 https://github.com/Koenkk/zigbee2mqtt/issues/23216 ([fc71782](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc717820d4dff06345fa9666c17e6f6cf3be1e45))
+* **detect:** Detect `_TZ3000_kz1anoi8` as Moes ZWV-YC https://github.com/Koenkk/zigbee2mqtt/issues/22950 ([dbcc7a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dbcc7a4452de69dbbfde2d85e56a8e19fbbf8581))
+* Fix Bosch BTH-RA Home Assistant discovery ([#7720](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7720)) ([14062ae](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14062aece873fbf5215b6f65717ffdebb461db94))
+* Fix Bosch BWA-1 water_leak returns `null` ([#7715](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7715)) ([2bb89bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2bb89bce8b634f2109f8dd51e455ccd7341d3ffb))
+* Fix electrical measurements for Tuya `_TZ3000_x3ewpzyr` not working https://github.com/Koenkk/zigbee2mqtt/issues/23155 ([9de3efe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9de3efea8e01e4daa3a411a25962004a6b6cc75f))
+* **ignore:** 9de3efea8e01e4daa3a411a25962004a6b6cc75f ([64fa1e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/64fa1e9508defd5a8ec44580328091c64009f48d))
+* **ignore:** Make `37022474` models unique ([1b6d976](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1b6d976916dcb7f8f98acd732d55512bb35d0731))
+
 ## [19.62.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.61.0...v19.62.0) (2024-06-30)
 
 
