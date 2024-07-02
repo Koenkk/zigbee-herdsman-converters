@@ -3,6 +3,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as globalStore from '../lib/store';
 import {Definition, Zh} from '../lib/types';
+import {access, Enum} from '../lib/exposes';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -340,7 +341,11 @@ const definitions: Definition[] = [
         model: 'TI0001-illuminance',
         description: 'Zigbee digital illuminance and sound sensor',
         vendor: 'Livolo',
-        exposes: [e.noise_detected(), e.illuminance().withUnit('%').withValueMin(0).withValueMax(100)],
+        exposes: [
+            e.noise_detected(),
+            e.illuminance().withUnit('%').withValueMin(0).withValueMax(100),
+            new Enum('noise_state', access.STATE, ['silent', 'normal', 'lively', 'noisy']).withDescription('Detected noise level'),
+        ],
         fromZigbee: [fz.livolo_illuminance_state],
         toZigbee: [],
         configure: poll,
