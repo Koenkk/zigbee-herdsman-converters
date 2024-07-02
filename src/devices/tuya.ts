@@ -3413,6 +3413,7 @@ const definitions: Definition[] = [
             {vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'},
             {vendor: 'Lonsonho', model: 'X701'},
             {vendor: 'Bandi', model: 'BDS03G1'},
+            tuya.whitelabel('Nous', 'B1Z', '1 gang switch', ['_TZ3000_ctftgjwb']),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
