@@ -356,7 +356,6 @@ const definitions: Definition[] = [
         vendor: 'Zemismart',
         description: 'Smart 2 gangs switch with outlet',
         extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3']})],
-        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
