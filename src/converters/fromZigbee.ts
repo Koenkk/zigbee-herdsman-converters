@@ -376,7 +376,11 @@ const converters1 = {
             const payload: KeyValueAny = {};
             // If voltageToPercentage is specified, it means we do not trust the percentage
             // returned by the device and are instead calculating it ourselves.
-            if (!model.meta.battery.hasOwnProperty('voltageToPercentage') && msg.data.hasOwnProperty('batteryPercentageRemaining') && msg.data['batteryPercentageRemaining'] < 255) {
+            if (
+                !model.meta.battery.hasOwnProperty('voltageToPercentage') &&
+                msg.data.hasOwnProperty('batteryPercentageRemaining') &&
+                msg.data['batteryPercentageRemaining'] < 255
+            ) {
                 // Some devices do not comply to the ZCL and report a
                 // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                 const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
