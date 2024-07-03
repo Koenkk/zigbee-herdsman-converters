@@ -1547,6 +1547,13 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['EVSCKT/OUTLET/1'],
+        model: 'MUR36014',
+        vendor: 'Schneider Electric',
+        description: 'Mureva EVlink Smart socket outlet',
+        extend: [onOff({powerOnBehavior: true}), electricityMeter()],
+    },
+    {
         zigbeeModel: ['NHMOTION/SWITCH/1'],
         model: '545D6306',
         vendor: 'Schneider Electric',
