@@ -78,14 +78,20 @@ const definitions: Definition[] = [
         model: 'MCLH-07',
         vendor: 'LifeControl',
         description: 'Water leakage sensor',
-        extend: [iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), battery({dontDividePercentage: true})],
+        extend: [
+            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({dontDividePercentage: true, percentageReporting: false}),
+        ],
     },
     {
         zigbeeModel: ['Door_Sensor'],
         model: 'MCLH-04',
         vendor: 'LifeControl',
         description: 'Open and close sensor',
-        extend: [iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), battery({dontDividePercentage: true})],
+        extend: [
+            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({dontDividePercentage: true, percentageReporting: false}),
+        ],
     },
     {
         zigbeeModel: ['vivi ZLight'],
@@ -106,14 +112,17 @@ const definitions: Definition[] = [
         model: 'MCLH-05',
         vendor: 'LifeControl',
         description: 'Motion sensor',
-        extend: [iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), battery({dontDividePercentage: true})],
+        extend: [
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({dontDividePercentage: true, percentageReporting: false}),
+        ],
     },
     {
         zigbeeModel: ['VOC_Sensor'],
         model: 'MCLH-08',
         vendor: 'LifeControl',
         description: 'Air quality sensor',
-        extend: [airQuality(), battery({dontDividePercentage: true})],
+        extend: [airQuality(), battery({dontDividePercentage: true, percentageReporting: false})],
     },
 ];
 
