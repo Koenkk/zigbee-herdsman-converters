@@ -1552,15 +1552,6 @@ const definitions: Definition[] = [
         vendor: 'Schneider Electric',
         description: 'Mureva EVlink Smart socket outlet',
         extend: [onOff({powerOnBehavior: true}), electricityMeter()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(6);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
-            await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor', 'acCurrentMultiplier']);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
-        },
     },
     {
         zigbeeModel: ['NHMOTION/SWITCH/1'],
