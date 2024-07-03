@@ -3687,6 +3687,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_1fuxihti'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_1fuxihti'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_57hjqelq'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_libht6ua'},
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_hsgrhjpf'},
