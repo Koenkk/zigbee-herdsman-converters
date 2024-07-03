@@ -662,7 +662,9 @@ const definitions: Definition[] = [
         model: 'E2007',
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
-        whiteLabel: [{vendor: 'IKEA', model: 'E2006', description: 'STARKVIND air purifier table', fingerprint: [{modelID: 'E2006'}]}],
+        whiteLabel: [
+            {vendor: 'IKEA', model: 'E2006', description: 'STARKVIND air purifier table', fingerprint: [{modelID: 'STARKVIND Air purifier table'}]},
+        ],
         extend: [addCustomClusterManuSpecificIkeaUnknown(), addCustomClusterManuSpecificIkeaAirPurifier(), ikeaAirPurifier(), identify(), ikeaOta()],
     },
     {
