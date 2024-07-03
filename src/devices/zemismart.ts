@@ -359,14 +359,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            for (const endpointID of [1, 2, 3]) {
-                const endpoint = device.getEndpoint(endpointID);
-                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-                await reporting.onOff(endpoint);
-            }
-        },
+        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_b1q8kwmh']),
