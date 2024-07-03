@@ -355,10 +355,10 @@ const definitions: Definition[] = [
         model: 'ZMO-606-S2',
         vendor: 'Zemismart',
         description: 'Smart 2 gangs switch with outlet',
-        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3']})],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3};
-        },
+        extend: [
+            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3']}),
+        ],
         configure: tuya.configureMagicPacket,
     },
     {
