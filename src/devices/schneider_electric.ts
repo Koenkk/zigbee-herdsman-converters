@@ -1551,7 +1551,7 @@ const definitions: Definition[] = [
         model: 'MUR36014',
         vendor: 'Schneider Electric',
         description: 'Mureva EVlink Smart socket outlet',
-        extend: [onOff({"powerOnBehavior":true}), electricityMeter()],
+        extend: [onOff({powerOnBehavior: true}), electricityMeter()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(6);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
