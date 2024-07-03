@@ -19,6 +19,7 @@ import {
     commandsOnOff,
     commandsLevelCtrl,
     electricityMeter,
+    windowCovering,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
@@ -2463,6 +2464,14 @@ const definitions: Definition[] = [
             // Endpoint selection is made in tuya_switch_state
             return {l1: 1, l2: 1, l3: 1, l4: 1};
         },
+    },
+    {
+        zigbeeModel: ['TS0301'],
+        model: 'TS0301',
+        vendor: 'Tuya',
+        description: 'Cover',
+        extend: [battery(), windowCovering({controls: ['lift', 'tilt']})],
+        whiteLabel: [tuya.whitelabel('Yookee', 'D10110_1', 'Smart blind', ['_TZE200_9caxna4s'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
