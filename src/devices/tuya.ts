@@ -2407,8 +2407,6 @@ const definitions: Definition[] = [
             tuya.whitelabel('Zemismart', 'ZN-LC1E', 'Smart curtain/shutter switch', ['_TZ3000_74hsp7qy']),
             tuya.whitelabel('Nous', 'L12Z', 'Smart ZigBee Curtain Module L12Z', ['_TZ3000_jwv3cwak']),
             tuya.whitelabel('Danor', 'SK-Z802C-US', 'Smart curtain/shutter switch', ['_TZ3000_8h7wgocw']),
-            tuya.whitelabel('Moes', 'MS-108ZR', 'Zigbee + RF curtain switch module', ['_TZ3000_1dd0d5yi']),
-            tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc']),
             tuya.whitelabel('Nous', 'B4Z', 'Curtain switch', ['_TZ3000_yruungrl']),
         ],
         exposes: (device) => {
@@ -2425,6 +2423,23 @@ const definitions: Definition[] = [
             exps.push(e.linkquality());
             return exps;
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
+        model: 'MS-108ZR',
+        vendor: 'Moes',
+        description: 'Zigbee + RF curtain switch module',
+        meta: {coverInverted: true},
+        whiteLabel: [tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc'])],
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
+        exposes: [
+            e.cover_position(),
+            e.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
+            e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+            e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
+        ],
     },
     {
         zigbeeModel: ['qnazj70', 'kjintbl'],
