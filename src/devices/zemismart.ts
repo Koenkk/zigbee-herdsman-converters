@@ -390,7 +390,7 @@ const definitions: Definition[] = [
                 '4_hold',
             ]),
         ],
-        fromZigbee: [fromZigbee_1.default.battery, tuya.fz.on_off_action],
+        fromZigbee: [fz.battery, tuya.fz.on_off_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
