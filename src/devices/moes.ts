@@ -442,7 +442,7 @@ const definitions: Definition[] = [
         whiteLabel: [tuya.whitelabel('Tuya', 'iH-F8260', 'Universal smart IR remote control', ['_TZ3290_gnl5a6a5xvql7c2a'])],
     },
     {
-        fingerprint: tuya.fingerprint('TS0049', ['_TZ3000_cjfmu5he', '_TZ3000_kz1anoi8']),
+        fingerprint: tuya.fingerprint('TS0049', ['_TZ3000_cjfmu5he', '_TZ3000_kz1anoi8','_TZ3000_mq4wujmp']),
         model: 'ZWV-YC',
         vendor: 'Moes',
         description: 'Water valve',
