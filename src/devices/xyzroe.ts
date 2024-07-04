@@ -410,7 +410,7 @@ const definitions: Definition[] = [
         model: 'ZigDC',
         vendor: 'xyzroe',
         description: 'ZigDC',
-        fromZigbee: [fz.ignore_basic_report, fz.temperature, fz.humidity, fzLocal.ZigDC_ina3221, fzLocal.ZigDC_uptime, fzLocal.ZigDC_input_config],
+        fromZigbee: [fz.ignore_basic_report, fz.temperature, fz.humidity, fz.ptvo_multistate_action, fzLocal.ZigDC_ina3221, fzLocal.ZigDC_uptime, fzLocal.ZigDC_input_config],
         toZigbee: [tzLocal.ZigDC_interval, tzLocal.ZigDC_input_config],
         exposes: [
             e.current().withAccess(ea.STATE).withEndpoint('ch1'),
