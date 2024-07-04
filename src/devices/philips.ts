@@ -3757,6 +3757,13 @@ const definitions: Definition[] = [
         description: 'Hue White and Color Ambiance Play Gradient Light Tube Compact',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
+    {
+        zigbeeModel: ['LWA024'],
+        model: '9290018217A',
+        vendor: 'Philips',
+        description: 'Philips Hue White B22 Bulb 800 with Bluetooth', 
+        extend: philips.extend.light_onoff_brightness(),
+    },
 ];
 
 export default definitions;
