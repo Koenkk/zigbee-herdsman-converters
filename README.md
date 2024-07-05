@@ -24,7 +24,8 @@ See [Zigbee2MQTT how to support new devices](https://www.zigbee2mqtt.io/advanced
 If you'd like to submit a pull request, you should run the following commands to ensure your changes will pass the tests:
 ```sh
 npm install
-npm run lint
+npm run eslint -- --fix
+npm run pretty:write
 npm run build
 npm test
 ```

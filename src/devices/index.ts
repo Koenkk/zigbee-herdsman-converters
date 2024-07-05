@@ -4,6 +4,7 @@ import adeo from './adeo';
 import adurosmart from './adurosmart';
 import aeotec from './aeotec';
 import airam from './airam';
+import airzone_aidoo from './airzone_aidoo';
 import ajax_online from './ajax_online';
 import akuvox from './akuvox';
 import alchemy from './alchemy';
@@ -93,7 +94,7 @@ import giderwel from './giderwel';
 import giex from './giex';
 import girier from './girier';
 import gledopto from './gledopto';
-import gmmts from "./gmmts";
+import gmmts from './gmmts';
 import gmy from './gmy';
 import gs from './gs';
 import halemeier from './halemeier';
@@ -177,7 +178,7 @@ import miboxer from './miboxer';
 import micromatic from './micromatic';
 import modular from './modular';
 import moes from './moes';
-import müller_licht from './müller_licht';
+import muller_licht from './muller_licht';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
 import neo from './neo';
@@ -298,6 +299,7 @@ import zemismart from './zemismart';
 import zen from './zen';
 import zigbeetlc from './zigbeetlc';
 import zipato from './zipato';
+import qa from './qa';
 
 export default [
     ...acova,
@@ -306,6 +308,7 @@ export default [
     ...adurosmart,
     ...aeotec,
     ...airam,
+    ...airzone_aidoo,
     ...ajax_online,
     ...akuvox,
     ...alchemy,
@@ -479,7 +482,7 @@ export default [
     ...micromatic,
     ...modular,
     ...moes,
-    ...müller_licht,
+    ...muller_licht,
     ...namron,
     ...nanoleaf,
     ...neo,
@@ -600,4 +603,5 @@ export default [
     ...zen,
     ...zigbeetlc,
     ...zipato,
+    ...qa,
 ];

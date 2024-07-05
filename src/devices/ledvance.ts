@@ -1,6 +1,6 @@
-import {Definition} from '../lib/types';
 import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import {forcePowerSource} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {
@@ -29,7 +29,7 @@ const definitions: Definition[] = [
         model: '74746',
         vendor: 'LEDVANCE',
         description: 'LEDVANCE 74746 Sylvania smart+ Zigbee dimmable edge-lit panel',
-        extend: [ledvanceLight({colorTemp: {range: [200, 370]}, color: true})],
+        extend: [ledvanceLight({colorTemp: {range: [200, 370]}, color: true, ota: null})],
     },
     {
         zigbeeModel: ['Panel TW 620 UGR19'],
@@ -284,7 +284,7 @@ const definitions: Definition[] = [
         extend: [ledvanceLight({})],
     },
     {
-        zigbeeModel: ['Connected Tube Value II'],
+        zigbeeModel: ['Connected Tube Value II', 'TUBE_T8_CON_600_7.5W_840ZBV\u0000'],
         model: 'ST8EM-CON',
         vendor: 'LEDVANCE',
         description: 'SubstiTUBE connected advanced ultra output',

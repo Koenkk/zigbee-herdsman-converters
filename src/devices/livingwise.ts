@@ -1,7 +1,7 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 import {light, onOff} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -51,11 +51,31 @@ const definitions: Definition[] = [
         vendor: 'LivingWise',
         description: 'Scene controller ',
         fromZigbee: [fz.orvibo_raw_2],
-        exposes: [e.action([
-            'button_1_click', 'button_1_hold', 'button_1_release', 'button_2_click', 'button_2_hold', 'button_2_release',
-            'button_3_click', 'button_3_hold', 'button_3_release', 'button_4_click', 'button_4_hold', 'button_4_release',
-            'button_5_click', 'button_5_hold', 'button_5_release', 'button_6_click', 'button_6_hold', 'button_6_release',
-            'button_7_click', 'button_7_hold', 'button_7_release'])],
+        exposes: [
+            e.action([
+                'button_1_click',
+                'button_1_hold',
+                'button_1_release',
+                'button_2_click',
+                'button_2_hold',
+                'button_2_release',
+                'button_3_click',
+                'button_3_hold',
+                'button_3_release',
+                'button_4_click',
+                'button_4_hold',
+                'button_4_release',
+                'button_5_click',
+                'button_5_hold',
+                'button_5_release',
+                'button_6_click',
+                'button_6_hold',
+                'button_6_release',
+                'button_7_click',
+                'button_7_hold',
+                'button_7_release',
+            ]),
+        ],
         toZigbee: [],
     },
 ];

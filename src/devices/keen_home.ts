@@ -1,9 +1,9 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
 import * as lumi from '../lib/lumi';
+import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -24,14 +24,28 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['SV01-410-MP-1.0', 'SV01-410-MP-1.1', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5', 'SV01-412-MP-1.0', 'SV01-412-MP-1.1',
-            'SV01-412-MP-1.3', 'SV01-412-MP-1.4', 'SV01-610-MP-1.0', 'SV01-610-MP-1.1', 'SV01-612-MP-1.0', 'SV01-612-MP-1.1', 'SV01-612-MP-1.2',
-            'SV01-610-MP-1.4', 'SV01-612-MP-1.4'],
+        zigbeeModel: [
+            'SV01-410-MP-1.0',
+            'SV01-410-MP-1.1',
+            'SV01-410-MP-1.4',
+            'SV01-410-MP-1.5',
+            'SV01-412-MP-1.0',
+            'SV01-412-MP-1.1',
+            'SV01-412-MP-1.3',
+            'SV01-412-MP-1.4',
+            'SV01-610-MP-1.0',
+            'SV01-610-MP-1.1',
+            'SV01-612-MP-1.0',
+            'SV01-612-MP-1.1',
+            'SV01-612-MP-1.2',
+            'SV01-610-MP-1.4',
+            'SV01-612-MP-1.4',
+            'SV01-612-EP-1.4',
+        ],
         model: 'SV01',
         vendor: 'Keen Home',
         description: 'Smart vent',
-        fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fz.keen_home_smart_vent_pressure,
-            fz.ignore_onoff_report],
+        fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fz.keen_home_smart_vent_pressure, fz.ignore_onoff_report],
         toZigbee: [tz.cover_via_brightness],
         meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
@@ -45,13 +59,21 @@ const definitions: Definition[] = [
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.temperature(), e.battery(), e.pressure()],
     },
     {
-        zigbeeModel: ['SV02-410-MP-1.3', 'SV02-412-MP-1.3', 'SV02-610-MP-1.0', 'SV02-610-MP-1.3', 'SV02-612-MP-1.2', 'SV02-612-MP-1.3',
-            'SV02-410-MP-1.0', 'SV02-410-MP-1.2', 'SV02-412-MP-1.2'],
+        zigbeeModel: [
+            'SV02-410-MP-1.3',
+            'SV02-412-MP-1.3',
+            'SV02-610-MP-1.0',
+            'SV02-610-MP-1.3',
+            'SV02-612-MP-1.2',
+            'SV02-612-MP-1.3',
+            'SV02-410-MP-1.0',
+            'SV02-410-MP-1.2',
+            'SV02-412-MP-1.2',
+        ],
         model: 'SV02',
         vendor: 'Keen Home',
         description: 'Smart vent',
-        fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fz.keen_home_smart_vent_pressure,
-            fz.ignore_onoff_report],
+        fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fz.keen_home_smart_vent_pressure, fz.ignore_onoff_report],
         toZigbee: [tz.cover_via_brightness],
         meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {

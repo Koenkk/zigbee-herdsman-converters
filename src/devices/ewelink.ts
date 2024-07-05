@@ -1,8 +1,8 @@
-import {Definition, Fz} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {Definition, Fz} from '../lib/types';
 const e = exposes.presets;
 
 const NS = 'zhc:ewelink';
@@ -102,10 +102,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW02',
         vendor: 'eWeLink',
         description: 'Smart light switch/2 gang relay',
-        extend: [
-            deviceEndpoints({endpoints: {'left': 1, 'right': 2}}),
-            onOff({endpointNames: ['left', 'right'], configureReporting: false}),
-        ],
+        extend: [deviceEndpoints({endpoints: {left: 1, right: 2}}), onOff({endpointNames: ['left', 'right'], configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -116,7 +113,7 @@ const definitions: Definition[] = [
         vendor: 'eWeLink',
         description: 'Smart light switch - 3 gang',
         extend: [
-            deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
+            deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
             onOff({endpointNames: ['left', 'center', 'right'], configureReporting: false}),
         ],
         onEvent: async (type, data, device) => {
@@ -129,7 +126,7 @@ const definitions: Definition[] = [
         vendor: 'eWeLink',
         description: 'Smart light switch - 4 gang',
         extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4}}),
+            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
             onOff({endpointNames: ['l1', 'l2', 'l3', 'l4'], configureReporting: false}),
         ],
         onEvent: async (type, data, device) => {
@@ -142,7 +139,7 @@ const definitions: Definition[] = [
         vendor: 'eWeLink',
         description: 'Smart light switch - 5 gang',
         extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5}}),
+            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}),
             onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5'], configureReporting: false}),
         ],
         onEvent: async (type, data, device) => {

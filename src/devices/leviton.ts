@@ -1,11 +1,11 @@
-import {Definition, Fz} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
-import * as utils from '../lib/utils';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import {light, onOff} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {Definition, Fz} from '../lib/types';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -65,12 +65,25 @@ const definitions: Definition[] = [
         vendor: 'Leviton',
         description: 'Omnistat2 wireless thermostat',
         fromZigbee: [legacy.fz.thermostat_att_report, fz.fan],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupancy,
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_unoccupied_cooling_setpoint, tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
-            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.thermostat_temperature_setpoint_hold,
-            tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_unoccupied_cooling_setpoint,
+            tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_remote_sensing,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_system_mode,
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_relay_status_log,
+            tz.thermostat_temperature_setpoint_hold,
+            tz.thermostat_temperature_setpoint_hold_duration,
+            tz.fan_mode,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl']);
@@ -83,10 +96,16 @@ const definitions: Definition[] = [
             await reporting.fanMode(endpoint);
         },
         exposes: [
-            e.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat', 'cool']).withFanMode(['auto', 'on', 'smart'])
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 10, 30, 1)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat', 'cool'])
+                .withFanMode(['auto', 'on', 'smart'])
                 .withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
-                .withLocalTemperatureCalibration().withPiHeatingDemand()],
+                .withLocalTemperatureCalibration()
+                .withPiHeatingDemand(),
+        ],
     },
     {
         // Reference from a similar switch: https://gist.github.com/nebhead/dc5a0a827ec14eef6196ded4be6e2dd0
@@ -101,10 +120,9 @@ const definitions: Definition[] = [
         exposes: [
             // Note: ballast_power_on_level used to be here, but it doesn't appear to work properly with this device
             // If set, it's reset back to 0 when the device is turned off then back to 32 when turned on
-            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the minimum brightness value'),
-            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the maximum brightness value')],
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254).withDescription('Specifies the minimum brightness value'),
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254).withDescription('Specifies the maximum brightness value'),
+        ],
     },
 ];
 

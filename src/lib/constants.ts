@@ -51,8 +51,7 @@ export const acovaThermostatSystemModes: KeyValueNumberString = {
     4: 'away_or_vacation',
 };
 
-
-export const thermostatRunningMode: KeyValueNumberString= {
+export const thermostatRunningMode: KeyValueNumberString = {
     0: 'off',
     3: 'cool',
     4: 'heat',
@@ -102,13 +101,13 @@ export const thermostatScheduleMode: KeyValueNumberString = {
 };
 
 export const fanMode = {
-    'off': 0,
-    'low': 1,
-    'medium': 2,
-    'high': 3,
-    'on': 4,
-    'auto': 5,
-    'smart': 6,
+    off: 0,
+    low: 1,
+    medium: 2,
+    high: 3,
+    on: 4,
+    auto: 5,
+    smart: 6,
 };
 
 export const temperatureDisplayMode: KeyValueNumberString = {
@@ -116,7 +115,7 @@ export const temperatureDisplayMode: KeyValueNumberString = {
     1: 'fahrenheit',
 };
 
-export const danfossAdaptionRunStatus: KeyValueNumberString= {
+export const danfossAdaptionRunStatus: KeyValueNumberString = {
     0: 'none',
     1: 'in_progress',
     2: 'found',
@@ -288,8 +287,8 @@ export const easyCodeTouchActions: KeyValueNumberString = {
     0x0300: 'rfid_lock',
     0x0301: 'rfid_unlock',
 
-    0xFF0D: 'lock',
-    0xFF0E: 'zigbee_unlock',
+    0xff0d: 'lock',
+    0xff0e: 'zigbee_unlock',
 };
 
 export const wiserDimmerControlMode: KeyValueNumberString = {

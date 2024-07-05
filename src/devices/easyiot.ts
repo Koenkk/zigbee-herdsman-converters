@@ -1,8 +1,9 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import {Fz, Tz} from '../lib/types';
 import * as iconv from 'iconv-lite';
+
+import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
+import {Definition} from '../lib/types';
+import {Fz, Tz} from '../lib/types';
 
 const NS = 'zhc:easyiot';
 const ea = exposes.access;
@@ -11,7 +12,7 @@ const e = exposes.presets;
 const fzLocal = {
     easyiot_ir_recv_command: {
         cluster: 'tunneling',
-        type: ['transferDataResp'],
+        type: ['commandTransferDataResp'],
         convert: (model, msg, publish, options, meta) => {
             logger.debug(`"easyiot_ir_recv_command" received (msg:${JSON.stringify(msg.data)})`, NS);
             const hexString = msg.data.data.toString('hex');
@@ -22,7 +23,7 @@ const fzLocal = {
 
     easyiot_tts_recv_status: {
         cluster: 'tunneling',
-        type: ['transferDataResp'],
+        type: ['commandTransferDataResp'],
         convert: (model, msg, publish, options, meta) => {
             logger.debug(`"easyiot_tts_recv_status" received (msg:${JSON.stringify(msg.data)})`, NS);
             const hexString = msg.data.data.toString('hex');
@@ -41,12 +42,15 @@ const tzLocal = {
             }
 
             logger.debug(`Sending IR code: ${value}`, NS);
-            await entity.command('tunneling', 'transferData',
+            await entity.command(
+                'tunneling',
+                'transferData',
                 {
-                    'tunnelID': 0x0000,
-                    'data': Buffer.from(value as string, 'hex'),
+                    tunnelID: 0x0000,
+                    data: Buffer.from(value as string, 'hex'),
                 },
-                {disableDefaultResponse: true});
+                {disableDefaultResponse: true},
+            );
             logger.debug(`Sending IR command success.`, NS);
         },
     } as Tz.Converter,
@@ -59,7 +63,7 @@ const tzLocal = {
             }
 
             logger.debug(`Sending IR code: ${value}`, NS);
-            const frameHeader = Buffer.from([0xFD]);
+            const frameHeader = Buffer.from([0xfd]);
 
             const gb2312Buffer = iconv.encode(value as string, 'GB2312');
             const dataLength = gb2312Buffer.length + 2;
@@ -68,12 +72,15 @@ const tzLocal = {
             const commandByte = Buffer.from([0x01, 0x01]);
             const protocolFrame = Buffer.concat([frameHeader, dataLengthBuffer, commandByte, gb2312Buffer]);
 
-            await entity.command('tunneling', 'transferData',
+            await entity.command(
+                'tunneling',
+                'transferData',
                 {
-                    'tunnelID': 0x0000,
-                    'data': protocolFrame,
+                    tunnelID: 0x0000,
+                    data: protocolFrame,
                 },
-                {disableDefaultResponse: true});
+                {disableDefaultResponse: true},
+            );
             logger.debug(`Sending IR command success.`, NS);
         },
     } as Tz.Converter,
@@ -84,7 +91,8 @@ const definitions: Definition[] = [
         fingerprint: [{modelID: 'ZB-IR01', manufacturerName: 'easyiot'}],
         model: 'ZB-IR01',
         vendor: 'easyiot',
-        description: 'This is an infrared remote control equipped with a local code library,' +
+        description:
+            'This is an infrared remote control equipped with a local code library,' +
             'supporting devices such as air conditioners, televisions, projectors, and more.',
         fromZigbee: [fzLocal.easyiot_ir_recv_command],
         toZigbee: [tzLocal.easyiot_ir_send_command],

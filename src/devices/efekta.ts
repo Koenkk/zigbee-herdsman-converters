@@ -1,5 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Definition} from '../lib/types';
+
 import {
     deviceEndpoints,
     temperature,
@@ -13,6 +13,7 @@ import {
     battery,
     pressure,
 } from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const defaultReporting = {min: 0, max: 300, change: 0};
 const normalReporting = {min: 0, max: 3600, change: 0};

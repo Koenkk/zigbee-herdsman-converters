@@ -1,6 +1,6 @@
-import {Definition} from '../lib/types';
 import tz from '../converters/toZigbee';
 import {light} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {

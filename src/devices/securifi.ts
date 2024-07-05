@@ -1,9 +1,9 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -19,8 +19,13 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acVoltageMultiplier: 180, acVoltageDivisor: 39321, acCurrentMultiplier: 72,
-                acCurrentDivisor: 39321, acPowerMultiplier: 10255, acPowerDivisor: 39321});
+                acVoltageMultiplier: 180,
+                acVoltageDivisor: 39321,
+                acCurrentMultiplier: 72,
+                acCurrentDivisor: 39321,
+                acPowerMultiplier: 10255,
+                acPowerDivisor: 39321,
+            });
             await reporting.onOff(endpoint);
             await reporting.rmsVoltage(endpoint, {change: 110}); // Voltage reports in 0.00458V
             await reporting.rmsCurrent(endpoint, {change: 55}); // Current reports in 0.00183A

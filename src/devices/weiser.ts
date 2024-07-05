@@ -1,7 +1,7 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
@@ -24,7 +24,8 @@ const definitions: Definition[] = [
         // Note - Keypad triggered deletions do not cause a zigbee event, though Adds work fine.
         onEvent: async (type, data, device) => {
             // When we receive a code updated message, lets read the new value
-            if (data.type === 'commandProgrammingEventNotification' &&
+            if (
+                data.type === 'commandProgrammingEventNotification' &&
                 data.cluster === 'closuresDoorLock' &&
                 data.data &&
                 data.data.userid !== undefined &&
@@ -53,7 +54,8 @@ const definitions: Definition[] = [
         // Note - Keypad triggered deletions do not cause a zigbee event, though Adds work fine.
         onEvent: async (type, data, device) => {
             // When we receive a code updated message, lets read the new value
-            if (data.type === 'commandProgrammingEventNotification' &&
+            if (
+                data.type === 'commandProgrammingEventNotification' &&
                 data.cluster === 'closuresDoorLock' &&
                 data.data &&
                 data.data.userid !== undefined &&

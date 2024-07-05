@@ -1,5 +1,5 @@
-import {Definition} from '../lib/types';
 import {light} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {

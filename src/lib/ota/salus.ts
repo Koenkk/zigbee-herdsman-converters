@@ -1,8 +1,9 @@
 const url = 'https://eu.salusconnect.io/demo/default/status/firmware?timestamp=0';
-import * as common from './common';
 import tar from 'tar-stream';
-import {Zh, Ota, KeyValue, KeyValueAny} from '../types';
+
 import {logger} from '../logger';
+import {Zh, Ota, KeyValue, KeyValueAny} from '../types';
+import * as common from './common';
 
 const NS = 'zhc:ota:salus';
 const axios = common.getAxios();
@@ -42,11 +43,11 @@ async function untar(tarStream: NodeJS.ReadStream) {
         extract.on('entry', (headers, stream, next) => {
             const buffers: Buffer[] = [];
 
-            stream.on('data', function(data) {
+            stream.on('data', function (data) {
                 buffers.push(data);
             });
 
-            stream.on('end', function() {
+            stream.on('end', function () {
                 result.push({
                     headers,
                     data: Buffer.concat(buffers),
@@ -81,7 +82,7 @@ async function downloadImage(meta: KeyValueAny) {
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, requestPayload:Ota.ImageInfo=null) {
+export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
     return common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 

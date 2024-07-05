@@ -1,6 +1,6 @@
-import {Expose, Fz, ModernExtend, KeyValueAny, Configure} from './types';
 import {presets} from './exposes';
 import {setupConfigureForBinding} from './modernExtend';
+import {Expose, Fz, ModernExtend, KeyValueAny, Configure} from './types';
 
 export const ewelinkModernExtend = {
     ewelinkAction: (): ModernExtend => {
@@ -11,7 +11,7 @@ export const ewelinkModernExtend = {
                 cluster: 'genOnOff',
                 type: ['commandOn', 'commandOff', 'commandToggle'],
                 convert: (model, msg, publish, options, meta) => {
-                    const lookup: KeyValueAny = {'commandToggle': 'single', 'commandOn': 'double', 'commandOff': 'long'};
+                    const lookup: KeyValueAny = {commandToggle: 'single', commandOn: 'double', commandOff: 'long'};
                     return {action: lookup[msg.type]};
                 },
             },

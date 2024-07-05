@@ -1,78 +1,79 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Definition} from '../lib/types';
+
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
+import {battery, deviceEndpoints, humidity, numeric, NumericArgs, onOff, temperature, windowCovering} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {battery, deviceEndpoints, enumLookup, EnumLookupArgs, humidity, numeric, NumericArgs, onOff, temperature} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
-import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 
 const nodonModernExtend = {
-    rollerShutterCalibration: (args?: Partial<EnumLookupArgs>) => enumLookup({
-        name: 'calibration',
-        lookup: {'stop': 0, 'start': 2},
-        cluster: 'closuresWindowCovering',
-        attribute: 'windowCoveringMode',
-        access: 'ALL',
-        description: 'Automatic calibration of the roller shutter.',
-    }),
-    calibrationVerticalRunTimeUp: (args?: Partial<NumericArgs>) => numeric({
-        name: 'calibration_vertical_run_time_up',
-        unit: '10 ms',
-        cluster: 'closuresWindowCovering',
-        attribute: {ID: 0x0001, type: Zcl.DataType.UINT16},
-        valueMin: 0,
-        valueMax: 65535,
-        scale: 1,
-        access: 'ALL',
-        description: 'Manuel calibration: Set vertical run time up of the roller shutter. ' +
-        'Do not change it if your roller shutter is already calibrated.',
-        zigbeeCommandOptions: {manufacturerCode: 0x128B},
-        ...args,
-    }),
-    calibrationVerticalRunTimeDowm: (args?: Partial<NumericArgs>) => numeric({
-        name: 'calibration_vertical_run_time_down',
-        unit: '10 ms',
-        cluster: 'closuresWindowCovering',
-        attribute: {ID: 0x0002, type: Zcl.DataType.UINT16},
-        valueMin: 0,
-        valueMax: 65535,
-        scale: 1,
-        access: 'ALL',
-        description: 'Manuel calibration: Set vertical run time down of the roller shutter. ' +
-        'Do not change it if your roller shutter is already calibrated.',
-        zigbeeCommandOptions: {manufacturerCode: 0x128B},
-        ...args,
-    }),
-    calibrationRotationRunTimeUp: (args?: Partial<NumericArgs>) => numeric({
-        name: 'calibration_rotation_run_time_up',
-        unit: 'ms',
-        cluster: 'closuresWindowCovering',
-        attribute: {ID: 0x0003, type: Zcl.DataType.UINT16},
-        valueMin: 0,
-        valueMax: 65535,
-        scale: 1,
-        access: 'ALL',
-        description: 'Manuel calibration: Set rotation run time up of the roller shutter. ' +
-        'Do not change it if your roller shutter is already calibrated.',
-        zigbeeCommandOptions: {manufacturerCode: 0x128B},
-        ...args,
-    }),
-    calibrationRotationRunTimeDown: (args?: Partial<NumericArgs>) => numeric({
-        name: 'calibration_rotation_run_time_down',
-        unit: 'ms',
-        cluster: 'closuresWindowCovering',
-        attribute: {ID: 0x0004, type: Zcl.DataType.UINT16},
-        valueMin: 0,
-        valueMax: 65535,
-        scale: 1,
-        access: 'ALL',
-        description: 'Manuel calibration: Set rotation run time down of the roller shutter. ' +
-        'Do not change it if your roller shutter is already calibrated.',
-        zigbeeCommandOptions: {manufacturerCode: 0x128B},
-        ...args,
-    }),
+    calibrationVerticalRunTimeUp: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'calibration_vertical_run_time_up',
+            unit: '10 ms',
+            cluster: 'closuresWindowCovering',
+            attribute: {ID: 0x0001, type: Zcl.DataType.UINT16},
+            valueMin: 0,
+            valueMax: 65535,
+            scale: 1,
+            access: 'ALL',
+            description:
+                'Manuel calibration: Set vertical run time up of the roller shutter. ' +
+                'Do not change it if your roller shutter is already calibrated.',
+            zigbeeCommandOptions: {manufacturerCode: 0x128b},
+            ...args,
+        }),
+    calibrationVerticalRunTimeDowm: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'calibration_vertical_run_time_down',
+            unit: '10 ms',
+            cluster: 'closuresWindowCovering',
+            attribute: {ID: 0x0002, type: Zcl.DataType.UINT16},
+            valueMin: 0,
+            valueMax: 65535,
+            scale: 1,
+            access: 'ALL',
+            description:
+                'Manuel calibration: Set vertical run time down of the roller shutter. ' +
+                'Do not change it if your roller shutter is already calibrated.',
+            zigbeeCommandOptions: {manufacturerCode: 0x128b},
+            ...args,
+        }),
+    calibrationRotationRunTimeUp: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'calibration_rotation_run_time_up',
+            unit: 'ms',
+            cluster: 'closuresWindowCovering',
+            attribute: {ID: 0x0003, type: Zcl.DataType.UINT16},
+            valueMin: 0,
+            valueMax: 65535,
+            scale: 1,
+            access: 'ALL',
+            description:
+                'Manuel calibration: Set rotation run time up of the roller shutter. ' +
+                'Do not change it if your roller shutter is already calibrated.',
+            zigbeeCommandOptions: {manufacturerCode: 0x128b},
+            ...args,
+        }),
+    calibrationRotationRunTimeDown: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'calibration_rotation_run_time_down',
+            unit: 'ms',
+            cluster: 'closuresWindowCovering',
+            attribute: {ID: 0x0004, type: Zcl.DataType.UINT16},
+            valueMin: 0,
+            valueMax: 65535,
+            scale: 1,
+            access: 'ALL',
+            description:
+                'Manuel calibration: Set rotation run time down of the roller shutter. ' +
+                'Do not change it if your roller shutter is already calibrated.',
+            zigbeeCommandOptions: {manufacturerCode: 0x128b},
+            ...args,
+        }),
 };
 
 const definitions: Definition[] = [
@@ -96,22 +97,13 @@ const definitions: Definition[] = [
         model: 'SIN-4-RS-20',
         vendor: 'NodOn',
         description: 'Roller shutter relay switch',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-            await reporting.currentPositionTiltPercentage(endpoint);
-        },
         extend: [
-            nodonModernExtend.rollerShutterCalibration(),
+            windowCovering({controls: ['tilt', 'lift'], coverMode: true}),
             nodonModernExtend.calibrationVerticalRunTimeUp(),
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
         ],
-        exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -119,22 +111,13 @@ const definitions: Definition[] = [
         model: 'SIN-4-RS-20_PRO',
         vendor: 'NodOn',
         description: 'Roller shutter relay switch',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-            await reporting.currentPositionTiltPercentage(endpoint);
-        },
         extend: [
-            nodonModernExtend.rollerShutterCalibration(),
+            windowCovering({controls: ['tilt', 'lift'], coverMode: true}),
             nodonModernExtend.calibrationVerticalRunTimeUp(),
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
         ],
-        exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -188,10 +171,7 @@ const definitions: Definition[] = [
         model: 'SIN-4-2-20',
         vendor: 'NodOn',
         description: 'Lighting relay switch',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -199,10 +179,7 @@ const definitions: Definition[] = [
         model: 'SIN-4-2-20_PRO',
         vendor: 'NodOn',
         description: 'Lighting relay switch',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
         ota: ota.zigbeeOTA,
     },
     {

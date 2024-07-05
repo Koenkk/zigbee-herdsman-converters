@@ -1,11 +1,11 @@
-import {Definition, Fz} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import * as exposes from '../lib/exposes';
-import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {Definition, Fz} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const NS = 'zhc:led_trading';
 const e = exposes.presets;
@@ -18,8 +18,16 @@ const fzLocal = {
             const commandID = msg.data.commandID;
             if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
-            const lookup = {0x13: 'press_1', 0x14: 'press_2', 0x15: 'press_3', 0x16: 'press_4',
-                0x1B: 'hold_1', 0x1C: 'hold_2', 0x1D: 'hold_3', 0x1E: 'hold_4'};
+            const lookup = {
+                0x13: 'press_1',
+                0x14: 'press_2',
+                0x15: 'press_3',
+                0x16: 'press_4',
+                0x1b: 'hold_1',
+                0x1c: 'hold_2',
+                0x1d: 'hold_3',
+                0x1e: 'hold_4',
+            };
             if (!lookup.hasOwnProperty(commandID)) {
                 logger.error(`led_trading_9133: missing command '${commandID}'`, NS);
             } else {
@@ -51,16 +59,14 @@ const definitions: Definition[] = [
         model: '9134',
         vendor: 'LED-Trading',
         description: 'Powerstrip with 4 sockets and USB',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']})],
     },
     {
         zigbeeModel: ['HK-ZCC-ZLL-A'],
         model: '9135',
         vendor: 'LED-Trading',
         description: 'Curtain motor controller',
+        meta: {coverInverted: true},
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],

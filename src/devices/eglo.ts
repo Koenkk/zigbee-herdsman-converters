@@ -1,7 +1,7 @@
-import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -39,19 +39,50 @@ const definitions: Definition[] = [
         model: '99099',
         vendor: 'EGLO',
         description: '3 groups remote controller',
-        fromZigbee: [fz.command_on, fz.awox_colors, fz.awox_refresh, fz.awox_refreshColored, fz.command_off,
-            fz.command_step, fz.command_move, fz.command_move_to_level, fz.command_move_to_color_temp,
-            fz.command_stop, fz.command_recall, fz.command_step_color_temperature],
+        fromZigbee: [
+            fz.command_on,
+            fz.awox_colors,
+            fz.awox_refresh,
+            fz.awox_refreshColored,
+            fz.command_off,
+            fz.command_step,
+            fz.command_move,
+            fz.command_move_to_level,
+            fz.command_move_to_color_temp,
+            fz.command_stop,
+            fz.command_recall,
+            fz.command_step_color_temperature,
+        ],
         toZigbee: [],
-        exposes: [e.action(['on', 'off', 'red', 'refresh', 'refresh_colored', 'blue', 'yellow',
-            'green', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
-            'recall_1', 'color_temperature_step_up', 'color_temperature_step_down'])],
+        exposes: [
+            e.action([
+                'on',
+                'off',
+                'red',
+                'refresh',
+                'refresh_colored',
+                'blue',
+                'yellow',
+                'green',
+                'brightness_step_up',
+                'brightness_step_down',
+                'brightness_move_up',
+                'brightness_move_down',
+                'brightness_stop',
+                'recall_1',
+                'color_temperature_step_up',
+                'color_temperature_step_down',
+            ]),
+        ],
     },
     {
         fingerprint: [
-            {type: 'EndDevice', manufacturerID: 4417, modelID: 'TLSR82xx', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 263, inputClusters: [0, 3, 4, 4096], outputClusters: [0, 3, 4, 5, 6, 8, 768, 4096]},
-            ]},
+            {
+                type: 'EndDevice',
+                manufacturerID: 4417,
+                modelID: 'TLSR82xx',
+                endpoints: [{ID: 1, profileID: 260, deviceID: 263, inputClusters: [0, 3, 4, 4096], outputClusters: [0, 3, 4, 5, 6, 8, 768, 4096]}],
+            },
         ],
         model: '99106',
         vendor: 'EGLO',

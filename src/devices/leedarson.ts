@@ -1,9 +1,9 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import * as reporting from '../lib/reporting';
 import {light} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -69,10 +69,29 @@ const definitions: Definition[] = [
         model: '6ARCZABZH',
         vendor: 'Leedarson',
         description: '4-Key Remote Controller',
-        fromZigbee: [fz.command_on, fz.command_off, legacy.fz.CCTSwitch_D0001_on_off, fz.CCTSwitch_D0001_levelctrl,
-            fz.CCTSwitch_D0001_lighting, fz.battery],
-        exposes: [e.battery(), e.action(['colortemp_up_release', 'colortemp_down_release', 'on', 'off', 'brightness_up', 'brightness_down',
-            'colortemp_up', 'colortemp_down', 'colortemp_up_hold', 'colortemp_down_hold'])],
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            legacy.fz.CCTSwitch_D0001_on_off,
+            fz.CCTSwitch_D0001_levelctrl,
+            fz.CCTSwitch_D0001_lighting,
+            fz.battery,
+        ],
+        exposes: [
+            e.battery(),
+            e.action([
+                'colortemp_up_release',
+                'colortemp_down_release',
+                'on',
+                'off',
+                'brightness_up',
+                'brightness_down',
+                'colortemp_up',
+                'colortemp_down',
+                'colortemp_up_hold',
+                'colortemp_down_hold',
+            ]),
+        ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

@@ -2,16 +2,21 @@ import {findByDevice} from '../src/index';
 import * as utils from '../src/lib/utils';
 import {Zh, DefinitionMeta, Fz, Definition} from '../src/lib/types';
 import tz from '../src/converters/toZigbee';
-import { Device } from 'zigbee-herdsman/dist/controller/model';
-import {Clusters} from 'zigbee-herdsman/dist/zcl'
+import {Device} from 'zigbee-herdsman/dist/controller/model';
+import {Clusters} from 'zigbee-herdsman/dist/zspec/zcl/definition/cluster';
 
-interface MockEndpointArgs {ID?: number, inputClusters?: string[], outputClusters?: string[], attributes?: {[s: string]: {[s: string]: unknown}}}
+interface MockEndpointArgs {
+    ID?: number;
+    inputClusters?: string[];
+    outputClusters?: string[];
+    attributes?: {[s: string]: {[s: string]: unknown}};
+}
 
 export function reportingItem(attribute: string, min: number, max: number, change: number | [number, number]) {
     return {attribute: attribute, minimumReportInterval: min, maximumReportInterval: max, reportableChange: change};
 }
 
-export function mockDevice(args: {modelID: string, manufacturerID?: number, manufacturerName?: string, endpoints: MockEndpointArgs[]}): Zh.Device {
+export function mockDevice(args: {modelID: string; manufacturerID?: number; manufacturerName?: string; endpoints: MockEndpointArgs[]}): Zh.Device {
     const ieeeAddr = '0x12345678';
     const device: Zh.Device = {
         // @ts-expect-error
@@ -33,7 +38,7 @@ export function mockDevice(args: {modelID: string, manufacturerID?: number, manu
 }
 
 function getCluster(ID: string | number) {
-    const cluster = Object.entries(Clusters).find((c) => typeof ID === 'number' ? c[1].ID === ID : c[0] === ID);
+    const cluster = Object.entries(Clusters).find((c) => (typeof ID === 'number' ? c[1].ID === ID : c[0] === ID));
     if (!cluster) throw new Error(`Cluster '${ID}' does not exist`);
     return {name: cluster[0], ID: cluster[1].ID};
 }
@@ -57,31 +62,40 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         // @ts-expect-error
         getOutputClusters: () => outputClusters.map((c) => getCluster(c)),
         supportsInputCluster: (key) => !!inputClusters.find((ID) => ID === getCluster(key).ID),
-        saveClusterAttributeKeyValue: jest.fn().mockImplementation((cluster, values) => attributes[cluster] = {...attributes[cluster], ...values}),
+        saveClusterAttributeKeyValue: jest.fn().mockImplementation((cluster, values) => (attributes[cluster] = {...attributes[cluster], ...values})),
         save: jest.fn(),
         getClusterAttributeValue: jest.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),
     };
 }
 
 const DefaultTz = [
-    tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, 
-    tz.scene_rename, tz.read, tz.write, tz.command, tz.factory_reset, tz.zcl_command,
+    tz.scene_store,
+    tz.scene_recall,
+    tz.scene_add,
+    tz.scene_remove,
+    tz.scene_remove_all,
+    tz.scene_rename,
+    tz.read,
+    tz.write,
+    tz.command,
+    tz.factory_reset,
+    tz.zcl_command,
 ];
 
 export type AssertDefinitionArgs = {
-    device: Zh.Device,
-    meta: DefinitionMeta | undefined,
-    fromZigbee: Fz.Converter[],
-    toZigbee: string[],
-    exposes: string[],
-    bind: {[s: number]: string[]},
-    read: {[s: number]: [string, string[]][]},
-    configureReporting: {[s: number]: [string, ReturnType<typeof reportingItem>[]][]},
-    endpoints?: {[s: string]: number},
-    findByDeviceFn?: (device: Device) => Promise<Definition>,
-}
+    device: Zh.Device;
+    meta: DefinitionMeta | undefined;
+    fromZigbee: Fz.Converter[];
+    toZigbee: string[];
+    exposes: string[];
+    bind: {[s: number]: string[]};
+    read: {[s: number]: [string, string[]][]};
+    configureReporting: {[s: number]: [string, ReturnType<typeof reportingItem>[]][]};
+    endpoints?: {[s: string]: number};
+    findByDeviceFn?: (device: Device) => Promise<Definition>;
+};
 export async function assertDefintion(args: AssertDefinitionArgs) {
-    args.findByDeviceFn = args.findByDeviceFn ?? findByDevice
+    args.findByDeviceFn = args.findByDeviceFn ?? findByDevice;
     const coordinatorEndpoint = mockEndpoint({}, undefined);
     const definition = await args.findByDeviceFn(args.device);
 
@@ -91,7 +105,7 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
         if (JSON.stringify(expected) !== JSON.stringify(actual)) {
             console.log(`[${expected?.map((c) => `'${c}'`).join(', ')}]`);
         }
-    }
+    };
 
     expect(definition.meta).toEqual(args.meta);
     expect(definition.fromZigbee).toEqual(args.fromZigbee);
@@ -102,7 +116,9 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
     expect(expectedToZigbee).toEqual(args.toZigbee);
 
     utils.assertArray(definition.exposes);
-    const expectedExposes = definition.exposes?.map((e) => e.name ?? `${e.type}${e.endpoint ? '_' + e.endpoint : ''}(${e.features?.map((f) => f.name).join(',')})`).sort();
+    const expectedExposes = definition.exposes
+        ?.map((e) => e.name ?? `${e.type}${e.endpoint ? '_' + e.endpoint : ''}(${e.features?.map((f) => f.name).join(',')})`)
+        .sort();
     logIfNotEqual(expectedExposes, args.exposes);
     expect(expectedExposes).toEqual(args.exposes);
 
@@ -111,20 +127,22 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
         if (args.bind[endpoint.ID]) {
             args.bind[endpoint.ID].forEach((bind, idx) => expect(endpoint.bind).toHaveBeenNthCalledWith(idx + 1, bind, coordinatorEndpoint));
         }
-    
+
         expect(endpoint.read).toHaveBeenCalledTimes(args.read[endpoint.ID]?.length ?? 0);
         if (args.read[endpoint.ID]) {
             args.read[endpoint.ID].forEach((read, idx) => expect(endpoint.read).toHaveBeenNthCalledWith(idx + 1, read[0], read[1]));
         }
-    
+
         expect(endpoint.configureReporting).toHaveBeenCalledTimes(args.configureReporting[endpoint.ID]?.length ?? 0);
         if (args.configureReporting[endpoint.ID]) {
-            args.configureReporting[endpoint.ID].forEach((configureReporting, idx) => expect(endpoint.configureReporting).toHaveBeenNthCalledWith(idx + 1, configureReporting[0], configureReporting[1]));
+            args.configureReporting[endpoint.ID].forEach((configureReporting, idx) =>
+                expect(endpoint.configureReporting).toHaveBeenNthCalledWith(idx + 1, configureReporting[0], configureReporting[1]),
+            );
         }
     }
 
     if (definition.endpoint) {
         // @ts-expect-error
-        expect(definition.endpoint()).toStrictEqual(args.endpoints)
+        expect(definition.endpoint()).toStrictEqual(args.endpoints);
     }
 }

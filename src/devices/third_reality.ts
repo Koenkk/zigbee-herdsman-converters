@@ -1,11 +1,11 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
-import * as ota from '../lib/ota';
-import {Definition, Fz, KeyValue} from '../lib/types';
+import * as exposes from '../lib/exposes';
 import {forcePowerSource, iasZoneAlarm, light, onOff} from '../lib/modernExtend';
 import {temperature, humidity, battery} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {Definition, Fz, KeyValue} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -22,7 +22,8 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     thirdreality_private_motion_sensor: {
-        cluster: 'manuSpecificUbisysDeviceSetup',
+        cluster: 'manuSpecificAssaDoorLock',
+        // This cluster ID is 0xFC00. Temporarily modify like this
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data[2];
@@ -40,6 +41,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.switch(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -159,7 +161,9 @@ const definitions: Definition[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some*/}
+            } catch (error) {
+                /* Fails for some*/
+            }
         },
         exposes: [e.cover_position(), e.battery()],
     },
@@ -228,7 +232,11 @@ const definitions: Definition[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 3600000, multiplier: 1});
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 10,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: 1000,
+                acPowerMultiplier: 1,
                 acPowerDivisor: 10,
             });
             device.save();
@@ -284,7 +292,11 @@ const definitions: Definition[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 3600000, multiplier: 1});
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 10,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: 1000,
+                acPowerMultiplier: 1,
                 acPowerDivisor: 10,
             });
             device.save();

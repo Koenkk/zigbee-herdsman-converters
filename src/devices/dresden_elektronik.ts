@@ -1,6 +1,6 @@
-import {Definition} from '../lib/types';
-import * as ota from '../lib/ota';
 import {battery, deviceEndpoints, light} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {
@@ -10,7 +10,7 @@ const definitions: Definition[] = [
         description: 'ZigBee Light Link wireless electronic ballast',
         ota: ota.zigbeeOTA,
         extend: [
-            deviceEndpoints({endpoints: {'rgb': 10, 'white': 11}}),
+            deviceEndpoints({endpoints: {rgb: 10, white: 11}}),
             light({colorTemp: {range: undefined}, color: true, endpointNames: ['rgb', 'white']}),
         ],
     },
@@ -42,10 +42,7 @@ const definitions: Definition[] = [
         model: 'BN-600078',
         vendor: 'Dresden Elektronik',
         description: 'Zigbee controller for 1-10V/PWM',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 11, 'l2': 12, 'l3': 13, 'l4': 14}}),
-            light({endpointNames: ['l1', 'l2', 'l3', 'l4']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 11, l2: 12, l3: 13, l4: 14}}), light({endpointNames: ['l1', 'l2', 'l3', 'l4']})],
         meta: {disableDefaultResponse: true},
     },
 ];
