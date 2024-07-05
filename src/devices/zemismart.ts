@@ -373,8 +373,8 @@ const definitions: Definition[] = [
         model: 'ZMR4',
         vendor: 'Zemismart',
         description: 'Wireless switch with 4 buttons',
+        extend: [battery()],
         exposes: [
-            e.battery(),
             e.action([
                 '1_single',
                 '1_double',
@@ -390,19 +390,17 @@ const definitions: Definition[] = [
                 '4_hold',
             ]),
         ],
-        fromZigbee: [fz.battery, tuya.fz.on_off_action],
+        fromZigbee: [tuya.fz.on_off_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
-            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             for (const ep of [1, 2, 3, 4]) {
                 if (device.getEndpoint(ep)) {
                     await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
                 }
             }
-            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
 ];
