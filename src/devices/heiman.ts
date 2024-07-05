@@ -7,7 +7,8 @@ import * as reporting from '../lib/reporting';
 import {Definition, Zh, Reporting} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
-import * as tuya from '../lib/tuya';
+import {Zcl} from 'zigbee-herdsman';
+
 import {light, battery, iasZoneAlarm, illuminance, occupancy, identify, ota, numeric} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
