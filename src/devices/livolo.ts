@@ -344,7 +344,7 @@ const definitions: Definition[] = [
         exposes: [
             e.noise_detected(),
             e.illuminance().withUnit('%').withValueMin(0).withValueMax(100),
-            new Enum('noise_state', access.STATE, ['silent', 'normal', 'lively', 'noisy']).withDescription('Detected noise level'),
+            new Enum('noise_level', access.STATE, ['silent', 'normal', 'lively', 'noisy']).withDescription('Detected noise level'),
         ],
         fromZigbee: [fz.livolo_illuminance_state],
         toZigbee: [],
