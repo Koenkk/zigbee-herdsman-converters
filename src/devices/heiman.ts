@@ -10,6 +10,7 @@ const ea = exposes.access;
 import {Zcl} from 'zigbee-herdsman';
 
 import {light, battery, iasZoneAlarm, illuminance, occupancy, identify, ota, numeric} from '../lib/modernExtend';
+import * as tuya from '../lib/tuya';
 
 const definitions: Definition[] = [
     {
@@ -773,13 +774,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        zigbeeModel: [
-            'HS8OS-N-3.0',
-            'HS8OS-EM-3.0',
-            'HS8OS-EF-3.0',
-            'HS8OS-EF1-3.0',
-            'HS8OS-EF2-3.0',
-        ],
+        zigbeeModel: ['HS8OS-N-3.0', 'HS8OS-EM-3.0', 'HS8OS-EF-3.0', 'HS8OS-EF1-3.0', 'HS8OS-EF2-3.0'],
         model: 'HS8OS',
         vendor: 'HEIMAN',
         description: 'Ceiling embedded occupancy sensor',
@@ -790,7 +785,7 @@ const definitions: Definition[] = [
             numeric({
                 name: 'illuminance_threshold',
                 cluster: 'msIlluminanceMeasurement',
-                attribute: {ID: 0xF000, type: Zcl.DataType.INT16},
+                attribute: {ID: 0xf000, type: Zcl.DataType.INT16},
                 description: 'Controls illuminance threshold for sending commands',
                 valueMin: 0,
                 valueMax: 1000,
