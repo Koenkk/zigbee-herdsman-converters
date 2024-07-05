@@ -5,7 +5,7 @@ import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
-import {forcePowerSource, light, onOff, identify, deviceEndpoints} from '../lib/modernExtend';
+import {forcePowerSource, light, onOff, identify, deviceEndpoints, battery} from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 
 const ea = exposes.access;
