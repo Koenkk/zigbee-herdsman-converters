@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {access, Enum} from '../lib/exposes';
 import * as globalStore from '../lib/store';
 import {Definition, Zh} from '../lib/types';
 const e = exposes.presets;
@@ -344,7 +343,7 @@ const definitions: Definition[] = [
         exposes: [
             e.noise_detected(),
             e.illuminance().withUnit('%').withValueMin(0).withValueMax(100),
-            new Enum('noise_level', access.STATE, ['silent', 'normal', 'lively', 'noisy']).withDescription('Detected noise level'),
+            e.enum('noise_level', ea.STATE, ['silent', 'normal', 'lively', 'noisy']).withDescription('Detected noise level'),
         ],
         fromZigbee: [fz.livolo_illuminance_state],
         toZigbee: [],
