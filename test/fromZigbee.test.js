@@ -2,6 +2,7 @@ const legacy = require('../src/lib/legacy');
 
 jest.mock('fs');
 const fs = require('fs');
+const {fromZigbee} = require('../index');
 
 describe('converters/fromZigbee', () => {
     describe('tuya', () => {
@@ -43,6 +44,85 @@ describe('converters/fromZigbee', () => {
             ])("Receives '%s' indication", (_name, dpValues, result) => {
                 expect(legacy.fromZigbee.tuya_smart_vibration_sensor.convert(null, {data: {dpValues}}, null, null, meta)).toEqual(result);
             });
+        });
+    });
+
+    it('Message with no properties does not error converting battery percentages', () => {
+        const payload = fromZigbee.battery.convert(
+            {
+                meta: {},
+            },
+            {data: {}, endpoint: null, device: null, meta: null, groupID: null, type: 'attributeReport', cluster: 'genPowerCfg', linkquality: 0},
+            null,
+            {},
+            {
+                meta: {},
+            }.meta,
+        );
+        expect(payload).toStrictEqual({});
+    });
+
+    it('Device specifying voltageToPercentage ignores reported percentage', () => {
+        const payload = fromZigbee.battery.convert(
+            {
+                meta: {
+                    battery: {
+                        voltageToPercentage: '3V_1500_2800',
+                    },
+                },
+            },
+            {
+                data: {
+                    batteryVoltage: 27,
+                    batteryPercentageRemaining: 2,
+                },
+                endpoint: null,
+                device: null,
+                meta: null,
+                groupID: null,
+                type: 'attributeReport',
+                cluster: 'genPowerCfg',
+                linkquality: 0,
+            },
+            null,
+            {},
+            {
+                meta: {},
+            }.meta,
+        );
+        expect(payload).toStrictEqual({
+            battery: 98,
+            voltage: 2700,
+        });
+    });
+
+    it('Device uses reported percentage', () => {
+        const payload = fromZigbee.battery.convert(
+            {
+                meta: {},
+            },
+            {
+                data: {
+                    batteryVoltage: 27,
+                    batteryPercentageRemaining: 2,
+                },
+                endpoint: null,
+                device: null,
+                meta: null,
+                groupID: null,
+                type: 'attributeReport',
+                cluster: 'genPowerCfg',
+                linkquality: 0,
+            },
+            null,
+            {},
+            {
+                meta: {},
+            }.meta,
+        );
+        expect(payload).toStrictEqual({
+            battery: 1,
+            voltage: 2700,
         });
     });
 });
