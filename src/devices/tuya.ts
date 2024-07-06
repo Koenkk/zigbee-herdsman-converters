@@ -5095,6 +5095,7 @@ const definitions: Definition[] = [
         exposes: [
             e.smoke(),
             e.battery(),
+            tuya.exposes.silence(),
             e.test(),
             e.numeric('smoke_concentration', ea.STATE).withUnit('ppm').withDescription('Parts per million of smoke detected'),
             e.binary('device_fault', ea.STATE, true, false).withDescription('Indicates a fault with the device'),
@@ -5105,6 +5106,7 @@ const definitions: Definition[] = [
                 [2, 'smoke_concentration', tuya.valueConverter.divideBy10],
                 [11, 'device_fault', tuya.valueConverter.raw],
                 [15, 'battery', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.raw],
                 [101, 'test', tuya.valueConverter.raw],
             ],
         },
