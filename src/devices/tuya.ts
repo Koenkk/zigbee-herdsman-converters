@@ -5670,7 +5670,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'AVATTO', model: '3gang N-ZLWSM01'},
             tuya.whitelabel('AVATTO', 'LZWSM16-3', '3 gang switch module - (without neutral)', ['_TZ3000_sznawwyw']),
-            tuya.whitelabel('Girier', 'ZB08', '3 Channel Switch Module L - (No Neutral Wire)', ['_TZ3000_ypgri8yz']),
+            tuya.whitelabel('Girier', 'ZB08', '3 Channel Switch Module-L - (No Neutral Wire)', ['_TZ3000_ypgri8yz']),
         ],
         extend: [tuya.modernExtend.tuyaOnOff({switchType: true, endpoints: ['left', 'center', 'right']})],
         endpoint: (device) => {
