@@ -264,7 +264,7 @@ export const tzZosung = {
 };
 
 export const presetsZosung = {
-    learn_ir_code: () => e.switch_().withState('learn_ir_code', false, 'Turn on to learn new IR code', ea.SET),
+    learn_ir_code: () => e.binary('learn_ir_code', ea.SET, 'ON', 'OFF').withDescription('Turn on to learn new IR code'),
     learned_ir_code: () => e.text('learned_ir_code', ea.STATE).withDescription('The IR code learned by device'),
     ir_code_to_send: () => e.text('ir_code_to_send', ea.SET).withDescription('The IR code to send by device'),
 };

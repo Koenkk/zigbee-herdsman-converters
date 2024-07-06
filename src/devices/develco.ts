@@ -929,8 +929,8 @@ const definitions: Definition[] = [
             e.binary('input', ea.STATE_GET, true, false).withEndpoint('l2').withDescription('State of input 2'),
             e.binary('input', ea.STATE_GET, true, false).withEndpoint('l3').withDescription('State of input 3'),
             e.binary('input', ea.STATE_GET, true, false).withEndpoint('l4').withDescription('State of input 4'),
-            e.switch_().withState('state', true, 'On/off state of switch 1').withEndpoint('l11'),
-            e.switch_().withState('state', true, 'On/off state of switch 2').withEndpoint('l12'),
+            e.switch().withEndpoint('l11'),
+            e.switch().withEndpoint('l12'),
         ],
         extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
         configure: async (device, coordinatorEndpoint) => {
