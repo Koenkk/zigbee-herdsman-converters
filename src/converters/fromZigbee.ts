@@ -377,7 +377,7 @@ const converters1 = {
             // If voltageToPercentage is specified, it means we do not trust the percentage
             // returned by the device and are instead calculating it ourselves.
             if (
-                model.meta?.battery?.voltageToPercentage != null &&
+                model.meta?.battery?.voltageToPercentage == null &&
                 msg.data.hasOwnProperty('batteryPercentageRemaining') &&
                 msg.data['batteryPercentageRemaining'] < 255
             ) {
