@@ -1,5 +1,26 @@
 # Changelog
 
+## [19.65.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.64.0...v19.65.0) (2024-07-06)
+
+
+### Features
+
+* Support `silene` for Tuya PA-44Z ([#7743](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7743)) ([47f0dc3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/47f0dc36e07f83cab38f2af2e31607a48fbf030f))
+
+
+### Bug Fixes
+
+* Add `noise_level` for Livolo TI0001-illuminance ([#7727](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7727)) ([97a7c78](https://github.com/Koenkk/zigbee-herdsman-converters/commit/97a7c784a83c6d74818ab59c769a932cca4f52ed))
+* **detect:** Detect `_TZ3000_mq4wujmp` as Moes ZWV-YC ([#7739](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7739)) ([b39ffe8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b39ffe8c1768fca232243c81e6c194ee6665cb20))
+* **detect:** Detect `_TZ3210_hquixjeg` as LEDRON QS-Zigbee-D04 ([#7740](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7740)) ([7d5bfc2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7d5bfc24b72f2288910fc472e3fe1d21ff37001c))
+* **detect:** Detect `_TZE284_sgabhwa6` as Tuya TS0601_soil_2 ([#7741](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7741)) ([a161ed3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a161ed3a0b64d4c8ea87edeed9fbdc334a010757))
+* **detect:** Detect `LXN56-0S27LX1.3` as Nue / 3A HGZB-20-UK ([#7732](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7732)) ([8dcbe19](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8dcbe1981efbf70d80b3c93b359b7951331cff69))
+* Fix all channel trigger simultaneously for Zemismart ZMO-606-S2 ([#7726](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7726)) ([78dcd9d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/78dcd9d370f5d45ace64a37ee760fa28b18f72aa))
+* Fix Home Assistant discovery for various switches https://github.com/zigbee2mqtt/hassio-zigbee2mqtt/issues/519 ([49ac786](https://github.com/Koenkk/zigbee-herdsman-converters/commit/49ac786b37d479f7606a55c6326e067277b6dc3b))
+* Fix TS130F calibration_time access ([#7738](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7738)) ([4a81f8c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4a81f8cf5ea7e1562b1b337a1c4360ae378ea071))
+* Fix ZigDC inputs action ([#7736](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7736)) ([7723ecb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7723ecbc780e80fbac822333f4ac3efa8043bbf5))
+* **ignore:** revert 48dbf83 ([08e9e94](https://github.com/Koenkk/zigbee-herdsman-converters/commit/08e9e94f8c7f82ce0d00614efe3eacdfb8a29fd6))
+
 ## [19.64.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.63.0...v19.64.0) (2024-07-03)
 
 
