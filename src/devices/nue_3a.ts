@@ -250,7 +250,7 @@ const definitions: Definition[] = [
         extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
-        zigbeeModel: ['LXN56-0S27LX1.1', 'LXN56-0S27LX1.3'],
+        zigbeeModel: ['LXN56-0S27LX1.1', 'LXN56-0S27LX1.2', 'LXN56-0S27LX1.3'],
         model: 'HGZB-20-UK',
         vendor: 'Nue / 3A',
         description: 'Power plug',

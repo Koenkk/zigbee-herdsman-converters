@@ -340,7 +340,11 @@ const definitions: Definition[] = [
         model: 'TI0001-illuminance',
         description: 'Zigbee digital illuminance and sound sensor',
         vendor: 'Livolo',
-        exposes: [e.noise_detected(), e.illuminance().withUnit('%').withValueMin(0).withValueMax(100)],
+        exposes: [
+            e.noise_detected(),
+            e.illuminance().withUnit('%').withValueMin(0).withValueMax(100),
+            e.enum('noise_level', ea.STATE, ['silent', 'normal', 'lively', 'noisy']).withDescription('Detected noise level'),
+        ],
         fromZigbee: [fz.livolo_illuminance_state],
         toZigbee: [],
         configure: poll,

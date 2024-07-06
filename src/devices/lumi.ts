@@ -3808,7 +3808,7 @@ const definitions: Definition[] = [
                         .withFeature(e.numeric('size', exposes.access.STATE_SET)),
                 )
                 .withDescription('Feeding schedule'),
-            e.switch_().withState('led_indicator', true, 'Led indicator', ea.STATE_SET, 'ON', 'OFF'),
+            e.binary('led_indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('Led indicator'),
             e.child_lock(),
             e.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
             e.numeric('serving_size', ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription('One serving size').withUnit('portion'),

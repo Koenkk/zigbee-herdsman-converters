@@ -19,6 +19,7 @@ import {
     commandsOnOff,
     commandsLevelCtrl,
     electricityMeter,
+    windowCovering,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
@@ -879,6 +880,17 @@ const definitions: Definition[] = [
             }
             exps.push(e.linkquality());
             return exps;
+        },
+        meta: {
+            battery: {
+                // These sensors do send a Battery Percentage Remaining (0x0021)
+                // value, but is usually incorrect. For example, a coin battery tested
+                // with a load tester may show 80%, but report 2.5V / 1%. This voltage
+                // calculation matches what ZHA does by default.
+                // https://github.com/Koenkk/zigbee2mqtt/discussions/17337
+                // https://github.com/zigpy/zha-device-handlers/blob/c6ed94a52a469e72b32ece2a92d528060c7fd034/zhaquirks/__init__.py#L195-L228
+                voltageToPercentage: '3V_1500_2800',
+            },
         },
         configure: async (device, coordinatorEndpoint) => {
             try {
@@ -1930,7 +1942,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_g2e6cpnw']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_g2e6cpnw', '_TZE284_sgabhwa6']),
         model: 'TS0601_soil_2',
         vendor: 'Tuya',
         description: 'Soil sensor',
@@ -2395,8 +2407,6 @@ const definitions: Definition[] = [
             tuya.whitelabel('Zemismart', 'ZN-LC1E', 'Smart curtain/shutter switch', ['_TZ3000_74hsp7qy']),
             tuya.whitelabel('Nous', 'L12Z', 'Smart ZigBee Curtain Module L12Z', ['_TZ3000_jwv3cwak']),
             tuya.whitelabel('Danor', 'SK-Z802C-US', 'Smart curtain/shutter switch', ['_TZ3000_8h7wgocw']),
-            tuya.whitelabel('Moes', 'MS-108ZR', 'Zigbee + RF curtain switch module', ['_TZ3000_1dd0d5yi']),
-            tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc']),
             tuya.whitelabel('Nous', 'B4Z', 'Curtain switch', ['_TZ3000_yruungrl']),
         ],
         exposes: (device) => {
@@ -2413,6 +2423,23 @@ const definitions: Definition[] = [
             exps.push(e.linkquality());
             return exps;
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
+        model: 'MS-108ZR',
+        vendor: 'Moes',
+        description: 'Zigbee + RF curtain switch module',
+        meta: {coverInverted: true},
+        whiteLabel: [tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc'])],
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
+        exposes: [
+            e.cover_position(),
+            e.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
+            e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+            e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
+        ],
     },
     {
         zigbeeModel: ['qnazj70', 'kjintbl'],
@@ -2452,6 +2479,14 @@ const definitions: Definition[] = [
             // Endpoint selection is made in tuya_switch_state
             return {l1: 1, l2: 1, l3: 1, l4: 1};
         },
+    },
+    {
+        zigbeeModel: ['TS0301'],
+        model: 'TS0301',
+        vendor: 'Tuya',
+        description: 'Cover',
+        extend: [battery(), windowCovering({controls: ['lift', 'tilt']})],
+        whiteLabel: [tuya.whitelabel('Yookee', 'D10110_1', 'Smart blind', ['_TZE200_9caxna4s'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
@@ -2866,6 +2901,17 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
         whiteLabel: [tuya.whitelabel('Tuya', 'TH02Z', 'Temperature and humidity sensor', ['_TZ3000_fllyghyj', '_TZ3000_saiqcn0y'])],
+        meta: {
+            battery: {
+                // These sensors do send a Battery Percentage Remaining (0x0021)
+                // value, but is usually incorrect. For example, a coin battery tested
+                // with a load tester may show 80%, but report 2.5V / 1%. This voltage
+                // calculation matches what ZHA does by default.
+                // https://github.com/Koenkk/zigbee2mqtt/discussions/17337
+                // https://github.com/zigpy/zha-device-handlers/blob/c6ed94a52a469e72b32ece2a92d528060c7fd034/zhaquirks/__init__.py#L195-L228
+                voltageToPercentage: '3V_1500_2800',
+            },
+        },
     },
     {
         fingerprint: [...tuya.fingerprint('TS0201', ['_TZ3000_dowj6gyi', '_TZ3000_8ybe88nf']), {manufacturerName: '_TZ3000_zl1kmjqx'}],
@@ -3413,6 +3459,7 @@ const definitions: Definition[] = [
             {vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'},
             {vendor: 'Lonsonho', model: 'X701'},
             {vendor: 'Bandi', model: 'BDS03G1'},
+            tuya.whitelabel('Nous', 'B1Z', '1 gang switch', ['_TZ3000_ctftgjwb']),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -3687,6 +3734,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_1fuxihti'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_1fuxihti'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_57hjqelq'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_libht6ua'},
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_hsgrhjpf'},
@@ -5047,6 +5095,7 @@ const definitions: Definition[] = [
         exposes: [
             e.smoke(),
             e.battery(),
+            tuya.exposes.silence(),
             e.test(),
             e.numeric('smoke_concentration', ea.STATE).withUnit('ppm').withDescription('Parts per million of smoke detected'),
             e.binary('device_fault', ea.STATE, true, false).withDescription('Indicates a fault with the device'),
@@ -5057,6 +5106,7 @@ const definitions: Definition[] = [
                 [2, 'smoke_concentration', tuya.valueConverter.divideBy10],
                 [11, 'device_fault', tuya.valueConverter.raw],
                 [15, 'battery', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.raw],
                 [101, 'test', tuya.valueConverter.raw],
             ],
         },
@@ -10197,12 +10247,13 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_guijtl8k']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_guijtl8k', '_TZ3210_hquixjeg']),
         model: 'QS-Zigbee-D04',
         vendor: 'LEDRON',
         description: '0-10v dimmer',
         fromZigbee: [fz.TS110E, fz.on_off],
         toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tz.light_brightness_move],
+        whiteLabel: [tuya.whitelabel('Ledron', 'QS-Zigbee-D06-DC', 'Dimmer 12-36v', ['_TZ3210_hquixjeg'])],
         exposes: [e.light_brightness().withMinBrightness().withMaxBrightness()],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);

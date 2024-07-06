@@ -357,9 +357,9 @@ const definitions: Definition[] = [
         description: 'Smart 2 gangs switch with outlet',
         extend: [
             deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            identify(),
-            tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3']}),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3']}),
         ],
+        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_b1q8kwmh']),
