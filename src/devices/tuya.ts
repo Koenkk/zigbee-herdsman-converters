@@ -542,14 +542,14 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const settingType = {'trip': 2, 'alarm': 1, 'closed': 0};
             // const typeswitch = {'ON':true, 'OFF':false}
-            /*let dp_key = -1; // value if not found
+            let dp_key = -1; // value if not found
             const tuyadatapoints_list = meta.mapped.meta.tuyaDatapoints
             for (let i = 0; i < tuyadatapoints_list.length; i++) {
                 if (tuyadatapoints_list[i][1] === key) {
                     dp_key = tuyadatapoints_list[i][0];
                 break;
                 }
-            }*/
+            }
             switch (key) {
                 case 'temperature_setting': {
                     await tuya.sendDataPointEnum(entity, dp_key, utils.getFromLookup(value, settingType));
