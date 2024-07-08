@@ -10679,7 +10679,8 @@ const definitions: Definition[] = [
                 [131, "temperature", tuya.valueConverter.divideBy10],
             ],
         },
-    };
+    },
+];
 
 export default definitions;
 module.exports = definitions;
