@@ -525,77 +525,6 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    /*TOQCB2_settings: {
-        key: [
-            'temperature_setting',
-            'temperature_threshold',
-            'under_voltage_setting',
-            'under_voltage_threshold',
-            'over_current_setting',
-            'current_threshold',
-            'over_voltage_setting',
-            'over_voltage_threshold',
-            'over_power_setting',
-            'over_power_threshold',
-            'restore_default'
-        ],
-        convertSet: async (entity, key, value, meta) => {
-            const settingType = {'trip': 2, 'alarm': 1, 'closed': 0};
-            // const typeswitch = {'ON':true, 'OFF':false}
-            let dp_key = -1; // value if not found
-            const tuyadatapoints_list = meta.mapped.meta.tuyaDatapoints
-            for (let i = 0; i < tuyadatapoints_list.length; i++) {
-                if (tuyadatapoints_list[i][1] === key) {
-                    dp_key = tuyadatapoints_list[i][0];
-                break;
-                }
-            }
-            switch (key) {
-                case 'temperature_setting': {
-                    await tuya.sendDataPointEnum(entity, dp_key, utils.getFromLookup(value, settingType));
-                    break;
-                }
-                case 'temperature_threshold': {
-                    await tuya.sendDataPointValue(entity, dp_key, value*10);
-                    break;
-                }
-                case 'under_voltage_setting': {
-                    await tuya.sendDataPointEnum(entity, dp_key, utils.getFromLookup(value, settingType));
-                    break;
-                }
-                case 'under_voltage_threshold': {
-                    await tuya.sendDataPointValue(entity, dp_key, value);
-                    break;
-                }        
-                case 'over_voltage_setting': {
-                    await tuya.sendDataPointEnum(entity, dp_key, utils.getFromLookup(value, settingType));
-                    break;
-                }
-                case 'over_voltage_threshold': {
-                    await tuya.sendDataPointValue(entity, dp_key, value);
-                    break;
-                }
-                case 'over_power_setting': {
-                    await tuya.sendDataPointEnum(entity, dp_key, utils.getFromLookup(value, settingType));
-                    break;
-                }
-                case 'over_power_threshold': {
-                    await tuya.sendDataPointValue(entity, dp_key, value);
-                    break;
-                }
-                case 'over_current_setting': {
-                    await tuya.sendDataPointEnum(entity, dp_key, utils.getFromLookup(value, settingType));
-                    break;
-                }
-                case 'current_threshold': {
-                    await tuya.sendDataPointValue(entity, dp_key, value);
-                    break;
-                }
-            default: // Unknown key
-                meta.logger.warn(`Unhandled key ${key}`);
-            }
-        },
-    } satisfies Tz.Converter,*/
 };
 
 const fzLocal = {
@@ -10535,9 +10464,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Smart Circuit breaker',
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints, 
-                   //tzLocal.TOQCB2_settings
-                  ],
+        toZigbee: [tuya.tz.datapoints],
         // Important: respondToMcuVersionResponse should be false otherweise there are an avalanche of commandMcuVersionResponse messages every second.
         // queryIntervalSeconds: is doing a pooling to update device's parameters, now define to update data every 3 minutes.
         onEvent: tuya.onEvent({respondToMcuVersionResponse:false, queryIntervalSeconds: 3 * 60}),
@@ -10578,63 +10505,63 @@ const definitions: Definition[] = [
                     'Value_15', 
                     'Value_16', 
                     'Factory_reset']).withDescription('Last event'),
-        e
-            .enum('over_current_setting', ea.STATE_SET, ['closed', 'alarm', 'trip'])
-            .withDescription('Action if threshold value is reached'),
-        e
-            .numeric('current_threshold', ea.STATE_SET)
-            .withValueMin(1)
-            .withValueMax(63)
-            .withValueStep(1)
-            .withUnit('A')
-            .withDescription('Current threshold setting'),
-        e
-            .enum('under_voltage_setting', ea.STATE_SET, ['closed', 'alarm', 'trip'])
-            .withDescription('Action if threshold value is reached'),
-        e
-            .numeric('under_voltage_threshold', ea.STATE_SET)
-            .withValueMin(145)
-            .withValueMax(220)
-            .withValueStep(1)
-            .withUnit('V')
-            .withDescription('Under_voltage threshold setting'),
-        e
-            .enum('over_voltage_setting', ea.STATE_SET, ['closed', 'alarm', 'trip'])
-            .withDescription('Action if threshold value is reached'),
-        e
-            .numeric('over_voltage_threshold', ea.STATE_SET)
-            .withValueMin(245)
-            .withValueMax(295)
-            .withValueStep(1)
-            .withUnit('V')
-            .withDescription('Over-voltage threshold setting'),
-        e
-            .enum('over_power_setting', ea.STATE_SET, ['closed', 'alarm', 'trip'])
-            .withDescription('Action if threshold value is reached'),
-        e
-            .numeric('over_power_threshold', ea.STATE_SET)
-            .withValueMin(200)
-            .withValueMax(20000)
-            .withValueStep(100)
-            .withUnit('W')
-            .withDescription('Over-power threshold setting'),
-        e
-            .enum('temperature_setting', ea.STATE_SET, ['closed', 'alarm', 'trip'])
-            .withDescription('Action if threshold value is reached'),
-        e
-            .numeric('temperature_threshold', ea.STATE_SET)
-            .withValueMin(-40)
-            .withValueMax(100)
-            .withValueStep(1)
-            .withUnit('°C')
-            .withDescription('Temperature threshold setting'),
-        e
-            .binary('clear_fault', ea.STATE_SET, 'ON', 'OFF')
-            .withDescription('Recover from an incident'),
-        e
-            .binary('factory_reset', ea.STATE_SET, 'ON', 'OFF')
-            .withDescription('Back to factory settings, USE WITH CAUTION'),
-    ],
+            e
+                .enum('over_current_setting', ea.STATE_SET, ['closed', 'alarm', 'trip'])
+                .withDescription('Action if threshold value is reached'),
+            e
+                .numeric('current_threshold', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(63)
+                .withValueStep(1)
+                .withUnit('A')
+                .withDescription('Current threshold setting'),
+            e
+                .enum('under_voltage_setting', ea.STATE_SET, ['closed', 'alarm', 'trip'])
+                .withDescription('Action if threshold value is reached'),
+            e
+                .numeric('under_voltage_threshold', ea.STATE_SET)
+                .withValueMin(145)
+                .withValueMax(220)
+                .withValueStep(1)
+                .withUnit('V')
+                .withDescription('Under_voltage threshold setting'),
+            e
+                .enum('over_voltage_setting', ea.STATE_SET, ['closed', 'alarm', 'trip'])
+                .withDescription('Action if threshold value is reached'),
+            e
+                .numeric('over_voltage_threshold', ea.STATE_SET)
+                .withValueMin(245)
+                .withValueMax(295)
+                .withValueStep(1)
+                .withUnit('V')
+                .withDescription('Over-voltage threshold setting'),
+            e
+                .enum('over_power_setting', ea.STATE_SET, ['closed', 'alarm', 'trip'])
+                .withDescription('Action if threshold value is reached'),
+            e
+                .numeric('over_power_threshold', ea.STATE_SET)
+                .withValueMin(200)
+                .withValueMax(20000)
+                .withValueStep(100)
+                .withUnit('W')
+                .withDescription('Over-power threshold setting'),
+            e
+                .enum('temperature_setting', ea.STATE_SET, ['closed', 'alarm', 'trip'])
+                .withDescription('Action if threshold value is reached'),
+            e
+                .numeric('temperature_threshold', ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit('°C')
+                .withDescription('Temperature threshold setting'),
+            e
+                .binary('clear_fault', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Recover from an incident'),
+            e
+                .binary('factory_reset', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Back to factory settings, USE WITH CAUTION'),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, 'energy', tuya.valueConverter.divideBy100],
