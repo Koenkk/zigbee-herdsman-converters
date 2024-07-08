@@ -2611,7 +2611,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_gbagoilo']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_gbagoilo', '_TZE204_gbagoilo']),
         model: 'MG-ZG01W',
         vendor: 'Tuya',
         description: '1 gang switch with power meter',
