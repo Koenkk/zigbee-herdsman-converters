@@ -525,7 +525,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    TOQCB2_settings: {
+    /*TOQCB2_settings: {
         key: [
             'temperature_setting',
             'temperature_threshold',
@@ -595,7 +595,7 @@ const tzLocal = {
                 meta.logger.warn(`Unhandled key ${key}`);
             }
         },
-    } satisfies Tz.Converter,
+    } satisfies Tz.Converter,*/
 };
 
 const fzLocal = {
