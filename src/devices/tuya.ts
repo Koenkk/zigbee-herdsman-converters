@@ -7854,7 +7854,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Lerlink', model: 'T2-Z67/T2-W67'}],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml', '_TZE200_qanl25yu']),
         model: 'TS0601_fan_and_light_switch',
         vendor: 'Tuya',
         description: 'Fan & light switch',
@@ -7865,7 +7865,7 @@ const definitions: Definition[] = [
             e.binary('status_indication', ea.STATE_SET, 'ON', 'OFF').withDescription('Light switch'),
             tuya.exposes.switch(),
             e.power_on_behavior(['OFF', 'ON']).withAccess(ea.STATE_SET),
-            e.enum('fan_speed', ea.STATE_SET, ['minimum', 'medium', 'maximum']).withDescription('Speed off the fan'),
+            e.enum('fan_speed', ea.STATE_SET, ['minimum', 'medium', 'maximum']).withDescription('Speed of the fan'),
         ],
         meta: {
             tuyaDatapoints: [
