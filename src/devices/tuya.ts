@@ -10535,7 +10535,9 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Smart Circuit breaker',
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints, tzLocal.TOQCB2_settings],
+        toZigbee: [tuya.tz.datapoints, 
+                   //tzLocal.TOQCB2_settings
+                  ],
         // Important: respondToMcuVersionResponse should be false otherweise there are an avalanche of commandMcuVersionResponse messages every second.
         // queryIntervalSeconds: is doing a pooling to update device's parameters, now define to update data every 3 minutes.
         onEvent: tuya.onEvent({respondToMcuVersionResponse:false, queryIntervalSeconds: 3 * 60}),
