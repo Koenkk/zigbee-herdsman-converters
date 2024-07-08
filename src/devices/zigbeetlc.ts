@@ -17,8 +17,8 @@ const extend = {
         cluster: 'hvacUserInterfaceCfg',
         attribute: {ID: 0x0105, type: Zcl.DataType.UINT16},
         valueMin: 0,
-        valueMax: 9999,
-        scale: 10,
+        valueMax: 100,
+        scale: 100,
         description: 'Comfort parameters/Humidity maximum, in 1% steps, default 60.00%.',
     }),
     comfortHumidityMin: numeric({
@@ -27,8 +27,8 @@ const extend = {
         cluster: 'hvacUserInterfaceCfg',
         attribute: {ID: 0x0104, type: Zcl.DataType.UINT16},
         valueMin: 0,
-        valueMax: 9999,
-        scale: 10,
+        valueMax: 100,
+        scale: 100,
         description: 'Comfort parameters/Humidity minimum, in 1% steps, default 40.00%',
     }),
     comfortTemperatureMin: numeric({
@@ -39,7 +39,7 @@ const extend = {
         valueMin: -50.0,
         valueMax: 120.0,
         valueStep: 0.01,
-        scale: 10,
+        scale: 100,
         description: 'Comfort parameters/Temperature minimum, in 0.01°C steps, default 20.00°C.',
     }),
     comfortTemperatureMax: numeric({
@@ -50,7 +50,7 @@ const extend = {
         valueMin: -50.0,
         valueMax: 120.0,
         valueStep: 0.01,
-        scale: 10,
+        scale: 100,
         description: 'Comfort parameters/Temperature maximum, in 0.01°C steps, default 25.00°C.',
     }),
     display: binary({
@@ -74,7 +74,7 @@ const extend = {
         valueMin: -50.0,
         valueMax: 50.0,
         valueStep: 0.01,
-        scale: 10,
+        scale: 100,
         description: 'Humidity calibration, in 0.01% steps, default 0%.',
     }),
     measurementInterval: numeric({
@@ -94,7 +94,7 @@ const extend = {
         valueMin: -50.0,
         valueMax: 50.0,
         valueStep: 0.01,
-        scale: 10,
+        scale: 100,
         description: 'Temperature calibration, in 0.01° steps, default 0 °C.',
     }),
     tempDisplayMode: enumLookup({
