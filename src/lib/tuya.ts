@@ -170,33 +170,16 @@ export async function onEventMeasurementPoll(
     metering = false,
 ) {
     const endpoint = device.getEndpoint(1);
-    if (type === 'stop') {
-        clearTimeout(globalStore.getValue(device, 'measurement_poll'));
-        globalStore.clearValue(device, 'measurement_poll');
-    } else if (!globalStore.hasValue(device, 'measurement_poll')) {
-        const seconds = utils.toNumber(
-            options && options.measurement_poll_interval ? options.measurement_poll_interval : 60,
-            'measurement_poll_interval',
-        );
-        if (seconds === -1) return;
-        const setTimer = () => {
-            const timer = setTimeout(async () => {
-                try {
-                    if (electricalMeasurement) {
-                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
-                    }
-                    if (metering) {
-                        await endpoint.read('seMetering', ['currentSummDelivered']);
-                    }
-                } catch (error) {
-                    /* Do nothing*/
-                }
-                setTimer();
-            }, seconds * 1000);
-            globalStore.putValue(device, 'measurement_poll', timer);
-        };
-        setTimer();
-    }
+    const poll = async () => {
+        if (electricalMeasurement) {
+            await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
+        }
+        if (metering) {
+            await endpoint.read('seMetering', ['currentSummDelivered']);
+        }
+    };
+
+    utils.onEventPoll(type, data, device, options, 'measurement', 60, poll);
 }
 
 export async function onEventSetTime(type: OnEventType, data: KeyValue, device: Zh.Device) {

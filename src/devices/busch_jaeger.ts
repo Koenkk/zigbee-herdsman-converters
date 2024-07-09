@@ -6,8 +6,10 @@ import {onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {Definition} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
@@ -141,29 +143,29 @@ const definitions: Definition[] = [
             legacy.fz.RM01_down_hold,
             legacy.fz.RM01_stop,
         ],
+        options: [
+            e
+                .numeric('state_poll_interval', ea.SET)
+                .withValueMin(-1)
+                .withDescription(
+                    `This device does not support state reporting so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.`,
+                ),
+        ],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
-        onEvent: async (type, data, device) => {
+        onEvent: async (type, data, device, options) => {
             const switchEndpoint = device.getEndpoint(0x12);
             if (switchEndpoint == null) {
                 return;
             }
             // This device doesn't support reporting.
-            // Therefore we read the on/off state every 5 seconds.
+            // Therefore we read the on/off state every 60 seconds.
             // This is the same way as the Hue bridge does it.
-            if (type === 'stop') {
-                clearInterval(globalStore.getValue(device, 'interval'));
-                globalStore.clearValue(device, 'interval');
-            } else if (!globalStore.hasValue(device, 'interval')) {
-                const interval = setInterval(async () => {
-                    try {
-                        await switchEndpoint.read('genOnOff', ['onOff']);
-                        await switchEndpoint.read('genLevelCtrl', ['currentLevel']);
-                    } catch (error) {
-                        // Do nothing
-                    }
-                }, 5000);
-                globalStore.putValue(device, 'interval', interval);
-            }
+            const poll = async () => {
+                await switchEndpoint.read('genOnOff', ['onOff']);
+                await switchEndpoint.read('genLevelCtrl', ['currentLevel']);
+            };
+
+            utils.onEventPoll(type, data, device, options, 'state', 60, poll);
         },
     },
 ];

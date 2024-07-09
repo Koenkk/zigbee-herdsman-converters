@@ -3,12 +3,47 @@ import {Zcl} from 'zigbee-herdsman';
 import {Feature, Light, Numeric} from './exposes';
 import {logger} from './logger';
 import * as globalStore from './store';
-import {Definition, Expose, Fz, KeyValue, KeyValueAny, Publish, Tz, Zh} from './types';
+import {Definition, Expose, Fz, KeyValue, KeyValueAny, OnEventData, OnEventType, Publish, Tz, Zh} from './types';
 
 const NS = 'zhc:utils';
 
 export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
+}
+
+export function onEventPoll(
+    type: OnEventType,
+    data: OnEventData,
+    device: Zh.Device,
+    options: KeyValue,
+    key: string,
+    defaultIntervalSeconds: number,
+    poll: () => Promise<void>,
+) {
+    if (type === 'stop') {
+        clearTimeout(globalStore.getValue(device, key));
+        globalStore.clearValue(device, key);
+    } else if (!globalStore.hasValue(device, key)) {
+        const optionsKey = `${key}_poll_interval`;
+        const seconds = toNumber(options[optionsKey] ?? defaultIntervalSeconds, optionsKey);
+        if (seconds <= 0) {
+            logger.debug(`Not polling '${key}' for '${device.ieeeAddr}' since poll interval is <= 0 (got ${seconds})`, NS);
+        } else {
+            logger.debug(`Polling '${key}' for '${device.ieeeAddr}' at an interval of ${seconds}`, NS);
+            const setTimer = () => {
+                const timer = setTimeout(async () => {
+                    try {
+                        await poll();
+                    } catch (error) {
+                        /* Do nothing*/
+                    }
+                    setTimer();
+                }, seconds * 1000);
+                globalStore.putValue(device, key, timer);
+            };
+            setTimer();
+        }
+    }
 }
 
 export function precisionRound(number: number, precision: number): number {
