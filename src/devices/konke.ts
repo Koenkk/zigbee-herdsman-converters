@@ -70,7 +70,7 @@ const definitions: Definition[] = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        zigbeeModel: ['3AFE010104020028'],
+        zigbeeModel: ['3AFE010104020028', 'LH05121'],
         model: 'TW-S1',
         description: 'Photoelectric smoke detector',
         vendor: 'Konke',
