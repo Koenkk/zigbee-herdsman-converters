@@ -248,6 +248,7 @@ import smartwings from './smartwings';
 import smlight from './smlight';
 import sohan_electric from './sohan_electric';
 import solaredge from './solaredge';
+import soma from './soma';
 import somfy from './somfy';
 import somgoms from './somgoms';
 import sonoff from './sonoff';
@@ -552,6 +553,7 @@ export default [
     ...smlight,
     ...sohan_electric,
     ...solaredge,
+    ...soma,
     ...somfy,
     ...somgoms,
     ...sonoff,
