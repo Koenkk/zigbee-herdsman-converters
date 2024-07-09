@@ -10486,7 +10486,7 @@ const definitions: Definition[] = [
             tuya.exposes.currentWithPhase('b'), 
             tuya.exposes.currentWithPhase('c'),
             e.numeric('forward_electricity', ea.STATE).withUnit('kwh'),
-            e.enum('last_event1', ea.STATE, 
+            e.enum('last_event', ea.STATE, 
                    ['normal', 
                     'trip_over-current', 
                     'trip_over-power', 
