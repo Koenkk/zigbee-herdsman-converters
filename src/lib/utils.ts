@@ -638,12 +638,17 @@ export function toNumber(value: unknown, property?: string): number {
 }
 
 export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V = undefined, keyIsBool: boolean = false): V {
-    let result = undefined;
     if (!keyIsBool) {
         if (typeof value === 'string') {
-            result = lookup[value] ?? lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
+            for (const key of [value, value.toLowerCase(), value.toUpperCase()]) {
+                if (lookup.hasOwnProperty(key)) {
+                    return lookup[key];
+                }
+            }
         } else if (typeof value === 'number') {
-            result = lookup[value];
+            if (lookup.hasOwnProperty(value)) {
+                return lookup[value];
+            }
         } else {
             throw new Error(`Expected string or number, got: ${typeof value}`);
         }
@@ -651,15 +656,19 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
         // Silly hack, but boolean is not supported as index
         if (typeof value === 'boolean') {
             const stringValue = value.toString();
-            result = lookup[stringValue] ?? lookup[stringValue.toLowerCase()] ?? lookup[stringValue.toUpperCase()];
+            for (const key of [stringValue, stringValue.toLowerCase(), stringValue.toUpperCase()]) {
+                if (lookup.hasOwnProperty(key)) {
+                    return lookup[key];
+                }
+            }
         } else {
             throw new Error(`Expected boolean, got: ${typeof value}`);
         }
     }
-    if (result === undefined && defaultValue === undefined) {
+    if (defaultValue === undefined) {
         throw new Error(`Value: '${value}' not found in: [${Object.keys(lookup).join(', ')}]`);
     }
-    return result ?? defaultValue;
+    return defaultValue;
 }
 
 export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string = undefined): string {
