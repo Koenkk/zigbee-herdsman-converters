@@ -10599,6 +10599,8 @@ const definitions: Definition[] = [
                 [119, 'over_power_threshold', tuya.valueConverter.raw],
                 //[125, 'forward_electricity', tuya.valueConverter.divideBy100],
                 [131, 'temperature', tuya.valueConverter.divideBy10],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_nbkshs6k']),
