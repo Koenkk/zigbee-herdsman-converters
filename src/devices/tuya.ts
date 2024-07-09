@@ -10458,6 +10458,32 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_nbkshs6k']),
+        model: 'ZY-M100-S_3',
+        vendor: 'Tuya',
+        description: 'Human presence detector',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.presence(),
+            e.illuminance_lux(),
+            e
+                .enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])
+                .withDescription('PIR sensor sensitivity (refresh and update only while active)'),
+            e.enum('keep_time', ea.STATE_SET, ['30', '60', '120']).withDescription('PIR keep time in seconds (refresh and update only while active)'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverterBasic.lookup({True: 0, False: 1})],
+                [9, 'sensitivity', tuya.valueConverterBasic.lookup({low: tuya.enum(0), medium: tuya.enum(1), high: tuya.enum(2)})],
+                [10, 'keep_time', tuya.valueConverterBasic.lookup({'30': tuya.enum(0), '60': tuya.enum(1), '120': tuya.enum(2)})],
+                [12, 'illuminance_lux', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
 
 export default definitions;
