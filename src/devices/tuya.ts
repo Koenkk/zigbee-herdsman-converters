@@ -2597,7 +2597,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ojtqawav']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ojtqawav', '_TZE204_gbagoilo']),
         model: 'TS0601_switch_1_gang',
         vendor: 'Tuya',
         description: '1 gang switch',
@@ -7854,7 +7854,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Lerlink', model: 'T2-Z67/T2-W67'}],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml', '_TZE200_qanl25yu']),
         model: 'TS0601_fan_and_light_switch',
         vendor: 'Tuya',
         description: 'Fan & light switch',
@@ -7865,7 +7865,7 @@ const definitions: Definition[] = [
             e.binary('status_indication', ea.STATE_SET, 'ON', 'OFF').withDescription('Light switch'),
             tuya.exposes.switch(),
             e.power_on_behavior(['OFF', 'ON']).withAccess(ea.STATE_SET),
-            e.enum('fan_speed', ea.STATE_SET, ['minimum', 'medium', 'maximum']).withDescription('Speed off the fan'),
+            e.enum('fan_speed', ea.STATE_SET, ['minimum', 'medium', 'maximum']).withDescription('Speed of the fan'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -10461,7 +10461,7 @@ const definitions: Definition[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_q22avxbv', '_TZE204_mrffaamu']),
         model: 'TOQCB2-80',
-        vendor: 'TuYa',
+        vendor: 'Tuya',
         description: 'Smart circuit breaker',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -10599,6 +10599,30 @@ const definitions: Definition[] = [
                 [119, 'over_power_threshold', tuya.valueConverter.raw],
                 //[125, 'forward_electricity', tuya.valueConverter.divideBy100],
                 [131, 'temperature', tuya.valueConverter.divideBy10],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_nbkshs6k']),
+        model: 'ZY-M100-S_3',
+        vendor: 'Tuya',
+        description: 'Human presence detector',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.presence(),
+            e.illuminance_lux(),
+            e
+                .enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])
+                .withDescription('PIR sensor sensitivity (refresh and update only while active)'),
+            e.enum('keep_time', ea.STATE_SET, ['30', '60', '120']).withDescription('PIR keep time in seconds (refresh and update only while active)'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverterBasic.lookup({True: 0, False: 1})],
+                [9, 'sensitivity', tuya.valueConverterBasic.lookup({low: tuya.enum(0), medium: tuya.enum(1), high: tuya.enum(2)})],
+                [10, 'keep_time', tuya.valueConverterBasic.lookup({'30': tuya.enum(0), '60': tuya.enum(1), '120': tuya.enum(2)})],
+                [12, 'illuminance_lux', tuya.valueConverter.raw],
             ],
         },
     },

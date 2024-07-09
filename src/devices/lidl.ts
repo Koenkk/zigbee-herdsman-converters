@@ -12,6 +12,16 @@ import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
 import * as utils from '../lib/utils';
 
+const fzLocal = {
+    FB20002_on: {
+        cluster: 'genOnOff',
+        type: 'commandTuyaAction',
+        convert: async (model, msg, publish, options, meta) => {
+            return {action: 'on'};
+        },
+    } satisfies Fz.Converter,
+};
+
 const valueConverterLocal = {
     wateringState: {
         from: (value: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
@@ -307,7 +317,7 @@ const definitions: Definition[] = [
         exposes: [
             e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down']),
         ],
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fzLocal.FB20002_on],
         toZigbee: [],
     },
     {

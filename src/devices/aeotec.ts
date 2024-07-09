@@ -28,7 +28,7 @@ const definitions: Definition[] = [
         vendor: 'AEOTEC',
         description: 'Pico switch with power meter',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}, multiEndpointSkip: ['state', 'voltage', 'power', 'current', 'energy']}),
             deviceTemperature(),
             identify(),
             onOff({powerOnBehavior: false}),
