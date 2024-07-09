@@ -1,5 +1,28 @@
 # Changelog
 
+## [19.66.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.65.0...v19.66.0) (2024-07-09)
+
+
+### Features
+
+* **add:** SmartShades3 [@ratsept](https://github.com/ratsept) https://github.com/Koenkk/zigbee2mqtt/issues/23287 ([6eeb4a9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6eeb4a9cb510779873c53ff6b6a6379fed83e08d))
+* **add:** TOQCB2-80 ([#7752](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7752)) ([61dcfc8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/61dcfc82387fbaf2b672c6e4badb6e5f1400650b))
+* **add:** ZMR4 ([#7734](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7734)) ([c0cd207](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c0cd2072e0eadc345d1a48cb3432241e6a10081a))
+* **add:** ZY-M100-S_3 ([#7742](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7742)) ([2cd4283](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2cd4283d7c102eb63461da255489bae05c534294))
+* Make 6735/6736/6737 state poll interval configurable and default to 60 seconds https://github.com/Koenkk/zigbee-herdsman-converters/issues/7733 ([6f5707b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f5707bff5f79bc8c6c7dc1b78c9b4d8a4d0f607))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_ypgri8yz` as Girier ZB08 ([#7744](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7744)) ([56fc8a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/56fc8a42a1973887efa390c5d23c8a9102df8961))
+* **detect:** Detect `_TZE204_gbagoilo` as TS0601_switch_1_gang and `_TZE200_qanl25yu` as TS0601_fan_and_light_switch ([#7751](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7751)) ([7572c9f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7572c9f8516a76ba9691ee470675b6c1f66b4915))
+* **detect:** Detect `LH05121` as Konke TW-S1 [@serot23](https://github.com/serot23) https://github.com/Koenkk/zigbee2mqtt/issues/23268 ([ba04002](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ba04002f9b2e110d1d3f8f962163796d999c4409))
+* Fix AEOTEC ZGA002 state, voltage, power, current and energy postfix ([#7745](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7745)) ([1c04b56](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c04b56b8d6ce505ac339008857ff95e66eced92))
+* Fix Lidl FB20-002 not sending on action after triggering it once https://github.com/Koenkk/zigbee2mqtt/issues/6509 ([1fe26bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1fe26bb1ed52f10ab7c7a7b219d500476f852958))
+* Ignore reported battery % if battery % is computed from voltage ([#7681](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7681)) ([3ffbe2f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3ffbe2f59c0becbe21bef68d452232caa51f9f25))
+* **ignore:** update dependencies ([#7746](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7746)) ([6612be1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6612be1c2c58701c70772c414e86bb04e1611fe7))
+* ZigbeeTLc: Adjust parameter scaling to ZigbeeTLc firmware v1.2.2 ([#7753](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7753)) ([ab8e0e8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab8e0e8d61144d4ebe5bf0d3765308cd1f3f0199))
+
 ## [19.65.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.64.0...v19.65.0) (2024-07-06)
 
 
