@@ -10459,7 +10459,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_q22avxbv']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_q22avxbv', '_TZE204_mrffaamu']),
         model: 'TOQCB2-80',
         vendor: 'TuYa',
         description: 'Smart Circuit breaker',
