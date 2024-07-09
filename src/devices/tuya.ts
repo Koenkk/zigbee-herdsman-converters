@@ -10441,9 +10441,9 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_nbkshs6k']),
-        model: 'ZY-M100-S_2',
+        model: 'ZY-M100-S_3',
         vendor: 'Tuya',
-        description: 'Human Presence Detector',
+        description: 'Human presence detector',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
