@@ -10660,20 +10660,81 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         exposes: [
-            e.enum('presence_state', ea.STATE, ['none', 'presence', 'peaceful', 'small movement', 'large movement']).withDescription('\'none\', \'peaceful\' or \'large movement\''),
-            e.numeric('target_distance', ea.STATE).withValueMin(0).withValueMax(10).withValueStep(0.01).withUnit('m').withDescription('Target distance'),
+            e
+                .enum('presence_state', ea.STATE, ['none', 'presence', 'peaceful', 'small movement', 'large movement'])
+                .withDescription('\'none\', \'peaceful\' or \'large movement\''),
+            e
+            .numeric('target_distance', ea.STATE)
+                .withValueMin(0).withValueMax(10).withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Target distance'),
             e.illuminance_lux(),
             e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED Indicator'),
-            e.numeric('none_delay_time', ea.STATE_SET).withValueMin(0).withValueMax(28800).withValueStep(1).withUnit('Sec').withDescription('Hold delay time'),
-            e.numeric('move_detection_max', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.01).withUnit('m').withDescription('Move detection max distance'),
-            e.numeric('move_detection_min', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.01).withUnit('m').withDescription('Move detection min distance'),
-            e.numeric('small_move_detection_max', ea.STATE_SET).withValueMin(0).withValueMax(6).withValueStep(0.01).withUnit('m').withDescription('Small move detection max distance'),
-            e.numeric('small_move_detection_min', ea.STATE_SET).withValueMin(0).withValueMax(6).withValueStep(0.01).withUnit('m').withDescription('Small move detection min distance'),
-            e.numeric('breath_detection_max', ea.STATE_SET).withValueMin(0).withValueMax(6).withValueStep(0.01).withUnit('m').withDescription('Breath detection max distance'),
-            e.numeric('breath_detection_min', ea.STATE_SET).withValueMin(0).withValueMax(6).withValueStep(0.01).withUnit('m').withDescription('Breath detection min distance'),
-            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Move sensitivity'),
-            e.numeric('breath_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Breath sensitivity'),
-            e.numeric('small_move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Small Move sensitivity'),
+            e
+                .numeric('none_delay_time', ea.STATE_SET)
+                .withValueMin(0).withValueMax(28800)
+                .withValueStep(1).withUnit('Sec')
+                .withDescription('Hold delay time'),
+            e
+                .numeric('move_detection_max', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Move detection max distance'),
+            e
+                .numeric('move_detection_min', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Move detection min distance'),
+            e
+                .numeric('small_move_detection_max', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Small move detection max distance'),
+            e
+                .numeric('small_move_detection_min', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Small move detection min distance'),
+            e
+                .numeric('breath_detection_max', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Breath detection max distance'),
+            e
+                .numeric('breath_detection_min', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Breath detection min distance'),
+            e
+                .numeric('move_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Move sensitivity'),
+            e
+                .numeric('breath_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Breath sensitivity'),
+            e
+                .numeric('small_move_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Small Move sensitivity'),
         ],
         meta: {
             tuyaDatapoints: [
