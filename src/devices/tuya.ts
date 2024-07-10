@@ -10664,7 +10664,7 @@ const definitions: Definition[] = [
                 .enum('presence_state', ea.STATE, ['none', 'presence', 'peaceful', 'small movement', 'large movement'])
                 .withDescription('\'none\', \'peaceful\' or \'large movement\''),
             e
-            .numeric('target_distance', ea.STATE)
+                .numeric('target_distance', ea.STATE)
                 .withValueMin(0).withValueMax(10).withValueStep(0.01)
                 .withUnit('m')
                 .withDescription('Target distance'),
@@ -10740,7 +10740,8 @@ const definitions: Definition[] = [
             tuyaDatapoints: [
                 [
                     1,
-                    'presence_state', tuya.valueConverterBasic.lookup({
+                    'presence_state',
+                    tuya.valueConverterBasic.lookup({
                         'none': tuya.enum(0),
                         'presence': tuya.enum(1),
                         'peaceful': tuya.enum(2),
