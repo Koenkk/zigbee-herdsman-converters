@@ -1277,6 +1277,16 @@ const tuyaTz = {
             'keysound',
             'handlesound',
             'calibrate',
+            'none_delay_time',
+            'move_detection_max',
+            'move_detection_min',
+            'small_move_detection_max',
+            'small_move_detection_min',
+            'breath_detection_max',
+            'breath_detection_min',
+            'move_sensitivity',
+            'small_move_sensitivity',
+            'breath_sensitivity',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
