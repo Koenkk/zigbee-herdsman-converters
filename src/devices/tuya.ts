@@ -3361,6 +3361,7 @@ const definitions: Definition[] = [
             '_TZ3000_g92baclx',
             '_TZ3000_qlai3277',
             '_TZ3000_qaabwu5c',
+            '_TZ3000_hzlsaltw',
         ]),
         model: 'TS0001_power',
         description: 'Switch with power monitoring',
