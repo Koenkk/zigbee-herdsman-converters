@@ -10738,13 +10738,16 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'presence_state', tuya.valueConverterBasic.lookup({
-                    'none': tuya.enum(0),
-                    'presence': tuya.enum(1),
-                    'peaceful': tuya.enum(2),
-                    'small movement': tuya.enum(3),
-                    'large movement': tuya.enum(4),
-                })],
+                [
+                    1,
+                    'presence_state', tuya.valueConverterBasic.lookup({
+                        'none': tuya.enum(0),
+                        'presence': tuya.enum(1),
+                        'peaceful': tuya.enum(2),
+                        'small movement': tuya.enum(3),
+                        'large movement': tuya.enum(4),
+                    }),
+                ],
                 [101, 'target_distance', tuya.valueConverter.divideBy100],
                 [102, 'illuminance_lux', tuya.valueConverter.raw],
                 [103, 'none_delay_time', tuya.valueConverter.raw],
