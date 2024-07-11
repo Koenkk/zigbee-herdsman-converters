@@ -1,5 +1,23 @@
 # Changelog
 
+## [19.67.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.66.0...v19.67.0) (2024-07-11)
+
+
+### Features
+
+* **add:** AE 262 https://github.com/Koenkk/zigbee2mqtt/issues/23318 ([1d35a97](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1d35a97a0e018fade53710931574fe0c4946973f))
+* **add:** TS0601_cover_10 [@ajgon](https://github.com/ajgon) https://github.com/Koenkk/zigbee2mqtt/discussions/19635 ([9446716](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94467162420380dc8f5b8ca6d8e9ccb3fc4353c7))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_hzlsaltw` as Tuya TS0001_power https://github.com/Koenkk/zigbee2mqtt/issues/23143 ([30a972e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30a972e19148c6f3c60615a7feb23ca3854be2c3))
+* **detect:** Detect `_TZE200_wktrysab` as Tuya TS0601_switch_8 https://github.com/Koenkk/zigbee2mqtt/issues/23315 ([23aeb42](https://github.com/Koenkk/zigbee-herdsman-converters/commit/23aeb427813172d232ef85bade556a6d73fd9d43))
+* Fix `getFromLookup` when retrieved value is `null` https://github.com/Koenkk/zigbee2mqtt/issues/21357 ([1d71b43](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1d71b43ab6c04303e765787a6ff477401f806f5c))
+* Fix Lumi ZNJLBL01LM position incorrect when device restarts https://github.com/Koenkk/zigbee2mqtt/issues/23056 ([371b6ac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/371b6ac1e241956d3883c6ca58ce0a21137c14b5))
+* Fix missing color command for ZG2858A ([#7757](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7757)) ([fed7357](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fed7357be3798a53a31aee35bfd5769c993e045d))
+* **ignore:** Update tuya.ts ([#7755](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7755)) ([0f09176](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f0917687d962efcca7788ac392d32fe76afdc16))
+
 ## [19.66.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.65.0...v19.66.0) (2024-07-09)
 
 
