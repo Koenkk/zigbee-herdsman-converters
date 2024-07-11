@@ -44,6 +44,13 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['AE 262'],
+        model: 'AE 262',
+        vendor: 'Innr',
+        description: 'Smart E26 LED bulb',
+        extend: [light({turnsOffAtBrightness1: true})],
+    },
+    {
         zigbeeModel: ['RCL 240 T'],
         model: 'RCL 240 T',
         vendor: 'Innr',
