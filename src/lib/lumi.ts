@@ -4566,7 +4566,10 @@ export const toZigbee = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            if (!Array.isArray(meta.mapped) && ['ZNCLBL01LM'].includes(meta.mapped.model)) {
+            if (!Array.isArray(meta.mapped) && 'ZNJLBL01LM' == meta.mapped.model) {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/23056
+                logger.debug(`Not reading position of ZNJLBL01LM since device doesn't support it`, NS);
+            } else if (!Array.isArray(meta.mapped) && ['ZNCLBL01LM'].includes(meta.mapped.model)) {
                 await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
             } else {
                 await entity.read('genAnalogOutput', [0x0055]);
