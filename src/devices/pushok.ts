@@ -193,7 +193,7 @@ const definitions: Definition[] = [
                 name: 'set_op_mode',
                 lookup: {Monitor: 0, Heater: 1, Cooler: 2},
                 cluster: 'genMultistateOutput',
-                attribute: 'presentValue', //Zcl.Clusters.genBinaryValue.attributes.presentValue,
+                attribute: 'presentValue',
                 zigbeeCommandOptions: {},
                 description: 'Operation mode',
                 access: 'ALL',
