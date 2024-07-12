@@ -10653,7 +10653,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dapwryy7']),
-        model: 'ZG-205Z',
+        model: 'ZG-205Z_',
         vendor: 'Tuya',
         description: '5.8 GHz human presence sensor',
         fromZigbee: [tuya.fz.datapoints],
