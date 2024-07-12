@@ -10652,6 +10652,66 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_303avxxt']),
+        model: 'TS011F_with_threshold',
+        description: 'Din rail switch with power monitoring and threshold settings',
+        vendor: 'Tuya',
+        ota: ota.zigbeeOTA,
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                electricalMeasurements: true,
+                electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
+                powerOutageMemory: true,
+                indicatorMode: true,
+            }),
+        ],
+        fromZigbee: [fzLocal.TS011F_threshold],
+        toZigbee: [tzLocal.TS011F_threshold],
+        exposes: [
+            e
+                .numeric('over_current_threshold', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(64)
+                .withValueStep(1)
+                .withUnit('A')
+                .withDescription('Over-current threshold'),
+            e.binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-current breaker'),
+            e
+                .numeric('over_voltage_threshold', ea.STATE_SET)
+                .withValueMin(220)
+                .withValueMax(265)
+                .withValueStep(1)
+                .withUnit('V')
+                .withDescription('Over-voltage threshold'),
+            e.binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-voltage breaker'),
+            e
+                .numeric('under_voltage_threshold', ea.STATE_SET)
+                .withValueMin(76)
+                .withValueMax(240)
+                .withValueStep(1)
+                .withUnit('V')
+                .withDescription('Under-voltage threshold'),
+            e.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Under-voltage breaker'),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await endpoint.command('genBasic', 'tuyaSetup', {});
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.rmsVoltage(endpoint, { change: 5 });
+            await reporting.rmsCurrent(endpoint, { change: 50 });
+            await reporting.activePower(endpoint, { change: 10 });
+            await reporting.currentSummDelivered(endpoint);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', { acCurrentDivisor: 1000, acCurrentMultiplier: 1 });
+            endpoint.saveClusterAttributeKeyValue('seMetering', { divisor: 100, multiplier: 1 });
+            device.save();
+        },
+        whiteLabel: [
+            tuya.whitelabel('Tomzn', 'TOB9Z-M', 'Smart circuit breaker', ['_TZ3000_303avxxt']),
+        ],
+    },
+
 ];
 
 export default definitions;
