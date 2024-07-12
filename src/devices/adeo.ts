@@ -410,6 +410,13 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ZB-SMART-PIRTH-V3'],
+        model: 'ZB-SMART-PIRTH-V3',
+        vendor: 'ADEO',
+        description: 'Smart 4 in 1 sensor',
+        extend: [battery(), identify(), illuminance(), temperature(), humidity(), iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
+    },
 ];
 
 export default definitions;
