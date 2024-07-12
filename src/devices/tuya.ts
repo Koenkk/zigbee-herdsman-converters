@@ -10660,6 +10660,7 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         exposes: [
+            e.presence(),
             e
                 .enum('presence_state', ea.STATE, ['none', 'presence', 'peaceful', 'small movement', 'large movement'])
                 .withDescription('The presence state'),
@@ -10740,14 +10741,22 @@ const definitions: Definition[] = [
             tuyaDatapoints: [
                 [
                     1,
-                    'presence_state',
-                    tuya.valueConverterBasic.lookup({
-                        'none': tuya.enum(0),
-                        'presence': tuya.enum(1),
-                        'peaceful': tuya.enum(2),
-                        'small movement': tuya.enum(3),
-                        'large movement': tuya.enum(4),
-                    }),
+                    null,
+                    {
+                        from: (v) => {
+                            const lookup = {
+                                none: tuya.enum(0),
+                                presence: tuya.enum(1),
+                                peaceful: tuya.enum(2),
+                                'small movement': tuya.enum(3),
+                                'large movement': tuya.enum(4)};
+                            const presenceState = Object.entries(lookup).find((i) => i[1].valueOf() === v)[0];
+                            return {
+                                presence: presenceState != 'none',
+                                presence_state: presenceState,
+                            };
+                        },
+                    },
                 ],
                 [101, 'target_distance', tuya.valueConverter.divideBy100],
                 [102, 'illuminance_lux', tuya.valueConverter.raw],
