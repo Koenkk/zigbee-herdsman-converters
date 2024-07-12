@@ -1,5 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
+import {battery, iasZoneAlarm, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
@@ -88,21 +89,13 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.vibration(), e.battery_low(), e.tamper()],
     },
-    zigbeeModel: ['MCT-302 SMA'],
-    model: 'MCT-302 SMA',
-    vendor: 'Visonic',
-    description: 'Magnetic door & window contact sensor',
-    fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery, fz.ignore_zclversion_read],
-    toZigbee: [],
-    meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
-    configure: async (device, coordinatorEndpoint, logger) => {
-        const endpoint = device.getEndpoint(1);
-        await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
-        await reporting.temperature(endpoint);
-        await reporting.batteryVoltage(endpoint);
+    {
+        zigbeeModel: ['MCT-302 SMA'],
+        model: 'MCT-302 SMA',
+        vendor: 'Visonic',
+        description: 'Magnetic door & window contact senso',
+        extend: [temperature(), battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
     },
-    exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
-    };
 ];
 
 export default definitions;
