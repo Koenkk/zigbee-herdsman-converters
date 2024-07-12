@@ -1,5 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
+import {battery, iasZoneAlarm, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
@@ -87,6 +88,13 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_vibration_alarm_1],
         toZigbee: [],
         exposes: [e.vibration(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['MCT-302 SMA'],
+        model: 'MCT-302 SMA',
+        vendor: 'Visonic',
+        description: 'Magnetic door & window contact senso',
+        extend: [temperature(), battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
     },
 ];
 
