@@ -10662,7 +10662,7 @@ const definitions: Definition[] = [
         exposes: [
             e
                 .enum('presence_state', ea.STATE, ['none', 'presence', 'peaceful', 'small movement', 'large movement'])
-                .withDescription('\'none\', \'peaceful\' or \'large movement\''),
+                .withDescription('The presence state'),
             e
                 .numeric('target_distance', ea.STATE)
                 .withValueMin(0).withValueMax(10).withValueStep(0.01)
