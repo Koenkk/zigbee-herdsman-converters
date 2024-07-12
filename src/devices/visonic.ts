@@ -88,6 +88,21 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.vibration(), e.battery_low(), e.tamper()],
     },
+    zigbeeModel: ['MCT-302 SMA'],
+    model: 'MCT-302 SMA',
+    vendor: 'Visonic',
+    description: 'Magnetic door & window contact sensor',
+    fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery, fz.ignore_zclversion_read],
+    toZigbee: [],
+    meta: {configureKey: 1, battery: {voltageToPercentage: '3V_2100'}},
+    configure: async (device, coordinatorEndpoint, logger) => {
+        const endpoint = device.getEndpoint(1);
+        await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+        await reporting.temperature(endpoint);
+        await reporting.batteryVoltage(endpoint);
+    },
+    exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
+    };
 ];
 
 export default definitions;
