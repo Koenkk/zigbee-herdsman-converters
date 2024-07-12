@@ -415,7 +415,9 @@ const definitions: Definition[] = [
         model: 'ZB-SMART-PIRTH-V3',
         vendor: 'ADEO',
         description: 'Smart 4 in 1 sensor',
-        extend: [battery(), identify(), illuminance(), temperature(), humidity(), iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
+        fromZigbee: [fz.battery],
+        exposes: [e.battery()],
+        extend: [identify(), illuminance(), temperature(), humidity(), iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
     },
 ];
 
