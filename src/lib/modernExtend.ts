@@ -196,6 +196,10 @@ export function setupConfigureForReading(cluster: string | number, attributes: (
     return configure;
 }
 
+export function autoDetectInputEndpoint(device: Zh.Device, cluster: string | number): Zh.Endpoint | Zh.Group {
+    return device.endpoints.find((e) => e.supportsInputCluster(cluster));
+}
+
 // #region General
 
 export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExtend {
@@ -355,13 +359,14 @@ export function battery(args?: BatteryArgs): ModernExtend {
             convertGet: async (entity, key, meta) => {
                 // Don't fail GET reqest if reading fails
                 // Split reading is needed for more clear debug logs
+                const ep = autoDetectInputEndpoint(meta.device, 'genPowerCfg');
                 try {
-                    await entity.read('genPowerCfg', ['batteryPercentageRemaining']);
+                    await ep.read('genPowerCfg', ['batteryPercentageRemaining']);
                 } catch (e) {
                     logger.debug(`Reading batteryPercentageRemaining failed: ${e}, device probably doesn't support it`, 'zhc:setupattribute');
                 }
                 try {
-                    await entity.read('genPowerCfg', ['batteryVoltage']);
+                    await ep.read('genPowerCfg', ['batteryVoltage']);
                 } catch (e) {
                     logger.debug(`Reading batteryVoltage failed: ${e}, device probably doesn't support it`, 'zhc:setupattribute');
                 }
@@ -719,7 +724,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
         {
             key: ['occupancy'],
             convertGet: async (entity, key, meta) => {
-                await entity.read('msOccupancySensing', ['occupancy']);
+                await autoDetectInputEndpoint(meta.device, 'msOccupancySensing').read('msOccupancySensing', ['occupancy']);
             },
         },
     ];
@@ -1769,14 +1774,14 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await entity.write(cluster, payload, zigbeeCommandOptions);
+                          await autoDetectInputEndpoint(meta.device, cluster).write(cluster, payload, zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await entity.read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await autoDetectInputEndpoint(meta.device, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -1900,14 +1905,14 @@ export function numeric(args: NumericArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await entity.write(cluster, payload, zigbeeCommandOptions);
+                          await autoDetectInputEndpoint(meta.device, cluster).write(cluster, payload, zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await entity.read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await autoDetectInputEndpoint(meta.device, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -1962,14 +1967,14 @@ export function binary(args: BinaryArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await entity.write(cluster, payload, zigbeeCommandOptions);
+                          await autoDetectInputEndpoint(meta.device, cluster).write(cluster, payload, zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await entity.read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await autoDetectInputEndpoint(meta.device, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
