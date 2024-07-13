@@ -421,7 +421,7 @@ const definitions: Definition[] = [
             illuminance(),
             temperature(),
             humidity(),
-            iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low']}),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
         ],
     },
 ];
