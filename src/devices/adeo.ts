@@ -412,7 +412,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['ZB-SMART-PIRTH-V3'],
-        model: 'ZB-SMART-PIRTH-V3',
+        model: '83633205',
         vendor: 'ADEO',
         description: 'Smart 4 in 1 sensor',
         fromZigbee: [fz.battery],
