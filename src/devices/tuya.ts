@@ -10652,6 +10652,124 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dapwryy7']),
+        model: 'ZG-205Z',
+        vendor: 'Tuya',
+        description: '5.8 GHz human presence sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        exposes: [
+            e.presence(),
+            e
+                .enum('presence_state', ea.STATE, ['none', 'presence', 'peaceful', 'small_movement', 'large_movement'])
+                .withDescription('The presence state'),
+            e
+                .numeric('target_distance', ea.STATE)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Target distance'),
+            e.illuminance_lux(),
+            e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED Indicator'),
+            e
+                .numeric('none_delay_time', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit('Sec')
+                .withDescription('Hold delay time'),
+            e
+                .numeric('move_detection_max', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Move detection max distance'),
+            e
+                .numeric('move_detection_min', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Move detection min distance'),
+            e
+                .numeric('small_move_detection_max', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Small move detection max distance'),
+            e
+                .numeric('small_move_detection_min', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Small move detection min distance'),
+            e
+                .numeric('breath_detection_max', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Breath detection max distance'),
+            e
+                .numeric('breath_detection_min', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Breath detection min distance'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Move sensitivity'),
+            e.numeric('breath_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Breath sensitivity'),
+            e
+                .numeric('small_move_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Small Move sensitivity'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    null,
+                    {
+                        from: (v) => {
+                            const lookup = {
+                                none: tuya.enum(0),
+                                presence: tuya.enum(1),
+                                peaceful: tuya.enum(2),
+                                small_movement: tuya.enum(3),
+                                large_movement: tuya.enum(4),
+                            };
+                            const presenceState = Object.entries(lookup).find((i) => i[1].valueOf() === v)[0];
+                            return {
+                                presence: presenceState != 'none',
+                                presence_state: presenceState,
+                            };
+                        },
+                    },
+                ],
+                [101, 'target_distance', tuya.valueConverter.divideBy100],
+                [102, 'illuminance_lux', tuya.valueConverter.raw],
+                [103, 'none_delay_time', tuya.valueConverter.raw],
+                [104, 'indicator', tuya.valueConverter.onOff],
+                [107, 'move_detection_max', tuya.valueConverter.divideBy100],
+                [108, 'move_detection_min', tuya.valueConverter.divideBy100],
+                [109, 'breath_detection_max', tuya.valueConverter.divideBy100],
+                [110, 'breath_detection_min', tuya.valueConverter.divideBy100],
+                [114, 'small_move_detection_max', tuya.valueConverter.divideBy100],
+                [115, 'small_move_detection_min', tuya.valueConverter.divideBy100],
+                [116, 'move_sensitivity', tuya.valueConverter.raw],
+                [117, 'small_move_sensitivity', tuya.valueConverter.raw],
+                [118, 'breath_sensitivity', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
 
 export default definitions;
