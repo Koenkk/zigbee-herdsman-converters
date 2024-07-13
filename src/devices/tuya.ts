@@ -7962,7 +7962,7 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cayepv1a', '_TZ3000_lepzuhto', '_TZ3000_qystbcjg', '_TZ3000_zrm3oxsh']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cayepv1a', '_TZ3000_lepzuhto', '_TZ3000_qystbcjg', '_TZ3000_zrm3oxsh', '_TZ3000_303avxxt']),
         model: 'TS011F_with_threshold',
         description: 'Din rail switch with power monitoring and threshold settings',
         vendor: 'Tuya',
@@ -7977,49 +7977,57 @@ const definitions: Definition[] = [
         ],
         fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
         toZigbee: [tzLocal.TS011F_threshold],
-        exposes: [
-            e.temperature(),
-            e
-                .numeric('temperature_threshold', ea.STATE_SET)
-                .withValueMin(40)
-                .withValueMax(100)
-                .withValueStep(1)
-                .withUnit('*C')
-                .withDescription('High temperature threshold'),
-            e.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High temperature breaker'),
-            e
-                .numeric('power_threshold', ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(26)
-                .withValueStep(1)
-                .withUnit('kW')
-                .withDescription('High power threshold'),
-            e.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High power breaker'),
-            e
-                .numeric('over_current_threshold', ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(64)
-                .withValueStep(1)
-                .withUnit('A')
-                .withDescription('Over-current threshold'),
-            e.binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-current breaker'),
-            e
-                .numeric('over_voltage_threshold', ea.STATE_SET)
-                .withValueMin(220)
-                .withValueMax(265)
-                .withValueStep(1)
-                .withUnit('V')
-                .withDescription('Over-voltage threshold'),
-            e.binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-voltage breaker'),
-            e
-                .numeric('under_voltage_threshold', ea.STATE_SET)
-                .withValueMin(76)
-                .withValueMax(240)
-                .withValueStep(1)
-                .withUnit('V')
-                .withDescription('Under-voltage threshold'),
-            e.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Under-voltage breaker'),
-        ],
+        exposes: (device, options) => {
+            const exposes: Expose[] = [e.linkquality()];
+            if (device?.manufacturerName !== '_TZ3000_303avxxt') {
+                exposes.push(
+                    e.temperature(),
+                    e
+                        .numeric('temperature_threshold', ea.STATE_SET)
+                        .withValueMin(40)
+                        .withValueMax(100)
+                        .withValueStep(1)
+                        .withUnit('*C')
+                        .withDescription('High temperature threshold'),
+                    e.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High temperature breaker'),
+                    e
+                        .numeric('power_threshold', ea.STATE_SET)
+                        .withValueMin(1)
+                        .withValueMax(26)
+                        .withValueStep(1)
+                        .withUnit('kW')
+                        .withDescription('High power threshold'),
+                    e.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High power breaker'),
+                );
+            }
+            exposes.push(
+                e
+                    .numeric('over_current_threshold', ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(64)
+                    .withValueStep(1)
+                    .withUnit('A')
+                    .withDescription('Over-current threshold'),
+                e.binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-current breaker'),
+                e
+                    .numeric('over_voltage_threshold', ea.STATE_SET)
+                    .withValueMin(220)
+                    .withValueMax(265)
+                    .withValueStep(1)
+                    .withUnit('V')
+                    .withDescription('Over-voltage threshold'),
+                e.binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-voltage breaker'),
+                e
+                    .numeric('under_voltage_threshold', ea.STATE_SET)
+                    .withValueMin(76)
+                    .withValueMax(240)
+                    .withValueStep(1)
+                    .withUnit('V')
+                    .withDescription('Under-voltage threshold'),
+                e.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Under-voltage breaker'),
+            );
+            return exposes;
+        },
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
@@ -8037,8 +8045,9 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Tongou', 'TO-Q-SY2-163JZT', 'Smart circuit breaker', ['_TZ3000_cayepv1a']),
             tuya.whitelabel('EARU', 'EAKCB-T-M-Z', 'Smart circuit breaker', ['_TZ3000_lepzuhto']),
-            tuya.whitelabel('EARU', 'EAYCB-Z-2P', 'Smart circuit breaker with Leakage Protection', ['_TZ3000_zrm3oxsh']),
-            tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart Circuit Breaker', ['_TZ3000_qystbcjg']),
+            tuya.whitelabel('EARU', 'EAYCB-Z-2P', 'Smart circuit breaker with leakage protection', ['_TZ3000_zrm3oxsh']),
+            tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart circuit Breaker', ['_TZ3000_qystbcjg']),
+            tuya.whitelabel('Tomzn', 'TOB9Z-M', 'Smart circuit breaker', ['_TZ3000_303avxxt']),
         ],
     },
     {
@@ -10653,65 +10662,123 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_303avxxt']),
-        model: 'TS011F_with_threshold',
-        description: 'Din rail switch with power monitoring and threshold settings',
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dapwryy7']),
+        model: 'ZG-205Z',
         vendor: 'Tuya',
-        ota: ota.zigbeeOTA,
-        extend: [
-            tuya.modernExtend.tuyaOnOff({
-                electricalMeasurements: true,
-                electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
-                powerOutageMemory: true,
-                indicatorMode: true,
-            }),
-        ],
-        fromZigbee: [fzLocal.TS011F_threshold],
-        toZigbee: [tzLocal.TS011F_threshold],
+        description: '5.8 GHz human presence sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
         exposes: [
+            e.presence(),
             e
-                .numeric('over_current_threshold', ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(64)
-                .withValueStep(1)
-                .withUnit('A')
-                .withDescription('Over-current threshold'),
-            e.binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-current breaker'),
+                .enum('presence_state', ea.STATE, ['none', 'presence', 'peaceful', 'small_movement', 'large_movement'])
+                .withDescription('The presence state'),
             e
-                .numeric('over_voltage_threshold', ea.STATE_SET)
-                .withValueMin(220)
-                .withValueMax(265)
-                .withValueStep(1)
-                .withUnit('V')
-                .withDescription('Over-voltage threshold'),
-            e.binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-voltage breaker'),
+                .numeric('target_distance', ea.STATE)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Target distance'),
+            e.illuminance_lux(),
+            e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED Indicator'),
             e
-                .numeric('under_voltage_threshold', ea.STATE_SET)
-                .withValueMin(76)
-                .withValueMax(240)
+                .numeric('none_delay_time', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(28800)
                 .withValueStep(1)
-                .withUnit('V')
-                .withDescription('Under-voltage threshold'),
-            e.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Under-voltage breaker'),
+                .withUnit('Sec')
+                .withDescription('Hold delay time'),
+            e
+                .numeric('move_detection_max', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Move detection max distance'),
+            e
+                .numeric('move_detection_min', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Move detection min distance'),
+            e
+                .numeric('small_move_detection_max', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Small move detection max distance'),
+            e
+                .numeric('small_move_detection_min', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Small move detection min distance'),
+            e
+                .numeric('breath_detection_max', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Breath detection max distance'),
+            e
+                .numeric('breath_detection_min', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit('m')
+                .withDescription('Breath detection min distance'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Move sensitivity'),
+            e.numeric('breath_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Breath sensitivity'),
+            e
+                .numeric('small_move_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Small Move sensitivity'),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            const endpoint = device.getEndpoint(1);
-            await endpoint.command('genBasic', 'tuyaSetup', {});
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.rmsVoltage(endpoint, { change: 5 });
-            await reporting.rmsCurrent(endpoint, { change: 50 });
-            await reporting.activePower(endpoint, { change: 10 });
-            await reporting.currentSummDelivered(endpoint);
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', { acCurrentDivisor: 1000, acCurrentMultiplier: 1 });
-            endpoint.saveClusterAttributeKeyValue('seMetering', { divisor: 100, multiplier: 1 });
-            device.save();
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    null,
+                    {
+                        from: (v) => {
+                            const lookup = {
+                                none: tuya.enum(0),
+                                presence: tuya.enum(1),
+                                peaceful: tuya.enum(2),
+                                small_movement: tuya.enum(3),
+                                large_movement: tuya.enum(4),
+                            };
+                            const presenceState = Object.entries(lookup).find((i) => i[1].valueOf() === v)[0];
+                            return {
+                                presence: presenceState != 'none',
+                                presence_state: presenceState,
+                            };
+                        },
+                    },
+                ],
+                [101, 'target_distance', tuya.valueConverter.divideBy100],
+                [102, 'illuminance_lux', tuya.valueConverter.raw],
+                [103, 'none_delay_time', tuya.valueConverter.raw],
+                [104, 'indicator', tuya.valueConverter.onOff],
+                [107, 'move_detection_max', tuya.valueConverter.divideBy100],
+                [108, 'move_detection_min', tuya.valueConverter.divideBy100],
+                [109, 'breath_detection_max', tuya.valueConverter.divideBy100],
+                [110, 'breath_detection_min', tuya.valueConverter.divideBy100],
+                [114, 'small_move_detection_max', tuya.valueConverter.divideBy100],
+                [115, 'small_move_detection_min', tuya.valueConverter.divideBy100],
+                [116, 'move_sensitivity', tuya.valueConverter.raw],
+                [117, 'small_move_sensitivity', tuya.valueConverter.raw],
+                [118, 'breath_sensitivity', tuya.valueConverter.raw],
+            ],
         },
-        whiteLabel: [
-            tuya.whitelabel('Tomzn', 'TOB9Z-M', 'Smart circuit breaker', ['_TZ3000_303avxxt']),
-        ],
     },
-
 ];
 
 export default definitions;
