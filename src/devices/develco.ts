@@ -568,12 +568,11 @@ const definitions: Definition[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(), // TODO: ep 38
             battery({
-                voltageToPercentage: '3V_2500',
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
                 voltageReporting: true,
-                percentageReporting: false,
+                percentageReporting: true,
             }),
         ],
     },
