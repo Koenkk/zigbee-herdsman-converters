@@ -7646,6 +7646,105 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dapwryy7']),
+        model: 'RTC-205Z',
+        vendor: 'Tuya',
+        description: 'MmWave human presence and PIR motion sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.enum('presence_state', ea.STATE, [
+                'none',
+                'presence', // shown as `someone`
+                'peaceful',
+                'small_move',
+                'large_move',
+            ])
+            .withDescription('Indicates whether the device detected presence'),
+        e.numeric('distance', ea.STATE)
+            .withUnit('cm')
+            .withDescription('Target distance'),
+        e.illuminance_lux(),
+
+        e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED Indicator'),
+
+        e.numeric('fading_time', ea.STATE_SET)
+            .withValueMin(0)
+            .withValueMax(28770) // 479 minutes 30 seconds
+            .withValueStep(1) // 1 second step
+            .withUnit('s')
+            .withDescription('How much time presence state should hold after detecting it'),
+        
+        e.numeric('large_motion_detection_distance', ea.STATE_SET)
+            .withValueMin(0)
+            .withValueMax(1000) // 10 meters
+            .withValueStep(1)
+            .withUnit('cm')
+            .withDescription('Motion detection max distance'),
+        e.numeric('large_motion_detection_sensitivity', ea.STATE_SET)
+            .withValueMin(0)
+            .withValueMax(10)
+            .withValueStep(1)
+            .withUnit('x')
+            .withDescription('Motion detection sensitivity'),
+        
+        e.numeric('small_motion_detection_distance', ea.STATE_SET)
+            .withValueMin(0)
+            .withValueMax(600) // 6 meters
+            .withValueStep(1)
+            .withUnit('cm')
+            .withDescription('Breath detection max distance'),
+        e.numeric('small_motion_detection_sensitivity', ea.STATE_SET)
+            .withValueMin(0)
+            .withValueMax(10)
+            .withValueStep(1)
+            .withUnit('x')
+            .withDescription('Breath detection sensitivity'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                // `State`
+                [1, 'presence_state', tuya.valueConverterBasic.lookup({
+                    none: tuya.enum(0), 
+                    presence: tuya.enum(1),
+                    peaceful: tuya.enum(2), 
+                    small_move: tuya.enum(3), 
+                    large_move: tuya.enum(4),
+                })],
+                
+                // `Target distance`
+                [101, 'distance', tuya.valueConverter.raw],
+                
+                // `Light intensity`
+                [102, 'illuminance_lux', tuya.valueConverter.raw],
+                
+                // `Indicator led`
+                [104, 'indicator', tuya.valueConverter.onOff],
+                
+                // `Hold delay` (103) reports the value in seconds,
+                // but it uses `None delay time(Min)` (105) and `None delay time(Sec)` (106) for adjustment.
+                // In this case it only shows and sets the seconds part.
+                [106, 'fading_time', tuya.valueConverter.raw],
+    
+                // It uses `Move detection max` (107) and `Move detection min` (108) to adjust the motion distance,
+                // which is not so intuitif. So, it only sets for the max distance.
+                [107, 'large_motion_detection_distance', tuya.valueConverter.raw],
+    
+                // `Move detection sensitivity`
+                [116, 'large_motion_detection_sensitivity', tuya.valueConverter.raw],
+    
+                // This will not only sets `Move detection min` (108), 
+                [108, 'small_motion_detection_distance', tuya.valueConverter.raw],
+                // but also sets the max distance for `Breath detection max` (109).
+                [109, 'small_motion_detection_distance', tuya.valueConverter.raw],
+                // The `Breath detection min` (110) will not be set and will be assumed always 0.
+    
+                // `Breath detection sensitivity`
+                [118, 'small_motion_detection_sensitivity', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia', '_TZ3210_weaqkhab']),
         model: 'TS110E_1gang_2',
         vendor: 'Tuya',
