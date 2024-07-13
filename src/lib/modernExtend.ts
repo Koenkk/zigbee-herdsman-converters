@@ -197,7 +197,7 @@ export function setupConfigureForReading(cluster: string | number, attributes: (
 }
 
 export function autoDetectInputEndpoint(device: Zh.Device, cluster: string | number): Zh.Endpoint | Zh.Group {
-    return device.endpoints.find((e) => e.supportsInputCluster(cluster));
+    return device.endpoints.find((e) => e.supportsInputCluster(cluster)) ?? device.endpoints[0];
 }
 
 // #region General
