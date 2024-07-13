@@ -9,6 +9,13 @@ const definitions: Definition[] = [
         description: 'Spot 7W',
         extend: [light({colorTemp: {range: [153, 370]}, powerOnBehavior: false})],
     },
+    {
+        zigbeeModel: ['Dimmer-Switch-ZB3.0'],
+        model: 'Dimmer-Switch-ZB3.0',
+        vendor: 'Hilux',
+        description: 'Zigbee LED dimmer smart switch',
+        extend: [light({configureReporting: true})],
+    },
 ];
 
 export default definitions;
