@@ -7962,7 +7962,7 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cayepv1a', '_TZ3000_lepzuhto', '_TZ3000_qystbcjg', '_TZ3000_zrm3oxsh']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cayepv1a', '_TZ3000_lepzuhto', '_TZ3000_qystbcjg', '_TZ3000_zrm3oxsh', '_TZ3000_303avxxt']),
         model: 'TS011F_with_threshold',
         description: 'Din rail switch with power monitoring and threshold settings',
         vendor: 'Tuya',
@@ -7977,49 +7977,57 @@ const definitions: Definition[] = [
         ],
         fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
         toZigbee: [tzLocal.TS011F_threshold],
-        exposes: [
-            e.temperature(),
-            e
-                .numeric('temperature_threshold', ea.STATE_SET)
-                .withValueMin(40)
-                .withValueMax(100)
-                .withValueStep(1)
-                .withUnit('*C')
-                .withDescription('High temperature threshold'),
-            e.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High temperature breaker'),
-            e
-                .numeric('power_threshold', ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(26)
-                .withValueStep(1)
-                .withUnit('kW')
-                .withDescription('High power threshold'),
-            e.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High power breaker'),
-            e
-                .numeric('over_current_threshold', ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(64)
-                .withValueStep(1)
-                .withUnit('A')
-                .withDescription('Over-current threshold'),
-            e.binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-current breaker'),
-            e
-                .numeric('over_voltage_threshold', ea.STATE_SET)
-                .withValueMin(220)
-                .withValueMax(265)
-                .withValueStep(1)
-                .withUnit('V')
-                .withDescription('Over-voltage threshold'),
-            e.binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-voltage breaker'),
-            e
-                .numeric('under_voltage_threshold', ea.STATE_SET)
-                .withValueMin(76)
-                .withValueMax(240)
-                .withValueStep(1)
-                .withUnit('V')
-                .withDescription('Under-voltage threshold'),
-            e.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Under-voltage breaker'),
-        ],
+        exposes: (device, options) => {
+            const exposes: Expose[] = [e.linkquality()];
+            if (device?.manufacturerName !== '_TZ3000_303avxxt') {
+                exposes.push(
+                    e.temperature(),
+                    e
+                        .numeric('temperature_threshold', ea.STATE_SET)
+                        .withValueMin(40)
+                        .withValueMax(100)
+                        .withValueStep(1)
+                        .withUnit('*C')
+                        .withDescription('High temperature threshold'),
+                    e.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High temperature breaker'),
+                    e
+                        .numeric('power_threshold', ea.STATE_SET)
+                        .withValueMin(1)
+                        .withValueMax(26)
+                        .withValueStep(1)
+                        .withUnit('kW')
+                        .withDescription('High power threshold'),
+                    e.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High power breaker'),
+                );
+            }
+            exposes.push(
+                e
+                    .numeric('over_current_threshold', ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(64)
+                    .withValueStep(1)
+                    .withUnit('A')
+                    .withDescription('Over-current threshold'),
+                e.binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-current breaker'),
+                e
+                    .numeric('over_voltage_threshold', ea.STATE_SET)
+                    .withValueMin(220)
+                    .withValueMax(265)
+                    .withValueStep(1)
+                    .withUnit('V')
+                    .withDescription('Over-voltage threshold'),
+                e.binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Over-voltage breaker'),
+                e
+                    .numeric('under_voltage_threshold', ea.STATE_SET)
+                    .withValueMin(76)
+                    .withValueMax(240)
+                    .withValueStep(1)
+                    .withUnit('V')
+                    .withDescription('Under-voltage threshold'),
+                e.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('Under-voltage breaker'),
+            );
+            return exposes;
+        },
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
@@ -8037,8 +8045,9 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Tongou', 'TO-Q-SY2-163JZT', 'Smart circuit breaker', ['_TZ3000_cayepv1a']),
             tuya.whitelabel('EARU', 'EAKCB-T-M-Z', 'Smart circuit breaker', ['_TZ3000_lepzuhto']),
-            tuya.whitelabel('EARU', 'EAYCB-Z-2P', 'Smart circuit breaker with Leakage Protection', ['_TZ3000_zrm3oxsh']),
-            tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart Circuit Breaker', ['_TZ3000_qystbcjg']),
+            tuya.whitelabel('EARU', 'EAYCB-Z-2P', 'Smart circuit breaker with leakage protection', ['_TZ3000_zrm3oxsh']),
+            tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart circuit Breaker', ['_TZ3000_qystbcjg']),
+            tuya.whitelabel('Tomzn', 'TOB9Z-M', 'Smart circuit breaker', ['_TZ3000_303avxxt']),
         ],
     },
     {
