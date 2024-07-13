@@ -10653,7 +10653,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dapwryy7']),
-        model: 'ZG-205Z_',
+        model: 'ZG-205Z',
         vendor: 'Tuya',
         description: '5.8 GHz human presence sensor',
         fromZigbee: [tuya.fz.datapoints],
@@ -10662,19 +10662,23 @@ const definitions: Definition[] = [
         exposes: [
             e.presence(),
             e
-                .enum('presence_state', ea.STATE, ['none', 'presence', 'peaceful', 'small movement', 'large movement'])
+                .enum('presence_state', ea.STATE, ['none', 'presence', 'peaceful', 'small_movement', 'large_movement'])
                 .withDescription('The presence state'),
             e
                 .numeric('target_distance', ea.STATE)
-                .withValueMin(0).withValueMax(10).withValueStep(0.01)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.01)
                 .withUnit('m')
                 .withDescription('Target distance'),
             e.illuminance_lux(),
             e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED Indicator'),
             e
                 .numeric('none_delay_time', ea.STATE_SET)
-                .withValueMin(0).withValueMax(28800)
-                .withValueStep(1).withUnit('Sec')
+                .withValueMin(0)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit('Sec')
                 .withDescription('Hold delay time'),
             e
                 .numeric('move_detection_max', ea.STATE_SET)
@@ -10718,18 +10722,8 @@ const definitions: Definition[] = [
                 .withValueStep(0.01)
                 .withUnit('m')
                 .withDescription('Breath detection min distance'),
-            e
-                .numeric('move_sensitivity', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(10)
-                .withValueStep(1)
-                .withDescription('Move sensitivity'),
-            e
-                .numeric('breath_sensitivity', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(10)
-                .withValueStep(1)
-                .withDescription('Breath sensitivity'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Move sensitivity'),
+            e.numeric('breath_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Breath sensitivity'),
             e
                 .numeric('small_move_sensitivity', ea.STATE_SET)
                 .withValueMin(0)
@@ -10748,8 +10742,9 @@ const definitions: Definition[] = [
                                 none: tuya.enum(0),
                                 presence: tuya.enum(1),
                                 peaceful: tuya.enum(2),
-                                'small movement': tuya.enum(3),
-                                'large movement': tuya.enum(4)};
+                                small_movement: tuya.enum(3),
+                                large_movement: tuya.enum(4),
+                            };
                             const presenceState = Object.entries(lookup).find((i) => i[1].valueOf() === v)[0];
                             return {
                                 presence: presenceState != 'none',
