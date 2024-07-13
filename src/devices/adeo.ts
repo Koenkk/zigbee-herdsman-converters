@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {electricityMeter, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
+import {electricityMeter, humidity, iasZoneAlarm, illuminance, light, onOff, quirkCheckinInterval, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Definition, Fz, Tz} from '../lib/types';
 
@@ -417,7 +417,12 @@ const definitions: Definition[] = [
         description: 'Smart 4 in 1 sensor',
         fromZigbee: [fz.battery],
         exposes: [e.battery()],
-        extend: [identify(), illuminance(), temperature(), humidity(), iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
+        extend: [
+            illuminance(),
+            temperature(),
+            humidity(),
+            iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low']}),
+        ],
     },
 ];
 
