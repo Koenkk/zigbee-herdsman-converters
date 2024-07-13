@@ -7647,7 +7647,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dapwryy7']),
-        model: 'RTC-205Z',
+        model: 'RTC205Z',
         vendor: 'Tuya',
         description: 'MmWave human presence and PIR motion sensor',
         fromZigbee: [tuya.fz.datapoints],
