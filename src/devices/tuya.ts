@@ -9534,6 +9534,7 @@ const definitions: Definition[] = [
             '_TZE200_mp902om5',
             '_TZE204_pfayrzcw',
             '_TZE284_4qznlkbu',
+            '_TZE200_sbyx0lm6',
         ]),
         model: 'MTG075-ZB-RL',
         vendor: 'Tuya',
