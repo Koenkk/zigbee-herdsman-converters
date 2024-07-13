@@ -1148,10 +1148,15 @@ const definitions: Definition[] = [
         ],
         extend: [
             ubisysModernExtend.addCustomClusterHvacThermostat(),
+            ubisysModernExtend.openWindowState(),
             ubisysModernExtend.vacationMode(),
             ubisysModernExtend.localTemperatureOffset(),
             ubisysModernExtend.occupiedHeatingSetpointDefault(),
             ubisysModernExtend.remoteTemperatureDuration(),
+            ubisysModernExtend.openWindowDetect(),
+            ubisysModernExtend.openWindowTimeout(),
+            ubisysModernExtend.openWindowDetectionPeriod(),
+            ubisysModernExtend.openWindowSensitivity(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

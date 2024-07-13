@@ -2,7 +2,7 @@ import {Zcl} from 'zigbee-herdsman';
 
 import {presets as e, access as ea} from './exposes';
 import {logger} from './logger';
-import {numeric, NumericArgs, deviceAddCustomCluster, setupConfigureForReporting} from './modernExtend';
+import {numeric, NumericArgs, binary, BinaryArgs, deviceAddCustomCluster, setupConfigureForReporting} from './modernExtend';
 import {Fz, Tz, ModernExtend, Configure} from './types';
 
 const NS = 'zhc:ubisys';
@@ -50,7 +50,11 @@ export const ubisysModernExtend = {
                 ubisysDetectOpenWindow: {ID: 0x0015, type: Zcl.DataType.BITMAP8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
                 ubisysOpenWindowState: {ID: 0x0016, type: Zcl.DataType.BITMAP8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
                 ubisysOpenWindowSensitivity: {ID: 0x0017, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysOpenWindowDetectionPeriod: {ID: 0x0018, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysOpenWindowDetectionPeriod: {
+                    ID: 0x0018,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                },
                 ubisysOpenWindowTimeout: {ID: 0x0019, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
                 ubisysProportionalGain: {ID: 0x0020, type: Zcl.DataType.INT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
                 ubisysProportionalShift: {ID: 0x0021, type: Zcl.DataType.INT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
@@ -157,6 +161,7 @@ export const ubisysModernExtend = {
             name: 'local_temperature_offset',
             cluster: 'hvacThermostat',
             attribute: 'ubisysTemperatureOffset',
+            entityCategory: 'config',
             description: 'Specifies the temperature offset for the locally measured temperature value.',
             valueMin: -10,
             valueMax: 10,
@@ -168,6 +173,7 @@ export const ubisysModernExtend = {
             name: 'occupied_heating_default_setpoint',
             cluster: 'hvacThermostat',
             attribute: 'ubisysDefaultOccupiedHeatingSetpoint',
+            entityCategory: 'config',
             description:
                 'Specifies the default heating setpoint during occupancy, ' +
                 'representing the targeted temperature when a recurring weekly schedule ends without a follow-up schedule.',
@@ -183,6 +189,7 @@ export const ubisysModernExtend = {
             name: 'remote_temperature_duration',
             cluster: 'hvacThermostat',
             attribute: 'ubisysRemoteTemperatureValidDuration',
+            entityCategory: 'config',
             description:
                 'Specifies the duration period in seconds, during which a remotely measured temperature value ' +
                 'remains valid since its reception as attribute report.',
@@ -241,4 +248,72 @@ export const ubisysModernExtend = {
 
         return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
     },
+    openWindowState: (args?: Partial<BinaryArgs>) =>
+        binary({
+            name: 'open_window_state',
+            cluster: 'hvacThermostat',
+            attribute: 'ubisysOpenWindowState',
+            access: 'STATE_GET',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            description: 'Presents the currently detected window state.',
+            ...args,
+        }),
+    openWindowDetect: (args?: Partial<BinaryArgs>) =>
+        binary({
+            name: 'open_window_detect',
+            cluster: 'hvacThermostat',
+            attribute: 'ubisysDetectOpenWindow',
+            entityCategory: 'config',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            description: 'Specifies whether the Open Window Detection is activated or deactivated.',
+            ...args,
+        }),
+    openWindowTimeout: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'open_window_timeout',
+            cluster: 'hvacThermostat',
+            attribute: 'ubisysOpenWindowTimeout',
+            entityCategory: 'config',
+            description:
+                'Specifies the maximum time duration in seconds for a detected open-window state. This attribute ' +
+                'effectively defines how long a detected open-window state should last before H1 returns back to ' +
+                'its default set point settings.',
+            valueMin: 0,
+            valueMax: 86400,
+            unit: 's',
+            ...args,
+        }),
+    openWindowDetectionPeriod: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'open_window_detection_periode',
+            cluster: 'hvacThermostat',
+            attribute: 'ubisysOpenWindowDetectionPeriod',
+            entityCategory: 'config',
+            description:
+                'Specifies the time duration in minutes, within which the sharp temperature change must have taken ' +
+                'place for the open window detection.',
+            valueMin: 1,
+            valueMax: 180,
+            unit: 'm',
+            ...args,
+        }),
+    openWindowSensitivity: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'open_window_sensitivity',
+            cluster: 'hvacThermostat',
+            attribute: 'ubisysOpenWindowSensitivity',
+            entityCategory: 'config',
+            description:
+                'Specifies the temperature change threshold for the Open Window Detection. This is the point at ' +
+                'which the H1 detects a significant temperature change indicating the detection of an open or ' +
+                'closed window.',
+            scale: 100,
+            valueStep: 0.5, // H1 interface uses 0.5 step
+            valueMin: 1,
+            valueMax: 30,
+            unit: 'ºC',
+            ...args,
+        }),
 };
