@@ -1,5 +1,24 @@
 # Changelog
 
+## [19.68.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.67.0...v19.68.0) (2024-07-13)
+
+
+### Features
+
+* **add:** MCT-302 SMA ([#7759](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7759)) ([fc6fd20](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc6fd20c8730b32ea1c382539d024eb9cf04a679))
+* **add:** POK001, POK002_POK007, POK003, POK004, POK005, POK006, POK008, POK011 ([#7758](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7758)) ([63dc05f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/63dc05f79530690fc9d4241c08a3b71c425a7803))
+* **add:** TOB9Z-M ([#7761](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7761)) ([81683bf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/81683bfbcebed3b5bf4b17f02cf83dfce305fc22))
+* **add:** ZG-205Z ([#7756](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7756)) ([23336fe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/23336fec5e7b15d9eb20f97ba0225c54e9095934))
+* Ubisys H1 open window support ([#7764](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7764)) ([d8dcfcb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d8dcfcb43cd956897f7f053a9908cae431a70adb))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_sbyx0lm6` as Tuya MTG075-ZB-RL https://github.com/Koenkk/zigbee2mqtt/issues/23337 ([3e77af0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e77af04e2a6e81843edd69223e3707acee12923))
+* **detect:** Detect `RH0039` as Lanesto 322054 @JoostV https://github.com/Koenkk/zigbee2mqtt/discussions/23322 ([10c51b4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10c51b47ebf3637fe902ed03698c767c5dc49103))
+* Migrate more to modernExtend for Develco devices ([#7711](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7711)) ([65a0d08](https://github.com/Koenkk/zigbee-herdsman-converters/commit/65a0d087ca194299085cce6041c2709e0cdf27d0))
+* Rename `TB26-1` to `TB26-3` https://github.com/Koenkk/zigbee2mqtt/issues/23336 ([f8fea48](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f8fea48e4a0c01586b5e8e3982b401d9bb49b1a7))
+
 ## [19.67.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.66.0...v19.67.0) (2024-07-11)
 
 

@@ -211,6 +211,7 @@ import plaid from './plaid';
 import plugwise from './plugwise';
 import profalux from './profalux';
 import prolight from './prolight';
+import pushok from './pushok';
 import qmotion from './qmotion';
 import qoto from './qoto';
 import quotra from './quotra';
@@ -516,6 +517,7 @@ export default [
     ...plugwise,
     ...profalux,
     ...prolight,
+    ...pushok,
     ...qmotion,
     ...qoto,
     ...quotra,
