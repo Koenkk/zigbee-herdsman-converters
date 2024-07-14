@@ -1,16 +1,29 @@
-/* eslint no-unused-vars: "warn" */
-import {Definition, Tz, OnEvent, KeyValue, KeyValueAny, ModernExtend} from '../lib/types';
-import {
-    onOff, identify, forcePowerSource, deviceEndpoints, commandsOnOff,
-    commandsLevelCtrl, windowCovering, commandsWindowCovering, light,
-    ota, enumLookup, binary, numeric,
-} from '../lib/modernExtend';
-import {repInterval} from '../lib/constants';
-import {logger} from '../lib/logger';
-import * as exposes from '../lib/exposes';
-import * as utils from '../lib/utils';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* TODO : remove eslint-disable when dev is done */
+
 import {Zcl} from 'zigbee-herdsman';
 import {ClusterDefinition} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
+
+import {repInterval} from '../lib/constants';
+import * as exposes from '../lib/exposes';
+import {logger} from '../lib/logger';
+import {
+    binary,
+    commandsLevelCtrl,
+    commandsOnOff,
+    commandsWindowCovering,
+    deviceEndpoints,
+    enumLookup,
+    forcePowerSource,
+    identify,
+    light,
+    numeric,
+    onOff,
+    ota,
+    windowCovering,
+} from '../lib/modernExtend';
+import {DefinitionWithExtend, KeyValue, KeyValueAny, ModernExtend, OnEvent, Tz} from '../lib/types';
+import * as utils from '../lib/utils';
 
 // #region Constants
 
@@ -21,64 +34,108 @@ const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.YOKIS};
 const NS = 'zhc:yokis';
 
 // PowerFailureMode (manuSpecificYokisSubSystem)
-const powerFailureModeEnum: { [s: string]: number } = {
-    'last_state': 0x00,
-    'off': 0x01,
-    'on': 0x02,
-    'blink': 0x03,
+const powerFailureModeEnum: {[s: string]: number} = {
+    last_state: 0x00,
+    off: 0x01,
+    on: 0x02,
+    blink: 0x03,
 };
 
 // timeTypeEnum (manuSpecificYokisLightControl)
-const timeTypeEnum: { [s: string]: number } = {
-    'Seconds': 0x00,
-    'Minutes': 0x01,
+const timeTypeEnum: {[s: string]: number} = {
+    Seconds: 0x00,
+    Minutes: 0x01,
 };
 
 // operatingModeEnum (manuSpecificYokisLightControl)
-const operatingModeEnum: { [s: string]: number } = {
-    'Timer': 0x00,
-    'Staircase': 0x01,
-    'Pulse': 0x02,
+const operatingModeEnum: {[s: string]: number} = {
+    Timer: 0x00,
+    Staircase: 0x01,
+    Pulse: 0x02,
 };
 
 // stateAfterBlinkEnum (manuSpecificYokisLightControl)
-const stateAfterBlinkEnum: { [s: string]: number } = {
-    'Previous': 0x00,
-    'OFF': 0x01,
-    'ON': 0x02,
-    'INFINITE': 0x03,
+const stateAfterBlinkEnum: {[s: string]: number} = {
+    Previous: 0x00,
+    OFF: 0x01,
+    ON: 0x02,
+    INFINITE: 0x03,
 };
 
 // resetActionEnum (manuSpecificYokisDevice)
-const resetActionEnum: { [s: string]: number } = {
+const resetActionEnum: {[s: string]: number} = {
     'Factory reset': 0x00,
     'Configuration Reset': 0x01,
     'Network Reset': 0x02,
 };
 
 // inputModeEnum (manuSpecificYokisInput)
-const inputModeEnum: { [s: string]: number } = {
-    'Unknown': 0x00,
+const inputModeEnum: {[s: string]: number} = {
+    Unknown: 0x00,
     'Push button': 0x01, // default
-    'Switch': 0x02,
-    'Relay': 0x03,
-    'FP_IN': 0x04, // Fil pilote
+    Switch: 0x02,
+    Relay: 0x03,
+    FP_IN: 0x04, // Fil pilote
 };
 
 // contactModeEnum (manuSpecificYokisInput)
-const contactModeEnum: { [s: string]: number } = {
-    'NC': 0x00,
-    'NO': 0x01, // default
+const contactModeEnum: {[s: string]: number} = {
+    NC: 0x00,
+    NO: 0x01, // default
+};
+
+// onOffClusterModeEnum (manuSpecificYokisChannel)
+const onOffClusterModeEnum: {[s: number]: string} = {
+    0x00: 'toggle',
+    0x01: 'on',
+    0x02: 'off',
+    0x03: 'off',
+};
+
+// levelControlClusterModeEnum (manuSpecificYokisChannel)
+const levelControlClusterModeEnum: {[s: number]: string} = {
+    0x00: 'nothing',
+    0x01: 'move up',
+    0x02: 'move down',
+    0x03: 'stop',
+};
+
+// windowCoveringClusterModeEnum (manuSpecificYokisChannel)
+const windowCoveringClusterModeEnum: {[s: number]: string} = {
+    0x00: 'toggle',
+    0x01: 'up/open',
+    0x02: 'down/close',
+    0x03: 'stop',
+};
+
+// sendingModeEnum (manuSpecificYokisChannel)
+const sendingModeEnum: {[s: number]: string} = {
+    0x00: 'direct',
+    0x01: 'broadcast',
+    0x02: 'group',
+};
+
+// yokisLightControlModeEnum (manuSpecificYokisChannel)
+const yokisLightControlModeEnum: {[s: number]: string} = {
+    0x00: 'pulse',
+    0x01: 'deaf',
+};
+
+// yokisPilotWireClusterModeEnum (manuSpecificYokisChannel)
+const yokisPilotWireClusterModeEnum: {[s: number]: string} = {
+    0x00: 'toggle',
+    0x01: 'confort',
+    0x02: 'eco',
 };
 // #endregion
 
 // #region Custom cluster definition
 
 const YokisClustersDefinition: {
-    [s: string]: ClusterDefinition
+    [s: string]: ClusterDefinition;
 } = {
     manuSpecificYokisDevice: {
-        ID: 0xFC01,
+        ID: 0xfc01,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Indicate if the device configuration has changed. 0 to 0xFFFE -> No Change, 0xFFFF -> Change have been detected
@@ -113,7 +170,7 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisInput: {
-        ID: 0xFC02,
+        ID: 0xfc02,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Indicate how the input should be handle: 0 -> Unknow, 1 -> Push button, 2 -> Switch, 3 -> Relay, 4 -> FP_IN
@@ -150,7 +207,7 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisEntryConfigurator: {
-        ID: 0xFC03,
+        ID: 0xfc03,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Use to enable short press action
@@ -170,7 +227,7 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisSubSystem: {
-        ID: 0xFC04,
+        ID: 0xfc04,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Define the device behavior after power failure : 0 -> LAST STATE, 1 -> OFF, 2 -> ON, 3-> BLINK
@@ -180,14 +237,14 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisLoadManager: {
-        ID: 0xFC05, // Details coming soon
+        ID: 0xfc05, // Details coming soon
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {},
         commands: {},
         commandsResponse: {},
     },
     manuSpecificYokisLightControl: {
-        ID: 0xFC06,
+        ID: 0xfc06,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Use to know which state is the relay
@@ -207,13 +264,13 @@ const YokisClustersDefinition: {
             // Enable (0x01) / Disable (0x00) PreOff delay.
             ePreOffDelay: {ID: 0x0009, type: Zcl.DataType.BOOLEAN},
             // Set the value of ON pulse length. Default: 0x01F4, Min-Max: 0x0014 – 0xFFFE
-            pulseDuration: {ID: 0x000A, type: Zcl.DataType.UINT16},
+            pulseDuration: {ID: 0x000a, type: Zcl.DataType.UINT16},
             // Indicates the current Type of time selected that will be used during push button configuration: 0x00 -> Seconds, 0x01 -> Minutes
-            timeType: {ID: 0x000B, type: Zcl.DataType.ENUM8},
+            timeType: {ID: 0x000b, type: Zcl.DataType.ENUM8},
             // Set the value of the LONG ON embedded timer in seconds.  Default: 0x5460 (1h), Min-Max: 0x00 – 0x00409980
-            longOnDuration: {ID: 0x000C, type: Zcl.DataType.UINT32},
+            longOnDuration: {ID: 0x000c, type: Zcl.DataType.UINT32},
             // Indicates the operating mode: 0x00 -> Timer, 0x01 -> Staircase, 0x02 -> Pulse
-            operatingMode: {ID: 0x000D, type: Zcl.DataType.ENUM8},
+            operatingMode: {ID: 0x000d, type: Zcl.DataType.ENUM8},
             // Time before goes off after the stop announce blinking. (In seconds).  Default: 0x0000, Min-Max: 0x00 – 0x00409980
             stopAnnounceTime: {ID: 0x0013, type: Zcl.DataType.UINT32},
             // Enable (0x01) / Disable (0x00) the announcement before turning OFF.
@@ -231,13 +288,13 @@ const YokisClustersDefinition: {
             blinkOffTime: {ID: 0x0019, type: Zcl.DataType.UINT32},
             // Define number of blink to do when receiving the DEAF action. One blink is considered as one ON step followed by one OFF step.
             // Default: 0x03, Min-Max: 0x00 – 0x14
-            deafBlinkAmount: {ID: 0x001A, type: Zcl.DataType.UINT8},
+            deafBlinkAmount: {ID: 0x001a, type: Zcl.DataType.UINT8},
             // Define duration of a blink ON (In millisecond). Default: 0x0320, Min-Max: 0x0064– 0x4E20
-            deafBlinkTime: {ID: 0x001B, type: Zcl.DataType.UINT16},
+            deafBlinkTime: {ID: 0x001b, type: Zcl.DataType.UINT16},
             // Indicate which state must be apply after a blink sequence: 0x00 -> State before blinking, 0x01 -> OFF, 0x02 -> ON
-            stateAfterBlink: {ID: 0x001C, type: Zcl.DataType.ENUM8},
+            stateAfterBlink: {ID: 0x001c, type: Zcl.DataType.ENUM8},
             // Define the output relay as Normaly close.
-            eNcCommand: {ID: 0x001D, type: Zcl.DataType.BOOLEAN},
+            eNcCommand: {ID: 0x001d, type: Zcl.DataType.BOOLEAN},
         },
         commands: {
             // Move to position specified in uc_BrightnessEnd parameter.
@@ -257,9 +314,7 @@ const YokisClustersDefinition: {
             // This command allows the relay to be controlled with an impulse. The pulse time is defined by PulseLength.
             pulse: {
                 ID: 0x04,
-                parameters: [
-                    {name: 'PulseLength', type: Zcl.DataType.UINT16},
-                ],
+                parameters: [{name: 'PulseLength', type: Zcl.DataType.UINT16}],
             },
             // With this command, the module is asked to perform a blinking sequence.
             blink: {
@@ -291,35 +346,99 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisDimmer: {
-        ID: 0xFC07, // Details coming soon
+        ID: 0xfc07, // Details coming soon
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
-        attributes: {},
+        attributes: {
+            // This attribute defines the current position, in %. Default: 0x00, Min-Max: 0x00 - 0x64
+            currentPosition: {ID: 0x0000, type: Zcl.DataType.UINT8},
+            // This attribute defines the memory position, in %. Default: 0x00, Min-Max: 0x00 - 0x64
+            memoryPosition: {ID: 0x0001, type: Zcl.DataType.UINT8},
+            // This attribute defines if a ramp up should be used or not.
+            eRampUp: {ID: 0x0002, type: Zcl.DataType.BOOLEAN},
+            // This attribute defines the time taken during the ramp up in ms. Default: 0x000003E8, Min-Max: 0x00000000 – 0x05265C00
+            rampUp: {ID: 0x0003, type: Zcl.DataType.UINT32},
+            // This attribute defines if a ramp down should be used or not.
+            eRampDown: {ID: 0x0004, type: Zcl.DataType.BOOLEAN},
+            // This attribute defines the time taken during the ramp down in ms. Default: 0x000003E8, Min-Max: 0x00000000 – 0x05265C00
+            rampDown: {ID: 0x0005, type: Zcl.DataType.UINT32},
+            // This attribute defines the time taken during the ramp loop in ms. Default: 0x00000FA0, Min-Max: 0x00000000 – 0x05265C00
+            rampContinuousTime: {ID: 0x0006, type: Zcl.DataType.UINT32},
+            // This attribute defines the value of each step during a dimming up. This value is set in %. Default: 0x01, Min-Max: 0x00 - 0x64
+            stepUp: {ID: 0x0007, type: Zcl.DataType.UINT8},
+            // This attribute defines the value of the low dim limit, used during a dimming loop, on a long press for example. This value is set in %. Default: 0x06, Min-Max: 0x00 - 0x64
+            lowDimLimit: {ID: 0x0008, type: Zcl.DataType.UINT8},
+            // This attribute defines the value of the high dim limit, used during a dimming loop, on a long press for example. This value is set in %. Default: 0x64, Min-Max: 0x00 - 0x64
+            highDimLimit: {ID: 0x0009, type: Zcl.DataType.UINT8},
+            // This attribute defines the time before the nightlight begin. This value is set in seconds. Default: 0x00000000, Min-Max: 0x00000000 – 0xFFFFFFFE
+            nightLightStartingDelay: {ID: 0x0009, type: Zcl.DataType.UINT32},
+            // This attribute defines the dimming value at the start of the nightlight. This value is set in %. Default: 0x28, Min-Max: 0x00 - 0x64
+            nightLightStartingBrightness: {ID: 0x000c, type: Zcl.DataType.UINT8},
+            // This attribute defines the dimming value at the last step of the nightlight. This attribute must be lower than 0x000D :Nightlight starting brightness. This value is set in %. Default: 0x05, Min-Max: 0x00 - 0x64
+            nightLightEndingBrightness: {ID: 0x000d, type: Zcl.DataType.UINT8},
+            // This attribute defines the ramp duration of the nightlight. The ramp is running after the end of the starting delay and until the ending bright is reached. This value is set in seconds. Default: 0x00000E10, Min-Max: 0x00000000 – 0x05265C00
+            nightLightRampTime: {ID: 0x000f, type: Zcl.DataType.UINT32},
+            // This attribute defines the total duration of the nightlight. It must not be lower than 0x000F : Nightlight ramp time. This value is set in seconds. Default: 0x00000E10, Min-Max: 0x00000000 – 0x05265C00
+            nightLightOnTime: {ID: 0x0010, type: Zcl.DataType.UINT32},
+            // This attribute defines the value of the favorite position 1. This value is set in %. Default: 0x19, Min-Max: 0x00 - 0x64
+            favoritePosition1: {ID: 0x0011, type: Zcl.DataType.UINT8},
+            // This attribute defines the value of the favorite position 2. This value is set in %. Default: 0x32, Min-Max: 0x00 - 0x64
+            favoritePosition2: {ID: 0x0012, type: Zcl.DataType.UINT8},
+            // This attribute defines the value of the favorite position 3. This value is set in %. Default: 0x4B, Min-Max: 0x00 - 0x64
+            favoritePosition3: {ID: 0x0013, type: Zcl.DataType.UINT8},
+            // This attribute enables or disables the 2-step controller mode. This mode enable product to run without any ramp before and after ON or OFF. It acts like a relay.
+            stepControllerMode: {ID: 0x0014, type: Zcl.DataType.BOOLEAN},
+            // This attribute enables or disables the memory position mode at first push button release.
+            memoryPositionMode: {ID: 0x0015, type: Zcl.DataType.BOOLEAN},
+            // This attribute defines the value of each step during a dimming down. This value is set in %. Default: 0x01, Min-Max: 0x01 - 0x64
+            stepDown: {ID: 0x0016, type: Zcl.DataType.UINT8},
+            // This attribute defines the value of each step during a dimming loop. This value is set in %. Default: 0x01, Min-Max: 0x01 - 0x64
+            stepContinuous: {ID: 0x0017, type: Zcl.DataType.UINT8},
+            // This attribute defines the value of each step during the ramp down of the nightlight mode. This value is set in %. Default: 0x01, Min-Max: 0x01 - 0x64
+            stepNightLigth: {ID: 0x0018, type: Zcl.DataType.UINT8},
+        },
         commands: {},
         commandsResponse: {},
     },
     manuSpecificYokisWindowCovering: {
-        ID: 0xFC08, // Details coming soon
+        ID: 0xfc08, // Details coming soon
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {},
         commands: {},
         commandsResponse: {},
     },
     manuSpecificYokisChannel: {
-        ID: 0xFC09, // Details coming soon
+        ID: 0xfc09, // Details coming soon
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
-        attributes: {},
+        attributes: {
+            // Define the command to send to the servers using cluster On/Off. 0x00 -> toggle, 0x01 -> ON, 0x02 -> OFF, 0x03 -> OFF
+            onOffClusterMode: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+            // Define the command to send to the servers using cluster Level control. 0x00 -> nothing, 0x01 -> Move up, 0x02 -> Move down, 0x03 -> stop
+            levelControlClusterMode: {ID: 0x0001, type: Zcl.DataType.ENUM8},
+            // Define the command to send to the servers using cluster Window Covering. 0x00 -> toggle, 0x01 -> up/open, 0x02 -> down/close, 0x03 -> stop
+            windowCoveringClusterMode: {ID: 0x0002, type: Zcl.DataType.ENUM8},
+            // Defines the cluster that will be used by the channel to create an order. Default: 0xFFF0, Min-Max: 0x0000 – 0xFFFF
+            clusterToBeUsed: {ID: 0x0003, type: Zcl.DataType.UINT16},
+            // Define the channel sending mode. 0x00 -> Direct, 0x01 -> Broadcast, 0x02 -> Group
+            sendingMode: {ID: 0x0004, type: Zcl.DataType.ENUM8},
+            // Define the light control mode used between remote and the binded device. 0x00 -> Mode pulse, 0x01 -> Mode deaf
+            yokisLightControlMode: {ID: 0x0005, type: Zcl.DataType.ENUM8},
+            // Define the command to send to the servers using cluster Yokis Pilot Wire. 0x00 -> toggle, 0x01 -> confort, 0x02 -> eco
+            yokisPilotWireClusterMode: {ID: 0x0006, type: Zcl.DataType.ENUM8},
+            // Indicate the group id who will receive the command from the dedicated endpoint. Default: 0x0000, Min-Max: 0x0000 – 0xFFFF
+            groupId: {ID: 0x0007, type: Zcl.DataType.UINT16},
+        },
         commands: {},
         commandsResponse: {},
     },
     manuSpecificYokisPilotWire: {
-        ID: 0xFC0A, // Details coming soon
+        ID: 0xfc0a, // Details coming soon
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {},
         commands: {},
         commandsResponse: {},
     },
     manuSpecificYokisStats: {
-        ID: 0xFCF0, // Details coming soon
+        ID: 0xfcf0, // Details coming soon
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {},
         commands: {},
@@ -544,17 +663,17 @@ const yokisExtendChecks = {
                 ul_BlinkOnTime: input.ul_BlinkOnTime,
                 uc_SequenceAmount: input.tuc_BlinkAmount.length,
                 // [{"undefined":1},{"undefined":1}] > [1,1]
-                tuc_BlinkAmount: input.tuc_BlinkAmount.map( (elem) => (typeof elem === 'object') ? Object.values(elem).shift() : elem),
+                tuc_BlinkAmount: input.tuc_BlinkAmount.map((elem) => (typeof elem === 'object' ? Object.values(elem).shift() : elem)),
             },
         };
     },
-    failure: (error: {reason: string}): { isSuccess: false, error: {reason: string} } => {
+    failure: (error: {reason: string}): {isSuccess: false; error: {reason: string}} => {
         return {
             isSuccess: false,
             error,
         };
     },
-    log: (key : string, value: KeyValueAny | string, payload?: KeyValueAny) => {
+    log: (key: string, value: KeyValueAny | string, payload?: KeyValueAny) => {
         logger.debug(`Invoked converter with key: '${key}'`, NS);
         logger.debug('Invoked converter with values:' + JSON.stringify(value), NS);
         if (payload) logger.debug('Invoked converter with payload:' + JSON.stringify(payload), NS);
@@ -564,31 +683,34 @@ const yokisExtendChecks = {
 // Local ModernExtend and Options
 const yokisCommandsExtend = {
     resetToFactorySettings: (): ModernExtend => {
-        const exposes = e.enum('uc_ResetAction', ea.SET, Object.keys(resetActionEnum))
+        const exposes = e
+            .enum('uc_ResetAction', ea.SET, Object.keys(resetActionEnum))
             .withDescription('Ititiate long duration on')
             .withCategory('config');
 
-        const toZigbee: Tz.Converter[] = [{
-            key: ['uc_ResetAction'],
-            convertSet: async (entity, key, value: string, meta) => {
-                const commandWrapper = yokisExtendChecks.parseResetInput(value);
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['uc_ResetAction'],
+                convertSet: async (entity, key, value: string, meta) => {
+                    const commandWrapper = yokisExtendChecks.parseResetInput(value);
 
-                if (!commandWrapper.isSuccess) {
-                    logger.warning(
-                        // @ts-expect-error
-                        `encountered an error (${commandWrapper.error.reason}) ` +
-                        `while parsing configuration commands (input: ${JSON.stringify(value)})`,
-                        NS,
-                    );
+                    if (!commandWrapper.isSuccess) {
+                        logger.warning(
+                            // @ts-expect-error CommandWrapper contains always contains the error attribute only when isSuccess is false
+                            `encountered an error (${commandWrapper.error.reason}) ` +
+                                `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                            NS,
+                        );
 
-                    return;
-                }
+                        return;
+                    }
 
-                yokisExtendChecks.log(key, value);
+                    yokisExtendChecks.log(key, value);
 
-                await entity.command('manuSpecificYokisDevice', 'resetToFactorySettings', commandWrapper.payload);
+                    await entity.command('manuSpecificYokisDevice', 'resetToFactorySettings', commandWrapper.payload);
+                },
             },
-        }];
+        ];
 
         return {
             exposes: [exposes],
@@ -597,17 +719,20 @@ const yokisCommandsExtend = {
         };
     },
     relaunchBleAdvert: (): ModernExtend => {
-        const exposes = e.enum('RelaunchBleAdvert', ea.SET, ['RelaunchBle'])
+        const exposes = e
+            .enum('RelaunchBleAdvert', ea.SET, ['RelaunchBle'])
             .withDescription('Relaunch BLE advertising for 15 minutes')
             .withCategory('config');
 
-        const toZigbee: Tz.Converter[] = [{
-            key: ['RelaunchBleAdvert'],
-            convertSet: async (entity, key, value, meta) => {
-                yokisExtendChecks.log(key, value);
-                await entity.command('manuSpecificYokisDevice', 'relaunchBleAdvert', {});
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['RelaunchBleAdvert'],
+                convertSet: async (entity, key, value, meta) => {
+                    yokisExtendChecks.log(key, value);
+                    await entity.command('manuSpecificYokisDevice', 'relaunchBleAdvert', {});
+                },
             },
-        }];
+        ];
 
         return {
             exposes: [exposes],
@@ -616,36 +741,42 @@ const yokisCommandsExtend = {
         };
     },
     openNetwork: (): ModernExtend => {
-        const exposes = e.composite('OpenNetworkCommand', 'OpenNetworkProp', ea.SET)
+        const exposes = e
+            .composite('OpenNetworkCommand', 'OpenNetworkProp', ea.SET)
             .withDescription('Open ZigBee network')
-            .withFeature(e.numeric('uc_OpeningTime', ea.SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withUnit('s')
-                .withDescription('Opening time wanted from 1 to 255 seconds,0 means closing the network.'))
+            .withFeature(
+                e
+                    .numeric('uc_OpeningTime', ea.SET)
+                    .withValueMin(0)
+                    .withValueMax(255)
+                    .withUnit('s')
+                    .withDescription('Opening time wanted from 1 to 255 seconds,0 means closing the network.'),
+            )
             .withCategory('config');
 
-        const toZigbee: Tz.Converter[] = [{
-            key: ['OpenNetworkProp'],
-            convertSet: async (entity, key, value, meta) => {
-                const commandWrapper = yokisExtendChecks.parseOpenNetworkInput(value);
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['OpenNetworkProp'],
+                convertSet: async (entity, key, value, meta) => {
+                    const commandWrapper = yokisExtendChecks.parseOpenNetworkInput(value);
 
-                if (!commandWrapper.isSuccess) {
-                    logger.warning(
-                        // @ts-expect-error
-                        `encountered an error (${commandWrapper.error.reason}) ` +
-                        `while parsing configuration commands (input: ${JSON.stringify(value)})`,
-                        NS,
-                    );
+                    if (!commandWrapper.isSuccess) {
+                        logger.warning(
+                            // @ts-expect-error  CommandWrapper contains always contains the error attribute only when isSuccess is false
+                            `encountered an error (${commandWrapper.error.reason}) ` +
+                                `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                            NS,
+                        );
 
-                    return;
-                }
+                        return;
+                    }
 
-                yokisExtendChecks.log(key, value);
+                    yokisExtendChecks.log(key, value);
 
-                await entity.command('manuSpecificYokisDevice', 'OpenNetwork', commandWrapper.payload);
+                    await entity.command('manuSpecificYokisDevice', 'OpenNetwork', commandWrapper.payload);
+                },
             },
-        }];
+        ];
 
         return {
             exposes: [exposes],
@@ -654,47 +785,66 @@ const yokisCommandsExtend = {
         };
     },
     moveToPosition: (): ModernExtend => {
-        const exposes = e.composite('moveToPositionCommand', 'moveToPositionProp', ea.SET)
-            .withDescription('Move to position specified in uc_BrightnessEnd parameter.' +
-                'If TOR mode is set (no dimming) or MTR : if uc_BrightnessEnd under 50% will set to OFF else will be set to ON')
+        const exposes = e
+            .composite('moveToPositionCommand', 'moveToPositionProp', ea.SET)
+            .withDescription(
+                'Move to position specified in uc_BrightnessEnd parameter.' +
+                    'If TOR mode is set (no dimming) or MTR : if uc_BrightnessEnd under 50% will set to OFF else will be set to ON',
+            )
             .withFeature(e.numeric('uc_BrightnessStart', ea.SET).withDescription(''))
             .withFeature(e.numeric('uc_BrightnessEnd', ea.SET).withDescription(''))
-            .withFeature(e.numeric('ul_PreTimerValue', ea.SET).withUnit('s')
-                .withDescription('If defined will force the pretimer value (only for this order) if not the device will use its own value.'))
-            .withFeature(e.binary('b_PreTimerEnable', ea.SET, true, false)
-                .withDescription('If defined will force the pretimer use (only for this order) if not the device will use its own value.'))
-            .withFeature(e.numeric('ul_TimerValue', ea.SET).withUnit('s')
-                .withDescription('If defined will force the OnTimer value (only for this order) if not the device will use its own value.'))
-            .withFeature(e.binary('b_TimerEnable', ea.SET, true, false)
-                .withDescription('If defined will force the OnTimer use (only for this order) if not the device will use its own value.'))
+            .withFeature(
+                e
+                    .numeric('ul_PreTimerValue', ea.SET)
+                    .withUnit('s')
+                    .withDescription('If defined will force the pretimer value (only for this order) if not the device will use its own value.'),
+            )
+            .withFeature(
+                e
+                    .binary('b_PreTimerEnable', ea.SET, true, false)
+                    .withDescription('If defined will force the pretimer use (only for this order) if not the device will use its own value.'),
+            )
+            .withFeature(
+                e
+                    .numeric('ul_TimerValue', ea.SET)
+                    .withUnit('s')
+                    .withDescription('If defined will force the OnTimer value (only for this order) if not the device will use its own value.'),
+            )
+            .withFeature(
+                e
+                    .binary('b_TimerEnable', ea.SET, true, false)
+                    .withDescription('If defined will force the OnTimer use (only for this order) if not the device will use its own value.'),
+            )
             .withFeature(e.numeric('ul_TransitionTime', ea.SET).withDescription(''))
             .withCategory('config');
 
-        const toZigbee: Tz.Converter[] = [{
-            key: ['moveToPositionProp'],
-            convertSet: async (entity, key, value, meta) => {
-                // const options = utils.getOptions(meta.mapped, entity);
-                // logger.debug('Invoked converter with options:' + JSON.stringify(options));
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['moveToPositionProp'],
+                convertSet: async (entity, key, value, meta) => {
+                    // const options = utils.getOptions(meta.mapped, entity);
+                    // logger.debug('Invoked converter with options:' + JSON.stringify(options));
 
-                const commandWrapper = yokisExtendChecks.parseMoveToPositionInput(value);
+                    const commandWrapper = yokisExtendChecks.parseMoveToPositionInput(value);
 
-                if (!commandWrapper.isSuccess) {
-                    logger.warning(
-                        // @ts-expect-error
-                        `encountered an error (${commandWrapper.error.reason}) ` +
-                        `while parsing configuration commands (input: ${JSON.stringify(value)})`,
-                        NS,
-                    );
+                    if (!commandWrapper.isSuccess) {
+                        logger.warning(
+                            // @ts-expect-error  CommandWrapper contains always contains the error attribute only when isSuccess is false
+                            `encountered an error (${commandWrapper.error.reason}) ` +
+                                `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                            NS,
+                        );
 
-                    return;
-                }
+                        return;
+                    }
 
-                yokisExtendChecks.log(key, value, commandWrapper.payload);
+                    yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                // NB: we are using the Cluster name defined in ZH over Cluster hexcode (due to conflict on cluster ID)
-                await entity.command('manuSpecificYokisLightControl', 'moveToPosition', commandWrapper.payload);
+                    // NB: we are using the Cluster name defined in ZH over Cluster hexcode (due to conflict on cluster ID)
+                    await entity.command('manuSpecificYokisLightControl', 'moveToPosition', commandWrapper.payload);
+                },
             },
-        }];
+        ];
 
         return {
             exposes: [exposes],
@@ -703,42 +853,59 @@ const yokisCommandsExtend = {
         };
     },
     blink: (): ModernExtend => {
-        const exposes = e.composite('blinkCommand', 'blinkProp', ea.SET)
+        const exposes = e
+            .composite('blinkCommand', 'blinkProp', ea.SET)
             .withDescription('With this command, the module is asked to perform a blinking sequence.')
-            .withFeature(e.numeric('uc_BlinkAmount', ea.SET)
-                .withDescription('If defined will force the number of blink to be done (only for this order).' +
-                'if not the device will use its own value.'))
-            .withFeature(e.numeric('ul_BlinkOnPeriod', ea.SET)
-                .withDescription('If defined will force the blink’s “on time” (only for this order) if not the device will use its own value.'))
-            .withFeature(e.numeric('ul_BlinkOffPeriod', ea.SET)
-                .withDescription('If defined will force the blink’s “off time” (only for this order) if not the device will use its own value.'))
-            .withFeature(e.enum('uc_StateAfterSequence', ea.SET, Object.keys(stateAfterBlinkEnum))
-                .withDescription('If defined will force the state after the sequence (only for this order).' +
-                'if not the device will use its own value-'))
+            .withFeature(
+                e
+                    .numeric('uc_BlinkAmount', ea.SET)
+                    .withDescription(
+                        'If defined will force the number of blink to be done (only for this order).' + 'if not the device will use its own value.',
+                    ),
+            )
+            .withFeature(
+                e
+                    .numeric('ul_BlinkOnPeriod', ea.SET)
+                    .withDescription('If defined will force the blink’s “on time” (only for this order) if not the device will use its own value.'),
+            )
+            .withFeature(
+                e
+                    .numeric('ul_BlinkOffPeriod', ea.SET)
+                    .withDescription('If defined will force the blink’s “off time” (only for this order) if not the device will use its own value.'),
+            )
+            .withFeature(
+                e
+                    .enum('uc_StateAfterSequence', ea.SET, Object.keys(stateAfterBlinkEnum))
+                    .withDescription(
+                        'If defined will force the state after the sequence (only for this order).' + 'if not the device will use its own value-',
+                    ),
+            )
             .withFeature(e.binary('b_DoPeriodicCycle', ea.SET, true, false).withDescription('If set to true the blinking will be “infinite”'))
             .withCategory('config');
 
-        const toZigbee: Tz.Converter[] = [{
-            key: ['blinkProp'],
-            convertSet: async (entity, key, value, meta) => {
-                const commandWrapper = yokisExtendChecks.parseBlinkInput(value);
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['blinkProp'],
+                convertSet: async (entity, key, value, meta) => {
+                    const commandWrapper = yokisExtendChecks.parseBlinkInput(value);
 
-                if (!commandWrapper.isSuccess) {
-                    logger.warning(
-                        // @ts-expect-error
-                        `encountered an error (${commandWrapper.error.reason}) ` +
-                        `while parsing configuration commands (input: ${JSON.stringify(value)})`,
-                        NS,
-                    );
+                    if (!commandWrapper.isSuccess) {
+                        logger.warning(
+                            // @ts-expect-error CommandWrapper contains always contains the error attribute only when isSuccess is false
+                            `encountered an error (${commandWrapper.error.reason}) ` +
+                                `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                            NS,
+                        );
 
-                    return;
-                }
+                        return;
+                    }
 
-                yokisExtendChecks.log(key, value, commandWrapper.payload);
+                    yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                await entity.command('manuSpecificYokisLightControl', 'blink', commandWrapper.payload);
+                    await entity.command('manuSpecificYokisLightControl', 'blink', commandWrapper.payload);
+                },
             },
-        }];
+        ];
 
         return {
             exposes: [exposes],
@@ -747,32 +914,35 @@ const yokisCommandsExtend = {
         };
     },
     pulse: (): ModernExtend => {
-        const exposes = e.composite('pulseCommand', 'pulseProp', ea.SET)
+        const exposes = e
+            .composite('pulseCommand', 'pulseProp', ea.SET)
             .withDescription('This command allows the relay to be controlled with an impulse. The pulse time is defined by PulseLength.')
             .withFeature(e.numeric('pulseLength', ea.SET).withValueMax(65535).withUnit('ms').withDescription('Pulse length'))
             .withCategory('config');
 
-        const toZigbee: Tz.Converter[] = [{
-            key: ['pulseProp'],
-            convertSet: async (entity, key, value, meta) => {
-                const commandWrapper = yokisExtendChecks.parsePulseInput(value);
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['pulseProp'],
+                convertSet: async (entity, key, value, meta) => {
+                    const commandWrapper = yokisExtendChecks.parsePulseInput(value);
 
-                if (!commandWrapper.isSuccess) {
-                    logger.warning(
-                        // @ts-expect-error
-                        `encountered an error (${commandWrapper.error.reason}) ` +
-                        `while parsing configuration commands (input: ${JSON.stringify(value)})`,
-                        NS,
-                    );
+                    if (!commandWrapper.isSuccess) {
+                        logger.warning(
+                            // @ts-expect-error CommandWrapper contains always contains the error attribute only when isSuccess is false
+                            `encountered an error (${commandWrapper.error.reason}) ` +
+                                `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                            NS,
+                        );
 
-                    return;
-                }
+                        return;
+                    }
 
-                yokisExtendChecks.log(key, value, commandWrapper.payload);
+                    yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                // await entity.command('manuSpecificYokisLightControl', 'pulse', commandWrapper.payload);
+                    // await entity.command('manuSpecificYokisLightControl', 'pulse', commandWrapper.payload);
+                },
             },
-        }];
+        ];
 
         return {
             exposes: [exposes],
@@ -781,50 +951,70 @@ const yokisCommandsExtend = {
         };
     },
     deafBlink: (): ModernExtend => {
-        const exposes = e.composite('deafBlinkCommand', 'deafBlinkProp', ea.SET)
+        const exposes = e
+            .composite('deafBlinkCommand', 'deafBlinkProp', ea.SET)
             .withDescription('Start a deaf sequene on a device only if the attribute “eDeaf” is set to Enable.')
-            .withFeature(e.numeric('uc_BlinkAmount', ea.SET)
-                .withDescription('If defined will force the number of blink to be done during one sequence (only for this order).' +
-                'if not the device will use its own value.'))
-            .withFeature(e.numeric('ul_BlinkOnTime', ea.SET)
-                .withDescription('If defined will force the blink’s “on time” (only for this order) if not the device will use its own value'))
-            .withFeature(e.numeric('uc_SequenceAmount', ea.STATE)
-                .withValueMin(0)
-                .withValueMax(6)
-                .withDescription('If defined will set the number of sequence to be done. Each sequence is spaced by 1 second. (Max 6)'))
-            .withFeature(e.list('tuc_BlinkAmount', ea.SET,
-                e.composite('uc_BlinkAmountItems', 'uc_BlinkAmountItems', ea.SET)
-                    .withLabel('')
-                    .withFeature(e.numeric('uc_BlinkAmountItem', ea.SET)
-                        .withLabel('Blinks')))
-                .withLengthMin(0)
-                .withLengthMax(6)
-                .withDescription('Array with the number of blink to be done for each sequence. Will override “uc_BlinkAmount“.'))
+            .withFeature(
+                e
+                    .numeric('uc_BlinkAmount', ea.SET)
+                    .withDescription(
+                        'If defined will force the number of blink to be done during one sequence (only for this order).' +
+                            'if not the device will use its own value.',
+                    ),
+            )
+            .withFeature(
+                e
+                    .numeric('ul_BlinkOnTime', ea.SET)
+                    .withDescription('If defined will force the blink’s “on time” (only for this order) if not the device will use its own value'),
+            )
+            .withFeature(
+                e
+                    .numeric('uc_SequenceAmount', ea.STATE)
+                    .withValueMin(0)
+                    .withValueMax(6)
+                    .withDescription('If defined will set the number of sequence to be done. Each sequence is spaced by 1 second. (Max 6)'),
+            )
+            .withFeature(
+                e
+                    .list(
+                        'tuc_BlinkAmount',
+                        ea.SET,
+                        e
+                            .composite('uc_BlinkAmountItems', 'uc_BlinkAmountItems', ea.SET)
+                            .withLabel('')
+                            .withFeature(e.numeric('uc_BlinkAmountItem', ea.SET).withLabel('Blinks')),
+                    )
+                    .withLengthMin(0)
+                    .withLengthMax(6)
+                    .withDescription('Array with the number of blink to be done for each sequence. Will override “uc_BlinkAmount“.'),
+            )
             .withCategory('config');
 
-        const toZigbee: Tz.Converter[] = [{
-            key: ['deafBlinkProp'],
-            convertSet: async (entity, key, value, meta) => {
-                const commandWrapper = yokisExtendChecks.parseDeafBlinkPropInput(value);
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['deafBlinkProp'],
+                convertSet: async (entity, key, value, meta) => {
+                    const commandWrapper = yokisExtendChecks.parseDeafBlinkPropInput(value);
 
-                if (!commandWrapper.isSuccess) {
-                    logger.warning(
-                        // @ts-expect-error
-                        `encountered an error (${commandWrapper.error.reason}) ` +
-                        `while parsing configuration commands (input: ${JSON.stringify(value)})`,
-                        NS,
-                    );
+                    if (!commandWrapper.isSuccess) {
+                        logger.warning(
+                            // @ts-expect-error CommandWrapper contains always contains the error attribute only when isSuccess is false
+                            `encountered an error (${commandWrapper.error.reason}) ` +
+                                `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                            NS,
+                        );
 
-                    return;
-                }
+                        return;
+                    }
 
-                yokisExtendChecks.log(key, value, commandWrapper.payload);
+                    yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                await entity.command('manuSpecificYokisLightControl', 'deafBlink', commandWrapper.payload);
+                    await entity.command('manuSpecificYokisLightControl', 'deafBlink', commandWrapper.payload);
 
-                // return {state: {deafBlinkProp: commandWrapper.value}};
+                    // return {state: {deafBlinkProp: commandWrapper.value}};
+                },
             },
-        }];
+        ];
 
         return {
             exposes: [exposes],
@@ -835,13 +1025,15 @@ const yokisCommandsExtend = {
     longOnCommand: (): ModernExtend => {
         const exposes = e.enum('longOnCommand', ea.SET, ['longOnAction']).withDescription('Ititiate long duration on').withCategory('config');
 
-        const toZigbee: Tz.Converter[] = [{
-            key: ['longOnCommand'],
-            convertSet: async (entity, key, value, meta) => {
-                yokisExtendChecks.log(key, value);
-                await entity.command('manuSpecificYokisLightControl', 'longOn', {});
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['longOnCommand'],
+                convertSet: async (entity, key, value, meta) => {
+                    yokisExtendChecks.log(key, value);
+                    await entity.command('manuSpecificYokisLightControl', 'longOn', {});
+                },
             },
-        }];
+        ];
 
         return {
             exposes: [exposes],
@@ -850,17 +1042,20 @@ const yokisCommandsExtend = {
         };
     },
     sendPress: (): ModernExtend => {
-        const exposes = e.enum('SendPress', ea.SET, ['SendPress'])
+        const exposes = e
+            .enum('SendPress', ea.SET, ['SendPress'])
             .withDescription('Send to the server cluster a button press')
             .withCategory('config');
 
-        const toZigbee: Tz.Converter[] = [{
-            key: ['SendPress'],
-            convertSet: async (entity, key, value, meta) => {
-                yokisExtendChecks.log(key, value);
-                await entity.command('manuSpecificYokisDevice', 'sendPress', {});
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['SendPress'],
+                convertSet: async (entity, key, value, meta) => {
+                    yokisExtendChecks.log(key, value);
+                    await entity.command('manuSpecificYokisDevice', 'sendPress', {});
+                },
             },
-        }];
+        ];
 
         return {
             exposes: [exposes],
@@ -869,17 +1064,20 @@ const yokisCommandsExtend = {
         };
     },
     sendRelease: (): ModernExtend => {
-        const exposes = e.enum('SendRelease', ea.SET, ['SendRelease'])
+        const exposes = e
+            .enum('SendRelease', ea.SET, ['SendRelease'])
             .withDescription('Send to the server cluster a button release')
             .withCategory('config');
 
-        const toZigbee: Tz.Converter[] = [{
-            key: ['SendRelease'],
-            convertSet: async (entity, key, value, meta) => {
-                yokisExtendChecks.log(key, value);
-                await entity.command('manuSpecificYokisDevice', 'sendRelease', {});
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['SendRelease'],
+                convertSet: async (entity, key, value, meta) => {
+                    yokisExtendChecks.log(key, value);
+                    await entity.command('manuSpecificYokisDevice', 'sendRelease', {});
+                },
             },
-        }];
+        ];
 
         return {
             exposes: [exposes],
@@ -888,31 +1086,34 @@ const yokisCommandsExtend = {
         };
     },
     selectInputMode: (): ModernExtend => {
-        const exposes = e.enum('uc_InputMode', ea.SET, Object.keys(inputModeEnum))
+        const exposes = e
+            .enum('uc_InputMode', ea.SET, Object.keys(inputModeEnum))
             .withDescription('Change the Input mode to use switch input, wired relay or simple push button')
             .withCategory('config');
 
-        const toZigbee: Tz.Converter[] = [{
-            key: ['uc_InputMode'],
-            convertSet: async (entity, key, value, meta) => {
-                const commandWrapper = yokisExtendChecks.parseInputModeInput(value);
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['uc_InputMode'],
+                convertSet: async (entity, key, value, meta) => {
+                    const commandWrapper = yokisExtendChecks.parseInputModeInput(value);
 
-                if (!commandWrapper.isSuccess) {
-                    logger.warning(
-                        // @ts-expect-error
-                        `encountered an error (${commandWrapper.error.reason}) ` +
-                        `while parsing configuration commands (input: ${JSON.stringify(value)})`,
-                        NS,
-                    );
+                    if (!commandWrapper.isSuccess) {
+                        logger.warning(
+                            // @ts-expect-error CommandWrapper contains always contains the error attribute only when isSuccess is false
+                            `encountered an error (${commandWrapper.error.reason}) ` +
+                                `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                            NS,
+                        );
 
-                    return;
-                }
+                        return;
+                    }
 
-                yokisExtendChecks.log(key, value);
+                    yokisExtendChecks.log(key, value);
 
-                await entity.command('manuSpecificYokisLightControl', 'selectInputMode', commandWrapper.payload);
+                    await entity.command('manuSpecificYokisLightControl', 'selectInputMode', commandWrapper.payload);
+                },
             },
-        }];
+        ];
 
         return {
             exposes: [exposes],
@@ -922,7 +1123,7 @@ const yokisCommandsExtend = {
     },
 };
 
-const yokisLightControlExtend : ModernExtend[] = [
+const yokisLightControlExtend: ModernExtend[] = [
     // OnOff => this is redundant from the GenOnOff state
     // binary({
     //     name: 'OnOff',
@@ -1021,7 +1222,7 @@ const yokisLightControlExtend : ModernExtend[] = [
         attribute: 'pulseDuration',
         description: 'Set the value of ON pulse length.',
         valueMin: 0x0014,
-        valueMax: 0xFFFE,
+        valueMax: 0xfffe,
         valueStep: 1,
         unit: 'ms',
         entityCategory: 'config',
@@ -1113,7 +1314,7 @@ const yokisLightControlExtend : ModernExtend[] = [
         attribute: 'deafBlinkTime',
         description: 'Define duration of a blink ON (In millisecond)',
         valueMin: 0x0064,
-        valueMax: 0x4E20,
+        valueMax: 0x4e20,
         valueStep: 1,
         entityCategory: 'config',
     }),
@@ -1191,7 +1392,7 @@ const yokisLightControlExtend : ModernExtend[] = [
     yokisCommandsExtend.longOnCommand(),
 ];
 
-const YokisDeviceExtend : ModernExtend[] = [
+const YokisDeviceExtend: ModernExtend[] = [
     numeric({
         name: 'ConfigurationChanged',
         cluster: 'manuSpecificYokisDevice',
@@ -1208,7 +1409,7 @@ const YokisDeviceExtend : ModernExtend[] = [
     yokisCommandsExtend.openNetwork(),
 ];
 
-const YokisInputExtend : ModernExtend[] = [
+const YokisInputExtend: ModernExtend[] = [
     // InputMode
     enumLookup({
         name: 'InputMode',
@@ -1274,10 +1475,9 @@ const YokisInputExtend : ModernExtend[] = [
     yokisCommandsExtend.sendPress(),
     yokisCommandsExtend.sendRelease(),
     yokisCommandsExtend.selectInputMode(),
-
 ];
 
-const YokisEntryExtend : ModernExtend[] = [
+const YokisEntryExtend: ModernExtend[] = [
     // eShortPress
     binary({
         name: 'eShortPress',
@@ -1347,10 +1547,9 @@ const YokisEntryExtend : ModernExtend[] = [
         valueOff: ['OFF', 0x00],
         entityCategory: 'config',
     }),
-
 ];
 
-const YokisSubSystemExtend : ModernExtend[] = [
+const YokisSubSystemExtend: ModernExtend[] = [
     enumLookup({
         name: 'powerFailureMode',
         lookup: powerFailureModeEnum,
@@ -1362,41 +1561,46 @@ const YokisSubSystemExtend : ModernExtend[] = [
     }),
 ];
 
-const YokisDimmerExtend : ModernExtend[] = [
+const YokisDimmerExtend: ModernExtend[] = [
     // TODO: Placeholder - pending documentation
 ];
 
-const YokisWindowCoveringExtend : ModernExtend[] = [
+const YokisWindowCoveringExtend: ModernExtend[] = [
     // TODO : Placeholder - pending documentation
 ];
 
-const YokisChannelExtend : ModernExtend[] = [
+const YokisChannelExtend: ModernExtend[] = [
     // TODO : Placeholder - pending documentation
 ];
 
-const YokisPilotWireExtend : ModernExtend[] = [
+const YokisPilotWireExtend: ModernExtend[] = [
     // TODO : Placeholder - pending documentation
 ];
 
-const YokisStatsExtend : ModernExtend[] = [
+const YokisStatsExtend: ModernExtend[] = [
     // TODO : Placeholder - pending documentation
 ];
 
 // #endregion
 
-const definitions: Definition[] = [
-    { // MTR500E-UP
+const definitions: DefinitionWithExtend[] = [
+    {
+        // MTR500E-UP
         zigbeeModel: ['MTR500E-UP'],
         model: 'MTR500E-UP',
         vendor: 'YOKIS',
         description: 'Remote power switch with timer 500W',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisEntryConfigurator',
-                'manuSpecificYokisSubSystem', 'manuSpecificYokisLoadManager', 'manuSpecificYokisLightControl',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisEntryConfigurator',
+                'manuSpecificYokisSubSystem',
+                'manuSpecificYokisLoadManager',
+                'manuSpecificYokisLightControl',
                 'manuSpecificYokisStats',
             ]),
-            onOff({'powerOnBehavior': false}),
+            onOff({powerOnBehavior: false}),
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             identify(),
             ...yokisLightControlExtend,
@@ -1407,18 +1611,23 @@ const definitions: Definition[] = [
             ...YokisStatsExtend,
         ],
     },
-    { // MTR1300E-UP
+    {
+        // MTR1300E-UP
         zigbeeModel: ['MTR1300E-UP'],
         model: 'MTR1300E-UP',
         vendor: 'YOKIS',
         description: 'Remote power switch with timer 1300W',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisEntryConfigurator',
-                'manuSpecificYokisSubSystem', 'manuSpecificYokisLoadManager', 'manuSpecificYokisLightControl',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisEntryConfigurator',
+                'manuSpecificYokisSubSystem',
+                'manuSpecificYokisLoadManager',
+                'manuSpecificYokisLightControl',
                 'manuSpecificYokisStats',
             ]),
-            onOff({'powerOnBehavior': false}),
+            onOff({powerOnBehavior: false}),
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             identify(),
             ...yokisLightControlExtend,
@@ -1429,18 +1638,23 @@ const definitions: Definition[] = [
             // ...YokisStatsExtend,
         ],
     },
-    { // MTR2000E-UP
+    {
+        // MTR2000E-UP
         zigbeeModel: ['MTR2000E-UP'],
         model: 'MTR2000E-UP',
         vendor: 'YOKIS',
         description: 'Remote power switch with timer 2000W',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisEntryConfigurator',
-                'manuSpecificYokisSubSystem', 'manuSpecificYokisLoadManager', 'manuSpecificYokisLightControl',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisEntryConfigurator',
+                'manuSpecificYokisSubSystem',
+                'manuSpecificYokisLoadManager',
+                'manuSpecificYokisLightControl',
                 'manuSpecificYokisStats',
             ]),
-            onOff({'powerOnBehavior': false}),
+            onOff({powerOnBehavior: false}),
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             identify(),
             ...yokisLightControlExtend,
@@ -1451,18 +1665,24 @@ const definitions: Definition[] = [
             // ...YokisStatsExtend,
         ],
     },
-    { // MTV300E-UP
+    {
+        // MTV300E-UP
         zigbeeModel: ['MTV300E-UP'],
         model: 'MTV300E-UP',
         vendor: 'YOKIS',
         description: 'Remote dimmer with timer 300W',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisEntryConfigurator',
-                'manuSpecificYokisSubSystem', 'manuSpecificYokisLoadManager', 'manuSpecificYokisLightControl',
-                'manuSpecificYokisDimmer', 'manuSpecificYokisStats',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisEntryConfigurator',
+                'manuSpecificYokisSubSystem',
+                'manuSpecificYokisLoadManager',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisDimmer',
+                'manuSpecificYokisStats',
             ]),
-            light({'configureReporting': true, 'powerOnBehavior': false}), // TODO: review dimmer cluster instead
+            light({configureReporting: true, powerOnBehavior: false}), // TODO: review dimmer cluster instead
             identify(),
             ...yokisLightControlExtend,
             // ...YokisDeviceExtend,
@@ -1473,19 +1693,24 @@ const definitions: Definition[] = [
             // ...YokisStatsExtend,
         ],
     },
-    { // MVR500E-UP
+    {
+        // MVR500E-UP
         zigbeeModel: ['MVR500E-UP'],
         model: 'MVR500E-UP',
         vendor: 'YOKIS',
         description: 'Roller shutter module 500W',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisEntryConfigurator',
-                'manuSpecificYokisSubSystem', 'manuSpecificYokisLightControl',
-                'manuSpecificYokisWindowCovering', 'manuSpecificYokisStats',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisEntryConfigurator',
+                'manuSpecificYokisSubSystem',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisWindowCovering',
+                'manuSpecificYokisStats',
             ]),
             identify(),
-            windowCovering({'controls': ['lift']}),
+            windowCovering({controls: ['lift']}),
             commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
@@ -1495,16 +1720,23 @@ const definitions: Definition[] = [
             // ...YokisStatsExtend
         ],
     },
-    { // E2BPA-UP
+    {
+        // E2BPA-UP
         zigbeeModel: ['E2BPA-UP', 'E2BP-UP'],
         model: 'E2BP-UP',
         vendor: 'YOKIS',
         description: 'Flush-mounted independent 2-channel transmitter',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisLightControl',
-                'manuSpecificYokisDimmer', 'manuSpecificYokisWindowCovering', 'manuSpecificYokisChannel',
-                'manuSpecificYokisChannel', 'manuSpecificYokisPilotWire', 'manuSpecificYokisStats',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisDimmer',
+                'manuSpecificYokisWindowCovering',
+                'manuSpecificYokisChannel',
+                'manuSpecificYokisChannel',
+                'manuSpecificYokisPilotWire',
+                'manuSpecificYokisStats',
             ]),
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             identify(),
@@ -1517,16 +1749,23 @@ const definitions: Definition[] = [
             // ...YokisInputExtend,
         ],
     },
-    { // E4BPA-UP
+    {
+        // E4BPA-UP
         zigbeeModel: ['E4BPA-UP', 'E4BP-UP', 'E4BPX-UP'],
         model: 'E4BP-UP',
         vendor: 'YOKIS',
         description: 'Flush-mounted independent 4-channel transmitter',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisLightControl',
-                'manuSpecificYokisDimmer', 'manuSpecificYokisWindowCovering', 'manuSpecificYokisChannel',
-                'manuSpecificYokisChannel', 'manuSpecificYokisPilotWire', 'manuSpecificYokisStats',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisDimmer',
+                'manuSpecificYokisWindowCovering',
+                'manuSpecificYokisChannel',
+                'manuSpecificYokisChannel',
+                'manuSpecificYokisPilotWire',
+                'manuSpecificYokisStats',
             ]),
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
             identify(),
@@ -1539,15 +1778,20 @@ const definitions: Definition[] = [
             // ...YokisInputExtend,
         ],
     },
-    { // TLC1-UP
+    {
+        // TLC1-UP
         zigbeeModel: ['TLC1-UP'],
         model: 'TLC1-UP',
         vendor: 'YOKIS',
         description: 'Tabletop Design series 1-button remote control',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisLightControl',
-                'manuSpecificYokisDimmer', 'manuSpecificYokisWindowCovering', 'manuSpecificYokisChannel',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisDimmer',
+                'manuSpecificYokisWindowCovering',
+                'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
             ]),
             identify(),
@@ -1557,15 +1801,20 @@ const definitions: Definition[] = [
             commandsWindowCovering(),
         ],
     },
-    { // TLC2-UP
+    {
+        // TLC2-UP
         zigbeeModel: ['TLC2-UP'],
         model: 'TLC2-UP',
         vendor: 'YOKIS',
         description: 'Keyring Design series 2-button remote control',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisLightControl',
-                'manuSpecificYokisDimmer', 'manuSpecificYokisWindowCovering', 'manuSpecificYokisChannel',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisDimmer',
+                'manuSpecificYokisWindowCovering',
+                'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
             ]),
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
@@ -1576,15 +1825,20 @@ const definitions: Definition[] = [
             commandsWindowCovering(),
         ],
     },
-    { // TLC4-UP
+    {
+        // TLC4-UP
         zigbeeModel: ['TLC4-UP'],
         model: 'TLC4-UP',
         vendor: 'YOKIS',
         description: 'Keyring Design series 4-button remote control',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisLightControl',
-                'manuSpecificYokisDimmer', 'manuSpecificYokisWindowCovering', 'manuSpecificYokisChannel',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisDimmer',
+                'manuSpecificYokisWindowCovering',
+                'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
             ]),
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
@@ -1595,15 +1849,20 @@ const definitions: Definition[] = [
             commandsWindowCovering(),
         ],
     },
-    { // TLC8-UP
+    {
+        // TLC8-UP
         zigbeeModel: ['TLC8-UP'],
         model: 'TLC8-UP',
         vendor: 'YOKIS',
         description: 'Keyring Design series 8-button remote control',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisLightControl',
-                'manuSpecificYokisDimmer', 'manuSpecificYokisWindowCovering', 'manuSpecificYokisChannel',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisDimmer',
+                'manuSpecificYokisWindowCovering',
+                'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
             ]),
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}}),
@@ -1615,15 +1874,20 @@ const definitions: Definition[] = [
             ...YokisDeviceExtend,
         ],
     },
-    { // TLM1-UP
+    {
+        // TLM1-UP
         zigbeeModel: ['TLM1-UP'],
         model: 'TLM1-UP',
         vendor: 'YOKIS',
         description: 'Wall-mounted 1-button transmitter',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisLightControl',
-                'manuSpecificYokisDimmer', 'manuSpecificYokisWindowCovering', 'manuSpecificYokisChannel',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisDimmer',
+                'manuSpecificYokisWindowCovering',
+                'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
             ]),
             identify(),
@@ -1633,15 +1897,20 @@ const definitions: Definition[] = [
             commandsWindowCovering(),
         ],
     },
-    { // TLM2-UP
+    {
+        // TLM2-UP
         zigbeeModel: ['TLM2-UP'],
         model: 'TLM2-UP',
         vendor: 'YOKIS',
         description: 'Wall-mounted 2-button transmitter',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisLightControl',
-                'manuSpecificYokisDimmer', 'manuSpecificYokisWindowCovering', 'manuSpecificYokisChannel',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisDimmer',
+                'manuSpecificYokisWindowCovering',
+                'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
             ]),
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
@@ -1652,15 +1921,20 @@ const definitions: Definition[] = [
             commandsWindowCovering(),
         ],
     },
-    { // TLM4-UP
+    {
+        // TLM4-UP
         zigbeeModel: ['TLM4-UP'],
         model: 'TLM4-UP',
         vendor: 'YOKIS',
         description: 'Wall-mounted 4-button transmitter',
         extend: [
             deviceAddCustomClusters([
-                'manuSpecificYokisDevice', 'manuSpecificYokisInput', 'manuSpecificYokisLightControl',
-                'manuSpecificYokisDimmer', 'manuSpecificYokisWindowCovering', 'manuSpecificYokisChannel',
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisDimmer',
+                'manuSpecificYokisWindowCovering',
+                'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
             ]),
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
