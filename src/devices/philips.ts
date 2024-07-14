@@ -3317,6 +3317,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['LCD008'],
+        model: '9290037121',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance Slim Downlight 90mm',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ['LWE004'],
         model: '8719514302235',
         vendor: 'Philips',
