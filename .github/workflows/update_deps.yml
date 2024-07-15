@@ -24,7 +24,6 @@ jobs:
     - run: rm -f package-lock.json
     - run: npm install
     - run: ls -l .git
-    - run: mv .git/hooks/pre-commit .git/hooks/pre-commit.disabled
     - uses: peter-evans/create-pull-request@v6
       with:
         commit-message: "fix(ignore): update dependencies"
