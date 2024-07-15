@@ -25,6 +25,8 @@ jobs:
     - run: npm install
     - run: rm -rf .git/hooks
     - uses: peter-evans/create-pull-request@v6
+      env:
+        HUSKY: '0'
       with:
         commit-message: "fix(ignore): update dependencies"
         branch: "deps/all"
