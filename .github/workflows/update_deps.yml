@@ -23,8 +23,9 @@ jobs:
     - run: npx npm-check-updates -u -x eslint
     - run: rm -f package-lock.json
     - run: npm install
-    - run: mv .git/hooks/pre-commit .git/hooks/pre-commit.disabled
     - uses: peter-evans/create-pull-request@v6
+      env:
+        HUSKY: '0'
       with:
         commit-message: "fix(ignore): update dependencies"
         branch: "deps/all"
