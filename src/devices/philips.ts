@@ -3313,7 +3313,14 @@ const definitions: Definition[] = [
         zigbeeModel: ['LCD007'],
         model: '579573',
         vendor: 'Philips',
-        description: 'Hue White and Color Ambiance Slim Downlight 6"',
+        description: 'Hue White and Color Ambiance slim downlight 6"',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ['LCD008'],
+        model: '9290037121',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance slim downlight 90mm',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
