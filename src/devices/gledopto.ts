@@ -511,7 +511,7 @@ const definitions: Definition[] = [
         model: 'GL-MC-002P',
         vendor: 'Gledopto',
         description: 'Zigbee USB Mini LED Controller RGB+CCT (Pro)',
-        extend: [gledoptoLight({colorTemp: {range: [158,495]}, color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        extend: [gledoptoLight({colorTemp: {range: [158,495]}, color: true})],
     },
     {
         zigbeeModel: ['GL-S-003Z'],
