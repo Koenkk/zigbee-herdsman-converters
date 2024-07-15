@@ -1060,6 +1060,8 @@ export const presets = {
             .withValueMax(max)
             .withDescription('Maximum allowed load, turns off if exceeded')
             .withCategory('config'),
+    pm1: () =>
+        new Numeric('pm1', access.STATE).withLabel('PM1').withUnit('µg/m³').withDescription('Measured PM1 (particulate matter) concentration'),
     pm10: () =>
         new Numeric('pm10', access.STATE).withLabel('PM10').withUnit('µg/m³').withDescription('Measured PM10 (particulate matter) concentration'),
     pm25: () =>
