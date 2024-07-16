@@ -11,7 +11,6 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'Hilux'}],
-        zigbeeModel: ['Dimmer-Switch-ZB3.0'],
         model: 'Dimmer-Switch-ZB3.0',
         vendor: 'Hilux',
         description: 'Zigbee LED dimmer smart switch',
