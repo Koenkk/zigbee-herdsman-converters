@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {electricityMeter, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
+import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, light, onOff, quirkCheckinInterval, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Definition, Fz, Tz} from '../lib/types';
 
@@ -409,6 +409,19 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['ZB-SMART-PIRTH-V3'],
+        model: '83633205',
+        vendor: 'ADEO',
+        description: 'Smart 4 in 1 sensor',
+        extend: [
+            battery(),
+            illuminance(),
+            temperature(),
+            humidity(),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+        ],
     },
 ];
 

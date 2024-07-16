@@ -1,5 +1,19 @@
 # Changelog
 
+## [19.69.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.68.0...v19.69.0) (2024-07-15)
+
+
+### Features
+
+* **add:** 83633205 ([#7762](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7762)) ([74026d7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/74026d7c0e81ef5e35ee8bca9fbaffcd52275a98))
+* **add:** 9290037121 ([#7766](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7766)) ([bef5a1d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bef5a1d7f40f708c3cd0fadb7c25df31b8ba5c2c))
+* **add:** GL-MC-002P ([#7768](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7768)) ([084443a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/084443a600595a988b7ef53c6d61efc47b49c16c))
+
+
+### Bug Fixes
+
+* **ignore:** update dependencies ([#7771](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7771)) ([b5a118a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b5a118a23c54111f285a6cad6b9ad5aea305e62c))
+
 ## [19.68.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.67.0...v19.68.0) (2024-07-13)
 
 
