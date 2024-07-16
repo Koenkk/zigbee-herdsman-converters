@@ -340,6 +340,13 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        fingerprint: [{modelID: 'DIM Lighting', manufacturerName: 'Namron As'}],
+        model: '4512707',
+        vendor: 'Namron',
+        description: 'Zigbee LED-Controller',
+        extend: [light()],
+    },
+    {
         zigbeeModel: ['4512726'],
         model: '4512726',
         vendor: 'Namron',
