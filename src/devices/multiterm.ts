@@ -16,9 +16,9 @@ const endpoints = {
 };
 
 const states = {
-    silent_mode: ['Inactive', 'Active'],
-    heating_cooling: ['Heating', 'Cooling'],
-    electric_valve: ['Off', 'On'],
+    silent_mode: ['inactive', 'active'],
+    heating_cooling: ['heating', 'cooling'],
+    electric_valve: ['off', 'on'],
 };
 
 const fzLocal = {
@@ -64,7 +64,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['ZC0101'],
         model: 'ZC0101',
         vendor: 'MultiTerm',
-        description: 'ZeeFan Fan Coil Unit controller',
+        description: 'ZeeFan fan coil unit controller',
         extend: [deviceEndpoints({endpoints: {'8': 8, '9': 9, '10': 10}})],
         meta: {multiEndpoint: true},
         fromZigbee: [fz.fan, fzLocal.binary_output],
