@@ -1,5 +1,21 @@
 # Changelog
 
+## [19.70.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.69.0...v19.70.0) (2024-07-16)
+
+
+### Features
+
+* **add:** 4512707 https://github.com/Koenkk/zigbee2mqtt/issues/22400 ([f270434](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f2704346e27431ae3f77c398e4f434c88adec149))
+* **add:** D160-ZG ([#7763](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7763)) ([5fd150e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5fd150ea2f3652f8812f30e4ffdbcbc7cbe887b1))
+* **add:** ZC0101 ([#7767](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7767)) ([982dc21](https://github.com/Koenkk/zigbee-herdsman-converters/commit/982dc219119f881c6df482724a89be61f8858c52))
+
+
+### Bug Fixes
+
+* Fix wrong vendor name and model for `_TZE204_ztqnh5cg` ([#7774](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7774)) ([e8537e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8537e93e72e4f61de6a9833afefb64ee1a81acc))
+* **ignore:** Add `pm1` expose ([#7773](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7773)) ([bdd715e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bdd715e16b05171a6eb696db71a7e194e746edbc))
+* Sonoff TRV: move superfluous entities from sensors device category ([#7772](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7772)) ([1644634](https://github.com/Koenkk/zigbee-herdsman-converters/commit/16446345f4a32493de9c269fa478a8fb4ddcfd0b))
+
 ## [19.69.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.68.0...v19.69.0) (2024-07-15)
 
 
