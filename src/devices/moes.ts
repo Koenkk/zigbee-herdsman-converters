@@ -509,6 +509,7 @@ const definitions: Definition[] = [
         fingerprint: [
             {modelID: 'TS004F', manufacturerName: '_TZ3000_ja5osu5g'},
             {modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'},
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_egvb1p2g'},
         ],
         model: 'ERS-10TZBVB-AA',
         vendor: 'Moes',
