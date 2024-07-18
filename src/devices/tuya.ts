@@ -528,6 +528,16 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    FS05R_brightness: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('61440')) {
+                const property = postfixWithEndpointName('brightness', msg, model);
+                return {[property]: msg.data['61440']};
+            }
+        },
+    },
     TS0726_action: {
         cluster: 'genOnOff',
         type: ['commandTuyaAction'],
@@ -794,6 +804,20 @@ const modernExtendLocal = {
 };
 
 const definitions: Definition[] = [
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0052',
+                manufacturerName: '_TZ3000_mgusv51k'
+            },
+        ],
+        model: 'FS-05R',
+        vendor: 'TuYa',
+        description: 'Mini Dimmable Switch',
+        fromZigbee: [fz.on_off, fzLocal.FS05R_brightness],
+        toZigbee: [tz.on_off, tz.light_onoff_brightness],
+        exposes: [e.linkquality(),e.light_brightness()],
+    },
     {
         zigbeeModel: ['TS0204'],
         model: 'TS0204',
