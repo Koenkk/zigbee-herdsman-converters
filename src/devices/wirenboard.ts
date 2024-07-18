@@ -606,7 +606,7 @@ const definitions: Definition[] = [
         model: 'WB-MSW-ZIGBEE v.4',
         vendor: 'Wirenboard',
         description: 'Wall-mounted multi sensor',
-        fromZigbee: [fromZigbee_1.default.occupancy],
+        fromZigbee: [fz.occupancy],
         extend: [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             deviceEndpoints({
