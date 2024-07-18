@@ -94,6 +94,9 @@ const definitions: Definition[] = [
         model: 'MCT-302 SMA',
         vendor: 'Visonic',
         description: 'Magnetic door & window contact senso',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.tamper()],
         extend: [temperature(), battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
     },
 ];
