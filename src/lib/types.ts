@@ -88,6 +88,16 @@ export interface DiscoveryEntry {
     discovery_payload: KeyValue;
 }
 
+export type BatteryVoltage =
+    | '3V_2100'
+    | '3V_2500'
+    | '3V_2500_3200'
+    | '3V_1500_2800'
+    | '3V_2850_3000'
+    | '4LR6AA1_5v'
+    | '3V_add_1V'
+    | 'Add_1V_42V_CSM300z2v2';
+
 export interface DefinitionMeta {
     separateWhite?: boolean;
     /**
@@ -157,7 +167,7 @@ export interface DefinitionMeta {
          * @example '3V_2100'
          * @defaultValue null
          */
-        voltageToPercentage?: string | {min: number; max: number};
+        voltageToPercentage?: BatteryVoltage | {min: number; max: number};
         /**
          * Prevents batteryPercentageRemaining from being divided (ZCL 200=100%, but some report 100=100%)
          *
