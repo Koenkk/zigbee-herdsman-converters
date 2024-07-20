@@ -7001,7 +7001,7 @@ const definitions: Definition[] = [
             e.presence(),
             e
                 .numeric('target_distance', ea.STATE)
-                .withValueMIn(0)
+                .withValueMin(0)
 		.withValueMax(10)
 		.withValueStep(0.01)
 		.withDescription('Distance to target')
