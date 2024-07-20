@@ -7046,7 +7046,8 @@ const definitions: Definition[] = [
                 .withValueMin(5)
                 .withValueStep(5)
                 .withDescription('presence timeout'),
-                .withUnit('s')
+                .withUnit('s'),
+	],
 ],
         meta: {
             tuyaDatapoints: [
