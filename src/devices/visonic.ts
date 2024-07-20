@@ -13,7 +13,7 @@ const definitions: Definition[] = [
         description: 'Long range pet immune PIR motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery_voltage(), e.linkquality(), e.temperature(), e.battery()],
     },
     {

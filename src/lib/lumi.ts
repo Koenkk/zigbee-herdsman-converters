@@ -18,7 +18,8 @@ import {
     OnEvent,
     Expose,
     Configure,
-    BatteryVoltage,
+    BatteryNonLinearVoltage,
+    BatteryLinearVoltage,
 } from './types';
 import {
     batteryVoltageToPercentage,
@@ -2008,7 +2009,7 @@ export const lumiModernExtend = {
     },
     lumiBattery: (args?: {
         cluster?: 'genBasic' | 'manuSpecificLumi';
-        voltageToPercentage?: BatteryVoltage | {min: number; max: number};
+        voltageToPercentage?: BatteryNonLinearVoltage | BatteryLinearVoltage;
         percentageAtrribute?: number;
         voltageAttribute?: number;
     }): ModernExtend => {

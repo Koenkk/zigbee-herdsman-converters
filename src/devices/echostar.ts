@@ -12,7 +12,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.SAGE206612_state, fz.battery],
         exposes: [e.battery(), e.action(['bell1', 'bell2'])],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
     },
     {
         zigbeeModel: [' Switch'],

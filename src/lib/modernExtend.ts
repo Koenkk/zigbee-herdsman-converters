@@ -25,7 +25,8 @@ import {
     DefinitionMeta,
     KeyValueAny,
     DefinitionExposesFunction,
-    BatteryVoltage,
+    BatteryNonLinearVoltage,
+    BatteryLinearVoltage,
 } from './types';
 import {
     getFromLookupByValue,
@@ -261,7 +262,7 @@ export function linkQuality(args?: LinkQualityArgs): ModernExtend {
 }
 
 export interface BatteryArgs {
-    voltageToPercentage?: BatteryVoltage | {min: number; max: number};
+    voltageToPercentage?: BatteryNonLinearVoltage | BatteryLinearVoltage;
     dontDividePercentage?: boolean;
     percentage?: boolean;
     voltage?: boolean;

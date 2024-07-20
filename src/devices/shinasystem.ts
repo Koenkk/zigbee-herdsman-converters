@@ -206,7 +206,7 @@ const definitions: Definition[] = [
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
         description: 'SiHAS multipurpose ToF sensor',
-        meta: {battery: {voltageToPercentage: 'Add_1V_42V_CSM300z2v2'}},
+        meta: {battery: {voltageToPercentage: {min: 2900, max: 4100, vOffset: 1000}}},
         fromZigbee: [fz.battery, fz.sihas_people_cnt],
         toZigbee: [tz.sihas_set_people, tzLocal.CSM300_SETUP],
         configure: async (device, coordinatorEndpoint) => {

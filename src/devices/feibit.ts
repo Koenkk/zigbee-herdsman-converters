@@ -53,7 +53,7 @@ const definitions: Definition[] = [
         description: 'Smart temperature & humidity Sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {

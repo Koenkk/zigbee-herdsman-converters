@@ -841,7 +841,7 @@ const definitions: Definition[] = [
             fzLocal.ctm_group_config,
         ],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
@@ -1166,7 +1166,7 @@ const definitions: Definition[] = [
         description: 'AX Water Sensor, water leakage detector',
         fromZigbee: [fz.battery, fz.ias_enroll, fzLocal.ctm_water_leak_alarm],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone']);
@@ -1210,7 +1210,7 @@ const definitions: Definition[] = [
         description: 'Mikrofon, alarm detection microphone',
         fromZigbee: [fz.temperature, fz.battery, fz.command_on, fz.command_off, fz.ias_enroll, fz.ias_smoke_alarm_1, fzLocal.ctm_group_config],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'msTemperatureMeasurement']);
@@ -1238,7 +1238,7 @@ const definitions: Definition[] = [
         description: 'Air Sensor, temperature & humidity sensor',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
