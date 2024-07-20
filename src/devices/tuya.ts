@@ -6998,12 +6998,13 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.illuminance_lux(),
-            e
-                .enum('presence_state', ea.STATE, ['none', 'presence'])
-                .withDescription('presence_state'),
+            e.presence(),
             e
                 .numeric('target_distance', ea.STATE)
-                .withDescription('Distance to target')
+                .withValueMIn(0)
+		.withValueMax(10)
+		.withValueStep(0.01)
+		.withDescription('Distance to target')
                 .withUnit('m'),
             e
                 .numeric('sensitivity', ea.STATE_SET)
@@ -7012,59 +7013,52 @@ const definitions: Definition[] = [
                 .withValueStep(1)
                 .withDescription('sensitivity of the radar'),
             e
-                .numeric('near_detection', ea.STATE_SET)
+                .numeric('minimum_range', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(10.0)
-                .withDescription('minimum detection range')
                 .withValueStep(0.1)
+		.withDescription('minimum detection range')
                 .withUnit('m'),
             e
-                .numeric('far_detection', ea.STATE_SET)
+                .numeric('maximum_range', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(10.0)
-                .withDescription('maximum detection range')
-                .withValueStep(0.1)
-                .withUnit('m'),
-            e
-                .numeric('distance', ea.STATE)
-                .withValueMin(0)
-                .withValueMax(10.0)
-                .withDescription('target distance')
-                .withValueStep(0.01)
+		.withValueStep(0.1)
+		.withDescription('maximum detection range')
                 .withUnit('m'),
             e
                 .numeric('interval_time', ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(3600)
-                .withDescription('interval_time')
                 .withValueStep(1)
+                .withDescription('interval_time')
                 .withUnit('s'),
             e
                 .numeric('detection_delay', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(10.0)
                 .withValueStep(0.1)
-                .withUnit('s')
-                .withDescription('detection delay'),
+                .withDescription('detection delay')
+		.withUnit('s'),
             e
                 .numeric('fading_time', ea.STATE_SET)
                 .withValueMax(1500)
                 .withValueMin(5)
                 .withValueStep(5)
-                .withUnit('s')
                 .withDescription('presence timeout'),
+                .withUnit('s')
 ],
         meta: {
             tuyaDatapoints: [
-                [1, 'presence_state', tuya.valueConverterBasic.lookup({'none': tuya.enum(0), 'presence': tuya.enum(1)})],
+                [1, 'presence', tuya.valueConverterBasic.lookup({'none': tuya.enum(0), 'presence': tuya.enum(1)})],
                 [2, 'sensitivity', tuya.valueConverter.raw],
-                [3, 'near_detection', tuya.valueConverter.divideBy100],
-                [4, 'far_detection', tuya.valueConverter.divideBy100],
-				[9, 'distance', tuya.valueConverter.divideBy100],
-				[103, 'illuminance_value', tuya.valueConverter.raw],
-				[104, 'interval_time', tuya.valueConverter.raw],
-				[105, 'detection_delay', tuya.valueConverter.divideBy10],
-				[106, 'fading_time', tuya.valueConverter.divideBy10],
+                [3, 'minimum_range', tuya.valueConverter.divideBy100],
+                [4, 'maximum_range', tuya.valueConverter.divideBy100],
+		[9, 'target_distance', tuya.valueConverter.divideBy100],
+		[103, 'illuminance_lux', tuya.valueConverter.raw],
+		[104, 'interval_time', tuya.valueConverter.raw],
+		[105, 'detection_delay', tuya.valueConverter.divideBy10],
+		[106, 'fading_time', tuya.valueConverter.divideBy10],
             ],
         },
     },
