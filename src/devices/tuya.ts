@@ -7050,7 +7050,7 @@ const definitions: Definition[] = [
 	],
 	meta: {
             tuyaDatapoints: [
-                [1, 'presence', tuya.valueConverterBasic.lookup({'none': tuya.enum(0), 'presence': tuya.enum(1)})],
+                [1, 'presence', tuya.valueConverter.trueFalse1],
                 [2, 'sensitivity', tuya.valueConverter.raw],
                 [3, 'minimum_range', tuya.valueConverter.divideBy100],
                 [4, 'maximum_range', tuya.valueConverter.divideBy100],
