@@ -7045,11 +7045,10 @@ const definitions: Definition[] = [
                 .withValueMax(1500)
                 .withValueMin(5)
                 .withValueStep(5)
-                .withDescription('presence timeout'),
+                .withDescription('presence timeout')
                 .withUnit('s'),
 	],
-],
-        meta: {
+	meta: {
             tuyaDatapoints: [
                 [1, 'presence', tuya.valueConverterBasic.lookup({'none': tuya.enum(0), 'presence': tuya.enum(1)})],
                 [2, 'sensitivity', tuya.valueConverter.raw],
