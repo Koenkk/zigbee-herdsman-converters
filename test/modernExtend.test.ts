@@ -370,7 +370,7 @@ describe('ModernExtend', () => {
     test(`VOCKQJK11LM`, async () => {
         await assertDefintion({
             device: mockDevice({modelID: 'lumi.airmonitor.acn01', endpoints: [{ID: 1, inputClusters: []}]}),
-            meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+            meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
             fromZigbee: [
                 fz.battery,
                 lumiFz.lumi_specific,

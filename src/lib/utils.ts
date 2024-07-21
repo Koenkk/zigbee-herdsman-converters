@@ -3,7 +3,20 @@ import {Zcl} from 'zigbee-herdsman';
 import {Feature, Light, Numeric} from './exposes';
 import {logger} from './logger';
 import * as globalStore from './store';
-import {Definition, Expose, Fz, KeyValue, KeyValueAny, OnEventData, OnEventType, Publish, Tz, Zh} from './types';
+import {
+    BatteryLinearVoltage,
+    BatteryNonLinearVoltage,
+    Definition,
+    Expose,
+    Fz,
+    KeyValue,
+    KeyValueAny,
+    OnEventData,
+    OnEventType,
+    Publish,
+    Tz,
+    Zh,
+} from './types';
 
 const NS = 'zhc:utils';
 
@@ -246,9 +259,10 @@ export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T,
     return fallback;
 }
 
-export function batteryVoltageToPercentage(voltage: number, option: string | {min: number; max: number}) {
-    let percentage = null;
+export function batteryVoltageToPercentage(voltage: number, option: BatteryNonLinearVoltage | BatteryLinearVoltage): number {
     if (option === '3V_2100') {
+        let percentage: number = 100; // >= 3000
+
         if (voltage < 2100) {
             percentage = 0;
         } else if (voltage < 2440) {
@@ -259,41 +273,21 @@ export function batteryVoltageToPercentage(voltage: number, option: string | {mi
             percentage = 42 - ((2900 - voltage) * 24) / 160;
         } else if (voltage < 3000) {
             percentage = 100 - ((3000 - voltage) * 58) / 100;
-        } else if (voltage >= 3000) {
-            percentage = 100;
         }
-        percentage = Math.round(percentage);
-    } else if (option === '3V_2500') {
-        percentage = toPercentage(voltage, 2500, 3000);
-    } else if (option === '3V_2500_3200') {
-        percentage = toPercentage(voltage, 2500, 3200);
+
+        return Math.round(percentage);
     } else if (option === '3V_1500_2800') {
-        percentage = 235 - 370000 / (voltage + 1);
-        if (percentage > 100) {
-            percentage = 100;
-        } else if (percentage < 0) {
-            percentage = 0;
-        }
-        percentage = Math.round(percentage);
-    } else if (option === '3V_2850_3000') {
-        percentage = toPercentage(voltage, 2850, 3000);
-    } else if (option === '4LR6AA1_5v') {
-        percentage = toPercentage(voltage, 3000, 4200);
-    } else if (option === '3V_add 1V') {
-        voltage = voltage + 1000;
-        percentage = toPercentage(voltage, 3200, 4200);
-    } else if (option === 'Add_1V_42V_CSM300z2v2') {
-        voltage = voltage + 1000;
-        percentage = toPercentage(voltage, 2900, 4100);
+        const percentage = 235 - 370000 / (voltage + 1);
+
+        return Math.round(Math.min(Math.max(percentage, 0), 100));
+    } else if (typeof option === 'object') {
         // Generic converter that expects an option object with min and max values
         // I.E. meta: {battery: {voltageToPercentage: {min: 1900, max: 3000}}}
-    } else if (typeof option === 'object') {
-        percentage = toPercentage(voltage, option.min, option.max);
+        return toPercentage(voltage + (option.vOffset ?? 0), option.min, option.max);
     } else {
-        throw new Error(`Not batteryVoltageToPercentage type supported: ${option}`);
+        // only to cover case where a BatteryVoltage is missing in this switch
+        throw new Error(`Unhandled battery voltage to percentage option: ${option}`);
     }
-
-    return percentage;
 }
 
 // groupStrategy: allEqual: return only if all members in the groups have the same meta property value.

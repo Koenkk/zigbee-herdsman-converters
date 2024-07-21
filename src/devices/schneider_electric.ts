@@ -538,7 +538,7 @@ const definitions: Definition[] = [
             fz.wiser_device_info,
         ],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
         exposes: [
             e
                 .climate()
@@ -1342,7 +1342,7 @@ const definitions: Definition[] = [
                 .withLocalTemperatureCalibration(-12.8, 12.7, 0.1, ea.STATE_SET)
                 .withPiHeatingDemand(),
         ],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             // Insert default values for client requested attributes
@@ -1388,7 +1388,7 @@ const definitions: Definition[] = [
             e.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE),
             e.enum('zone_mode', ea.STATE_SET, ['manual', 'schedule', 'energy_saver', 'holiday']).withDescription('Icon shown on device displays'),
         ],
-        meta: {battery: {voltageToPercentage: '4LR6AA1_5v'}},
+        meta: {battery: {voltageToPercentage: {min: 3000, max: 4200}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             // Insert default values for client requested attributes

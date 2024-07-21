@@ -6,7 +6,21 @@ import {logger} from './logger';
 import * as modernExtend from './modernExtend';
 import * as ota from './ota';
 import * as globalStore from './store';
-import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range, KeyValueNumberString, OnEvent, Expose, Configure} from './types';
+import {
+    Fz,
+    Definition,
+    KeyValue,
+    KeyValueAny,
+    Tz,
+    ModernExtend,
+    Range,
+    KeyValueNumberString,
+    OnEvent,
+    Expose,
+    Configure,
+    BatteryNonLinearVoltage,
+    BatteryLinearVoltage,
+} from './types';
 import {
     batteryVoltageToPercentage,
     postfixWithEndpointName,
@@ -1995,7 +2009,7 @@ export const lumiModernExtend = {
     },
     lumiBattery: (args?: {
         cluster?: 'genBasic' | 'manuSpecificLumi';
-        voltageToPercentage?: string | {min: number; max: number};
+        voltageToPercentage?: BatteryNonLinearVoltage | BatteryLinearVoltage;
         percentageAtrribute?: number;
         voltageAttribute?: number;
     }): ModernExtend => {
