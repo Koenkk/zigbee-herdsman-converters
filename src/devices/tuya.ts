@@ -7002,29 +7002,24 @@ const definitions: Definition[] = [
             e
                 .numeric('target_distance', ea.STATE)
                 .withValueMin(0)
-		.withValueMax(10)
-		.withValueStep(0.01)
-		.withDescription('Distance to target')
+                .withValueMax(10)
+                .withValueStep(0.01)
+                .withDescription('Distance to target')
                 .withUnit('m'),
-            e
-                .numeric('sensitivity', ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(9)
-                .withValueStep(1)
-                .withDescription('sensitivity of the radar'),
+            e.numeric('sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(9).withValueStep(1).withDescription('sensitivity of the radar'),
             e
                 .numeric('minimum_range', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(10.0)
                 .withValueStep(0.1)
-		.withDescription('minimum detection range')
+                .withDescription('minimum detection range')
                 .withUnit('m'),
             e
                 .numeric('maximum_range', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(10.0)
-		.withValueStep(0.1)
-		.withDescription('maximum detection range')
+                .withValueStep(0.1)
+                .withDescription('maximum detection range')
                 .withUnit('m'),
             e
                 .numeric('interval_time', ea.STATE_SET)
@@ -7039,7 +7034,7 @@ const definitions: Definition[] = [
                 .withValueMax(10.0)
                 .withValueStep(0.1)
                 .withDescription('detection delay')
-		.withUnit('s'),
+                .withUnit('s'),
             e
                 .numeric('fading_time', ea.STATE_SET)
                 .withValueMax(1500)
@@ -7047,18 +7042,18 @@ const definitions: Definition[] = [
                 .withValueStep(5)
                 .withDescription('presence timeout')
                 .withUnit('s'),
-	],
-	meta: {
+        ],
+        meta: {
             tuyaDatapoints: [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
                 [2, 'sensitivity', tuya.valueConverter.raw],
                 [3, 'minimum_range', tuya.valueConverter.divideBy100],
                 [4, 'maximum_range', tuya.valueConverter.divideBy100],
-		[9, 'target_distance', tuya.valueConverter.divideBy100],
-		[103, 'illuminance_lux', tuya.valueConverter.raw],
-		[104, 'interval_time', tuya.valueConverter.raw],
-		[105, 'detection_delay', tuya.valueConverter.divideBy10],
-		[106, 'fading_time', tuya.valueConverter.divideBy10],
+                [9, 'target_distance', tuya.valueConverter.divideBy100],
+                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [104, 'interval_time', tuya.valueConverter.raw],
+                [105, 'detection_delay', tuya.valueConverter.divideBy10],
+                [106, 'fading_time', tuya.valueConverter.divideBy10],
             ],
         },
     },
