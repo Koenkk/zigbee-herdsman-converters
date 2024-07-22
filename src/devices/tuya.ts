@@ -3911,7 +3911,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_clm4gdw4']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_clm4gdw4', '_TZE200_2vfxweng']),
         model: 'TS0601_cover_10',
         vendor: 'Tuya',
         description: 'Cover motor',
