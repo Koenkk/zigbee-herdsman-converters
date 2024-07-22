@@ -6822,7 +6822,7 @@ const definitions: Definition[] = [
         vendor: 'Tuya',
         description: 'Zigbee dimmer module 1 channel',
         extend: [tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true, minBrightness: 'attribute'})],
-        whiteLabel: [tuya.whitelabel('Tuya', 'FS-05R', 'Mini Dimmable Switch 1 channel', ['_TZ3000_mgusv51k'])],
+        whiteLabel: [tuya.whitelabel('Tuya', 'FS-05R', 'Mini dimmable switch 1 channel', ['_TZ3000_mgusv51k'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0052', ['_TZ3000_zjtxnoft', '_TZ3000_kvwrdf47']),
