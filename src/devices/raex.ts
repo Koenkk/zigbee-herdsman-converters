@@ -1,4 +1,4 @@
-import {battery, identify, windowCovering, commandsOnOff} from '../lib/modernExtend';
+import {battery, windowCovering} from '../lib/modernExtend';
 import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: 'TQL25-2211',
         vendor: 'Raex',
         description: 'Tubular motor',
-        extend: [battery(), identify(), windowCovering({controls: ['lift']}), commandsOnOff({commands: ['on', 'off', 'toggle']})],
+        extend: [battery(), windowCovering({controls: ['lift']})],
     },
 ];
 
