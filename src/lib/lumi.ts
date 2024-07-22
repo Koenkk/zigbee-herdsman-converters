@@ -1874,7 +1874,7 @@ export const lumiModernExtend = {
             lookup: {quick_mode: 1, anti_flicker_mode: 4},
             cluster: 'manuSpecificLumi',
             attribute: {ID: 0x0004, type: 0x21},
-            description: 'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+            description: 'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
             entityCategory: 'config',
             zigbeeCommandOptions: {manufacturerCode},
             ...args,

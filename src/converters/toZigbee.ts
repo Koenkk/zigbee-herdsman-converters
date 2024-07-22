@@ -3385,7 +3385,7 @@ const converters2 = {
             }
             const timeInSeconds = Number(timeInSecondsValue);
             if (!Number.isInteger(timeInSeconds) || timeInSeconds < 0 || timeInSeconds > 0xfffe) {
-                throw Error('The time_in_seconds value must be convertible to an integer in the ' + 'range: <0x0000, 0xFFFE>');
+                throw Error('The time_in_seconds value must be convertible to an integer in the range: <0x0000, 0xFFFE>');
             }
             const on = lowerCaseValue === 'on';
             await entity.command(

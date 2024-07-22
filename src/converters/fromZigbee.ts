@@ -5318,7 +5318,7 @@ const converters2 = {
                         });
 
                         logger.debug(
-                            `syncing vact setpoint was: '${result.occupied_heating_setpoint}'` + ` now: '${meta.state.occupied_heating_setpoint}'`,
+                            `syncing vact setpoint was: '${result.occupied_heating_setpoint}' now: '${meta.state.occupied_heating_setpoint}'`,
                             NS,
                         );
                     }

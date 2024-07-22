@@ -4451,7 +4451,7 @@ const definitions: Definition[] = [
             e
                 .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription(
-                    'When the room temperature is lower than ' + '5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
+                    'When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
                 ),
             e.numeric('error', ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
         ],
@@ -4512,7 +4512,7 @@ const definitions: Definition[] = [
             e
                 .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription(
-                    'When the room temperature is lower than ' + '5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
+                    'When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
                 ),
             e.numeric('error', ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
             e.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: the device will enter the boost heating mode.'),

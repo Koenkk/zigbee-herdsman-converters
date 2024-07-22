@@ -193,7 +193,7 @@ const definitions: Definition[] = [
                 e
                     .enum('adaptation_run_status', ea.STATE_GET, ['none', 'in_progress', 'found', 'lost'])
                     .withDescription(
-                        'Status of adaptation run: None (before first run), In Progress, Valve Characteristic Found, ' + 'Valve Characteristic Lost',
+                        'Status of adaptation run: None (before first run), In Progress, Valve Characteristic Found, Valve Characteristic Lost',
                     ),
                 e
                     .binary('adaptation_run_settings', ea.ALL, true, false)

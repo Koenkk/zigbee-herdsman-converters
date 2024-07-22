@@ -32,7 +32,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: [
-            ' Dry contact\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' + '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+            ' Dry contact\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
         ],
         model: '412173',
         vendor: 'Legrand',
@@ -544,9 +544,7 @@ const definitions: Definition[] = [
         exposes: [e.action(['stop', 'up', 'down'])],
     },
     {
-        zigbeeModel: [
-            ' Cable outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' + '\u0000\u0000',
-        ],
+        zigbeeModel: [' Cable outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '064882',
         vendor: 'Legrand',
         description: 'Cable outlet with pilot wire and consumption measurement',

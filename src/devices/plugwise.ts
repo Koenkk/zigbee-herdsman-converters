@@ -145,7 +145,7 @@ const definitions: Definition[] = [
                 .numeric('valve_position', ea.ALL)
                 .withValueMin(0)
                 .withValueMax(100)
-                .withDescription('Directly control the radiator valve. The values range from 0 (valve ' + 'closed) to 100 (valve fully open)'),
+                .withDescription('Directly control the radiator valve. The values range from 0 (valve closed) to 100 (valve fully open)'),
             e
                 .enum('force', ea.ALL, ['standard', 'high', 'very_high'])
                 .withDescription('How hard the motor pushes the valve. The closer to the boiler, the higher the force needed'),

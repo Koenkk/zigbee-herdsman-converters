@@ -766,7 +766,7 @@ const definitions: Definition[] = [
                 cluster: 'genOnOff',
                 attribute: {ID: 0x900f, type: 0x20},
                 description:
-                    'If the 3-way switch setting is enabled, the 1st and 3rd switches are used. ' + 'At this time, connect the remote switch to SW3.',
+                    'If the 3-way switch setting is enabled, the 1st and 3rd switches are used. At this time, connect the remote switch to SW3.',
                 endpointName: 'l1',
             }),
         ],

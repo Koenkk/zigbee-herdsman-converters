@@ -61,7 +61,7 @@ const definitions: Definition[] = [
                 .numeric('load', ea.ALL)
                 .withUnit('W')
                 .withDescription(
-                    'Load in W when heating is on (between 0-2300 W). The thermostat uses the value as input to the ' + 'mean_power calculation.',
+                    'Load in W when heating is on (between 0-2300 W). The thermostat uses the value as input to the mean_power calculation.',
                 )
                 .withValueMin(0)
                 .withValueMax(2300),
