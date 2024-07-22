@@ -6,6 +6,7 @@ const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
 const fs = require('fs');
 const path = require('path');
+const {COLORTEMP_RANGE_MISSING_ALLOWED} = require('./colortemp_range_missing_allowed');
 
 function containsOnly(array1, array2) {
     for (const elem of array2) {
@@ -497,12 +498,11 @@ describe('index.js', () => {
     });
 
     it('Check if all exposes have a color temp range', () => {
-        const allowed = fs.readFileSync(path.join(__dirname, 'colortemp_range_missing_allowed.txt'), 'utf8').split('\n');
         for (const definition of index.definitions) {
             const exposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes();
             for (const expose of exposes.filter((e) => e.type === 'light')) {
                 const colorTemp = expose.features.find((f) => f.name === 'color_temp');
-                if (colorTemp && !colorTemp._colorTempRangeProvided && !allowed.includes(definition.model)) {
+                if (colorTemp && !colorTemp._colorTempRangeProvided && !COLORTEMP_RANGE_MISSING_ALLOWED.includes(definition.model)) {
                     throw new Error(
                         `'${definition.model}' is missing color temp range, see https://github.com/Koenkk/zigbee2mqtt.io/blob/develop/docs/how_tos/how_to_support_new_devices.md#31-retrieving-color-temperature-range-only-required-for-lights-which-support-color-temperature`,
                     );

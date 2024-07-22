@@ -367,7 +367,7 @@ export class Light extends Base {
             .withValueMax(range[1])
             .withDescription('Color temperature of this light');
 
-        if (process.env.ZHC_TEST) {
+        if (process.env.JEST_WORKER_ID) {
             // @ts-ignore
             feature._colorTempRangeProvided = rangeProvided;
         }
