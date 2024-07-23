@@ -225,6 +225,43 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_a9ojznj8', '_TZE284_a9ojznj8']),
+        model: 'NAS-WV03B2',
+        vendor: 'NEO',
+        description: 'Smart sprinkler timer',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum('status', ea.STATE, ['off', 'auto', 'disabled', 'app_manual', 'key_control']).withDescription('Status'),
+            e.numeric('countdown', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Count down'),
+            e.numeric('countdown_left', ea.STATE).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Countdown left time'),
+            e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child lock'),
+            e.numeric('battery_percentage', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Battery percentage'),
+        ],
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [
+                    3,
+                    'status',
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        auto: tuya.enum(1),
+                        disabled: tuya.enum(2),
+                        app_manual: tuya.enum(3),
+                        key_control: tuya.enum(4),
+                    }),
+                ],
+                [101, 'countdown', tuya.valueConverter.raw],
+                [6, 'countdown_left', tuya.valueConverter.raw],
+                [104, 'child_lock', tuya.valueConverter.onOff],
+                [11, 'battery_percentage', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
 
 export default definitions;
