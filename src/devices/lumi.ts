@@ -3498,7 +3498,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
-        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quintuple', 'hold', 'release', 'many'])],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'quintuple', 'hold', 'release', 'many'])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write('manuSpecificLumi', {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
