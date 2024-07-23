@@ -216,6 +216,7 @@ import qmotion from './qmotion';
 import qoto from './qoto';
 import quotra from './quotra';
 import rademacher from './rademacher';
+import raex from './raex';
 import rgb_genie from './rgb_genie';
 import robb from './robb';
 import roome from './roome';
@@ -522,6 +523,7 @@ export default [
     ...qoto,
     ...quotra,
     ...rademacher,
+    ...raex,
     ...rgb_genie,
     ...robb,
     ...roome,
