@@ -1,3 +1,5 @@
+const process = require('process');
+process.env['ZHC_TEST'] = true;
 const index = require('../src/index');
 const exposes = require('../src/lib/exposes');
 const utils = require('../src/lib/utils');
