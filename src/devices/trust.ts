@@ -38,7 +38,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: [
-            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' + '\u0000\u0000\u0000\u0000\u0000',
+            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
             'ZLL-NonColorController',
         ],
         model: 'ZYCT-202',

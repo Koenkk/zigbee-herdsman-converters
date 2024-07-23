@@ -235,9 +235,7 @@ const boschExtend = {
             e
                 .binary('valve_adapt_process', ea.ALL, true, false)
                 .withLabel('Trigger adaptation process')
-                .withDescription(
-                    'Trigger the valve adaptation process. Only possible when adaptation status ' + 'is "ready_to_calibrate" or "error".',
-                )
+                .withDescription('Trigger the valve adaptation process. Only possible when adaptation status is "ready_to_calibrate" or "error".')
                 .withCategory('config'),
         ];
         const fromZigbee: Fz.Converter[] = [
@@ -1407,7 +1405,7 @@ const definitions: Definition[] = [
                 name: 'remote_temperature',
                 cluster: 'hvacThermostat',
                 attribute: 'remoteTemperature',
-                description: 'Input for remote temperature sensor. ' + 'Required at least every 30 min. to prevent fallback to internal sensor!',
+                description: 'Input for remote temperature sensor. Required at least every 30 min. to prevent fallback to internal sensor!',
                 valueMin: 0.0,
                 valueMax: 35.0,
                 valueStep: 0.01,

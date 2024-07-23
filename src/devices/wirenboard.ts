@@ -281,8 +281,7 @@ const sprutModernExtend = {
             name: 'th_heater',
             cluster: 'msRelativeHumidity',
             attribute: 'sprutHeater',
-            description:
-                'Turn on when working in conditions of high humidity (more than 70 %, RH) or condensation, ' + 'if the sensor shows 0 or 100 %.',
+            description: 'Turn on when working in conditions of high humidity (more than 70 %, RH) or condensation, if the sensor shows 0 or 100 %.',
             valueOn: [true, 1],
             valueOff: [false, 0],
             access: 'ALL',
@@ -319,7 +318,7 @@ const sprutModernExtend = {
             name: 'occupancy_sensitivity',
             cluster: 'msOccupancySensing',
             attribute: 'sprutOccupancySensitivity',
-            description: 'If the sensor is triggered by the slightest movement, reduce the sensitivity, ' + 'otherwise increase it (default: 50)',
+            description: 'If the sensor is triggered by the slightest movement, reduce the sensitivity, otherwise increase it (default: 50)',
             valueMin: 0,
             valueMax: 2000,
             access: 'ALL',
@@ -528,9 +527,7 @@ const definitions: Definition[] = [
                 .withValueMin(0)
                 .withValueMax(2000)
                 .withCategory('config')
-                .withDescription(
-                    'If the sensor is triggered by the slightest movement, reduce the sensitivity, ' + 'otherwise increase it (default: 50)',
-                ),
+                .withDescription('If the sensor is triggered by the slightest movement, reduce the sensitivity, otherwise increase it (default: 50)'),
             e
                 .numeric('noise_detect_level', ea.ALL)
                 .withValueMin(0)
@@ -542,7 +539,7 @@ const definitions: Definition[] = [
                 .enum('co2_autocalibration', ea.ALL, switchActionValues)
                 .withCategory('config')
                 .withDescription(
-                    'Automatic calibration of the CO2 sensor. If ON, the CO2 sensor will automatically calibrate ' + 'every 7 days. (MH-Z19B sensor)',
+                    'Automatic calibration of the CO2 sensor. If ON, the CO2 sensor will automatically calibrate every 7 days. (MH-Z19B sensor)',
                 ),
             e
                 .enum('co2_manual_calibration', ea.ALL, switchActionValues)
@@ -555,7 +552,7 @@ const definitions: Definition[] = [
                 .enum('th_heater', ea.ALL, switchActionValues)
                 .withCategory('config')
                 .withDescription(
-                    'Turn on when working in conditions of high humidity (more than 70 %, RH) or condensation, ' + 'if the sensor shows 0 or 100 %.',
+                    'Turn on when working in conditions of high humidity (more than 70 %, RH) or condensation, if the sensor shows 0 or 100 %.',
                 ),
         ],
         configure: async (device, coordinatorEndpoint) => {

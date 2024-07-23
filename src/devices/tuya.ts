@@ -3911,7 +3911,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_clm4gdw4']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_clm4gdw4', '_TZE200_2vfxweng']),
         model: 'TS0601_cover_10',
         vendor: 'Tuya',
         description: 'Cover motor',
@@ -4451,7 +4451,7 @@ const definitions: Definition[] = [
             e
                 .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription(
-                    'When the room temperature is lower than ' + '5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
+                    'When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
                 ),
             e.numeric('error', ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
         ],
@@ -4512,7 +4512,7 @@ const definitions: Definition[] = [
             e
                 .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription(
-                    'When the room temperature is lower than ' + '5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
+                    'When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
                 ),
             e.numeric('error', ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
             e.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: the device will enter the boost heating mode.'),
@@ -6822,6 +6822,7 @@ const definitions: Definition[] = [
         vendor: 'Tuya',
         description: 'Zigbee dimmer module 1 channel',
         extend: [tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true, minBrightness: 'attribute'})],
+        whiteLabel: [tuya.whitelabel('Tuya', 'FS-05R', 'Mini dimmable switch 1 channel', ['_TZ3000_mgusv51k'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0052', ['_TZ3000_zjtxnoft', '_TZ3000_kvwrdf47']),

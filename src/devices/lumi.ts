@@ -467,7 +467,7 @@ const definitions: Definition[] = [
             e
                 .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
-                    'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+                    'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
                 ),
             e.power_outage_count(),
             e.device_temperature().withAccess(ea.STATE),
@@ -505,7 +505,7 @@ const definitions: Definition[] = [
             e
                 .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
-                    'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+                    'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
                 ),
             e.power_outage_count(),
             e.device_temperature().withAccess(ea.STATE),
@@ -619,7 +619,7 @@ const definitions: Definition[] = [
             e
                 .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
-                    'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+                    'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
                 ),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -658,7 +658,7 @@ const definitions: Definition[] = [
             e
                 .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
-                    'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+                    'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
                 ),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -699,7 +699,7 @@ const definitions: Definition[] = [
             e
                 .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
-                    'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+                    'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
                 ),
             e.device_temperature().withAccess(ea.STATE),
             e.action([
@@ -908,7 +908,7 @@ const definitions: Definition[] = [
             e
                 .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
-                    'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+                    'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
                 ),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
         ],
@@ -1296,7 +1296,7 @@ const definitions: Definition[] = [
             e
                 .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
-                    'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+                    'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
                 ),
             e.power_outage_memory(),
             e.led_disabled_night(),
@@ -1726,9 +1726,7 @@ const definitions: Definition[] = [
                 .withDescription('Select motion sensitivity to use. Press pairing button right before changing this otherwise it will fail.'),
             e
                 .detection_interval()
-                .withDescription(
-                    'Time interval between action detection. ' + 'Press pairing button right before changing this otherwise it will fail.',
-                ),
+                .withDescription('Time interval between action detection. Press pairing button right before changing this otherwise it will fail.'),
             e
                 .trigger_indicator()
                 .withDescription(
@@ -1801,18 +1799,14 @@ const definitions: Definition[] = [
             e.power_outage_count(),
             e
                 .enum('presence_event', ea.STATE, ['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave', 'approach', 'away'])
-                .withDescription(
-                    'Presence events: "enter", "leave", "left_enter", "right_leave", ' + '"right_enter", "left_leave", "approach", "away"',
-                ),
+                .withDescription('Presence events: "enter", "leave", "left_enter", "right_leave", "right_enter", "left_leave", "approach", "away"'),
             e
                 .enum('monitoring_mode', ea.ALL, ['undirected', 'left_right'])
-                .withDescription('Monitoring mode with or ' + 'without considering right and left sides'),
-            e
-                .enum('approach_distance', ea.ALL, ['far', 'medium', 'near'])
-                .withDescription('The distance at which the ' + 'sensor detects approaching'),
+                .withDescription('Monitoring mode with or without considering right and left sides'),
+            e.enum('approach_distance', ea.ALL, ['far', 'medium', 'near']).withDescription('The distance at which the sensor detects approaching'),
             e
                 .enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high'])
-                .withDescription('Different sensitivities ' + 'means different static human body recognition rate and response speed of occupied'),
+                .withDescription('Different sensitivities means different static human body recognition rate and response speed of occupied'),
             e.enum('reset_nopresence_status', ea.SET, ['']).withDescription('Reset the status of no presence'),
             e
                 .enum('action', ea.STATE, ['region_*_enter', 'region_*_leave', 'region_*_occupied', 'region_*_unoccupied'])
@@ -2256,10 +2250,10 @@ const definitions: Definition[] = [
             e.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
             e
                 .enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL'])
-                .withDescription('Gas concentration value at which ' + 'an alarm is triggered ("10%LEL" is more sensitive than "15%LEL")'),
+                .withDescription('Gas concentration value at which an alarm is triggered ("10%LEL" is more sensitive than "15%LEL")'),
             e
                 .enum('selftest', ea.SET, ['selftest'])
-                .withDescription('Starts the self-test process (checking the indicator ' + 'light and buzzer work properly)'),
+                .withDescription('Starts the self-test process (checking the indicator light and buzzer work properly)'),
             e.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
             e
                 .enum('buzzer', ea.SET, ['mute', 'alarm'])
@@ -2324,7 +2318,7 @@ const definitions: Definition[] = [
             e.numeric('smoke_density_dbm', ea.STATE_GET).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
             e
                 .enum('selftest', ea.SET, ['selftest'])
-                .withDescription('Starts the self-test process (checking the indicator ' + 'light and buzzer work properly)'),
+                .withDescription('Starts the self-test process (checking the indicator light and buzzer work properly)'),
             e.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
             e
                 .enum('buzzer', ea.SET, ['mute', 'alarm'])
@@ -2340,7 +2334,7 @@ const definitions: Definition[] = [
             e
                 .binary('heartbeat_indicator', ea.ALL, true, false)
                 .withDescription(
-                    'When this option is enabled then in ' + 'the normal monitoring state, the green indicator light flashes every 60 seconds',
+                    'When this option is enabled then in the normal monitoring state, the green indicator light flashes every 60 seconds',
                 ),
             e
                 .binary('linkage_alarm', ea.ALL, true, false)
@@ -3333,7 +3327,7 @@ const definitions: Definition[] = [
             e
                 .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
-                    'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+                    'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
                 ),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -3367,7 +3361,7 @@ const definitions: Definition[] = [
             e
                 .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
-                    'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+                    'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
                 ),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
             e.power_outage_memory(),
