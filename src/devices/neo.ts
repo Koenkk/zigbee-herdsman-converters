@@ -229,14 +229,14 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_a9ojznj8', '_TZE284_a9ojznj8']),
         model: 'NAS-WV03B2',
         vendor: 'NEO',
-        description: 'Smart Sprinkler Timer',
+        description: 'Smart sprinkler timer',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
         configure: tuya.configureMagicPacket,
         exposes: [
             // Here you should put all functionality that your device exposes
-            e.enum('status', ea.STATE, ['Off', 'Auto', 'Disabled', 'APP manual', 'Key control']).withDescription('Status'),
+            e.enum('status', ea.STATE, ['off', 'auto', 'disabled', 'app_manual', 'key_control']).withDescription('Status'),
             e.numeric('countdown', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Count down'),
             e.numeric('countdown_left', ea.STATE).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Countdown left time'),
             e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child lock'),
@@ -249,11 +249,11 @@ const definitions: Definition[] = [
                     3,
                     'status',
                     tuya.valueConverterBasic.lookup({
-                        Off: tuya.enum(0),
-                        Auto: tuya.enum(1),
-                        Disabled: tuya.enum(2),
-                        'APP manual': tuya.enum(3),
-                        'Key control': tuya.enum(4),
+                        off: tuya.enum(0),
+                        auto: tuya.enum(1),
+                        disabled: tuya.enum(2),
+                        app_manual: tuya.enum(3),
+                        key_control: tuya.enum(4),
                     }),
                 ],
                 [101, 'countdown', tuya.valueConverter.raw],
