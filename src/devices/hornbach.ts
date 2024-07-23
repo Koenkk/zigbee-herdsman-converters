@@ -81,18 +81,18 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['VIYU_C35_470_CCT_10454468'],
-        model: 'VIYU_C35_470_CCT_10454468',
+        model: '10454468',
         vendor: 'HORNBACH',
         description: 'FLAIR Viyu smart LED bulb CCT E27',
         extend: [light({colorTemp: {range: [200, 454]}})],
     },
-	{   
-		zigbeeModel: ['VIYU_GU10_350_CCT_10454470'],
-		model: 'VIYU_GU10_350_CCT_10454470',
-		vendor: 'HORNBACH Baumarkt AG',
-		description: 'FLAIR Viyu smart GU10 CCT lamp',
-		extend: [light({colorTemp: {range: [200, 454]}})],
-	},
+    {
+        zigbeeModel: ['VIYU_GU10_350_CCT_10454470'],
+        model: '10454470',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu smart GU10 CCT lamp',
+        extend: [light({colorTemp: {range: [200, 454]}})],
+    },
 ];
 
 export default definitions;
