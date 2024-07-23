@@ -1,5 +1,12 @@
 # Changelog
 
+## [19.71.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.71.0...v19.71.1) (2024-07-23)
+
+
+### Bug Fixes
+
+* **ignore:** Fix `_colorTempRangeProvided` added to exposes when running in Jest tests ([444910e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/444910e1957b9c89f56199da7c1e292037efc4fa))
+
 ## [19.71.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.70.0...v19.71.0) (2024-07-23)
 
 
