@@ -91,7 +91,7 @@ const definitions: Definition[] = [
 		model: 'VIYU_GU10_350_CCT_10454470',
 		vendor: 'HORNBACH Baumarkt AG',
 		description: 'FLAIR Viyu smart GU10 CCT lamp',
-		extend: [light({colorTemp: {range:[200,454]}})],
+		extend: [light({colorTemp: {range: [200, 454]}})],
 	},
 ];
 
