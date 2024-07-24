@@ -3468,12 +3468,15 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_myaaknbq']),
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_myaaknbq', '_TZ3000_cpozgbrx']),
         model: 'TS0001_switch_module_1',
         vendor: 'Tuya',
         description: '1 gang switch module',
         extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true, backlightModeOffOn: true, onOffCountdown: true})],
-        whiteLabel: [tuya.whitelabel('PSMART', 'T441', '1 gang switch module', ['_TZ3000_myaaknbq'])],
+        whiteLabel: [
+            tuya.whitelabel('PSMART', 'T441', '1 gang switch module', ['_TZ3000_myaaknbq']),
+            tuya.whitelabel('PSMART', 'T461', '1 gang switch module', ['_TZ3000_cpozgbrx']),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
