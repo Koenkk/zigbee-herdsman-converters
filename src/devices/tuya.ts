@@ -2373,6 +2373,30 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
+            {modelID: 'TS0003', manufacturerName: '_TYZB01_u9kkqh5o'},
+        ],
+        model: 'CSP043',
+        vendor: 'Tuya',
+        description: '1 gang switch module with neutral wire',
+        extend: [onOff({powerOnBehavior: false})],
+        whiteLabel: [
+            {vendor: 'ClickSmart+', model: 'CSP043'},
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS110F', manufacturerName: '_TZ3000_estfrmup'},
+        ],
+        model: 'CSP051',
+        vendor: 'Tuya',
+        description: '1 gang smart dimmer switch module without neutral',
+        extend: [light()],
+        whiteLabel: [
+            {vendor: 'ClickSmart+', model: 'CSP051'},
+        ],
+    },    
+    {
+        fingerprint: [
             {modelID: 'isltm67\u0000', manufacturerName: '_TYST11_pisltm67'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_pisltm67'},
         ],
