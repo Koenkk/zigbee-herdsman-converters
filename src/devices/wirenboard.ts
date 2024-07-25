@@ -603,11 +603,11 @@ const definitions: Definition[] = [
         model: 'WB-MSW-ZIGBEE v.4',
         vendor: 'Wirenboard',
         description: 'Wall-mounted multi sensor',
-        fromZigbee: [fz.occupancy],
         extend: [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             deviceEndpoints({
                 endpoints: {default: 1, l1: 2, l2: 3, l3: 4, indicator: 5},
+                multiEndpointSkip: ['occupancy'],
             }),
             onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
             sprutActivityIndicator({endpointName: 'indicator'}),
