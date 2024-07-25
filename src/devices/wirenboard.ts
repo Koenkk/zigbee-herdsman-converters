@@ -607,6 +607,7 @@ const definitions: Definition[] = [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             deviceEndpoints({
                 endpoints: {default: 1, l1: 2, l2: 3, l3: 4, indicator: 5},
+                multiEndpointSkip: ['occupancy'],
             }),
             onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
             sprutActivityIndicator({endpointName: 'indicator'}),
