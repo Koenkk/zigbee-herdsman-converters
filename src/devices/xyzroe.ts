@@ -226,7 +226,7 @@ const fzLocal = {
             const name = `l${channel}`;
             payload[name] = utils.precisionRound(msg.data['presentValue'], 3);
             if (channel === 5) {
-                payload['uptime' + '_' + name] = utils.precisionRound(msg.data['presentValue'], 3);
+                payload[`uptime_${name}`] = utils.precisionRound(msg.data['presentValue'], 3);
             } else if (msg.data.hasOwnProperty('description')) {
                 const data1 = msg.data['description'];
                 if (data1) {
@@ -234,7 +234,7 @@ const fzLocal = {
                     const devid = data2[1];
                     const unit = data2[0];
                     if (devid) {
-                        payload['device_' + name] = devid;
+                        payload[`device_${name}`] = devid;
                     }
 
                     const valRaw = msg.data['presentValue'];

@@ -105,4 +105,28 @@ describe('lib/utils.js', () => {
             expect(result).toEqual({time: 0, specified: false});
         });
     });
+
+    describe('batteryVoltageToPercentage', () => {
+        it('gets linear', () => {
+            expect(utils.batteryVoltageToPercentage(2760, {min: 2500, max: 3000})).toStrictEqual(52);
+            expect(utils.batteryVoltageToPercentage(3100, {min: 2500, max: 3000})).toStrictEqual(100);
+            expect(utils.batteryVoltageToPercentage(2400, {min: 2500, max: 3000})).toStrictEqual(0);
+        });
+
+        it('gets linear with offset', () => {
+            expect(utils.batteryVoltageToPercentage(3045, {min: 2900, max: 4100, vOffset: 1000})).toStrictEqual(95);
+            expect(utils.batteryVoltageToPercentage(3145, {min: 2900, max: 4100, vOffset: 1000})).toStrictEqual(100);
+            expect(utils.batteryVoltageToPercentage(1800, {min: 2900, max: 4100, vOffset: 1000})).toStrictEqual(0);
+        });
+
+        it('gets non-linear', () => {
+            expect(utils.batteryVoltageToPercentage(2300, '3V_2100')).toStrictEqual(4);
+            expect(utils.batteryVoltageToPercentage(3000, '3V_2100')).toStrictEqual(100);
+            expect(utils.batteryVoltageToPercentage(2000, '3V_2100')).toStrictEqual(0);
+
+            expect(utils.batteryVoltageToPercentage(2300, '3V_1500_2800')).toStrictEqual(74);
+            expect(utils.batteryVoltageToPercentage(3000, '3V_1500_2800')).toStrictEqual(100);
+            expect(utils.batteryVoltageToPercentage(1400, '3V_1500_2800')).toStrictEqual(0);
+        });
+    });
 });

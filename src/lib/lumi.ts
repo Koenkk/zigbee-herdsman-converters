@@ -6,7 +6,21 @@ import {logger} from './logger';
 import * as modernExtend from './modernExtend';
 import * as ota from './ota';
 import * as globalStore from './store';
-import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range, KeyValueNumberString, OnEvent, Expose, Configure} from './types';
+import {
+    Fz,
+    Definition,
+    KeyValue,
+    KeyValueAny,
+    Tz,
+    ModernExtend,
+    Range,
+    KeyValueNumberString,
+    OnEvent,
+    Expose,
+    Configure,
+    BatteryNonLinearVoltage,
+    BatteryLinearVoltage,
+} from './types';
 import {
     batteryVoltageToPercentage,
     postfixWithEndpointName,
@@ -1860,7 +1874,7 @@ export const lumiModernExtend = {
             lookup: {quick_mode: 1, anti_flicker_mode: 4},
             cluster: 'manuSpecificLumi',
             attribute: {ID: 0x0004, type: 0x21},
-            description: 'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+            description: 'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
             entityCategory: 'config',
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
@@ -1995,7 +2009,7 @@ export const lumiModernExtend = {
     },
     lumiBattery: (args?: {
         cluster?: 'genBasic' | 'manuSpecificLumi';
-        voltageToPercentage?: string | {min: number; max: number};
+        voltageToPercentage?: BatteryNonLinearVoltage | BatteryLinearVoltage;
         percentageAtrribute?: number;
         voltageAttribute?: number;
     }): ModernExtend => {

@@ -418,7 +418,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         displayType: 'enum',
         min: 0,
         max: 9,
-        description: 'This will set the button press delay. 0 = no delay (Disables Button Press Events),' + 'Default = 500ms.',
+        description: 'This will set the button press delay. 0 = no delay (Disables Button Press Events), Default = 500ms.',
     },
     deviceBindNumber: {
         ID: 51,

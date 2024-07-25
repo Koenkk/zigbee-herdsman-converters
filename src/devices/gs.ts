@@ -55,7 +55,7 @@ const definitions: Definition[] = [
         description: 'Motion sensor',
         extend: [
             iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
-            battery({voltageToPercentage: '3V_2500', voltage: true}),
+            battery({voltageToPercentage: {min: 2500, max: 3000}, voltage: true}),
         ],
     },
     {
@@ -85,7 +85,7 @@ const definitions: Definition[] = [
         model: 'STHM-I1H',
         vendor: 'GS',
         description: 'Temperature and humidity sensor',
-        extend: [temperature(), humidity(), battery({voltageToPercentage: '3V_2500', voltage: true})],
+        extend: [temperature(), humidity(), battery({voltageToPercentage: {min: 2500, max: 3000}, voltage: true})],
     },
     {
         zigbeeModel: ['SWHM-I1'],

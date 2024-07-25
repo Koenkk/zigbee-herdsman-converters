@@ -33,7 +33,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.konke_action, fz.battery, legacy.fz.konke_click],
         toZigbee: [],
         exposes: [e.battery_low(), e.battery(), e.action(['single', 'double', 'hold'])],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -50,7 +50,7 @@ const definitions: Definition[] = [
         description: 'Motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
@@ -60,7 +60,7 @@ const definitions: Definition[] = [
         description: 'Temperature and humidity sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
@@ -85,7 +85,7 @@ const definitions: Definition[] = [
         description: 'Contact sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
@@ -113,7 +113,7 @@ const definitions: Definition[] = [
         description: 'Smart 4 key scene switch',
         fromZigbee: [fzLocal.command_recall_konke, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.action(['hexagon', 'square', 'triangle', 'circle'])],
     },
     {
