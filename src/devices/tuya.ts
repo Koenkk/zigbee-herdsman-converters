@@ -2372,23 +2372,20 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0003', manufacturerName: '_TYZB01_u9kkqh5o'},
-        ],
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_u9kkqh5o'}],
         model: 'CSP043',
         vendor: 'ClickSmart+',
         description: '1 gang switch module with neutral wire',
         extend: [onOff({powerOnBehavior: false})],
     },
     {
-        fingerprint: [
-            {modelID: 'TS110F', manufacturerName: '_TZ3000_estfrmup'},
-        ],
+        fingerprint: tuya.fingerprint('TS110F', ['_TZ3000_estfrmup', '_TZ3000_ktuoyvt5']),
         model: 'CSP051',
         vendor: 'ClickSmart+',
         description: '1 gang smart dimmer switch module without neutral',
         extend: [light()],
-    },    
+        whiteLabel: [tuya.whitelabel('Lonsonho', 'QS-Zigbee-D02-TRIAC-L', '1 gang smart dimmer switch module without neutral', ['_TZ3000_ktuoyvt5'])],
+    },
     {
         fingerprint: [
             {modelID: 'isltm67\u0000', manufacturerName: '_TYST11_pisltm67'},
