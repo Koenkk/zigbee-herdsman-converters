@@ -6868,6 +6868,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE204_ztc6ggyl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_sgpeacqp'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_fwondbzy'},
         ],
         model: 'TS0601_smart_human_presence_sensor_1',
         vendor: 'Tuya',
