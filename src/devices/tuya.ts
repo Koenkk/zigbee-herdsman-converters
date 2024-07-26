@@ -7635,7 +7635,7 @@ const definitions: Definition[] = [
                 [102, 'fading_time', tuya.valueConverter.raw],
                 [104, 'medium_motion_detection_distance', tuya.valueConverter.divideBy100],
                 [105, 'medium_motion_detection_sensitivity', tuya.valueConverter.raw],
-                [106, 'illuminance', tuya.valueConverter.raw],
+                [106, 'illuminance', tuya.valueConverter.divideBy100],
                 [107, 'indicator', tuya.valueConverter.onOff],
                 [108, 'small_detection_distance', tuya.valueConverter.divideBy100],
                 [109, 'small_detection_sensitivity', tuya.valueConverter.raw],
