@@ -1637,6 +1637,12 @@ export const lumiModernExtend = {
 
                             if (currentOutageCount > previousOutageCount) {
                                 logger.debug('Restoring binding and reporting, device came back after losing power.', NS);
+
+                                // update outageCount in database
+                                meta.device.meta.outageCount = currentOutageCount;
+                                meta.device.save();
+
+                                // restore binding
                                 for (const endpoint of meta.device.endpoints) {
                                     // restore bindings
                                     for (const b of endpoint.binds) {
@@ -1655,10 +1661,6 @@ export const lumiModernExtend = {
                                         ]);
                                     }
                                 }
-
-                                // update outageCount in database
-                                meta.device.meta.outageCount = currentOutageCount;
-                                meta.device.save();
                             }
                         }
                     }
