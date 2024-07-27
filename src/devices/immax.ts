@@ -97,9 +97,8 @@ const definitions: Definition[] = [
         fingerprint: [{modelID: 'TS0502C', manufacturerName: '_TZ3210_6pwpez2j'}],
         model: 'TS0502C',
         vendor: 'Immax',
-        description: 'Immax NEO FINO Smart pendant light black 80cm CCT 60W, Zigbee 3.0',
+        description: 'Neo FINO Smart pendant light black 80cm CCT 60W, Zigbee 3.0',
         extend: [light({colorTemp: {range: [153, 500]}})],
-        meta: {},
     },
     {
         zigbeeModel: ['Keyfob-ZB3.0'],
