@@ -1646,19 +1646,27 @@ export const lumiModernExtend = {
                                 for (const endpoint of meta.device.endpoints) {
                                     // restore bindings
                                     for (const b of endpoint.binds) {
-                                        await endpoint.bind(b.cluster.name, b.target);
+                                        try {
+                                            await endpoint.bind(b.cluster.name, b.target);
+                                        } catch (error) {
+                                            // do nothing when callback fails
+                                        }
                                     }
 
                                     // restore reporting
                                     for (const c of endpoint.configuredReportings) {
-                                        await endpoint.configureReporting(c.cluster.name, [
-                                            {
-                                                attribute: c.attribute.name,
-                                                minimumReportInterval: c.minimumReportInterval,
-                                                maximumReportInterval: c.maximumReportInterval,
-                                                reportableChange: c.reportableChange,
-                                            },
-                                        ]);
+                                        try {
+                                            await endpoint.configureReporting(c.cluster.name, [
+                                                {
+                                                    attribute: c.attribute.name,
+                                                    minimumReportInterval: c.minimumReportInterval,
+                                                    maximumReportInterval: c.maximumReportInterval,
+                                                    reportableChange: c.reportableChange,
+                                                },
+                                            ]);
+                                        } catch (error) {
+                                            // do nothing when callback fails
+                                        }
                                     }
                                 }
                             }
