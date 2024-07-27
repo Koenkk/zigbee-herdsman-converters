@@ -1636,7 +1636,7 @@ export const lumiModernExtend = {
                             const previousOutageCount = meta.device?.meta?.outageCount ? meta.device.meta.outageCount : 0;
 
                             if (currentOutageCount > previousOutageCount) {
-                                logger.debug('Restoring binding and reporting, device came back after losing power.', NS);
+                                logger.debug(`Restoring binding and reporting, ${msg.device.ieeeAddr} came back after losing power.`, NS);
 
                                 // update outageCount in database
                                 meta.device.meta.outageCount = currentOutageCount;
@@ -1649,7 +1649,7 @@ export const lumiModernExtend = {
                                         try {
                                             await endpoint.bind(b.cluster.name, b.target);
                                         } catch (error) {
-                                            // do nothing when callback fails
+                                            logger.debug(`Failed to re-bind ${b.cluster.name} from ${b.target} for ${msg.device.ieeeAddr}.`, NS);
                                         }
                                     }
 
@@ -1665,7 +1665,10 @@ export const lumiModernExtend = {
                                                 },
                                             ]);
                                         } catch (error) {
-                                            // do nothing when callback fails
+                                            logger.debug(
+                                                `Failed to re-setup reporting of ${c.cluster.name}/${c.attribute.name} for ${msg.device.ieeeAddr}.`,
+                                                NS,
+                                            );
                                         }
                                     }
                                 }
