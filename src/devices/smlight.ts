@@ -4,7 +4,7 @@ import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['SLZB-06M'],
+        zigbeeModel: ['SLZB-06M', 'SLZB-06'],
         model: 'SLZB-06M',
         vendor: 'SMLIGHT',
         description: 'Router',
@@ -12,6 +12,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [],
         extend: [forcePowerSource({powerSource: 'Mains (single phase)'})],
+        whiteLabel: [{vendor: 'SMLIGHT', model: 'SLZB-06', description: 'Router', fingerprint: [{modelID: 'SLZB-06'}]}],
     },
 ];
 
