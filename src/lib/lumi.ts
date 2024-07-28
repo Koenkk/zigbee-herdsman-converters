@@ -1636,29 +1636,42 @@ export const lumiModernExtend = {
                             const previousOutageCount = meta.device?.meta?.outageCount ? meta.device.meta.outageCount : 0;
 
                             if (currentOutageCount > previousOutageCount) {
-                                logger.debug('Restoring binding and reporting, device came back after losing power.', NS);
-                                for (const endpoint of meta.device.endpoints) {
-                                    // restore bindings
-                                    for (const b of endpoint.binds) {
-                                        await endpoint.bind(b.cluster.name, b.target);
-                                    }
-
-                                    // restore reporting
-                                    for (const c of endpoint.configuredReportings) {
-                                        await endpoint.configureReporting(c.cluster.name, [
-                                            {
-                                                attribute: c.attribute.name,
-                                                minimumReportInterval: c.minimumReportInterval,
-                                                maximumReportInterval: c.maximumReportInterval,
-                                                reportableChange: c.reportableChange,
-                                            },
-                                        ]);
-                                    }
-                                }
+                                logger.debug(`Restoring binding and reporting, ${msg.device.ieeeAddr} came back after losing power.`, NS);
 
                                 // update outageCount in database
                                 meta.device.meta.outageCount = currentOutageCount;
                                 meta.device.save();
+
+                                // restore binding
+                                for (const endpoint of meta.device.endpoints) {
+                                    // restore bindings
+                                    for (const b of endpoint.binds) {
+                                        try {
+                                            await endpoint.bind(b.cluster.name, b.target);
+                                        } catch (error) {
+                                            logger.debug(`Failed to re-bind ${b.cluster.name} from ${b.target} for ${msg.device.ieeeAddr}.`, NS);
+                                        }
+                                    }
+
+                                    // restore reporting
+                                    for (const c of endpoint.configuredReportings) {
+                                        try {
+                                            await endpoint.configureReporting(c.cluster.name, [
+                                                {
+                                                    attribute: c.attribute.name,
+                                                    minimumReportInterval: c.minimumReportInterval,
+                                                    maximumReportInterval: c.maximumReportInterval,
+                                                    reportableChange: c.reportableChange,
+                                                },
+                                            ]);
+                                        } catch (error) {
+                                            logger.debug(
+                                                `Failed to re-setup reporting of ${c.cluster.name}/${c.attribute.name} for ${msg.device.ieeeAddr}.`,
+                                                NS,
+                                            );
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
