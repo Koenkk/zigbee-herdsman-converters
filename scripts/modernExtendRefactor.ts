@@ -107,8 +107,15 @@ project.getSourceFiles().forEach((sourceFile) => {
                 // }
 
                 localTotalDefinitionsWithModernExtend += 1;
-                extend.replaceWithText(`extend: [${type}(${JSON.stringify(newOpts).split(`"`).join('')
-                    .replace(`range:null`, `range:undefined`).replace(`xy`, `'xy'`).replace(`hs`, `'hs'`).replace(`({})`, `()`)})]`);
+                extend.replaceWithText(
+                    `extend: [${type}(${JSON.stringify(newOpts)
+                        .split(`"`)
+                        .join('')
+                        .replace(`range:null`, `range:undefined`)
+                        .replace(`xy`, `'xy'`)
+                        .replace(`hs`, `'hs'`)
+                        .replace(`({})`, `()`)})]`,
+                );
                 changed = true;
                 save = true;
                 break;
@@ -124,7 +131,8 @@ project.getSourceFiles().forEach((sourceFile) => {
     }
 
     if (save) {
-        const modernExtendImport = sourceFile.getImportDeclarations()
+        const modernExtendImport = sourceFile
+            .getImportDeclarations()
             .find((d) => d.getModuleSpecifierSourceFile()?.getBaseName() === 'modernExtend.ts');
         if (!modernExtendImport) {
             sourceFile.addImportDeclaration({moduleSpecifier: '../lib/modernExtend', namedImports: [type]});
@@ -134,8 +142,7 @@ project.getSourceFiles().forEach((sourceFile) => {
             }
         }
 
-        const extendImport = sourceFile.getImportDeclarations()
-            .find((d) => d.getModuleSpecifierSourceFile()?.getBaseName() === 'extend.ts');
+        const extendImport = sourceFile.getImportDeclarations().find((d) => d.getModuleSpecifierSourceFile()?.getBaseName() === 'extend.ts');
         if (!sourceFile.getFullText().includes('extend.') && extendImport) {
             extendImport.remove();
         }
@@ -146,5 +153,5 @@ project.getSourceFiles().forEach((sourceFile) => {
 
 console.log(
     `${totalDefinitionsWithModernExtend} out of ${totalDefinitions} use modern extend ` +
-    `(${(totalDefinitionsWithModernExtend / totalDefinitions) * 100}%)`,
+        `(${(totalDefinitionsWithModernExtend / totalDefinitions) * 100}%)`,
 );
