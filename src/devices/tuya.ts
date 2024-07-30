@@ -10099,7 +10099,7 @@ const definitions: Definition[] = [
                 .withUnit('µS/cm')
                 .withDescription('Electrical Conductivity maximal value')
                 .withValueMin(0)
-                .withValueMax(100),
+                .withValueMax(20000),
             e
                 .numeric('ec_min', ea.STATE_SET)
                 .withUnit('µS/cm')
