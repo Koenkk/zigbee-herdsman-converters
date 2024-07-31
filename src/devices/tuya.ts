@@ -817,7 +817,9 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_smoke_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [e.smoke(), e.battery_low(), e.tamper()],
-        extend: [battery()],
+        // Configure battery % fails
+        // https://github.com/Koenkk/zigbee2mqtt/issues/22421
+        extend: [battery({percentageReporting: false})],
     },
     {
         zigbeeModel: ['TS0111'],
