@@ -1287,6 +1287,17 @@ const tuyaTz = {
             'move_sensitivity',
             'small_move_sensitivity',
             'breath_sensitivity',
+            'temperature_setting',
+            'temperature_threshold',
+            'under_voltage_setting',
+            'under_voltage_threshold',
+            'over_current_setting',
+            'current_threshold',
+            'over_voltage_setting',
+            'over_voltage_threshold',
+            'over_power_setting',
+            'over_power_threshold',
+            'restore_default',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
