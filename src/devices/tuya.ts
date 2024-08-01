@@ -1843,6 +1843,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0207', manufacturerName: '_TZ3000_gszjt2xx'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_wlquqiiz'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_5k5vh43t'},
+            {modelID: 'TS0207', manufacturerName: '_TZ3000_kxlmv9ag'},
         ],
         model: 'TS0207_repeater',
         vendor: 'Tuya',
