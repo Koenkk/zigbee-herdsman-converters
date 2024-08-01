@@ -49,6 +49,7 @@ const definitions: Definition[] = [
         vendor: 'Lupus',
         description: '1 channel relay',
         extend: [onOff()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['PRS3CH2_00.00.05.10TC', 'PRS3CH2_00.00.05.11TC', 'PRS3CH2_00.00.05.12TC'],
@@ -56,6 +57,7 @@ const definitions: Definition[] = [
         vendor: 'Lupus',
         description: '2 channel relay',
         extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
+        ota: ota.zigbeeOTA,
     },
 ];
 
