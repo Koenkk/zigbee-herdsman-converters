@@ -80,7 +80,11 @@ export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolea
             );
             result.configure.push(async (device, coordinatorEndpoint, definition) => {
                 for (const ep of device.endpoints) {
-                    await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
+                    try {
+                        await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
+                    } catch (error) {
+                        logger.warning(`Could not bind to manuSpecificPhilips2/${ep.ID} to coordinator/${coordinatorEndpoint.ID}`, NS);
+                    }
                 }
             });
         }
