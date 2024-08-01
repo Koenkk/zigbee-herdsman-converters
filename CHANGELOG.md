@@ -1,5 +1,31 @@
 # Changelog
 
+## [19.72.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.71.1...v19.72.0) (2024-08-01)
+
+
+### Features
+
+* **add:** CSP043, CSP051 ([#7798](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7798)) ([56e2820](https://github.com/Koenkk/zigbee-herdsman-converters/commit/56e2820613d1646af62610b7db3b952da0ca8782))
+* **add:** NAS-WV05B2-L, NAS-WV05B2, NAS-STH02B2 ([#7812](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7812)) ([caea2cf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/caea2cfc9f5cb47a88da1d14bdf3bef77c262019))
+* **add:** SLZB-06 https://github.com/Koenkk/zigbee2mqtt/issues/23442 ([4e0bec8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4e0bec8ff3fa96bc262befa16402968f5e89b114))
+* **add:** TS0502C ([#7804](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7804)) ([d8b3142](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d8b31428be4275d3b52f7bc7d4de5886eebdfc50))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_cpozgbrx` as PSMART T461 ([#7796](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7796)) ([97f8236](https://github.com/Koenkk/zigbee-herdsman-converters/commit/97f8236ec184a3b5df09adca1168868deceaaa91))
+* **detect:** Detect `_TZE204_fwondbzy` as Tuya TS0601_smart_human_presence_sensor_1 ([#7801](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7801)) ([9a2340a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9a2340a37aec7c3ba4cf5cd6afe151605fdf3f94))
+* **detect:** Detect `_TZE204_myd45weu` as Tuya QT-07S ([#7811](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7811)) ([dc6eb59](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dc6eb59d6f32ef22c64e1a5a83074b0f4fafa439))
+* Fix `illuminance` multiplied by 100 for Tuya ZG-205Z/A https://github.com/Koenkk/zigbee2mqtt/issues/19803 ([1a923cf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1a923cf8c359483446873f5445e2607a208808c6))
+* Fix `manuSpecificUbisysDimmerSetup` cluster ID ([#7809](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7809)) ([9f009e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9f009e431dc8264cd4d3a697537710f6d0613009))
+* Fix configure failing for Tuya TS0205 https://github.com/Koenkk/zigbee2mqtt/issues/22421 ([c6d0b49](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c6d0b49d6162503c84585a565dd7292d26c571d3))
+* Fix no `occupancy` for WB-MSW-ZIGBEE v.4 ([#7800](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7800)) ([2de3432](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2de3432521cd9bfe7731bfd290abb02ca35a740b))
+* Fix no converter available errors for Tuya TOQCB2-80 ([#7810](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7810)) ([042edd0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/042edd0ac64e956a8526ce0eed73fdf54115a3dd))
+* **ignore:** update dependencies ([#7806](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7806)) ([bbe1858](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bbe18586cd13b500a7d97a5d177744f4e236b50c))
+* Increase max Tuya BLE-YL01 `ec_max` value https://github.com/zigbee2mqtt/hassio-zigbee2mqtt/issues/630 ([632a268](https://github.com/Koenkk/zigbee-herdsman-converters/commit/632a268a7b60c996ef55d552a523941c1d55d116))
+* lumiOutageCountRestoreBindReporting sometimes stuck ([#7805](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7805)) ([bc57b14](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc57b149f7be1c133764225924c71609e52cb8e7))
+* Support `endpointNames` for `electricityMeter` https://github.com/Koenkk/zigbee2mqtt/discussions/23419 ([bc9dce7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc9dce75ad8785bd8ae8822f50cea7c3adaadc2f))
+
 ## [19.71.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.71.0...v19.71.1) (2024-07-23)
 
 
