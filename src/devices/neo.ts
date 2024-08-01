@@ -235,15 +235,16 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
+            e.switch(),
             e.enum('status', ea.STATE, ['off', 'auto', 'disabled', 'app_manual', 'key_control']).withDescription('Status'),
             e.numeric('countdown', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Count down'),
             e.numeric('countdown_left', ea.STATE).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Countdown left time'),
             e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child lock'),
-            e.numeric('battery_percentage', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Battery percentage'),
+            e.battery(),
         ],
         meta: {
-            // All datapoints go in here
             tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
                 [
                     3,
                     'status',
@@ -258,7 +259,192 @@ const definitions: Definition[] = [
                 [101, 'countdown', tuya.valueConverter.raw],
                 [6, 'countdown_left', tuya.valueConverter.raw],
                 [104, 'child_lock', tuya.valueConverter.onOff],
-                [11, 'battery_percentage', tuya.valueConverter.raw],
+                [11, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_z7a2jmyy']),
+        model: 'NAS-WV05B2-L',
+        vendor: 'NEO',
+        description: 'Smart sprinkler timer',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.switch(),
+            e.enum('status', ea.STATE, ['off', 'auto', 'disabled', 'app_manual', 'key_control']).withDescription('Status'),
+            e.numeric('countdown', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Count down'),
+            e.numeric('countdown_left', ea.STATE).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Countdown left time'),
+            e.numeric('water_total', ea.STATE).withUnit('L').withValueMin(0).withValueStep(0.001).withDescription('Water total (L)'),
+            e.numeric('water_current', ea.STATE).withUnit('L/min').withValueMin(0).withValueStep(0.001).withDescription('Current water flow (L/min)'),
+            e.binary('current_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Flow switch'),
+            e.binary('reset_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Total flow reset switch'),
+            e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child lock'),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [
+                    3,
+                    'status',
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        auto: tuya.enum(1),
+                        disabled: tuya.enum(2),
+                        app_manual: tuya.enum(3),
+                        key_control: tuya.enum(4),
+                    }),
+                ],
+                [109, 'countdown', tuya.valueConverter.raw],
+                [6, 'countdown_left', tuya.valueConverter.raw],
+                [9, 'water_current', tuya.valueConverter.divideBy1000],
+                [15, 'water_total', tuya.valueConverter.divideBy1000],
+                [103, 'current_switch', tuya.valueConverter.onOff],
+                [101, 'reset_switch', tuya.valueConverter.onOff],
+                [104, 'child_lock', tuya.valueConverter.onOff],
+                [11, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_rzrrjkz2', '_TZE284_uab532m0']),
+        model: 'NAS-WV05B2',
+        vendor: 'NEO',
+        description: 'Smart sprinkler timer',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.switch(),
+            e.enum('status', ea.STATE, ['off', 'auto', 'disabled', 'app_manual', 'key_control']).withDescription('Status'),
+            e.numeric('countdown', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Count down'),
+            e.numeric('countdown_left', ea.STATE).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Countdown left time'),
+            e.numeric('water_total', ea.STATE).withUnit('gal').withValueMin(0).withValueStep(0.001).withDescription('Water total (gal)'),
+            e
+                .numeric('water_current', ea.STATE)
+                .withUnit('gal/min')
+                .withValueMin(0)
+                .withValueStep(0.001)
+                .withDescription('Current water flow (gal/min)'),
+            e.binary('current_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Flow switch'),
+            e.binary('reset_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Total flow reset switch'),
+            e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child lock'),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [
+                    3,
+                    'status',
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        auto: tuya.enum(1),
+                        disabled: tuya.enum(2),
+                        app_manual: tuya.enum(3),
+                        key_control: tuya.enum(4),
+                    }),
+                ],
+                [109, 'countdown', tuya.valueConverter.raw],
+                [6, 'countdown_left', tuya.valueConverter.raw],
+                [9, 'water_current', tuya.valueConverter.divideBy1000],
+                [15, 'water_total', tuya.valueConverter.divideBy1000],
+                [103, 'current_switch', tuya.valueConverter.onOff],
+                [101, 'reset_switch', tuya.valueConverter.onOff],
+                [104, 'child_lock', tuya.valueConverter.onOff],
+                [11, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_rqcuwlsa']),
+        model: 'NAS-STH02B2',
+        vendor: 'NEO',
+        description: 'Soil moisture, temperature, and ec',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.numeric('ec', ea.STATE).withUnit('us/cm').withValueMin(0).withValueMax(20000).withDescription('Soil electrical conductivity'),
+            e.enum('fertility', ea.STATE, ['normal', 'lower', 'low', 'middle', 'high', 'higher']).withDescription('Soil fertility'),
+            e.numeric('humidity', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Soil humidity'),
+            e.numeric('temperature', ea.STATE).withUnit('°C').withValueMin(-10).withValueMax(60).withDescription('Soil temperature'),
+            e.numeric('temperature_f', ea.STATE).withUnit('°F').withValueMin(14).withValueMax(140).withDescription('Soil temperature'),
+            e
+                .numeric('temperature_sensitivity', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(0.3)
+                .withValueMax(1)
+                .withValueStep(0.1)
+                .withDescription('Upper temperature limit'),
+            e.numeric('humidity_sensitivity', ea.STATE_SET).withUnit('%').withValueMin(1).withValueMax(5).withDescription('Upper temperature limit'),
+            e.enum('temperature_alarm', ea.STATE, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Temperature alarm state'),
+            e.enum('humidity_alarm', ea.STATE, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Humidity alarm state'),
+            e
+                .numeric('max_temperature_alarm', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(0)
+                .withValueMax(60)
+                .withDescription('Upper temperature limit'),
+            e
+                .numeric('min_temperature_alarm', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(0)
+                .withValueMax(60)
+                .withDescription('Lower temperature limit'),
+            e.numeric('max_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Upper humidity limit'),
+            e.numeric('min_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Lower humidity limit'),
+            e.numeric('schedule_periodic', ea.STATE_SET).withUnit('min').withValueMin(5).withValueMax(60).withDescription('Report sensitivity'),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    101,
+                    'temperature_alarm',
+                    tuya.valueConverterBasic.lookup({
+                        lower_alarm: tuya.enum(0),
+                        upper_alarm: tuya.enum(1),
+                        cancel: tuya.enum(2),
+                    }),
+                ],
+                [
+                    102,
+                    'humidity_alarm',
+                    tuya.valueConverterBasic.lookup({
+                        lower_alarm: tuya.enum(0),
+                        upper_alarm: tuya.enum(1),
+                        cancel: tuya.enum(2),
+                    }),
+                ],
+                [
+                    4,
+                    'fertility',
+                    tuya.valueConverterBasic.lookup({
+                        normal: tuya.enum(0),
+                        lower: tuya.enum(1),
+                        low: tuya.enum(2),
+                        middle: tuya.enum(3),
+                        high: tuya.enum(4),
+                        higher: tuya.enum(5),
+                    }),
+                ],
+                [1, 'ec', tuya.valueConverter.raw],
+                [3, 'humidity', tuya.valueConverter.raw],
+                [5, 'temperature', tuya.valueConverter.divideBy10],
+                [110, 'temperature_f', tuya.valueConverter.divideBy10],
+                [107, 'temperature_sensitivity', tuya.valueConverter.divideBy10],
+                [108, 'humidity_sensitivity', tuya.valueConverter.raw],
+                [103, 'max_temperature_alarm', tuya.valueConverter.divideBy10],
+                [104, 'min_temperature_alarm', tuya.valueConverter.divideBy10],
+                [105, 'max_humidity_alarm', tuya.valueConverter.raw],
+                [106, 'min_humidity_alarm', tuya.valueConverter.raw],
+                [109, 'schedule_periodic', tuya.valueConverter.raw],
+                [15, 'battery', tuya.valueConverter.raw],
             ],
         },
     },
