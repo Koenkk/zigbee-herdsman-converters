@@ -179,6 +179,7 @@ import micromatic from './micromatic';
 import modular from './modular';
 import moes from './moes';
 import muller_licht from './muller_licht';
+import multiterm from './multiterm';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
 import neo from './neo';
@@ -486,6 +487,7 @@ export default [
     ...modular,
     ...moes,
     ...muller_licht,
+    ...multiterm,
     ...namron,
     ...nanoleaf,
     ...neo,
