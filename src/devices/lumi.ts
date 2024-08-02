@@ -922,10 +922,10 @@ const definitions: Definition[] = [
         model: 'WS-EUK03',
         vendor: 'Aqara',
         description: 'Smart wall switch H1 EU (with neutral, single rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [
             tz.on_off,
-            lumi.toZigbee.lumi_power,
+            tz.electrical_measurement_power,
             lumi.toZigbee.lumi_switch_operation_mode_opple,
             lumi.toZigbee.lumi_switch_power_outage_memory,
             lumi.toZigbee.lumi_flip_indicator_light,
