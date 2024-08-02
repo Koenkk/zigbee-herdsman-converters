@@ -70,9 +70,8 @@ const individualLedEffects: {[key: string]: number} = {
 };
 
 const inovelliExtend = {
-    addCustomClusterInovelli: () => deviceAddCustomCluster(
-        'manuSpecificInovelli', 
-        {
+    addCustomClusterInovelli: () =>
+        deviceAddCustomCluster('manuSpecificInovelli', {
             ID: 64561,
             manufacturerCode: 0x122f,
             attributes: {
@@ -80,7 +79,7 @@ const inovelliExtend = {
                 dimmingSpeedUpLocal: {ID: 0x0002, type: Zcl.DataType.UINT8},
                 rampRateOffToOnRemote: {ID: 0x0003, type: Zcl.DataType.UINT8},
                 rampRateOffToOnLocal: {ID: 0x0004, type: Zcl.DataType.UINT8},
-                dimmingSpeedDownRemote: {ID: 0x0005 , type: Zcl.DataType.UINT8},
+                dimmingSpeedDownRemote: {ID: 0x0005, type: Zcl.DataType.UINT8},
                 dimmingSpeedDownLocal: {ID: 0x0006, type: Zcl.DataType.UINT8},
                 rampRateOnToOffRemote: {ID: 0x0007, type: Zcl.DataType.UINT8},
                 rampRateOnToOffLocal: {ID: 0x0008, type: Zcl.DataType.UINT8},
@@ -174,7 +173,7 @@ const inovelliExtend = {
                         {name: 'duration', type: Zcl.DataType.UINT8},
                     ],
                 },
-                individualLedEffect:{
+                individualLedEffect: {
                     ID: 3,
                     parameters: [
                         {name: 'led', type: Zcl.DataType.UINT8},
@@ -182,14 +181,12 @@ const inovelliExtend = {
                         {name: 'color', type: Zcl.DataType.UINT8},
                         {name: 'level', type: Zcl.DataType.UINT8},
                         {name: 'duration', type: Zcl.DataType.UINT8},
-                    ]
-                }
+                    ],
+                },
             },
-            commandsResponse: {
-            },
-        }
-    )
-}
+            commandsResponse: {},
+        }),
+};
 
 const fanModes: {[key: string]: number} = {off: 0, low: 2, smart: 4, medium: 86, high: 170, on: 255};
 const breezemodes: string[] = ['off', 'low', 'medium', 'high'];
@@ -2170,9 +2167,7 @@ const definitions: Definition[] = [
         vendor: 'Inovelli',
         description: '2-in-1 switch + dimmer',
         exposes: exposesListVZM31.concat(identify().exposes as Expose[]),
-        extend: [
-            inovelliExtend.addCustomClusterInovelli(),
-        ],
+        extend: [inovelliExtend.addCustomClusterInovelli()],
         toZigbee: [
             tzLocal.light_onoff_brightness_inovelli,
             tz.power_on_behavior,
@@ -2230,9 +2225,7 @@ const definitions: Definition[] = [
             tzLocal.breezeMode,
         ],
         exposes: exposesListVZM35.concat(identify().exposes as Expose[]),
-        extend: [
-            inovelliExtend.addCustomClusterInovelli(),
-        ],
+        extend: [inovelliExtend.addCustomClusterInovelli()],
         ota: ota.inovelli,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -2264,9 +2257,7 @@ const definitions: Definition[] = [
             tzLocal.vzm36_breezeMode,
         ],
         exposes: exposesListVZM36.concat(identify().exposes as Expose[]),
-        extend: [
-            inovelliExtend.addCustomClusterInovelli(),
-        ],
+        extend: [inovelliExtend.addCustomClusterInovelli()],
         ota: ota.inovelli,
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
