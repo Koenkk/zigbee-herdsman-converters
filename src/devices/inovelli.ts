@@ -3,13 +3,12 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {identify} from '../lib/modernExtend';
+import {identify, deviceAddCustomCluster} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {Definition, Expose, Fz, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
-import {deviceAddCustomCluster} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
