@@ -3833,7 +3833,7 @@ const definitions: Definition[] = [
         fingerprint: [
             // Curtain motors:
             {modelID: 'TS0601', manufacturerName: '_TZE200_cpbo62rn'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_libht6ua'}
+            {modelID: 'TS0601', manufacturerName: '_TZE200_libht6ua'},
         ],
         model: 'TS0601_cover_6',
         vendor: 'Tuya',
