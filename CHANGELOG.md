@@ -1,5 +1,25 @@
 # Changelog
 
+## [19.73.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.72.0...v19.73.0) (2024-08-03)
+
+
+### Features
+
+* **add:** 929003666501 ([#7819](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7819)) ([b7e21e2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b7e21e2af4bc45e62f44c74f3ab46e8b928d2084))
+* **add:** TS0601_soil_3 ([#7815](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7815)) ([a8cae46](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a8cae4697a0cf49a4bbeba88f9581b6cc7a90cbb))
+* **add:** ZC0101 [@vkanev](https://github.com/vkanev) https://github.com/Koenkk/zigbee-herdsman-converters/pull/7767 ([173472a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/173472ae752de1fd413da24ce493bad3b40a29ae))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_ikuxinvo` as Tuya TS0001_power https://github.com/Koenkk/zigbee2mqtt/issues/23471 ([1f6431b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1f6431b79cd5b67abb0c9f2b122c34132e690307))
+* **detect:** Detect `_TZ3000_kxlmv9ag` as Tuya TS0207_repeater @MartinNeurol https://github.com/Koenkk/zigbee2mqtt/issues/23458 ([29d0348](https://github.com/Koenkk/zigbee-herdsman-converters/commit/29d0348af5b4cf11beb56a8c3bfd308babcff1ea))
+* **detect:** Detect `_TZE200_libht6ua` as Tuya TS0601_cover_6 ([#7821](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7821)) ([88f7ce7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/88f7ce70c9ba627fa2fe1988f21e776f12a988b8))
+* Fix Tuya TS0601_soil_2 datapoint mappings ([#7816](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7816)) ([8b2b0c0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8b2b0c010b4362cfa604b6f51efa78cab0be848e))
+* Inovelli - Adding custom device specific cluster to converter ([#7822](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7822)) ([4dc632c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4dc632c8d315a722e16870805bae6acf0cc8b240))
+* Remove unsupported color_xy from Sengled Z01-A19NAE26 https://github.com/Koenkk/zigbee2mqtt/issues/23462 ([8e066c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8e066c10f9e8ff78c51b15640bc50b57477b905f))
+* Update Aqara WS-EUK03 power measurement ([#7818](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7818)) ([88f482a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/88f482adb864e4d3e0263dc9dc18fda2125f55c0))
+
 ## [19.72.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.71.1...v19.72.0) (2024-08-01)
 
 
