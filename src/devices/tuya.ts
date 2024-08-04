@@ -10953,6 +10953,27 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: [{
+                modelID: 'TS0002',
+                manufacturerName: '_TZ3000_h1ipgkwn',
+            },
+        ],
+        model: '2CH Zigbee USB Switch Module',
+        vendor: 'Tuya',
+        description: '2-way USB Smart Adapter',
+        configure: tuya.configureMagicPacket,
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ['l1', 'l2']
+            }),
+        ],
+    	endpoint: (device) => {
+    		return {l1: 1, l2: 2};
+    	},
+    	meta: {multiEndpoint: true},
+    	whiteLabel: [tuya.whitelabel('UNSH', '[N/A]', '2CH Zigbee USB Switch Module', ['_TZ3000_h1ipgkwn'])],
+    }
 ];
 
 export default definitions;
