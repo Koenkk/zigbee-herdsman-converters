@@ -10978,7 +10978,35 @@ const definitions: Definition[] = [
         meta: {
             multiEndpoint: true,
         },
-        whiteLabel: [tuya.whitelabel('UNSH', '[N/A]', '2CH Zigbee USB Switch Module', ['_TZ3000_h1ipgkwn'])],
+        whiteLabel: [tuya.whitelabel('UNSH', 'micro_usb_2ch', '2CH Zigbee USB Switch Module', ['_TZ3000_h1ipgkwn'])],
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0003',
+                manufacturerName: '_TZ3000_mw1pqqqt',
+            },
+        ],
+        model: '3CH Zigbee USB Switch Module',
+        vendor: 'Tuya',
+        description: '3-way USB Smart Adapter',
+        configure: tuya.configureMagicPacket,
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ['l1', 'l2', 'l3'],
+            }),
+        ],
+        endpoint: (device) => {
+            return {
+                l1: 1,
+                l2: 2,
+                l3: 3,
+            };
+        },
+        meta: {
+            multiEndpoint: true,
+        },
+        whiteLabel: [tuya.whitelabel('UNSH', 'micro_usb_3ch', '3CH Zigbee USB Switch Module', ['_TZ3000_mw1pqqqt'])],
     },
 ];
 
