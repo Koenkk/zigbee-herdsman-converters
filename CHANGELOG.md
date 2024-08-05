@@ -1,5 +1,17 @@
 # Changelog
 
+## [19.73.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.73.0...v19.73.1) (2024-08-05)
+
+
+### Bug Fixes
+
+* Add read-write interfaces for private cluster in 3RSNL02043Z ([#7827](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7827)) ([43e2610](https://github.com/Koenkk/zigbee-herdsman-converters/commit/43e26101d84cef9e68737f8856b28cfe4f617717))
+* **detect:** Detect `_TZE204_dwcarsat` as Tuya TS0601_smart_air_house_keeper https://github.com/Koenkk/zigbee2mqtt/issues/23410 ([ffc3919](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ffc3919f0a899f70d1164ac6fa8442e016124214))
+* Fix battery % multiplied by 2 for ROBB ROB_200-009-0 https://github.com/Koenkk/zigbee2mqtt/issues/23519 ([6733f6f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6733f6f773a8e1260465d58a5c11c5e7cc73baa6))
+* Fix configure failing for some Hue light which support gradient ([#7814](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7814)) ([e841249](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8412498e258c21959544d6370dca1c468aa6404))
+* **ignore:** add test for e8412498e258c21959544d6370dca1c468aa6404 ([96d4be5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/96d4be563c509150913096ce0fda7352824bbf4c))
+* **ignore:** fix e8412498e258c21959544d6370dca1c468aa6404 ([4f10a79](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4f10a79da513f3b573994df86a0201ca577d286a))
+
 ## [19.73.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.72.0...v19.73.0) (2024-08-03)
 
 
