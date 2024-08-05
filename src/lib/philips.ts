@@ -79,12 +79,8 @@ export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolea
                     .withDescription('List of RGB HEX colors'),
             );
             result.configure.push(async (device, coordinatorEndpoint, definition) => {
-                for (const ep of device.endpoints) {
-                    try {
-                        await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
-                    } catch (error) {
-                        logger.warning(`Could not bind to manuSpecificPhilips2/${ep.ID} to coordinator/${coordinatorEndpoint.ID}`, NS);
-                    }
+                for (const ep of device.endpoints.filter((ep) => ep.supportsInputCluster('manuSpecificPhilips2'))) {
+                    await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
                 }
             });
         }
