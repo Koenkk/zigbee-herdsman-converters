@@ -205,7 +205,7 @@ describe('ModernExtend', () => {
         await assertDefintion({
             device: mockDevice({
                 modelID: 'LCX012',
-                endpoints: [{inputClusters: ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'manuSpecificPhilips2']}],
+                endpoints: [{ID: 1, inputClusters: ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'manuSpecificPhilips2']}, {ID: 242}],
             }),
             meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
             fromZigbee: [
