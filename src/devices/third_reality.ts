@@ -1,8 +1,10 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {forcePowerSource, iasZoneAlarm, light, onOff} from '../lib/modernExtend';
-import {temperature, humidity, battery} from '../lib/modernExtend';
+import {temperature, humidity, battery, deviceAddCustomCluster} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {Definition, Fz, KeyValue} from '../lib/types';
@@ -22,8 +24,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     thirdreality_private_motion_sensor: {
-        cluster: 'manuSpecificAssaDoorLock',
-        // This cluster ID is 0xFC00. Temporarily modify like this
+        cluster: 'r3Specialcluster',
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data[2];
@@ -264,7 +265,20 @@ const definitions: Definition[] = [
         vendor: 'Third Reality',
         description: 'Zigbee multi-function night light',
         ota: ota.zigbeeOTA,
-        extend: [light({color: true})],
+        extend: [
+            light({color: true}),
+            deviceAddCustomCluster('r3Specialcluster', {
+                ID: 0xfc00,
+                manufacturerCode: 0x130d,
+                attributes: {
+                    cold_down_time: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                    local_routin_time: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                    lux_threshold: {ID: 0x0005, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         fromZigbee: [fzLocal.thirdreality_private_motion_sensor, fz.illuminance, fz.ias_occupancy_alarm_1_report],
         exposes: [e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
         configure: async (device, coordinatorEndpoint) => {
