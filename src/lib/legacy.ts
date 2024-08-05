@@ -3664,14 +3664,14 @@ const fromZigbee1 = {
                     return {humidity: value / 10};
                 // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
                 case dataPoints.tuyaSabFormaldehyd:
-                    if (['_TZE200_dwcarsat', '_TZE200_ryfmq5rl', '_TZE200_mja3fuja'].includes(meta.device.manufacturerName)) {
+                    if (['_TZE200_dwcarsat', '_TZE200_ryfmq5rl', '_TZE200_mja3fuja', '_TZE204_dwcarsat'].includes(meta.device.manufacturerName)) {
                         return {co2: value};
                     } else {
                         return {formaldehyd: value};
                     }
                 // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
                 case dataPoints.tuyaSabCO2:
-                    if (['_TZE200_dwcarsat'].includes(meta.device.manufacturerName)) {
+                    if (['_TZE200_dwcarsat', '_TZE204_dwcarsat'].includes(meta.device.manufacturerName)) {
                         // Ignore: https://github.com/Koenkk/zigbee2mqtt/issues/11033#issuecomment-1109808552
                         if (value === 0xaaac || value === 0xaaab) return;
                         return {pm25: value};

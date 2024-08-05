@@ -1271,7 +1271,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dwcarsat']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dwcarsat', '_TZE204_dwcarsat']),
         model: 'TS0601_smart_air_house_keeper',
         vendor: 'Tuya',
         description: 'Smart air house keeper',
@@ -1952,13 +1952,89 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.temperature(), e.soil_moisture(), e.battery(), tuya.exposes.batteryState()],
+        exposes: [
+            e.soil_moisture(),
+            e.numeric('temperature', ea.STATE).withUnit('°C').withValueMin(-10).withValueMax(60).withDescription('Soil temperature'),
+            e.numeric('temperature_f', ea.STATE).withUnit('°F').withValueMin(14).withValueMax(140).withDescription('Soil temperature'),
+            e
+                .numeric('temperature_sensitivity', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(0.3)
+                .withValueMax(1)
+                .withValueStep(0.1)
+                .withDescription('Temperature sensitivity'),
+            e.numeric('humidity_sensitivity', ea.STATE_SET).withUnit('%').withValueMin(1).withValueMax(5).withDescription('Humidity sensitivity'),
+            e.enum('temperature_alarm', ea.STATE, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Temperature alarm state'),
+            e.enum('humidity_alarm', ea.STATE, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Humidity alarm state'),
+            e
+                .numeric('max_temperature_alarm', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(0)
+                .withValueMax(60)
+                .withDescription('Upper temperature limit'),
+            e
+                .numeric('min_temperature_alarm', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(0)
+                .withValueMax(60)
+                .withDescription('Lower temperature limit'),
+            e.numeric('max_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Upper humidity limit'),
+            e.numeric('min_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Lower humidity limit'),
+            e.numeric('schedule_periodic', ea.STATE_SET).withUnit('min').withValueMin(5).withValueMax(60).withDescription('Report sensitivity'),
+            e.battery(),
+            tuya.exposes.batteryState(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    101,
+                    'temperature_alarm',
+                    tuya.valueConverterBasic.lookup({
+                        lower_alarm: tuya.enum(0),
+                        upper_alarm: tuya.enum(1),
+                        cancel: tuya.enum(2),
+                    }),
+                ],
+                [
+                    102,
+                    'humidity_alarm',
+                    tuya.valueConverterBasic.lookup({
+                        lower_alarm: tuya.enum(0),
+                        upper_alarm: tuya.enum(1),
+                        cancel: tuya.enum(2),
+                    }),
+                ],
+                [3, 'soil_moisture', tuya.valueConverter.raw],
+                [5, 'temperature', tuya.valueConverter.divideBy10],
+                [110, 'temperature_f', tuya.valueConverter.divideBy10],
+                [107, 'temperature_sensitivity', tuya.valueConverter.divideBy10],
+                [108, 'humidity_sensitivity', tuya.valueConverter.raw],
+                [103, 'max_temperature_alarm', tuya.valueConverter.divideBy10],
+                [104, 'min_temperature_alarm', tuya.valueConverter.divideBy10],
+                [105, 'max_humidity_alarm', tuya.valueConverter.raw],
+                [106, 'min_humidity_alarm', tuya.valueConverter.raw],
+                [109, 'schedule_periodic', tuya.valueConverter.raw],
+                [15, 'battery', tuya.valueConverter.raw],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_aao3yzhs']),
+        model: 'TS0601_soil_3',
+        vendor: 'Tuya',
+        description: 'Soil sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.temperature(), e.soil_moisture(), tuya.exposes.temperatureUnit(), e.battery(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
                 [3, 'soil_moisture', tuya.valueConverter.raw],
                 [5, 'temperature', tuya.valueConverter.divideBy10],
-                [102, 'battery_state', tuya.valueConverter.batteryState],
-                [110, 'battery', tuya.valueConverter.divideBy10],
+                [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
+                [15, 'battery', tuya.valueConverter.raw],
             ],
         },
     },
@@ -3379,6 +3455,7 @@ const definitions: Definition[] = [
             '_TZ3000_g92baclx',
             '_TZ3000_qlai3277',
             '_TZ3000_qaabwu5c',
+            '_TZ3000_ikuxinvo',
             '_TZ3000_hzlsaltw',
         ]),
         model: 'TS0001_power',
@@ -3756,7 +3833,6 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_1fuxihti'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_1fuxihti'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_57hjqelq'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_libht6ua'},
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_hsgrhjpf'},
@@ -3831,7 +3907,11 @@ const definitions: Definition[] = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_cpbo62rn'}],
+        fingerprint: [
+            // Curtain motors:
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cpbo62rn'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_libht6ua'},
+        ],
         model: 'TS0601_cover_6',
         vendor: 'Tuya',
         description: 'Cover motor',

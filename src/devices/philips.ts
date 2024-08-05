@@ -3020,6 +3020,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['LCG006'],
+        model: '929003666501',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance GU10 spot LED with Bluetooth',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ['5309030P9', '5309031P9', '5309030P6', '5309031P6', '929003046101'],
         model: '5309030P9',
         vendor: 'Philips',
