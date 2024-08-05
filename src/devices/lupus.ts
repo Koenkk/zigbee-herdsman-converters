@@ -48,7 +48,7 @@ const definitions: Definition[] = [
         model: '12126',
         vendor: 'Lupus',
         description: '1 channel relay',
-        extend: [onOff()],
+        extend: [onOff({powerOnBehavior: false, ota: ota.zigbeeOTA})],
         ota: ota.zigbeeOTA,
     },
     {
