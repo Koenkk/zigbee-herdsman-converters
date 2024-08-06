@@ -1642,6 +1642,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
         try {
             lMode = endpoint.clusters[clustersDef._0xFF66].attributes['linkyMode'];
             // @ts-expect-error
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             lMode.raiseError; // raise if undefined
             // @ts-expect-error
             return ((lMode >> bitLinkyMode) & 1) == 1 ? valueTrue : valueFalse;
@@ -1674,6 +1675,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     } else {
         try {
             const lixAtts = endpoint.clusters[clustersDef._0xFF66].attributes;
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             lixAtts.raiseIfEmpty;
             // @ts-expect-error
             currentTarf = fzLocal.lixee_private_fz.convert({}, {data: lixAtts}).current_tarif;

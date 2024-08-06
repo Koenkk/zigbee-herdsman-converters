@@ -3749,8 +3749,8 @@ const converters2 = {
                 } else if (attribute === 'color') {
                     try {
                         val = JSON.parse(val);
-                    } catch (e) {
-                        e;
+                    } catch {
+                        /* empty */
                     }
 
                     const newColor = libColor.Color.fromConverterArg(val);
