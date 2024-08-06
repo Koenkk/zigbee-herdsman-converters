@@ -1,5 +1,20 @@
 # Changelog
 
+## [19.74.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.73.1...v19.74.0) (2024-08-06)
+
+
+### Features
+
+* Make Lupus 12126 and 12127 OTA capable ([#7817](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7817)) ([bef6ae0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bef6ae06444ba77534c3406f519f3ba4573fe9e8))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_khx7nnka` as Tuya XFY-CGQ-ZIGB https://github.com/Koenkk/zigbee2mqtt/issues/23506 ([ab780c9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab780c96a19bbc0d948b57f5b8440fb3a98d0a70))
+* Fix electricity meter exposes of AEOTEC ZGA003 ([#7829](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7829)) ([36d662e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/36d662e7238867d0a8de6ae26510164f506d9de8))
+* **ignore:** update dependencies ([#7825](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7825)) ([ef2f515](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ef2f5151e80227c0d9f638a7b03becebcaf309d2))
+* Remove unsupported `battery_low` from SONOFF SNZB-03P https://github.com/Koenkk/zigbee2mqtt/issues/23522 ([00d5851](https://github.com/Koenkk/zigbee-herdsman-converters/commit/00d58514f9741a295eb23f368d35fed4dbd2cec3))
+
 ## [19.73.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.73.0...v19.73.1) (2024-08-05)
 
 
