@@ -48,14 +48,14 @@ const definitions: Definition[] = [
         model: '12126',
         vendor: 'Lupus',
         description: '1 channel relay',
-        extend: [onOff()],
+        extend: [onOff({powerOnBehavior: false, ota: ota.zigbeeOTA})],
     },
     {
         zigbeeModel: ['PRS3CH2_00.00.05.10TC', 'PRS3CH2_00.00.05.11TC', 'PRS3CH2_00.00.05.12TC'],
         model: '12127',
         vendor: 'Lupus',
         description: '2 channel relay',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2'], powerOnBehavior: false, ota: ota.zigbeeOTA})],
     },
 ];
 
