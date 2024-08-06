@@ -1,8 +1,8 @@
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {Definition} from '../lib/types';
-const fz = {...require('../converters/fromZigbee'), legacy: legacy.fromZigbee};
-const tz = {...require('../converters/toZigbee'), legacy: legacy.toZigbee};
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -15,17 +15,17 @@ const definitions: Definition[] = [
         model: 'SMART-HEAT10',
         vendor: 'Alecto',
         description: 'Radiator valve with thermostat',
-        fromZigbee: [fz.legacy.tuya_thermostat, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.tuya_thermostat, fz.ignore_basic_report],
         meta: {
             tuyaThermostatSystemMode: legacy.thermostatSystemModes4,
             tuyaThermostatPreset: legacy.thermostatPresets,
             tuyaThermostatPresetToSystemMode: legacy.thermostatSystemModes4,
         },
         toZigbee: [
-            tz.legacy.tuya_thermostat_child_lock,
-            tz.legacy.siterwell_thermostat_window_detection,
-            tz.legacy.tuya_thermostat_current_heating_setpoint,
-            tz.legacy.tuya_thermostat_system_mode,
+            legacy.tz.tuya_thermostat_child_lock,
+            legacy.tz.siterwell_thermostat_window_detection,
+            legacy.tz.tuya_thermostat_current_heating_setpoint,
+            legacy.tz.tuya_thermostat_system_mode,
         ],
         exposes: [
             e.child_lock(),
@@ -46,8 +46,8 @@ const definitions: Definition[] = [
         model: 'SMART-SMOKE10',
         vendor: 'Alecto',
         description: 'Smoke detector',
-        fromZigbee: [fz.legacy.tuya_alecto_smoke],
-        toZigbee: [tz.legacy.tuya_alecto_smoke],
+        fromZigbee: [legacy.fz.tuya_alecto_smoke],
+        toZigbee: [legacy.tz.tuya_alecto_smoke],
         meta: {},
         exposes: [
             e.enum('smoke_state', ea.STATE, ['alarm', 'normal']),
