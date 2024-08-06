@@ -855,7 +855,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee PIR sensor',
         fromZigbee: [fz.occupancy, fz.battery],
-        exposes: [e.occupancy(), e.battery_low(), e.battery()],
+        exposes: [e.occupancy(), e.battery()],
         extend: [
             numeric({
                 name: 'motion_timeout',
