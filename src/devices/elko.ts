@@ -39,7 +39,6 @@ const definitions: Definition[] = [
         fromZigbee: [fz.elko_thermostat, fz.thermostat],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_heating_setpoint,
             tz.elko_load,
             tz.elko_display_text,
             tz.elko_power_status,
