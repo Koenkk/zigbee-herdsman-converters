@@ -2282,7 +2282,8 @@ const definitions: Definition[] = [
             return {l1: 1, l2: 1};
         },
         whiteLabel: [
-            {vendor: 'Moes', model: 'MS-105B-M'},
+            tuya.whitelabel('Moes' 'MS-105B-M', '2 gang smart dimmer module', ['_TZE200_tsxpl0d0']),
+            tuya.whitelabel('Moes' 'ZM-105B-M', '2 gang smart dimmer module', ['_TZE200_tsxpl0d0']),
             tuya.whitelabel('KnockautX', 'FMD2C018', '2 gang smart dimmer module', ['_TZE200_tsxpl0d0']),
         ],
     },
