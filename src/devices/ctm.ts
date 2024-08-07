@@ -102,10 +102,6 @@ const fzLocal = {
                 // Load
                 result.load = data[0x0401];
             }
-            if (data.hasOwnProperty('elkoLoad')) {
-                // Load
-                result.load = data['elkoLoad'];
-            }
             if (data.hasOwnProperty(0x0402)) {
                 // Display text
                 result.display_text = data[0x0402];
@@ -127,26 +123,9 @@ const fzLocal = {
                 };
                 result.sensor = utils.getFromLookup(data[0x0403], sensorModeLookup);
             }
-            if (data.hasOwnProperty('elkoSensor')) {
-                // Sensor
-                const sensorModeLookup = {
-                    0: 'air',
-                    1: 'floor',
-                    2: 'external',
-                    3: 'regulator',
-                    4: 'mv_air',
-                    5: 'mv_external',
-                    6: 'mv_regulator',
-                };
-                result.sensor = utils.getFromLookup(data['elkoSensor'], sensorModeLookup);
-            }
             if (data.hasOwnProperty(0x0405)) {
                 // Regulator mode
                 result.regulator_mode = data[0x0405] ? 'regulator' : 'thermostat';
-            }
-            if (data.hasOwnProperty('elkoRegulatorMode')) {
-                // Regulator mode
-                result.regulator_mode = data['elkoRegulatorMode'] ? 'regulator' : 'thermostat';
             }
             if (data.hasOwnProperty(0x0406)) {
                 // Power status
@@ -160,10 +139,6 @@ const fzLocal = {
                 // Mean power
                 result.mean_power = data[0x0408];
             }
-            if (data.hasOwnProperty('elkoMeanPower')) {
-                // Mean power
-                result.mean_power = data['elkoMeanPower'];
-            }
             if (data.hasOwnProperty(0x0409)) {
                 // Floor temp
                 result.floor_temp = utils.precisionRound(data[0x0409], 2) / 100;
@@ -176,33 +151,17 @@ const fzLocal = {
                 // Night switching
                 result.night_switching = data[0x0411] ? 'ON' : 'OFF';
             }
-            if (data.hasOwnProperty('elkoNightSwitching')) {
-                // Night switching
-                result.night_switching = data['elkoNightSwitching'] ? 'ON' : 'OFF';
-            }
             if (data.hasOwnProperty(0x0412)) {
                 // Frost guard
                 result.frost_guard = data[0x0412] ? 'ON' : 'OFF';
-            }
-            if (data.hasOwnProperty('elkoFrostGuard')) {
-                // Frost guard
-                result.frost_guard = data['elkoFrostGuard'] ? 'ON' : 'OFF';
             }
             if (data.hasOwnProperty(0x0413)) {
                 // Child lock
                 result.child_lock = data[0x0413] ? 'LOCK' : 'UNLOCK';
             }
-            if (data.hasOwnProperty('elkoChildLock')) {
-                // Child lock
-                result.child_lock = data['elkoChildLock'] ? 'LOCK' : 'UNLOCK';
-            }
             if (data.hasOwnProperty(0x0414)) {
                 // Max floor temp
                 result.max_floor_temp = data[0x0414];
-            }
-            if (data.hasOwnProperty('elkoMaxFloorTemp')) {
-                // Max floor temp
-                result.max_floor_temp = data['elkoMaxFloorTemp'];
             }
             if (data.hasOwnProperty(0x0415)) {
                 // Running_state
