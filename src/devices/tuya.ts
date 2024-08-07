@@ -3578,9 +3578,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_gbshwgag'},
-        ],
+        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_gbshwgag'}],
         model: 'TS0001_switch_module_2',
         vendor: 'TuYa',
         description: '1 gang switch with backlight',
