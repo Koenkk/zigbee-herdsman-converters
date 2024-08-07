@@ -387,6 +387,10 @@ const tuyaExposes = {
         e.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'customized']).withDescription('Power on behavior state'),
     switchMode: () =>
         e.enum('switch_mode', ea.STATE_SET, ['switch', 'scene']).withDescription('Sets the mode of the switch to act as a switch or as a scene'),
+    switchMode2: () =>
+        e
+            .enum('switch_mode', ea.STATE_SET, ['switch', 'curtain'])
+            .withDescription('Sets the mode of the switch to act as a switch or as a curtain controller'),
     lightMode: () =>
         e.enum('light_mode', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).withDescription(`'Sets the indicator mode of l1.
         Normal: Orange while off and white while on.
@@ -525,6 +529,7 @@ export const valueConverter = {
     divideBy1000: valueConverterBasic.divideBy(1000),
     divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
     switchMode: valueConverterBasic.lookup({switch: new Enum(0), scene: new Enum(1)}),
+    switchMode2: valueConverterBasic.lookup({switch: new Enum(0), curtain: new Enum(1)}),
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
     raw: valueConverterBasic.raw(),
     workingDay: valueConverterBasic.lookup({disabled: new Enum(0), '6-1': new Enum(1), '5-2': new Enum(2), '7': new Enum(3)}),
