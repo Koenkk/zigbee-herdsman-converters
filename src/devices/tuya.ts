@@ -6501,7 +6501,10 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0603', manufacturerName: '_TZE608_c75zqghm'}],
+        fingerprint: [
+            {modelID: 'TS0603', manufacturerName: '_TZE608_c75zqghm'},
+            {modelID: 'TS0603', manufacturerName: '_TZE608_fmemczv1'}
+        ],
         model: 'TS0603',
         vendor: 'Tuya',
         meta: {
