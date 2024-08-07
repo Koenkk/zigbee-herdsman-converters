@@ -784,7 +784,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
     }
 
     if (args.ultrasonicConfig) {
-        if (args.pirConfig.includes('otu_delay')) {
+        if (args.ultrasonicConfig.includes('otu_delay')) {
             settingsExtends.push(
                 numeric({
                     name: 'ultrasonic_otu_delay',
@@ -796,7 +796,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push('ultrasonicOToUDelay');
         }
-        if (args.pirConfig.includes('uto_delay')) {
+        if (args.ultrasonicConfig.includes('uto_delay')) {
             settingsExtends.push(
                 numeric({
                     name: 'ultrasonic_uto_delay',
@@ -808,7 +808,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push('ultrasonicUToODelay');
         }
-        if (args.pirConfig.includes('uto_threshold')) {
+        if (args.ultrasonicConfig.includes('uto_threshold')) {
             settingsExtends.push(
                 numeric({
                     name: 'ultrasonic_uto_threshold',
@@ -823,7 +823,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
     }
 
     if (args.contactConfig) {
-        if (args.pirConfig.includes('otu_delay')) {
+        if (args.contactConfig.includes('otu_delay')) {
             settingsExtends.push(
                 numeric({
                     name: 'contact_otu_delay',
@@ -835,7 +835,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push('contactOToUDelay');
         }
-        if (args.pirConfig.includes('uto_delay')) {
+        if (args.contactConfig.includes('uto_delay')) {
             settingsExtends.push(
                 numeric({
                     name: 'contact_uto_delay',
@@ -847,7 +847,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push('contactUToODelay');
         }
-        if (args.pirConfig.includes('uto_threshold')) {
+        if (args.contactConfig.includes('uto_threshold')) {
             settingsExtends.push(
                 numeric({
                     name: 'contact_uto_threshold',
@@ -1821,6 +1821,7 @@ export interface NumericArgs {
     label?: string;
     entityCategory?: 'config' | 'diagnostic';
     precision?: number;
+    read?: boolean;
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
@@ -1927,6 +1928,8 @@ export function numeric(args: NumericArgs): ModernExtend {
     ];
 
     const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access, endpoints)];
+
+    if (args.read) configure.push(setupConfigureForReading(cluster.toString(), [attributeKey], endpoints));
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
