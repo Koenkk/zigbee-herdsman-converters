@@ -404,8 +404,8 @@ const definitions: Definition[] = [
                     [{attribute: 'totalReactivePower', minimumReportInterval: 5, maximumReportInterval: 3600, reportableChange: 1}],
                     manufacturerOptions,
                 );
-            } catch (e) {
-                e;
+            } catch {
+                /* empty */
             }
 
             await reporting.readMeteringMultiplierDivisor(endpoint);

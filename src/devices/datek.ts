@@ -50,8 +50,8 @@ const definitions: Definition[] = [
             try {
                 // hwVersion < 2 do not support hwVersion attribute, so we are testing if this is hwVersion 1 or 2
                 await endpoint.read('genBasic', ['hwVersion']);
-            } catch (e) {
-                e;
+            } catch {
+                /* empty */
             }
             const payload = [
                 {
