@@ -1,93 +1,67 @@
-import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
-import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
+const tz = require('zigbee-herdsman-converters/converters/toZigbee');
+const exposes = require('zigbee-herdsman-converters/lib/exposes');
+const reporting = require('zigbee-herdsman-converters/lib/reporting');
 const e = exposes.presets;
+const ea = exposes.access;
+const tuya = require('zigbee-herdsman-converters/lib/tuya');
 
-const {presets: ep, access: ea} = exposes;
-
-const MINUTES_IN_A_DAY = 1440;
-const SECONDS_IN_12_HOURS = 43200;
-
-const exportTemplates = {
-    giexWaterValve: {
-        vendor: 'GiEX',
-        description: 'Water irrigation valve',
-        onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [legacy.fromZigbee.giexWaterValve],
-        toZigbee: [legacy.toZigbee.giexWaterValve],
+const definition = {
+    // Since a lot of TuYa devices use the same modelID, but use different datapoints
+    // it's necessary to provide a fingerprint instead of a zigbeeModel
+    fingerprint: [
+        {
+            // The model ID from: Device with modelID 'TS0601' is not supported
+            // You may need to add \u0000 at the end of the name in some cases
+            modelID: 'TS0601',
+            // The manufacturer name from: Device with modelID 'TS0601' is not supported.
+            manufacturerName: '_TZE204_a7sghmms',
+        },
+    ],
+    model: 'QT06 NEW',
+    vendor: 'GiEX NEW',
+    description: 'Water irrigation valve NEW',
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [tuya.tz.datapoints],
+    onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+    configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         exposes: [
-            ep.battery(),
-            e.binary(legacy.giexWaterValve.state, ea.STATE_SET, 'ON', 'OFF').withDescription('State'),
-            e.enum(legacy.giexWaterValve.mode, ea.STATE_SET, ['duration', 'capacity']).withDescription('Irrigation mode'),
-            e
-                .numeric(legacy.giexWaterValve.cycleIrrigationNumTimes, ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(100)
+		    e.battery(),
+            exposes.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('State'),
+            exposes.enum('mode', ea.STATE_SET, ['duration', 'capacity']).withDescription('Irrigation mode'),
+            exposes.numeric('irrigation_target', exposes.access.STATE_SET).withValueMin(0).withValueMax(240).withUnit('seconds or Litres')
+                .withDescription('Irrigation Target, duration in minutes or capacity in Liters (depending on mode)'),
+            exposes.numeric('cycle_irrigation_num_times', exposes.access.STATE_SET).withValueMin(0).withValueMax(100).withUnit('#')
                 .withDescription('Number of cycle irrigation times, set to 0 for single cycle'),
-            e.numeric(legacy.giexWaterValve.irrigationStartTime, ea.STATE).withDescription('Last irrigation start time'),
-            e.numeric(legacy.giexWaterValve.irrigationEndTime, ea.STATE).withDescription('Last irrigation end time'),
-            e.numeric(legacy.giexWaterValve.lastIrrigationDuration, ea.STATE).withDescription('Last irrigation duration'),
-            e.numeric(legacy.giexWaterValve.waterConsumed, ea.STATE).withUnit('L').withDescription('Last irrigation water consumption'),
+            exposes.numeric('cycle_irrigation_interval', exposes.access.STATE_SET).withValueMin(0).withValueMax(1440).withUnit('min')
+                .withDescription('Cycle irrigation interval'),
+            exposes.numeric('irrigation_start_time', ea.STATE).withUnit('GMT+8').withDescription('Irrigation start time'),
+            exposes.numeric('irrigation_end_time', ea.STATE).withUnit('GMT+8').withDescription('Irrigation end time'),
+            exposes.numeric('last_irrigation_duration', exposes.access.STATE).withUnit('min')
+                .withDescription('Last irrigation duration'),
+            exposes.numeric('water_consumed', exposes.access.STATE).withUnit('L')
+                .withDescription('Water consumed (Litres)'),
         ],
+        meta: {
+            tuyaDatapoints: [
+			
+
+				[108,'battery',tuya.valueConverter.raw],
+				[2, 'state', tuya.valueConverter.trueFalse1],
+				[1, 'mode', tuya.valueConverter.trueFalse1],
+				[104,'irrigation_target',tuya.valueConverter.raw],
+				[111,'water_consumed',tuya.valueConverter.raw],
+				[101,'irrigation_start_time',tuya.valueConverter.raw],
+				[102,'irrigation_end_time',tuya.valueConverter.raw],
+				[114,'last_irrigation_duration',tuya.valueConverter.raw],
+				[103,'cycle_irrigation_num_times',tuya.valueConverter.raw],
+				[105,'cycle_irrigation_interval',tuya.valueConverter.raw],
+				[106,'Temperature',tuya.valueConverter.raw],
+
+            ],
     },
 };
 
-const definitions: Definition[] = [
-    // _TZE200_sh1btabb uses minutes, timezone is GMT+8
-    {
-        ...exportTemplates.giexWaterValve,
-        model: 'QT06_1',
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_sh1btabb'}],
-        exposes: [
-            ...exportTemplates.giexWaterValve.exposes,
-            e
-                .numeric(legacy.giexWaterValve.irrigationTarget, ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(MINUTES_IN_A_DAY)
-                .withUnit('minutes or litres')
-                .withDescription('Irrigation target, duration in minutes or capacity in litres (depending on mode)'),
-            e
-                .numeric(legacy.giexWaterValve.cycleIrrigationInterval, ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(MINUTES_IN_A_DAY)
-                .withUnit('min')
-                .withDescription('Cycle irrigation interval'),
-        ],
-    },
-    // _TZE200_a7sghmms uses seconds, timezone is local
-    {
-        ...exportTemplates.giexWaterValve,
-        model: 'QT06_2',
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_a7sghmms'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_7ytb3h8u'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_7ytb3h8u'},
-            {modelID: 'TS0601', manufacturerName: '_TZE284_7ytb3h8u'},
-        ],
-        exposes: [
-            ...exportTemplates.giexWaterValve.exposes,
-            e
-                .numeric(legacy.giexWaterValve.irrigationTarget, ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(SECONDS_IN_12_HOURS)
-                .withUnit('seconds or litres')
-                .withDescription(
-                    'Irrigation target, duration in seconds or capacity in litres (depending on mode), ' +
-                        'set to 0 to leave the valve on indefinitely, ' +
-                        'for safety reasons the target will be forced to a minimum of 10 seconds in duration mode',
-                ),
-            e
-                .numeric(legacy.giexWaterValve.cycleIrrigationInterval, ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(SECONDS_IN_12_HOURS)
-                .withUnit('sec')
-                .withDescription('Cycle irrigation interval'),
-        ],
-        whiteLabel: [tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_7ytb3h8u', '_TZE284_7ytb3h8u'])],
-    },
-];
-
-export default definitions;
-module.exports = definitions;
+module.exports = definition;
