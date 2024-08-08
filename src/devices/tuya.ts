@@ -3579,6 +3579,17 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_gbshwgag'}],
+        model: 'TS0001_switch_module_2',
+        vendor: 'TuYa',
+        description: '1 gang switch with backlight',
+        extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, backlightModeOffOn: true, indicatorMode: true})],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_54hjn4vs', '_TZ3000_aa5t61rh']),
         model: 'TS0002_switch_module_3',
         vendor: 'Tuya',
@@ -3612,7 +3623,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_rhkfbfcv', '_TZ3000_empogkya', '_TZ3000_lubfc1t5', '_TZ3000_lsunm46z']),
+        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_rhkfbfcv', '_TZ3000_empogkya', '_TZ3000_lubfc1t5', '_TZ3000_lsunm46z', '_TZ3000_v4l4b0lp']),
         model: 'TS0003_switch_3_gang_with_backlight',
         vendor: 'Tuya',
         description: '3-Gang switch with backlight',
@@ -6502,7 +6513,10 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0603', manufacturerName: '_TZE608_c75zqghm'}],
+        fingerprint: [
+            {modelID: 'TS0603', manufacturerName: '_TZE608_c75zqghm'},
+            {modelID: 'TS0603', manufacturerName: '_TZE608_fmemczv1'},
+        ],
         model: 'TS0603',
         vendor: 'Tuya',
         meta: {
