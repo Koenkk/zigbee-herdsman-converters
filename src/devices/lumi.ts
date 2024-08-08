@@ -2528,7 +2528,6 @@ const definitions: Definition[] = [
         description: 'Curtain controller C3',
         fromZigbee: [
             fz_curtain_position_state,
-            fz_curtain_calibrated,
             lumi.fromZigbee.lumi_curtain_speed,
             lumi.fromZigbee.lumi_curtain_hand_open,
             lumi.fromZigbee.lumi_curtain_adaptive_speed,
@@ -2539,6 +2538,7 @@ const definitions: Definition[] = [
             lumi.fromZigbee.lumi_curtain_position_ZNCLDJ01LM,
             lumi.fromZigbee.lumi_curtain_traverse_time,
             lumi.fromZigbee.lumi_curtain_calibration_status,
+            lumi.fromZigbee.lumi_curtain_calibrated,
         ],
         toZigbee: [
             tz_curtain_toggle,
@@ -2550,7 +2550,7 @@ const definitions: Definition[] = [
             lumi.toZigbee.lumi_curtain_reverse,
             lumi.toZigbee.lumi_curtain_limits_calibration,
             lumi.toZigbee.lumi_curtain_identify_beep,
-            tz_curtain_automatic_calibration,
+            lumi.toZigbee.lumi_curtain_automatic_calibration,
         ],
         exposes: [
             e.enum('toggle', ea.SET, ['TOGGLE']).withDescription('Open/stop/close'),

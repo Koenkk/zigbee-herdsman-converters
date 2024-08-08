@@ -2948,6 +2948,17 @@ export const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter,
+    lumi_curtain_calibrated: {
+        cluster: 'manuSpecificLumi',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.hasOwnProperty('curtainCalibrated')) {
+                result.calibrated = msg.data['curtainCalibrated'] === 1;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
     lumi_vibration_analog: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
@@ -4876,6 +4887,88 @@ export const toZigbee = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x0404], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_curtain_automatic_calibration: {
+        key: ['automatic_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            const NS = 'zhc:lumi:curtain';
+            const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+            // Check if the curtain is already calibrated
+            const checkIfCalibrated = async (): Promise<boolean> => {
+                const result = await entity.read('manuSpecificLumi', [0x0407]);
+                const calibrated = result[0x0407];
+                return calibrated !== 0;
+            };
+
+            if (await checkIfCalibrated()) {
+                logger.info('End positions already calibrated. Reset the calibration before proceeding.', NS);
+                return;
+            }
+
+            // Reset Calibration
+            await entity.write('manuSpecificLumi', { 0x0407: { value: 0x00, type: 0x20 } }, manufacturerOptions.lumi);
+            logger.info('Starting the calibration process...', NS);
+
+            // Wait for 3 seconds
+            await wait(3000);
+
+            // Move the curtain to one direction
+            await entity.command('closuresWindowCovering', 'goToLiftPercentage', { percentageliftvalue: 100 }, getOptions(meta.mapped, entity));
+            logger.info('Moving curtain and waiting to reach the end position.', NS);
+
+            // Wait until the curtain gets into a moving state, then wait until it gets blocked or stopped
+            const waitForStateTransition = async (initialStates: number[], desiredStates: number[]): Promise<void> => {
+                return new Promise<void>(resolve => {
+                    const checkState = async () => {
+                        const result = await entity.read('manuSpecificLumi', [0x0421]);
+                        const state = result[0x0421];
+                        if (!initialStates.includes(state)) {
+                            const checkDesiredState = async () => {
+                                const result = await entity.read('manuSpecificLumi', [0x0421]);
+                                const state = result[0x0421];
+                                if (desiredStates.includes(state)) {
+                                    resolve();
+                                } else {
+                                    setTimeout(checkDesiredState, 500);
+                                }
+                            };
+                            setTimeout(checkDesiredState, 500);
+                        } else {
+                            setTimeout(checkState, 500);
+                        }
+                    };
+                    checkState();
+                });
+            };
+
+            await waitForStateTransition([2, 3], [2, 3]);
+
+            // Wait for 1 second
+            await wait(1000);
+
+            // Set First Calibration Position
+            await entity.write('manuSpecificLumi', { 0x0407: { value: 0x01, type: 0x20 } }, manufacturerOptions.lumi);
+            logger.info('End position 1 has been set.', NS);
+
+            // Wait for 3 seconds
+            await wait(3000);
+
+            // Move the curtain in the opposite direction
+            await entity.command('closuresWindowCovering', 'goToLiftPercentage', { percentageliftvalue: 0 }, getOptions(meta.mapped, entity));
+            logger.info('Moving curtain in the opposite direction and waiting to reach the end position.', NS);
+
+            // Wait until the curtain gets into a moving state, then wait until it gets blocked or stopped
+            await waitForStateTransition([2, 3], [2, 3]);
+
+            // Wait for 1 second
+            await wait(1000);
+
+            // Set Second Calibration Position
+            await entity.write('manuSpecificLumi', { 0x0407: { value: 0x02, type: 0x20 } }, manufacturerOptions.lumi);
+            logger.info('End position 2 has been set.', NS);
+            logger.info('Calibration process completed.', NS);
         },
     } satisfies Tz.Converter,
     lumi_buzzer: {
