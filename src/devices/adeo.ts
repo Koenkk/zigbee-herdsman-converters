@@ -1,9 +1,12 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {logger} from '../lib/logger';
 import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, light, onOff, quirkCheckinInterval, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Definition, Fz, Tz} from '../lib/types';
+
+const NS = 'zhc:adeo';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -312,7 +315,11 @@ const definitions: Definition[] = [
         exposes: [e.warning(), e.battery(), e.battery_low(), e.tamper()],
         extend: [quirkCheckinInterval(0)],
         configure: async (device, coordinatorEndpoint) => {
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            try {
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            } catch (error) {
+                logger.debug(`Failed to unbind '${device.networkAddress}(1):genPollCtrl' from coordinator: ${error}`, NS);
+            }
         },
     },
     {

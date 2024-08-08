@@ -1126,7 +1126,11 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read(0x0502, [0xa000, 0xa001, 0xa002, 0xa003, 0xa004, 0xa005], manufacturerOptions);
-            await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            try {
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            } catch (error) {
+                logger.debug(`Failed to unbind '${device.networkAddress}(1):genPollCtrl' from coordinator: ${error}`, NS);
+            }
         },
         exposes: [
             e.binary('alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Alarm turn ON/OFF'),

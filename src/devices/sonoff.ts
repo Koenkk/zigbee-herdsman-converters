@@ -568,11 +568,16 @@ const definitions: Definition[] = [
         description: 'Zigbee smart switch (no neutral)',
         extend: [onOff(), ota()],
         configure: async (device, coordinatorEndpoint) => {
-            // Unbind genPollCtrl to prevent device from sending checkin message.
-            // Zigbee-herdsmans responds to the checkin message which causes the device
-            // to poll slower.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/11676
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            try {
+                // Unbind genPollCtrl to prevent device from sending checkin message.
+                // Zigbee-herdsmans responds to the checkin message which causes the device
+                // to poll slower.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/11676
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            } catch (error) {
+                logger.debug(`Failed to unbind '${device.networkAddress}(1):genPollCtrl' from coordinator: ${error}`, NS);
+            }
+
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
@@ -584,11 +589,16 @@ const definitions: Definition[] = [
         description: 'Zigbee smart switch (no neutral)',
         extend: [onOff(), ota()],
         configure: async (device, coordinatorEndpoint) => {
-            // Unbind genPollCtrl to prevent device from sending checkin message.
-            // Zigbee-herdsmans responds to the checkin message which causes the device
-            // to poll slower.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/11676
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            try {
+                // Unbind genPollCtrl to prevent device from sending checkin message.
+                // Zigbee-herdsmans responds to the checkin message which causes the device
+                // to poll slower.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/11676
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            } catch (error) {
+                logger.debug(`Failed to unbind '${device.networkAddress}(1):genPollCtrl' from coordinator, ${error}`, NS);
+            }
+
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
