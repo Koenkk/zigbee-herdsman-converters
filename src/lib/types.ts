@@ -316,7 +316,7 @@ export namespace Tz {
     }
     export type ConvertSetResult = {state?: KeyValue; readAfterWriteTime?: number; membersState?: {[s: string]: KeyValue}} | void;
     export interface Converter {
-        key: string[];
+        key?: string[];
         options?: Option[] | ((definition: Definition) => Option[]);
         endpoint?: string;
         convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult>;
