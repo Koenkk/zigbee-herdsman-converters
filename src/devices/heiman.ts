@@ -314,7 +314,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         whiteLabel: [{vendor: 'Ferguson', model: 'TH-T_V14'}],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -767,7 +767,7 @@ const definitions: Definition[] = [
         vendor: 'HEIMAN',
         description: 'Motion sensor',
         extend: [
-            battery({voltageToPercentage: '3V_2500', voltage: true}),
+            battery({voltageToPercentage: {min: 2500, max: 3000}, voltage: true}),
             iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
         ],
     },

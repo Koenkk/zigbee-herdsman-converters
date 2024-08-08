@@ -96,6 +96,20 @@ export class Base {
         f.validateCategory();
         return this;
     }
+
+    copy(target: Base) {
+        target.name = this.name;
+        target.label = this.label;
+        target.access = this.access;
+        target.type = this.type;
+        target.endpoint = this.endpoint;
+        target.property = this.property;
+        target.description = this.description;
+        if (target.features) {
+            target.features = [...this.features];
+        }
+        target.category = this.category;
+    }
 }
 
 export class Switch extends Base {
@@ -225,6 +239,19 @@ export class Numeric extends Base {
         if (!this.presets) this.presets = [];
         this.presets.push({name, value, description});
         return this;
+    }
+
+    clone(): Numeric {
+        const clone = new Numeric(this.name, this.access);
+        this.copy(clone);
+        clone.unit = this.unit;
+        clone.value_max = this.value_max;
+        clone.value_min = this.value_min;
+        clone.value_step = this.value_step;
+        if (this.presets) {
+            clone.presets = {...this.presets};
+        }
+        return clone;
     }
 }
 

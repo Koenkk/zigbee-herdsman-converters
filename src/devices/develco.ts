@@ -404,8 +404,8 @@ const definitions: Definition[] = [
                     [{attribute: 'totalReactivePower', minimumReportInterval: 5, maximumReportInterval: 3600, reportableChange: 1}],
                     manufacturerOptions,
                 );
-            } catch (e) {
-                e;
+            } catch {
+                /* empty */
             }
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -449,7 +449,7 @@ const definitions: Definition[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(), // TODO: ep 38
             battery({
-                voltageToPercentage: '3V_2500',
+                voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
@@ -520,7 +520,7 @@ const definitions: Definition[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(), // TODO: ep 38
             battery({
-                voltageToPercentage: '3V_2500',
+                voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
@@ -531,7 +531,16 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
+            // Device returns `ZDP_TABLE_FULL` on bind even though it succeeds
+            // https://github.com/Koenkk/zigbee2mqtt/issues/22492
+            for (const cluster of ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']) {
+                try {
+                    await endpoint.bind(cluster, coordinatorEndpoint);
+                } catch (error) {
+                    logger.debug(`Failed to bind '${cluster}'`, NS);
+                }
+            }
+
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -592,7 +601,7 @@ const definitions: Definition[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             battery({
-                voltageToPercentage: '3V_2500',
+                voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
@@ -642,7 +651,7 @@ const definitions: Definition[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
             battery({
-                voltageToPercentage: '3V_2500',
+                voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
@@ -693,7 +702,7 @@ const definitions: Definition[] = [
             develcoModernExtend.temperature(), // TODO: ep 38
             illuminance(), // TODO: ep 39
             battery({
-                voltageToPercentage: '3V_2500',
+                voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
@@ -739,7 +748,7 @@ const definitions: Definition[] = [
             develcoModernExtend.temperature(),
             humidity(),
             battery({
-                voltageToPercentage: '3V_2500_3200',
+                voltageToPercentage: {min: 2500, max: 3200},
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
@@ -849,7 +858,7 @@ const definitions: Definition[] = [
             develcoModernExtend.temperature(),
             humidity(),
             battery({
-                voltageToPercentage: '3V_2500',
+                voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
@@ -871,7 +880,7 @@ const definitions: Definition[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
             battery({
-                voltageToPercentage: '3V_2500',
+                voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
@@ -928,7 +937,7 @@ const definitions: Definition[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             battery({
-                voltageToPercentage: '4LR6AA1_5v',
+                voltageToPercentage: {min: 3000, max: 4200},
                 percentage: true,
                 voltage: true,
                 lowStatus: false,

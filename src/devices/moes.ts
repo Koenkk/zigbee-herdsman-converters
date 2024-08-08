@@ -58,8 +58,8 @@ const definitions: Definition[] = [
                 // Fails for some devices.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/4598
                 await reporting.onOff(endpoint);
-            } catch (e) {
-                e;
+            } catch {
+                /* empty */
             }
         },
     },
@@ -509,6 +509,7 @@ const definitions: Definition[] = [
         fingerprint: [
             {modelID: 'TS004F', manufacturerName: '_TZ3000_ja5osu5g'},
             {modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'},
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_egvb1p2g'},
         ],
         model: 'ERS-10TZBVB-AA',
         vendor: 'Moes',

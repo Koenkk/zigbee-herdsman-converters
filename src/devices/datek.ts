@@ -50,8 +50,8 @@ const definitions: Definition[] = [
             try {
                 // hwVersion < 2 do not support hwVersion attribute, so we are testing if this is hwVersion 1 or 2
                 await endpoint.read('genBasic', ['hwVersion']);
-            } catch (e) {
-                e;
+            } catch {
+                /* empty */
             }
             const payload = [
                 {
@@ -243,7 +243,7 @@ const definitions: Definition[] = [
         description: 'Eva water leak sensor',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_water_leak_alarm_1, fz.ias_water_leak_alarm_1_report],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'ssIasZone']);
@@ -265,7 +265,7 @@ const definitions: Definition[] = [
         description: 'Eva scene selector',
         fromZigbee: [fz.temperature, fz.battery, fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
         toZigbee: [tz.on_off],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'genOnOff', 'genLevelCtrl', 'msTemperatureMeasurement']);

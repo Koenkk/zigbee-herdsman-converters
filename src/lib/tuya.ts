@@ -1287,6 +1287,17 @@ const tuyaTz = {
             'move_sensitivity',
             'small_move_sensitivity',
             'breath_sensitivity',
+            'temperature_setting',
+            'temperature_threshold',
+            'under_voltage_setting',
+            'under_voltage_threshold',
+            'over_current_setting',
+            'current_threshold',
+            'over_voltage_setting',
+            'over_voltage_threshold',
+            'over_power_setting',
+            'over_power_threshold',
+            'restore_default',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
@@ -1551,7 +1562,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: 'commandTuyaAction',
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model, msg.data[0])) return;
             const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
             const buttonMapping: KeyValueNumberString = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'};
             // TS004F has single endpoint, TS0041A/TS0041 can have multiple but have just one button

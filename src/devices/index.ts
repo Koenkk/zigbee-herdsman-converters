@@ -179,6 +179,7 @@ import micromatic from './micromatic';
 import modular from './modular';
 import moes from './moes';
 import muller_licht from './muller_licht';
+import multiterm from './multiterm';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
 import neo from './neo';
@@ -216,6 +217,7 @@ import qmotion from './qmotion';
 import qoto from './qoto';
 import quotra from './quotra';
 import rademacher from './rademacher';
+import raex from './raex';
 import rgb_genie from './rgb_genie';
 import robb from './robb';
 import roome from './roome';
@@ -485,6 +487,7 @@ export default [
     ...modular,
     ...moes,
     ...muller_licht,
+    ...multiterm,
     ...namron,
     ...nanoleaf,
     ...neo,
@@ -522,6 +525,7 @@ export default [
     ...qoto,
     ...quotra,
     ...rademacher,
+    ...raex,
     ...rgb_genie,
     ...robb,
     ...roome,

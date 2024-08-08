@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {identify} from '../lib/modernExtend';
+import {identify, deviceAddCustomCluster} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -66,6 +66,125 @@ const individualLedEffects: {[key: string]: number} = {
     rising: 7,
     aurora: 8,
     clear_effect: 255,
+};
+
+const inovelliExtend = {
+    addCustomClusterInovelli: () =>
+        deviceAddCustomCluster('manuSpecificInovelli', {
+            ID: 64561,
+            manufacturerCode: 0x122f,
+            attributes: {
+                dimmingSpeedUpRemote: {ID: 0x001, type: Zcl.DataType.UINT8},
+                dimmingSpeedUpLocal: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                rampRateOffToOnRemote: {ID: 0x0003, type: Zcl.DataType.UINT8},
+                rampRateOffToOnLocal: {ID: 0x0004, type: Zcl.DataType.UINT8},
+                dimmingSpeedDownRemote: {ID: 0x0005, type: Zcl.DataType.UINT8},
+                dimmingSpeedDownLocal: {ID: 0x0006, type: Zcl.DataType.UINT8},
+                rampRateOnToOffRemote: {ID: 0x0007, type: Zcl.DataType.UINT8},
+                rampRateOnToOffLocal: {ID: 0x0008, type: Zcl.DataType.UINT8},
+                minimumLevel: {ID: 0x0009, type: Zcl.DataType.UINT8},
+                maximumLevel: {ID: 0x000a, type: Zcl.DataType.UINT8},
+                invertSwitch: {ID: 0x000b, type: Zcl.DataType.BOOLEAN},
+                autoTimerOff: {ID: 0x000c, type: Zcl.DataType.UINT16},
+                defaultLevelLocal: {ID: 0x000d, type: Zcl.DataType.UINT8},
+                defaultLevelRemote: {ID: 0x000e, type: Zcl.DataType.UINT8},
+                stateAfterPowerRestored: {ID: 0x000f, type: Zcl.DataType.UINT8},
+                loadLevelIndicatorTimeout: {ID: 0x0011, type: Zcl.DataType.UINT8},
+                activePowerReports: {ID: 0x0012, type: Zcl.DataType.UINT8},
+                periodicPowerAndEnergyReports: {ID: 0x0013, type: Zcl.DataType.UINT16},
+                activeEnergyReports: {ID: 0x0014, type: Zcl.DataType.UINT16},
+                powerType: {ID: 0x0015, type: Zcl.DataType.BOOLEAN},
+                switchType: {ID: 0x0016, type: Zcl.DataType.UINT8},
+                quickStartTime: {ID: 0x0017, type: Zcl.DataType.UINT8},
+                quickStartLevel: {ID: 0x0018, type: Zcl.DataType.UINT8},
+                higherOutputInNonNeutral: {ID: 0x0019, type: Zcl.DataType.BOOLEAN},
+                leadingTrailingEdge: {ID: 0x001a, type: Zcl.DataType.UINT8},
+                nonNeutralAuxMediumGear: {ID: 0x001e, type: Zcl.DataType.UINT8},
+                nonNeutralAuxLowGear: {ID: 0x001f, type: Zcl.DataType.UINT8},
+                internalTemperature: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                overheat: {ID: 0x0021, type: Zcl.DataType.BOOLEAN},
+                buttonDelay: {ID: 0x0032, type: Zcl.DataType.UINT8},
+                deviceBindNumber: {ID: 0x0033, type: Zcl.DataType.UINT8},
+                smartBulbMode: {ID: 0x0034, type: Zcl.DataType.BOOLEAN},
+                doubleTapUpToParam55: {ID: 0x0035, type: Zcl.DataType.BOOLEAN},
+                doubleTapDownToParam56: {ID: 0x0036, type: Zcl.DataType.BOOLEAN},
+                brightnessLevelForDoubleTapUp: {ID: 0x0037, type: Zcl.DataType.UINT8},
+                brightnessLevelForDoubleTapDown: {ID: 0x0038, type: Zcl.DataType.UINT8},
+                defaultLed1ColorWhenOn: {ID: 0x003c, type: Zcl.DataType.UINT8},
+                defaultLed1ColorWhenOff: {ID: 0x003d, type: Zcl.DataType.UINT8},
+                defaultLed1IntensityWhenOn: {ID: 0x003e, type: Zcl.DataType.UINT8},
+                defaultLed1IntensityWhenOff: {ID: 0x003f, type: Zcl.DataType.UINT8},
+                defaultLed2ColorWhenOn: {ID: 0x0041, type: Zcl.DataType.UINT8},
+                defaultLed2ColorWhenOff: {ID: 0x0042, type: Zcl.DataType.UINT8},
+                defaultLed2IntensityWhenOn: {ID: 0x0043, type: Zcl.DataType.UINT8},
+                defaultLed2IntensityWhenOff: {ID: 0x0044, type: Zcl.DataType.UINT8},
+                defaultLed3ColorWhenOn: {ID: 0x0046, type: Zcl.DataType.UINT8},
+                defaultLed3ColorWhenOff: {ID: 0x0047, type: Zcl.DataType.UINT8},
+                defaultLed3IntensityWhenOn: {ID: 0x0048, type: Zcl.DataType.UINT8},
+                defaultLed3IntensityWhenOff: {ID: 0x0049, type: Zcl.DataType.UINT8},
+                defaultLed4ColorWhenOn: {ID: 0x004b, type: Zcl.DataType.UINT8},
+                defaultLed4ColorWhenOff: {ID: 0x004c, type: Zcl.DataType.UINT8},
+                defaultLed4IntensityWhenOn: {ID: 0x004d, type: Zcl.DataType.UINT8},
+                defaultLed4IntensityWhenOff: {ID: 0x004e, type: Zcl.DataType.UINT8},
+                defaultLed5ColorWhenOn: {ID: 0x0050, type: Zcl.DataType.UINT8},
+                defaultLed5ColorWhenOff: {ID: 0x0051, type: Zcl.DataType.UINT8},
+                defaultLed5IntensityWhenOn: {ID: 0x0052, type: Zcl.DataType.UINT8},
+                defaultLed5IntensityWhenOff: {ID: 0x0053, type: Zcl.DataType.UINT8},
+                defaultLed6ColorWhenOn: {ID: 0x0055, type: Zcl.DataType.UINT8},
+                defaultLed6ColorWhenOff: {ID: 0x0056, type: Zcl.DataType.UINT8},
+                defaultLed6IntensityWhenOn: {ID: 0x0057, type: Zcl.DataType.UINT8},
+                defaultLed6IntensityWhenOff: {ID: 0x0058, type: Zcl.DataType.UINT8},
+                defaultLed7ColorWhenOn: {ID: 0x005a, type: Zcl.DataType.UINT8},
+                defaultLed7ColorWhenOff: {ID: 0x005b, type: Zcl.DataType.UINT8},
+                defaultLed7IntensityWhenOn: {ID: 0x005c, type: Zcl.DataType.UINT8},
+                defaultLed7IntensityWhenOff: {ID: 0x005d, type: Zcl.DataType.UINT8},
+                ledColorWhenOn: {ID: 0x005f, type: Zcl.DataType.UINT8},
+                ledColorWhenOff: {ID: 0x060, type: Zcl.DataType.UINT8},
+                ledIntensityWhenOn: {ID: 0x0061, type: Zcl.DataType.UINT8},
+                ledIntensityWhenOff: {ID: 0x0062, type: Zcl.DataType.UINT8},
+                ledBarScaling: {ID: 0x0064, type: Zcl.DataType.BOOLEAN},
+                singleTapBehavior: {ID: 0x0078, type: Zcl.DataType.UINT8},
+                fanTimerMode: {ID: 0x0079, type: Zcl.DataType.UINT8},
+                auxSwitchUniqueScenes: {ID: 0x007b, type: Zcl.DataType.BOOLEAN},
+                bindingOffToOnSyncLevel: {ID: 0x007d, type: Zcl.DataType.BOOLEAN},
+                breezeMode: {ID: 0x0081, type: Zcl.DataType.UINT32},
+                fanControlMode: {ID: 0x0082, type: Zcl.DataType.UINT8},
+                lowLevelForFanControlMode: {ID: 0x0083, type: Zcl.DataType.UINT8},
+                mediumLevelForFanControlMode: {ID: 0x0084, type: Zcl.DataType.UINT8},
+                highLevelForFanControlMode: {ID: 0x0085, type: Zcl.DataType.UINT8},
+                ledColorForFanControlMode: {ID: 0x0086, type: Zcl.DataType.UINT8},
+                localProtection: {ID: 0x0100, type: Zcl.DataType.BOOLEAN},
+                remoteProtection: {ID: 0x0101, type: Zcl.DataType.BOOLEAN},
+                outputMode: {ID: 0x0102, type: Zcl.DataType.BOOLEAN},
+                onOffLedMode: {ID: 0x0103, type: Zcl.DataType.BOOLEAN},
+                firmwareUpdateInProgressIndicator: {ID: 0x0104, type: Zcl.DataType.BOOLEAN},
+                relayClick: {ID: 0x105, type: Zcl.DataType.BOOLEAN},
+                doubleTapClearNotifications: {ID: 0x106, type: Zcl.DataType.BOOLEAN},
+                fanLedLevelType: {ID: 0x0107, type: Zcl.DataType.UINT8},
+            },
+            commands: {
+                ledEffect: {
+                    ID: 1,
+                    parameters: [
+                        {name: 'effect', type: Zcl.DataType.UINT8},
+                        {name: 'color', type: Zcl.DataType.UINT8},
+                        {name: 'level', type: Zcl.DataType.UINT8},
+                        {name: 'duration', type: Zcl.DataType.UINT8},
+                    ],
+                },
+                individualLedEffect: {
+                    ID: 3,
+                    parameters: [
+                        {name: 'led', type: Zcl.DataType.UINT8},
+                        {name: 'effect', type: Zcl.DataType.UINT8},
+                        {name: 'color', type: Zcl.DataType.UINT8},
+                        {name: 'level', type: Zcl.DataType.UINT8},
+                        {name: 'duration', type: Zcl.DataType.UINT8},
+                    ],
+                },
+            },
+            commandsResponse: {},
+        }),
 };
 
 const fanModes: {[key: string]: number} = {off: 0, low: 2, smart: 4, medium: 86, high: 170, on: 255};
@@ -418,7 +537,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         displayType: 'enum',
         min: 0,
         max: 9,
-        description: 'This will set the button press delay. 0 = no delay (Disables Button Press Events),' + 'Default = 500ms.',
+        description: 'This will set the button press delay. 0 = no delay (Disables Button Press Events), Default = 500ms.',
     },
     deviceBindNumber: {
         ID: 51,
@@ -2047,6 +2166,7 @@ const definitions: Definition[] = [
         vendor: 'Inovelli',
         description: '2-in-1 switch + dimmer',
         exposes: exposesListVZM31.concat(identify().exposes as Expose[]),
+        extend: [inovelliExtend.addCustomClusterInovelli()],
         toZigbee: [
             tzLocal.light_onoff_brightness_inovelli,
             tz.power_on_behavior,
@@ -2104,6 +2224,7 @@ const definitions: Definition[] = [
             tzLocal.breezeMode,
         ],
         exposes: exposesListVZM35.concat(identify().exposes as Expose[]),
+        extend: [inovelliExtend.addCustomClusterInovelli()],
         ota: ota.inovelli,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -2135,6 +2256,7 @@ const definitions: Definition[] = [
             tzLocal.vzm36_breezeMode,
         ],
         exposes: exposesListVZM36.concat(identify().exposes as Expose[]),
+        extend: [inovelliExtend.addCustomClusterInovelli()],
         ota: ota.inovelli,
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.

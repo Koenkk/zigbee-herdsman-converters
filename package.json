@@ -1,86 +1,86 @@
 {
-  "name": "zigbee-herdsman-converters",
-  "version": "19.70.0",
-  "description": "Collection of device converters to be used with zigbee-herdsman",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "files": [
-    "/index.js",
-    "/index.js.map",
-    "/index.d.ts",
-    "/index.d.ts.map",
-    "/converters",
-    "/lib",
-    "/devices",
-    "CHANGELOG.md"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
-  },
-  "keywords": [
-    "aqara",
-    "tradfri",
-    "hue",
-    "wemo",
-    "zigbee",
-    "zigbee-shepherd"
-  ],
-  "scripts": {
-    "eslint": "eslint src/  --max-warnings=0",
-    "pretty:write": "prettier --write src test",
-    "pretty:check": "prettier --check src test",
-    "test": "ZHC_TEST=true jest test --silent --maxWorkers=50%",
-    "test-watch": "ZHC_TEST=true jest test --silent --watch --maxWorkers=25%",
-    "clean": "rimraf --glob index* devices lib converters tsconfig.tsbuildinfo",
-    "build": "tsc",
-    "build-watch": "tsc --watch",
-    "prepack": "npm run clean && npm run build",
-    "prepare": "husky"
-  },
-  "author": "Koen Kanters",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Koenkk/zigbee-herdsman-converters/issues"
-  },
-  "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
-  "dependencies": {
-    "axios": "^1.7.2",
-    "buffer-crc32": "^1.0.0",
-    "https-proxy-agent": "^7.0.5",
-    "iconv-lite": "^0.6.3",
-    "semver": "^7.6.2",
-    "tar-stream": "^3.1.7",
-    "zigbee-herdsman": "^0.53.1"
-  },
-  "devDependencies": {
-    "@types/buffer-crc32": "^0.2.4",
-    "@types/jest": "^29.5.12",
-    "@types/node": "^20.14.10",
-    "@types/semver": "^7.5.8",
-    "@types/tar-stream": "^3.1.3",
-    "@typescript-eslint/eslint-plugin": "^7.16.1",
-    "@typescript-eslint/parser": "^7.16.1",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-jest": "^28.6.0",
-    "eslint-plugin-perfectionist": "^2.11.0",
-    "eslint-plugin-tsdoc": "^0.3.0",
-    "fast-deep-equal": "*",
-    "husky": "^9.0.11",
-    "jest": "^29.7.0",
-    "prettier": "^3.3.3",
-    "rimraf": "^6.0.1",
-    "ts-jest": "^29.2.2",
-    "ts-morph": "^23.0.0",
-    "typescript": "^5.5.3"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "roots": [
-      "test/",
-      "src/"
-    ]
-  }
+    "name": "zigbee-herdsman-converters",
+    "version": "19.74.0",
+    "description": "Collection of device converters to be used with zigbee-herdsman",
+    "main": "index.js",
+    "types": "index.d.ts",
+    "files": [
+        "/index.js",
+        "/index.js.map",
+        "/index.d.ts",
+        "/index.d.ts.map",
+        "/converters",
+        "/lib",
+        "/devices",
+        "CHANGELOG.md"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
+    },
+    "keywords": [
+        "aqara",
+        "tradfri",
+        "hue",
+        "wemo",
+        "zigbee",
+        "zigbee-shepherd"
+    ],
+    "scripts": {
+        "eslint": "eslint src/  --max-warnings=0",
+        "pretty:write": "prettier --write .",
+        "pretty:check": "prettier --check .",
+        "test": "jest test --silent --maxWorkers=50%",
+        "test-watch": "jest test --silent --watch --maxWorkers=25%",
+        "clean": "rimraf --glob index* devices lib converters tsconfig.tsbuildinfo",
+        "build": "tsc",
+        "build-watch": "tsc --watch",
+        "prepack": "npm run clean && npm run build",
+        "prepare": "husky"
+    },
+    "author": "Koen Kanters",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/Koenkk/zigbee-herdsman-converters/issues"
+    },
+    "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
+    "dependencies": {
+        "axios": "^1.7.3",
+        "buffer-crc32": "^1.0.0",
+        "https-proxy-agent": "^7.0.5",
+        "iconv-lite": "^0.6.3",
+        "semver": "^7.6.3",
+        "tar-stream": "^3.1.7",
+        "zigbee-herdsman": "^0.55.4"
+    },
+    "devDependencies": {
+        "@types/buffer-crc32": "^0.2.4",
+        "@types/jest": "^29.5.12",
+        "@types/node": "^22.1.0",
+        "@types/semver": "^7.5.8",
+        "@types/tar-stream": "^3.1.3",
+        "@typescript-eslint/eslint-plugin": "^8.0.1",
+        "@typescript-eslint/parser": "^8.0.1",
+        "eslint": "^8.57.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-jest": "^28.7.0",
+        "eslint-plugin-perfectionist": "^3.1.2",
+        "eslint-plugin-tsdoc": "^0.3.0",
+        "fast-deep-equal": "*",
+        "husky": "^9.1.4",
+        "jest": "^29.7.0",
+        "prettier": "^3.3.3",
+        "rimraf": "^6.0.1",
+        "ts-jest": "^29.2.4",
+        "ts-morph": "^23.0.0",
+        "typescript": "^5.5.4"
+    },
+    "jest": {
+        "preset": "ts-jest",
+        "testEnvironment": "node",
+        "roots": [
+            "test/",
+            "src/"
+        ]
+    }
 }

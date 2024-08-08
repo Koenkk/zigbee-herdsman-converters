@@ -47,7 +47,7 @@ const definitions: Definition[] = [
             deviceTemperature(),
             identify(),
             onOff({powerOnBehavior: false, endpointNames: ['1', '2']}),
-            electricityMeter(),
+            electricityMeter({endpointNames: ['1', '2']}),
             commandsOnOff({endpointNames: ['3', '4']}),
             commandsLevelCtrl({endpointNames: ['3', '4']}),
         ],

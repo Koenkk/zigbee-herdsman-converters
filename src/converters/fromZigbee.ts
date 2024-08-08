@@ -1926,30 +1926,9 @@ const converters1 = {
             const result: KeyValueAny = {};
             const data = msg.data;
 
-            if (data.hasOwnProperty('elkoLoad')) {
-                // Load
-                result.load = data['elkoLoad'];
-            }
-
             if (data.hasOwnProperty('elkoDisplayText')) {
                 // Display text
                 result.display_text = data['elkoDisplayText'];
-            }
-
-            if (data.hasOwnProperty('elkoSensor')) {
-                // Sensor
-                const sensorModeLookup: KeyValueAny = {'0': 'air', '1': 'floor', '3': 'supervisor_floor'};
-                result.sensor = sensorModeLookup[data['elkoSensor']];
-            }
-
-            if (data.hasOwnProperty('elkoRegulatorTime')) {
-                // Regulator time
-                result.regulator_time = data['elkoRegulatorTime'];
-            }
-
-            if (data.hasOwnProperty('elkoRegulatorMode')) {
-                // Regulator mode
-                result.regulator_mode = data['elkoRegulatorMode'] ? 'regulator' : 'thermostat';
             }
 
             if (data.hasOwnProperty('elkoPowerStatus')) {
@@ -1957,34 +1936,9 @@ const converters1 = {
                 result.system_mode = data['elkoPowerStatus'] ? 'heat' : 'off';
             }
 
-            if (data.hasOwnProperty('elkoMeanPower')) {
-                // Mean power
-                result.mean_power = data['elkoMeanPower'];
-            }
-
             if (data.hasOwnProperty('elkoExternalTemp')) {
                 // External temp (floor)
                 result.floor_temp = utils.precisionRound(data['elkoExternalTemp'], 2) / 100;
-            }
-
-            if (data.hasOwnProperty('elkoNightSwitching')) {
-                // Night switching
-                result.night_switching = data['elkoNightSwitching'] ? 'on' : 'off';
-            }
-
-            if (data.hasOwnProperty('elkoFrostGuard')) {
-                // Frost guard
-                result.frost_guard = data['elkoFrostGuard'] ? 'on' : 'off';
-            }
-
-            if (data.hasOwnProperty('elkoChildLock')) {
-                // Child lock
-                result.child_lock = data['elkoChildLock'] ? 'lock' : 'unlock';
-            }
-
-            if (data.hasOwnProperty('elkoMaxFloorTemp')) {
-                // Max floor temp
-                result.max_floor_temp = data['elkoMaxFloorTemp'];
             }
 
             if (data.hasOwnProperty('elkoRelayState')) {
@@ -5318,7 +5272,7 @@ const converters2 = {
                         });
 
                         logger.debug(
-                            `syncing vact setpoint was: '${result.occupied_heating_setpoint}'` + ` now: '${meta.state.occupied_heating_setpoint}'`,
+                            `syncing vact setpoint was: '${result.occupied_heating_setpoint}' now: '${meta.state.occupied_heating_setpoint}'`,
                             NS,
                         );
                     }

@@ -6,7 +6,21 @@ import {logger} from './logger';
 import * as modernExtend from './modernExtend';
 import * as ota from './ota';
 import * as globalStore from './store';
-import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range, KeyValueNumberString, OnEvent, Expose, Configure} from './types';
+import {
+    Fz,
+    Definition,
+    KeyValue,
+    KeyValueAny,
+    Tz,
+    ModernExtend,
+    Range,
+    KeyValueNumberString,
+    OnEvent,
+    Expose,
+    Configure,
+    BatteryNonLinearVoltage,
+    BatteryLinearVoltage,
+} from './types';
 import {
     batteryVoltageToPercentage,
     postfixWithEndpointName,
@@ -1622,29 +1636,42 @@ export const lumiModernExtend = {
                             const previousOutageCount = meta.device?.meta?.outageCount ? meta.device.meta.outageCount : 0;
 
                             if (currentOutageCount > previousOutageCount) {
-                                logger.debug('Restoring binding and reporting, device came back after losing power.', NS);
-                                for (const endpoint of meta.device.endpoints) {
-                                    // restore bindings
-                                    for (const b of endpoint.binds) {
-                                        await endpoint.bind(b.cluster.name, b.target);
-                                    }
-
-                                    // restore reporting
-                                    for (const c of endpoint.configuredReportings) {
-                                        await endpoint.configureReporting(c.cluster.name, [
-                                            {
-                                                attribute: c.attribute.name,
-                                                minimumReportInterval: c.minimumReportInterval,
-                                                maximumReportInterval: c.maximumReportInterval,
-                                                reportableChange: c.reportableChange,
-                                            },
-                                        ]);
-                                    }
-                                }
+                                logger.debug(`Restoring binding and reporting, ${msg.device.ieeeAddr} came back after losing power.`, NS);
 
                                 // update outageCount in database
                                 meta.device.meta.outageCount = currentOutageCount;
                                 meta.device.save();
+
+                                // restore binding
+                                for (const endpoint of meta.device.endpoints) {
+                                    // restore bindings
+                                    for (const b of endpoint.binds) {
+                                        try {
+                                            await endpoint.bind(b.cluster.name, b.target);
+                                        } catch (error) {
+                                            logger.debug(`Failed to re-bind ${b.cluster.name} from ${b.target} for ${msg.device.ieeeAddr}.`, NS);
+                                        }
+                                    }
+
+                                    // restore reporting
+                                    for (const c of endpoint.configuredReportings) {
+                                        try {
+                                            await endpoint.configureReporting(c.cluster.name, [
+                                                {
+                                                    attribute: c.attribute.name,
+                                                    minimumReportInterval: c.minimumReportInterval,
+                                                    maximumReportInterval: c.maximumReportInterval,
+                                                    reportableChange: c.reportableChange,
+                                                },
+                                            ]);
+                                        } catch (error) {
+                                            logger.debug(
+                                                `Failed to re-setup reporting of ${c.cluster.name}/${c.attribute.name} for ${msg.device.ieeeAddr}.`,
+                                                NS,
+                                            );
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -1860,7 +1887,7 @@ export const lumiModernExtend = {
             lookup: {quick_mode: 1, anti_flicker_mode: 4},
             cluster: 'manuSpecificLumi',
             attribute: {ID: 0x0004, type: 0x21},
-            description: 'Anti flicker mode can be used to solve blinking issues of some lights.' + 'Quick mode makes the device respond faster.',
+            description: 'Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.',
             entityCategory: 'config',
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
@@ -1995,7 +2022,7 @@ export const lumiModernExtend = {
     },
     lumiBattery: (args?: {
         cluster?: 'genBasic' | 'manuSpecificLumi';
-        voltageToPercentage?: string | {min: number; max: number};
+        voltageToPercentage?: BatteryNonLinearVoltage | BatteryLinearVoltage;
         percentageAtrribute?: number;
         voltageAttribute?: number;
     }): ModernExtend => {

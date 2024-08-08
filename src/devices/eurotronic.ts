@@ -63,9 +63,7 @@ const definitions: Definition[] = [
                 ),
             e
                 .binary('mirror_display', ea.ALL, 'ON', 'OFF')
-                .withDescription(
-                    'Mirror display of the thermostat. Useful when it is ' + 'mounted in a way where the display is presented upside down.',
-                ),
+                .withDescription('Mirror display of the thermostat. Useful when it is mounted in a way where the display is presented upside down.'),
         ],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint) => {

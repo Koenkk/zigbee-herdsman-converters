@@ -230,7 +230,7 @@ const sonoffExtend = {
 
                             if (!matches) {
                                 throw new Error(
-                                    'Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), ' + 'found: ' + transition,
+                                    'Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ' + transition,
                                 );
                             }
 
@@ -274,7 +274,7 @@ const sonoffExtend = {
                 e
                     .numeric('total_number', ea.STATE_SET)
                     .withDescription('Total times of circulating irrigation')
-                    .withUnit('tim' + 'es')
+                    .withUnit('times')
                     .withValueMin(0)
                     .withValueMax(100),
             )
@@ -282,14 +282,14 @@ const sonoffExtend = {
                 e
                     .numeric('irrigation_duration', ea.STATE_SET)
                     .withDescription('Single irrigation duration')
-                    .withUnit('second' + 's')
+                    .withUnit('seconds')
                     .withValueMin(0)
                     .withValueMax(86400),
             )
             .withFeature(
                 e
                     .numeric('irrigation_interval', ea.STATE_SET)
-                    .withDescription('Time interval between two adjacent irrigatio' + 'n')
+                    .withDescription('Time interval between two adjacent irrigation')
                     .withUnit('seconds')
                     .withValueMin(0)
                     .withValueMax(86400),
@@ -385,7 +385,7 @@ const sonoffExtend = {
                 e
                     .numeric('total_number', ea.STATE_SET)
                     .withDescription('Total times of circulating irrigation')
-                    .withUnit('tim' + 'es')
+                    .withUnit('times')
                     .withValueMin(0)
                     .withValueMax(100),
             )
@@ -393,14 +393,14 @@ const sonoffExtend = {
                 e
                     .numeric('irrigation_capacity', ea.STATE_SET)
                     .withDescription('Single irrigation capacity')
-                    .withUnit('lite' + 'r')
+                    .withUnit('liter')
                     .withValueMin(0)
                     .withValueMax(6500),
             )
             .withFeature(
                 e
                     .numeric('irrigation_interval', ea.STATE_SET)
-                    .withDescription('Time interval between two adjacent irrigatio' + 'n')
+                    .withDescription('Time interval between two adjacent irrigation')
                     .withUnit('seconds')
                     .withValueMin(0)
                     .withValueMax(86400),
@@ -855,7 +855,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee PIR sensor',
         fromZigbee: [fz.occupancy, fz.battery],
-        exposes: [e.occupancy(), e.battery_low(), e.battery()],
+        exposes: [e.occupancy(), e.battery()],
         extend: [
             numeric({
                 name: 'motion_timeout',
@@ -991,8 +991,7 @@ const definitions: Definition[] = [
                 cluster: 'customSonoffTrvzb',
                 attribute: 'frostProtectionTemperature',
                 entityCategory: 'config',
-                description:
-                    'Minimum temperature at which to automatically turn on the radiator, ' + 'if system mode is off, to prevent pipes freezing.',
+                description: 'Minimum temperature at which to automatically turn on the radiator, if system mode is off, to prevent pipes freezing.',
                 valueMin: 4.0,
                 valueMax: 35.0,
                 valueStep: 0.5,

@@ -203,7 +203,10 @@ describe('ModernExtend', () => {
 
     test(`philipsLight({gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}, colorTemp: {range: [153, 500]}})`, async () => {
         await assertDefintion({
-            device: mockDevice({modelID: 'LCX012', endpoints: [{inputClusters: ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl']}]}),
+            device: mockDevice({
+                modelID: 'LCX012',
+                endpoints: [{ID: 1, inputClusters: ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'manuSpecificPhilips2']}, {ID: 242}],
+            }),
             meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
             fromZigbee: [
                 fz.on_off,
@@ -370,7 +373,7 @@ describe('ModernExtend', () => {
     test(`VOCKQJK11LM`, async () => {
         await assertDefintion({
             device: mockDevice({modelID: 'lumi.airmonitor.acn01', endpoints: [{ID: 1, inputClusters: []}]}),
-            meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+            meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
             fromZigbee: [
                 fz.battery,
                 lumiFz.lumi_specific,

@@ -146,7 +146,7 @@ export const ubisysModernExtend = {
         }),
     addCustomClusterManuSpecificUbisysDimmerSetup: () =>
         deviceAddCustomCluster('manuSpecificUbisysDimmerSetup', {
-            ID: 0xfc00,
+            ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
             attributes: {
                 capabilities: {ID: 0x0000, type: Zcl.DataType.BITMAP8},

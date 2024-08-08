@@ -14,7 +14,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         fromZigbee: [fz.temperature, fz.humidity, fz.plaid_battery],
         exposes: [e.humidity(), e.temperature(), e.battery(), e.battery_voltage()],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
