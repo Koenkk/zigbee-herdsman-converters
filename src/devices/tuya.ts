@@ -7834,6 +7834,17 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6']),
+        model: 'TS110E_1gang_1',
+        vendor: 'Tuya',
+        description: '1 channel dimmer',
+        extend: [light({powerOnBehavior: false, configureReporting: true})],
+        fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
+        toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
+        exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],
+        configure: tuya.configureMagicPacket,
+    },
+    {
         fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia', '_TZ3210_weaqkhab']),
         model: 'TS110E_1gang_2',
         vendor: 'Tuya',
