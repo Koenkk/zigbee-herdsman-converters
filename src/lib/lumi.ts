@@ -2829,6 +2829,40 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
+    lumi_curtain_speed: {
+        cluster: 'manuSpecificLumi',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.hasOwnProperty(0x043b)) {
+                result.curtain_speed = msg.data[0x043b];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    lumi_curtain_reverse: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.hasOwnProperty('windowCoveringMode')) {
+                result.reverse_direction = msg.data['windowCoveringMode'] === 1;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    lumi_curtain_hand_open: {
+        cluster: 'manuSpecificLumi',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.hasOwnProperty('curtainHandOpen')) {
+                const lookup = {0: 'OFF', 1: 'ON'};
+                result.hand_open_close = lookup[msg.data['curtainHandOpen']];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
     lumi_vibration_analog: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
@@ -4655,7 +4689,12 @@ export const toZigbee = {
     lumi_curtain_hand_open: {
         key: ['hand_open'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {curtainHandOpen: !value}, manufacturerOptions.lumi);
+            if (['ZNCLDJ01LM'].includes(meta.mapped.model)) {
+                const convertedValue = getFromLookup(value, {off: 0, on: 1});
+                await entity.write('manuSpecificLumi', {'curtainHandOpen': convertedValue}, manufacturerOptions.lumi);
+            } else {
+                await entity.write('manuSpecificLumi', {curtainHandOpen: !value}, manufacturerOptions.lumi);
+            }
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', ['curtainHandOpen'], manufacturerOptions.lumi);
@@ -4664,10 +4703,18 @@ export const toZigbee = {
     lumi_curtain_reverse: {
         key: ['reverse_direction'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {curtainReverse: value}, manufacturerOptions.lumi);
+            if (['ZNCLDJ01LM'].includes(meta.mapped.model)) {
+                await entity.write('closuresWindowCovering', {'windowCoveringMode': value});
+            } else {
+                await entity.write('manuSpecificLumi', {curtainReverse: value}, manufacturerOptions.lumi);
+            }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', ['curtainReverse'], manufacturerOptions.lumi);
+            if (['ZNCLDJ01LM'].includes(meta.mapped.model)) {
+                await entity.read('closuresWindowCovering', ['windowCoveringMode']);
+            } else {
+                await entity.read('manuSpecificLumi', ['curtainReverse'], manufacturerOptions.lumi);
+            }
         },
     } satisfies Tz.Converter,
     lumi_curtain_limits_calibration: {
@@ -4704,6 +4751,15 @@ export const toZigbee = {
                     await entity.write('genMultistateOutput', {presentValue: 0}, manufacturerOptions.lumi);
                     break;
             }
+        },
+    } satisfies Tz.Converter,
+    lumi_curtain_speed: {
+        key: ['curtain_speed'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificLumi', {0x043b: {value: value, type: 0x20}}, manufacturerOptions.lumi);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x043b], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_buzzer: {
