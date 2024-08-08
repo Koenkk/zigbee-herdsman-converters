@@ -10970,10 +10970,9 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ncti2pro'}],
-        model: 'TS0601_pn6_6_way_controller',
-        vendor: 'Tuya',
+        model: 'PN6',
+        vendor: 'ZSVIOT',
         description: '6-way controller',
-        whiteLabel: [tuya.whitelabel('ZSVIOT', 'PN6', '6-way controller', ['_TZE204_ncti2pro'])],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
