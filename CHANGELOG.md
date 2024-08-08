@@ -1,5 +1,22 @@
 # Changelog
 
+## [19.75.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.74.0...v19.75.0) (2024-08-08)
+
+
+### Features
+
+* **add:** TS0001_switch_module_2 ([#7832](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7832)) ([35ffe00](https://github.com/Koenkk/zigbee-herdsman-converters/commit/35ffe00680b344f9ff317bb68f1f15680346aa84))
+
+
+### Bug Fixes
+
+* Add back TS110E_1gang_1 ([#7781](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7781)) ([51a6890](https://github.com/Koenkk/zigbee-herdsman-converters/commit/51a689073cd9479615a77bf7510492302d602b24))
+* Allow toZigbee converter to match on any key https://github.com/Koenkk/zigbee2mqtt/issues/23485 ([36e7440](https://github.com/Koenkk/zigbee-herdsman-converters/commit/36e7440a4fa34b6757ce534771408d5fa0360db5))
+* Convert ELKO 4523430 to use modern extend syntax ([#7839](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7839)) ([432fda5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/432fda5492c786ca02e2e0ceaf5046992235746d))
+* **detect:** Detect `_TZ3000_v4l4b0lp` as Tuya TS0003_switch_3_gang_with_backlight ([#7833](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7833)) ([aa0d4ef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aa0d4ef336f954f461d3e3f54557d23a2161d192))
+* **detect:** Detect `_TZE204_bxoo2swd` as Tuya ZM-105B-M ([#7835](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7835)) ([104dde6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/104dde61a7dafc8a1586c257f7b1d2a4b3085751))
+* **detect:** Detect `_TZE608_fmemczv1` as Tuya TS0603 ([#7834](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7834)) ([701b725](https://github.com/Koenkk/zigbee-herdsman-converters/commit/701b725b83cd538228aaa70033419e8c89ed1247))
+
 ## [19.74.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.73.1...v19.74.0) (2024-08-06)
 
 
