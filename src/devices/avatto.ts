@@ -18,7 +18,7 @@ const definitions: Definition[] = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {seq: 0x0002});
         },
-        exposes: [e.battery(), e.temperature(), e.humidity()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(),  tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
