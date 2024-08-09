@@ -4709,7 +4709,7 @@ export const toZigbee = {
                 assertNumber(value);
                 value = meta.options.invert_cover ? 100 - value : value;
 
-                if (['ZNCLBL01LM'].includes(meta.mapped.model)) {
+                if (['ZNCLBL01LM', 'ZNCLDJ01LM'].includes(meta.mapped.model)) {
                     await entity.command(
                         'closuresWindowCovering',
                         'goToLiftPercentage',
@@ -4726,7 +4726,7 @@ export const toZigbee = {
             if (!Array.isArray(meta.mapped) && 'ZNJLBL01LM' == meta.mapped.model) {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/23056
                 logger.debug(`Not reading position of ZNJLBL01LM since device doesn't support it`, NS);
-            } else if (!Array.isArray(meta.mapped) && ['ZNCLBL01LM'].includes(meta.mapped.model)) {
+            } else if (!Array.isArray(meta.mapped) && ['ZNCLBL01LM', 'ZNCLDJ01LM'].includes(meta.mapped.model)) {
                 await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
             } else {
                 await entity.read('genAnalogOutput', [0x0055]);
@@ -4787,7 +4787,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             if (!Array.isArray(meta.mapped) && ['ZNCLDJ01LM'].includes(meta.mapped.model)) {
                 const convertedValue = getFromLookup(value, {off: 0, on: 1});
-                await entity.write('manuSpecificLumi', {'curtainHandOpen': convertedValue}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {curtainHandOpen: convertedValue}, manufacturerOptions.lumi);
             } else {
                 await entity.write('manuSpecificLumi', {curtainHandOpen: !value}, manufacturerOptions.lumi);
             }
@@ -4889,7 +4889,25 @@ export const toZigbee = {
             await entity.read('manuSpecificLumi', [0x0404], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    lumi_curtain_automatic_calibration: {
+    lumi_curtain_control_manuspecific: {
+        key: ['control'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'control' && typeof value === 'string') {
+                const lowerValue = value.toLowerCase();
+                if (lowerValue === 'toggle') {
+                    await entity.write('manuSpecificLumi', {0x0420: {value: 3, type: 0x20}}, manufacturerOptions.lumi);
+                } else if (lowerValue === 'open') {
+                    await entity.write('manuSpecificLumi', {0x0420: {value: 7, type: 0x20}}, manufacturerOptions.lumi);
+                } else if (lowerValue === 'close') {
+                    await entity.write('manuSpecificLumi', {0x0420: {value: 8, type: 0x20}}, manufacturerOptions.lumi);
+                }
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
+        },
+    } satisfies Tz.Converter,
+    lumi_curtain_automatic_calibration_ZNCLDJ01LM: {
         key: ['automatic_calibration'],
         convertSet: async (entity, key, value, meta) => {
             const NS = 'zhc:lumi:curtain';

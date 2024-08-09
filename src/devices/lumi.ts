@@ -2527,7 +2527,7 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Curtain controller C3',
         fromZigbee: [
-            fz_curtain_position_state,
+            lumi.fromZigbee.lumi_curtain_position_tilt,
             lumi.fromZigbee.lumi_curtain_speed,
             lumi.fromZigbee.lumi_curtain_hand_open,
             lumi.fromZigbee.lumi_curtain_adaptive_speed,
@@ -2541,8 +2541,8 @@ const definitions: Definition[] = [
             lumi.fromZigbee.lumi_curtain_calibrated,
         ],
         toZigbee: [
-            tz_curtain_toggle,
-            tz_curtain_position_state,
+            lumi.toZigbee.lumi_curtain_position_state,
+            lumi.toZigbee.lumi_curtain_control_manuspecific,
             lumi.toZigbee.lumi_curtain_speed,
             lumi.toZigbee.lumi_curtain_hand_open,
             lumi.toZigbee.lumi_curtain_adaptive_speed,
@@ -2550,11 +2550,11 @@ const definitions: Definition[] = [
             lumi.toZigbee.lumi_curtain_reverse,
             lumi.toZigbee.lumi_curtain_limits_calibration,
             lumi.toZigbee.lumi_curtain_identify_beep,
-            lumi.toZigbee.lumi_curtain_automatic_calibration,
+            lumi.toZigbee.lumi_curtain_automatic_calibration_ZNCLDJ01LM,
         ],
         exposes: [
-            e.enum('toggle', ea.SET, ['TOGGLE']).withDescription('Open/stop/close'),
             e.cover_position().setAccess('state', ea.ALL),
+            e.enum('control', ea.SET, ['TOGGLE', 'OPEN', 'CLOSE']).withDescription('manuSpecific curtain control'),
             e.numeric('curtain_speed', ea.ALL).withValueMin(1).withValueMax(100).withDescription('Speed of curtain movement').withUnit('%'),
             e.binary('hand_open', ea.ALL, 'ON', 'OFF').withDescription('Gently pull to open/close the curtain automatically'),
             e.binary('adaptive_pulling_speed', ea.ALL, 'ON', 'OFF').withDescription('The faster/slower the curtain is pulled manually, the faster/slower the curtain will move'),
