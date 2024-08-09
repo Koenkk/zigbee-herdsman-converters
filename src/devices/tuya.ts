@@ -2458,6 +2458,17 @@ const definitions: Definition[] = [
         extend: [onOff({powerOnBehavior: false})],
     },
     {
+        fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_biakwrag'}],
+        model: 'CSP042',
+        vendor: 'ClickSmart+',
+        description: '2 gang switch module without neutral wire',
+        extend: [tuya.modernExtend.tuyaOnOff({switchType: false, endpoints: ['l1', 'l2']})],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power_on_behavior']},
+    },
+    {
         fingerprint: tuya.fingerprint('TS110F', ['_TZ3000_estfrmup', '_TZ3000_ktuoyvt5']),
         model: 'CSP051',
         vendor: 'ClickSmart+',
