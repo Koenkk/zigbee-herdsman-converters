@@ -10990,6 +10990,49 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ncti2pro'}],
+        model: 'PN6',
+        vendor: 'ZSVIOT',
+        description: '6-way controller',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.switch(),
+            tuya.exposes.switchMode2().withEndpoint('l1_l2').withLabel('1-2 channels'),
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            tuya.exposes.switchMode2().withEndpoint('l3_l4').withLabel('3-4 channels'),
+            tuya.exposes.switch().withEndpoint('l3'),
+            tuya.exposes.switch().withEndpoint('l4'),
+            tuya.exposes.switchMode2().withEndpoint('l5_l6').withLabel('5-6 channels'),
+            tuya.exposes.switch().withEndpoint('l5'),
+            tuya.exposes.switch().withEndpoint('l6'),
+            tuya.exposes.switchType(),
+            e.power_on_behavior(['off', 'on']).withAccess(ea.STATE_SET),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1, state: 1, l1_l2: 1, l3_l4: 1, l5_l6: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+                [5, 'state_l5', tuya.valueConverter.onOff],
+                [6, 'state_l6', tuya.valueConverter.onOff],
+                [13, 'state', tuya.valueConverter.onOff],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
+                [107, 'switch_type', tuya.valueConverter.switchType],
+                [113, 'switch_mode_l1_l2', tuya.valueConverter.switchMode2],
+                [114, 'switch_mode_l3_l4', tuya.valueConverter.switchMode2],
+                [115, 'switch_mode_l5_l6', tuya.valueConverter.switchMode2],
+            ],
+        },
+    },
 ];
 
 export default definitions;
