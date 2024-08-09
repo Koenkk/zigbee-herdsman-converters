@@ -2846,7 +2846,7 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.hasOwnProperty('curtainHandOpen')) {
-                const lookup: KeyValueAny = { 0: 'OFF', 1: 'ON' };
+                const lookup: KeyValueAny = {0: 'OFF', 1: 'ON'};
                 result.hand_open = lookup[msg.data['curtainHandOpen']];
             }
             return result;
@@ -2858,7 +2858,7 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.hasOwnProperty(0x0442)) {
-                const lookup: KeyValueAny = { 0: 'OFF', 1: 'ON' };
+                const lookup: KeyValueAny = {0: 'OFF', 1: 'ON'};
                 result.adaptive_pulling_speed = lookup[msg.data[0x0442]];
             }
             return result;
@@ -2870,7 +2870,7 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.hasOwnProperty(0x043a)) {
-                const lookup: KeyValueAny = { 0: 'OFF', 1: 'ON' };
+                const lookup: KeyValueAny = {0: 'OFF', 1: 'ON'};
                 result.manual_stop = lookup[msg.data[0x043a]];
             }
             return result;
@@ -4800,7 +4800,7 @@ export const toZigbee = {
         key: ['reverse_direction'],
         convertSet: async (entity, key, value, meta) => {
             if (!Array.isArray(meta.mapped) && ['ZNCLDJ01LM'].includes(meta.mapped.model)) {
-                await entity.write('closuresWindowCovering', {'windowCoveringMode': value});
+                await entity.write('closuresWindowCovering', {windowCoveringMode: value});
             } else {
                 await entity.write('manuSpecificLumi', {curtainReverse: value}, manufacturerOptions.lumi);
             }
@@ -4885,9 +4885,6 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             await entity.write('manuSpecificLumi', {0x0404: {value: value, type: 0x20}}, manufacturerOptions.lumi);
         },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0404], manufacturerOptions.lumi);
-        },
     } satisfies Tz.Converter,
     lumi_curtain_control_manuspecific: {
         key: ['control'],
@@ -4903,20 +4900,17 @@ export const toZigbee = {
                 }
             }
         },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
-        },
     } satisfies Tz.Converter,
     lumi_curtain_automatic_calibration_ZNCLDJ01LM: {
         key: ['automatic_calibration'],
         convertSet: async (entity, key, value, meta) => {
             const NS = 'zhc:lumi:curtain';
-            const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+            const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
             // Check if the curtain is already calibrated
             const checkIfCalibrated = async (): Promise<boolean> => {
                 const result = await entity.read('manuSpecificLumi', [0x0407]);
-                const calibrated = result[0x0407];
+                const calibrated = (result as Record<number, never>)?.[0x0407];
                 return calibrated !== 0;
             };
 
@@ -4926,26 +4920,26 @@ export const toZigbee = {
             }
 
             // Reset Calibration
-            await entity.write('manuSpecificLumi', { 0x0407: { value: 0x00, type: 0x20 } }, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
             logger.info('Starting the calibration process...', NS);
 
             // Wait for 3 seconds
             await wait(3000);
 
             // Move the curtain to one direction
-            await entity.command('closuresWindowCovering', 'goToLiftPercentage', { percentageliftvalue: 100 }, getOptions(meta.mapped, entity));
+            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: 100}, getOptions(meta.mapped, entity));
             logger.info('Moving curtain and waiting to reach the end position.', NS);
 
             // Wait until the curtain gets into a moving state, then wait until it gets blocked or stopped
             const waitForStateTransition = async (initialStates: number[], desiredStates: number[]): Promise<void> => {
-                return new Promise<void>(resolve => {
+                return new Promise<void>((resolve) => {
                     const checkState = async () => {
                         const result = await entity.read('manuSpecificLumi', [0x0421]);
-                        const state = result[0x0421];
+                        const state = (result as Record<number, never>)?.[0x0421];
                         if (!initialStates.includes(state)) {
                             const checkDesiredState = async () => {
                                 const result = await entity.read('manuSpecificLumi', [0x0421]);
-                                const state = result[0x0421];
+                                const state = (result as Record<number, never>)?.[0x0421];
                                 if (desiredStates.includes(state)) {
                                     resolve();
                                 } else {
@@ -4957,7 +4951,7 @@ export const toZigbee = {
                             setTimeout(checkState, 500);
                         }
                     };
-                    checkState();
+                    void checkState();
                 });
             };
 
@@ -4967,14 +4961,14 @@ export const toZigbee = {
             await wait(1000);
 
             // Set First Calibration Position
-            await entity.write('manuSpecificLumi', { 0x0407: { value: 0x01, type: 0x20 } }, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
             logger.info('End position 1 has been set.', NS);
 
             // Wait for 3 seconds
             await wait(3000);
 
             // Move the curtain in the opposite direction
-            await entity.command('closuresWindowCovering', 'goToLiftPercentage', { percentageliftvalue: 0 }, getOptions(meta.mapped, entity));
+            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: 0}, getOptions(meta.mapped, entity));
             logger.info('Moving curtain in the opposite direction and waiting to reach the end position.', NS);
 
             // Wait until the curtain gets into a moving state, then wait until it gets blocked or stopped
@@ -4984,7 +4978,7 @@ export const toZigbee = {
             await wait(1000);
 
             // Set Second Calibration Position
-            await entity.write('manuSpecificLumi', { 0x0407: { value: 0x02, type: 0x20 } }, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
             logger.info('End position 2 has been set.', NS);
             logger.info('Calibration process completed.', NS);
         },
