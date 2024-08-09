@@ -23,7 +23,7 @@ const definitions: Definition[] = [
             tuyaDatapoints: [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
                 [2, 'humidity', tuya.valueConverter.raw],
-                [9, 'temperature_scale', tuya.valueConverterBasic.lookup({celsius: 0, fahrenheit: 1})],
+                [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
                 [14, 'battery_state', tuya.valueConverter.batteryState],
                 [15, 'battery', tuya.valueConverter.raw],
             ],    },
