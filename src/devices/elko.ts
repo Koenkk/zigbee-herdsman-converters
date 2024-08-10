@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {binary, enumLookup, light, numeric} from '../lib/modernExtend';
+import {binary, enumLookup, light, numeric, text} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
 
@@ -46,6 +46,13 @@ const definitions: Definition[] = [
             tz.elko_local_temperature_calibration,
         ],
         extend: [
+            text({
+                name: 'display_text',
+                cluster: 'hvacThermostat',
+                attribute: 'elkoDisplayText',
+                description: 'Displayed text on thermostat display (zone). Max 14 characters',
+                access: 'ALL',
+            }),
             numeric({
                 name: 'load',
                 cluster: 'hvacThermostat',
@@ -154,7 +161,6 @@ const definitions: Definition[] = [
             }),
         ],
         exposes: [
-            e.text('display_text', ea.ALL).withDescription('Displayed text on thermostat display (zone). Max 14 characters'),
             e
                 .climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 50, 1)

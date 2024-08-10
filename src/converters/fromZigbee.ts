@@ -1926,11 +1926,6 @@ const converters1 = {
             const result: KeyValueAny = {};
             const data = msg.data;
 
-            if (data.hasOwnProperty('elkoDisplayText')) {
-                // Display text
-                result.display_text = data['elkoDisplayText'];
-            }
-
             if (data.hasOwnProperty('elkoPowerStatus')) {
                 // Power status
                 result.system_mode = data['elkoPowerStatus'] ? 'heat' : 'off';

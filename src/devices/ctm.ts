@@ -106,10 +106,6 @@ const fzLocal = {
                 // Display text
                 result.display_text = data[0x0402];
             }
-            if (data.hasOwnProperty('elkoDisplayText')) {
-                // Display text
-                result.display_text = data['elkoDisplayText'];
-            }
             if (data.hasOwnProperty(0x0403)) {
                 // Sensor
                 const sensorModeLookup = {
