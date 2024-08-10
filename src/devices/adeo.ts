@@ -207,6 +207,13 @@ const definitions: Definition[] = [
         extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
+        zigbeeModel: ['ZBEK-31'],
+        model: '84870054',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN Extraflat 85',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
         zigbeeModel: ['ZBEK-34'],
         model: '84870058',
         vendor: 'ADEO',
