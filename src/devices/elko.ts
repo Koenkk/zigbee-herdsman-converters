@@ -64,8 +64,8 @@ const definitions: Definition[] = [
                 description: 'Device in regulator or thermostat mode.',
                 access: 'ALL',
                 reporting: {attribute: 'elkoRegulatorMode', min: 0, max: constants.repInterval.HOUR, change: null},
-                valueOn: ['regulator', 0],
-                valueOff: ['thermostat', 1],
+                valueOn: ['regulator', 1],
+                valueOff: ['thermostat', 0],
             }),
             numeric({
                 name: 'regulator_time',
