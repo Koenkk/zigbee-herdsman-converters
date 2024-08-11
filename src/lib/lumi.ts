@@ -36,6 +36,7 @@ import {
     isLegacyEnabled,
     noOccupancySince,
     isObject,
+    isEndpoint,
     isString,
     getOptions,
     assertObject,
@@ -4909,9 +4910,8 @@ export const toZigbee = {
 
             // Check if the curtain is already calibrated
             const checkIfCalibrated = async (): Promise<boolean> => {
-                const result = await entity.read('manuSpecificLumi', [0x0407]);
-                const calibrated = (result as Record<number, never>)?.[0x0407];
-                return calibrated !== 0;
+                const result = await entity.read('manuSpecificLumi', ['curtainCalibrated']);
+                return result ? result.curtainCalibrated : false;
             };
 
             if (await checkIfCalibrated()) {
@@ -4935,11 +4935,11 @@ export const toZigbee = {
                 return new Promise<void>((resolve) => {
                     const checkState = async () => {
                         const result = await entity.read('manuSpecificLumi', [0x0421]);
-                        const state = (result as Record<number, never>)?.[0x0421];
+                        const state = result ? result[0x0421] : null;
                         if (!initialStates.includes(state)) {
                             const checkDesiredState = async () => {
                                 const result = await entity.read('manuSpecificLumi', [0x0421]);
-                                const state = (result as Record<number, never>)?.[0x0421];
+                                const state = result ? result[0x0421] : null;
                                 if (desiredStates.includes(state)) {
                                     resolve();
                                 } else {
