@@ -9673,8 +9673,8 @@ const definitions: Definition[] = [
         meta: {
             tuyaDatapoints: [
                 [104, 'presence', tuya.valueConverter.trueFalse1],
-                [2, 'move_sensitivity', tuya.valueConverter.divideBy10FromOnly],
-                [102, 'presence_sensitivity', tuya.valueConverter.divideBy10FromOnly],
+                [2, 'move_sensitivity', tuya.valueConverter.divideBy10],
+                [102, 'presence_sensitivity', tuya.valueConverter.divideBy10],
                 [3, 'detection_distance_min', tuya.valueConverter.divideBy100],
                 [4, 'detection_distance_max', tuya.valueConverter.divideBy100],
                 [9, 'distance', tuya.valueConverter.divideBy100],
