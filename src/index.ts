@@ -1,617 +1,479 @@
-import acova from './acova';
-import acuity_brands_lighting from './acuity_brands_lighting';
-import adeo from './adeo';
-import adurosmart from './adurosmart';
-import aeotec from './aeotec';
-import airam from './airam';
-import airzone_aidoo from './airzone_aidoo';
-import ajax_online from './ajax_online';
-import akuvox from './akuvox';
-import alchemy from './alchemy';
-import aldi from './aldi';
-import alecto from './alecto';
-import anchor from './anchor';
-import atlantic from './atlantic';
-import atsmart from './atsmart';
-import aubess from './aubess';
-import aurora_lighting from './aurora_lighting';
-import automaton from './automaton';
-import avatto from './avatto';
-import awox from './awox';
-import axis from './axis';
-import bankamp from './bankamp';
-import bega from './bega';
-import belkin from './belkin';
-import bitron from './bitron';
-import bituo_technik from './bituo_technik';
-import blaupunkt from './blaupunkt';
-import blitzwolf from './blitzwolf';
-import bosch from './bosch';
-import bouffalo_lab from './bouffalo_lab';
-import brimate from './brimate';
-import bseed from './bseed';
-import bticino from './bticino';
-import busch_jaeger from './busch_jaeger';
-import byun from './byun';
-import calex from './calex';
-import candeo from './candeo';
-import casaia from './casaia';
-import cel from './cel';
-import centralite from './centralite';
-import cleode from './cleode';
-import cleverio from './cleverio';
-import climax from './climax';
-import commercial_electric from './commercial_electric';
-import cree from './cree';
-import ctm from './ctm';
-import current_products_corp from './current_products_corp';
-import custom_devices_diy from './custom_devices_diy';
-import cy_lighting from './cy_lighting';
-import danalock from './danalock';
-import danfoss from './danfoss';
-import databyte from './databyte';
-import datek from './datek';
-import dawon_dns from './dawon_dns';
-import develco from './develco';
-import digi from './digi';
-import diyruz from './diyruz';
-import dlink from './dlink';
-import dnake from './dnake';
-import dresden_elektronik from './dresden_elektronik';
-import easyaccess from './easyaccess';
-import easyiot from './easyiot';
-import eatonhalo_led from './eatonhalo_led';
-import echostar from './echostar';
-import ecodim from './ecodim';
-import ecolink from './ecolink';
-import ecosmart from './ecosmart';
-import ecozy from './ecozy';
-import edp from './edp';
-import efekta from './efekta';
-import eglo from './eglo';
-import elko from './elko';
-import enbrighten from './enbrighten';
-import enocean from './enocean';
-import envilar from './envilar';
-import essentialb from './essentialb';
-import eucontrols from './eucontrols';
-import eurotronic from './eurotronic';
-import evanell from './evanell';
-import evn from './evn';
-import evology from './evology';
-import evvr from './evvr';
-import ewelink from './ewelink';
-import ezex from './ezex';
-import fantem from './fantem';
-import feibit from './feibit';
-import fireangel from './fireangel';
-import frankever from './frankever';
-import frient from './frient';
-import futurehome from './futurehome';
-import ge from './ge';
-import gewiss from './gewiss';
-import gidealed from './gidealed';
-import giderwel from './giderwel';
-import giex from './giex';
-import girier from './girier';
-import gledopto from './gledopto';
-import gmmts from './gmmts';
-import gmy from './gmy';
-import gs from './gs';
-import halemeier from './halemeier';
-import hampton_bay from './hampton_bay';
-import heatit from './heatit';
-import heiman from './heiman';
-import heimgard_technologies from './heimgard_technologies';
-import hej from './hej';
-import hfh from './hfh';
-import hilux from './hilux';
-import hive from './hive';
-import hommyn from './hommyn';
-import honyar from './honyar';
-import hornbach from './hornbach';
-import hzc from './hzc';
-import hzc_electric from './hzc_electric';
-import icasa from './icasa';
-import idinio from './idinio';
-import ihorn from './ihorn';
-import ikea from './ikea';
-import ilightsin from './ilightsin';
-import iluminize from './iluminize';
-import ilux from './ilux';
-import imhotepcreation from './imhotepcreation';
-import immax from './immax';
-import imou from './imou';
-import innr from './innr';
-import inovelli from './inovelli';
-import insta from './insta';
-import iolloi from './iolloi';
-import iotperfect from './iotperfect';
-import iris from './iris';
-import istar from './istar';
-import ITCommander from './ITCommander';
-import jasco from './jasco';
-import javis from './javis';
-import jethome from './jethome';
-import jiawen from './jiawen';
-import jumitech from './jumitech';
-import jxuan from './jxuan';
-import kami from './kami';
-import keen_home from './keen_home';
-import klikaanklikuit from './klikaanklikuit';
-import kmpcil from './kmpcil';
-import konke from './konke';
-import ksentry from './ksentry';
-import kurvia from './kurvia';
-import kwikset from './kwikset';
-import lanesto from './lanesto';
-import lds from './lds';
-import led_trading from './led_trading';
-import ledvance from './ledvance';
-import leedarson from './leedarson';
-import legrand from './legrand';
-import lellki from './lellki';
-import letsled from './letsled';
-import letv from './letv';
-import leviton from './leviton';
-import lg from './lg';
-import lidl from './lidl';
-import lifecontrol from './lifecontrol';
-import lightsolutions from './lightsolutions';
-import linkind from './linkind';
-import linptech from './linptech';
-import livingwise from './livingwise';
-import livolo from './livolo';
-import lixee from './lixee';
-import lonsonho from './lonsonho';
-import ls from './ls';
-import lubeez from './lubeez';
-import lupus from './lupus';
-import lutron from './lutron';
-import lux from './lux';
-import lytko from './lytko';
-import m_elec from './m_elec';
-import makegood from './makegood';
-import matcall_bv from './matcall_bv';
-import meazon from './meazon';
-import mercator from './mercator';
-import miboxer from './miboxer';
-import micromatic from './micromatic';
-import modular from './modular';
-import moes from './moes';
-import muller_licht from './muller_licht';
-import multiterm from './multiterm';
-import namron from './namron';
-import nanoleaf from './nanoleaf';
-import neo from './neo';
-import net2grid from './net2grid';
-import netvox from './netvox';
-import nexelec from './nexelec';
-import niko from './niko';
-import ninja_blocks from './ninja_blocks';
-import niviss from './niviss';
-import nodon from './nodon';
-import nordtronic from './nordtronic';
-import nous from './nous';
-import novo from './novo';
-import nue_3a from './nue_3a';
-import nyce from './nyce';
-import onenuo from './onenuo';
-import onesti from './onesti';
-import openlumi from './openlumi';
-import orvibo from './orvibo';
-import osram from './osram';
-import oujiabao from './oujiabao';
-import owon from './owon';
-import ozsmartthings from './ozsmartthings';
-import paul_neuhaus from './paul_neuhaus';
-import paulmann from './paulmann';
-import peq from './peq';
-import perenio from './perenio';
-import philips from './philips';
-import plaid from './plaid';
-import plugwise from './plugwise';
-import profalux from './profalux';
-import prolight from './prolight';
-import pushok from './pushok';
-import qmotion from './qmotion';
-import qoto from './qoto';
-import quotra from './quotra';
-import rademacher from './rademacher';
-import raex from './raex';
-import rgb_genie from './rgb_genie';
-import robb from './robb';
-import roome from './roome';
-import rtx from './rtx';
-import salus_controls from './salus_controls';
-import samotech from './samotech';
-import saswell from './saswell';
-import sber from './sber';
-import scanproducts from './scanproducts';
-import schlage from './schlage';
-import schneider_electric from './schneider_electric';
-import schwaiger from './schwaiger';
-import seastar_intelligence from './seastar_intelligence';
-import securifi from './securifi';
-import sengled from './sengled';
-import sercomm from './sercomm';
-import shade_control from './shade_control';
-import shenzhen_homa from './shenzhen_homa';
-import shinasystem from './shinasystem';
-import siglis from './siglis';
-import sikom from './sikom';
-import sinope from './sinope';
-import siterwell from './siterwell';
-import skydance from './skydance';
-import slv from './slv';
-import smart_home_pty from './smart_home_pty';
-import smart9 from './smart9';
-import smartenit from './smartenit';
-import smartthings from './smartthings';
-import smartwings from './smartwings';
-import smlight from './smlight';
-import sohan_electric from './sohan_electric';
-import solaredge from './solaredge';
-import soma from './soma';
-import somfy from './somfy';
-import somgoms from './somgoms';
-import sonoff from './sonoff';
-import sowilo from './sowilo';
-import spotmau from './spotmau';
-import stelpro from './stelpro';
-import sunricher from './sunricher';
-import swann from './swann';
-import sylvania from './sylvania';
-import tapestry from './tapestry';
-import tci from './tci';
-import technicolor from './technicolor';
-import terncy from './terncy';
-import the_light_group from './the_light_group';
-import third_reality from './third_reality';
-import titan_products from './titan_products';
-import tlwglobal from './tlwglobal';
-import tplink from './tplink';
-import trust from './trust';
-import tubeszb from './tubeszb';
-import tuya from './tuya';
-import ubisys from './ubisys';
-import uhome from './uhome';
-import universal_electronics_inc from './universal_electronics_inc';
-import vbled from './vbled';
-import vesternet from './vesternet';
-import viessmann from './viessmann';
-import villeroy_boch from './villeroy_boch';
-import vimar from './vimar';
-import visonic from './visonic';
-import vrey from './vrey';
-import lumi from './lumi';
-import wally from './wally';
-import waxman from './waxman';
-import weiser from './weiser';
-import weten from './weten';
-import wirenboard from './wirenboard';
-import wisdom from './wisdom';
-import woolley from './woolley';
-import woox from './woox';
-import wyze from './wyze';
-import xinghuoyuan from './xinghuoyuan';
-import xyzroe from './xyzroe';
-import yale from './yale';
-import ynoa from './ynoa';
-import yookee from './yookee';
-import ysrsai from './ysrsai';
-import zemismart from './zemismart';
-import zen from './zen';
-import zigbeetlc from './zigbeetlc';
-import zipato from './zipato';
-import qa from './qa';
+import * as configureKey from './lib/configureKey';
+import * as exposesLib from './lib/exposes';
+import type {Feature, Numeric, Enum, Binary, Text, Composite, List, Light, Climate, Switch, Lock, Cover, Fan} from './lib/exposes';
+import {Enum as EnumClass} from './lib/exposes';
+import toZigbee from './converters/toZigbee';
+import fromZigbee from './converters/fromZigbee';
+import assert from 'assert';
+import * as ota from './lib/ota';
+import allDefinitions from './devices';
+import * as utils from './lib/utils';
+import {
+    Definition,
+    Fingerprint,
+    Zh,
+    OnEventData,
+    OnEventType,
+    Configure,
+    Expose,
+    Tz,
+    OtaUpdateAvailableResult,
+    KeyValue,
+    OnEvent,
+    DefinitionExposes,
+    DefinitionExposesFunction,
+} from './lib/types';
+import {generateDefinition} from './lib/generateDefinition';
+import {Zcl} from 'zigbee-herdsman';
+import * as logger from './lib/logger';
 
-export default [
-    ...acova,
-    ...acuity_brands_lighting,
-    ...adeo,
-    ...adurosmart,
-    ...aeotec,
-    ...airam,
-    ...airzone_aidoo,
-    ...ajax_online,
-    ...akuvox,
-    ...alchemy,
-    ...aldi,
-    ...alecto,
-    ...anchor,
-    ...atlantic,
-    ...atsmart,
-    ...aubess,
-    ...aurora_lighting,
-    ...automaton,
-    ...avatto,
-    ...awox,
-    ...axis,
-    ...bankamp,
-    ...bega,
-    ...belkin,
-    ...bitron,
-    ...bituo_technik,
-    ...blaupunkt,
-    ...blitzwolf,
-    ...bosch,
-    ...bouffalo_lab,
-    ...brimate,
-    ...bseed,
-    ...bticino,
-    ...busch_jaeger,
-    ...byun,
-    ...calex,
-    ...candeo,
-    ...casaia,
-    ...cel,
-    ...centralite,
-    ...cleode,
-    ...cleverio,
-    ...climax,
-    ...commercial_electric,
-    ...cree,
-    ...ctm,
-    ...current_products_corp,
-    ...custom_devices_diy,
-    ...cy_lighting,
-    ...danalock,
-    ...danfoss,
-    ...databyte,
-    ...datek,
-    ...dawon_dns,
-    ...develco,
-    ...digi,
-    ...diyruz,
-    ...dlink,
-    ...dnake,
-    ...dresden_elektronik,
-    ...easyaccess,
-    ...easyiot,
-    ...eatonhalo_led,
-    ...echostar,
-    ...ecodim,
-    ...ecolink,
-    ...ecosmart,
-    ...ecozy,
-    ...edp,
-    ...efekta,
-    ...eglo,
-    ...elko,
-    ...enbrighten,
-    ...enocean,
-    ...envilar,
-    ...essentialb,
-    ...eucontrols,
-    ...eurotronic,
-    ...evanell,
-    ...evn,
-    ...evology,
-    ...evvr,
-    ...ewelink,
-    ...ezex,
-    ...fantem,
-    ...feibit,
-    ...fireangel,
-    ...frankever,
-    ...frient,
-    ...futurehome,
-    ...ge,
-    ...gewiss,
-    ...gidealed,
-    ...giderwel,
-    ...giex,
-    ...girier,
-    ...gledopto,
-    ...gmmts,
-    ...gmy,
-    ...gs,
-    ...halemeier,
-    ...hampton_bay,
-    ...heatit,
-    ...heiman,
-    ...heimgard_technologies,
-    ...hej,
-    ...hfh,
-    ...hilux,
-    ...hive,
-    ...hommyn,
-    ...honyar,
-    ...hornbach,
-    ...hzc_electric,
-    ...hzc,
-    ...icasa,
-    ...idinio,
-    ...ihorn,
-    ...ikea,
-    ...ilightsin,
-    ...iluminize,
-    ...ilux,
-    ...imhotepcreation,
-    ...immax,
-    ...imou,
-    ...innr,
-    ...inovelli,
-    ...insta,
-    ...iolloi,
-    ...iotperfect,
-    ...iris,
-    ...istar,
-    ...ITCommander,
-    ...jasco,
-    ...javis,
-    ...jethome,
-    ...jiawen,
-    ...jumitech,
-    ...jxuan,
-    ...kami,
-    ...keen_home,
-    ...klikaanklikuit,
-    ...kmpcil,
-    ...konke,
-    ...ksentry,
-    ...kurvia,
-    ...kwikset,
-    ...lanesto,
-    ...lds,
-    ...led_trading,
-    ...ledvance,
-    ...leedarson,
-    ...legrand,
-    ...lellki,
-    ...letsled,
-    ...letv,
-    ...leviton,
-    ...lg,
-    ...lidl,
-    ...lifecontrol,
-    ...lightsolutions,
-    ...linkind,
-    ...linptech,
-    ...livingwise,
-    ...livolo,
-    ...lixee,
-    ...lonsonho,
-    ...ls,
-    ...lubeez,
-    ...lupus,
-    ...lutron,
-    ...lux,
-    ...lytko,
-    ...m_elec,
-    ...makegood,
-    ...matcall_bv,
-    ...meazon,
-    ...mercator,
-    ...miboxer,
-    ...micromatic,
-    ...modular,
-    ...moes,
-    ...muller_licht,
-    ...multiterm,
-    ...namron,
-    ...nanoleaf,
-    ...neo,
-    ...net2grid,
-    ...netvox,
-    ...nexelec,
-    ...niko,
-    ...ninja_blocks,
-    ...niviss,
-    ...nodon,
-    ...nordtronic,
-    ...nous,
-    ...novo,
-    ...nue_3a,
-    ...nyce,
-    ...onenuo,
-    ...onesti,
-    ...openlumi,
-    ...orvibo,
-    ...osram,
-    ...oujiabao,
-    ...owon,
-    ...ozsmartthings,
-    ...paul_neuhaus,
-    ...paulmann,
-    ...peq,
-    ...perenio,
-    ...philips,
-    ...plaid,
-    ...plugwise,
-    ...profalux,
-    ...prolight,
-    ...pushok,
-    ...qmotion,
-    ...qoto,
-    ...quotra,
-    ...rademacher,
-    ...raex,
-    ...rgb_genie,
-    ...robb,
-    ...roome,
-    ...rtx,
-    ...salus_controls,
-    ...samotech,
-    ...saswell,
-    ...sber,
-    ...scanproducts,
-    ...schlage,
-    ...schneider_electric,
-    ...schwaiger,
-    ...seastar_intelligence,
-    ...securifi,
-    ...sengled,
-    ...sercomm,
-    ...shade_control,
-    ...shenzhen_homa,
-    ...shinasystem,
-    ...siglis,
-    ...sikom,
-    ...sinope,
-    ...siterwell,
-    ...skydance,
-    ...slv,
-    ...smart_home_pty,
-    ...smart9,
-    ...smartenit,
-    ...smartthings,
-    ...smartwings,
-    ...smlight,
-    ...sohan_electric,
-    ...solaredge,
-    ...soma,
-    ...somfy,
-    ...somgoms,
-    ...sonoff,
-    ...sowilo,
-    ...spotmau,
-    ...stelpro,
-    ...sunricher,
-    ...swann,
-    ...sylvania,
-    ...tapestry,
-    ...tci,
-    ...technicolor,
-    ...terncy,
-    ...the_light_group,
-    ...third_reality,
-    ...titan_products,
-    ...tlwglobal,
-    ...tplink,
-    ...trust,
-    ...tubeszb,
-    ...tuya,
-    ...ubisys,
-    ...uhome,
-    ...lumi,
-    ...universal_electronics_inc,
-    ...vbled,
-    ...vesternet,
-    ...viessmann,
-    ...villeroy_boch,
-    ...vimar,
-    ...visonic,
-    ...vrey,
-    ...wally,
-    ...waxman,
-    ...weiser,
-    ...weten,
-    ...wirenboard,
-    ...wisdom,
-    ...woolley,
-    ...woox,
-    ...wyze,
-    ...xinghuoyuan,
-    ...xyzroe,
-    ...yale,
-    ...ynoa,
-    ...yookee,
-    ...ysrsai,
-    ...zemismart,
-    ...zen,
-    ...zigbeetlc,
-    ...zipato,
-    ...qa,
-];
+const NS = 'zhc';
+
+export {
+    Definition as Definition,
+    OnEventType as OnEventType,
+    Feature as Feature,
+    Expose as Expose,
+    Numeric as Numeric,
+    Binary as Binary,
+    Enum as Enum,
+    Text as Text,
+    Composite as Composite,
+    List as List,
+    Light as Light,
+    Climate as Climate,
+    Switch as Switch,
+    Lock as Lock,
+    Cover as Cover,
+    Fan as Fan,
+    toZigbee as toZigbee,
+    fromZigbee as fromZigbee,
+    Tz as Tz,
+    OtaUpdateAvailableResult as OtaUpdateAvailableResult,
+    ota as ota,
+};
+
+export const getConfigureKey = configureKey.getConfigureKey;
+
+// key: zigbeeModel, value: array of definitions (most of the times 1)
+const lookup = new Map<string, Definition[]>();
+export const definitions: Definition[] = [];
+
+function arrayEquals<T>(as: T[], bs: T[]) {
+    if (as.length !== bs.length) return false;
+    for (const a of as) if (!bs.includes(a)) return false;
+    return true;
+}
+
+function addToLookup(zigbeeModel: string, definition: Definition) {
+    zigbeeModel = zigbeeModel ? zigbeeModel.toLowerCase() : null;
+    if (!lookup.has(zigbeeModel)) {
+        lookup.set(zigbeeModel, []);
+    }
+
+    if (!lookup.get(zigbeeModel).includes(definition)) {
+        lookup.get(zigbeeModel).splice(0, 0, definition);
+    }
+}
+
+function getFromLookup(zigbeeModel: string) {
+    zigbeeModel = zigbeeModel ? zigbeeModel.toLowerCase() : null;
+    if (lookup.has(zigbeeModel)) {
+        return lookup.get(zigbeeModel);
+    }
+
+    zigbeeModel = zigbeeModel ? zigbeeModel.replace(/\0(.|\n)*$/g, '').trim() : null;
+    return lookup.get(zigbeeModel);
+}
+
+const converterRequiredFields = {
+    model: 'String',
+    vendor: 'String',
+    description: 'String',
+    fromZigbee: 'Array',
+    toZigbee: 'Array',
+};
+
+function validateDefinition(definition: Definition) {
+    for (const [field, expectedType] of Object.entries(converterRequiredFields)) {
+        // @ts-expect-error
+        assert.notStrictEqual(null, definition[field], `Converter field ${field} is null`);
+        // @ts-expect-error
+        assert.notStrictEqual(undefined, definition[field], `Converter field ${field} is undefined`);
+        // @ts-expect-error
+        const msg = `Converter field ${field} expected type doenst match to ${definition[field]}`;
+        // @ts-expect-error
+        assert.strictEqual(definition[field].constructor.name, expectedType, msg);
+    }
+    assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
+}
+
+function processExtensions(definition: Definition): Definition {
+    if ('extend' in definition) {
+        if (!Array.isArray(definition.extend)) {
+            assert.fail(`'${definition.model}' has legacy extend which is not supported anymore`);
+        }
+        // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
+        let {
+            extend,
+            toZigbee,
+            fromZigbee,
+            exposes: definitionExposes,
+            meta,
+            endpoint,
+            ota,
+            configure: definitionConfigure,
+            onEvent: definitionOnEvent,
+            ...definitionWithoutExtend
+        } = definition;
+
+        // Exposes can be an Expose[] or DefinitionExposesFunction. In case it's only Expose[] we return an array
+        // Otherwise return a DefinitionExposesFunction.
+        const allExposesIsExposeOnly = (allExposes: (Expose | DefinitionExposesFunction)[]): allExposes is Expose[] => {
+            return !allExposes.find((e) => typeof e === 'function');
+        };
+        let allExposes: (Expose | DefinitionExposesFunction)[] = [];
+        if (definitionExposes) {
+            typeof definitionExposes === 'function' ? allExposes.push(definitionExposes) : allExposes.push(...definitionExposes);
+        }
+        toZigbee = [...(toZigbee ?? [])];
+        fromZigbee = [...(fromZigbee ?? [])];
+
+        const configures: Configure[] = definitionConfigure ? [definitionConfigure] : [];
+        const onEvents: OnEvent[] = definitionOnEvent ? [definitionOnEvent] : [];
+
+        for (const ext of extend) {
+            if (!ext.isModernExtend) {
+                assert.fail(`'${definition.model}' has legacy extend in modern extend`);
+            }
+            if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
+            if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
+            if (ext.exposes) allExposes.push(...ext.exposes);
+            if (ext.meta) meta = {...ext.meta, ...meta};
+            // Filter `undefined` configures, e.g. returned by setupConfigureForReporting.
+            if (ext.configure) configures.push(...ext.configure.filter((c) => c));
+            if (ext.onEvent) onEvents.push(ext.onEvent);
+            if (ext.ota) {
+                if (ota && ext.ota !== ota) {
+                    assert.fail(`'${definition.model}' has multiple 'ota', this is not allowed`);
+                }
+                ota = ext.ota;
+            }
+            if (ext.endpoint) {
+                if (endpoint) {
+                    assert.fail(`'${definition.model}' has multiple 'endpoint', this is not allowed`);
+                }
+                endpoint = ext.endpoint;
+            }
+        }
+
+        // Filtering out action exposes to combine them one
+        const actionExposes = allExposes.filter((e) => typeof e !== 'function' && e.name === 'action');
+        allExposes = allExposes.filter((e) => e.name !== 'action');
+        if (actionExposes.length > 0) {
+            const actions: string[] = [];
+            for (const expose of actionExposes) {
+                if (expose instanceof EnumClass) {
+                    for (const action of expose.values) {
+                        actions.push(action.toString());
+                    }
+                }
+            }
+            const uniqueActions = actions.filter((value, index, array) => array.indexOf(value) === index);
+            allExposes.push(exposesLib.presets.action(uniqueActions));
+        }
+
+        let configure: Configure = null;
+        if (configures.length !== 0) {
+            configure = async (device, coordinatorEndpoint, configureDefinition) => {
+                for (const func of configures) {
+                    await func(device, coordinatorEndpoint, configureDefinition);
+                }
+            };
+        }
+        let onEvent: OnEvent = null;
+        if (onEvents.length !== 0) {
+            onEvent = async (type, data, device, settings, state) => {
+                for (const func of onEvents) {
+                    await func(type, data, device, settings, state);
+                }
+            };
+        }
+
+        // In case there is a function in allExposes, return a function, otherwise just an array.
+        let exposes: DefinitionExposes;
+        if (allExposesIsExposeOnly(allExposes)) {
+            exposes = allExposes;
+        } else {
+            exposes = (device: Zh.Device | undefined, options: KeyValue | undefined) => {
+                let result: Expose[] = [];
+                for (const item of allExposes) {
+                    if (typeof item === 'function') {
+                        result.push(...item(device, options));
+                    } else {
+                        result.push(item);
+                    }
+                }
+                return result;
+            };
+        }
+
+        definition = {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
+    }
+
+    return definition;
+}
+
+function prepareDefinition(definition: Definition): Definition {
+    definition = processExtensions(definition);
+
+    definition.toZigbee.push(
+        toZigbee.scene_store,
+        toZigbee.scene_recall,
+        toZigbee.scene_add,
+        toZigbee.scene_remove,
+        toZigbee.scene_remove_all,
+        toZigbee.scene_rename,
+        toZigbee.read,
+        toZigbee.write,
+        toZigbee.command,
+        toZigbee.factory_reset,
+        toZigbee.zcl_command,
+    );
+
+    if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
+        definition.exposes = definition.exposes.concat([exposesLib.presets.linkquality()]);
+    }
+
+    validateDefinition(definition);
+
+    // Add all the options
+    if (!definition.options) definition.options = [];
+    const optionKeys = definition.options.map((o) => o.name);
+
+    // Add calibration/precision options based on expose
+    for (const expose of Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null)) {
+        if (
+            !optionKeys.includes(expose.name) &&
+            utils.isNumericExposeFeature(expose) &&
+            expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision
+        ) {
+            // Battery voltage is not calibratable
+            if (expose.name === 'voltage' && expose.unit === 'mV') continue;
+            const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? 'percentual' : 'absolute';
+            definition.options.push(exposesLib.options.calibration(expose.name, type));
+            if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
+                definition.options.push(exposesLib.options.precision(expose.name));
+            }
+            optionKeys.push(expose.name);
+        }
+    }
+
+    for (const converter of [...definition.toZigbee, ...definition.fromZigbee]) {
+        if (converter.options) {
+            const options = typeof converter.options === 'function' ? converter.options(definition) : converter.options;
+            for (const option of options) {
+                if (!optionKeys.includes(option.name)) {
+                    definition.options.push(option);
+                    optionKeys.push(option.name);
+                }
+            }
+        }
+    }
+
+    return definition;
+}
+
+export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue) {
+    // Apply calibration/precision options
+    for (const [key, value] of Object.entries(payload)) {
+        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null);
+        const expose = definitionExposes.find((e) => e.property === key);
+        if (expose?.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision && utils.isNumber(value)) {
+            try {
+                payload[key] = utils.calibrateAndPrecisionRoundOptions(value, options, expose.name);
+            } catch (error) {
+                logger.logger.error(`Failed to apply calibration to '${expose.name}': ${error.message}`, NS);
+            }
+        }
+    }
+}
+
+export function addDefinition(definition: Definition) {
+    definition = prepareDefinition(definition);
+
+    definitions.splice(0, 0, definition);
+
+    if ('fingerprint' in definition) {
+        for (const fingerprint of definition.fingerprint) {
+            addToLookup(fingerprint.modelID, definition);
+        }
+    }
+
+    if ('zigbeeModel' in definition) {
+        for (const zigbeeModel of definition.zigbeeModel) {
+            addToLookup(zigbeeModel, definition);
+        }
+    }
+}
+
+for (const definition of allDefinitions) {
+    addDefinition(definition);
+}
+
+export async function findByDevice(device: Zh.Device, generateForUnknown: boolean = false) {
+    let definition = await findDefinition(device, generateForUnknown);
+    if (definition && definition.whiteLabel) {
+        const match = definition.whiteLabel.find((w) => 'fingerprint' in w && w.fingerprint.find((f) => isFingerprintMatch(f, device)));
+        if (match) {
+            definition = {
+                ...definition,
+                model: match.model,
+                vendor: match.vendor,
+                description: match.description || definition.description,
+            };
+        }
+    }
+    return definition;
+}
+
+export async function findDefinition(device: Zh.Device, generateForUnknown: boolean = false): Promise<Definition> {
+    if (!device) {
+        return null;
+    }
+
+    const candidates = getFromLookup(device.modelID);
+
+    if (!candidates) {
+        if (!generateForUnknown || device.type === 'Coordinator') {
+            return null;
+        }
+
+        // Do not add this definition to cache,
+        // as device configuration might change.
+        return prepareDefinition((await generateDefinition(device)).definition);
+    } else if (candidates.length === 1 && candidates[0].zigbeeModel) {
+        return candidates[0];
+    } else {
+        // First try to match based on fingerprint, return the first matching one.
+        const fingerprintMatch: {priority: number; definition: Definition} = {priority: null, definition: null};
+
+        for (const candidate of candidates) {
+            if (candidate.fingerprint) {
+                for (const fingerprint of candidate.fingerprint) {
+                    const priority = fingerprint.priority ?? 0;
+                    if (isFingerprintMatch(fingerprint, device) && (!fingerprintMatch.definition || priority > fingerprintMatch.priority)) {
+                        fingerprintMatch.definition = candidate;
+                        fingerprintMatch.priority = priority;
+                    }
+                }
+            }
+        }
+
+        if (fingerprintMatch.definition) {
+            return fingerprintMatch.definition;
+        }
+
+        // Match based on fingerprint failed, return first matching definition based on zigbeeModel
+        for (const candidate of candidates) {
+            if (candidate.zigbeeModel && candidate.zigbeeModel.includes(device.modelID)) {
+                return candidate;
+            }
+        }
+    }
+
+    return null;
+}
+
+export async function generateExternalDefinitionSource(device: Zh.Device): Promise<string> {
+    return (await generateDefinition(device)).externalDefinitionSource;
+}
+
+function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device) {
+    let match =
+        (!fingerprint.applicationVersion || device.applicationVersion === fingerprint.applicationVersion) &&
+        (!fingerprint.manufacturerID || device.manufacturerID === fingerprint.manufacturerID) &&
+        (!fingerprint.type || device.type === fingerprint.type) &&
+        (!fingerprint.dateCode || device.dateCode === fingerprint.dateCode) &&
+        (!fingerprint.hardwareVersion || device.hardwareVersion === fingerprint.hardwareVersion) &&
+        (!fingerprint.manufacturerName || device.manufacturerName === fingerprint.manufacturerName) &&
+        (!fingerprint.modelID || device.modelID === fingerprint.modelID) &&
+        (!fingerprint.powerSource || device.powerSource === fingerprint.powerSource) &&
+        (!fingerprint.softwareBuildID || device.softwareBuildID === fingerprint.softwareBuildID) &&
+        (!fingerprint.stackVersion || device.stackVersion === fingerprint.stackVersion) &&
+        (!fingerprint.zclVersion || device.zclVersion === fingerprint.zclVersion) &&
+        (!fingerprint.ieeeAddr || device.ieeeAddr.match(fingerprint.ieeeAddr)) &&
+        (!fingerprint.endpoints ||
+            arrayEquals(
+                device.endpoints.map((e) => e.ID),
+                fingerprint.endpoints.map((e) => e.ID),
+            ));
+
+    if (match && fingerprint.endpoints) {
+        for (const fingerprintEndpoint of fingerprint.endpoints) {
+            const deviceEndpoint = device.getEndpoint(fingerprintEndpoint.ID);
+            match =
+                match &&
+                (!fingerprintEndpoint.deviceID || deviceEndpoint.deviceID === fingerprintEndpoint.deviceID) &&
+                (!fingerprintEndpoint.profileID || deviceEndpoint.profileID === fingerprintEndpoint.profileID) &&
+                (!fingerprintEndpoint.inputClusters || arrayEquals(deviceEndpoint.inputClusters, fingerprintEndpoint.inputClusters)) &&
+                (!fingerprintEndpoint.outputClusters || arrayEquals(deviceEndpoint.outputClusters, fingerprintEndpoint.outputClusters));
+        }
+    }
+
+    return match;
+}
+
+export function findByModel(model: string) {
+    /*
+    Search device description by definition model name.
+    Useful when redefining, expanding device descriptions in external converters.
+    */
+    model = model.toLowerCase();
+    return definitions.find((definition) => {
+        const whiteLabelMatch = definition.whiteLabel && definition.whiteLabel.find((dd) => dd.model.toLowerCase() === model);
+        return definition.model.toLowerCase() == model || whiteLabelMatch;
+    });
+}
+
+// Can be used to handle events for devices which are not fully paired yet (no modelID).
+// Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
+export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.Device) {
+    // support Legrand security protocol
+    // when pairing, a powered device will send a read frame to every device on the network
+    // it expects at least one answer. The payload contains the number of seconds
+    // since when the device is powered. If the value is too high, it will leave & not pair
+    // 23 works, 200 doesn't
+    if (device.manufacturerID === Zcl.ManufacturerCode.LEGRAND_GROUP && !device.customReadResponse) {
+        device.customReadResponse = (frame, endpoint) => {
+            if (frame.isCluster('genBasic') && frame.payload.find((i: {attrId: number}) => i.attrId === 61440)) {
+                const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
+                const payload = {0xf00: {value: 23, type: 35}};
+                endpoint.readResponse('genBasic', frame.header.transactionSequenceNumber, payload, options).catch((e) => {
+                    logger.logger.warning(`Legrand security read response failed: ${e}`, NS);
+                });
+                return true;
+            }
+            return false;
+        };
+    }
+
+    // Aqara feeder C1 polls the time during the interview, need to send back the local time instead of the UTC.
+    // The device.definition has not yet been set - therefore the device.definition.onEvent method does not work.
+    if (device.modelID === 'aqara.feeder.acn001' && !device.customReadResponse) {
+        device.customReadResponse = (frame, endpoint) => {
+            if (frame.isCluster('genTime')) {
+                const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+                const secondsUTC = Math.round((new Date().getTime() - oneJanuary2000) / 1000);
+                const secondsLocal = secondsUTC - new Date().getTimezoneOffset() * 60;
+                endpoint.readResponse('genTime', frame.header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
+                    logger.logger.warning(`ZNCWWSQ01LM custom time response failed: ${e}`, NS);
+                });
+                return true;
+            }
+            return false;
+        };
+    }
+}
+
+export const setLogger = logger.setLogger;
