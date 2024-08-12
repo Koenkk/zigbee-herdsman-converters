@@ -1537,6 +1537,170 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
+    lumiCurtainSpeed: (args?: Partial<modernExtend.NumericArgs>) =>
+        modernExtend.numeric({
+            name: 'curtain_speed',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x043b, type: 0x20},
+            description: 'Speed of curtain movement',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            unit: '%',
+            valueMin: 1,
+            valueMax: 100,
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainManualOpenClose: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'manual_open_close',
+            valueOn: ['ON', true],
+            valueOff: ['OFF', false],
+            cluster: 'manuSpecificLumi',
+            attribute: 'curtainHandOpen',
+            description: 'Gently pull to open/close the curtain automatically',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainAdaptivePullingSpeed: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'adaptive_pulling_speed',
+            valueOn: ['ON', 1],
+            valueOff: ['OFF', 0],
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0442, type: 0x20},
+            description: 'The faster/slower the curtain is pulled manually, the faster/slower the curtain will move',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainManualStop: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'manual_stop',
+            valueOn: ['ON', true],
+            valueOff: ['OFF', false],
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x043a, type: 0x10},
+            description: 'Manually pulling the curtain during operation stops the motor',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainReverse: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'reverse_direction',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            cluster: 'closuresWindowCovering',
+            attribute: 'windowCoveringMode',
+            description: 'Whether the curtain direction is inverted',
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainStatus: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'status',
+            lookup: {0: 'Closing', 1: 'Opening', 2: 'Stopped', 3: 'Blocked'},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0421, type: 0x20},
+            description: 'Current status of the curtain (Opening, Closing, Stopped, Blocked)',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainLastManualOperation: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'last_manual_operation',
+            lookup: {1: 'Open', 2: 'Close', 3: 'Stop'},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0425, type: 0x20},
+            description: 'Last triggered manual operation (Open, Close, Stop)',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainPosition: (args?: Partial<modernExtend.NumericArgs>) =>
+        modernExtend.numeric({
+            name: 'curtain_position',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x041f, type: 0x20},
+            description: 'Current position of the curtain',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            unit: '%',
+            valueMin: 1,
+            valueMax: 100,
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainTraverseTime: (args?: Partial<modernExtend.NumericArgs>) =>
+        modernExtend.numeric({
+            name: 'traverse_time',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0403, type: 0x20},
+            description: 'Time in seconds to get from one end to another',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            unit: 'sec',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainCalibrationStatus: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'calibration_status',
+            lookup: {0: 'Not calibrated', 1: 'Half calibrated', 2: 'Fully calibrated'},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0426, type: 0x20},
+            description: 'Calibration status of the curtain (Not calibrated, Half calibrated, Fully calibrated)',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainCalibrated: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'calibrated',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            cluster: 'manuSpecificLumi',
+            attribute: 'curtainCalibrated',
+            description: 'Indicates if this device is calibrated',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainControlManuSpecific: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'control',
+            lookup: {Toggle: 3, Open: 7, Close: 8},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0420, type: 0x20},
+            description: 'manuSpecific curtain control',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainIdentifyBeep: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'identify_beep',
+            lookup: {Short: 0, '1 sec': 1, '2 sec': 2},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0404, type: 0x20},
+            description: 'Device will beep for chosen time duration',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
     lumiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
             name: 'power_on_behavior',
@@ -2828,136 +2992,6 @@ export const fromZigbee = {
             } else if (msg.data.hasOwnProperty('curtainCalibrated')) {
                 return {limits_calibration: msg.data['curtainCalibrated'] === 1 ? 'calibrated' : 'recalibrate'};
             }
-        },
-    } satisfies Fz.Converter,
-    lumi_curtain_speed: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x043b)) {
-                result.curtain_speed = msg.data[0x043b];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_curtain_hand_open: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('curtainHandOpen')) {
-                const lookup: KeyValueAny = {0: 'OFF', 1: 'ON'};
-                result.hand_open = lookup[msg.data['curtainHandOpen']];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_curtain_adaptive_speed: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0442)) {
-                const lookup: KeyValueAny = {0: 'OFF', 1: 'ON'};
-                result.adaptive_pulling_speed = lookup[msg.data[0x0442]];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_curtain_manual_stop: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x043a)) {
-                const lookup: KeyValueAny = {0: 'OFF', 1: 'ON'};
-                result.manual_stop = lookup[msg.data[0x043a]];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_curtain_reverse: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('windowCoveringMode')) {
-                result.reverse_direction = msg.data['windowCoveringMode'] === 1;
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_curtain_state: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0421)) {
-                const value = msg.data[0x0421];
-                const lookup: KeyValueAny = {0: 'Closing', 1: 'Opening', 2: 'Stopped', 3: 'Blocked'};
-                result.curtain_state = lookup[value];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_curtain_last_manual_operation: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0425)) {
-                const value = msg.data[0x0425];
-                const lookup: KeyValueAny = {1: 'Open', 2: 'Close', 3: 'Stop'};
-                result.last_manual_operation = lookup[value];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_curtain_position_ZNCLDJ01LM: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x041f)) {
-                result.curtain_position = msg.data[0x041f];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_curtain_traverse_time: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0403)) {
-                result.traverse_time = msg.data[0x0403];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_curtain_calibration_status: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0426)) {
-                const value = msg.data[0x0426];
-                const lookup: KeyValueAny = {0: 'Not calibrated', 1: 'Half calibrated', 2: 'Fully calibrated'};
-                result.calibration_status = lookup[value];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_curtain_calibrated: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('curtainCalibrated')) {
-                result.calibrated = msg.data['curtainCalibrated'] === 1;
-            }
-            return result;
         },
     } satisfies Fz.Converter,
     lumi_vibration_analog: {
@@ -4710,7 +4744,7 @@ export const toZigbee = {
                 assertNumber(value);
                 value = meta.options.invert_cover ? 100 - value : value;
 
-                if (['ZNCLBL01LM', 'ZNCLDJ01LM'].includes(meta.mapped.model)) {
+                if (['ZNCLBL01LM'].includes(meta.mapped.model)) {
                     await entity.command(
                         'closuresWindowCovering',
                         'goToLiftPercentage',
@@ -4727,7 +4761,7 @@ export const toZigbee = {
             if (!Array.isArray(meta.mapped) && 'ZNJLBL01LM' == meta.mapped.model) {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/23056
                 logger.debug(`Not reading position of ZNJLBL01LM since device doesn't support it`, NS);
-            } else if (!Array.isArray(meta.mapped) && ['ZNCLBL01LM', 'ZNCLDJ01LM'].includes(meta.mapped.model)) {
+            } else if (!Array.isArray(meta.mapped) && ['ZNCLBL01LM'].includes(meta.mapped.model)) {
                 await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
             } else {
                 await entity.read('genAnalogOutput', [0x0055]);
@@ -4786,12 +4820,7 @@ export const toZigbee = {
     lumi_curtain_hand_open: {
         key: ['hand_open'],
         convertSet: async (entity, key, value, meta) => {
-            if (!Array.isArray(meta.mapped) && ['ZNCLDJ01LM'].includes(meta.mapped.model)) {
-                const convertedValue = getFromLookup(value, {off: 0, on: 1});
-                await entity.write('manuSpecificLumi', {curtainHandOpen: convertedValue}, manufacturerOptions.lumi);
-            } else {
-                await entity.write('manuSpecificLumi', {curtainHandOpen: !value}, manufacturerOptions.lumi);
-            }
+            await entity.write('manuSpecificLumi', {curtainHandOpen: !value}, manufacturerOptions.lumi);
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', ['curtainHandOpen'], manufacturerOptions.lumi);
@@ -4800,18 +4829,10 @@ export const toZigbee = {
     lumi_curtain_reverse: {
         key: ['reverse_direction'],
         convertSet: async (entity, key, value, meta) => {
-            if (!Array.isArray(meta.mapped) && ['ZNCLDJ01LM'].includes(meta.mapped.model)) {
-                await entity.write('closuresWindowCovering', {windowCoveringMode: value});
-            } else {
-                await entity.write('manuSpecificLumi', {curtainReverse: value}, manufacturerOptions.lumi);
-            }
+            await entity.write('manuSpecificLumi', {curtainReverse: value}, manufacturerOptions.lumi);
         },
         convertGet: async (entity, key, meta) => {
-            if (!Array.isArray(meta.mapped) && ['ZNCLDJ01LM'].includes(meta.mapped.model)) {
-                await entity.read('closuresWindowCovering', ['windowCoveringMode']);
-            } else {
-                await entity.read('manuSpecificLumi', ['curtainReverse'], manufacturerOptions.lumi);
-            }
+            await entity.read('manuSpecificLumi', ['curtainReverse'], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_curtain_limits_calibration: {
@@ -4849,56 +4870,6 @@ export const toZigbee = {
                 case 'close':
                     await entity.write('genMultistateOutput', {presentValue: 0}, manufacturerOptions.lumi);
                     break;
-            }
-        },
-    } satisfies Tz.Converter,
-    lumi_curtain_speed: {
-        key: ['curtain_speed'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {0x043b: {value: value, type: 0x20}}, manufacturerOptions.lumi);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x043b], manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    lumi_curtain_adaptive_speed: {
-        key: ['adaptive_pulling_speed'],
-        convertSet: async (entity, key, value, meta) => {
-            const convertedValue = getFromLookup(value, {off: 0, on: 1});
-            await entity.write('manuSpecificLumi', {0x0442: {value: convertedValue, type: 0x20}}, manufacturerOptions.lumi);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0442], manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    lumi_curtain_manual_stop: {
-        key: ['manual_stop'],
-        convertSet: async (entity, key, value, meta) => {
-            const convertedValue = getFromLookup(value, {off: 0, on: 1});
-            await entity.write('manuSpecificLumi', {0x043a: {value: convertedValue, type: 0x10}}, manufacturerOptions.lumi);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x043a], manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    lumi_curtain_identify_beep: {
-        key: ['identify_beep'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {0x0404: {value: value, type: 0x20}}, manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    lumi_curtain_control_manuspecific: {
-        key: ['control'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'control' && typeof value === 'string') {
-                const lowerValue = value.toLowerCase();
-                if (lowerValue === 'toggle') {
-                    await entity.write('manuSpecificLumi', {0x0420: {value: 3, type: 0x20}}, manufacturerOptions.lumi);
-                } else if (lowerValue === 'open') {
-                    await entity.write('manuSpecificLumi', {0x0420: {value: 7, type: 0x20}}, manufacturerOptions.lumi);
-                } else if (lowerValue === 'close') {
-                    await entity.write('manuSpecificLumi', {0x0420: {value: 8, type: 0x20}}, manufacturerOptions.lumi);
-                }
             }
         },
     } satisfies Tz.Converter,

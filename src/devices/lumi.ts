@@ -17,6 +17,7 @@ import {
     deviceEndpoints,
     battery,
     identify,
+    windowCovering,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
@@ -40,6 +41,19 @@ const {
     lumiLedIndicator,
     lumiButtonLock,
     lumiMotorSpeed,
+    lumiCurtainSpeed,
+    lumiCurtainManualOpenClose,
+    lumiCurtainAdaptivePullingSpeed,
+    lumiCurtainManualStop,
+    lumiCurtainReverse,
+    lumiCurtainStatus,
+    lumiCurtainLastManualOperation,
+    lumiCurtainPosition,
+    lumiCurtainTraverseTime,
+    lumiCurtainCalibrationStatus,
+    lumiCurtainCalibrated,
+    lumiCurtainControlManuSpecific,
+    lumiCurtainIdentifyBeep,
     lumiOnOff,
     lumiLedDisabledNight,
     lumiFlipIndicatorLight,
@@ -2527,61 +2541,31 @@ const definitions: Definition[] = [
         model: 'ZNCLDJ01LM',
         vendor: 'Aqara',
         description: 'Curtain controller C3',
-        fromZigbee: [
-            lumi.fromZigbee.lumi_curtain_position_tilt,
-            lumi.fromZigbee.lumi_curtain_speed,
-            lumi.fromZigbee.lumi_curtain_hand_open,
-            lumi.fromZigbee.lumi_curtain_adaptive_speed,
-            lumi.fromZigbee.lumi_curtain_manual_stop,
-            lumi.fromZigbee.lumi_curtain_reverse,
-            lumi.fromZigbee.lumi_curtain_state,
-            lumi.fromZigbee.lumi_curtain_last_manual_operation,
-            lumi.fromZigbee.lumi_curtain_position_ZNCLDJ01LM,
-            lumi.fromZigbee.lumi_curtain_traverse_time,
-            lumi.fromZigbee.lumi_curtain_calibration_status,
-            lumi.fromZigbee.lumi_curtain_calibrated,
-        ],
-        toZigbee: [
-            lumi.toZigbee.lumi_curtain_position_state,
-            lumi.toZigbee.lumi_curtain_control_manuspecific,
-            lumi.toZigbee.lumi_curtain_speed,
-            lumi.toZigbee.lumi_curtain_hand_open,
-            lumi.toZigbee.lumi_curtain_adaptive_speed,
-            lumi.toZigbee.lumi_curtain_manual_stop,
-            lumi.toZigbee.lumi_curtain_reverse,
-            lumi.toZigbee.lumi_curtain_limits_calibration,
-            lumi.toZigbee.lumi_curtain_automatic_calibration_ZNCLDJ01LM,
-            lumi.toZigbee.lumi_curtain_identify_beep,
-        ],
+        toZigbee: [lumi.toZigbee.lumi_curtain_limits_calibration, lumi.toZigbee.lumi_curtain_automatic_calibration_ZNCLDJ01LM],
         exposes: [
-            e.cover_position().setAccess('state', ea.ALL),
-            e.enum('control', ea.SET, ['TOGGLE', 'OPEN', 'CLOSE']).withDescription('manuSpecific curtain control'),
-            e.numeric('curtain_speed', ea.ALL).withValueMin(1).withValueMax(100).withDescription('Speed of curtain movement').withUnit('%'),
-            e.binary('hand_open', ea.ALL, 'ON', 'OFF').withDescription('Gently pull to open/close the curtain automatically'),
-            e
-                .binary('adaptive_pulling_speed', ea.ALL, 'ON', 'OFF')
-                .withDescription('The faster/slower the curtain is pulled manually, the faster/slower the curtain will move'),
-            e.binary('manual_stop', ea.ALL, 'ON', 'OFF').withDescription('Manually pulling the curtain during operation stops the motor'),
-            e.binary('reverse_direction', ea.ALL, true, false).withDescription('Whether the curtain direction is inverted'),
-            e
-                .enum('curtain_state', ea.STATE, ['Opening', 'Closing', 'Stopped', 'Blocked'])
-                .withDescription('Current state of the curtain (Opening, Closing, Stopped, Blocked)'),
-            e
-                .enum('last_manual_operation', ea.STATE, ['Open', 'Close', 'Stop'])
-                .withDescription('Last triggered manual operation (Open, Close, Stop)'),
-            e.numeric('curtain_position', ea.STATE).withValueMin(1).withValueMax(100).withUnit('%'),
-            e.numeric('traverse_time', ea.STATE).withUnit('sec').withDescription('Time in seconds to get from one end to another'),
             e.enum('manual_calibration', ea.SET, ['Start', 'End', 'Reset']).withDescription('Calibrate the position limits'),
             e
                 .enum('automatic_calibration', ea.SET, ['Calibrate'])
                 .withDescription('Performs an automatic calibration process similar to Aqara’s method to set curtain limits.'),
-            e
-                .enum('calibration_status', ea.STATE, ['Not calibrated', 'Half calibrated', 'Fully calibrated'])
-                .withDescription('Calibration status of the curtain (Not calibrated, Half calibrated, Fully calibrated)'),
-            e.calibrated(),
-            e.enum('identify_beep', ea.SET, [0, 1, 2]).withDescription('Device will beep for chosen amount of seconds'),
         ],
-        extend: [identify(), lumiZigbeeOTA()],
+        extend: [
+            lumiCurtainControlManuSpecific(),
+            windowCovering({controls: ['lift'], coverInverted: true, configureReporting: true}),
+            lumiCurtainSpeed(),
+            lumiCurtainManualOpenClose(),
+            lumiCurtainAdaptivePullingSpeed(),
+            lumiCurtainManualStop(),
+            lumiCurtainReverse(),
+            lumiCurtainStatus(),
+            lumiCurtainLastManualOperation(),
+            lumiCurtainPosition(),
+            lumiCurtainTraverseTime(),
+            lumiCurtainCalibrationStatus(),
+            lumiCurtainCalibrated(),
+            lumiCurtainIdentifyBeep(),
+            identify(),
+            lumiZigbeeOTA(),
+        ],
     },
     {
         zigbeeModel: ['lumi.curtain.acn002'],
