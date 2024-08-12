@@ -6,7 +6,7 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_s139roas',}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_s139roas'}],
         model: 'ZWSH16',
         vendor: 'Avatto',
         description: 'Smart Temperature and Humidity Detector',
@@ -18,7 +18,7 @@ const definitions: Definition[] = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {seq: 0x0002});
         },
-        exposes: [e.battery(), e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(),  tuya.exposes.batteryState()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
@@ -26,7 +26,8 @@ const definitions: Definition[] = [
                 [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
                 [14, 'battery_state', tuya.valueConverter.batteryState],
                 [15, 'battery', tuya.valueConverter.raw],
-            ],    },
+            ],
+        },
     },
 ];
 
