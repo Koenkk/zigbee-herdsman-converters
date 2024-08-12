@@ -1,5 +1,31 @@
 # Changelog
 
+## [20.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.75.0...v20.0.0) (2024-08-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ignore:** Document breaking change
+
+### Features
+
+* **add:** 84870054 ([#7845](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7845)) ([790e07c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/790e07c561935c01e76f4771d91c8eb3781fc0c3))
+* **add:** CSP042 ([#7842](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7842)) ([d9db2d8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d9db2d8a831bcacd6a5da628a4e692c3985a79c1))
+* **add:** PN6 ([#7840](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7840)) ([95e581e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/95e581edb5b1b901b061ce5e0bda0afc85fc9db3))
+* **add:** RB-SRAIN01 https://github.com/Koenkk/zigbee2mqtt/issues/23532 ([805f5a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/805f5a46cc6bfdf93ac392aebfb6258fa8242fb7))
+* **add:** ZM90E-DT250N/A400 @StevenBoelhouwer https://github.com/Koenkk/zigbee2mqtt/issues/23576 ([ae2f706](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ae2f706898bde0fa7bcf4bf067b9955d9e549aab))
+* **add:** ZWSH16 ([#7844](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7844)) ([a3282e6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3282e62006868fc0b075718d4d6da092bea01ce))
+* **ignore:** Document breaking change ([6e96d84](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e96d847ddf633725108c08ddfcd6088a9fe3a71))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_m1wl5fvq` as Tuya TS0601_cover_1 ([#7849](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7849)) ([0afa501](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0afa501f78ba027d7aa4cce6401dcd02ab3d8632))
+* **detect:** Detect `_TZE284_znvwzxkq` as Tuya TS0601_dimmer_3 https://github.com/Koenkk/zigbee2mqtt/issues/23581 ([cdd05b1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cdd05b1c42be371736a7ece4cb948a96d5cdbafe))
+* Fix Ledvance/OSRAM/Sylvania OTA broken for some models https://github.com/Koenkk/zigbee2mqtt/discussions/23534 ([d28d199](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d28d1994b84aad59c044e3445215fd2d2c77b680))
+* Fix Tuya ZY-M100-24GV2 sensitivity divided by 10 https://github.com/Koenkk/zigbee2mqtt/issues/23582 ([b316973](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b3169739e07ee6ffa90da93d21eefe78bb046d07))
+* **ignore:** update dependencies ([#7847](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7847)) ([b182c7b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b182c7b3cc71c7777fa05cac300049c01fe456f1))
+
 ## [19.75.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.74.0...v19.75.0) (2024-08-08)
 
 
