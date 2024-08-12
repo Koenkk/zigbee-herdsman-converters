@@ -1891,6 +1891,32 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3210_tgvtvdoc'}],
+        model: 'RB-SRAIN01',
+        vendor: 'Tuya',
+        description: 'Solar rain sensor',
+        fromZigbee: [tuya.fz.datapoints, fz.battery, fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [
+            e.illuminance().withUnit('lx'),
+            e.numeric('illuminance_average_20min', ea.STATE).withUnit('lx').withDescription('Illuminance average for the last 20 minutes'),
+            e.numeric('illuminance_maximum_today', ea.STATE).withUnit('lx').withDescription('Illuminance maximum for the last 24 hours'),
+            e.binary('cleaning_reminder', ea.STATE, 'ON', 'OFF').withDescription('Cleaning reminder'),
+            e.numeric('rain_intensity', ea.STATE).withDescription('Rainfall intensity'),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [4, 'battery', tuya.valueConverter.raw],
+                [101, 'illuminance', tuya.valueConverter.raw],
+                [102, 'illuminance_average_20min', tuya.valueConverter.raw],
+                [103, 'illuminance_maximum_today', tuya.valueConverter.raw],
+                [104, 'cleaning_reminder', tuya.valueConverter.trueFalse0],
+                [105, 'rain_intensity', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0101', ['_TYZB01_ijihzffk', '_TZ3210_tfxwxklq', '_TZ3210_2dfy6tol']),
         model: 'TS0101',
         vendor: 'Tuya',
