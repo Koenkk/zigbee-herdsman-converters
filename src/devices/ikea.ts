@@ -82,7 +82,7 @@ const definitions: Definition[] = [
         model: 'LED2103G5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, warm white, globe, 806 lumen',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({noOffTransition: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRIbulbE26WWglobeclear250lm'],
@@ -148,7 +148,7 @@ const definitions: Definition[] = [
         model: 'LED1842G3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, warm white, globe, clear, 250 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({noOffTransition: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRIbulbE27WWclear250lm', 'TRADFRIbulbE26WWclear250lm'],
@@ -197,7 +197,7 @@ const definitions: Definition[] = [
         model: 'LED2201G8',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/27, white spectrum, globe, opal, 1055/1100 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, noOffTransition: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRIbulbPAR38WS900lm'],
