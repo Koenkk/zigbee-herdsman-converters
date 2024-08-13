@@ -1605,7 +1605,7 @@ export const lumiModernExtend = {
     lumiCurtainStatus: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
             name: 'status',
-            lookup: {0: 'Closing', 1: 'Opening', 2: 'Stopped', 3: 'Blocked'},
+            lookup: {0: 'closing', 1: 'opening', 2: 'stopped', 3: 'blocked'},
             cluster: 'manuSpecificLumi',
             attribute: {ID: 0x0421, type: 0x20},
             description: 'Current status of the curtain (Opening, Closing, Stopped, Blocked)',
@@ -1617,10 +1617,10 @@ export const lumiModernExtend = {
     lumiCurtainLastManualOperation: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
             name: 'last_manual_operation',
-            lookup: {1: 'Open', 2: 'Close', 3: 'Stop'},
+            lookup: {1: 'open', 2: 'close', 3: 'stop'},
             cluster: 'manuSpecificLumi',
             attribute: {ID: 0x0425, type: 0x20},
-            description: 'Last triggered manual operation (Open, Close, Stop)',
+            description: 'Last triggered manual operation',
             zigbeeCommandOptions: {manufacturerCode},
             access: 'STATE',
             entityCategory: 'diagnostic',
@@ -1655,7 +1655,7 @@ export const lumiModernExtend = {
     lumiCurtainCalibrationStatus: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
             name: 'calibration_status',
-            lookup: {0: 'Not calibrated', 1: 'Half calibrated', 2: 'Fully calibrated'},
+            lookup: {0: 'not_calibrated', 1: 'half_calibrated', 2: 'fully_calibrated'},
             cluster: 'manuSpecificLumi',
             attribute: {ID: 0x0426, type: 0x20},
             description: 'Calibration status of the curtain (Not calibrated, Half calibrated, Fully calibrated)',
@@ -1680,7 +1680,7 @@ export const lumiModernExtend = {
     lumiCurtainControlManuSpecific: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
             name: 'control',
-            lookup: {Toggle: 3, Open: 7, Close: 8},
+            lookup: {toggle: 3, open: 7, close: 8},
             cluster: 'manuSpecificLumi',
             attribute: {ID: 0x0420, type: 0x20},
             description: 'manuSpecific curtain control',
@@ -1692,7 +1692,7 @@ export const lumiModernExtend = {
     lumiCurtainIdentifyBeep: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
             name: 'identify_beep',
-            lookup: {Short: 0, '1 sec': 1, '2 sec': 2},
+            lookup: {short: 0, '1_sec': 1, '2_sec': 2},
             cluster: 'manuSpecificLumi',
             attribute: {ID: 0x0404, type: 0x20},
             description: 'Device will beep for chosen time duration',
