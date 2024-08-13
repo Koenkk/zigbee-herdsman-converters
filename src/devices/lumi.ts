@@ -2543,7 +2543,7 @@ const definitions: Definition[] = [
         description: 'Curtain controller C3',
         toZigbee: [lumi.toZigbee.lumi_curtain_limits_calibration, lumi.toZigbee.lumi_curtain_automatic_calibration_ZNCLDJ01LM],
         exposes: [
-            e.enum('manual_calibration', ea.SET, ['start', 'end', 'reset']).withDescription('Calibrate the position limits'),
+            e.enum('limits_calibration', ea.SET, ['start', 'end', 'reset']).withDescription('Calibrate the position limits'),
             e
                 .enum('automatic_calibration', ea.SET, ['calibrate'])
                 .withDescription('Performs an automatic calibration process similar to Aqara’s method to set curtain limits.'),

@@ -41,6 +41,7 @@ import {
     getOptions,
     assertObject,
     calibrateAndPrecisionRoundOptions,
+    sleep,
 } from './utils';
 
 const NS = 'zhc:lumi';
@@ -4836,7 +4837,7 @@ export const toZigbee = {
         },
     } satisfies Tz.Converter,
     lumi_curtain_limits_calibration: {
-        key: ['limits_calibration', 'manual_calibration'],
+        key: ['limits_calibration'],
         convertSet: async (entity, key, value, meta) => {
             assertString(value);
             const normalizedValue = value.toLowerCase();
@@ -4876,9 +4877,6 @@ export const toZigbee = {
     lumi_curtain_automatic_calibration_ZNCLDJ01LM: {
         key: ['automatic_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            const NS = 'zhc:lumi:curtain';
-            const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
             // Check if the curtain is already calibrated
             const checkIfCalibrated = async (): Promise<boolean> => {
                 const result = await entity.read('manuSpecificLumi', ['curtainCalibrated']);
@@ -4895,7 +4893,7 @@ export const toZigbee = {
             logger.info('Starting the calibration process...', NS);
 
             // Wait for 3 seconds
-            await wait(3000);
+            await sleep(3000);
 
             // Move the curtain to one direction
             await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: 100}, getOptions(meta.mapped, entity));
@@ -4929,14 +4927,14 @@ export const toZigbee = {
             await waitForStateTransition([2, 3], [2, 3]);
 
             // Wait for 1 second
-            await wait(1000);
+            await sleep(1000);
 
             // Set First Calibration Position
             await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
             logger.info('End position 1 has been set.', NS);
 
             // Wait for 3 seconds
-            await wait(3000);
+            await sleep(3000);
 
             // Move the curtain in the opposite direction
             await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: 0}, getOptions(meta.mapped, entity));
@@ -4946,7 +4944,7 @@ export const toZigbee = {
             await waitForStateTransition([2, 3], [2, 3]);
 
             // Wait for 1 second
-            await wait(1000);
+            await sleep(1000);
 
             // Set Second Calibration Position
             await entity.write('manuSpecificLumi', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
