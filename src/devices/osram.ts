@@ -255,6 +255,13 @@ const definitions: Definition[] = [
         extend: [ledvanceLight({})],
     },
     {
+        zigbeeModel: ['Control box TW'],
+        model: 'Control box TW',
+        vendor: 'OSRAM',
+        description: 'Generic Tunable White controller',
+        extend: [ledvanceLight({colorTemp: {range: [150, 370]}})],
+    },
+    {
         zigbeeModel: ['Motion Sensor-A'],
         model: 'AC01353010G',
         vendor: 'OSRAM',
