@@ -1089,7 +1089,7 @@ const converters2 = {
                 //  'MoveToLevelWithOnOff' despite not supporting the cluster; others, like the LEDVANCE SMART+
                 //  plug, do not.)
                 brightness = transition.specified || brightness === 0 ? 0 : undefined;
-                if (brightness !== undefined && !utils.getMetaValue(entity, meta.mapped, 'noOffTransition', 'first', false)) {
+                if (brightness !== undefined && utils.getMetaValue(entity, meta.mapped, 'noOffTransition', 'first', false)) {
                     logger.debug(`Supressing OFF transition since entity has noOffTransition=true`, NS);
                     brightness = undefined;
                 }
