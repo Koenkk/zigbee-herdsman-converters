@@ -247,7 +247,12 @@ const definitions: Definition[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 WS 470lm', 'TRADFRI bulb E12 WS 450lm', 'TRADFRI bulb E17 WS 440lm'],
+        zigbeeModel: [
+          'TRADFRI bulb E14 WS 470lm',
+          'TRADFRI bulb E12 WS 450lm',
+          'TRADFRI bulb E17 WS 440lm',
+          'TRADFRI bulb E17 WS candle 440lm',
+        ],
         model: 'LED1835C6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E17, white spectrum, candle, opal, 450/470/440 lm',
