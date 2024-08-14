@@ -237,7 +237,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n9clpsht', '_TZE200_nyvavzbj']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n9clpsht', '_TZE200_nyvavzbj', '_TZE200_moycceze']),
         model: '07505L',
         vendor: 'Immax',
         description: 'Neo smart keypad',
