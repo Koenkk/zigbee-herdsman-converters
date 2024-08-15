@@ -1467,6 +1467,7 @@ const definitions: Definition[] = [
             '_TZ3000_rgpqqmbj',
             '_TZ3000_8nyaanzb',
             '_TZ3000_iy2c3n6p',
+            '_TZ3000_qlmnxmac',
         ]),
         model: 'TS011F_2_gang_wall',
         vendor: 'Tuya',
