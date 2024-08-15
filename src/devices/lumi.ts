@@ -52,7 +52,6 @@ const {
     lumiCurtainTraverseTime,
     lumiCurtainCalibrationStatus,
     lumiCurtainCalibrated,
-    lumiCurtainControlManuSpecific,
     lumiCurtainIdentifyBeep,
     lumiOnOff,
     lumiLedDisabledNight,
@@ -2549,7 +2548,6 @@ const definitions: Definition[] = [
                 .withDescription('Performs an automatic calibration process similar to Aqara’s method to set curtain limits.'),
         ],
         extend: [
-            lumiCurtainControlManuSpecific(),
             windowCovering({controls: ['lift'], coverInverted: true, configureReporting: true}),
             lumiCurtainSpeed(),
             lumiCurtainManualOpenClose(),
