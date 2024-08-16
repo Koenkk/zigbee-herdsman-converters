@@ -3771,6 +3771,14 @@ const definitions: Definition[] = [
         description: 'Hue White and Color Ambiance Play Gradient Light Tube Compact',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
+    {
+        zigbeeModel: ['929003823701'],
+        model: '929003823701',
+        vendor: 'Signify Netherlands B.V.',
+        description: 'Hue Tento color 42,1cm',
+        extend: [identify(), philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+        meta: {},
+    },
 ];
 
 export default definitions;
