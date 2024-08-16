@@ -2,7 +2,7 @@ import tz from '../converters/toZigbee';
 import * as libColor from '../lib/color';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {light, LightArgs, OnOffArgs, onOff} from '../lib/modernExtend';
+import {light, LightArgs, OnOffArgs, onOff, identify} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
 import {Configure, Definition, KeyValue, OnEventType, Zh, Tz, ModernExtend} from '../lib/types';
@@ -768,7 +768,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee 6W Downlight RGB+CCT (pro)',
-        extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true})],
+        extend: [light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}), identify()],
     },
     {
         zigbeeModel: ['GL-D-006P'],
