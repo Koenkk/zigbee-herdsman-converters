@@ -8714,6 +8714,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ugekduaj'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_iwn0gpzz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_iwn0gpzz'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_loejka0i'},
         ],
         model: 'SDM01',
         vendor: 'Tuya',
@@ -8721,6 +8722,7 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
+        whiteLabel: [tuya.whitelabel('Nous', 'D4Z', 'Smart energy monitor for 3P+N system', ['_TZE204_loejka0i'])],
         exposes: [
             tuya.exposes.voltageWithPhase('a'),
             tuya.exposes.voltageWithPhase('b'),
