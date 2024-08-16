@@ -258,7 +258,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['Control box TW'],
         model: 'AB390020055',
         vendor: 'OSRAM',
-        description: 'Lightify Tunable White controller',
+        description: 'Lightify tunable white controller',
         extend: [ledvanceLight({colorTemp: {range: [150, 370]}})],
     },
     {
