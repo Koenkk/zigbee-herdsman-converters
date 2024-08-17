@@ -237,7 +237,6 @@ const inputExtenders: Extender[] = [
         ['closuresWindowCovering'],
         async (d, eps) => [new Generator({extend: m.windowCovering, args: {controls: ['lift', 'tilt']}, source: 'windowCovering'})],
     ],
-    [['genIdentify'], async (d, eps) => [new Generator({extend: m.identify, source: 'identify'})]],
 ];
 
 const outputExtenders: Extender[] = [
