@@ -928,6 +928,7 @@ const definitions: Definition[] = [
         description: 'BADRING water leakage sensor',
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
+            bindCluster({cluster: 'ssIasZone', clusterType: 'input'}),
             iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
             identify({isSleepy: true}),
             battery(),
