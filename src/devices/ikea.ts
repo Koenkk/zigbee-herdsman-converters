@@ -914,7 +914,8 @@ const definitions: Definition[] = [
         description: 'PARASOLL door/window sensor',
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
-            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
+            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            bindCluster({cluster: 'ssIasZone', clusterType: 'input', endpointNames: ['2']}),
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
             identify({isSleepy: true}),
             battery(),
