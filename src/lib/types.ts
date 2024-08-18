@@ -10,7 +10,7 @@ export interface Logger {
     debug: (message: string, namespace: string) => void;
     info: (message: string, namespace: string) => void;
     warning: (message: string, namespace: string) => void;
-    error: (message: string | Error, namespace: string) => void;
+    error: (message: string, namespace: string) => void;
 }
 
 export type Range = [number, number];
