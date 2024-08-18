@@ -3725,7 +3725,14 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_tqlv4ug4', '_TZ3000_gjrubzje', '_TZ3000_tygpxwqa', '_TZ3000_4rbqgcuv', '_TZ3000_veu2v775']),
+        fingerprint: tuya.fingerprint('TS0001', [
+            '_TZ3000_tqlv4ug4',
+            '_TZ3000_gjrubzje',
+            '_TZ3000_tygpxwqa',
+            '_TZ3000_4rbqgcuv',
+            '_TZ3000_veu2v775',
+            '_TZ3000_prits6g4',
+        ]),
         model: 'TS0001_switch_module',
         vendor: 'Tuya',
         description: '1 gang switch module',
