@@ -8056,7 +8056,7 @@ const definitions: Definition[] = [
                 [16, 'state', tuya.valueConverter.onOff],
                 [1, 'energy', tuya.valueConverter.divideBy100],
                 [2, 'produced_energy', tuya.valueConverter.divideBy100],
-                [9, 'power', tuya.valueConverter.raw],
+                [9, 'power', tuya.valueConverter.power],
                 [6, null, tuya.valueConverter.phaseVariant2WithPhase('a')],
                 [7, null, tuya.valueConverter.phaseVariant2WithPhase('b')],
                 [8, null, tuya.valueConverter.phaseVariant2WithPhase('c')],
