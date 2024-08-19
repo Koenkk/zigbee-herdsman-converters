@@ -86,7 +86,7 @@ const definitions: Definition[] = [
                 .withSetpoint('occupied_heating_setpoint', 4, 40, 0.1)
                 .withSetpoint('occupied_cooling_setpoint', 4, 40, 0.1)
                 .withLocalTemperature()
-                .withSystemMode(['off','heat', 'cool']),
+                .withSystemMode(['off', 'heat', 'cool']),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
