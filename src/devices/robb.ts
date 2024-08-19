@@ -9,6 +9,14 @@ const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['ROB_200-070-0'],
+        model: 'ROB_200-070-0',
+        vendor: 'ROBB smarrt',
+        description: 'battery powered PIR presence, temperature, humidity and light sensors',
+        extend: [deviceEndpoints({"endpoints":{"1":1,"2":2,"3":3,"4":4,"5":5}}), battery(), identify(), occupancy(), iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]}), temperature({"endpointNames":["3"]}), humidity({"endpointNames":["4"]}), illuminance({"endpointNames":["5"]})],
+        meta: {"multiEndpoint":true},
+    },
+    {
         zigbeeModel: ['ROB_200-060-0'],
         model: 'ROB_200-060-0',
         vendor: 'ROBB',
