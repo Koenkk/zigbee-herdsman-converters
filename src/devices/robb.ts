@@ -1,7 +1,19 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, electricityMeter, light, onOff, battery, occupancy, temperature, illuminance, humidity, identify, iasZoneAlarm} from '../lib/modernExtend';
+import {
+    deviceEndpoints,
+    electricityMeter,
+    light,
+    onOff,
+    battery,
+    occupancy,
+    temperature,
+    illuminance,
+    humidity,
+    identify,
+    iasZoneAlarm,
+} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
 
