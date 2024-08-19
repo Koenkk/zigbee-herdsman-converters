@@ -52,8 +52,8 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['ROB_200-070-0'],
         model: 'ROB_200-070-0',
-        vendor: 'ROBB smarrt',
-        description: 'battery powered PIR presence, temperature, humidity and light sensors',
+        vendor: 'ROBB',
+        description: 'Battery powered PIR presence, temperature, humidity and light sensors',
         extend: [
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}}),
             battery(),
@@ -64,7 +64,6 @@ const definitions: Definition[] = [
             humidity({endpointNames: ['4']}),
             illuminance({endpointNames: ['5']}),
         ],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ['ROB_200-050-0'],
