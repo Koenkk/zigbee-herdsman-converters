@@ -9,6 +9,7 @@ import * as ota from './lib/ota';
 import allDefinitions from './devices';
 import * as utils from './lib/utils';
 import {
+    DefinitionWithExtend,
     Definition,
     Fingerprint,
     Zh,
@@ -108,7 +109,7 @@ function validateDefinition(definition: Definition) {
     assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
-function processExtensions(definition: Definition): Definition {
+function processExtensions(definition: DefinitionWithExtend): Definition {
     if ('extend' in definition) {
         if (!Array.isArray(definition.extend)) {
             assert.fail(`'${definition.model}' has legacy extend which is not supported anymore`);
@@ -224,7 +225,7 @@ function processExtensions(definition: Definition): Definition {
     return definition;
 }
 
-function prepareDefinition(definition: Definition): Definition {
+function prepareDefinition(definition: DefinitionWithExtend): Definition {
     definition = processExtensions(definition);
 
     definition.toZigbee.push(
@@ -299,7 +300,7 @@ export function postProcessConvertedFromZigbeeMessage(definition: Definition, pa
     }
 }
 
-export function addDefinition(definition: Definition) {
+export function addDefinition(definition: DefinitionWithExtend) {
     definition = prepareDefinition(definition);
 
     definitions.splice(0, 0, definition);

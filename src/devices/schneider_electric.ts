@@ -19,7 +19,7 @@ import {
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, Tz, KeyValue, ModernExtend} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz, KeyValue, ModernExtend} from '../lib/types';
 import * as utils from '../lib/utils';
 import {postfixWithEndpointName} from '../lib/utils';
 const e = exposes.presets;
@@ -485,7 +485,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PUCK/SHUTTER/1'],
         model: 'CCT5015-0001',

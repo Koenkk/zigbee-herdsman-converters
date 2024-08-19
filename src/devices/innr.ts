@@ -1,12 +1,12 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 import {light, onOff, electricityMeter, reconfigureReportingsOnDeviceAnnounce} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RC 210'],
         model: 'RC 210',

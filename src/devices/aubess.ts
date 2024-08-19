@@ -1,10 +1,10 @@
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 import * as zosung from '../lib/zosung';
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_acv1iuslxi3shaaj'}],
         model: 'ZXZIR-02',

@@ -4,12 +4,12 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {binary, enumLookup, light, numeric} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const ea = exposes.access;
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ElkoDimmerZHA'],
         model: '316GLEDRF',

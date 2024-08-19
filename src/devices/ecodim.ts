@@ -1,12 +1,12 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 import {deviceEndpoints, light} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {

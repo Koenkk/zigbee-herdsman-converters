@@ -5,7 +5,7 @@ import {logger} from '../lib/logger';
 import {light, LightArgs, OnOffArgs, onOff, identify} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
-import {Configure, Definition, KeyValue, OnEventType, Zh, Tz, ModernExtend} from '../lib/types';
+import {Configure, DefinitionWithExtend, KeyValue, OnEventType, Zh, Tz, ModernExtend} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const NS = 'zhc:gledopto';
@@ -169,7 +169,7 @@ function gledoptoConfigureReadModelID(): ModernExtend {
     return {configure, isModernExtend: true};
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['GL-SD-003P'],
         model: 'GL-SD-003P',

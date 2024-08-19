@@ -256,7 +256,7 @@ export type DefinitionExposesFunction = (device: Zh.Device | undefined, options:
 
 export type DefinitionExposes = Expose[] | DefinitionExposesFunction;
 
-export type Definition = {
+type DefinitionBase = {
     model: string;
     vendor: string;
     description: string;
@@ -268,7 +268,15 @@ export type Definition = {
     onEvent?: OnEvent;
     ota?: DefinitionOta;
     generated?: boolean;
-} & ({zigbeeModel: string[]; fingerprint?: Fingerprint[]} | {zigbeeModel?: string[]; fingerprint: Fingerprint[]}) &
+} & ({zigbeeModel: string[]; fingerprint?: Fingerprint[]} | {zigbeeModel?: string[]; fingerprint: Fingerprint[]});
+
+export type Definition = DefinitionBase & {
+    fromZigbee: Fz.Converter[];
+    toZigbee: Tz.Converter[];
+    exposes: DefinitionExposes;
+};
+
+export type DefinitionWithExtend = DefinitionBase &
     (
         | {
               extend: ModernExtend[];

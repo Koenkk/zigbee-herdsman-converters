@@ -7,7 +7,7 @@ import {identify, deviceAddCustomCluster} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Expose, Fz, Tz, Zh} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -2159,7 +2159,7 @@ exposesListVZM35.push(
     ]),
 );
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['VZM31-SN'],
         model: 'VZM31-SN',

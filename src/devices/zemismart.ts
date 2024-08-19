@@ -3,14 +3,14 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 import {forcePowerSource, light, onOff, identify, deviceEndpoints, battery} from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_1vxgqfba']),
         model: 'ZM25R1',

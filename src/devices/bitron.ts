@@ -8,7 +8,7 @@ const ea = exposes.access;
 import {Zcl} from 'zigbee-herdsman';
 
 import {onOff, light} from '../lib/modernExtend';
-import {KeyValueAny, Fz, Tz, Definition} from '../lib/types';
+import {KeyValueAny, Fz, Tz, DefinitionWithExtend} from '../lib/types';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ASTREL_GROUP_SRL};
 
@@ -58,7 +58,7 @@ const bitron = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['AV2010/14', '902010/14'],
         model: 'AV2010/14',

@@ -43,9 +43,9 @@ import {
     bindCluster,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     // #region light
     // lights naming convention: type, light capabilities, form, diffuser type, brightness
     // #region E26/E27/B22

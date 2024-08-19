@@ -22,7 +22,7 @@ import {
     iasZoneAlarm,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 const {ewelinkAction} = ewelinkModernExtend;
 
@@ -543,7 +543,7 @@ const sonoffExtend = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['NSPanelP-Router'],
         model: 'NSPanelP-Router',

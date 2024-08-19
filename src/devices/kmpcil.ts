@@ -6,7 +6,7 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Fz, KeyValue, Publish} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Publish} from '../lib/types';
 import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -26,7 +26,7 @@ const kmpcilOptions = {
     },
 };
 
-function handleKmpcilPresence(model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta): KeyValue {
+function handleKmpcilPresence(model: DefinitionWithExtend, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta): KeyValue {
     const useOptionsTimeoutBattery = options && options.hasOwnProperty('presence_timeout_battery');
     const timeoutBattery = useOptionsTimeoutBattery ? options.presence_timeout_battery : 420; // 100 seconds by default
 
@@ -77,7 +77,7 @@ const kmpcilConverters = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RES005'],
         model: 'KMPCIL_RES005',

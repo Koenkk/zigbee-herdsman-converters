@@ -5,7 +5,7 @@ import {Cluster} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
 import {logger} from './logger';
 import * as m from './modernExtend';
 import {philipsLight} from './philips';
-import {Definition, ModernExtend, Zh} from './types';
+import {DefinitionWithExtend, ModernExtend, Zh} from './types';
 import {getClusterAttributeValue} from './utils';
 
 const NS = 'zhc:gendef';
@@ -49,7 +49,7 @@ class Generator<T> implements GeneratedExtend {
 type ExtendGenerator = (device: Zh.Device, endpoints: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
 type Extender = [string[], ExtendGenerator];
 
-type DefinitionWithZigbeeModel = Definition & {zigbeeModel: string[]};
+type DefinitionWithZigbeeModel = DefinitionWithExtend & {zigbeeModel: string[]};
 
 function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: GeneratedExtend[]): string {
     const imports: {[s: string]: string[]} = {};
@@ -83,7 +83,7 @@ const definition = {
 module.exports = definition;`;
 }
 
-export async function generateDefinition(device: Zh.Device): Promise<{externalDefinitionSource: string; definition: Definition}> {
+export async function generateDefinition(device: Zh.Device): Promise<{externalDefinitionSource: string; definition: DefinitionWithExtend}> {
     // Map cluster to all endpoints that have this cluster.
     const mapClusters = (endpoint: Endpoint, clusters: Cluster[], clusterMap: Map<string, Endpoint[]>) => {
         for (const cluster of clusters) {
@@ -153,7 +153,7 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         extenders.unshift(generatedExtend[0].getExtend());
     }
 
-    const definition: Definition = {
+    const definition: DefinitionWithExtend = {
         zigbeeModel: [device.modelID],
         model: device.modelID ?? '',
         vendor: device.manufacturerName ?? '',
