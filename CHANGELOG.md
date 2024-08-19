@@ -1,5 +1,32 @@
 # Changelog
 
+## [20.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.2.0...v20.3.0) (2024-08-19)
+
+
+### Features
+
+* **add:** 929003666701 ([#7874](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7874)) ([863e2aa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/863e2aa9878826072729e1f305c589486ab61bff))
+* **add:** 929003823701 ([#7863](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7863)) ([86cb1dc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/86cb1dcef9691826ed38e767d915c6cf05906792))
+* **add:** AB390020055 ([#7851](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7851)) ([ecbba70](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ecbba700ed411c1029ba954ac9f01193f4a1b566))
+* **add:** D4Z ([5878016](https://github.com/Koenkk/zigbee-herdsman-converters/commit/58780162e2fb0efe1ce4bd2ffeb3d73162f9a2e6))
+* **add:** ROB_200-070-0 ([#7876](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7876)) ([4b1cc51](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b1cc516650b7c1bc686457c8e7ebd25dbd933d1))
+
+
+### Bug Fixes
+
+* Add "off" system mode to Vimar 02973.B. ([#7875](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7875)) ([3c46c9f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c46c9fd53113f72a3d12c17faff35eefb85ceae))
+* **detect:** Detect `_TZ3000_prits6g4` as Tuya TS0001_switch_module ([#7868](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7868)) ([294b41c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/294b41c66bdff3842bcce708ba038dcfe67851ec))
+* **detect:** Detect `_TZ3000_zjchz7pd` as Immax 07573L ([#7870](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7870)) ([99defa3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/99defa3625f750263892fa5ba8d367c62e8b7a67))
+* Fix IKEA E2013 contact not updating ([#7866](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7866)) ([112abd1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/112abd1f543c0f71590639c39a3034ca843b55ab))
+* Fix IKEA E2202 not reporting water leak ([#7865](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7865)) ([b524c39](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b524c39dbebcf32a8912e53820bca3bd362989ea))
+* Fix negative readings for several Tuya TS0601 power meters https://github.com/Koenkk/zigbee2mqtt/issues/18603 ([f7dfbc4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f7dfbc4dcd9c8744973a3536d43893faae643fa3))
+* Fixes for ELKO Super TR + ctm_thermostat ([#7871](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7871)) ([d37d7a3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d37d7a3e53b5ac99e27937e401a2d268c5cc450a))
+* Ignore identify cluster for definition generator ([#7864](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7864)) ([5c92fca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5c92fca6c8f1186d0d8414c8bd86cd2c42b29651))
+* **ignore:** Fix switched lookups, remove redundant manuSpecificLumi control ([#7859](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7859)) ([bbea11d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bbea11d6be2366f841c2fc56e45f9b51f2b60787))
+* **ignore:** update dependencies ([#7867](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7867)) ([2b939f5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2b939f531128544a2941324b2a576e2b1265480e))
+* Improve Gledopto GL-D-013P support ([#7860](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7860)) ([fc114fe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc114fe93af75f8620248c9766f97274ba597e38))
+* Update Gledopto Pro LED controllers to standard light ModernExtend ([#7872](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7872)) ([9fbb603](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9fbb6034de6b944b31b3919a9673026031f1558c))
+
 ## [20.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.1.1...v20.2.0) (2024-08-15)
 
 
