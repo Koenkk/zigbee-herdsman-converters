@@ -129,7 +129,7 @@ const definitions: Definition[] = [
         model: 'Z01-A19NAE26',
         vendor: 'Sengled',
         description: 'Element plus (A19)',
-        extend: [sengledLight({colorTemp: {range: [154, 500]}, color: {modes: ['xy']}}), electricityMeter({cluster: 'metering'}), ota()],
+        extend: [sengledLight({colorTemp: {range: [154, 500]}}), electricityMeter({cluster: 'metering'}), ota()],
     },
     {
         zigbeeModel: ['Z01-A60EAE27'],

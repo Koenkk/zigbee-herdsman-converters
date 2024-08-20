@@ -1289,6 +1289,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
+        zigbeeModel: ['LTG005'],
+        model: '929003666701',
+        vendor: 'Philips',
+        description: 'Hue white ambiance GU10 with Bluetooth',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ['LTD005'],
         model: '5995111U5',
         vendor: 'Philips',
@@ -3020,6 +3027,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['LCG006'],
+        model: '929003666501',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance GU10 spot LED with Bluetooth',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ['5309030P9', '5309031P9', '5309030P6', '5309031P6', '929003046101'],
         model: '5309030P9',
         vendor: 'Philips',
@@ -3763,6 +3777,13 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance Play Gradient Light Tube Compact',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ['929003823701'],
+        model: '929003823701',
+        vendor: 'Philips',
+        description: 'Hue Tento color 42,1cm',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
 

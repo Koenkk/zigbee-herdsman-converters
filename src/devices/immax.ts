@@ -94,6 +94,13 @@ const definitions: Definition[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        fingerprint: [{modelID: 'TS0502C', manufacturerName: '_TZ3210_6pwpez2j'}],
+        model: 'TS0502C',
+        vendor: 'Immax',
+        description: 'Neo FINO Smart pendant light black 80cm CCT 60W, Zigbee 3.0',
+        extend: [light({colorTemp: {range: [153, 500]}})],
+    },
+    {
         zigbeeModel: ['Keyfob-ZB3.0'],
         model: '07046L',
         vendor: 'Immax',
@@ -230,7 +237,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n9clpsht', '_TZE200_nyvavzbj']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n9clpsht', '_TZE200_nyvavzbj', '_TZE200_moycceze']),
         model: '07505L',
         vendor: 'Immax',
         description: 'Neo smart keypad',

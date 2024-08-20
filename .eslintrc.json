@@ -5,11 +5,7 @@
     },
     "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
     "parser": "@typescript-eslint/parser",
-    "plugins": [
-        "@typescript-eslint",
-        "eslint-plugin-tsdoc",
-        "perfectionist"
-    ],
+    "plugins": ["@typescript-eslint", "eslint-plugin-tsdoc", "perfectionist"],
     "root": true,
     "parserOptions": {
         "project": "./tsconfig.json"
@@ -26,46 +22,31 @@
         "perfectionist/sort-imports": [
             "error",
             {
-              "groups": [
-                "type",
-                [
-                  "builtin",
-                  "external"
+                "groups": [
+                    "type",
+                    ["builtin", "external"],
+                    "internal-type",
+                    "internal",
+                    ["parent-type", "sibling-type", "index-type"],
+                    ["parent", "sibling", "index"],
+                    "object",
+                    "unknown"
                 ],
-                "internal-type",
-                "internal",
-                [
-                  "parent-type",
-                  "sibling-type",
-                  "index-type"
-                ],
-                [
-                  "parent",
-                  "sibling",
-                  "index"
-                ],
-                "object",
-                "unknown"
-              ],
-              "custom-groups": {
-                "value": {},
-                "type": {}
-              },
-              "newlines-between": "always",
-              "internal-pattern": [
-                "~/**"
-              ],
-              "type": "natural",
-              "order": "asc",
-              "ignore-case": false
+                "customGroups": {
+                    "value": {},
+                    "type": {}
+                },
+                "newlinesBetween": "always",
+                "internalPattern": ["~/**"],
+                "type": "natural",
+                "order": "asc",
+                "ignoreCase": false
             }
         ]
     },
     "overrides": [
         {
-            "files": [
-                "**/*.js"
-            ],
+            "files": ["**/*.js"],
             "rules": {
                 "@typescript-eslint/no-var-requires": "off"
             }

@@ -24,6 +24,10 @@ export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
 }
 
+export function flatten<Type>(arr: Type[][]): Type[] {
+    return [].concat(...arr);
+}
+
 export function onEventPoll(
     type: OnEventType,
     data: OnEventData,

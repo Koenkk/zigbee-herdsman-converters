@@ -58,8 +58,8 @@ const definitions: Definition[] = [
                 // Fails for some devices.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/4598
                 await reporting.onOff(endpoint);
-            } catch (e) {
-                e;
+            } catch {
+                /* empty */
             }
         },
     },

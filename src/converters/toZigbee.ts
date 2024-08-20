@@ -1089,6 +1089,10 @@ const converters2 = {
                 //  'MoveToLevelWithOnOff' despite not supporting the cluster; others, like the LEDVANCE SMART+
                 //  plug, do not.)
                 brightness = transition.specified || brightness === 0 ? 0 : undefined;
+                if (brightness !== undefined && utils.getMetaValue(entity, meta.mapped, 'noOffTransition', 'first', false)) {
+                    logger.debug(`Supressing OFF transition since entity has noOffTransition=true`, NS);
+                    brightness = undefined;
+                }
                 if (meta.state.hasOwnProperty('brightness') && meta.state.state === 'ON') {
                     // The light's current level gets clobbered in two cases:
                     //   1. when 'Off' has a transition, in which case it is really 'MoveToLevelWithOnOff'
@@ -1840,16 +1844,6 @@ const converters2 = {
     // #endregion
 
     // #region Non-generic converters
-    elko_load: {
-        key: ['load'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoLoad: value});
-            return {state: {load: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoLoad']);
-        },
-    } satisfies Tz.Converter,
     elko_display_text: {
         key: ['display_text'],
         convertSet: async (entity, key, value, meta) => {
@@ -1875,79 +1869,10 @@ const converters2 = {
             await entity.read('hvacThermostat', ['elkoPowerStatus']);
         },
     } satisfies Tz.Converter,
-    elko_external_temp: {
-        key: ['floor_temp'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoExternalTemp']);
-        },
-    } satisfies Tz.Converter,
-    elko_mean_power: {
-        key: ['mean_power'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoMeanPower']);
-        },
-    } satisfies Tz.Converter,
-    elko_child_lock: {
-        key: ['child_lock'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoChildLock: value === 'lock'});
-            return {state: {child_lock: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoChildLock']);
-        },
-    } satisfies Tz.Converter,
-    elko_frost_guard: {
-        key: ['frost_guard'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoFrostGuard: value === 'on'});
-            return {state: {frost_guard: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoFrostGuard']);
-        },
-    } satisfies Tz.Converter,
-    elko_night_switching: {
-        key: ['night_switching'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoNightSwitching: value === 'on'});
-            return {state: {night_switching: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoNightSwitching']);
-        },
-    } satisfies Tz.Converter,
     elko_relay_state: {
         key: ['running_state'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['elkoRelayState']);
-        },
-    } satisfies Tz.Converter,
-    elko_sensor_mode: {
-        key: ['sensor'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoSensor: utils.getFromLookup(value, {air: '0', floor: '1', supervisor_floor: '3'})});
-            return {state: {sensor: value}};
-        },
-    } satisfies Tz.Converter,
-    elko_regulator_time: {
-        key: ['regulator_time'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoRegulatorTime: value});
-            return {state: {sensor: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoRegulatorTime']);
-        },
-    } satisfies Tz.Converter,
-    elko_regulator_mode: {
-        key: ['regulator_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoRegulatorMode: value === 'regulator'});
-            return {state: {regulator_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoRegulatorMode']);
         },
     } satisfies Tz.Converter,
     elko_local_temperature_calibration: {
@@ -1959,19 +1884,6 @@ const converters2 = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['elkoCalibration']);
-        },
-    } satisfies Tz.Converter,
-    elko_max_floor_temp: {
-        key: ['max_floor_temp'],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertArray(value);
-            if (value.length <= 14) {
-                await entity.write('hvacThermostat', {elkoMaxFloorTemp: value});
-                return {state: {max_floor_temp: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoMaxFloorTemp']);
         },
     } satisfies Tz.Converter,
     livolo_socket_switch_on_off: {
@@ -3749,8 +3661,8 @@ const converters2 = {
                 } else if (attribute === 'color') {
                     try {
                         val = JSON.parse(val);
-                    } catch (e) {
-                        e;
+                    } catch {
+                        /* empty */
                     }
 
                     const newColor = libColor.Color.fromConverterArg(val);

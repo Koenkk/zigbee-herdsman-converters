@@ -16,6 +16,7 @@ import atsmart from './atsmart';
 import aubess from './aubess';
 import aurora_lighting from './aurora_lighting';
 import automaton from './automaton';
+import avatto from './avatto';
 import awox from './awox';
 import axis from './axis';
 import bankamp from './bankamp';
@@ -179,6 +180,7 @@ import micromatic from './micromatic';
 import modular from './modular';
 import moes from './moes';
 import muller_licht from './muller_licht';
+import multiterm from './multiterm';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
 import neo from './neo';
@@ -323,6 +325,7 @@ export default [
     ...aubess,
     ...aurora_lighting,
     ...automaton,
+    ...avatto,
     ...awox,
     ...axis,
     ...bankamp,
@@ -486,6 +489,7 @@ export default [
     ...modular,
     ...moes,
     ...muller_licht,
+    ...multiterm,
     ...namron,
     ...nanoleaf,
     ...neo,

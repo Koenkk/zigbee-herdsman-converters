@@ -7,7 +7,7 @@ import * as globalLegacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {zigbeeOTA} from '../lib/ota';
 import * as globalStore from '../lib/store';
-import {presets as e, access as ea, options as opt, Cover} from './exposes';
+import {presets as e, access as ea, options as opt, Cover, Numeric} from './exposes';
 import {configure as lightConfigure} from './light';
 import {
     Fz,
@@ -45,6 +45,7 @@ import {
     hasAlreadyProcessedMessage,
     addActionGroup,
     isLegacyEnabled,
+    flatten,
 } from './utils';
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: 'input' | 'output') {
@@ -1569,6 +1570,7 @@ export interface ElectricityMeterArgs {
     voltage?: false | MultiplierDivisor;
     energy?: false | MultiplierDivisor;
     configureReporting?: boolean;
+    endpointNames?: string[];
 }
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     args = {cluster: 'both', configureReporting: true, ...args};
@@ -1581,7 +1583,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         throw new Error(`When cluster is metering, power and energy divisor/multiplier should be equal`);
     }
 
-    let exposes: Expose[];
+    let exposes: Numeric[];
     let fromZigbee: Fz.Converter[];
     let toZigbee: Tz.Converter[];
 
@@ -1631,6 +1633,10 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         fromZigbee = [fz.electrical_measurement];
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent];
         delete configureLookup.seMetering;
+    }
+
+    if (args.endpointNames) {
+        exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
     }
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
