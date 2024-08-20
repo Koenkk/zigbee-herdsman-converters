@@ -112,6 +112,15 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    activity_led: {
+        cluster: 'genBinaryOutput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('presentValue')) {
+                return { activity_led: [msg.data['presentValue']] };
+            }
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -245,22 +254,21 @@ const tzLocal = {
             await entity.read('msRelativeHumidity', ['sprutHeater'], manufacturerOptions);
         },
     } satisfies Tz.Converter,
+    activity_led: {
+        key: ['activity_led'],
+        convertSet: async (entity, key, value, meta) => {
+            const newValue = value === true ? 1 : 0;
+            const options = getOptions(meta.mapped, entity);
+            await entity.write('genBinaryOutput', { presentValue: newValue }, options);
+            return { state: { [key]: value } };
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBinaryOutput', ['presentValue']);
+        },
+    } satisfies Tz.Converter
 };
 
 const sprutModernExtend = {
-    sprutActivityIndicator: (args?: Partial<modernExtend.BinaryArgs>) =>
-        modernExtend.binary({
-            name: 'activity_led',
-            cluster: 'genBinaryOutput',
-            attribute: 'presentValue',
-            description: 'Controls green activity LED',
-            reporting: {attribute: 'presentValue', min: 'MIN', max: 'MAX', change: 1},
-            valueOn: [true, 1],
-            valueOff: [false, 0],
-            access: 'ALL',
-            entityCategory: 'config',
-            ...args,
-        }),
     sprutTemperatureOffset: (args?: Partial<modernExtend.NumericArgs>) =>
         modernExtend.numeric({
             name: 'temperature_offset',
@@ -438,7 +446,6 @@ const sprutModernExtend = {
 };
 
 const {
-    sprutActivityIndicator,
     sprutOccupancyLevel,
     sprutNoise,
     sprutVoc,
@@ -603,6 +610,19 @@ const definitions: Definition[] = [
         model: 'WB-MSW-ZIGBEE v.4',
         vendor: 'Wirenboard',
         description: 'Wall-mounted multi sensor',
+        fromZigbee: [
+            fzLocal.activity_led,
+        ],
+        toZigbee: [
+            tzLocal.activity_led,
+        ],
+        exposes: [
+            e
+                .binary('activity_led', ea.ALL, true, false)
+                .withCategory('config')
+                .withEndpoint('indicator')
+                .withDescription('Controls green activity LED'),
+        ],
         extend: [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             deviceEndpoints({
@@ -610,7 +630,6 @@ const definitions: Definition[] = [
                 multiEndpointSkip: ['occupancy'],
             }),
             onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
-            sprutActivityIndicator({endpointName: 'indicator'}),
             temperature(),
             sprutTemperatureOffset(),
             humidity(),
