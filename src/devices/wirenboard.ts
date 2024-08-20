@@ -258,7 +258,7 @@ const tzLocal = {
         key: ['activity_led'],
         convertSet: async (entity, key, value, meta) => {
             const payloadValue = value === true ? 1 : 0;
-            const payload = (0, utils_1.isString)('presentValue')
+            const payload = isString('presentValue')
                 ? { ['presentValue']: payloadValue }
                 : { [presentValue.ID]: { value: payloadValue, type: presentValue.type } };
             const options = (0, utils_1.getOptions)(meta.mapped, entity);
@@ -462,7 +462,6 @@ const sprutModernExtend = {
 };
 
 const {
-    sprutActivityIndicator,
     sprutOccupancyLevel,
     sprutNoise,
     sprutVoc,
