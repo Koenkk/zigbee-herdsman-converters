@@ -10618,7 +10618,7 @@ const definitions: Definition[] = [
             e.numeric('eco_temperature', ea.STATE_SET).withValueMin(5).withValueMax(30).withValueStep(1).withUnit('°C')
                 .withDescription('Max temperature in ECO mode. Default: 20'),
             e.text('valve_state', ea.STATE).withLabel('Heating in process'),
-            e.climate().withSystemMode(['off', 'heat'], ea.STATE_SET).withPreset(['manual', 'auto'])
+            e.climate().withSystemMode(['OFF', 'HEAT'], ea.STATE_SET).withPreset(['MANUAL', 'AUTO'])
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
@@ -10667,10 +10667,10 @@ const definitions: Definition[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'system_mode', tuya.valueConverterBasic.lookup((_, device) => {
-                    return {'off': false, 'heat': true};
+                    return {'OFF': false, 'HEAT': true};
                 })],
                 [2, 'preset', tuya.valueConverterBasic.lookup((_, device) => {
-                    return {'auto': tuya.enum(0), 'manual': tuya.enum(1)};
+                    return {'AUTO': tuya.enum(0), 'MANUAL': tuya.enum(1)};
                 })],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [19, 'max_temperature', tuya.valueConverter.divideBy10],
