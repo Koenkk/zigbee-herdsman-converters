@@ -7989,7 +7989,7 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         whiteLabel: [
             {vendor: 'MatSee Plus', model: 'PC321-Z-TY'},
-            {vendor: 'Owon', model: 'PC321-Z-TY'},
+            {vendor: 'OWON', model: 'PC321-Z-TY'},
         ],
         exposes: [
             e.ac_frequency(),
