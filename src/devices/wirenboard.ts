@@ -269,19 +269,6 @@ const tzLocal = {
 };
 
 const sprutModernExtend = {
-    sprutActivityIndicator: (args?: Partial<modernExtend.BinaryArgs>) =>
-        modernExtend.binary({
-            name: 'activity_led',
-            cluster: 'genBinaryOutput',
-            attribute: 'presentValue',
-            description: 'Controls green activity LED',
-            reporting: {attribute: 'presentValue', min: 'MIN', max: 'MAX', change: 1},
-            valueOn: [true, 1],
-            valueOff: [false, 0],
-            access: 'ALL',
-            entityCategory: 'config',
-            ...args,
-        }),
     sprutTemperatureOffset: (args?: Partial<modernExtend.NumericArgs>) =>
         modernExtend.numeric({
             name: 'temperature_offset',
@@ -459,7 +446,6 @@ const sprutModernExtend = {
 };
 
 const {
-    /*sprutOccupancyLevel,*/
     sprutOccupancyLevel,
     sprutNoise,
     sprutVoc,
@@ -644,7 +630,6 @@ const definitions: Definition[] = [
                 multiEndpointSkip: ['occupancy'],
             }),
             onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
-            /*sprutActivityIndicator({endpointName: 'indicator'}),*/
             temperature(),
             sprutTemperatureOffset(),
             humidity(),
