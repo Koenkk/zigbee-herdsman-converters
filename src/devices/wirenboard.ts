@@ -257,12 +257,9 @@ const tzLocal = {
     activity_led: {
         key: ['activity_led'],
         convertSet: async (entity, key, value, meta) => {
-            const payloadValue = value === true ? 1 : 0;
-            const payload = isString('presentValue')
-                ? { ['presentValue']: payloadValue }
-                : { [presentValue.ID]: { value: payloadValue, type: presentValue.type } };
-            const options = (0, utils_1.getOptions)(meta.mapped, entity);
-            await entity.write('genBinaryOutput', payload, options);
+            const newValue = value === true ? 1 : 0;
+            const options = getOptions(meta.mapped, entity);
+            await entity.write('genBinaryOutput', { presentValue: newValue }, options);
             return { state: { [key]: value } };
         },
         convertGet: async (entity, key, meta) => {
@@ -272,7 +269,7 @@ const tzLocal = {
 };
 
 const sprutModernExtend = {
-/*    sprutActivityIndicator: (args?: Partial<modernExtend.BinaryArgs>) =>
+    sprutActivityIndicator: (args?: Partial<modernExtend.BinaryArgs>) =>
         modernExtend.binary({
             name: 'activity_led',
             cluster: 'genBinaryOutput',
@@ -284,7 +281,7 @@ const sprutModernExtend = {
             access: 'ALL',
             entityCategory: 'config',
             ...args,
-        }),*/
+        }),
     sprutTemperatureOffset: (args?: Partial<modernExtend.NumericArgs>) =>
         modernExtend.numeric({
             name: 'temperature_offset',
@@ -462,6 +459,7 @@ const sprutModernExtend = {
 };
 
 const {
+    /*sprutOccupancyLevel,*/
     sprutOccupancyLevel,
     sprutNoise,
     sprutVoc,
@@ -646,7 +644,7 @@ const definitions: Definition[] = [
                 multiEndpointSkip: ['occupancy'],
             }),
             onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
-/*            sprutActivityIndicator({endpointName: 'indicator'}),*/
+            /*sprutActivityIndicator({endpointName: 'indicator'}),*/
             temperature(),
             sprutTemperatureOffset(),
             humidity(),
