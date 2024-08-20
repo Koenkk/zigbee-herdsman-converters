@@ -10859,7 +10859,7 @@ const definitions: Definition[] = [
                 //109, 'online_state, unknown, I have not seen any message from this DP],
                 [
                     110,
-                    'last_event1',
+                    'last_event',
                     tuya.valueConverterBasic.lookup({
                         normal: tuya.enum(0),
                         trip_over_current: tuya.enum(1),
