@@ -117,7 +117,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('presentValue')) {
-                return { activity_led: [msg.data['presentValue']] };
+                return {activity_led: [msg.data['presentValue']]};
             }
         },
     } satisfies Fz.Converter,
@@ -259,13 +259,13 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const newValue = value === true ? 1 : 0;
             const options = getOptions(meta.mapped, entity);
-            await entity.write('genBinaryOutput', { presentValue: newValue }, options);
-            return { state: { [key]: value } };
+            await entity.write('genBinaryOutput', {presentValue: newValue}, options);
+            return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genBinaryOutput', ['presentValue']);
         },
-    } satisfies Tz.Converter
+    } satisfies Tz.Converter,
 };
 
 const sprutModernExtend = {
@@ -610,12 +610,8 @@ const definitions: Definition[] = [
         model: 'WB-MSW-ZIGBEE v.4',
         vendor: 'Wirenboard',
         description: 'Wall-mounted multi sensor',
-        fromZigbee: [
-            fzLocal.activity_led,
-        ],
-        toZigbee: [
-            tzLocal.activity_led,
-        ],
+        fromZigbee: [fzLocal.activity_led],
+        toZigbee: [tzLocal.activity_led],
         exposes: [
             e
                 .binary('activity_led', ea.ALL, true, false)
