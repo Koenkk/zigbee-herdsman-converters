@@ -258,9 +258,9 @@ const tzLocal = {
         key: ['activity_led'],
         convertSet: async (entity, key, value, meta) => {
             const payloadValue = value === true ? 1 : 0;
-            const payload = (0, utils_1.isString)('activity_led')
+            const payload = (0, utils_1.isString)('presentValue')
                 ? { ['presentValue']: payloadValue }
-                : { ['presentValue'.ID]: { value: payloadValue, type: 'presentValue'.type } };
+                : { [presentValue.ID]: { value: payloadValue, type: presentValue.type } };
             const options = (0, utils_1.getOptions)(meta.mapped, entity);
             await entity.write('genBinaryOutput', payload, options);
             return { state: { [key]: value } };
