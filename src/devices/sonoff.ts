@@ -1118,14 +1118,6 @@ const definitions: Definition[] = [
                 configureReporting: true,
             }),
             sonoffExtend.addCustomClusterEwelink(),
-            binary({
-                name: 'auto_shut_down_valve',
-                cluster: 'customClusterEwelink',
-                attribute: 'lackWaterCloseValveTimeout',
-                description: 'Automatically shut down the water valve after the water shortage exceeds 30 minutes.',
-                valueOff: ['DISABLE', 0],
-                valueOn: ['ENABLE', 30],
-            }),
             enumLookup({
                 name: 'current_device_status',
                 lookup: {normal_state: 0, water_shortage: 1, water_leakage: 2, 'water_shortage & water_leakage': 3},
@@ -1133,6 +1125,14 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x500c, type: 0x20},
                 description: 'The water valve is in normal state, water shortage or water leakage',
                 access: 'STATE_GET',
+            }),
+            binary({
+                name: 'behavior_of_water_shortage',
+                cluster: 'customClusterEwelink',
+                attribute: 'lackWaterCloseValveTimeout',
+                description: 'Automatically shut down the water valve after the water shortage exceeds 30 minutes.',
+                valueOff: ['DISABLE', 0],
+                valueOn: ['ENABLE', 30],
             }),
             sonoffExtend.cyclicTimedIrrigation(),
             sonoffExtend.cyclicQuantitativeIrrigation(),
@@ -1142,7 +1142,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msFlowMeasurement']);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read('customClusterEwelink', [0x500c]);
+            await endpoint.read('customClusterEwelink', [0x500c, 0x5011]);
         },
     },
     {
