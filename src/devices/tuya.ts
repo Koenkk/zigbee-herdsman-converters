@@ -7060,7 +7060,10 @@ const definitions: Definition[] = [
         description: 'Smart Human presence sensor',
         fromZigbee: [legacy.fz.tuya_smart_human_presense_sensor],
         toZigbee: [legacy.tz.tuya_smart_human_presense_sensor],
-        whiteLabel: [tuya.whitelabel('Tuya', 'ZY-M100-L', 'Ceiling human breathe sensor', ['_TZE204_ztc6ggyl'])],
+        whiteLabel: [
+            tuya.whitelabel('Tuya', 'ZY-M100-L', 'Ceiling human breathe sensor', ['_TZE204_ztc6ggyl']),
+            tuya.whitelabel('Moes', 'ZSS-QY-HP', 'Human presence sensor', ['_TZE204_fwondbzy']),
+        ],
         exposes: [
             e.illuminance_lux(),
             e.presence(),
