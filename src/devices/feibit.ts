@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, identify, onOff, light, commandsOnOff, windowCovering} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
 
@@ -114,11 +114,11 @@ const definitions: Definition[] = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FB56+SKT14AL2.1', 'FTB56+SKT1BCW1.0'],
+        zigbeeModel: ['FB56+SKT14AL2.1', 'FTB56+SKT1BCW1.0', 'FEB56-STK2AYS1.1', 'FEB61-SKT1IFB1.2'],
         model: 'SFS01ZB',
         vendor: 'Feibit',
         description: 'Power plug',
-        extend: [onOff()],
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FB56+ZSW1HKJ2.2', 'FB56+ZSW1HKJ1.1'],
@@ -142,6 +142,123 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off],
         fromZigbee: [fz.command_recall],
         exposes: [e.action(['recall_*']), e.switch()],
+    },
+    {
+        zigbeeModel: ['FB56+SKT06HM1.1'],
+        model: 'TSKT106W-M1',
+        vendor: 'Feibit',
+        description: 'Smart Socket -T',
+        extend: [deviceEndpoints({endpoints: {'16': 16, '17': 17}}), onOff({powerOnBehavior: false, endpointNames: ['16', '17']})],
+    },
+    {
+        zigbeeModel: ['FEB56-ZSN25YS1.3'],
+        model: 'SZSN325W-Q',
+        vendor: 'Feibit',
+        description: 'Three position scenario switch',
+        fromZigbee: [fz.command_recall],
+        toZigbee: [],
+        exposes: [e.action(['recall_*'])],
+    },
+    {
+        zigbeeModel: ['FB56+ZSN08KJ2.6'],
+        model: 'TSKT114W-S1',
+        vendor: 'Feibit',
+        description: 'Four position situational switch',
+        extend: [deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}), commandsOnOff({endpointNames: ['1', '2', '3', '4']})],
+    },
+    {
+        zigbeeModel: ['FNB56-ZRC06FB2.0'],
+        model: 'NZRC106W-M2',
+        vendor: 'Feibit',
+        description: 'Security controller',
+        extend: [],
+        fromZigbee: [fz.command_arm, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['panic', 'disarm', 'arm_day_zones', 'arm_all_zones'])],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        onEvent: async (_, data) => {
+            if (data.type === 'commandArm' && data.cluster === 'ssIasAce') {
+                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
+            }
+        },
+    },
+    {
+        zigbeeModel: ['FEB56-ZT21AAK1.6'],
+        model: 'SZT211_AW-P1',
+        vendor: 'Feibit',
+        description: 'Curtain motor',
+        extend: [windowCovering({controls: ['lift', 'tilt']})],
+    },
+    {
+        zigbeeModel: ['FB56+TMT01ZY1.6'],
+        model: 'SSS401ZB-T',
+        vendor: 'Feibit',
+        description: 'Temperature control panel',
+        fromZigbee: [fz.thermostat, fz.on_off, fz.fan],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_system_mode,
+            tz.on_off,
+            tz.fan_mode,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'cool', 'heat', 'fan_only', 'dry'])
+                .withFanMode(['off', 'low', 'medium', 'high', 'on', 'auto'])
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 5, 30, 0.5),
+            e.switch(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl', 'genOnOff']);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.fanMode(endpoint);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['FB56+ZSC02KJ1.0'],
+        model: 'TZSC302W-V1',
+        vendor: 'Feibit',
+        description: 'Dimmer Switch',
+        extend: [deviceEndpoints({endpoints: {'11': 11, '12': 12, '13': 13}}), light({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ['FTB56+SKT22HY1.1'],
+        model: 'TSKT222W-H4',
+        vendor: 'Feibit',
+        description: 'Power socket with metering',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.energy()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['FB56+CUR18SB2.0'],
+        model: 'TCUR218W-V1',
+        vendor: 'Feibit',
+        description: 'Dual track curtain controller',
+        extend: [deviceEndpoints({endpoints: {'bottom': 14, 'top': 15}}), identify()],
+        fromZigbee: [fz.command_cover_open, fz.command_cover_close, fz.command_cover_stop, fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position().withEndpoint('bottom'), e.cover_position().withEndpoint('top')],
     },
 ];
 
