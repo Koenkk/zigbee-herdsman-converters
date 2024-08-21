@@ -63,6 +63,7 @@ const sonoffExtend = {
                 delayedPowerOnTime: {ID: 0x0015, type: Zcl.DataType.UINT16},
                 externalTriggerMode: {ID: 0x0016, type: Zcl.DataType.UINT8},
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
+                lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16},
             },
             commands: {
                 protocolData: {ID: 0x01, parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -1117,6 +1118,14 @@ const definitions: Definition[] = [
                 configureReporting: true,
             }),
             sonoffExtend.addCustomClusterEwelink(),
+            binary({
+                name: 'auto_shut_down_valve',
+                cluster: 'customClusterEwelink',
+                attribute: 'lackWaterCloseValveTimeout',
+                description: 'Automatically shut down the water valve after the water shortage exceeds 30 minutes.',
+                valueOff: ['DISABLE', 0],
+                valueOn: ['ENABLE', 30],
+            }),
             enumLookup({
                 name: 'current_device_status',
                 lookup: {normal_state: 0, water_shortage: 1, water_leakage: 2, 'water_shortage & water_leakage': 3},
