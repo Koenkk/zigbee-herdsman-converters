@@ -7001,6 +7001,45 @@ const definitions: Definition[] = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
     },
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_fwondbzy']),
+        model: 'ZSS-QY-HP',
+        vendor: 'Moes',
+        description: 'Human presence sensor',
+        fromZigbee: [legacy.fz.tuya_smart_human_presense_sensor],
+        toZigbee: [legacy.tz.tuya_smart_human_presense_sensor],
+        exposes: [
+            e.illuminance_lux(),
+            e.presence(),
+            e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
+            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription('sensitivity of the radar'),
+            e
+                .numeric('minimum_range', ea.STATE_SET)
+                .withValueMin(0.3)
+                .withValueMax(9.5)
+                .withValueStep(0.15)
+                .withDescription('Minimum range')
+                .withUnit('m'),
+            e
+                .numeric('maximum_range', ea.STATE_SET)
+                .withValueMin(0.3)
+                .withValueMax(9.5)
+                .withValueStep(0.15)
+                .withDescription('Maximum range')
+                .withUnit('m'),
+            e
+                .numeric('detection_delay', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.1)
+                .withDescription('Detection delay')
+                .withUnit('s'),
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(1500).withValueStep(1).withDescription('Fading time').withUnit('s'),
+            // e.text('cli', ea.STATE).withDescription('not recognize'),
+            e
+                .enum('self_test', ea.STATE, Object.values(legacy.tuyaHPSCheckingResult))
+                .withDescription('Self_test, possible results: checking, check_success, check_failure, others, comm_fault, radar_fault.'),
+        ],
+    },
     {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
