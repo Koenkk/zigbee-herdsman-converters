@@ -661,10 +661,10 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'KF01'}],
         description: 'Wireless button',
-        fromZigbee: [fz.command_status_change_notification_action, fz.battery],
         exposes: [e.battery(), e.action(['off', 'single',]), e.battery_voltage()],
+        fromZigbee: [fz.command_status_change_notification_action, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
