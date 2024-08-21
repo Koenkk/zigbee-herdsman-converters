@@ -6438,7 +6438,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay']),
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay', '_TZE204_myd45weu']),
         model: 'TS0222_temperature_humidity',
         vendor: 'Tuya',
         description: 'Temperature & humidity sensor',
@@ -6446,7 +6446,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
-        whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZ3000_kky16aay', '_TZE204_myd45weu'])],
+        whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
     },
     {
         fingerprint: [
