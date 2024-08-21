@@ -36,10 +36,12 @@ import {
     isLegacyEnabled,
     noOccupancySince,
     isObject,
+    isEndpoint,
     isString,
     getOptions,
     assertObject,
     calibrateAndPrecisionRoundOptions,
+    sleep,
 } from './utils';
 
 const NS = 'zhc:lumi';
@@ -1534,6 +1536,158 @@ export const lumiModernExtend = {
             description: 'Controls the motor speed',
             entityCategory: 'config',
             zigbeeCommandOptions: {manufacturerCode},
+            ...args,
+        }),
+    lumiCurtainSpeed: (args?: Partial<modernExtend.NumericArgs>) =>
+        modernExtend.numeric({
+            name: 'curtain_speed',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x043b, type: 0x20},
+            description: 'Speed of curtain movement',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            unit: '%',
+            valueMin: 1,
+            valueMax: 100,
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainManualOpenClose: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'manual_open_close',
+            valueOn: ['ON', 1],
+            valueOff: ['OFF', 0],
+            cluster: 'manuSpecificLumi',
+            attribute: 'curtainHandOpen',
+            description: 'Gently pull to open/close the curtain automatically',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainAdaptivePullingSpeed: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'adaptive_pulling_speed',
+            valueOn: ['ON', 1],
+            valueOff: ['OFF', 0],
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0442, type: 0x20},
+            description: 'The faster/slower the curtain is pulled manually, the faster/slower the curtain will move',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainManualStop: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'manual_stop',
+            valueOn: ['ON', 1],
+            valueOff: ['OFF', 0],
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x043a, type: 0x10},
+            description: 'Manually pulling the curtain during operation stops the motor',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainReverse: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'reverse_direction',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            cluster: 'closuresWindowCovering',
+            attribute: 'windowCoveringMode',
+            description: 'Whether the curtain direction is inverted',
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainStatus: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'status',
+            lookup: {closing: 0, opening: 1, stopped: 2, blocked: 3},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0421, type: 0x20},
+            description: 'Current status of the curtain (Opening, Closing, Stopped, Blocked)',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainLastManualOperation: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'last_manual_operation',
+            lookup: {open: 1, close: 2, stop: 3},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0425, type: 0x20},
+            description: 'Last triggered manual operation',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainPosition: (args?: Partial<modernExtend.NumericArgs>) =>
+        modernExtend.numeric({
+            name: 'curtain_position',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x041f, type: 0x20},
+            description: 'Current position of the curtain',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            unit: '%',
+            valueMin: 1,
+            valueMax: 100,
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainTraverseTime: (args?: Partial<modernExtend.NumericArgs>) =>
+        modernExtend.numeric({
+            name: 'traverse_time',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0403, type: 0x20},
+            description: 'Time in seconds to get from one end to another',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            unit: 'sec',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainCalibrationStatus: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'calibration_status',
+            lookup: {not_calibrated: 0, half_calibrated: 1, fully_calibrated: 2},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0426, type: 0x20},
+            description: 'Calibration status of the curtain (Not calibrated, Half calibrated, Fully calibrated)',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainCalibrated: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'calibrated',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            cluster: 'manuSpecificLumi',
+            attribute: 'curtainCalibrated',
+            description: 'Indicates if this device is calibrated',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainIdentifyBeep: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'identify_beep',
+            lookup: {short: 0, '1_sec': 1, '2_sec': 2},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0404, type: 0x20},
+            description: 'Device will beep for chosen time duration',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
             ...args,
         }),
     lumiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) =>
@@ -4673,7 +4827,9 @@ export const toZigbee = {
     lumi_curtain_limits_calibration: {
         key: ['limits_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            switch (value) {
+            assertString(value);
+            const normalizedValue = value.toLowerCase();
+            switch (normalizedValue) {
                 case 'start':
                     await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
                     break;
@@ -4704,6 +4860,84 @@ export const toZigbee = {
                     await entity.write('genMultistateOutput', {presentValue: 0}, manufacturerOptions.lumi);
                     break;
             }
+        },
+    } satisfies Tz.Converter,
+    lumi_curtain_automatic_calibration_ZNCLDJ01LM: {
+        key: ['automatic_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            // Check if the curtain is already calibrated
+            const checkIfCalibrated = async (): Promise<boolean> => {
+                const result = await entity.read('manuSpecificLumi', ['curtainCalibrated']);
+                return result ? result.curtainCalibrated : false;
+            };
+
+            if (await checkIfCalibrated()) {
+                logger.info('End positions already calibrated. Reset the calibration before proceeding.', NS);
+                return;
+            }
+
+            // Reset Calibration
+            await entity.write('manuSpecificLumi', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
+            logger.info('Starting the calibration process...', NS);
+
+            // Wait for 3 seconds
+            await sleep(3000);
+
+            // Move the curtain to one direction
+            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: 100}, getOptions(meta.mapped, entity));
+            logger.info('Moving curtain and waiting to reach the end position.', NS);
+
+            // Wait until the curtain gets into a moving state, then wait until it gets blocked or stopped
+            const waitForStateTransition = async (initialStates: number[], desiredStates: number[]): Promise<void> => {
+                return new Promise<void>((resolve) => {
+                    const checkState = async () => {
+                        const result = await entity.read('manuSpecificLumi', [0x0421]);
+                        const state = result ? result[0x0421] : null;
+                        if (!initialStates.includes(state)) {
+                            const checkDesiredState = async () => {
+                                const result = await entity.read('manuSpecificLumi', [0x0421]);
+                                const state = result ? result[0x0421] : null;
+                                if (desiredStates.includes(state)) {
+                                    resolve();
+                                } else {
+                                    setTimeout(checkDesiredState, 500);
+                                }
+                            };
+                            setTimeout(checkDesiredState, 500);
+                        } else {
+                            setTimeout(checkState, 500);
+                        }
+                    };
+                    void checkState();
+                });
+            };
+
+            await waitForStateTransition([2, 3], [2, 3]);
+
+            // Wait for 1 second
+            await sleep(1000);
+
+            // Set First Calibration Position
+            await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
+            logger.info('End position 1 has been set.', NS);
+
+            // Wait for 3 seconds
+            await sleep(3000);
+
+            // Move the curtain in the opposite direction
+            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: 0}, getOptions(meta.mapped, entity));
+            logger.info('Moving curtain in the opposite direction and waiting to reach the end position.', NS);
+
+            // Wait until the curtain gets into a moving state, then wait until it gets blocked or stopped
+            await waitForStateTransition([2, 3], [2, 3]);
+
+            // Wait for 1 second
+            await sleep(1000);
+
+            // Set Second Calibration Position
+            await entity.write('manuSpecificLumi', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
+            logger.info('End position 2 has been set.', NS);
+            logger.info('Calibration process completed.', NS);
         },
     } satisfies Tz.Converter,
     lumi_buzzer: {

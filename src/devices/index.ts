@@ -16,6 +16,7 @@ import atsmart from './atsmart';
 import aubess from './aubess';
 import aurora_lighting from './aurora_lighting';
 import automaton from './automaton';
+import avatto from './avatto';
 import awox from './awox';
 import axis from './axis';
 import bankamp from './bankamp';
@@ -324,6 +325,7 @@ export default [
     ...aubess,
     ...aurora_lighting,
     ...automaton,
+    ...avatto,
     ...awox,
     ...axis,
     ...bankamp,

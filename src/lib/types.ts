@@ -218,6 +218,10 @@ export interface DefinitionMeta {
      * Override the Home Assistant discovery payload using a custom function.
      */
     overrideHaDiscoveryPayload?(payload: KeyValueAny): void;
+    /**
+     * Never use a transition when transitioning to off (even when specified)
+     */
+    noOffTransition?: true;
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;

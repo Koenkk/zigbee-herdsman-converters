@@ -387,6 +387,10 @@ const tuyaExposes = {
         e.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'customized']).withDescription('Power on behavior state'),
     switchMode: () =>
         e.enum('switch_mode', ea.STATE_SET, ['switch', 'scene']).withDescription('Sets the mode of the switch to act as a switch or as a scene'),
+    switchMode2: () =>
+        e
+            .enum('switch_mode', ea.STATE_SET, ['switch', 'curtain'])
+            .withDescription('Sets the mode of the switch to act as a switch or as a curtain controller'),
     lightMode: () =>
         e.enum('light_mode', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).withDescription(`'Sets the indicator mode of l1.
         Normal: Orange while off and white while on.
@@ -525,6 +529,7 @@ export const valueConverter = {
     divideBy1000: valueConverterBasic.divideBy(1000),
     divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
     switchMode: valueConverterBasic.lookup({switch: new Enum(0), scene: new Enum(1)}),
+    switchMode2: valueConverterBasic.lookup({switch: new Enum(0), curtain: new Enum(1)}),
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
     raw: valueConverterBasic.raw(),
     workingDay: valueConverterBasic.lookup({disabled: new Enum(0), '6-1': new Enum(1), '5-2': new Enum(2), '7': new Enum(3)}),
@@ -582,11 +587,18 @@ export const valueConverter = {
     phaseVariant2WithPhase: (phase: string) => {
         return {
             from: (v: string) => {
+                // Support negative power readings
+                // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
                 const buf = Buffer.from(v, 'base64');
+                let power = buf[7] | (buf[6] << 8);
+                if (power > 0x7fff) {
+                    power = (0x999a - power) * -1;
+                }
+
                 return {
                     [`voltage_${phase}`]: (buf[1] | (buf[0] << 8)) / 10,
                     [`current_${phase}`]: (buf[4] | (buf[3] << 8)) / 1000,
-                    [`power_${phase}`]: buf[7] | (buf[6] << 8),
+                    [`power_${phase}`]: power,
                 };
             },
         };
@@ -599,6 +611,13 @@ export const valueConverter = {
                 current: ((buf[2] << 16) | (buf[3] << 8) | buf[4]) / 1000,
                 power: (buf[5] << 16) | (buf[6] << 8) | buf[7],
             };
+        },
+    },
+    power: {
+        from: (v: number) => {
+            // Support negative readings
+            // https://github.com/Koenkk/zigbee2mqtt/issues/18603
+            return v > 0x0fffffff ? (0x1999999c - v) * -1 : v;
         },
     },
     threshold: {

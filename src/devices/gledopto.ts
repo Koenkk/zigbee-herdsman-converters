@@ -2,7 +2,7 @@ import tz from '../converters/toZigbee';
 import * as libColor from '../lib/color';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {light, LightArgs, OnOffArgs, onOff} from '../lib/modernExtend';
+import {light, LightArgs, OnOffArgs, onOff, identify} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
 import {Configure, Definition, KeyValue, OnEventType, Zh, Tz, ModernExtend} from '../lib/types';
@@ -241,7 +241,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller WW/CW (pro)',
-        extend: [gledoptoLight({colorTemp: {range: undefined}}), gledoptoConfigureReadModelID()],
+        extend: [light({colorTemp: {range: [158, 500]}}), identify(), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-G-003P'],
@@ -341,7 +341,11 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGBW (pro)',
-        extend: [gledoptoLight({colorTemp: {range: undefined}, color: true}), gledoptoConfigureReadModelID()],
+        extend: [
+            light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}),
+            identify(),
+            gledoptoConfigureReadModelID(),
+        ],
     },
     {
         fingerprint: [
@@ -414,7 +418,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB (pro)',
-        extend: [gledoptoLight({color: true, powerOnBehavior: true}), gledoptoConfigureReadModelID()],
+        extend: [light({color: {modes: ['xy', 'hs'], enhancedHue: true}}), identify(), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-C-008P'],
@@ -426,7 +430,11 @@ const definitions: Definition[] = [
             {vendor: 'Gledopto', model: 'GL-C-001P'},
             {vendor: 'Gledopto', model: 'GL-C-002P'},
         ],
-        extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true}), gledoptoConfigureReadModelID()],
+        extend: [
+            light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}),
+            identify(),
+            gledoptoConfigureReadModelID(),
+        ],
         meta: {disableDefaultResponse: true},
     },
     {
@@ -453,7 +461,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller W (pro)',
-        extend: [gledoptoLight({powerOnBehavior: true}), gledoptoConfigureReadModelID()],
+        extend: [light(), identify(), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-C-009S'],
@@ -768,7 +776,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee 6W Downlight RGB+CCT (pro)',
-        extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true})],
+        extend: [light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}), identify()],
     },
     {
         zigbeeModel: ['GL-D-006P'],

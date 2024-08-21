@@ -24,7 +24,10 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
     // Ledvance's API docs state the checksum should be `sha_256` but it is actually `shA256`
     const {identity, fullName, length, shA256: sha256} = data.firmwares[0];
 
-    const fileVersionMatch = /\/(\d+)\//.exec(fullName);
+    // The fileVersion in hex is included in the fullName between the `/`, e.g.:
+    // - PLUG COMPACT EU T/032b3674/PLUG_COMPACT_EU_T-0x00D6-0x032B3674-MF_DIS.OTA
+    // - A19 RGBW/00102428/A19_RGBW_IMG0019_00102428-encrypted.ota
+    const fileVersionMatch = /\/(\d|\w+)\//.exec(fullName);
     const fileVersion = parseInt(`0x${fileVersionMatch[1]}`, 16);
 
     const versionString = `${identity.version.major}.${identity.version.minor}.${identity.version.build}.${identity.version.revision}`;

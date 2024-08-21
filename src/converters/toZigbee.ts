@@ -1089,6 +1089,10 @@ const converters2 = {
                 //  'MoveToLevelWithOnOff' despite not supporting the cluster; others, like the LEDVANCE SMART+
                 //  plug, do not.)
                 brightness = transition.specified || brightness === 0 ? 0 : undefined;
+                if (brightness !== undefined && utils.getMetaValue(entity, meta.mapped, 'noOffTransition', 'first', false)) {
+                    logger.debug(`Supressing OFF transition since entity has noOffTransition=true`, NS);
+                    brightness = undefined;
+                }
                 if (meta.state.hasOwnProperty('brightness') && meta.state.state === 'ON') {
                     // The light's current level gets clobbered in two cases:
                     //   1. when 'Off' has a transition, in which case it is really 'MoveToLevelWithOnOff'
