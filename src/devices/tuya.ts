@@ -10342,6 +10342,22 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0201', ['_TZE200_iq4ygaai']),
+        model: 'THS317-ET-TY',
+        vendor: 'Tuya',
+        description: 'Temperature sensor with probe',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.temperature(), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [4, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iuk8kupi']),
         model: 'DCR-RQJ',
         vendor: 'Tuya',
