@@ -10342,7 +10342,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0201', ['_TZE200_iq4ygaai']),
+        fingerprint: tuya.fingerprint('TS0201', ['_TZE200_iq4ygaai', '_TZE200_01fvxamo']),
         model: 'THS317-ET-TY',
         vendor: 'Tuya',
         description: 'Temperature sensor with probe',
@@ -10350,6 +10350,7 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [e.temperature(), e.battery()],
+        whiteLabel: [tuya.whitelabel('OWON', 'THS317-ET-EY', 'Temperature sensor with probe', ['_TZE200_01fvxamo'])],
         meta: {
             tuyaDatapoints: [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
