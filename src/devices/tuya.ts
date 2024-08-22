@@ -7000,6 +7000,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
+    },
     {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
