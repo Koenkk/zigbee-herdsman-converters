@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, identify, onOff, light, commandsOnOff, windowCovering} from '../lib/modernExtend';
+import {deviceEndpoints, identify, onOff, light, commandsOnOff, windowCovering, electricityMeter} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
 
@@ -148,7 +148,7 @@ const definitions: Definition[] = [
         model: 'TSKT106W-M1',
         vendor: 'Feibit',
         description: 'Smart Socket -T',
-        extend: [deviceEndpoints({endpoints: {'16': 16, '17': 17}}), onOff({powerOnBehavior: false, endpointNames: ['16', '17']})],
+        extend: [deviceEndpoints({endpoints: {holes: 16, usb: 17}}), onOff({powerOnBehavior: false, endpointNames: ['holes', 'usb']})],
     },
     {
         zigbeeModel: ['FEB56-ZSN25YS1.3'],
@@ -237,18 +237,7 @@ const definitions: Definition[] = [
         model: 'TSKT222W-H4',
         vendor: 'Feibit',
         description: 'Power socket with metering',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['FB56+CUR18SB2.0'],
