@@ -1985,7 +1985,7 @@ const definitions: Definition[] = [
         toZigbee: tzLocal,
         exposes: (device, options) => {
             let endpoint: Zh.Endpoint;
-            const exposes: exposes.Base[] = [];
+            const exposes: exposes.Feature[] = [];
             exposes.push(e.linkquality());
 
             let currentContract: string = '';

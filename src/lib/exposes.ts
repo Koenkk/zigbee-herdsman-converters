@@ -128,6 +128,12 @@ export class Switch extends Base {
         this.addFeature(feature);
         return this;
     }
+
+    clone(): Switch {
+        const clone = new Switch();
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Lock extends Base {
@@ -148,6 +154,12 @@ export class Lock extends Base {
         );
         return this;
     }
+
+    clone(): Lock {
+        const clone = new Lock();
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Binary extends Base {
@@ -164,6 +176,13 @@ export class Binary extends Base {
         this.access = access;
         this.value_on = valueOn;
         this.value_off = valueOff;
+    }
+
+    clone(): Binary {
+        const clone = new Binary(this.name, this.access, this.value_on, this.value_off);
+        clone.value_toggle = this.value_toggle;
+        this.copy(clone);
+        return clone;
     }
 
     withValueToggle(value: string) {
@@ -196,6 +215,14 @@ export class List extends Base {
     withLengthMax(value: number) {
         this.length_max = value;
         return this;
+    }
+
+    clone(): List {
+        const clone = new List(this.name, this.access, this.item_type.clone());
+        clone.length_min = this.length_min;
+        clone.length_max = this.length_max;
+        this.copy(clone);
+        return clone;
     }
 }
 
@@ -267,6 +294,12 @@ export class Enum extends Base {
         this.access = access;
         this.values = values;
     }
+
+    clone(): Enum {
+        const clone = new Enum(this.name, this.access, [...this.values]);
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Text extends Base {
@@ -277,6 +310,12 @@ export class Text extends Base {
         this.label = getLabelFromName(name);
         this.property = name;
         this.access = access;
+    }
+
+    clone(): Text {
+        const clone = new Text(this.name, this.access);
+        this.copy(clone);
+        return clone;
     }
 }
 
@@ -294,6 +333,12 @@ export class Composite extends Base {
     withFeature(feature: Feature) {
         this.addFeature(feature);
         return this;
+    }
+
+    clone(): Composite {
+        const clone = new Composite(this.name, this.property, this.access);
+        this.copy(clone);
+        return clone;
     }
 }
 
@@ -462,6 +507,12 @@ export class Light extends Base {
 
         return this;
     }
+
+    clone(): Light {
+        const clone = new Light();
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Cover extends Base {
@@ -483,6 +534,12 @@ export class Cover extends Base {
         this.addFeature(new Numeric('tilt', access.ALL).withValueMin(0).withValueMax(100).withDescription('Tilt of this cover').withUnit('%'));
         return this;
     }
+
+    clone(): Cover {
+        const clone = new Cover();
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Fan extends Base {
@@ -496,6 +553,12 @@ export class Fan extends Base {
     withModes(modes: string[], access = a.ALL) {
         this.addFeature(new Enum('mode', access, modes).withProperty('fan_mode').withDescription('Mode of this fan'));
         return this;
+    }
+
+    clone(): Fan {
+        const clone = new Fan();
+        this.copy(clone);
+        return clone;
     }
 }
 
@@ -649,6 +712,12 @@ export class Climate extends Base {
 
         this.addFeature(schedule);
         return this;
+    }
+
+    clone(): Climate {
+        const clone = new Climate();
+        this.copy(clone);
+        return clone;
     }
 }
 /**

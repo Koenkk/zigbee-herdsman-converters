@@ -1248,6 +1248,7 @@ export interface WindowCoveringArgs {
     stateSource?: 'lift' | 'tilt';
     configureReporting?: boolean;
     coverMode?: boolean;
+    endpointNames?: string[];
 }
 export function windowCovering(args: WindowCoveringArgs): ModernExtend {
     args = {stateSource: 'lift', configureReporting: true, ...args};
@@ -1296,6 +1297,10 @@ export function windowCovering(args: WindowCoveringArgs): ModernExtend {
     if (args.coverMode) {
         result.toZigbee.push(tz.cover_mode);
         result.exposes.push(e.cover_mode());
+    }
+
+    if (args.endpointNames) {
+        result.exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
     }
 
     return result;
