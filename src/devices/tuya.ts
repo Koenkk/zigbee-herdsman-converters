@@ -10670,7 +10670,7 @@ const definitions: Definition[] = [
                     return {'off': false, 'heat': true};
                 })],
                 [2, 'preset', tuya.valueConverterBasic.lookup((_, device) => {
-                    return {'AUTO': tuya.enum(0), 'MANUAL': tuya.enum(1)};
+                    return {'auto': tuya.enum(0), 'manual': tuya.enum(1)};
                 })],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [19, 'max_temperature', tuya.valueConverter.divideBy10],
