@@ -10666,30 +10666,18 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'system_mode', tuya.valueConverterBasic.lookup((_, device) => {
-                    return {'off': false, 'heat': true};
-                })],
-                [2, 'preset', tuya.valueConverterBasic.lookup((_, device) => {
-                    return {'auto': tuya.enum(0), 'manual': tuya.enum(1)};
-                })],
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({'off': false, 'heat': true})],
+                [2, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1)})],,
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [19, 'max_temperature', tuya.valueConverter.divideBy10],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [26, 'min_temperature', tuya.valueConverter.divideBy10],
                 [27, 'local_temperature_calibration', tuya.valueConverter.raw],
-                [28, 'factory_reset', tuya.valueConverterBasic.lookup((_, device) => {
-                    return {'factory_reset': true};
-                })],
+                [28, 'factory_reset', tuya.valueConverterBasic.lookup({'factory_reset': true})],
                 [36, 'valve_state', tuya.valueConverter.trueFalseInvert],
-                [39, 'child_lock', tuya.valueConverterBasic.lookup((_, device) => {
-                    return {'LOCK': true, 'UNLOCK': false};
-                })],
-                [40, 'eco_mode', tuya.valueConverterBasic.lookup((_, device) => {
-                    return {'ON': true, 'OFF': false};
-                })],
-                [43, 'sensor', tuya.valueConverterBasic.lookup((_, device) => {
-                    return {'IN': tuya.enum(0), 'OU': tuya.enum(2), 'AL': tuya.enum(1)};
-                })],
+                [39, 'child_lock', tuya.valueConverterBasic.lookup({'LOCK': true, 'UNLOCK': false})],
+                [40, 'eco_mode', tuya.valueConverterBasic.lookup({'ON': true, 'OFF': false})],
+                [43, 'sensor', tuya.valueConverterBasic.lookup({'IN': tuya.enum(0), 'OU': tuya.enum(2), 'AL': tuya.enum(1)})],
                 [102, 'external_temperature_input', tuya.valueConverter.divideBy10],
                 [103, 'deadzone_temperature', tuya.valueConverter.raw],
                 [104, 'max_temperature_limit', tuya.valueConverter.divideBy10],
