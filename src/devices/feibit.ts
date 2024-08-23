@@ -230,7 +230,7 @@ const definitions: Definition[] = [
         model: 'TZSC302W-V1',
         vendor: 'Feibit',
         description: 'Dimmer Switch',
-        extend: [deviceEndpoints({endpoints: {'11': 11, '12': 12, '13': 13}}), light({powerOnBehavior: false})],
+        extend: [light({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FTB56+SKT22HY1.1'],
@@ -238,16 +238,6 @@ const definitions: Definition[] = [
         vendor: 'Feibit',
         description: 'Power socket with metering',
         extend: [onOff(), electricityMeter()],
-    },
-    {
-        zigbeeModel: ['FB56+CUR18SB2.0'],
-        model: 'TCUR218W-V1',
-        vendor: 'Feibit',
-        description: 'Dual track curtain controller',
-        extend: [deviceEndpoints({endpoints: {bottom: 14, top: 15}}), identify()],
-        fromZigbee: [fz.command_cover_open, fz.command_cover_close, fz.command_cover_stop, fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        exposes: [e.cover_position().withEndpoint('bottom'), e.cover_position().withEndpoint('top')],
     },
 ];
 
