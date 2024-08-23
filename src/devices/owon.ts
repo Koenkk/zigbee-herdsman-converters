@@ -126,7 +126,20 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
 };
+const tzLocal = {
+    PC321_clearMetering: {
+        key: ['clear_metering'],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
+            const group = 0xFFE0;
+            const command = 0x00;
+            const payload = {};
 
+            await endpoint.command(group, command, payload, {disableDefaultResponse: true});
+            meta.logger.info(`Sent clear command to ${entity.ieeeAddr}`);
+        },
+    },
+};
 const definitions: Definition[] = [
     {
         zigbeeModel: ['WSP402'],
@@ -302,7 +315,7 @@ const definitions: Definition[] = [
         vendor: 'OWON',
         description: '3-Phase clamp power meter',
         fromZigbee: [fz.metering, fzLocal.PC321_metering],
-        toZigbee: [],
+        toZigbee: [tzLocal.PC321_clearMetering],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -340,6 +353,7 @@ const definitions: Definition[] = [
             e.numeric('power_factor_l1', ea.STATE).withDescription('Phase 1 power factor'),
             e.numeric('power_factor_l2', ea.STATE).withDescription('Phase 2 power factor'),
             e.numeric('power_factor_l3', ea.STATE).withDescription('Phase 3 power factor'),
+			e.enum('clear_metering', ea.SET, ['Clear']).withDescription('Clear measurement data'),
         ],
     },
     {
