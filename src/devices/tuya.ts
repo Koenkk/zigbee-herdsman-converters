@@ -10667,7 +10667,7 @@ const definitions: Definition[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'system_mode', tuya.valueConverterBasic.lookup((_, device) => {
-                    return {'OFF': false, 'HEAT': true};
+                    return {'off': false, 'heat': true};
                 })],
                 [2, 'preset', tuya.valueConverterBasic.lookup((_, device) => {
                     return {'AUTO': tuya.enum(0), 'MANUAL': tuya.enum(1)};
