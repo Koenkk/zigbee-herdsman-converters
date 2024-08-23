@@ -5433,7 +5433,7 @@ const definitions: Definition[] = [
         whiteLabel: [tuya.whitelabel('Tuya', 'PJ-1203-W', 'Electricity energy monitor', ['_TZE284_cjbofhxw'])],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_bkkmqmyo', '_TZE200_eaac7dkw', '_TZE204_wbhaespm', '_TZE204_bkkmqmyo']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_bkkmqmyo', '_TZE200_eaac7dkw', '_TZE204_bkkmqmyo']),
         model: 'TS0601_din_1',
         vendor: 'Tuya',
         description: 'Zigbee DIN energy meter',
@@ -5479,6 +5479,93 @@ const definitions: Definition[] = [
                 '_TZE204_bkkmqmyo',
             ]),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_wbhaespm']),
+        model: 'STB3L-125-ZJ',
+        vendor: 'SUTON',
+        description: 'Zigbee DIN RCBO energy meter',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.switch(),
+            e.energy(),
+            e
+                .enum('fault', ea.STATE, [
+                    'clear',
+                    'short_circuit_alarm',
+                    'surge_alarm',
+                    'overload_alarm',
+                    'leakagecurr_alarm',
+                    'temp_dif_fault',
+                    'fire_alarm',
+                    'high_power_alarm',
+                    'self_test_alarm',
+                    'ov_cr',
+                    'unbalance_alarm',
+                    'ov_vol',
+                    'undervoltage_alarm',
+                    'miss_phase_alarm',
+                    'outage_alarm',
+                    'magnetism_alarm',
+                    'credit_alarm',
+                    'no_balance_alarm',
+                ])
+                .withDescription('Fault status of the device (clear = nothing)'),
+            tuya.exposes.voltageWithPhase('a'),
+            tuya.exposes.voltageWithPhase('b'),
+            tuya.exposes.voltageWithPhase('c'),
+            tuya.exposes.powerWithPhase('a'),
+            tuya.exposes.powerWithPhase('b'),
+            tuya.exposes.powerWithPhase('c'),
+            tuya.exposes.currentWithPhase('a'),
+            tuya.exposes.currentWithPhase('b'),
+            tuya.exposes.currentWithPhase('c'),
+            e.temperature(),
+            e.binary('leakage_test', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn ON to perform a leagage test'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'energy', tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2WithPhase('a')],
+                [7, null, tuya.valueConverter.phaseVariant2WithPhase('b')],
+                [8, null, tuya.valueConverter.phaseVariant2WithPhase('c')],
+                [
+                    9,
+                    'fault',
+                    tuya.valueConverterBasic.lookup({
+                        clear: 0,
+                        short_circuit_alarm: 1,
+                        surge_alarm: 2,
+                        overload_alarm: 4,
+                        leakagecurr_alarm: 8,
+                        temp_dif_fault: 16,
+                        fire_alarm: 32,
+                        high_power_alarm: 64,
+                        self_test_alarm: 128,
+                        ov_cr: 256,
+                        unbalance_alarm: 512,
+                        ov_vol: 1024,
+                        undervoltage_alarm: 2048,
+                        miss_phase_alarm: 4096,
+                        outage_alarm: 8192,
+                        magnetism_alarm: 16384,
+                        credit_alarm: 32768,
+                        no_balance_alarm: 65536,
+                    }),
+                ],
+                [16, 'state', tuya.valueConverter.onOff],
+                [21, 'leakage_test', tuya.valueConverter.onOff], // Leakage test
+                [102, 'temperature', tuya.valueConverter.divideBy10],
+                // Ignored for now; we don't know what the values mean
+                [12, null, null], // Clear energy`
+                [13, null, null],
+                [14, null, null], // Leakage current
+                [15, null, null],
+            ],
+        },
+        whiteLabel: [{vendor: 'SUTON', model: 'STB3L-125/ZJ'}],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lsanae15', '_TZE204_lsanae15']),
@@ -6241,7 +6328,7 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7', '_TZE204_lzriup1j']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7', '_TZE204_lzriup1j', '_TZE204_xnbkhhdr']),
         model: 'ZWT198/ZWT100-BH',
         vendor: 'Tuya',
         description: 'Avatto wall thermostat',
@@ -6351,7 +6438,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay']),
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay', '_TZE204_myd45weu']),
         model: 'TS0222_temperature_humidity',
         vendor: 'Tuya',
         description: 'Temperature & humidity sensor',
@@ -6359,7 +6446,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
-        whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZ3000_kky16aay', '_TZE204_myd45weu'])],
+        whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
     },
     {
         fingerprint: [
@@ -7021,7 +7108,10 @@ const definitions: Definition[] = [
         description: 'Smart Human presence sensor',
         fromZigbee: [legacy.fz.tuya_smart_human_presense_sensor],
         toZigbee: [legacy.tz.tuya_smart_human_presense_sensor],
-        whiteLabel: [tuya.whitelabel('Tuya', 'ZY-M100-L', 'Ceiling human breathe sensor', ['_TZE204_ztc6ggyl'])],
+        whiteLabel: [
+            tuya.whitelabel('Tuya', 'ZY-M100-L', 'Ceiling human breathe sensor', ['_TZE204_ztc6ggyl']),
+            tuya.whitelabel('Moes', 'ZSS-QY-HP', 'Human presence sensor', ['_TZE204_fwondbzy']),
+        ],
         exposes: [
             e.illuminance_lux(),
             e.presence(),
@@ -7989,7 +8079,7 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         whiteLabel: [
             {vendor: 'MatSee Plus', model: 'PC321-Z-TY'},
-            {vendor: 'Owon', model: 'PC321-Z-TY'},
+            {vendor: 'OWON', model: 'PC321-Z-TY'},
         ],
         exposes: [
             e.ac_frequency(),
@@ -10342,6 +10432,23 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0201', ['_TZE200_iq4ygaai', '_TZE200_01fvxamo']),
+        model: 'THS317-ET-TY',
+        vendor: 'Tuya',
+        description: 'Temperature sensor with probe',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.temperature(), e.battery()],
+        whiteLabel: [tuya.whitelabel('OWON', 'THS317-ET-EY', 'Temperature sensor with probe', ['_TZE200_01fvxamo'])],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [4, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iuk8kupi']),
         model: 'DCR-RQJ',
         vendor: 'Tuya',
@@ -10954,7 +11061,7 @@ const definitions: Definition[] = [
                 //109, 'online_state, unknown, I have not seen any message from this DP],
                 [
                     110,
-                    'last_event1',
+                    'last_event',
                     tuya.valueConverterBasic.lookup({
                         normal: tuya.enum(0),
                         trip_over_current: tuya.enum(1),

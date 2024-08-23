@@ -1,5 +1,25 @@
 # Changelog
 
+## [20.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.3.0...v20.4.0) (2024-08-21)
+
+
+### Features
+
+* **add:** STB3L-125-ZJ ([#7893](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7893)) ([805d9e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/805d9e074c1815d9edf4915bf556d49916914754))
+* **add:** THS317-ET-TY https://github.com/Koenkk/zigbee2mqtt/issues/19804 ([6801823](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6801823cc26b7f16461d6671101fd3b842c4783d))
+* Enable on/off  countdown for AutomatOn AUT000069 ([#7877](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7877)) ([21b8a99](https://github.com/Koenkk/zigbee-herdsman-converters/commit/21b8a99735bd021679534fcfd94bd3d5b564e4c1))
+
+
+### Bug Fixes
+
+* Adjust battery % calculation for CSM-300ZB_V2 ([#7887](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7887)) ([7b89352](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b89352f4caf747919a6a95af10fd037a39fd263))
+* **detect:** Detect `_TZ3000_kky16aay` as Tuya TS0222_temperature_humidity ([#7886](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7886)) ([893fd74](https://github.com/Koenkk/zigbee-herdsman-converters/commit/893fd745f7fa3a24f6248981581ea6ea4bdf203c))
+* **detect:** Detect `_TZE204_xnbkhhdr` as Tuya ZWT198/ZWT100-BH https://github.com/Koenkk/zigbee2mqtt/issues/23611 ([8705f77](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8705f77d83dcfa42e9ccc3ad284070abcf7cff00))
+* **detect:** Detect `C-ZB-DM204` as Candeo C204 ([#7882](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7882)) ([5c27f3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5c27f3f02320c88f8cbdb34085bb35a300a33c21))
+* **ignore:** change meta "last_event1" to "last_event" (TOQCB2-80) ([#7883](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7883)) ([636c27f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/636c27f57360cc4c8bf00a2eba38dc64a1b0f9e5))
+* **ignore:** improve 6801823cc26b7f16461d6671101fd3b842c4783d ([322f4e1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/322f4e1f6141d004ed3b0162733675e3f7388706))
+* Rename `Owon` to `OWON` ([#7885](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7885)) ([f838130](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f838130346c1ab6a70412e13db012f7fe900fa8e))
+
 ## [20.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.2.0...v20.3.0) (2024-08-19)
 
 
