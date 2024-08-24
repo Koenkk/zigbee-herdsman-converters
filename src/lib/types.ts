@@ -323,7 +323,7 @@ export namespace Tz {
         mapped: Definition | Definition[];
         options: KeyValue;
         state: KeyValue;
-        endpoint_name: string;
+        endpoint_name: string | undefined;
         membersState?: {[s: string]: KeyValue};
     }
     export type ConvertSetResult = {state?: KeyValue; readAfterWriteTime?: number; membersState?: {[s: string]: KeyValue}} | void;
