@@ -106,7 +106,7 @@ export class Base {
         target.property = this.property;
         target.description = this.description;
         if (target.features) {
-            target.features = [...this.features];
+            target.features = this.features.map((f) => f.clone());
         }
         target.category = this.category;
     }
