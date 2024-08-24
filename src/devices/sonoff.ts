@@ -660,7 +660,7 @@ const definitions: Definition[] = [
         model: 'SNZB-01-KF',
         vendor: 'SONOFF',
         description: 'Wireless button',
-        exposes: [e.battery(), e.action(['off', 'single',]), e.battery_voltage()],
+        exposes: [e.battery(), e.action(['off', 'single']), e.battery_voltage()],
         fromZigbee: [fz.command_status_change_notification_action, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
