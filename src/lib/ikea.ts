@@ -86,7 +86,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
     }
 };
 
-export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: true | {range: Range; viaColor: true}; noOffTransition?: true}) {
+export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: true | {range: Range; viaColor: true}}) {
     const colorTemp: {range: Range} = args?.colorTemp ? (args.colorTemp === true ? {range: [250, 454]} : args.colorTemp) : undefined;
     const result = lightDontUse({...args, colorTemp});
     result.ota = ikea;
@@ -97,9 +97,11 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
     if (args?.colorTemp || args?.color) {
         result.exposes.push(presets.light_color_options());
     }
-    if (args?.noOffTransition) {
-        result.meta = {...result.meta, noOffTransition: true};
-    }
+
+    // Never use a transition when transitioning to OFF as this turns on the light when sending OFF twice
+    // https://github.com/Koenkk/zigbee2mqtt/issues/19211
+    result.meta = {...result.meta, noOffTransition: true};
+
     return result;
 }
 
