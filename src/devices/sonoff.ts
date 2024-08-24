@@ -657,9 +657,8 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['KF01', 'KF-01'],
-        model: 'SNZB-01',
+        model: 'SNZB-01-KF',
         vendor: 'SONOFF',
-        whiteLabel: [{vendor: 'eWeLink', model: 'KF01'}],
         description: 'Wireless button',
         exposes: [e.battery(), e.action(['off', 'single',]), e.battery_voltage()],
         fromZigbee: [fz.command_status_change_notification_action, fz.battery],
