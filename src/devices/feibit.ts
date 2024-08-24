@@ -239,6 +239,17 @@ const definitions: Definition[] = [
         description: 'Power socket with metering',
         extend: [onOff(), electricityMeter()],
     },
+    {
+        zigbeeModel: ['FB56+CUR18SB2.0'],
+        model: 'TCUR218W-V1',
+        vendor: 'Feibit',
+        description: 'Dual track curtain controller',
+        extend: [
+            deviceEndpoints({endpoints: {top: 15, bottom: 14}}),
+            identify(),
+            windowCovering({controls: ['lift', 'tilt'], endpointNames: ['top', 'bottom']}),
+        ],
+    },
 ];
 
 export default definitions;
