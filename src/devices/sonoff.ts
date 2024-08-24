@@ -656,6 +656,21 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['KF01', 'KF-01'],
+        model: 'SNZB-01-KF',
+        vendor: 'SONOFF',
+        description: 'Wireless button',
+        exposes: [e.battery(), e.action(['off', 'single']), e.battery_voltage()],
+        fromZigbee: [fz.command_status_change_notification_action, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'genPowerCfg']);
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+        },
+    },
+    {
         fingerprint: [
             // ModelID is from the button (SNZB-01) but this is SNZB-02, wrong modelID in firmware?
             // https://github.com/Koenkk/zigbee2mqtt/issues/4338
