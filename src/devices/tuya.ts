@@ -10709,10 +10709,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'ELECTSMART', model: 'EST-120Z'}],
     },
     {
-        fingerprint: [{
-            modelID: 'TS0601',
-            manufacturerName: '_TZE204_tagezcph',
-        }],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_tagezcph'}],
         model: 'PRO-900Z',
         vendor: 'ElectSmart',
         description: 'Thermostat for electric floor',
@@ -10723,69 +10720,117 @@ const definitions: Definition[] = [
         exposes: [
             e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withLabel('Child lock'),
             e.binary('eco_mode', ea.STATE_SET, 'OFF', 'ON').withLabel('ECO mode').withDescription('Default: Off'),
-            e.numeric('eco_temperature', ea.STATE_SET).withValueMin(5).withValueMax(30).withValueStep(1).withUnit('°C')
+            e
+                .numeric('eco_temperature', ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withUnit('°C')
                 .withDescription('Max temperature in ECO mode. Default: 20'),
             e.binary('valve_state', ea.STATE, false, true).withLabel('Heating in process'),
-            e.climate().withSystemMode(['OFF', 'HEAT'], ea.STATE_SET).withPreset(['MANUAL', 'AUTO'])
+            e
+                .climate()
+                .withSystemMode(['OFF', 'HEAT'], ea.STATE_SET)
+                .withPreset(['MANUAL', 'AUTO'])
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withDescription('Default: -3'),
-            e.numeric('deadzone_temperature', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1)
+            e
+                .numeric('deadzone_temperature', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(5)
+                .withValueStep(1)
                 .withUnit('°C')
                 .withDescription('Hysteresis. Default: 1'),
-            e.numeric('min_temperature', ea.STATE_SET).withValueMin(5).withValueMax(15).withValueStep(1)
-                .withUnit('°C')
-                .withDescription('Default: 5'),
-            e.numeric('max_temperature', ea.STATE_SET).withValueMin(15).withValueMax(45).withValueStep(1)
+            e.numeric('min_temperature', ea.STATE_SET).withValueMin(5).withValueMax(15).withValueStep(1).withUnit('°C').withDescription('Default: 5'),
+            e
+                .numeric('max_temperature', ea.STATE_SET)
+                .withValueMin(15)
+                .withValueMax(45)
+                .withValueStep(1)
                 .withUnit('°C')
                 .withDescription('Default: 35'),
-            e.numeric('min_temperature_limit', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
+            e
+                .numeric('min_temperature_limit', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
                 .withUnit('°C')
                 .withLabel('Low temperature protection')
                 .withDescription('Default: 0'),
-            e.numeric('max_temperature_limit', ea.STATE_SET).withValueMin(25).withValueMax(70).withValueStep(1).withUnit('°C')
-                .withLabel('High temperature protection').withDescription('Default: 45'),
+            e
+                .numeric('max_temperature_limit', ea.STATE_SET)
+                .withValueMin(25)
+                .withValueMax(70)
+                .withValueStep(1)
+                .withUnit('°C')
+                .withLabel('High temperature protection')
+                .withDescription('Default: 45'),
             e.temperature_sensor_select(['IN', 'OU', 'AL']).withLabel('Sensor').withDescription('Choose which sensor to use. Default: AL'),
-            e.numeric('external_temperature_input', ea.STATE).withLabel('Floor temperature').withUnit('°C')
+            e
+                .numeric('external_temperature_input', ea.STATE)
+                .withLabel('Floor temperature')
+                .withUnit('°C')
                 .withDescription('Temperature from floor sensor'),
-            e.numeric('brightness', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(1)
+            e
+                .numeric('brightness', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(8)
+                .withValueStep(1)
                 .withLabel('Screen brightness 06:00 - 22:00')
                 .withDescription('0 - on for 10 seconds. Default: 6'),
-            e.numeric('display_brightness', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(1)
+            e
+                .numeric('display_brightness', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(8)
+                .withValueStep(1)
                 .withLabel('Screen brightness 22:00 - 06:00')
                 .withDescription('0 - on for 10 seconds. Default: 3'),
-            e.text('schedule_monday', ea.STATE_SET).withLabel('Schedule for monday')
+            e
+                .text('schedule_monday', ea.STATE_SET)
+                .withLabel('Schedule for monday')
                 .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
-            e.text('schedule_tuesday', ea.STATE_SET).withLabel('Schedule for tuesday')
+            e
+                .text('schedule_tuesday', ea.STATE_SET)
+                .withLabel('Schedule for tuesday')
                 .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
-            e.text('schedule_wednesday', ea.STATE_SET).withLabel('Schedule for wednesday')
+            e
+                .text('schedule_wednesday', ea.STATE_SET)
+                .withLabel('Schedule for wednesday')
                 .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
-            e.text('schedule_thursday', ea.STATE_SET).withLabel('Schedule for thursday')
+            e
+                .text('schedule_thursday', ea.STATE_SET)
+                .withLabel('Schedule for thursday')
                 .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
-            e.text('schedule_friday', ea.STATE_SET).withLabel('Schedule for friday')
+            e
+                .text('schedule_friday', ea.STATE_SET)
+                .withLabel('Schedule for friday')
                 .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
-            e.text('schedule_saturday', ea.STATE_SET).withLabel('Schedule for saturday')
+            e
+                .text('schedule_saturday', ea.STATE_SET)
+                .withLabel('Schedule for saturday')
                 .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
-            e.text('schedule_sunday', ea.STATE_SET).withLabel('Schedule for sunday')
+            e
+                .text('schedule_sunday', ea.STATE_SET)
+                .withLabel('Schedule for sunday')
                 .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
-            e.enum('factory_reset', ea.STATE_SET, ['factory reset'])
-                .withLabel('Factory reset').withDescription('Reset all settings to factory ones'),
+            e.enum('factory_reset', ea.STATE_SET, ['factory reset']).withLabel('Factory reset').withDescription('Reset all settings to factory ones'),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'system_mode', tuya.valueConverterBasic.lookup({'off': false, 'heat': true})],
-                [2, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1)})],,
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({off: false, heat: true})],
+                [2, 'preset', tuya.valueConverterBasic.lookup({auto: tuya.enum(0), manual: tuya.enum(1)})],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [19, 'max_temperature', tuya.valueConverter.divideBy10],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [26, 'min_temperature', tuya.valueConverter.divideBy10],
                 [27, 'local_temperature_calibration', tuya.valueConverter.raw],
-                [28, 'factory_reset', tuya.valueConverterBasic.lookup({'factory_reset': true})],
+                [28, 'factory_reset', tuya.valueConverterBasic.lookup({factory_reset: true})],
                 [36, 'valve_state', tuya.valueConverter.trueFalseInvert],
-                [39, 'child_lock', tuya.valueConverterBasic.lookup({'LOCK': true, 'UNLOCK': false})],
-                [40, 'eco_mode', tuya.valueConverterBasic.lookup({'ON': true, 'OFF': false})],
-                [43, 'sensor', tuya.valueConverterBasic.lookup({'IN': tuya.enum(0), 'OU': tuya.enum(2), 'AL': tuya.enum(1)})],
+                [39, 'child_lock', tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
+                [40, 'eco_mode', tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
+                [43, 'sensor', tuya.valueConverterBasic.lookup({IN: tuya.enum(0), OU: tuya.enum(2), AL: tuya.enum(1)})],
                 [102, 'external_temperature_input', tuya.valueConverter.divideBy10],
                 [103, 'deadzone_temperature', tuya.valueConverter.raw],
                 [104, 'max_temperature_limit', tuya.valueConverter.divideBy10],
