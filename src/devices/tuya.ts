@@ -10450,7 +10450,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iuk8kupi']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iuk8kupi','_TZE204_iuk8kupi']),
         model: 'DCR-RQJ',
         vendor: 'Tuya',
         description: 'Carbon monoxide sensor gas leak detector',
