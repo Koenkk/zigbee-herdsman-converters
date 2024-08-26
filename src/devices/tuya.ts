@@ -10721,10 +10721,10 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withLabel('Child lock'),
-            e.enum('eco_mode', ea.STATE_SET, ['OFF', 'ON']).withLabel('ECO mode').withDescription('Default: Off'),
+            e.binary('eco_mode', ea.STATE_SET, 'OFF', 'ON').withLabel('ECO mode').withDescription('Default: Off'),
             e.numeric('eco_temperature', ea.STATE_SET).withValueMin(5).withValueMax(30).withValueStep(1).withUnit('°C')
                 .withDescription('Max temperature in ECO mode. Default: 20'),
-            e.text('valve_state', ea.STATE).withLabel('Heating in process'),
+            e.binary('valve_state', ea.STATE).withLabel('Heating in process'),
             e.climate().withSystemMode(['OFF', 'HEAT'], ea.STATE_SET).withPreset(['MANUAL', 'AUTO'])
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
