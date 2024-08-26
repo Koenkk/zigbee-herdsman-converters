@@ -248,7 +248,7 @@ export interface OnEventData {
 }
 
 export type DefinitionOta = {
-    isUpdateAvailable: (device: Zh.Device, requestPayload: Ota.ImageInfo) => Promise<OtaUpdateAvailableResult>;
+    isUpdateAvailable: (device: Zh.Device, requestPayload: Ota.ImageInfo | undefined) => Promise<OtaUpdateAvailableResult>;
     updateToLatest: (device: Zh.Device, onProgress: Ota.OnProgress) => Promise<number>;
 };
 
