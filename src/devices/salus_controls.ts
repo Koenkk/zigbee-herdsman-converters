@@ -1,10 +1,10 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import {electricityMeter, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {electricityMeter, onOff} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -15,7 +15,7 @@ const definitions: Definition[] = [
         description: 'Smart plug (EU socket)',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -34,7 +34,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.SP600_power],
         exposes: [e.switch(), e.power(), e.energy()],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -96,9 +96,9 @@ const definitions: Definition[] = [
         description: 'Pipe temperature sensor',
         fromZigbee: [fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         exposes: [e.battery(), e.temperature()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);

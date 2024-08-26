@@ -1,6 +1,6 @@
-import {Definition} from '../lib/types';
-import * as tuya from '../lib/tuya';
 import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {
@@ -12,8 +12,8 @@ const definitions: Definition[] = [
         model: 'JR-ZDS01',
         vendor: 'Girier',
         description: '1 gang mini switch',
-        extend: tuya.extend.switch({switchType: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
+        extend: [tuya.modernExtend.tuyaOnOff({switchType: true})],
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },

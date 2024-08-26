@@ -1,7 +1,8 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
+import {electricityMeter, onOff, ota} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -12,14 +13,24 @@ const definitions: Definition[] = [
         description: 'Smart powermeter Zigbee bridge',
         fromZigbee: [fz.metering, fz.battery],
         toZigbee: [],
+        extend: [ota()],
         exposes: [e.battery(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering', 'genPowerCfg']);
+        },
+    },
+    {
+        zigbeeModel: ['SMRZB-153'],
+        model: 'SMRZB-153',
+        vendor: 'Frient A/S',
+        description: 'Smart Cable - Power switch with power measurement',
+        extend: [onOff({configureReporting: false}), electricityMeter()],
+        endpoint: (device) => {
+            return {default: 2};
         },
     },
 ];
 
 export default definitions;
 module.exports = definitions;
-

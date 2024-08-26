@@ -1,7 +1,7 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
 import {onOff} from '../lib/modernExtend';
@@ -21,8 +21,8 @@ const definitions: Definition[] = [
         description: 'Remote temperature probe on cable',
         fromZigbee: [fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -41,7 +41,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
         meta: {publishDuplicateTransaction: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);

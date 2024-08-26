@@ -1,11 +1,35 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 import {light, onOff} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['501.37'],
+        model: '501.37',
+        vendor: 'Paulmann',
+        description: 'Smart switch 4 buttons white',
+        fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on_1',
+                'off_1',
+                'on_2',
+                'off_2',
+                'brightness_move_up_1',
+                'brightness_move_down_1',
+                'brightness_move_stop_1',
+                'brightness_move_up_2',
+                'brightness_move_down_2',
+                'brightness_move_stop_2',
+            ]),
+        ],
+        meta: {multiEndpoint: true},
+    },
     {
         zigbeeModel: ['501.34'],
         model: '501.34',
@@ -13,8 +37,21 @@ const definitions: Definition[] = [
         description: 'Smart switch 4 buttons white',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['on_1', 'off_1', 'on_2', 'off_2', 'brightness_move_up_1', 'brightness_move_down_1',
-            'brightness_move_stop_1', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_move_stop_2'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on_1',
+                'off_1',
+                'on_2',
+                'off_2',
+                'brightness_move_up_1',
+                'brightness_move_down_1',
+                'brightness_move_stop_1',
+                'brightness_move_up_2',
+                'brightness_move_down_2',
+                'brightness_move_stop_2',
+            ]),
+        ],
         meta: {multiEndpoint: true},
     },
     {
@@ -64,14 +101,14 @@ const definitions: Definition[] = [
         model: '500.47',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee MaxLED RGBW controller max. 72W 24V DC',
-        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs'], applyRedFix: true}})],
     },
     {
         zigbeeModel: ['RGBW light', '500.49', 'RGBW_light'],
         model: '50049/500.63',
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee YourLED RGB Controller max. 60W / Smart Home Zigbee LED Reflektor 3,5W GU10 RGBW dimmbar',
-        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs'], applyRedFix: true}})],
     },
     {
         zigbeeModel: ['RGBCW_LIGHT'],
@@ -99,11 +136,18 @@ const definitions: Definition[] = [
         extend: [light({colorTemp: {range: undefined}})],
     },
     {
-        zigbeeModel: ['500.46', 'H036-0006'],
+        zigbeeModel: ['H036-0006'],
         model: '929.63',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee LED-Modul Coin 1x6W Tunable White',
         extend: [light({colorTemp: {range: undefined}})],
+    },
+    {
+        zigbeeModel: ['500.46'],
+        model: '500.46',
+        vendor: 'Paulmann',
+        description: 'SmartHome Zigbee MaxLED tunable white controller max. 144W / 24V DC',
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['H036-0005'],
@@ -139,21 +183,21 @@ const definitions: Definition[] = [
         model: '500.44',
         vendor: 'Paulmann',
         description: 'URail power supply',
-        extend: [light({color: true})],
+        extend: [light({color: {applyRedFix: true}})],
     },
     {
         zigbeeModel: ['500.45'],
         model: '500.45',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Pendulum Light Aptare',
-        extend: [light()],
+        extend: [light({color: {applyRedFix: true}})],
     },
     {
         zigbeeModel: ['500.48'],
         model: '500.48',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee YourLED dim/switch controller max. 60 W',
-        extend: [light()],
+        extend: [light({color: {applyRedFix: true}})],
     },
     {
         fingerprint: [{manufacturerName: 'Paulmann Licht GmbH', modelID: 'Dimmable'}],
@@ -164,17 +208,41 @@ const definitions: Definition[] = [
         extend: [light()],
     },
     {
-        zigbeeModel: ['RemoteControl'],
+        zigbeeModel: ['RemoteControl', '50067'],
         model: '500.67',
         vendor: 'Paulmann',
         description: 'RGB remote control',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.command_step, fz.command_move_to_color_temp,
-            fz.command_move_to_color, fz.command_stop, fz.command_move, fz.command_color_loop_set,
-            fz.command_ehanced_move_to_hue_and_saturation, fz.tint_scene],
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_toggle,
+            fz.command_step,
+            fz.command_move_to_color_temp,
+            fz.command_move_to_color,
+            fz.command_stop,
+            fz.command_move,
+            fz.command_color_loop_set,
+            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.tint_scene,
+        ],
         toZigbee: [],
-        exposes: [e.action([
-            'on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move', 'brightness_stop',
-            'brightness_move_down', 'brightness_move_up', 'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*'])],
+        exposes: [
+            e.action([
+                'on',
+                'off',
+                'toggle',
+                'brightness_step_up',
+                'brightness_step_down',
+                'color_temperature_move',
+                'color_move',
+                'brightness_stop',
+                'brightness_move_down',
+                'brightness_move_up',
+                'color_loop_set',
+                'enhanced_move_to_hue_and_saturation',
+                'scene_*',
+            ]),
+        ],
     },
     {
         fingerprint: [{modelID: 'RGB', manufacturerName: 'Paulmann Licht GmbH'}],

@@ -10,7 +10,6 @@ export function payload(attribute: string | number, min: number, max: number, ch
         reportableChange: change,
     };
 
-
     if (overrides) {
         if (overrides.hasOwnProperty('min')) payload.minimumReportInterval = overrides.min;
         if (overrides.hasOwnProperty('max')) payload.maximumReportInterval = overrides.max;
@@ -53,9 +52,7 @@ export const currentPositionTiltPercentage = async (endpoint: Zh.Endpoint, overr
     await endpoint.configureReporting('closuresWindowCovering', p);
 };
 export const batteryPercentageRemaining = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-    const p = payload(
-        'batteryPercentageRemaining', repInterval.HOUR, repInterval.MAX, 0, overrides,
-    );
+    const p = payload('batteryPercentageRemaining', repInterval.HOUR, repInterval.MAX, 0, overrides);
     await endpoint.configureReporting('genPowerCfg', p);
     await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
 };
@@ -71,6 +68,10 @@ export const batteryAlarmState = async (endpoint: Zh.Endpoint, overrides?: Repor
 };
 export const onOff = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
     const p = payload('onOff', 0, repInterval.HOUR, 0, overrides);
+    await endpoint.configureReporting('genOnOff', p);
+};
+export const onTime = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+    const p = payload('onTime', 0, repInterval.HOUR, 40, overrides);
     await endpoint.configureReporting('genOnOff', p);
 };
 export const lockState = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
@@ -246,6 +247,7 @@ exports.batteryPercentageRemaining = batteryPercentageRemaining;
 exports.batteryVoltage = batteryVoltage;
 exports.batteryAlarmState = batteryAlarmState;
 exports.onOff = onOff;
+exports.onTime = onTime;
 exports.lockState = lockState;
 exports.doorState = doorState;
 exports.brightness = brightness;

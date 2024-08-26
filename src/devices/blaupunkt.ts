@@ -1,8 +1,8 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -14,7 +14,7 @@ const definitions: Definition[] = [
         description: 'Roller shutter',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_via_brightness],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
             try {

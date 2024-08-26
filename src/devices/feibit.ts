@@ -1,9 +1,9 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {onOff} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -13,7 +13,7 @@ const definitions: Definition[] = [
         model: 'TZSW22FW-L4',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
-        extend: [onOff({endpoints: {top: 16, bottom: 17}})],
+        extend: [deviceEndpoints({endpoints: {top: 16, bottom: 17}}), onOff({endpointNames: ['top', 'bottom']})],
     },
     {
         zigbeeModel: ['FB56+ZSW1GKJ2.3'],
@@ -38,7 +38,7 @@ const definitions: Definition[] = [
         description: 'Human body movement sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -53,7 +53,7 @@ const definitions: Definition[] = [
         description: 'Smart temperature & humidity Sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
@@ -63,7 +63,7 @@ const definitions: Definition[] = [
         description: 'Smoke detector',
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -78,7 +78,7 @@ const definitions: Definition[] = [
         description: 'Smart carbon monoxide sensor',
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -125,14 +125,14 @@ const definitions: Definition[] = [
         model: 'SLS301ZB_2',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
-        extend: [onOff({endpoints: {left: 16, right: 17}})],
+        extend: [deviceEndpoints({endpoints: {left: 16, right: 17}}), onOff({endpointNames: ['left', 'right']})],
     },
     {
         zigbeeModel: ['FB56+ZSW1IKJ2.2', 'FB56+ZSW1IKJ1.1'],
         model: 'SLS301ZB_3',
         vendor: 'Feibit',
         description: 'Smart light switch - 3 gang',
-        extend: [onOff({endpoints: {left: 16, center: 17, right: 18}})],
+        extend: [deviceEndpoints({endpoints: {left: 16, center: 17, right: 18}}), onOff({endpointNames: ['left', 'center', 'right']})],
     },
     {
         zigbeeModel: ['FB56+ZSN08KJ2.2'],

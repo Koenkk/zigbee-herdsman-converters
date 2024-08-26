@@ -1,7 +1,14 @@
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 import {Definition} from '../lib/types';
-import {electricityMeter, light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['C205'],
+        model: 'C205',
+        vendor: 'Candeo',
+        description: 'Switch module',
+        extend: [onOff({powerOnBehavior: false})],
+    },
     {
         fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'Candeo'}],
         model: 'C202',
@@ -25,7 +32,7 @@ const definitions: Definition[] = [
         extend: [light({configureReporting: true})],
     },
     {
-        zigbeeModel: ['C204'],
+        zigbeeModel: ['C204', 'C-ZB-DM204'],
         model: 'C204',
         vendor: 'Candeo',
         description: 'Zigbee micro smart dimmer',

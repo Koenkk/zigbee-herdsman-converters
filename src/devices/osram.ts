@@ -1,9 +1,10 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
+import {ledvanceLight, ledvanceFz, ledvanceOnOff} from '../lib/ledvance';
 import * as legacy from '../lib/legacy';
+import {deviceEndpoints} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {ledvanceLight, ledvanceFz, ledvanceOnOff} from '../lib/ledvance';
 import {Definition} from '../lib/types';
 
 const e = exposes.presets;
@@ -170,7 +171,10 @@ const definitions: Definition[] = [
         description: 'Smart+ plug',
         vendor: 'OSRAM',
         extend: [ledvanceOnOff({powerOnBehavior: false})],
-        whiteLabel: [{vendor: 'LEDVANCE', model: 'AB3257001NJ'}, {vendor: 'LEDVANCE', model: 'AC03360'}],
+        whiteLabel: [
+            {vendor: 'LEDVANCE', model: 'AB3257001NJ'},
+            {vendor: 'LEDVANCE', model: 'AC03360'},
+        ],
     },
     {
         zigbeeModel: ['LIGHTIFY PAR38 ON/OFF/DIM'],
@@ -251,6 +255,13 @@ const definitions: Definition[] = [
         extend: [ledvanceLight({})],
     },
     {
+        zigbeeModel: ['Control box TW'],
+        model: 'AB390020055',
+        vendor: 'OSRAM',
+        description: 'Lightify tunable white controller',
+        extend: [ledvanceLight({colorTemp: {range: [150, 370]}})],
+    },
+    {
         zigbeeModel: ['Motion Sensor-A'],
         model: 'AC01353010G',
         vendor: 'OSRAM',
@@ -258,7 +269,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 1900, max: 3000}}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -279,18 +290,37 @@ const definitions: Definition[] = [
         model: 'AC0251100NJ/AC0251600NJ/AC0251700NJ',
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
-        fromZigbee: [legacy.fz.osram_lightify_switch_cmdOn, legacy.fz.osram_lightify_switch_cmdMoveWithOnOff,
-            legacy.fz.osram_lightify_switch_AC0251100NJ_cmdStop, legacy.fz.osram_lightify_switch_cmdMoveToColorTemp,
-            legacy.fz.osram_lightify_switch_cmdMoveHue, legacy.fz.osram_lightify_switch_cmdMoveToSaturation,
-            legacy.fz.osram_lightify_switch_cmdOff, legacy.fz.osram_lightify_switch_cmdMove, fz.battery,
-            legacy.fz.osram_lightify_switch_cmdMoveToLevelWithOnOff],
-        exposes: [e.battery(), e.action([
-            'on', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'color_temperature_move', 'hue_move', 'hue_stop',
-            'move_to_saturation', 'off', 'brightness_move_to_level'])],
+        fromZigbee: [
+            legacy.fz.osram_lightify_switch_cmdOn,
+            legacy.fz.osram_lightify_switch_cmdMoveWithOnOff,
+            legacy.fz.osram_lightify_switch_AC0251100NJ_cmdStop,
+            legacy.fz.osram_lightify_switch_cmdMoveToColorTemp,
+            legacy.fz.osram_lightify_switch_cmdMoveHue,
+            legacy.fz.osram_lightify_switch_cmdMoveToSaturation,
+            legacy.fz.osram_lightify_switch_cmdOff,
+            legacy.fz.osram_lightify_switch_cmdMove,
+            fz.battery,
+            legacy.fz.osram_lightify_switch_cmdMoveToLevelWithOnOff,
+        ],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on',
+                'brightness_move_up',
+                'brightness_move_down',
+                'brightness_stop',
+                'color_temperature_move',
+                'hue_move',
+                'hue_stop',
+                'move_to_saturation',
+                'off',
+                'brightness_move_to_level',
+            ]),
+        ],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
@@ -305,17 +335,38 @@ const definitions: Definition[] = [
         model: '4058075816459',
         vendor: 'OSRAM',
         description: 'Smart+ switch',
-        exposes: [e.battery(), e.action(['left_top_click', 'left_bottom_click', 'right_top_click', 'right_bottom_click', 'left_top_hold',
-            'left_bottom_hold', 'left_top_release', 'left_bottom_release', 'right_top_release', 'right_top_hold',
-            'right_bottom_release', 'right_bottom_hold'])],
-        fromZigbee: [fz.battery, legacy.fz.osram_lightify_switch_AB371860355_cmdOn, legacy.fz.osram_lightify_switch_AB371860355_cmdOff,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdStepColorTemp, legacy.fz.osram_lightify_switch_AB371860355_cmdMoveWithOnOff,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdMove, legacy.fz.osram_lightify_switch_AB371860355_cmdStop,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdMoveHue, legacy.fz.osram_lightify_switch_AB371860355_cmdMoveSat],
+        exposes: [
+            e.battery(),
+            e.action([
+                'left_top_click',
+                'left_bottom_click',
+                'right_top_click',
+                'right_bottom_click',
+                'left_top_hold',
+                'left_bottom_hold',
+                'left_top_release',
+                'left_bottom_release',
+                'right_top_release',
+                'right_top_hold',
+                'right_bottom_release',
+                'right_bottom_hold',
+            ]),
+        ],
+        fromZigbee: [
+            fz.battery,
+            legacy.fz.osram_lightify_switch_AB371860355_cmdOn,
+            legacy.fz.osram_lightify_switch_AB371860355_cmdOff,
+            legacy.fz.osram_lightify_switch_AB371860355_cmdStepColorTemp,
+            legacy.fz.osram_lightify_switch_AB371860355_cmdMoveWithOnOff,
+            legacy.fz.osram_lightify_switch_AB371860355_cmdMove,
+            legacy.fz.osram_lightify_switch_AB371860355_cmdStop,
+            legacy.fz.osram_lightify_switch_AB371860355_cmdMoveHue,
+            legacy.fz.osram_lightify_switch_AB371860355_cmdMoveSat,
+        ],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
@@ -349,8 +400,10 @@ const definitions: Definition[] = [
         extend: [ledvanceLight({colorTemp: {range: undefined}})],
     },
     {
-        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]},
-            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]}],
+        fingerprint: [
+            {modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]},
+        ],
         model: '4062172044776_2',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one device and pushbutton)',
@@ -365,20 +418,30 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]},
-            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]}],
+        fingerprint: [
+            {modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]},
+        ],
         model: '4062172044776_3',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices)',
-        extend: [ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11}, ota: ota.zigbeeOTA})],
+        extend: [
+            deviceEndpoints({endpoints: {l1: 10, l2: 11}}),
+            ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2'], ota: ota.zigbeeOTA}),
+        ],
     },
     {
-        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]},
-            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]}],
+        fingerprint: [
+            {modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]},
+        ],
         model: '4062172044776_4',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
-        extend: [ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: ota.zigbeeOTA})],
+        extend: [
+            deviceEndpoints({endpoints: {l1: 10, l2: 11, s1: 25}}),
+            ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2', 's1'], ota: ota.zigbeeOTA}),
+        ],
         fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [e.action(['toggle_s1', 'brightness_move_up_s1', 'brightness_move_down_s1', 'brightness_stop_s1'])],
         onEvent: async (type, data, device) => {
@@ -402,7 +465,7 @@ const definitions: Definition[] = [
         description: 'Lightify pro push button controller (PBC)',
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+            return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
         fromZigbee: [ledvanceFz.pbc_level_to_action],
         exposes: [
@@ -412,7 +475,7 @@ const definitions: Definition[] = [
             e.action(['hold', 'release', 'toggle']).withEndpoint('l4'),
         ],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genLevelCtrl']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genLevelCtrl']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genLevelCtrl']);

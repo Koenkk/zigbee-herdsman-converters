@@ -1,5 +1,5 @@
-import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {

@@ -1,11 +1,11 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
+import {battery} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {batteryPercentage} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -13,12 +13,18 @@ const definitions: Definition[] = [
         model: 'HC-SLM-1',
         vendor: 'Heimgard Technologies',
         description: 'Wattle door lock pro',
-        fromZigbee: [fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock, fz.lock_pin_code_response,
-            fz.lock_user_status_response],
+        fromZigbee: [
+            fz.battery,
+            fz.lock_operation_event,
+            fz.lock_programming_event,
+            fz.lock,
+            fz.lock_pin_code_response,
+            fz.lock_user_status_response,
+        ],
         toZigbee: [tz.identify, tz.lock, tz.lock_sound_volume, tz.lock_auto_relock_time, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 39},
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -26,8 +32,13 @@ const definitions: Definition[] = [
             await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
         },
         exposes: [
-            e.lock(), e.battery(), e.sound_volume(), e.auto_relock_time().withValueMin(0).withValueMax(3600),
-            e.lock_action_user(), e.lock_action_source_name(), e.pincode(),
+            e.lock(),
+            e.battery(),
+            e.sound_volume(),
+            e.auto_relock_time().withValueMin(0).withValueMax(3600),
+            e.lock_action_user(),
+            e.lock_action_source_name(),
+            e.pincode(),
         ],
     },
     {
@@ -39,7 +50,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.lock, tz.lock_sound_volume, tz.identify, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 39},
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -57,7 +68,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tz.light_brightness_move, tz.light_onoff_brightness],
         ota: ota.zigbeeOTA,
         exposes: [e.light_brightness(), e.power(), e.current(), e.voltage(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 2});
@@ -80,7 +91,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.battery],
         toZigbee: [tz.identify],
         exposes: [e.battery(), e.tamper(), e.occupancy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
@@ -94,7 +105,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.identify, tz.on_off],
         exposes: [e.switch()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -108,7 +119,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -123,7 +134,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -138,7 +149,7 @@ const definitions: Definition[] = [
         description: 'Indoor siren',
         toZigbee: [tz.warning],
         meta: {disableDefaultResponse: true},
-        extend: [batteryPercentage()],
+        extend: [battery()],
         exposes: [e.warning()],
     },
 ];

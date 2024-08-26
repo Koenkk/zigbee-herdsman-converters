@@ -1,5 +1,5 @@
-import {Definition} from '../lib/types';
 import {light} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     // Tested working with firmware 2.5.3_r58: dimming, on/off, and effects give no

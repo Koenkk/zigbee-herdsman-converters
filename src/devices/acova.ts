@@ -1,45 +1,16 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['PERCALE2 D1.00P1.01Z1.00', 'PERCALE2 D1.00P1.02Z1.00', 'PERCALE2 D1.00P1.03Z1.00', 'TAFFETAS2 D1.00P1.03Z1.00'],
-        model: 'PERCALE2',
-        vendor: 'Acova',
-        description: 'Percale 2 heater',
-        fromZigbee: [fz.thermostat, fz.hvac_user_interface],
-        toZigbee: [
-            tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_running_state,
+        zigbeeModel: [
+            'ALCANTARA2 D1.00P1.01Z1.00\u0000\u0000\u0000\u0000\u0000\u0000',
+            'ALCANTARA2 D1.00P1.02Z1.00\u0000\u0000\u0000\u0000\u0000\u0000',
         ],
-        exposes: [
-            e.climate()
-                .withSetpoint('occupied_heating_setpoint', 7, 28, 0.5)
-                .withSetpoint('unoccupied_heating_setpoint', 7, 28, 0.5)
-                .withLocalTemperature()
-                .withSystemMode(['off', 'heat', 'auto'])
-                .withRunningState(['idle', 'heat']),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatRunningState(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ['ALCANTARA2 D1.00P1.01Z1.00\u0000\u0000\u0000\u0000\u0000\u0000',
-            'ALCANTARA2 D1.00P1.02Z1.00\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: 'ALCANTARA2',
         vendor: 'Acova',
         description: 'Alcantara 2 heater',
@@ -52,14 +23,15 @@ const definitions: Definition[] = [
             tz.thermostat_running_state,
         ],
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 28, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 7, 28, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withRunningState(['idle', 'heat']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
             await reporting.thermostatTemperature(endpoint);
@@ -69,22 +41,29 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['TAFFETAS2 D1.00P1.02Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
-            'TAFFETAS2 D1.00P1.01Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
-        model: 'TAFFETAS2',
+        zigbeeModel: [
+            'TAFFETAS2 D1.00P1.02Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+            'TAFFETAS2 D1.00P1.01Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+            'PERCALE2 D1.00P1.01Z1.00',
+            'PERCALE2 D1.00P1.02Z1.00',
+            'PERCALE2 D1.00P1.03Z1.00',
+            'TAFFETAS2 D1.00P1.03Z1.00',
+        ],
+        model: 'TAFFETAS2/PERCALE2',
         vendor: 'Acova',
-        description: 'Taffetas 2 heater',
+        description: 'Taffetas 2 / Percale 2 heater',
         fromZigbee: [fz.thermostat, fz.hvac_user_interface, fz.occupancy],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
+            tz.acova_thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_running_state,
             tz.thermostat_local_temperature_calibration,
         ],
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 28, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 7, 28, 0.5)
                 .withLocalTemperature()
@@ -93,7 +72,7 @@ const definitions: Definition[] = [
                 .withLocalTemperatureCalibration(),
             e.occupancy(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
