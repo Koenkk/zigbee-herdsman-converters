@@ -20,6 +20,27 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['ZGRC-KEY-005'],
+        model: '5144.01',
+        vendor: 'Iluminize',
+        description: 'RGB CCT 3 in 1 Remote Controller',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl(), commandsColorCtrl()],
+    },
+    {
+        zigbeeModel: ['ZGRC-KEY-001'],
+        model: '5144.11',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 wall dimmer with switches',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl()],
+    },
+    {
+        zigbeeModel: ['ZGRC-KEY-002'],
+        model: '5144.21',
+        vendor: 'Iluminize',
+        description: 'Single color wall mounted push button remote',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl(), commandsColorCtrl()],
+    },
+    {
         zigbeeModel: ['5121.10'],
         model: '5121.10',
         vendor: 'Iluminize',
