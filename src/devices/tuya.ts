@@ -10730,8 +10730,8 @@ const definitions: Definition[] = [
             e.binary('valve_state', ea.STATE, false, true).withLabel('Heating in process'),
             e
                 .climate()
-                .withSystemMode(['OFF', 'HEAT'], ea.STATE_SET)
-                .withPreset(['MANUAL', 'AUTO'])
+                .withSystemMode(['off', 'heat'], ea.STATE_SET)
+                .withPreset(['manual', 'auto'])
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
