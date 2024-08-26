@@ -8442,6 +8442,27 @@ const definitions: Definition[] = [
         ],
     },
     {
+        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_ywubfuvt'}],
+        model: 'TS0002_zemismart',
+        vendor: 'Tuya',
+        description: '2-Gang switch with backlight, countdown and inching',
+        extend: [
+            tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, backlightModeOffOn: true, onOffCountdown: true, endpoints: ['l1', 'l2']}),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+            tuya.modernExtend.tuyaInchingSwitch(2),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+        whiteLabel: [tuya.whitelabel('Zemismart', 'TB26-2', '2 Gang switch with backlight, countdown, inching', ['_TZ3000_ywubfuvt'])],
+    },
+    {
         fingerprint: [
             {modelID: 'TS0002', manufacturerName: '_TZ3000_in5qxhtt'},
             {modelID: 'TS0002', manufacturerName: '_TZ3000_ogpla3lh'},
