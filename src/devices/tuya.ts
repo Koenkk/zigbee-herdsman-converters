@@ -10720,7 +10720,7 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.enum('child_lock', ea.STATE_SET, ['LOCK', 'UNLOCK']).withLabel('Child lock'),
+            e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withLabel('Child lock'),
             e.enum('eco_mode', ea.STATE_SET, ['OFF', 'ON']).withLabel('ECO mode').withDescription('Default: Off'),
             e.numeric('eco_temperature', ea.STATE_SET).withValueMin(5).withValueMax(30).withValueStep(1).withUnit('°C')
                 .withDescription('Max temperature in ECO mode. Default: 20'),
