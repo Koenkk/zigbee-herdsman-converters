@@ -228,13 +228,6 @@ const definitions: Definition[] = [
         extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
-        zigbeeModel: ['GARDENPOLE RGBW T'],
-        model: '4058075729346',
-        vendor: 'LEDVANCE',
-        description: 'SMART+ Gardenpole 5P Multicolor',
-        extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true})],
-    },
-    {
         zigbeeModel: ['A60 RGBW B22D T'],
         model: '4058075729049',
         vendor: 'LEDVANCE',
