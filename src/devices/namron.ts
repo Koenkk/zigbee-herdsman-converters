@@ -4,8 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {forcePowerSource, light, onOff, ota, identify, electricityMeter} from '../lib/modernExtend';
-import * as ota_old from '../lib/ota';
+import {forcePowerSource, light, onOff, electricityMeter} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
@@ -121,7 +121,7 @@ const definitions: Definition[] = [
         model: '4512700',
         vendor: 'Namron',
         description: 'Zigbee dimmer 400W',
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
         extend: [light({configureReporting: true})],
     },
     {
@@ -129,7 +129,7 @@ const definitions: Definition[] = [
         model: '4512760',
         vendor: 'Namron',
         description: 'Zigbee dimmer 400W',
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
         extend: [light({configureReporting: true})],
     },
     {
@@ -144,24 +144,16 @@ const definitions: Definition[] = [
         model: '4512766',
         vendor: 'Namron',
         description: 'Zigbee smart plug 16A',
-        extend: [
-            ota(),
-            onOff(),
-            identify(),
-            electricityMeter(),
-        ],
+        ota: ota.zigbeeOTA,
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['4512767'],
         model: '4512767',
         vendor: 'Namron',
         description: 'Zigbee smart plug 16A',
-        extend: [
-            ota(),
-            onOff(),
-            identify(),
-            electricityMeter(),
-        ],
+        ota: ota.zigbeeOTA,
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['1402767'],
@@ -191,7 +183,7 @@ const definitions: Definition[] = [
         vendor: 'Namron',
         description: 'Zigbee switch 400W',
         extend: [onOff()],
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['1402755'],
@@ -236,7 +228,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512721'],
@@ -274,7 +266,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512701'],
@@ -339,7 +331,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
     },
     {
         fingerprint: [{modelID: 'DIM Lighting', manufacturerName: 'Namron As'}],
@@ -372,7 +364,7 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512729'],
@@ -400,7 +392,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512706'],
@@ -447,7 +439,7 @@ const definitions: Definition[] = [
         description: 'Zigbee 4 channel remote control',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop, fz.command_recall],
         toZigbee: [],
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
         exposes: [
             e.battery(),
             e.action([
@@ -859,7 +851,7 @@ const definitions: Definition[] = [
             await endpoint.read('hvacThermostat', [0x1008, 0x1009, 0x100a, 0x100b], sunricherManufacturer);
             await endpoint.read('hvacThermostat', [0x2001, 0x2002], sunricherManufacturer);
         },
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512735'],
@@ -893,7 +885,7 @@ const definitions: Definition[] = [
         model: '540139X',
         vendor: 'Namron',
         description: 'Panel heater 400/600/800/1000 W',
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fzLocal.namron_panelheater, fz.namron_hvac_user_interface],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
@@ -1158,7 +1150,7 @@ const definitions: Definition[] = [
         model: '4512750',
         vendor: 'Namron',
         description: 'Zigbee dimmer 2.0',
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
         extend: [light({configureReporting: true})],
         whiteLabel: [{vendor: 'Namron', model: '4512751', description: 'Zigbee dimmer 2.0', fingerprint: [{modelID: '4512751'}]}],
     },
@@ -1199,7 +1191,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512768'],
@@ -1249,7 +1241,7 @@ const definitions: Definition[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.onOff(endpoint);
         },
-        ota: ota_old.zigbeeOTA,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512770', '4512771'],
