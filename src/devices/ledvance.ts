@@ -1,6 +1,12 @@
 import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import {forcePowerSource} from '../lib/modernExtend';
 import {Definition} from '../lib/types';
+const exposes = require('../lib/exposes');
+const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const reporting = require('../lib/reporting');
+const extend = require('../lib/extend');
+const tz = require('../converters/toZigbee');
+const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
