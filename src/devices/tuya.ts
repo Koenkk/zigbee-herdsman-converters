@@ -9859,11 +9859,10 @@ const definitions: Definition[] = [
 	            		}
 	            
 	            	}
-	            }],//this version close dp 104
+	            }],
 	            [2, 'move_sensitivity', tuya.valueConverter.raw],
 	            [3, 'detection_distance_min', tuya.valueConverter.divideBy100],
 	            [4, 'detection_distance_max', tuya.valueConverter.divideBy100],
-	            
 	            [9, 'distance', tuya.valueConverter.divideBy10],
 	            [101, 'find_switch', tuya.valueConverter.onOff],
 	            [102, 'presence_sensitivity', tuya.valueConverter.raw],
