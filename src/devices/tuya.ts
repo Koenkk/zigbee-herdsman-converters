@@ -9805,8 +9805,6 @@ const definitions: Definition[] = [
 	    exposes: [
 	        e.enum('state', ea.STATE, ['none', 'presence', 'move']).withDescription('Presence state sensor'),
 	        e.presence().withDescription('Occupancy'),
-			
-			
 	        e.numeric('distance', ea.STATE).withDescription('Target distance'),
 		    e.binary('find_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('distance switch'),
 	        e.illuminance_lux().withDescription('Illuminance sensor'),
