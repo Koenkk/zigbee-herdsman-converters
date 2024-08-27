@@ -1,5 +1,19 @@
 # Changelog
 
+## [20.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.5.0...v20.6.0) (2024-08-26)
+
+
+### Features
+
+* **add:** 5144.01, 5144.11, 5144.21 [@senna1992](https://github.com/senna1992) https://github.com/Koenkk/zigbee2mqtt/issues/23701 ([eabbce1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eabbce1e78ee38ff069983321bf889e7b17f0c88))
+* **add:** POK009, POK010 ([#7900](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7900)) ([7d6023e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7d6023e9a74d790107716ce8e84ce4bbd7566f4e))
+* **add:** PRO-900Z ([#7880](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7880)) ([abc6c63](https://github.com/Koenkk/zigbee-herdsman-converters/commit/abc6c63c2926e3924d584cb202059616f74709bd))
+
+
+### Bug Fixes
+
+* **ignore:** update dependencies ([#7897](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7897)) ([064bcf2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/064bcf2175a53bdfe1c70e9bd80bf751da4e4942))
+
 ## [20.5.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.4.0...v20.5.0) (2024-08-24)
 
 
