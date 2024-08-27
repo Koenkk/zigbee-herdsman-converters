@@ -8215,7 +8215,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Lerlink', model: 'T2-Z67/T2-W67'}],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml', '_TZE200_qanl25yu', '_TZE204_lawxy9e2']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml', '_TZE200_qanl25yu']),
         model: 'TS0601_fan_and_light_switch',
         vendor: 'Tuya',
         description: 'Fan & light switch',
@@ -8239,7 +8239,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Liwokit', model: 'Fan+Light-01'}],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lawxy9e2']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lawxy9e2', '_TZE204_lawxy9e2']),
         model: 'TS0601_fan_5_levels_and_light_switch',
         vendor: 'Tuya',
         description: 'Fan with 5 levels & light switch',
