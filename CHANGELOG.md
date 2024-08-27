@@ -1,5 +1,23 @@
 # Changelog
 
+## [20.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.6.0...v20.7.0) (2024-08-27)
+
+
+### Features
+
+* **add:** ZY-M100-24GV3 ([#7909](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7909)) ([9acc033](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9acc03311711a108cf08bcd743808946a3fa908d))
+* Support `auto_close_when_water_shortage` for SONOFF SWV ([#7891](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7891)) ([889d1cf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/889d1cf6fff9ae80e40bf6512b2cf71df819d05e))
+
+
+### Bug Fixes
+
+* Add unit for OWON PC321 power factor https://github.com/Koenkk/zigbee2mqtt/issues/23741 ([a9ee942](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a9ee9429e4e189935e9315c26388c2065509f0f7))
+* **detect:** Detect `_TZ3000_et7afzxz` as Zemismart ZMR4 https://github.com/Koenkk/zigbee2mqtt/discussions/23753 ([c6bf57c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c6bf57c2cf220c06e301be8eb9b907c95aeb3243))
+* **detect:** Detect `_TZE204_iuk8kupi` as Tuya DCR-RQJ ([#7906](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7906)) ([aa52bcd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aa52bcd09c93c930e5865742855a7d308dfee259))
+* **detect:** Detect variant of Eco-dim.05 correctly ([#7902](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7902)) ([ca6dcac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ca6dcac82eb2233eac2ff9cb9aa2a058d0f80dd7))
+* Fix `state` for some Tuya covers not updating https://github.com/Koenkk/zigbee2mqtt/issues/19665 ([f25b2bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f25b2bc4afe935fda731aa33fbaba5f9c5afb464))
+* Standarize namron smart plugs ([#7907](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7907)) ([e0b3480](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e0b3480690d8f07b700f030593ad53d5caf685f7))
+
 ## [20.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.5.0...v20.6.0) (2024-08-26)
 
 
