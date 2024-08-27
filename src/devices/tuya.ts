@@ -11337,27 +11337,33 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.enum('vibrational_state', ea.STATE, ['none', 'alarm'])
-            .withDescription('Sensor vibration alarm'),
-            e.enum('tilt_status', ea.STATE, ['none', 'alarm'])
-            .withDescription('Sensor tilt alarm'),
-            e.numeric('x', ea.STATE)
-            .withValueMin(0)
-            .withValueMax(256).withValueStep(1)
-            .withDescription('X coordinate'),
-            e.numeric('y', ea.STATE)
-            .withValueMin(0)
-            .withValueMax(256)
-            .withValueStep(1)
-            .withDescription('Y coordinate'),
-            e.numeric('z', ea.STATE)
-            .withValueMin(0)
-            .withValueMax(256)
-            .withValueStep(1)
-            .withDescription('Z coordinate'),
+            e
+                .enum('vibrational_state', ea.STATE, ['none', 'alarm'])
+                .withDescription('Sensor vibration alarm'),
+            e
+                .enum('tilt_status', ea.STATE, ['none', 'alarm'])
+                .withDescription('Sensor tilt alarm'),
+            e
+                .numeric('x', ea.STATE)
+                .withValueMin(0)
+                .withValueMax(256).withValueStep(1)
+                .withDescription('X coordinate'),
+            e
+                .numeric('y', ea.STATE)
+                .withValueMin(0)
+                .withValueMax(256)
+                .withValueStep(1)
+                .withDescription('Y coordinate'),
+            e
+                .numeric('z', ea.STATE)
+                .withValueMin(0)
+                .withValueMax(256)
+                .withValueStep(1)
+                .withDescription('Z coordinate'),
             e.battery(),
-            e.enum('sensitivity', ea.STATE_SET, ['low', 'middle', 'high'])
-            .withDescription('Vibration detection sensitivity'),
+            e
+                .enum('sensitivity', ea.STATE_SET, ['low', 'middle', 'high'])
+                .withDescription('Vibration detection sensitivity'),
         ],
         meta: {
             tuyaDatapoints: [
