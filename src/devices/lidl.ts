@@ -1,25 +1,38 @@
-import {Definition, Fz, Tz, KeyValue, Publish} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
+import {Definition, Fz, Tz, KeyValue, Publish} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
-import * as tuya from '../lib/tuya';
-import * as globalStore from '../lib/store';
+import {battery, iasZoneAlarm} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as globalStore from '../lib/store';
+import * as tuya from '../lib/tuya';
 import * as utils from '../lib/utils';
+
+const fzLocal = {
+    FB20002_on: {
+        cluster: 'genOnOff',
+        type: 'commandTuyaAction',
+        convert: async (model, msg, publish, options, meta) => {
+            return {action: 'on'};
+        },
+    } satisfies Fz.Converter,
+};
 
 const valueConverterLocal = {
     wateringState: {
         from: (value: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
             const result = {
                 state: value ? 'ON' : 'OFF',
-                ...(value ? {} : {
-                    // ensure time_left is set to zero when it's OFF
-                    time_left: 0,
-                }),
+                ...(value
+                    ? {}
+                    : {
+                          // ensure time_left is set to zero when it's OFF
+                          time_left: 0,
+                      }),
             };
 
             // prepare the time reporting for water scheduler
@@ -38,7 +51,7 @@ const valueConverterLocal = {
                 const timeslot = [1, 2, 3, 4, 5, 6]
                     .map((slotNumber) => utils.getObjectProperty(meta.state, `schedule_slot_${slotNumber}`, {}))
                     // @ts-expect-error
-                    .find((ts) =>ts.state === 'ON' && ts.start_hour === now.getHours() && ts.start_minute === now.getMinutes() && ts.timer > 0);
+                    .find((ts) => ts.state === 'ON' && ts.start_hour === now.getHours() && ts.start_minute === now.getMinutes() && ts.timer > 0);
 
                 if (timeslot) {
                     // @ts-expect-error
@@ -63,7 +76,7 @@ const valueConverterLocal = {
 
                 if (
                     // time slot execution is already completed
-                    (Date.now() > (ts.timeslot_end_timestamp - 5000)) ||
+                    Date.now() > ts.timeslot_end_timestamp - 5000 ||
                     // scheduling was interrupted by turning watering on manually
                     // @ts-expect-error
                     (result.state === 'ON' && result.state != meta.state.state && meta.state.time_left > 0)
@@ -81,7 +94,7 @@ const valueConverterLocal = {
                     ts.iteration_start_timestamp = Date.now();
                     if (ts.timer > 1) {
                         // report every minute
-                        const interval = ts.iteration_inverval = setInterval(() => {
+                        const interval = (ts.iteration_inverval = setInterval(() => {
                             const now = Date.now();
                             const wateringEndTime = ts.iteration_start_timestamp + ts.timer * 60 * 1000;
                             const timeLeftInMinutes = Math.round((wateringEndTime - now) / 1000 / 60);
@@ -93,7 +106,7 @@ const valueConverterLocal = {
                                     time_left: timeLeftInMinutes,
                                 });
                             }
-                        }, 60 * 1000);
+                        }, 60 * 1000));
                     }
                     // initial reporting
                     result.time_left = ts.timer;
@@ -109,16 +122,13 @@ const valueConverterLocal = {
             return {
                 schedule_mode: scheduleValue === 0 ? 'OFF' : isWeekday ? 'WEEKDAY' : 'PERIODIC',
                 schedule_periodic: !isWeekday ? scheduleValue : 0,
-                schedule_weekday: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-                    .reduce(
-                        (scheduleMap, dayName, index) => (
-                            {
-                                ...scheduleMap,
-                                [dayName]: isWeekday && (scheduleValue & (1 << index)) > 0 ? 'ON' : 'OFF',
-                            }
-                        ),
-                        {},
-                    ),
+                schedule_weekday: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].reduce(
+                    (scheduleMap, dayName, index) => ({
+                        ...scheduleMap,
+                        [dayName]: isWeekday && (scheduleValue & (1 << index)) > 0 ? 'ON' : 'OFF',
+                    }),
+                    {},
+                ),
             };
         },
     },
@@ -207,8 +217,8 @@ const definitions: Definition[] = [
         model: 'HG06337',
         vendor: 'Lidl',
         description: 'Silvercrest smart plug (EU, CH, FR, BS, DK)',
-        extend: tuya.extend.switch({indicatorMode: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
+        extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -220,10 +230,10 @@ const definitions: Definition[] = [
         vendor: 'Lidl',
         description: 'Silvercrest smart plug with power monitoring (EU, FR)',
         ota: ota.zigbeeOTA,
-        extend: tuya.extend.switch({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
+        extend: [tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true})],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.rmsVoltage(endpoint, {change: 5});
             await reporting.rmsCurrent(endpoint, {change: 50});
@@ -235,31 +245,30 @@ const definitions: Definition[] = [
         },
         options: [exposes.options.measurement_poll_interval().withDescription('Only the energy value is polled for this device.')],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, false, true),
-        whiteLabel: [
-            tuya.whitelabel('Lidl', 'HG08673-BS', 'Silvercrest smart plug with power monitoring (BS)', ['_TZ3000_3uimvkn6']),
-        ],
+        whiteLabel: [tuya.whitelabel('Lidl', 'HG08673-BS', 'Silvercrest smart plug with power monitoring (BS)', ['_TZ3000_3uimvkn6'])],
     },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_rco1yzb1'}],
         model: 'HG08164',
         vendor: 'Lidl',
         description: 'Silvercrest smart button',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery, fz.tuya_on_off_action],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery, tuya.fz.on_off_action],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
-                await endpoint.read(0xE001, [0xD011]);
-            } catch (err) {/* do nothing */}
+                await endpoint.read(0xe001, [0xd011]);
+            } catch (err) {
+                /* do nothing */
+            }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.action(
-            ['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'single', 'double']), e.battery()],
+        exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'single', 'double']), e.battery()],
     },
     {
         fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
@@ -268,7 +277,7 @@ const definitions: Definition[] = [
         description: 'Silvercrest smart wireless door bell button',
         fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -283,7 +292,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -298,23 +307,17 @@ const definitions: Definition[] = [
         model: 'HG06336',
         vendor: 'Lidl',
         description: 'Silvercrest smart window and door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.battery],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        extend: [iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper']}), battery()],
     },
     {
         fingerprint: [{modelID: 'TS1001', manufacturerName: '_TYZB01_bngwdjsr'}],
         model: 'FB20-002',
         vendor: 'Lidl',
         description: 'Livarno Lux switch and dimming light remote control',
-        exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
-            'brightness_move_down'])],
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+        exposes: [
+            e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down']),
+        ],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fzLocal.FB20002_on],
         toZigbee: [],
     },
     {
@@ -322,8 +325,18 @@ const definitions: Definition[] = [
         model: 'FB21-001',
         vendor: 'Lidl',
         description: 'Livarno Lux switch and dimming light remote control',
-        exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
-            'brightness_move_down', 'switch_scene'])],
+        exposes: [
+            e.action([
+                'on',
+                'off',
+                'brightness_stop',
+                'brightness_step_up',
+                'brightness_step_down',
+                'brightness_move_up',
+                'brightness_move_down',
+                'switch_scene',
+            ]),
+        ],
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.tuya_switch_scene],
         toZigbee: [],
     },
@@ -339,16 +352,16 @@ const definitions: Definition[] = [
         model: 'HG06338',
         vendor: 'Lidl',
         description: 'Silvercrest 3 gang switch, with 4 USB (EU, FR, CZ, BS)',
-        extend: tuya.extend.switch({endpoints: ['l1', 'l2', 'l3']}),
+        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3']})],
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const ID of [1, 2, 3]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }
         },
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3};
+            return {l1: 1, l2: 2, l3: 3};
         },
     },
     {
@@ -365,8 +378,8 @@ const definitions: Definition[] = [
         model: '14153806L',
         vendor: 'Lidl',
         description: 'Livarno smart LED ceiling light',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
+        configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
@@ -395,8 +408,8 @@ const definitions: Definition[] = [
                 }
             }
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
 
             // set reporting interval of genOnOff to max to "disable" it
@@ -407,22 +420,30 @@ const definitions: Definition[] = [
         exposes: [
             e.battery(),
             tuya.exposes.switch(),
-            e.numeric('timer', ea.STATE_SET).withValueMin(1).withValueMax(599).withUnit('min')
+            e
+                .numeric('timer', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(599)
+                .withUnit('min')
                 .withDescription('Auto off after specific time for manual watering.'),
-            e.numeric('time_left', ea.STATE).withUnit('min')
-                .withDescription('Remaining time until the watering turns off.'),
-            e.binary('frost_lock', ea.STATE, 'ON', 'OFF')
+            e.numeric('time_left', ea.STATE).withUnit('min').withDescription('Remaining time until the watering turns off.'),
+            e
+                .binary('frost_lock', ea.STATE, 'ON', 'OFF')
                 .withDescription(
                     'Indicates if the frost guard is currently active. ' +
-                    'If the temperature drops below 5° C, device activates frost guard and disables irrigation. ' +
-                    'You need to reset the frost guard to activate irrigation again. Note: There is no way to enable frost guard manually.',
+                        'If the temperature drops below 5° C, device activates frost guard and disables irrigation. ' +
+                        'You need to reset the frost guard to activate irrigation again. Note: There is no way to enable frost guard manually.',
                 ),
             e.enum('reset_frost_lock', ea.SET, ['RESET']).withDescription('Resets frost lock to make the device workable again.'),
-            e.enum('schedule_mode', ea.STATE, ['OFF', 'WEEKDAY', 'PERIODIC'])
-                .withDescription('Scheduling mode that is currently in use.'),
-            e.numeric('schedule_periodic', ea.STATE_SET).withValueMin(0).withValueMax(7).withUnit('day')
+            e.enum('schedule_mode', ea.STATE, ['OFF', 'WEEKDAY', 'PERIODIC']).withDescription('Scheduling mode that is currently in use.'),
+            e
+                .numeric('schedule_periodic', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(7)
+                .withUnit('day')
                 .withDescription('Watering by periodic interval: Irrigate every n days'),
-            e.composite('schedule_weekday', 'schedule_weekday', ea.STATE_SET)
+            e
+                .composite('schedule_weekday', 'schedule_weekday', ea.STATE_SET)
                 .withDescription('Watering by weekday: Irrigate individually for each day.')
                 .withFeature(e.binary('monday', ea.STATE_SET, 'ON', 'OFF'))
                 .withFeature(e.binary('tuesday', ea.STATE_SET, 'ON', 'OFF'))
@@ -432,19 +453,44 @@ const definitions: Definition[] = [
                 .withFeature(e.binary('saturday', ea.STATE_SET, 'ON', 'OFF'))
                 .withFeature(e.binary('sunday', ea.STATE_SET, 'ON', 'OFF')),
             ...[1, 2, 3, 4, 5, 6].map((timeSlotNumber) =>
-                e.composite(`schedule_slot_${timeSlotNumber}`, `schedule_slot_${timeSlotNumber}`, ea.STATE_SET)
+                e
+                    .composite(`schedule_slot_${timeSlotNumber}`, `schedule_slot_${timeSlotNumber}`, ea.STATE_SET)
                     .withDescription(`Watering time slot ${timeSlotNumber}`)
                     .withFeature(e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('On/off state of the time slot'))
-                    .withFeature(e.numeric('start_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23)
-                        .withDescription('Starting time (hour)'))
-                    .withFeature(e.numeric('start_minute', ea.STATE_SET).withUnit('min').withValueMin(0).withValueMax(59)
-                        .withDescription('Starting time (minute)'))
-                    .withFeature(e.numeric('timer', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(599)
-                        .withDescription('Auto off after specific time for scheduled watering.'))
-                    .withFeature(e.numeric('pause', ea.STATE_SET).withUnit('min').withValueMin(0).withValueMax(599)
-                        .withDescription('Pause after each iteration.'))
-                    .withFeature(e.numeric('iterations', ea.STATE_SET).withValueMin(1).withValueMax(9)
-                        .withDescription('Number of watering iterations. Works only if there is a pause.')),
+                    .withFeature(
+                        e.numeric('start_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23).withDescription('Starting time (hour)'),
+                    )
+                    .withFeature(
+                        e
+                            .numeric('start_minute', ea.STATE_SET)
+                            .withUnit('min')
+                            .withValueMin(0)
+                            .withValueMax(59)
+                            .withDescription('Starting time (minute)'),
+                    )
+                    .withFeature(
+                        e
+                            .numeric('timer', ea.STATE_SET)
+                            .withUnit('min')
+                            .withValueMin(1)
+                            .withValueMax(599)
+                            .withDescription('Auto off after specific time for scheduled watering.'),
+                    )
+                    .withFeature(
+                        e
+                            .numeric('pause', ea.STATE_SET)
+                            .withUnit('min')
+                            .withValueMin(0)
+                            .withValueMax(599)
+                            .withDescription('Pause after each iteration.'),
+                    )
+                    .withFeature(
+                        e
+                            .numeric('iterations', ea.STATE_SET)
+                            .withValueMin(1)
+                            .withValueMax(9)
+                            .withDescription('Number of watering iterations. Works only if there is a pause.'),
+                    ),
             ),
         ],
         meta: {
@@ -457,7 +503,7 @@ const definitions: Definition[] = [
                 [11, 'battery', tuya.valueConverter.raw],
                 [108, 'frost_lock', tuya.valueConverter.onOff],
                 // there is no state reporting for reset
-                [109, 'reset_frost_lock', tuya.valueConverterBasic.lookup({'RESET': tuya.enum(0)}), {optimistic: false}],
+                [109, 'reset_frost_lock', tuya.valueConverterBasic.lookup({RESET: tuya.enum(0)}), {optimistic: false}],
                 [107, null, valueConverterLocal.wateringScheduleMode],
                 [107, 'schedule_periodic', valueConverterLocal.wateringSchedulePeriodic],
                 [107, 'schedule_weekday', valueConverterLocal.wateringScheduleWeekday],
@@ -475,8 +521,8 @@ const definitions: Definition[] = [
         model: 'HG06620',
         vendor: 'Lidl',
         description: 'Silvercrest garden spike with 2 sockets',
-        extend: tuya.extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
+        extend: [tuya.modernExtend.tuyaOnOff()],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -487,8 +533,8 @@ const definitions: Definition[] = [
         model: 'HG06619',
         vendor: 'Lidl',
         description: 'Silvercrest outdoor plug',
-        extend: tuya.extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
+        extend: [tuya.modernExtend.tuyaOnOff()],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -499,9 +545,7 @@ const definitions: Definition[] = [
         model: 'HG08633',
         vendor: 'Lidl',
         description: 'Livarno gardenspot RGB',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({
-            supportsHueAndSaturation: true, preferHueAndSaturation: true, colorTempRange: [153, 500],
-        }),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ['hs', 'xy']}})],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'}],
@@ -509,35 +553,67 @@ const definitions: Definition[] = [
         vendor: 'Lidl',
         description: 'Silvercrest radiator valve with thermostat',
         fromZigbee: [fz.ignore_tuya_set_time, legacy.fromZigbee.zs_thermostat],
-        toZigbee: [legacy.toZigbee.zs_thermostat_current_heating_setpoint, legacy.toZigbee.zs_thermostat_child_lock,
-            legacy.toZigbee.zs_thermostat_comfort_temp, legacy.toZigbee.zs_thermostat_eco_temp, legacy.toZigbee.zs_thermostat_preset_mode,
-            legacy.toZigbee.zs_thermostat_system_mode, legacy.toZigbee.zs_thermostat_local_temperature_calibration,
-            legacy.toZigbee.zs_thermostat_current_heating_setpoint_auto, legacy.toZigbee.zs_thermostat_openwindow_time,
-            legacy.toZigbee.zs_thermostat_openwindow_temp, legacy.toZigbee.zs_thermostat_binary_one, legacy.toZigbee.zs_thermostat_binary_two,
-            legacy.toZigbee.zs_thermostat_away_setting, legacy.toZigbee.zs_thermostat_local_schedule],
+        toZigbee: [
+            legacy.toZigbee.zs_thermostat_current_heating_setpoint,
+            legacy.toZigbee.zs_thermostat_child_lock,
+            legacy.toZigbee.zs_thermostat_comfort_temp,
+            legacy.toZigbee.zs_thermostat_eco_temp,
+            legacy.toZigbee.zs_thermostat_preset_mode,
+            legacy.toZigbee.zs_thermostat_system_mode,
+            legacy.toZigbee.zs_thermostat_local_temperature_calibration,
+            legacy.toZigbee.zs_thermostat_current_heating_setpoint_auto,
+            legacy.toZigbee.zs_thermostat_openwindow_time,
+            legacy.toZigbee.zs_thermostat_openwindow_temp,
+            legacy.toZigbee.zs_thermostat_binary_one,
+            legacy.toZigbee.zs_thermostat_binary_two,
+            legacy.toZigbee.zs_thermostat_away_setting,
+            legacy.toZigbee.zs_thermostat_local_schedule,
+        ],
         onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [
-            e.child_lock(), e.comfort_temperature(), e.eco_temperature(), e.battery_voltage(),
-            e.numeric('current_heating_setpoint_auto', ea.STATE_SET).withValueMin(0.5).withValueMax(29.5)
-                .withValueStep(0.5).withUnit('°C').withDescription('Temperature setpoint automatic'),
-            e.climate().withSetpoint('current_heating_setpoint', 0.5, 29.5, 0.5, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-12.5, 5.5, 0.1, ea.STATE_SET)
+            e.child_lock(),
+            e.comfort_temperature(),
+            e.eco_temperature(),
+            e.battery_voltage(),
+            e
+                .numeric('current_heating_setpoint_auto', ea.STATE_SET)
+                .withValueMin(0.5)
+                .withValueMax(29.5)
+                .withValueStep(0.5)
+                .withUnit('°C')
+                .withDescription('Temperature setpoint automatic'),
+            e
+                .climate()
+                .withSetpoint('current_heating_setpoint', 0.5, 29.5, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-12.5, 5.5, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
                 .withPreset(['schedule', 'manual', 'holiday', 'boost']),
-            e.numeric('detectwindow_temperature', ea.STATE_SET).withUnit('°C').withDescription('Open window detection temperature')
-                .withValueMin(-10).withValueMax(35),
-            e.numeric('detectwindow_timeminute', ea.STATE_SET).withUnit('min').withDescription('Open window time in minute')
-                .withValueMin(0).withValueMax(1000),
+            e
+                .numeric('detectwindow_temperature', ea.STATE_SET)
+                .withUnit('°C')
+                .withDescription('Open window detection temperature')
+                .withValueMin(-10)
+                .withValueMax(35),
+            e
+                .numeric('detectwindow_timeminute', ea.STATE_SET)
+                .withUnit('min')
+                .withDescription('Open window time in minute')
+                .withValueMin(0)
+                .withValueMax(1000),
             e.binary('binary_one', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary one'),
             e.binary('binary_two', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary two'),
             e.binary('away_mode', ea.STATE, 'ON', 'OFF').withDescription('Away mode'),
-            e.composite('away_setting', 'away_setting', ea.STATE_SET)
-                .withFeature(e.away_preset_days()).setAccess('away_preset_days', ea.ALL)
-                .withFeature(e.away_preset_temperature()).setAccess('away_preset_temperature', ea.ALL)
+            e
+                .composite('away_setting', 'away_setting', ea.STATE_SET)
+                .withFeature(e.away_preset_days())
+                .setAccess('away_preset_days', ea.ALL)
+                .withFeature(e.away_preset_temperature())
+                .setAccess('away_preset_temperature', ea.ALL)
                 .withFeature(e.numeric('away_preset_year', ea.ALL).withUnit('year').withDescription('Start away year 20xx'))
                 .withFeature(e.numeric('away_preset_month', ea.ALL).withUnit('month').withDescription('Start away month'))
                 .withFeature(e.numeric('away_preset_day', ea.ALL).withUnit('day').withDescription('Start away day'))
@@ -546,14 +622,49 @@ const definitions: Definition[] = [
             ...['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
                 const expose = e.composite(day, day, ea.STATE_SET);
                 [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach((i) => {
-                    expose.withFeature(e.numeric(`${day}_temp_${i}`, ea.ALL).withValueMin(0.5)
-                        .withValueMax(29.5).withValueStep(0.5).withUnit('°C').withDescription(`Temperature ${i}`));
-                    expose.withFeature(e.enum(`${day}_hour_${i}`, ea.STATE_SET,
-                        ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09',
-                            '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
-                            '20', '21', '22', '23', '24']).withDescription(`Hour TO for temp ${i}`));
-                    expose.withFeature(e.enum(`${day}_minute_${i}`, ea.STATE_SET, ['00', '15', '30', '45'])
-                        .withDescription(`Minute TO for temp ${i}`));
+                    expose.withFeature(
+                        e
+                            .numeric(`${day}_temp_${i}`, ea.ALL)
+                            .withValueMin(0.5)
+                            .withValueMax(29.5)
+                            .withValueStep(0.5)
+                            .withUnit('°C')
+                            .withDescription(`Temperature ${i}`),
+                    );
+                    expose.withFeature(
+                        e
+                            .enum(`${day}_hour_${i}`, ea.STATE_SET, [
+                                '00',
+                                '01',
+                                '02',
+                                '03',
+                                '04',
+                                '05',
+                                '06',
+                                '07',
+                                '08',
+                                '09',
+                                '10',
+                                '11',
+                                '12',
+                                '13',
+                                '14',
+                                '15',
+                                '16',
+                                '17',
+                                '18',
+                                '19',
+                                '20',
+                                '21',
+                                '22',
+                                '23',
+                                '24',
+                            ])
+                            .withDescription(`Hour TO for temp ${i}`),
+                    );
+                    expose.withFeature(
+                        e.enum(`${day}_minute_${i}`, ea.STATE_SET, ['00', '15', '30', '45']).withDescription(`Minute TO for temp ${i}`),
+                    );
                 });
                 return expose;
             }),

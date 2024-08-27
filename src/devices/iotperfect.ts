@@ -1,15 +1,18 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vrjkcam9'},
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_vrjkcam9'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_d0ypnbvn'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_d0ypnbvn'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE204_v5xjyphj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_d0ypnbvn'},
+        ],
         model: 'PF-PM02D-TYZ',
         vendor: 'IOTPerfect',
         description: 'Smart water/gas valve',

@@ -1,13 +1,12 @@
-import {Configure, Definition, Fz, OnEvent, Tz, Zh} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {Configure, Definition, Fz, OnEvent, Tz, Zh} from '../lib/types';
 const e = exposes.presets;
-import * as utils from '../lib/utils';
-import {light} from '../lib/modernExtend';
+import {identify, light} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as utils from '../lib/utils';
 
 const ea = exposes.access;
 
@@ -40,24 +39,25 @@ const disableBatteryRotaryDimmerReporting = async (endpoint: Zh.Endpoint) => {
     // The default is for the device to also report the on/off and
     // brightness at the same time as sending on/off and step commands.
     // Disable the reporting by setting the max interval to 0xFFFF.
-    await reporting.brightness(endpoint, {max: 0xFFFF});
-    await reporting.onOff(endpoint, {max: 0xFFFF});
+    await reporting.brightness(endpoint, {max: 0xffff});
+    await reporting.onOff(endpoint, {max: 0xffff});
 };
 
 const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
     fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature] satisfies Fz.Converter[],
     toZigbee: [] as Tz.Converter[], // TODO: Needs documented reasoning for asserting this as a type it isn't
-    exposes: [e.battery(), e.action([
-        'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
-    configure: (async (device, coordinatorEndpoint, logger) => {
+    exposes: [
+        e.battery(),
+        e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down']),
+    ],
+    configure: (async (device, coordinatorEndpoint) => {
         const endpoints = endpointsIds.map((endpoint) => device.getEndpoint(endpoint));
 
         // Battery level is only reported on first endpoint
         await reporting.batteryVoltage(endpoints[0]);
 
         for await (const endpoint of endpoints) {
-            await reporting.bind(endpoint, coordinatorEndpoint,
-                ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
 
             await disableBatteryRotaryDimmerReporting(endpoint);
         }
@@ -73,10 +73,14 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
                 }
                 // Then re-apply the configured reportings
                 for (const c of endpoint.configuredReportings) {
-                    await endpoint.configureReporting(c.cluster.name, [{
-                        attribute: c.attribute.name, minimumReportInterval: c.minimumReportInterval,
-                        maximumReportInterval: c.maximumReportInterval, reportableChange: c.reportableChange,
-                    }]);
+                    await endpoint.configureReporting(c.cluster.name, [
+                        {
+                            attribute: c.attribute.name,
+                            minimumReportInterval: c.minimumReportInterval,
+                            maximumReportInterval: c.maximumReportInterval,
+                            reportableChange: c.reportableChange,
+                        },
+                    ]);
                 }
             }
         }
@@ -138,7 +142,7 @@ const definitions: Definition[] = [
         model: 'AU-A1VGSZ5E/19',
         vendor: 'Aurora Lighting',
         description: 'AOne 4W smart dimmable Vintage GLS lamp 1900K',
-        extend: extend.light_onoff_brightness({disableEffect: true}),
+        extend: [light({effect: false})],
     },
     {
         zigbeeModel: ['RGBGU10Bulb50AU', 'RGBGU10Bulb50AU2'],
@@ -162,7 +166,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_recall, fz.command_store],
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'recall_1', 'store_1'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg', 'genScenes']);
         },
@@ -174,7 +178,7 @@ const definitions: Definition[] = [
         description: 'AOne PIR sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(39);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint);
@@ -189,7 +193,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -219,17 +223,20 @@ const definitions: Definition[] = [
         vendor: 'Aurora Lighting',
         description: 'Double smart socket UK',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.brightness],
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'), e.power().withEndpoint('right'),
-            e.numeric('brightness', ea.ALL).withValueMin(0).withValueMax(254)
-                .withDescription('Brightness of this backlight LED')],
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            e.power().withEndpoint('left'),
+            e.power().withEndpoint('right'),
+            e.numeric('brightness', ea.ALL).withValueMin(0).withValueMax(254).withDescription('Brightness of this backlight LED'),
+        ],
         toZigbee: [tzLocal.backlight_brightness, tz.on_off],
         meta: {multiEndpoint: true},
         ota: ota.zigbeeOTA,
         endpoint: (device) => {
-            return {'left': 1, 'right': 2};
+            return {left: 1, right: 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint1);
@@ -247,12 +254,17 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power(), e.voltage(), e.current(), e.device_temperature(), e.energy()],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
-            return {'default': 2};
+            return {default: 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genIdentify', 'haElectricalMeasurement', 'seMetering',
-                'genDeviceTempCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genOnOff',
+                'genIdentify',
+                'haElectricalMeasurement',
+                'seMetering',
+                'genDeviceTempCfg',
+            ]);
 
             await reporting.onOff(endpoint);
             await reporting.deviceTemperature(endpoint);
@@ -283,10 +295,17 @@ const definitions: Definition[] = [
         description: 'AOne two gang wireless battery rotary dimmer',
         meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2100'}},
         endpoint: (device) => {
-            return {'right': 1, 'left': 2};
+            return {right: 1, left: 2};
         },
         // Two gang battery rotary dimmer with endpoint IDs 1 and 2
         ...batteryRotaryDimmer(1, 2),
+    },
+    {
+        zigbeeModel: ['NPD3032'],
+        model: 'AU-A1ZB110',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 1-10V in-line dimmer',
+        extend: [identify(), light({powerOnBehavior: false})],
     },
 ];
 

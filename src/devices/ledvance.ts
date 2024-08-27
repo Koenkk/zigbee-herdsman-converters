@@ -1,6 +1,6 @@
-import {Definition} from '../lib/types';
 import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import {forcePowerSource} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {
@@ -29,7 +29,7 @@ const definitions: Definition[] = [
         model: '74746',
         vendor: 'LEDVANCE',
         description: 'LEDVANCE 74746 Sylvania smart+ Zigbee dimmable edge-lit panel',
-        extend: [ledvanceLight({colorTemp: {range: [200, 370]}, color: true})],
+        extend: [ledvanceLight({colorTemp: {range: [200, 370]}, color: true, ota: null})],
     },
     {
         zigbeeModel: ['Panel TW 620 UGR19'],
@@ -37,6 +37,41 @@ const definitions: Definition[] = [
         vendor: 'LEDVANCE',
         description: 'Panel TW LED 625 UGR19',
         extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ['PLUG EU EM T'],
+        model: '4099854295232',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Indoor Plug EU with Energy meter ',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+    },
+    {
+        zigbeeModel: ['PLUG COMPACT OUTDOOR EU EM T'],
+        model: '4099854293276',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Compact Outdoor Plug EU with energy meter',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+    },
+    {
+        zigbeeModel: ['PL HCL300x1200 01'],
+        model: '4058075724587',
+        vendor: 'LEDVANCE',
+        description: 'Biolux HCL Panel 1200 Zigbee tunable white',
+        extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['A60 RGBW Value II'],
@@ -221,13 +256,6 @@ const definitions: Definition[] = [
         extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
-        zigbeeModel: ['GARDENPOLE RGBW T'],
-        model: '4058075729346',
-        vendor: 'LEDVANCE',
-        description: 'SMART+ Gardenpole 5P Multicolor',
-        extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true})],
-    },
-    {
         zigbeeModel: ['A60 RGBW B22D T'],
         model: '4058075729049',
         vendor: 'LEDVANCE',
@@ -298,7 +326,7 @@ const definitions: Definition[] = [
         extend: [ledvanceLight({})],
     },
     {
-        zigbeeModel: ['Connected Tube Value II'],
+        zigbeeModel: ['Connected Tube Value II', 'TUBE_T8_CON_600_7.5W_840ZBV\u0000'],
         model: 'ST8EM-CON',
         vendor: 'LEDVANCE',
         description: 'SubstiTUBE connected advanced ultra output',

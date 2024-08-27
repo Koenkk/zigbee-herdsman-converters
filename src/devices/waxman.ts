@@ -1,8 +1,8 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -14,7 +14,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz._8840100H_water_leak_alarm, fz.temperature, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.water_leak()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'haApplianceEventsAlerts', 'msTemperatureMeasurement']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -35,7 +35,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.on_off],
         toZigbee: [tz.on_off],
         exposes: [e.battery(), e.switch()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'haApplianceEventsAlerts', 'genOnOff']);
             await reporting.onOff(endpoint);

@@ -1,12 +1,14 @@
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
-const e = exposes.presets;
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['C205'],
+        model: 'C205',
+        vendor: 'Candeo',
+        description: 'Switch module',
+        extend: [onOff({powerOnBehavior: false})],
+    },
     {
         fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'Candeo'}],
         model: 'C202',
@@ -30,26 +32,11 @@ const definitions: Definition[] = [
         extend: [light({configureReporting: true})],
     },
     {
-        zigbeeModel: ['C204'],
+        zigbeeModel: ['C204', 'C-ZB-DM204'],
         model: 'C204',
         vendor: 'Candeo',
         description: 'Zigbee micro smart dimmer',
-        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
-        toZigbee: extend.light_onoff_brightness().toZigbee,
-        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint, {min: 10});
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
+        extend: [light({configureReporting: true}), electricityMeter()],
     },
 ];
 

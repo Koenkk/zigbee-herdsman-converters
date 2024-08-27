@@ -1,7 +1,8 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import {battery, iasZoneAlarm} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -58,6 +59,13 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['LH03121'],
+        model: 'LH03121',
+        vendor: 'iHORN',
+        description: 'Door contact DNAKE SH-DM-S01',
+        extend: [iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']}), battery()],
     },
 ];
 

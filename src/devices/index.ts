@@ -4,6 +4,7 @@ import adeo from './adeo';
 import adurosmart from './adurosmart';
 import aeotec from './aeotec';
 import airam from './airam';
+import airzone_aidoo from './airzone_aidoo';
 import ajax_online from './ajax_online';
 import akuvox from './akuvox';
 import alchemy from './alchemy';
@@ -15,6 +16,7 @@ import atsmart from './atsmart';
 import aubess from './aubess';
 import aurora_lighting from './aurora_lighting';
 import automaton from './automaton';
+import avatto from './avatto';
 import awox from './awox';
 import axis from './axis';
 import bankamp from './bankamp';
@@ -65,12 +67,14 @@ import ecolink from './ecolink';
 import ecosmart from './ecosmart';
 import ecozy from './ecozy';
 import edp from './edp';
+import efekta from './efekta';
 import eglo from './eglo';
 import elko from './elko';
 import enbrighten from './enbrighten';
 import enocean from './enocean';
 import envilar from './envilar';
 import essentialb from './essentialb';
+import eucontrols from './eucontrols';
 import eurotronic from './eurotronic';
 import evanell from './evanell';
 import evn from './evn';
@@ -91,6 +95,7 @@ import giderwel from './giderwel';
 import giex from './giex';
 import girier from './girier';
 import gledopto from './gledopto';
+import gmmts from './gmmts';
 import gmy from './gmy';
 import gs from './gs';
 import halemeier from './halemeier';
@@ -100,7 +105,6 @@ import heiman from './heiman';
 import heimgard_technologies from './heimgard_technologies';
 import hej from './hej';
 import hfh from './hfh';
-import hgkg from './hgkg';
 import hilux from './hilux';
 import hive from './hive';
 import hommyn from './hommyn';
@@ -117,6 +121,7 @@ import iluminize from './iluminize';
 import ilux from './ilux';
 import imhotepcreation from './imhotepcreation';
 import immax from './immax';
+import imou from './imou';
 import innr from './innr';
 import inovelli from './inovelli';
 import insta from './insta';
@@ -172,13 +177,16 @@ import meazon from './meazon';
 import mercator from './mercator';
 import miboxer from './miboxer';
 import micromatic from './micromatic';
+import modular from './modular';
 import moes from './moes';
-import müller_licht from './müller_licht';
+import muller_licht from './muller_licht';
+import multiterm from './multiterm';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
 import neo from './neo';
 import net2grid from './net2grid';
 import netvox from './netvox';
+import nexelec from './nexelec';
 import niko from './niko';
 import ninja_blocks from './ninja_blocks';
 import niviss from './niviss';
@@ -205,10 +213,12 @@ import plaid from './plaid';
 import plugwise from './plugwise';
 import profalux from './profalux';
 import prolight from './prolight';
+import pushok from './pushok';
 import qmotion from './qmotion';
 import qoto from './qoto';
 import quotra from './quotra';
 import rademacher from './rademacher';
+import raex from './raex';
 import rgb_genie from './rgb_genie';
 import robb from './robb';
 import roome from './roome';
@@ -216,6 +226,7 @@ import rtx from './rtx';
 import salus_controls from './salus_controls';
 import samotech from './samotech';
 import saswell from './saswell';
+import sber from './sber';
 import scanproducts from './scanproducts';
 import schlage from './schlage';
 import schneider_electric from './schneider_electric';
@@ -238,18 +249,20 @@ import smart9 from './smart9';
 import smartenit from './smartenit';
 import smartthings from './smartthings';
 import smartwings from './smartwings';
+import smlight from './smlight';
 import sohan_electric from './sohan_electric';
 import solaredge from './solaredge';
+import soma from './soma';
 import somfy from './somfy';
 import somgoms from './somgoms';
 import sonoff from './sonoff';
 import sowilo from './sowilo';
 import spotmau from './spotmau';
-import wirenboard from './wirenboard';
 import stelpro from './stelpro';
 import sunricher from './sunricher';
 import swann from './swann';
 import sylvania from './sylvania';
+import tapestry from './tapestry';
 import tci from './tci';
 import technicolor from './technicolor';
 import terncy from './terncy';
@@ -271,23 +284,27 @@ import villeroy_boch from './villeroy_boch';
 import vimar from './vimar';
 import visonic from './visonic';
 import vrey from './vrey';
+import lumi from './lumi';
 import wally from './wally';
 import waxman from './waxman';
 import weiser from './weiser';
 import weten from './weten';
+import wirenboard from './wirenboard';
 import wisdom from './wisdom';
 import woolley from './woolley';
 import woox from './woox';
 import wyze from './wyze';
-import xiaomi from './xiaomi';
 import xinghuoyuan from './xinghuoyuan';
+import xyzroe from './xyzroe';
 import yale from './yale';
 import ynoa from './ynoa';
 import yookee from './yookee';
 import ysrsai from './ysrsai';
 import zemismart from './zemismart';
 import zen from './zen';
+import zigbeetlc from './zigbeetlc';
 import zipato from './zipato';
+import qa from './qa';
 
 export default [
     ...acova,
@@ -296,6 +313,7 @@ export default [
     ...adurosmart,
     ...aeotec,
     ...airam,
+    ...airzone_aidoo,
     ...ajax_online,
     ...akuvox,
     ...alchemy,
@@ -307,6 +325,7 @@ export default [
     ...aubess,
     ...aurora_lighting,
     ...automaton,
+    ...avatto,
     ...awox,
     ...axis,
     ...bankamp,
@@ -357,12 +376,14 @@ export default [
     ...ecosmart,
     ...ecozy,
     ...edp,
+    ...efekta,
     ...eglo,
     ...elko,
     ...enbrighten,
     ...enocean,
     ...envilar,
     ...essentialb,
+    ...eucontrols,
     ...eurotronic,
     ...evanell,
     ...evn,
@@ -383,6 +404,7 @@ export default [
     ...giex,
     ...girier,
     ...gledopto,
+    ...gmmts,
     ...gmy,
     ...gs,
     ...halemeier,
@@ -392,7 +414,6 @@ export default [
     ...heimgard_technologies,
     ...hej,
     ...hfh,
-    ...hgkg,
     ...hilux,
     ...hive,
     ...hommyn,
@@ -409,6 +430,7 @@ export default [
     ...ilux,
     ...imhotepcreation,
     ...immax,
+    ...imou,
     ...innr,
     ...inovelli,
     ...insta,
@@ -464,13 +486,16 @@ export default [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...modular,
     ...moes,
-    ...müller_licht,
+    ...muller_licht,
+    ...multiterm,
     ...namron,
     ...nanoleaf,
     ...neo,
     ...net2grid,
     ...netvox,
+    ...nexelec,
     ...niko,
     ...ninja_blocks,
     ...niviss,
@@ -497,10 +522,12 @@ export default [
     ...plugwise,
     ...profalux,
     ...prolight,
+    ...pushok,
     ...qmotion,
     ...qoto,
     ...quotra,
     ...rademacher,
+    ...raex,
     ...rgb_genie,
     ...robb,
     ...roome,
@@ -508,6 +535,7 @@ export default [
     ...salus_controls,
     ...samotech,
     ...saswell,
+    ...sber,
     ...scanproducts,
     ...schlage,
     ...schneider_electric,
@@ -530,18 +558,20 @@ export default [
     ...smartenit,
     ...smartthings,
     ...smartwings,
+    ...smlight,
     ...sohan_electric,
     ...solaredge,
+    ...soma,
     ...somfy,
     ...somgoms,
     ...sonoff,
     ...sowilo,
     ...spotmau,
-    ...wirenboard,
     ...stelpro,
     ...sunricher,
     ...swann,
     ...sylvania,
+    ...tapestry,
     ...tci,
     ...technicolor,
     ...terncy,
@@ -555,6 +585,7 @@ export default [
     ...tuya,
     ...ubisys,
     ...uhome,
+    ...lumi,
     ...universal_electronics_inc,
     ...vbled,
     ...vesternet,
@@ -567,17 +598,20 @@ export default [
     ...waxman,
     ...weiser,
     ...weten,
+    ...wirenboard,
     ...wisdom,
     ...woolley,
     ...woox,
     ...wyze,
-    ...xiaomi,
     ...xinghuoyuan,
+    ...xyzroe,
     ...yale,
     ...ynoa,
     ...yookee,
     ...ysrsai,
     ...zemismart,
     ...zen,
+    ...zigbeetlc,
     ...zipato,
+    ...qa,
 ];

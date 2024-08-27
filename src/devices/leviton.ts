@@ -1,12 +1,11 @@
-import {Definition, Fz} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
+import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {Definition, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
-import {onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -37,26 +36,14 @@ const definitions: Definition[] = [
         model: 'DG6HD-1BW',
         vendor: 'Leviton',
         description: 'Zigbee in-wall smart dimmer',
-        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({effect: false, configureReporting: true})],
     },
     {
         zigbeeModel: ['DG3HL'],
         model: 'DG3HL-1BW',
         vendor: 'Leviton',
         description: 'Indoor Decora smart Zigbee 3.0 certified plug-in dimmer',
-        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({effect: false, configureReporting: true})],
     },
     {
         zigbeeModel: ['DG15A'],
@@ -78,13 +65,26 @@ const definitions: Definition[] = [
         vendor: 'Leviton',
         description: 'Omnistat2 wireless thermostat',
         fromZigbee: [legacy.fz.thermostat_att_report, fz.fan],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupancy,
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_unoccupied_cooling_setpoint, tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
-            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.thermostat_temperature_setpoint_hold,
-            tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_unoccupied_cooling_setpoint,
+            tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_remote_sensing,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_system_mode,
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_relay_status_log,
+            tz.thermostat_temperature_setpoint_hold,
+            tz.thermostat_temperature_setpoint_hold_duration,
+            tz.fan_mode,
+        ],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl']);
             await reporting.thermostatTemperature(endpoint);
@@ -96,10 +96,16 @@ const definitions: Definition[] = [
             await reporting.fanMode(endpoint);
         },
         exposes: [
-            e.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat', 'cool']).withFanMode(['auto', 'on', 'smart'])
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 10, 30, 1)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat', 'cool'])
+                .withFanMode(['auto', 'on', 'smart'])
                 .withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
-                .withLocalTemperatureCalibration().withPiHeatingDemand()],
+                .withLocalTemperatureCalibration()
+                .withPiHeatingDemand(),
+        ],
     },
     {
         // Reference from a similar switch: https://gist.github.com/nebhead/dc5a0a827ec14eef6196ded4be6e2dd0
@@ -108,24 +114,15 @@ const definitions: Definition[] = [
         vendor: 'Leviton',
         description: 'Wall switch, 0-10V dimmer, 120-277V, Lumina™ RF',
         meta: {disableDefaultResponse: true},
-        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
-        fromZigbee: [fz.on_off, fzLocal.on_off_via_brightness, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config],
-        exposes: [e.light_brightness(),
+        extend: [light({effect: false, configureReporting: true})],
+        fromZigbee: [fzLocal.on_off_via_brightness, fz.lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config],
+        exposes: [
             // Note: ballast_power_on_level used to be here, but it doesn't appear to work properly with this device
             // If set, it's reset back to 0 when the device is turned off then back to 32 when turned on
-            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the minimum brightness value'),
-            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the maximum brightness value')],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
-            // This device doesn't reliably report state changes - make it chatty to compensate for that
-            // This feels like a hack - hopefully there is a better fix at some point
-            await reporting.onOff(endpoint, {max: 5});
-            await reporting.brightness(endpoint, {max: 5});
-        },
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254).withDescription('Specifies the minimum brightness value'),
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254).withDescription('Specifies the maximum brightness value'),
+        ],
     },
 ];
 

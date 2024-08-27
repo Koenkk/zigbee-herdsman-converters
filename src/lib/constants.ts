@@ -44,7 +44,14 @@ export const thermostatSystemModes: KeyValueNumberString = {
     9: 'sleep',
 };
 
-export const thermostatRunningMode: KeyValueNumberString= {
+export const acovaThermostatSystemModes: KeyValueNumberString = {
+    0: 'off',
+    1: 'heat',
+    3: 'auto',
+    4: 'away_or_vacation',
+};
+
+export const thermostatRunningMode: KeyValueNumberString = {
     0: 'off',
     3: 'cool',
     4: 'heat',
@@ -94,13 +101,13 @@ export const thermostatScheduleMode: KeyValueNumberString = {
 };
 
 export const fanMode = {
-    'off': 0,
-    'low': 1,
-    'medium': 2,
-    'high': 3,
-    'on': 4,
-    'auto': 5,
-    'smart': 6,
+    off: 0,
+    low: 1,
+    medium: 2,
+    high: 3,
+    on: 4,
+    auto: 5,
+    smart: 6,
 };
 
 export const temperatureDisplayMode: KeyValueNumberString = {
@@ -108,7 +115,7 @@ export const temperatureDisplayMode: KeyValueNumberString = {
     1: 'fahrenheit',
 };
 
-export const danfossAdaptionRunStatus: KeyValueNumberString= {
+export const danfossAdaptionRunStatus: KeyValueNumberString = {
     0: 'none',
     1: 'in_progress',
     2: 'found',
@@ -135,6 +142,12 @@ export const danfossRoomStatusCode: KeyValueNumberString = {
     0x0201: 'rt_touch_error',
     0x0401: 'floor_sensor_short_circuit',
     0x0801: 'floor_sensor_disconnected',
+};
+
+export const danfossRoomFloorSensorMode: KeyValueNumberString = {
+    0: 'comfort',
+    1: 'floor_only',
+    2: 'dual_mode',
 };
 
 export const danfossOutputStatus: KeyValueNumberString = {
@@ -274,8 +287,8 @@ export const easyCodeTouchActions: KeyValueNumberString = {
     0x0300: 'rfid_lock',
     0x0301: 'rfid_unlock',
 
-    0xFF0D: 'lock',
-    0xFF0E: 'zigbee_unlock',
+    0xff0d: 'lock',
+    0xff0e: 'zigbee_unlock',
 };
 
 export const wiserDimmerControlMode: KeyValueNumberString = {
@@ -302,6 +315,7 @@ exports.danfossAdaptionRunControl = danfossAdaptionRunControl;
 exports.danfossAdaptionRunStatus = danfossAdaptionRunStatus;
 exports.danfossWindowOpen = danfossWindowOpen;
 exports.danfossRoomStatusCode = danfossRoomStatusCode;
+exports.danfossRoomFloorSensorMode = danfossRoomFloorSensorMode;
 exports.danfossOutputStatus = danfossOutputStatus;
 exports.danfossSystemStatusWater = danfossSystemStatusWater;
 exports.danfossSystemStatusCode = danfossSystemStatusCode;

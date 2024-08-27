@@ -1,15 +1,16 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 import {Zcl} from 'zigbee-herdsman';
+
 import {onOff, light} from '../lib/modernExtend';
 import {KeyValueAny, Fz, Tz, Definition} from '../lib/types';
 
-const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode._4_NOKS};
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ASTREL_GROUP_SRL};
 
 const bitron = {
     fz: {
@@ -39,12 +40,12 @@ const bitron = {
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const result: KeyValueAny = {state: {hysteresis: {}}};
                 if (value.hasOwnProperty('high')) {
-                    await entity.write('hvacThermostat', {'fourNoksHysteresisHigh': value.high}, manufacturerOptions);
+                    await entity.write('hvacThermostat', {fourNoksHysteresisHigh: value.high}, manufacturerOptions);
                     result.state.hysteresis.high = value.high;
                 }
 
                 if (value.hasOwnProperty('low')) {
-                    await entity.write('hvacThermostat', {'fourNoksHysteresisLow': value.low}, manufacturerOptions);
+                    await entity.write('hvacThermostat', {fourNoksHysteresisLow: value.low}, manufacturerOptions);
                     result.state.hysteresis.low = value.low;
                 }
 
@@ -175,7 +176,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.instantaneousDemand(endpoint);
@@ -227,14 +228,21 @@ const definitions: Definition[] = [
         description: 'Wireless wall thermostat with relay',
         fromZigbee: [legacy.fz.thermostat_att_report, fz.battery, fz.hvac_user_interface, bitron.fz.thermostat_hysteresis],
         toZigbee: [
-            tz.thermostat_control_sequence_of_operation, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature, tz.thermostat_running_state, tz.thermostat_temperature_display_mode,
-            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.battery_voltage, bitron.tz.thermostat_hysteresis,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
+            tz.thermostat_running_state,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.battery_voltage,
+            bitron.tz.thermostat_hysteresis,
         ],
         exposes: (device, options) => {
             const dynExposes = [];
-            let ctrlSeqeOfOper = (device?.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') ?? null);
+            let ctrlSeqeOfOper = device?.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') ?? null;
             const modes = [];
 
             if (typeof ctrlSeqeOfOper === 'string') ctrlSeqeOfOper = parseInt(ctrlSeqeOfOper) ?? null;
@@ -251,18 +259,22 @@ const definitions: Definition[] = [
                 modes.push('cool');
             }
 
-            const hysteresisExposes = e.composite('hysteresis', 'hysteresis', ea.ALL)
+            const hysteresisExposes = e
+                .composite('hysteresis', 'hysteresis', ea.ALL)
                 .withFeature(e.numeric('low', ea.SET))
                 .withFeature(e.numeric('high', ea.SET))
                 .withDescription('Set thermostat hysteresis low and high trigger values. (1 = 0.01ºC)');
 
-            dynExposes.push(e.climate()
-                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
-                .withLocalTemperature()
-                .withSystemMode(['off'].concat(modes))
-                .withRunningState(['idle'].concat(modes))
-                .withLocalTemperatureCalibration()
-                .withControlSequenceOfOperation(['heating_only', 'cooling_only'], ea.ALL));
+            dynExposes.push(
+                e
+                    .climate()
+                    .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                    .withLocalTemperature()
+                    .withSystemMode(['off'].concat(modes))
+                    .withRunningState(['idle'].concat(modes))
+                    .withLocalTemperatureCalibration()
+                    .withControlSequenceOfOperation(['heating_only', 'cooling_only'], ea.ALL),
+            );
             dynExposes.push(e.keypad_lockout());
             dynExposes.push(hysteresisExposes);
             dynExposes.push(e.battery().withAccess(ea.STATE_GET));
@@ -271,12 +283,10 @@ const definitions: Definition[] = [
 
             return dynExposes;
         },
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = [
-                'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
-            ];
+            const binds = ['genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -305,7 +315,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_recall],
         toZigbee: [],
         exposes: [e.action(['recall_*'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genScenes']);
         },

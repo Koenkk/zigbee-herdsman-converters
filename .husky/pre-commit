@@ -1,0 +1,4 @@
+npm run pretty:check
+npm run eslint
+npm run test
+npm run build

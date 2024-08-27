@@ -1,6 +1,6 @@
-import {Definition} from '../lib/types';
-import * as tuya from '../lib/tuya';
 import {light} from '../lib/modernExtend';
+import * as tuya from '../lib/tuya';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {
@@ -36,8 +36,7 @@ const definitions: Definition[] = [
         model: 'AJ_RGBCCT_CTRL',
         vendor: 'Ajax Online',
         description: 'Smart Zigbee LED strip RGB+CCT',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
-        meta: {applyRedFix: true, supportsEnhancedHue: false},
+        extend: [tuya.modernExtend.tuyaLight({color: true, colorTemp: {range: [153, 500]}})],
     },
     {
         fingerprint: [{modelID: 'CCT Light', manufacturerName: 'ZB/Ajax Online', manufacturerID: 4137}],

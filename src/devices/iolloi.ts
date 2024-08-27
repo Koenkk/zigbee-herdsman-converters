@@ -1,6 +1,5 @@
+import {light} from '../lib/modernExtend';
 import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 
 const definitions: Definition[] = [
     {
@@ -8,15 +7,8 @@ const definitions: Definition[] = [
         model: 'ID-UK21FW09',
         vendor: 'Iolloi',
         description: 'Zigbee LED smart dimmer switch',
-        extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
+        extend: [light({effect: false, configureReporting: true})],
         whiteLabel: [{vendor: 'Iolloi', model: 'ID-EU20FW09'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
     },
 ];
 

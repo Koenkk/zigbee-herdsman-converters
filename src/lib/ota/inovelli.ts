@@ -1,13 +1,19 @@
-const url = 'https://files.inovelli.com/firmware/firmware.json';
-import * as common from './common';
-import {Zh, Logger, Ota, KeyValueAny} from '../types';
-const axios = common.getAxios();
-/*
+/**
  * Helper functions
+ *
+ * @packageDocumentation
  */
 
-export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`InovelliOTA: call getImageMeta for ${device.modelID}`);
+const url = 'https://files.inovelli.com/firmware/firmware.json';
+import {logger} from '../logger';
+import {Zh, Ota, KeyValueAny} from '../types';
+import * as common from './common';
+
+const NS = 'zhc:ota:inovelli';
+const axios = common.getAxios();
+
+export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): Promise<Ota.ImageMeta> {
+    logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
     const {data: images} = await axios.get(url);
 
     if (!images) {
@@ -41,7 +47,7 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
         .pop();
 
     if (!image) {
-        logger.warn(`OTA: No image found in the ${useBetaChannel ? 'beta' : 'production'} channel for device '${device.modelID}'`);
+        logger.warning(`No image found in the ${useBetaChannel ? 'beta' : 'production'} channel for device '${device.modelID}'`, NS);
 
         return null;
     }
@@ -58,24 +64,12 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
-    return common.isUpdateAvailable(
-        device,
-        logger,
-        requestPayload,
-        common.isNewImageAvailable,
-        getImageMeta,
-    );
+export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
+    return common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 
-export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(
-        device,
-        logger,
-        onProgress,
-        common.getNewImage,
-        getImageMeta,
-    );
+export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
+    return common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta);
 }
 
 exports.isUpdateAvailable = isUpdateAvailable;

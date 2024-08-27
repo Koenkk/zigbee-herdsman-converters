@@ -1,7 +1,7 @@
-import {Definition, Fz} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Definition, Fz} from '../lib/types';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -12,9 +12,9 @@ const fzLocal = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 contact: !((zoneStatus & 1) > 0),
-                vibration: (zoneStatus & 1<<1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
+                vibration: (zoneStatus & (1 << 1)) > 0,
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
             };
         },
     } satisfies Fz.Converter,
@@ -29,7 +29,7 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.DCH_B112, fz.battery],
         toZigbee: [],
         exposes: [e.battery_low(), e.contact(), e.vibration(), e.tamper(), e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);

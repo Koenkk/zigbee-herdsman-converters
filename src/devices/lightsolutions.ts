@@ -1,5 +1,5 @@
-import {Definition} from '../lib/types';
 import {light, onOff} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {
@@ -25,10 +25,10 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'Light Solutions'}],
-        model: '3137309',
+        model: '3004482/3137308/3137309',
         vendor: 'Light Solutions',
         description: 'Zigbee dimmer for wire',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [light({configureReporting: true})],
     },
 ];
 

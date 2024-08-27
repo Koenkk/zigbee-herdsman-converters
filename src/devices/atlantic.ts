@@ -1,19 +1,20 @@
-import {Definition, KeyValue, Tz} from '../lib/types';
+import assert from 'assert';
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {Definition, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
-import assert from 'assert';
 const e = exposes.presets;
 const ea = exposes.access;
 
-
 const thermostatPositions: KeyValue = {
-    'quarter_open': 1,
-    'half_open': 2,
-    'three_quarters_open': 3,
-    'fully_open': 4,
+    quarter_open: 1,
+    half_open: 2,
+    three_quarters_open: 3,
+    fully_open: 4,
 };
 
 const tzLocal = {
@@ -21,7 +22,7 @@ const tzLocal = {
         key: ['quiet_fan'],
         convertSet: async (entity, key, value, meta) => {
             assert(typeof value === 'boolean');
-            await entity.write('hvacFanCtrl', {0x1000: {value: value ? 1 : 0, type: 0x10}}, {manufacturerCode: 0x125b});
+            await entity.write('hvacFanCtrl', {0x1000: {value: value ? 1 : 0, type: 0x10}}, {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP});
             return {state: {quiet_fan: value}};
         },
     } satisfies Tz.Converter,
@@ -31,7 +32,7 @@ const tzLocal = {
             utils.assertString(value, 'ac_louver_position');
             utils.validateValue(value, Object.keys(thermostatPositions));
             const index = thermostatPositions[value.toLowerCase()];
-            await entity.write('hvacThermostat', {0x4273: {value: index, type: 0x30}}, {manufacturerCode: 0x125b});
+            await entity.write('hvacThermostat', {0x4273: {value: index, type: 0x30}}, {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP});
             return {state: {ac_louver_position: value}};
         },
     } satisfies Tz.Converter,
@@ -45,9 +46,9 @@ const tzLocal = {
             const boost = value === 'boost' ? 1 : 0;
             const eco = value === 'eco' ? 4 : 0;
 
-            await entity.write('hvacThermostat', {0x4275: {value: activity, type: 0x30}}, {manufacturerCode: 0x125b});
-            await entity.write('hvacThermostat', {'programingOperMode': eco});
-            await entity.write('hvacThermostat', {0x4270: {value: boost, type: 0x10}}, {manufacturerCode: 0x125b});
+            await entity.write('hvacThermostat', {0x4275: {value: activity, type: 0x30}}, {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP});
+            await entity.write('hvacThermostat', {programingOperMode: eco});
+            await entity.write('hvacThermostat', {0x4270: {value: boost, type: 0x10}}, {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP});
 
             return {state: {preset: value}};
         },
@@ -58,7 +59,11 @@ const tzLocal = {
             utils.assertString(value, 'swing_mode');
             value = value.toLowerCase();
             utils.validateValue(value, ['on', 'off']);
-            await entity.write('hvacThermostat', {0x4274: {value: value === 'on' ? 1 : 0, type: 0x10}}, {manufacturerCode: 0x125b});
+            await entity.write(
+                'hvacThermostat',
+                {0x4274: {value: value === 'on' ? 1 : 0, type: 0x10}},
+                {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP},
+            );
             return {state: {swing_mode: value}};
         },
     } satisfies Tz.Converter,
@@ -70,10 +75,7 @@ const definitions: Definition[] = [
         model: 'GW003-AS-IN-TE-FC',
         vendor: 'Atlantic Group',
         description: 'Interface Naviclim for Takao air conditioners',
-        fromZigbee: [
-            fz.thermostat,
-            fz.fan,
-        ],
+        fromZigbee: [fz.thermostat, fz.fan],
         toZigbee: [
             tzLocal.ac_louver_position,
             tzLocal.preset,
@@ -88,7 +90,8 @@ const definitions: Definition[] = [
         ],
         exposes: [
             e.programming_operation_mode(),
-            e.climate()
+            e
+                .climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_cooling_setpoint', 18, 30, 0.5)
                 .withSetpoint('occupied_heating_setpoint', 16, 30, 0.5)
@@ -97,10 +100,9 @@ const definitions: Definition[] = [
                 .withFanMode(['low', 'medium', 'high', 'auto'])
                 .withSwingMode(['on', 'off'], ea.STATE_SET),
             e.binary('quiet_fan', ea.STATE_SET, true, false).withDescription('Fan quiet mode'),
-            e.enum('ac_louver_position', ea.STATE_SET, Object.keys(thermostatPositions))
-                .withDescription('Ac louver position of this device'),
+            e.enum('ac_louver_position', ea.STATE_SET, Object.keys(thermostatPositions)).withDescription('Ac louver position of this device'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const binds1 = ['hvacFanCtrl', 'genIdentify', 'hvacFanCtrl', 'hvacThermostat', 'manuSpecificPhilips2'];
             await reporting.bind(endpoint1, coordinatorEndpoint, binds1);

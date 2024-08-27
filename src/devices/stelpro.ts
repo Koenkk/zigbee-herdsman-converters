@@ -1,7 +1,7 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import {Definition, Fz} from '../lib/types';
 const e = exposes.presets;
@@ -35,13 +35,29 @@ const definitions: Definition[] = [
         vendor: 'Stelpro',
         description: 'Hilo thermostat',
         fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fzLocal.power, fzLocal.energy],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
-            tz.thermostat_running_state, tz.stelpro_thermostat_outdoor_temperature],
-        exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.energy(),
-            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['heat']).withRunningState(['idle', 'heat'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.stelpro_thermostat_outdoor_temperature,
+        ],
+        exposes: [
+            e.local_temperature(),
+            e.keypad_lockout(),
+            e.power(),
+            e.energy(),
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['heat'])
+                .withRunningState(['idle', 'heat']),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -61,13 +77,28 @@ const definitions: Definition[] = [
         vendor: 'Stelpro',
         description: 'Ki convector, line-voltage thermostat',
         fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
-            tz.stelpro_thermostat_outdoor_temperature],
-        exposes: [e.local_temperature(), e.keypad_lockout(),
-            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.stelpro_thermostat_outdoor_temperature,
+        ],
+        exposes: [
+            e.local_temperature(),
+            e.keypad_lockout(),
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat'])
+                .withRunningState(['idle', 'heat'])
+                .withPiHeatingDemand(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -79,12 +110,14 @@ const definitions: Definition[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'StelproSystemMode',
-                minimumReportInterval: constants.repInterval.MINUTE,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }]);
+            await endpoint.configureReporting('hvacThermostat', [
+                {
+                    attribute: 'StelproSystemMode',
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 1,
+                },
+            ]);
         },
     },
     {
@@ -93,13 +126,28 @@ const definitions: Definition[] = [
         vendor: 'Stelpro',
         description: 'Ki, line-voltage thermostat',
         fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
-            tz.thermostat_running_state, tz.stelpro_thermostat_outdoor_temperature],
-        exposes: [e.local_temperature(), e.keypad_lockout(), e.humidity(),
-            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.stelpro_thermostat_outdoor_temperature,
+        ],
+        exposes: [
+            e.local_temperature(),
+            e.keypad_lockout(),
+            e.humidity(),
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat'])
+                .withRunningState(['idle', 'heat']),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -111,12 +159,14 @@ const definitions: Definition[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'StelproSystemMode',
-                minimumReportInterval: constants.repInterval.MINUTE,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }]);
+            await endpoint.configureReporting('hvacThermostat', [
+                {
+                    attribute: 'StelproSystemMode',
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 1,
+                },
+            ]);
         },
     },
     {
@@ -125,16 +175,38 @@ const definitions: Definition[] = [
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
         fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
-            tz.stelpro_thermostat_outdoor_temperature],
-        exposes: [e.local_temperature(), e.keypad_lockout(), e.humidity(),
-            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.stelpro_thermostat_outdoor_temperature,
+        ],
+        exposes: [
+            e.local_temperature(),
+            e.keypad_lockout(),
+            e.humidity(),
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat'])
+                .withRunningState(['idle', 'heat']),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
-            const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity',
-                'msTemperatureMeasurement'];
+            const binds = [
+                'genBasic',
+                'genIdentify',
+                'genGroups',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'msRelativeHumidity',
+                'msTemperatureMeasurement',
+            ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Maestro
@@ -145,11 +217,14 @@ const definitions: Definition[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'StelproSystemMode',
-                minimumReportInterval: constants.repInterval.MINUTE,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1}]);
+            await endpoint.configureReporting('hvacThermostat', [
+                {
+                    attribute: 'StelproSystemMode',
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 1,
+                },
+            ]);
         },
     },
     {
@@ -158,12 +233,25 @@ const definitions: Definition[] = [
         vendor: 'Stelpro',
         description: 'ORLÉANS fan heater',
         fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state],
-        exposes: [e.local_temperature(), e.keypad_lockout(),
-            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+        ],
+        exposes: [
+            e.local_temperature(),
+            e.keypad_lockout(),
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat'])
+                .withRunningState(['idle', 'heat']),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -175,11 +263,14 @@ const definitions: Definition[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'StelproSystemMode',
-                minimumReportInterval: constants.repInterval.MINUTE,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1}]);
+            await endpoint.configureReporting('hvacThermostat', [
+                {
+                    attribute: 'StelproSystemMode',
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 1,
+                },
+            ]);
         },
     },
     {
@@ -188,16 +279,38 @@ const definitions: Definition[] = [
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
         fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
-            tz.stelpro_thermostat_outdoor_temperature],
-        exposes: [e.local_temperature(), e.keypad_lockout(), e.humidity(),
-            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.stelpro_thermostat_outdoor_temperature,
+        ],
+        exposes: [
+            e.local_temperature(),
+            e.keypad_lockout(),
+            e.humidity(),
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat'])
+                .withRunningState(['idle', 'heat']),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
-            const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity',
-                'msTemperatureMeasurement'];
+            const binds = [
+                'genBasic',
+                'genIdentify',
+                'genGroups',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'msRelativeHumidity',
+                'msTemperatureMeasurement',
+            ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Maestro
@@ -208,11 +321,14 @@ const definitions: Definition[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'StelproSystemMode',
-                minimumReportInterval: constants.repInterval.MINUTE,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1}]);
+            await endpoint.configureReporting('hvacThermostat', [
+                {
+                    attribute: 'StelproSystemMode',
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 1,
+                },
+            ]);
         },
     },
 ];

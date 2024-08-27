@@ -1,10 +1,9 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import {onOff, light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import {onOff} from '../lib/modernExtend';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -20,16 +19,9 @@ const definitions: Definition[] = [
         model: '14595.0',
         vendor: 'Vimar',
         description: 'IoT connected dimmer mechanism 220-240V',
-        extend: extend.light_onoff_brightness({noConfigure: true, disablePowerOnBehavior: true}),
+        extend: [light({configureReporting: true, powerOnBehavior: false})],
         endpoint: (device) => {
             return {default: 11};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(11);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
         },
     },
     {
@@ -47,7 +39,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             const binds = ['closuresWindowCovering'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -71,7 +63,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
         },
@@ -89,12 +81,14 @@ const definitions: Definition[] = [
             tz.thermostat_system_mode,
         ],
         exposes: [
-            e.climate().withSetpoint('occupied_heating_setpoint', 4, 40, 0.1)
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 4, 40, 0.1)
                 .withSetpoint('occupied_cooling_setpoint', 4, 40, 0.1)
                 .withLocalTemperature()
-                .withSystemMode(['heat', 'cool']),
+                .withSystemMode(['off', 'heat', 'cool']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             const binds = ['genBasic', 'genIdentify', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
