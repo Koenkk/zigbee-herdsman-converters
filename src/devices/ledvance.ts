@@ -52,6 +52,8 @@ const definitions: Definition[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
     },
+        exposes: [e.switch(), e.power(), e.energy()],
+    },
     {
         zigbeeModel: ['PLUG COMPACT OUTDOOR EU EM T'],
         model: '4099854293276',
@@ -65,6 +67,8 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
+    },
+        exposes: [e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['PL HCL300x1200 01'],
