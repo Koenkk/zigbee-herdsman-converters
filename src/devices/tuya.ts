@@ -11337,65 +11337,23 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e
-                .enum('vibrational_state', ea.STATE, ['none', 'alarm'])
-                .withDescription('Sensor vibration alarm'),
-            e
-                .enum('tilt_status', ea.STATE, ['none', 'alarm'])
-                .withDescription('Sensor tilt alarm'),
-            e
-                .numeric('x', ea.STATE)
-                .withValueMin(0)
-                .withValueMax(256).withValueStep(1)
-                .withDescription('X coordinate'),
-            e
-                .numeric('y', ea.STATE)
-                .withValueMin(0)
-                .withValueMax(256)
-                .withValueStep(1)
-                .withDescription('Y coordinate'),
-            e
-                .numeric('z', ea.STATE)
-                .withValueMin(0)
-                .withValueMax(256)
-                .withValueStep(1)
-                .withDescription('Z coordinate'),
+            e.enum('vibrational_state', ea.STATE, ['none', 'alarm']).withDescription('Sensor vibration alarm'),
+            e.enum('tilt_status', ea.STATE, ['none', 'alarm']).withDescription('Sensor tilt alarm'),
+            e.numeric('x', ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription('X coordinate'),
+            e.numeric('y', ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription('Y coordinate'),
+            e.numeric('z', ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription('Z coordinate'),
             e.battery(),
-            e
-                .enum('sensitivity', ea.STATE_SET, ['low', 'middle', 'high'])
-                .withDescription('Vibration detection sensitivity'),
+            e.enum('sensitivity', ea.STATE_SET, ['low', 'middle', 'high']).withDescription('Vibration detection sensitivity'),
         ],
         meta: {
             tuyaDatapoints: [
-                 [
-                    1,
-                    'vibrational_state',
-                    tuya.valueConverterBasic.lookup({
-                        'none': tuya.enum(0),
-                        'alarm': tuya.enum(1),
-                    }),
-                ],
-                 [
-                    7,
-                    'tilt_status',
-                    tuya.valueConverterBasic.lookup({
-                        'none': tuya.enum(0),
-                        'alarm': tuya.enum(1),
-                    }),
-                ],
-                 [101, 'x', tuya.valueConverter.raw],
-                 [102, 'y', tuya.valueConverter.raw],
-                 [103, 'z', tuya.valueConverter.raw], 
-                 [
-                    104,
-                    'sensitivity',
-                    tuya.valueConverterBasic.lookup({
-                        'low': tuya.enum(0),
-                        'middle': tuya.enum(1),
-                        'high': tuya.enum(2),
-                    }),
-                ],
-                 [105, 'battery', tuya.valueConverter.raw],
+                [1,'vibrational_state',tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'alarm': tuya.enum(1),})],
+                [7,'tilt_status',tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'alarm': tuya.enum(1),}),],
+                [101, 'x', tuya.valueConverter.raw],
+                [102, 'y', tuya.valueConverter.raw],
+                [103, 'z', tuya.valueConverter.raw], 
+                [104,'sensitivity',tuya.valueConverterBasic.lookup({'low': tuya.enum(0),'middle': tuya.enum(1),'high': tuya.enum(2)})],
+                [105, 'battery', tuya.valueConverter.raw],
                
             ],
         },
