@@ -9857,7 +9857,6 @@ const definitions: Definition[] = [
 	            				presence: false,
 	            			}
 	            		}
-	            
 	            	}
 	            }],
 	            [2, 'move_sensitivity', tuya.valueConverter.raw],
