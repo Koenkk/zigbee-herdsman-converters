@@ -1127,7 +1127,7 @@ const definitions: Definition[] = [
                 access: 'STATE_GET',
             }),
             binary({
-                name: 'behavior_of_water_shortage',
+                name: 'auto_close_when_water_shortage',
                 cluster: 'customClusterEwelink',
                 attribute: 'lackWaterCloseValveTimeout',
                 description: 'Automatically shut down the water valve after the water shortage exceeds 30 minutes.',
