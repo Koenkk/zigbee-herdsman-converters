@@ -9840,22 +9840,22 @@ const definitions: Definition[] = [
 	            			return {
 	            				state: 'none',
 	            				presence: false,
-	            			}
+	            			};
 	            		} else if (v == 1) {
 	            			return {
 	            				state: 'presence',
 	            				presence: true,
-	            			}
+	            			};
 	            		} else if (v == 2) {
 	            			return {
 	            				state: 'move',
 	            				presence: true,
-	            			}
+	            			};
 	            		} else {
 	            			return {
 	            				state: 'none',
 	            				presence: false,
-	            			}
+	            			};
 	            		}
 	            	}
 	            }],
