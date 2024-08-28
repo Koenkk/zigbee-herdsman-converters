@@ -63,6 +63,7 @@ const sonoffExtend = {
                 delayedPowerOnTime: {ID: 0x0015, type: Zcl.DataType.UINT16},
                 externalTriggerMode: {ID: 0x0016, type: Zcl.DataType.UINT8},
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
+                lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16},
             },
             commands: {
                 protocolData: {ID: 0x01, parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -1140,6 +1141,14 @@ const definitions: Definition[] = [
                 description: 'The water valve is in normal state, water shortage or water leakage',
                 access: 'STATE_GET',
             }),
+            binary({
+                name: 'auto_close_when_water_shortage',
+                cluster: 'customClusterEwelink',
+                attribute: 'lackWaterCloseValveTimeout',
+                description: 'Automatically shut down the water valve after the water shortage exceeds 30 minutes.',
+                valueOff: ['DISABLE', 0],
+                valueOn: ['ENABLE', 30],
+            }),
             sonoffExtend.cyclicTimedIrrigation(),
             sonoffExtend.cyclicQuantitativeIrrigation(),
         ],
@@ -1148,7 +1157,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msFlowMeasurement']);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read('customClusterEwelink', [0x500c]);
+            await endpoint.read('customClusterEwelink', [0x500c, 0x5011]);
         },
     },
     {
