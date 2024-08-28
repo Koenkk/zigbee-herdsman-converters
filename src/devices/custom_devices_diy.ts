@@ -7,6 +7,7 @@ import * as legacy from '../lib/legacy';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {Definition, Tz, Fz, KeyValue, KeyValueAny, Zh, Expose} from '../lib/types';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 import {
@@ -1166,6 +1167,53 @@ const definitions: Definition[] = [
                 endpointNames: ['in1', 'in2', 'in3', 'in4'],
             }),
         ],
+    },
+    {
+        zigbeeModel: ['ESP32C6.PCIE-switch'],
+        model: 'ESP32C6.PCIE-switch',
+        vendor: 'Custom devices (DiY)',
+        description: 'PCIE switch',
+        fromZigbee: [
+            {
+                cluster: 'genBinaryInput',
+                type: 'attributeReport',
+                convert: (model, msg, publish, options, meta) => {
+                    return {status: msg.data['presentValue'] == 1};
+                },
+            },
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {power: 10, reset: 11};
+        },
+        toZigbee: [
+            {
+                key: ['Power'],
+                convertSet: async (entity, key, value, meta) => {
+                    const payload = {ctrlbits: 0, ontime: Math.round(2), offwaittime: Math.round(2)};
+
+                    return await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
+                },
+            } satisfies Tz.Converter,
+            {
+                key: ['Reset'],
+                convertSet: async (entity, key, value, meta) => {
+                    const payload = {ctrlbits: 0, ontime: Math.round(2), offwaittime: Math.round(2)};
+
+                    return await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
+                },
+            } satisfies Tz.Converter,
+        ],
+        exposes: [
+            e.binary('status', ea.STATE, true, false).withDescription('Indicates if the PC is powered on (= true) or off (= false)'),
+            e.enum('Power', ea.STATE_SET, ['press']).withDescription('Power button').withEndpoint('power'),
+            e.enum('Reset', ea.STATE_SET, ['press']).withDescription('Reset button').withEndpoint('reset'),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(10);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput']);
+            await reporting.presentValue(endpoint, {min: 60, max: 3600, change: 0});
+        },
     },
 ];
 
