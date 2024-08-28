@@ -340,8 +340,7 @@ async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoin
 async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     const generated: GeneratedExtend[] = [];
     for (const endpoint of endpoints) {
-        const source = 'binary_input';
-        const description = `${source}_${endpoint.ID}`;
+        const description = `binary_input_${endpoint.ID}`;
         const args: m.BinaryArgs = {
             name: await getClusterAttributeValue<string>(endpoint, 'genBinaryInput', 'description', description),
             cluster: 'genBinaryInput',
@@ -353,7 +352,7 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
             access: 'STATE_GET',
             endpointName: `${endpoint.ID}`,
         };
-        generated.push(new Generator({extend: m.binary, args, source: source}));
+        generated.push(new Generator({extend: m.binary, args, source: 'binary'}));
     }
     return generated;
 }
@@ -361,8 +360,7 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
 async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     const generated: GeneratedExtend[] = [];
     for (const endpoint of endpoints) {
-        const source = 'binary_output';
-        const description = `${source}_${endpoint.ID}`;
+        const description = `binary_output_${endpoint.ID}`;
         const args: m.BinaryArgs = {
             name: await getClusterAttributeValue<string>(endpoint, 'genBinaryOutput', 'description', description),
             cluster: 'genBinaryOutput',
@@ -374,7 +372,7 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
             access: 'ALL',
             endpointName: `${endpoint.ID}`,
         };
-        generated.push(new Generator({extend: m.binary, args, source: source}));
+        generated.push(new Generator({extend: m.binary, args, source: 'binary'}));
     }
     return generated;
 }
