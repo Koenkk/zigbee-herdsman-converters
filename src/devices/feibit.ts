@@ -1,9 +1,20 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, identify, onOff, light, commandsOnOff, windowCovering, electricityMeter} from '../lib/modernExtend';
+import {
+    deviceEndpoints,
+    identify,
+    onOff,
+    light,
+    commandsOnOff,
+    windowCovering,
+    electricityMeter,
+    battery,
+    commandsLevelCtrl,
+} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
+import {philipsLight} from '../lib/philips';
 
 const e = exposes.presets;
 
@@ -250,6 +261,20 @@ const definitions: Definition[] = [
             windowCovering({controls: ['lift', 'tilt'], endpointNames: ['top', 'bottom']}),
         ],
     },
+    {
+        zigbeeModel: ['FZT56-ZRC09FB1.7'],
+        model: 'FMRC209W',
+        vendor: 'Feibit',
+        description: '2-Button Dimmer Switch',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl()],
+    },
+    {
+        zigbeeModel: ['FZT56-ZCW2LBW1.2', 'FZT56-ZCW2HYH1.3'],
+        model: 'FZCWD2HW-YH',
+        vendor: 'Feibit',
+        description: 'Smart LED Recessed Light',
+        extend: [identify(), philipsLight({"colorTemp":{"range":[153,370]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    }
 ];
 
 export default definitions;
