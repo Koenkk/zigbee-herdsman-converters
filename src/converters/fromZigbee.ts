@@ -3648,7 +3648,7 @@ const converters1 = {
         },
     } satisfies Fz.Converter,
     heiman_hcho: {
-        cluster: 'heimanSpecificFormaldehydeMeasurement',
+        cluster: 'msFormaldehyde',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['measuredValue']) {
