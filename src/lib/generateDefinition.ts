@@ -237,6 +237,8 @@ const inputExtenders: Extender[] = [
         ['closuresWindowCovering'],
         async (d, eps) => [new Generator({extend: m.windowCovering, args: {controls: ['lift', 'tilt']}, source: 'windowCovering'})],
     ],
+    [['genBinaryInput'], extenderBinaryInput],
+    [['genBinaryOutput'], extenderBinaryOutput],
 ];
 
 const outputExtenders: Extender[] = [
@@ -333,4 +335,46 @@ async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoin
         args.cluster = metering ? 'metering' : 'electrical';
     }
     return [new Generator({extend: m.electricityMeter, args, source: `electricityMeter`})];
+}
+
+async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    const generated: GeneratedExtend[] = [];
+    for (const endpoint of endpoints) {
+        const source = 'binary_input';
+        const description = `${source}_${endpoint.ID}`;
+        const args: m.BinaryArgs = {
+            name: await getClusterAttributeValue<string>(endpoint, 'genBinaryInput', 'description', description),
+            cluster: 'genBinaryInput',
+            attribute: 'presentValue',
+            reporting: {attribute: 'presentValue', min: 'MIN', max: 'MAX', change: 1},
+            valueOn: ['ON', 1],
+            valueOff: ['OFF', 0],
+            description: description,
+            access: 'STATE_GET',
+            endpointName: `${endpoint.ID}`,
+        };
+        generated.push(new Generator({extend: m.binary, args, source: source}));
+    }
+    return generated;
+}
+
+async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    const generated: GeneratedExtend[] = [];
+    for (const endpoint of endpoints) {
+        const source = 'binary_output';
+        const description = `${source}_${endpoint.ID}`;
+        const args: m.BinaryArgs = {
+            name: await getClusterAttributeValue<string>(endpoint, 'genBinaryOutput', 'description', description),
+            cluster: 'genBinaryOutput',
+            attribute: 'presentValue',
+            reporting: {attribute: 'presentValue', min: 'MIN', max: 'MAX', change: 1},
+            valueOn: ['ON', 1],
+            valueOff: ['OFF', 0],
+            description: description,
+            access: 'ALL',
+            endpointName: `${endpoint.ID}`,
+        };
+        generated.push(new Generator({extend: m.binary, args, source: source}));
+    }
+    return generated;
 }
