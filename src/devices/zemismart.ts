@@ -369,7 +369,7 @@ const definitions: Definition[] = [
         extend: [identify(), tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true})],
     },
     {
-        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_11pg3ima']),
+        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_11pg3ima', '_TZ3000_et7afzxz']),
         model: 'ZMR4',
         vendor: 'Zemismart',
         description: 'Wireless switch with 4 buttons',

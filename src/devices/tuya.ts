@@ -8215,7 +8215,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Lerlink', model: 'T2-Z67/T2-W67'}],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml', '_TZE200_qanl25yu', '_TZE204_lawxy9e2']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml', '_TZE200_qanl25yu']),
         model: 'TS0601_fan_and_light_switch',
         vendor: 'Tuya',
         description: 'Fan & light switch',
@@ -8239,7 +8239,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Liwokit', model: 'Fan+Light-01'}],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lawxy9e2']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lawxy9e2', '_TZE204_lawxy9e2']),
         model: 'TS0601_fan_5_levels_and_light_switch',
         vendor: 'Tuya',
         description: 'Fan with 5 levels & light switch',
@@ -9795,6 +9795,86 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ya4ft0w4']),
+        model: 'ZY-M100-24GV3',
+        vendor: 'Tuya',
+        description: '24G MmWave radar human presence motion sensor（added distance switch）',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum('state', ea.STATE, ['none', 'presence', 'move']).withDescription('Presence state sensor'),
+            e.presence().withDescription('Occupancy'),
+            e.numeric('distance', ea.STATE).withDescription('Target distance'),
+            e.binary('find_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('distance switch'),
+            e.illuminance_lux().withDescription('Illuminance sensor'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
+            e
+                .numeric('detection_distance_min', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(8.25)
+                .withValueStep(0.75)
+                .withUnit('m')
+                .withDescription('Minimum range'),
+            e
+                .numeric('detection_distance_max', ea.STATE_SET)
+                .withValueMin(0.75)
+                .withValueMax(9.0)
+                .withValueStep(0.75)
+                .withUnit('m')
+                .withDescription('Maximum range'),
+            e
+                .numeric('presence_timeout', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(15000)
+                .withValueStep(1)
+                .withUnit('s')
+                .withDescription('Fade time'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    null,
+                    {
+                        from: function (v, meta) {
+                            if (v == 0) {
+                                return {
+                                    state: 'none',
+                                    presence: false,
+                                };
+                            } else if (v == 1) {
+                                return {
+                                    state: 'presence',
+                                    presence: true,
+                                };
+                            } else if (v == 2) {
+                                return {
+                                    state: 'move',
+                                    presence: true,
+                                };
+                            } else {
+                                return {
+                                    state: 'none',
+                                    presence: false,
+                                };
+                            }
+                        },
+                    },
+                ],
+                [2, 'move_sensitivity', tuya.valueConverter.raw],
+                [3, 'detection_distance_min', tuya.valueConverter.divideBy100],
+                [4, 'detection_distance_max', tuya.valueConverter.divideBy100],
+                [9, 'distance', tuya.valueConverter.divideBy10],
+                [101, 'find_switch', tuya.valueConverter.onOff],
+                [102, 'presence_sensitivity', tuya.valueConverter.raw],
+                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [105, 'presence_timeout', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e9ajs4ft']),
         model: 'CTL-R1-TY-Zigbee',
         vendor: 'Tuya',
@@ -10450,7 +10530,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iuk8kupi']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iuk8kupi', '_TZE204_iuk8kupi']),
         model: 'DCR-RQJ',
         vendor: 'Tuya',
         description: 'Carbon monoxide sensor gas leak detector',
