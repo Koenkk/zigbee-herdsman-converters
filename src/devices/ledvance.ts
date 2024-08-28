@@ -2,10 +2,8 @@ import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import {forcePowerSource} from '../lib/modernExtend';
 import {Definition} from '../lib/types';
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
-const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -49,8 +47,7 @@ const definitions: Definition[] = [
         model: '4099854295232',
         vendor: 'LEDVANCE',
         description: 'SMART+ Indoor Plug EU with Energy meter ',
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
+        extend: [onOff(), electricityMeter()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
@@ -65,8 +62,7 @@ const definitions: Definition[] = [
         model: '4099854293276',
         vendor: 'LEDVANCE',
         description: 'SMART+ Compact Outdoor Plug EU with energy meter',
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
+        extend: [onOff(), electricityMeter()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
