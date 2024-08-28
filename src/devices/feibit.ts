@@ -12,9 +12,9 @@ import {
     battery,
     commandsLevelCtrl,
 } from '../lib/modernExtend';
+import {philipsLight} from '../lib/philips';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
-import {philipsLight} from '../lib/philips';
 
 const e = exposes.presets;
 
@@ -273,8 +273,8 @@ const definitions: Definition[] = [
         model: 'FZCWD2HW-YH',
         vendor: 'Feibit',
         description: 'Smart LED Recessed Light',
-        extend: [identify(), philipsLight({"colorTemp":{"range":[153,370]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
-    }
+        extend: [identify(), philipsLight({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
 ];
 
 export default definitions;
