@@ -287,7 +287,7 @@ const definitions: Definition[] = [
         model: 'NZSN421W-Q',
         vendor: 'Feibit',
         description: 'Four-Gang Battery-Powered Scene Switch',
-        extend: [deviceEndpoints({"endpoints":{"1":1,"2":2,"3":3,"4":4}}), battery(), commandsOnOff({"endpointNames":["1","2","3","4"]})],
+        extend: [deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}), battery(), commandsOnOff({endpointNames: ['1', '2', '3', '4']})],
     },
     {
         zigbeeModel: ['FEB56-STK2AYS1.1'],
