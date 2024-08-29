@@ -1259,6 +1259,7 @@ export const presets = {
             .withDescription('Determines if temperature control abnormalities should be detected')
             .withCategory('config'),
     vibration: () => new Binary('vibration', access.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
+    tilt: () => new Binary('tilt', access.STATE, true, false).withDescription('Indicates whether the device detected tilt'),
     voc: () => new Numeric('voc', access.STATE).withLabel('VOC').withUnit('µg/m³').withDescription('Measured VOC value'),
     voc_index: () => new Numeric('voc_index', access.STATE).withLabel('VOC index').withDescription('VOC index'),
     voltage: () =>
