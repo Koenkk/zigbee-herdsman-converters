@@ -6449,7 +6449,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
         whiteLabel: [
             tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu']),
-            tuya.whitelabel('Tuya', 'THE01860A', 'Soil sensor with illuminance', ['_TZ3000_t9qqxn70'])
+            tuya.whitelabel('Tuya', 'THE01860A', 'Soil sensor with illuminance', ['_TZ3000_t9qqxn70']),
         ],
     },
     {
