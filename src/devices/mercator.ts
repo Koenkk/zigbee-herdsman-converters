@@ -5,6 +5,7 @@ import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
+const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
