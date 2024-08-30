@@ -520,7 +520,7 @@ const definitions: Definition[] = [
                     },
                     formAldehydeMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
-                        await endpoint.configureReporting('heimanSpecificFormaldehydeMeasurement', payload);
+                        await endpoint.configureReporting('msFormaldehyde', payload);
                     },
                     batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('batteryState', 0, constants.repInterval.HOUR, 1, overrides);
@@ -548,7 +548,7 @@ const definitions: Definition[] = [
                 'msTemperatureMeasurement',
                 'msRelativeHumidity',
                 'pm25Measurement',
-                'heimanSpecificFormaldehydeMeasurement',
+                'msFormaldehyde',
                 'heimanSpecificAirQuality',
             ]);
 
