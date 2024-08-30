@@ -1123,14 +1123,16 @@ const definitions: Definition[] = [
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_analog_input, tz.on_off],
         exposes: [
             e.battery(),
-            e.numeric('l3', ea.STATE_SET)
+            e
+                .numeric('l3', ea.ALL)
                 .withValueMin(-999999999)
                 .withValueMax(999999999)
                 .withDescription(
                     'Counter 1 value. Write zero or positive value to set a counter value. ' +
                         'Write a negative value to set a wakeup interval in minutes',
                 ),
-            e.numeric('l5', ea.STATE_SET)
+            e
+                .numeric('l5', ea.ALL)
                 .withValueMin(-999999999)
                 .withValueMax(999999999)
                 .withDescription(
