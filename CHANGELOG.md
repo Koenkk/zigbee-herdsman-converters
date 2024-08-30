@@ -1,5 +1,15 @@
 # Changelog
 
+## [20.8.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.8.0...v20.8.1) (2024-08-30)
+
+
+### Bug Fixes
+
+* Changed enum to numeric expose for counters in 'ptvo_counter_2ch' device ([#7919](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7919)) ([59dece5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/59dece551ecbc19f6e241ab3ddf38ffceafd5e76))
+* **detect:** Detect `_TZE204_hcxvyxa5` as Neo NAS-AB02B2 https://github.com/Koenkk/zigbee2mqtt/issues/23529 ([a63fa20](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a63fa20ca58d829b485694372f30c8e38c96560c))
+* Fix configure failing for SONOFF ZBMINI-L and ZBMINIL2 https://github.com/Koenkk/zigbee2mqtt/issues/23776 ([67682e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/67682e9ab2ca541d7fb18be88c37e1e80f977b8b))
+* **ignore:** Rename `heimanSpecificFormaldehydeMeasurement` to `msFormaldehyde` https://github.com/Koenkk/zigbee2mqtt/issues/23776 ([137028d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/137028d2e2d22a40b0f89e778c54c0b9ce97ac8a))
+
 ## [20.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.7.0...v20.8.0) (2024-08-29)
 
 
