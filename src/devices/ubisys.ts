@@ -735,11 +735,11 @@ const definitions: DefinitionWithExtend[] = [
                 endpoints: [{ID: 1, profileID: 260, deviceID: 266, inputClusters: [0, 3, 4, 5, 6, 1794, 2820], outputClusters: []}],
             },
         ],
-        model: 'S1-R (Series 2)',
+        model: 'S1-R-2',
         vendor: 'ubisys',
         description: 'Power switch S1-R (Series 2)',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '232': 232}}),
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '232': 232}, multiEndpointSkip: ['state', 'power', 'energy']}),
             identify(),
             onOff({powerOnBehavior: false}),
             electricityMeter({cluster: 'metering', configureReporting: false}),
@@ -753,7 +753,6 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        meta: {multiEndpointSkip: ['state', 'power', 'energy']},
         onEvent: async (type, data, device) => {
             /*
              * As per technical doc page 18 section 7.3.4
