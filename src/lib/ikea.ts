@@ -99,8 +99,10 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
     }
 
     // Never use a transition when transitioning to OFF as this turns on the light when sending OFF twice
+    // when the bulb has firmware > 1.0.012.
     // https://github.com/Koenkk/zigbee2mqtt/issues/19211
-    result.meta = {...result.meta, noOffTransition: true};
+    // https://github.com/Koenkk/zigbee2mqtt/issues/22030#issuecomment-2292063140
+    result.meta = {...result.meta, noOffTransition: (entity) => semver.gt(entity.getDevice().softwareBuildID, '1.0.012', true)};
 
     return result;
 }
