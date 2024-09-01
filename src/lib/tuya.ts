@@ -1931,6 +1931,7 @@ const tuyaModernExtend = {
             childLock?: boolean;
             switchMode?: boolean;
             onOffCountdown?: boolean;
+            inchingSwitch?: boolean;
         } = {},
     ): ModernExtend => {
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
@@ -2024,6 +2025,16 @@ const tuyaModernExtend = {
             }
         }
 
+        if (args.inchingSwitch) {
+            let quantity = 1;
+            if (args.endpoints) {
+                quantity = args.endpoints.length;
+            }
+            fromZigbee.push(tuyaFz.inchingSwitch);
+            exposes.push(tuyaExposes.inchingSwitch(quantity));
+            toZigbee.push(tuyaTz.inchingSwitch);
+        }
+
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
     },
     dpBacklightMode(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
@@ -2099,13 +2110,6 @@ const tuyaModernExtend = {
             expose: e.child_lock(),
             ...args,
         });
-    },
-    tuyaInchingSwitch(quantity: number): ModernExtend {
-        const fromZigbee = [tuyaFz.inchingSwitch];
-        const exp = tuyaExposes.inchingSwitch(quantity);
-        const toZigbee = [tuyaTz.inchingSwitch];
-
-        return {exposes: [exp], toZigbee, fromZigbee, isModernExtend: true};
     },
 };
 export {tuyaModernExtend as modernExtend};
