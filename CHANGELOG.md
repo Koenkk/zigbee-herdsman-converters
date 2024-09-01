@@ -1,5 +1,14 @@
 # Changelog
 
+## [20.8.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.8.1...v20.8.2) (2024-09-01)
+
+
+### Bug Fixes
+
+* **ignore:** fix THE01860A ([#7923](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7923)) ([403213e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/403213ef81bf0197da7dca01df1cfcca9d1d374d))
+* **ignore:** Only set `noOffTransition=true` when firmware &gt; 1.0.012 https://github.com/Koenkk/zigbee2mqtt/issues/22030 ([7f73aee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7f73aee511c6b280aad8ffc4c032e99a9375cb6c))
+* **ignore:** update dependencies ([#7922](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7922)) ([70f2a29](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70f2a29cebeb626b425179ac8913c4e0ea04812c))
+
 ## [20.8.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.8.0...v20.8.1) (2024-08-30)
 
 
