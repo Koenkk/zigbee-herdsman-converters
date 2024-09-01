@@ -279,22 +279,6 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0201', ['_TZE200_01fvxamo']),
-        model: 'THS317-ET-EY',
-        vendor: 'OWON',
-        description: 'Temperature sensor with probe',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [e.temperature(), e.battery()],
-        meta: {
-            tuyaDatapoints: [
-                [1, 'temperature', tuya.valueConverter.divideBy10],
-                [4, 'battery', tuya.valueConverter.raw],
-            ],
-        },
-    },
-    {
         zigbeeModel: ['THS317-ET'],
         model: 'THS317-ET',
         vendor: 'OWON',
@@ -353,9 +337,9 @@ const definitions: DefinitionWithExtend[] = [
             e.numeric('reactive_power_l1', ea.STATE).withUnit('VAr').withDescription('Phase 1 reactive power'),
             e.numeric('reactive_power_l2', ea.STATE).withUnit('VAr').withDescription('Phase 2 reactive power'),
             e.numeric('reactive_power_l3', ea.STATE).withUnit('VAr').withDescription('Phase 3 reactive power'),
-            e.numeric('power_factor_l1', ea.STATE).withDescription('Phase 1 power factor'),
-            e.numeric('power_factor_l2', ea.STATE).withDescription('Phase 2 power factor'),
-            e.numeric('power_factor_l3', ea.STATE).withDescription('Phase 3 power factor'),
+            e.numeric('power_factor_l1', ea.STATE).withUnit('%').withDescription('Phase 1 power factor'),
+            e.numeric('power_factor_l2', ea.STATE).withUnit('%').withDescription('Phase 2 power factor'),
+            e.numeric('power_factor_l3', ea.STATE).withUnit('%').withDescription('Phase 3 power factor'),
         ],
     },
     {

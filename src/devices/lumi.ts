@@ -18,6 +18,7 @@ import {
     battery,
     identify,
     windowCovering,
+    onOff,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
@@ -4487,6 +4488,13 @@ const definitions: DefinitionWithExtend[] = [
             lumiPower(),
             lumiZigbeeOTA(),
         ],
+    },
+    {
+        zigbeeModel: ['lumi.valve.agl001'],
+        model: 'VC-X01D',
+        vendor: 'Aqara',
+        description: 'Valve controller T1',
+        extend: [lumiZigbeeOTA(), onOff({powerOnBehavior: false}), battery()],
     },
 ];
 

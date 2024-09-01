@@ -199,8 +199,15 @@ export function setupConfigureForReading(cluster: string | number, attributes: (
     return configure;
 }
 
-export function autoDetectInputEndpoint(device: Zh.Device, cluster: string | number): Zh.Endpoint | Zh.Group {
-    return device.endpoints.find((e) => e.supportsInputCluster(cluster)) ?? device.endpoints[0];
+export function determineEndpoint(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta, cluster: string | number): Zh.Endpoint | Zh.Group {
+    const {device, endpoint_name} = meta;
+    if (endpoint_name !== undefined) {
+        // In case an explicit endpoint is given, always send it to that endpoint
+        return entity;
+    } else {
+        // In case no endpoint is given, match the first endpoint which support the cluster.
+        return device.endpoints.find((e) => e.supportsInputCluster(cluster)) ?? device.endpoints[0];
+    }
 }
 
 // #region General
@@ -362,7 +369,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
             convertGet: async (entity, key, meta) => {
                 // Don't fail GET reqest if reading fails
                 // Split reading is needed for more clear debug logs
-                const ep = autoDetectInputEndpoint(meta.device, 'genPowerCfg');
+                const ep = determineEndpoint(entity, meta, 'genPowerCfg');
                 try {
                     await ep.read('genPowerCfg', ['batteryPercentageRemaining']);
                 } catch (e) {
@@ -727,7 +734,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
         {
             key: ['occupancy'],
             convertGet: async (entity, key, meta) => {
-                await autoDetectInputEndpoint(meta.device, 'msOccupancySensing').read('msOccupancySensing', ['occupancy']);
+                await determineEndpoint(entity, meta, 'msOccupancySensing').read('msOccupancySensing', ['occupancy']);
             },
         },
     ];
@@ -1248,6 +1255,7 @@ export interface WindowCoveringArgs {
     stateSource?: 'lift' | 'tilt';
     configureReporting?: boolean;
     coverMode?: boolean;
+    endpointNames?: string[];
 }
 export function windowCovering(args: WindowCoveringArgs): ModernExtend {
     args = {stateSource: 'lift', configureReporting: true, ...args};
@@ -1296,6 +1304,10 @@ export function windowCovering(args: WindowCoveringArgs): ModernExtend {
     if (args.coverMode) {
         result.toZigbee.push(tz.cover_mode);
         result.exposes.push(e.cover_mode());
+    }
+
+    if (args.endpointNames) {
+        result.exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
     }
 
     return result;
@@ -1782,14 +1794,14 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await autoDetectInputEndpoint(meta.device, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await autoDetectInputEndpoint(meta.device, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -1913,14 +1925,14 @@ export function numeric(args: NumericArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await autoDetectInputEndpoint(meta.device, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await autoDetectInputEndpoint(meta.device, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -1975,14 +1987,14 @@ export function binary(args: BinaryArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await autoDetectInputEndpoint(meta.device, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await autoDetectInputEndpoint(meta.device, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },

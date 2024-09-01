@@ -136,7 +136,11 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RDTS01056Z',
         vendor: 'Third Reality',
         description: 'Garage door tilt sensor',
-        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
+        extend: [
+            battery(),
+            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']}),
+            forcePowerSource({powerSource: 'Battery'}),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
