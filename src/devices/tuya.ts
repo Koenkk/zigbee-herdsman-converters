@@ -6439,7 +6439,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay', '_TZE204_myd45weu', '_TZ3000_t9qqxn70']),
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay', '_TZE204_myd45weu']),
         model: 'TS0222_temperature_humidity',
         vendor: 'Tuya',
         description: 'Temperature & humidity sensor',
@@ -6447,10 +6447,17 @@ const definitions: Definition[] = [
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
-        whiteLabel: [
-            tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu']),
-            tuya.whitelabel('Tuya', 'THE01860A', 'Soil sensor with illuminance', ['_TZ3000_t9qqxn70']),
-        ],
+        whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_t9qqxn70']),
+        model: 'THE01860A',
+        vendor: 'Tuya',
+        description: 'Temp & humidity flower sensor with illuminance',
+        fromZigbee: [fz.humidity, fz.battery, fz.temperature, fz.illuminance],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance_lux()],
     },
     {
         fingerprint: [
