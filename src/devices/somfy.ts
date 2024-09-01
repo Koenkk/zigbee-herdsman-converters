@@ -1,6 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {battery, iasZoneAlarm, identify} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
 
@@ -38,6 +39,21 @@ const definitions: Definition[] = [
             await reporting.currentSummDelivered(ep);
             await reporting.currentSummReceived(ep);
         },
+    },
+    {
+        zigbeeModel: ['1811680'],
+        model: '1811680',
+        vendor: 'SOMFY',
+        description: 'Zigbee opening sensor',
+        extend: [identify(), iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'battery_low']}), battery()],
+    },
+    {
+        zigbeeModel: ['1811681'],
+        model: '1811681',
+        vendor: 'SOMFY',
+        description: 'Zigbee motion sensor',
+        extend: [identify(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}), battery()],
+        meta: {},
     },
 ];
 
