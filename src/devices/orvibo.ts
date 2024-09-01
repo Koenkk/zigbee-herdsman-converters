@@ -3,7 +3,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {deviceEndpoints, light, onOff, battery, humidity, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Tz} from '../lib/types';
+import {DefinitionWithExtend, Tz} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -22,7 +22,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ccb9f56837ab41dcad366fb1452096b6', '250bccf66c41421b91b5e3242942c164'],
         model: 'DD10Z',

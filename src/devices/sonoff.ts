@@ -22,7 +22,7 @@ import {
     iasZoneAlarm,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 const {ewelinkAction} = ewelinkModernExtend;
 
@@ -63,6 +63,7 @@ const sonoffExtend = {
                 delayedPowerOnTime: {ID: 0x0015, type: Zcl.DataType.UINT16},
                 externalTriggerMode: {ID: 0x0016, type: Zcl.DataType.UINT8},
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
+                lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16},
             },
             commands: {
                 protocolData: {ID: 0x01, parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -543,7 +544,7 @@ const sonoffExtend = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['NSPanelP-Router'],
         model: 'NSPanelP-Router',
@@ -572,7 +573,10 @@ const definitions: Definition[] = [
             // Zigbee-herdsmans responds to the checkin message which causes the device
             // to poll slower.
             // https://github.com/Koenkk/zigbee2mqtt/issues/11676
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            }
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
@@ -588,7 +592,10 @@ const definitions: Definition[] = [
             // Zigbee-herdsmans responds to the checkin message which causes the device
             // to poll slower.
             // https://github.com/Koenkk/zigbee2mqtt/issues/11676
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            }
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
@@ -1140,6 +1147,14 @@ const definitions: Definition[] = [
                 description: 'The water valve is in normal state, water shortage or water leakage',
                 access: 'STATE_GET',
             }),
+            binary({
+                name: 'auto_close_when_water_shortage',
+                cluster: 'customClusterEwelink',
+                attribute: 'lackWaterCloseValveTimeout',
+                description: 'Automatically shut down the water valve after the water shortage exceeds 30 minutes.',
+                valueOff: ['DISABLE', 0],
+                valueOn: ['ENABLE', 30],
+            }),
             sonoffExtend.cyclicTimedIrrigation(),
             sonoffExtend.cyclicQuantitativeIrrigation(),
         ],
@@ -1148,7 +1163,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msFlowMeasurement']);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read('customClusterEwelink', [0x500c]);
+            await endpoint.read('customClusterEwelink', [0x500c, 0x5011]);
         },
     },
     {

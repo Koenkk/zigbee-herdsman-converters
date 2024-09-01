@@ -1,12 +1,12 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 import {deviceEndpoints, light} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {
@@ -23,6 +23,16 @@ const definitions: Definition[] = [
                 type: 'Router',
                 manufacturerName: 'EcoDim BV',
                 modelID: 'EcoDim-Zigbee 3.0',
+                endpoints: [
+                    {ID: 1, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8, 4096], outputClusters: [25]},
+                    {ID: 2, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8, 4096], outputClusters: [25]},
+                    {ID: 242, profileID: 41440, inputClusters: [], outputClusters: [33]},
+                ],
+            },
+            {
+                type: 'Router',
+                manufacturerName: 'EcoDim BV',
+                modelID: 'Eco-Dim.05 Zigbee',
                 endpoints: [
                     {ID: 1, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8, 4096], outputClusters: [25]},
                     {ID: 2, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8, 4096], outputClusters: [25]},

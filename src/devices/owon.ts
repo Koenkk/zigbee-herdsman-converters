@@ -6,7 +6,7 @@ import * as legacy from '../lib/legacy';
 import {battery, iasZoneAlarm} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition, Fz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -127,7 +127,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['WSP402'],
         model: 'WSP402',
@@ -337,9 +337,9 @@ const definitions: Definition[] = [
             e.numeric('reactive_power_l1', ea.STATE).withUnit('VAr').withDescription('Phase 1 reactive power'),
             e.numeric('reactive_power_l2', ea.STATE).withUnit('VAr').withDescription('Phase 2 reactive power'),
             e.numeric('reactive_power_l3', ea.STATE).withUnit('VAr').withDescription('Phase 3 reactive power'),
-            e.numeric('power_factor_l1', ea.STATE).withDescription('Phase 1 power factor'),
-            e.numeric('power_factor_l2', ea.STATE).withDescription('Phase 2 power factor'),
-            e.numeric('power_factor_l3', ea.STATE).withDescription('Phase 3 power factor'),
+            e.numeric('power_factor_l1', ea.STATE).withUnit('%').withDescription('Phase 1 power factor'),
+            e.numeric('power_factor_l2', ea.STATE).withUnit('%').withDescription('Phase 2 power factor'),
+            e.numeric('power_factor_l3', ea.STATE).withUnit('%').withDescription('Phase 3 power factor'),
         ],
     },
     {

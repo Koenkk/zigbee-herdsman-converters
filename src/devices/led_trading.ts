@@ -4,7 +4,7 @@ import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const NS = 'zhc:led_trading';
@@ -37,7 +37,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000427.....$/}],
         model: '9133',
