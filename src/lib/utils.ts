@@ -701,8 +701,8 @@ export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Grou
     return obj.constructor.name.toLowerCase() === 'group';
 }
 
-export function isNumericExposeFeature(feature: Feature): feature is Numeric {
-    return feature?.type === 'numeric';
+export function isNumericExpose(expose: Expose): expose is Numeric {
+    return expose?.type === 'numeric';
 }
 
 export function isLightExpose(expose: Expose): expose is Light {

@@ -258,7 +258,7 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
     for (const expose of Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null)) {
         if (
             !optionKeys.includes(expose.name) &&
-            utils.isNumericExposeFeature(expose) &&
+            utils.isNumericExpose(expose) &&
             expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision
         ) {
             // Battery voltage is not calibratable

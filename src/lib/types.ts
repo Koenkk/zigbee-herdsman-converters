@@ -49,6 +49,7 @@ export type Expose =
     | exposes.Lock
     | exposes.Cover
     | exposes.Climate
+    | exposes.Fan
     | exposes.Text;
 export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum | exposes.List | exposes.Text;
 export interface Fingerprint {
@@ -319,7 +320,7 @@ export namespace Fz {
 export namespace Tz {
     export interface Meta {
         message: KeyValue;
-        device: Zh.Device;
+        device: Zh.Device | undefined;
         mapped: Definition | Definition[];
         options: KeyValue;
         state: KeyValue;

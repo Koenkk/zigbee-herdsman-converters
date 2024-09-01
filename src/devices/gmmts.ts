@@ -9,7 +9,7 @@ import {logger} from '../lib/logger';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Fz, Tz, KeyValue, Zh} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz, KeyValue, Zh, Expose} from '../lib/types';
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -1985,7 +1985,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: tzLocal,
         exposes: (device, options) => {
             let endpoint: Zh.Endpoint;
-            const exposes: exposes.Base[] = [];
+            const exposes: Expose[] = [];
             exposes.push(e.linkquality());
 
             let currentContract: string = '';
