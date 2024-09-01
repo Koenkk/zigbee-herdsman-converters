@@ -3,7 +3,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz, KeyValue, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -121,7 +121,7 @@ function setMetaOption(device: Zh.Device, key: string, enabled: boolean) {
     }
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['zigfred uno'],
         model: 'ZFU-1D-CH',

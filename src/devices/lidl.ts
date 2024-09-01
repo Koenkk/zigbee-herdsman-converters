@@ -3,7 +3,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, Tz, KeyValue, Publish} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz, KeyValue, Publish} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import {battery, iasZoneAlarm} from '../lib/modernExtend';
@@ -204,7 +204,7 @@ const valueConverterLocal = {
     }),
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {manufacturerName: '_TZ3000_kdi2o9m6'}, // EU

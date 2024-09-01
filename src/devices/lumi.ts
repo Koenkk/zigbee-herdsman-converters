@@ -68,12 +68,12 @@ const {
     lumiBattery,
 } = lumi.modernExtend;
 import {logger} from '../lib/logger';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const NS = 'zhc:lumi';
 const {manufacturerCode} = lumi;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['lumi.flood.acn001'],
         model: 'SJCGQ13LM',

@@ -5,7 +5,7 @@ import * as legacy from '../lib/legacy';
 import {light as lightDontUse, onOff, LightArgs} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition, Zh} from '../lib/types';
+import {DefinitionWithExtend, Zh} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -15,7 +15,7 @@ function mullerLichtLight(args: LightArgs) {
     return result;
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['tint-Spotlights'],
         model: '404051',

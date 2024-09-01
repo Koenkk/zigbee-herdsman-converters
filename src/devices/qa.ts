@@ -5,11 +5,11 @@ import * as legacy from '../lib/legacy';
 import {deviceEndpoints, actionEnumLookup, light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0726', ['_TZ3000_kt6xxa4o']),
         model: 'QAT42Z3',

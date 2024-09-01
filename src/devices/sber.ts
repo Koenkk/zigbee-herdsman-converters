@@ -1,9 +1,9 @@
 import {battery, humidity, iasZoneAlarm, ignoreClusterReport, temperature} from '../lib/modernExtend';
 import {modernExtend as tuyaModernExtend} from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const {tuyaMagicPacket, tuyaOnOffActionLegacy} = tuyaModernExtend;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'SM0202', manufacturerName: '_TYZB01_2jzbhomb'}],
         model: 'SBDV-00029',

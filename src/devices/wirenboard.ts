@@ -3,7 +3,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {Configure, Definition, Fz, KeyValueAny, ModernExtend, Tz} from '../lib/types';
+import {Configure, DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as modernExtend from '../lib/modernExtend';
@@ -452,7 +452,7 @@ const {
     sprutIrBlaster,
 } = sprutModernExtend;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['WBMSW3'],
         model: 'WB-MSW-ZIGBEE v.3',

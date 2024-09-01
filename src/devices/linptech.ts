@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
-import {KeyValue, Definition, Tz, Fz} from '../lib/types';
+import {KeyValue, DefinitionWithExtend, Tz, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -66,7 +66,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0225', ['_TZ3218_awarhusb', '_TZ3218_t9ynfz4x']),
         model: 'ES1ZZ(TY)',

@@ -3,7 +3,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz} from '../lib/types';
 const e = exposes.presets;
 import * as constants from '../lib/constants';
 
@@ -28,7 +28,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['HT402'],
         model: 'HT402',
