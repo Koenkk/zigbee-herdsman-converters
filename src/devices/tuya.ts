@@ -6451,6 +6451,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu']),
         ],
     },
+    {
         fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_t9qqxn70']),
         model: 'THE01860A',
         vendor: 'Tuya',
