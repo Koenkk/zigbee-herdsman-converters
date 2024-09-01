@@ -102,7 +102,7 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
     // when the bulb has firmware > 1.0.012.
     // https://github.com/Koenkk/zigbee2mqtt/issues/19211
     // https://github.com/Koenkk/zigbee2mqtt/issues/22030#issuecomment-2292063140
-    result.meta = {...result.meta, noOffTransition: (entity) => semver.gt(entity.getDevice().softwareBuildID, '1.0.012', true)};
+    result.meta = {...result.meta, noOffTransition: (entity) => semver.gt(entity.getDevice().softwareBuildID ?? '0.0.0', '1.0.012', true)};
 
     return result;
 }
