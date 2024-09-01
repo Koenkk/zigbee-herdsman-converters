@@ -6456,7 +6456,7 @@ const definitions: Definition[] = [
         model: 'THE01860A',
         vendor: 'Tuya',
         description: 'Temp & humidity flower sensor with illuminance',
-        fromZigbee: [fz.default.humidity, fz.default.battery, fz.default.temperature, fz.default.illuminance],
+        fromZigbee: [fz.humidity, fz.battery, fz.temperature, fz.illuminance],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance_lux()],
