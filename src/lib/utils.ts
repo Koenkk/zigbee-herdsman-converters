@@ -309,7 +309,7 @@ export function getMetaValue<T>(
         const values = [];
         for (let i = 0; i < entity.members.length; i++) {
             const memberMetaMeta = getMetaValues((definition as Definition[])[i], entity.members[i]);
-            if (memberMetaMeta?.key !== undefined) {
+            if (memberMetaMeta?.[key] !== undefined) {
                 const value = typeof memberMetaMeta[key] === 'function' ? memberMetaMeta[key](entity.members[i]) : memberMetaMeta[key];
                 if (groupStrategy === 'first') {
                     return value;
@@ -328,7 +328,7 @@ export function getMetaValue<T>(
         }
     } else {
         const definitionMeta = getMetaValues(definition, entity);
-        if (definitionMeta?.key !== undefined) {
+        if (definitionMeta?.[key] !== undefined) {
             return typeof definitionMeta[key] === 'function' ? definitionMeta[key](entity) : definitionMeta[key];
         }
     }
