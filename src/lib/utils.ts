@@ -265,18 +265,20 @@ export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T,
 
 export function batteryVoltageToPercentage(voltage: number, option: BatteryNonLinearVoltage | BatteryLinearVoltage): number {
     if (option === '3V_2100') {
-        let percentage: number = 100; // >= 3000
+        let percentage: number;
 
-        if (voltage < 2100) {
+        if (voltage >= 3200) {
+            percentage = 100;
+        } else if (voltage >= 3000) {
+            percentage = 90 + ((voltage - 3000) * (100 - 90)) / (3200 - 3000);
+        } else if (voltage >= 2900) {
+            percentage = 70 + ((voltage - 2900) * (90 - 70)) / (3000 - 2900);
+        } else if (voltage >= 2800) {
+            percentage = 40 + ((voltage - 2800) * (70 - 40)) / (2900 - 2800);
+        } else if (voltage >= 2700) {
+            percentage = 10 + ((voltage - 2700) * (40 - 10)) / (2800 - 2700);
+        } else {
             percentage = 0;
-        } else if (voltage < 2440) {
-            percentage = 6 - ((2440 - voltage) * 6) / 340;
-        } else if (voltage < 2740) {
-            percentage = 18 - ((2740 - voltage) * 12) / 300;
-        } else if (voltage < 2900) {
-            percentage = 42 - ((2900 - voltage) * 24) / 160;
-        } else if (voltage < 3000) {
-            percentage = 100 - ((3000 - voltage) * 58) / 100;
         }
 
         return Math.round(percentage);
