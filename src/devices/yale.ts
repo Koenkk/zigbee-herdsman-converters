@@ -1,4 +1,4 @@
-import {Definition, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
+import {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
 import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
 
 import fz from '../converters/fromZigbee';
@@ -249,7 +249,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['YRD446 BLE TSDB'],
         model: 'YRD426NRSC',

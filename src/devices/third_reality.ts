@@ -7,7 +7,7 @@ import {forcePowerSource, iasZoneAlarm, light, onOff} from '../lib/modernExtend'
 import {temperature, humidity, battery, deviceAddCustomCluster} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -33,7 +33,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['3RSS009Z'],
         model: '3RSS009Z',
@@ -136,7 +136,11 @@ const definitions: Definition[] = [
         model: '3RDTS01056Z',
         vendor: 'Third Reality',
         description: 'Garage door tilt sensor',
-        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
+        extend: [
+            battery(),
+            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']}),
+            forcePowerSource({powerSource: 'Battery'}),
+        ],
         ota: ota.zigbeeOTA,
     },
     {

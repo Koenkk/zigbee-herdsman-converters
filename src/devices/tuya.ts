@@ -25,7 +25,7 @@ import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
-import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString, ModernExtend} from '../lib/types';
+import {KeyValue, DefinitionWithExtend, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString, ModernExtend} from '../lib/types';
 import * as utils from '../lib/utils';
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
 import * as zosung from '../lib/zosung';
@@ -793,7 +793,7 @@ const modernExtendLocal = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TS0204'],
         model: 'TS0204',
@@ -1245,6 +1245,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ryfmq5rl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_c2fmom5z'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_mja3fuja'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_yvx5lh6k'},
         ],
         model: 'TS0601_air_quality_sensor',
         vendor: 'Tuya',
@@ -6449,6 +6450,16 @@ const definitions: Definition[] = [
         whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
     },
     {
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_t9qqxn70']),
+        model: 'THE01860A',
+        vendor: 'Tuya',
+        description: 'Temp & humidity flower sensor with illuminance',
+        fromZigbee: [fz.humidity, fz.battery, fz.temperature, fz.illuminance],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance_lux()],
+    },
+    {
         fingerprint: [
             {modelID: 'TS0222', manufacturerName: '_TYZB01_4mdqxxnn'},
             {modelID: 'TS0222', manufacturerName: '_TYZB01_m6ec2pgj'},
@@ -8214,7 +8225,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Lerlink', model: 'T2-Z67/T2-W67'}],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml', '_TZE200_qanl25yu', '_TZE204_lawxy9e2']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml', '_TZE200_qanl25yu']),
         model: 'TS0601_fan_and_light_switch',
         vendor: 'Tuya',
         description: 'Fan & light switch',
@@ -8238,7 +8249,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Liwokit', model: 'Fan+Light-01'}],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lawxy9e2']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lawxy9e2', '_TZE204_lawxy9e2']),
         model: 'TS0601_fan_5_levels_and_light_switch',
         vendor: 'Tuya',
         description: 'Fan with 5 levels & light switch',
@@ -9794,6 +9805,86 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ya4ft0w4']),
+        model: 'ZY-M100-24GV3',
+        vendor: 'Tuya',
+        description: '24G MmWave radar human presence motion sensor（added distance switch）',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum('state', ea.STATE, ['none', 'presence', 'move']).withDescription('Presence state sensor'),
+            e.presence().withDescription('Occupancy'),
+            e.numeric('distance', ea.STATE).withDescription('Target distance'),
+            e.binary('find_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('distance switch'),
+            e.illuminance_lux().withDescription('Illuminance sensor'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
+            e
+                .numeric('detection_distance_min', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(8.25)
+                .withValueStep(0.75)
+                .withUnit('m')
+                .withDescription('Minimum range'),
+            e
+                .numeric('detection_distance_max', ea.STATE_SET)
+                .withValueMin(0.75)
+                .withValueMax(9.0)
+                .withValueStep(0.75)
+                .withUnit('m')
+                .withDescription('Maximum range'),
+            e
+                .numeric('presence_timeout', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(15000)
+                .withValueStep(1)
+                .withUnit('s')
+                .withDescription('Fade time'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    null,
+                    {
+                        from: function (v, meta) {
+                            if (v == 0) {
+                                return {
+                                    state: 'none',
+                                    presence: false,
+                                };
+                            } else if (v == 1) {
+                                return {
+                                    state: 'presence',
+                                    presence: true,
+                                };
+                            } else if (v == 2) {
+                                return {
+                                    state: 'move',
+                                    presence: true,
+                                };
+                            } else {
+                                return {
+                                    state: 'none',
+                                    presence: false,
+                                };
+                            }
+                        },
+                    },
+                ],
+                [2, 'move_sensitivity', tuya.valueConverter.raw],
+                [3, 'detection_distance_min', tuya.valueConverter.divideBy100],
+                [4, 'detection_distance_max', tuya.valueConverter.divideBy100],
+                [9, 'distance', tuya.valueConverter.divideBy10],
+                [101, 'find_switch', tuya.valueConverter.onOff],
+                [102, 'presence_sensitivity', tuya.valueConverter.raw],
+                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [105, 'presence_timeout', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e9ajs4ft']),
         model: 'CTL-R1-TY-Zigbee',
         vendor: 'Tuya',
@@ -10449,7 +10540,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iuk8kupi']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iuk8kupi', '_TZE204_iuk8kupi']),
         model: 'DCR-RQJ',
         vendor: 'Tuya',
         description: 'Carbon monoxide sensor gas leak detector',
@@ -10706,6 +10797,146 @@ const definitions: Definition[] = [
             ],
         },
         whiteLabel: [{vendor: 'ELECTSMART', model: 'EST-120Z'}],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_tagezcph'}],
+        model: 'PRO-900Z',
+        vendor: 'ElectSmart',
+        description: 'Thermostat for electric floor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withLabel('Child lock'),
+            e.binary('eco_mode', ea.STATE_SET, 'OFF', 'ON').withLabel('ECO mode').withDescription('Default: Off'),
+            e
+                .numeric('eco_temperature', ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withUnit('°C')
+                .withDescription('Max temperature in ECO mode. Default: 20'),
+            e.binary('valve_state', ea.STATE, false, true).withLabel('Heating in process'),
+            e
+                .climate()
+                .withSystemMode(['off', 'heat'], ea.STATE_SET)
+                .withPreset(['manual', 'auto'])
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withDescription('Default: -3'),
+            e
+                .numeric('deadzone_temperature', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(5)
+                .withValueStep(1)
+                .withUnit('°C')
+                .withDescription('Hysteresis. Default: 1'),
+            e.numeric('min_temperature', ea.STATE_SET).withValueMin(5).withValueMax(15).withValueStep(1).withUnit('°C').withDescription('Default: 5'),
+            e
+                .numeric('max_temperature', ea.STATE_SET)
+                .withValueMin(15)
+                .withValueMax(45)
+                .withValueStep(1)
+                .withUnit('°C')
+                .withDescription('Default: 35'),
+            e
+                .numeric('min_temperature_limit', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit('°C')
+                .withLabel('Low temperature protection')
+                .withDescription('Default: 0'),
+            e
+                .numeric('max_temperature_limit', ea.STATE_SET)
+                .withValueMin(25)
+                .withValueMax(70)
+                .withValueStep(1)
+                .withUnit('°C')
+                .withLabel('High temperature protection')
+                .withDescription('Default: 45'),
+            e.temperature_sensor_select(['IN', 'OU', 'AL']).withLabel('Sensor').withDescription('Choose which sensor to use. Default: AL'),
+            e
+                .numeric('external_temperature_input', ea.STATE)
+                .withLabel('Floor temperature')
+                .withUnit('°C')
+                .withDescription('Temperature from floor sensor'),
+            e
+                .numeric('brightness', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(8)
+                .withValueStep(1)
+                .withLabel('Screen brightness 06:00 - 22:00')
+                .withDescription('0 - on for 10 seconds. Default: 6'),
+            e
+                .numeric('display_brightness', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(8)
+                .withValueStep(1)
+                .withLabel('Screen brightness 22:00 - 06:00')
+                .withDescription('0 - on for 10 seconds. Default: 3'),
+            e
+                .text('schedule_monday', ea.STATE_SET)
+                .withLabel('Schedule for monday')
+                .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
+            e
+                .text('schedule_tuesday', ea.STATE_SET)
+                .withLabel('Schedule for tuesday')
+                .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
+            e
+                .text('schedule_wednesday', ea.STATE_SET)
+                .withLabel('Schedule for wednesday')
+                .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
+            e
+                .text('schedule_thursday', ea.STATE_SET)
+                .withLabel('Schedule for thursday')
+                .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
+            e
+                .text('schedule_friday', ea.STATE_SET)
+                .withLabel('Schedule for friday')
+                .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
+            e
+                .text('schedule_saturday', ea.STATE_SET)
+                .withLabel('Schedule for saturday')
+                .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
+            e
+                .text('schedule_sunday', ea.STATE_SET)
+                .withLabel('Schedule for sunday')
+                .withDescription('Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0'),
+            e.enum('factory_reset', ea.STATE_SET, ['factory reset']).withLabel('Factory reset').withDescription('Reset all settings to factory ones'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({off: false, heat: true})],
+                [2, 'preset', tuya.valueConverterBasic.lookup({auto: tuya.enum(0), manual: tuya.enum(1)})],
+                [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [19, 'max_temperature', tuya.valueConverter.divideBy10],
+                [24, 'local_temperature', tuya.valueConverter.divideBy10],
+                [26, 'min_temperature', tuya.valueConverter.divideBy10],
+                [27, 'local_temperature_calibration', tuya.valueConverter.raw],
+                [28, 'factory_reset', tuya.valueConverterBasic.lookup({factory_reset: true})],
+                [36, 'valve_state', tuya.valueConverter.trueFalseInvert],
+                [39, 'child_lock', tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
+                [40, 'eco_mode', tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
+                [43, 'sensor', tuya.valueConverterBasic.lookup({IN: tuya.enum(0), OU: tuya.enum(2), AL: tuya.enum(1)})],
+                [102, 'external_temperature_input', tuya.valueConverter.divideBy10],
+                [103, 'deadzone_temperature', tuya.valueConverter.raw],
+                [104, 'max_temperature_limit', tuya.valueConverter.divideBy10],
+                [101, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [105, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [106, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [107, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [108, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [109, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [110, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [111, 'min_temperature_limit', tuya.valueConverter.divideBy10],
+                [112, 'eco_temperature', tuya.valueConverter.divideBy10],
+                [113, 'brightness', tuya.valueConverter.raw],
+                [114, 'display_brightness', tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dsagrkvg']),
@@ -11184,6 +11415,35 @@ const definitions: Definition[] = [
                 [113, 'switch_mode_l1_l2', tuya.valueConverter.switchMode2],
                 [114, 'switch_mode_l3_l4', tuya.valueConverter.switchMode2],
                 [115, 'switch_mode_l5_l6', tuya.valueConverter.switchMode2],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iba1ckek', '_TZE200_hggxgsjj']),
+        model: 'ZG-103Z',
+        vendor: 'Tuya',
+        description: 'Vibration sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.vibration(),
+            e.tilt(),
+            e.numeric('x', ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription('X coordinate'),
+            e.numeric('y', ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription('Y coordinate'),
+            e.numeric('z', ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription('Z coordinate'),
+            e.battery(),
+            e.enum('sensitivity', ea.STATE_SET, ['low', 'middle', 'high']).withDescription('Vibration detection sensitivity'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'vibration', tuya.valueConverter.trueFalseEnum1],
+                [7, 'tilt', tuya.valueConverter.trueFalseEnum1],
+                [101, 'x', tuya.valueConverter.raw],
+                [102, 'y', tuya.valueConverter.raw],
+                [103, 'z', tuya.valueConverter.raw],
+                [104, 'sensitivity', tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
+                [105, 'battery', tuya.valueConverter.raw],
             ],
         },
     },

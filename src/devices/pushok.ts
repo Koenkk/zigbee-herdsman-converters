@@ -12,7 +12,7 @@ import {
     EnumLookupArgs,
     NumericArgs,
 } from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const pushokExtend = {
     valveStatus: (args?: Partial<EnumLookupArgs>) =>
@@ -43,7 +43,7 @@ const pushokExtend = {
         }),
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['POK001'],
         model: 'POK001',
@@ -172,8 +172,8 @@ const definitions: Definition[] = [
                 description: 'Target temperature',
                 unit: 'C',
                 access: 'ALL',
-                valueMin: -40,
-                valueMax: 90,
+                valueMin: -45,
+                valueMax: 125,
                 valueStep: 1,
                 reporting: null,
             }),
@@ -199,6 +199,80 @@ const definitions: Definition[] = [
                 access: 'ALL',
                 reporting: null,
             }),
+            ota(),
+        ],
+    },
+    {
+        zigbeeModel: ['POK009'],
+        model: 'POK009',
+        vendor: 'PushOk Hardware',
+        description: 'Voltage monitor',
+        extend: [
+            numeric({
+                name: 'ext_voltage',
+                cluster: 'genAnalogInput',
+                attribute: 'presentValue',
+                description: 'Mains voltage',
+                unit: 'V',
+                precision: 1,
+                access: 'STATE_GET',
+                reporting: null,
+            }),
+            binary({
+                name: 'comp_state',
+                valueOn: ['NORMAL', 0x01],
+                valueOff: ['LOW', 0x00],
+                cluster: 'genBinaryInput',
+                attribute: 'presentValue',
+                description: 'Voltage status',
+                access: 'STATE_GET',
+                reporting: null,
+            }),
+            numeric({
+                name: 'tgt_voltage',
+                cluster: 'genMultistateValue',
+                attribute: 'presentValue',
+                description: 'Voltage threshold',
+                unit: 'V',
+                access: 'ALL',
+                valueMin: 4,
+                valueMax: 340,
+                valueStep: 1,
+                reporting: null,
+            }),
+            enumLookup({
+                name: 'voltage_type',
+                lookup: {AC: 0, DC: 1},
+                cluster: 'genMultistateOutput',
+                attribute: 'presentValue',
+                zigbeeCommandOptions: {},
+                description: 'Mode',
+                access: 'ALL',
+                reporting: null,
+            }),
+            identify({isSleepy: true}),
+            battery({percentage: true, voltage: true, lowStatus: true, percentageReporting: false}),
+            ota(),
+        ],
+    },
+    {
+        zigbeeModel: ['POK010'],
+        model: 'POK010',
+        vendor: 'PushOk Hardware',
+        description: 'Water level and temperature sensor',
+        extend: [
+            binary({
+                name: 'contact',
+                valueOn: ['ON', 0x01],
+                valueOff: ['OFF', 0x00],
+                cluster: 'genBinaryInput',
+                attribute: 'presentValue',
+                description: 'Indicates if the contact is closed (= true) or open (= false)',
+                access: 'STATE_GET',
+                reporting: null,
+            }),
+            temperature({reporting: null}),
+            battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
             ota(),
         ],
     },

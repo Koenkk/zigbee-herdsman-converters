@@ -1,6 +1,6 @@
 import {presets} from '../lib/exposes';
 import {onOff, LightArgs, light as lightDontUse, electricityMeter, forcePowerSource, ota, iasZoneAlarm, battery} from '../lib/modernExtend';
-import {Definition, Expose, ModernExtend, Fz, KeyValueAny} from '../lib/types';
+import {DefinitionWithExtend, Expose, ModernExtend, Fz, KeyValueAny} from '../lib/types';
 
 export function sengledLight(args?: LightArgs) {
     return lightDontUse({effect: false, powerOnBehavior: false, ...args});
@@ -43,7 +43,7 @@ export function sengledSwitchAction(): ModernExtend {
     return {exposes, fromZigbee, isModernExtend: true};
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['E13-N11'],
         model: 'E13-N11',

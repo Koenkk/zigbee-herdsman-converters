@@ -1,8 +1,8 @@
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_j0ktmul1']),
         model: 'AUT000069',

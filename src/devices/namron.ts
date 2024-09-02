@@ -4,12 +4,12 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {forcePowerSource, light, onOff} from '../lib/modernExtend';
+import {forcePowerSource, light, onOff, electricityMeter} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
-import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz, KeyValue} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const ea = exposes.access;
@@ -101,7 +101,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['3308431'],
         model: '3308431',
@@ -140,26 +140,20 @@ const definitions: Definition[] = [
         extend: [light({configureReporting: true})],
     },
     {
+        zigbeeModel: ['4512766'],
+        model: '4512766',
+        vendor: 'Namron',
+        description: 'Zigbee smart plug 16A',
+        ota: ota.zigbeeOTA,
+        extend: [onOff(), electricityMeter()],
+    },
+    {
         zigbeeModel: ['4512767'],
         model: '4512767',
         vendor: 'Namron',
         description: 'Zigbee smart plug 16A',
-        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
-        toZigbee: [tz.on_off],
-        exposes: [e.power(), e.current(), e.voltage(), e.energy(), e.switch()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            const binds = ['seMetering', 'haElectricalMeasurement', 'genOnOff'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.onOff(endpoint);
-            // Metering
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2v
-            await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - z2m displays only the first decimals, so change of 10 (0,01)
-            await reporting.activePower(endpoint, {min: 10, change: 15}); // W - Min change of 1,5W
-            await reporting.currentSummDelivered(endpoint, {min: 300}); // Report KWH every 5min
-        },
+        ota: ota.zigbeeOTA,
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['1402767'],
@@ -1159,26 +1153,6 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         extend: [light({configureReporting: true})],
         whiteLabel: [{vendor: 'Namron', model: '4512751', description: 'Zigbee dimmer 2.0', fingerprint: [{modelID: '4512751'}]}],
-    },
-    {
-        zigbeeModel: ['4512766'],
-        model: '4512766',
-        vendor: 'Namron',
-        description: 'Zigbee smart plug 16A',
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.on_off],
-        exposes: [e.power(), e.current(), e.voltage(), e.switch()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
-            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
-            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.onOff(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.activePower(endpoint);
-        },
     },
     {
         zigbeeModel: ['4512772', '4512773'],

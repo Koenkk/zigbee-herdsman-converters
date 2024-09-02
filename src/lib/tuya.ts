@@ -19,6 +19,7 @@ import {
     Range,
     KeyValueNumberString,
     DefinitionExposesFunction,
+    Publish,
 } from './types';
 import * as utils from './utils';
 // import {Color} from './color';
@@ -548,16 +549,22 @@ export const valueConverter = {
         to: async (v: number, meta: Tz.Meta) => {
             return meta.options.invert_cover ? 100 - v : v;
         },
-        from: (v: number, meta: Fz.Meta, options: KeyValue) => {
-            return options.invert_cover ? 100 - v : v;
+        from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
+            const position = options.invert_cover ? 100 - v : v;
+            const closed = options.invert_cover ? position === 100 : position === 0;
+            publish({state: closed ? 'CLOSE' : 'OPEN'});
+            return position;
         },
     },
     coverPositionInverted: {
         to: async (v: number, meta: Tz.Meta) => {
             return meta.options.invert_cover ? v : 100 - v;
         },
-        from: (v: number, meta: Fz.Meta, options: KeyValue) => {
-            return options.invert_cover ? v : 100 - v;
+        from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
+            const position = options.invert_cover ? v : 100 - v;
+            const closed = options.invert_cover ? position === 100 : position === 0;
+            publish({state: closed ? 'CLOSE' : 'OPEN'});
+            return position;
         },
     },
     tubularMotorDirection: valueConverterBasic.lookup({normal: new Enum(0), reversed: new Enum(1)}),

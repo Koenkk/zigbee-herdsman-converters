@@ -4,7 +4,7 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import {onOff, deviceEndpoints, actionEnumLookup, battery} from '../lib/modernExtend';
@@ -19,7 +19,7 @@ const exposesLocal = {
     program_temperature: (name: string) => e.numeric(name, ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5),
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'},

@@ -106,17 +106,18 @@ export class Base {
         target.property = this.property;
         target.description = this.description;
         if (target.features) {
-            target.features = [...this.features];
+            target.features = this.features.map((f) => f.clone());
         }
         target.category = this.category;
     }
 }
 
 export class Switch extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'switch';
-        this.features = [];
     }
 
     withState(property: string, toggle: string | boolean, description: string, access = a.ALL, value_on = 'ON', value_off = 'OFF') {
@@ -137,10 +138,11 @@ export class Switch extends Base {
 }
 
 export class Lock extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'lock';
-        this.features = [];
     }
 
     withState(property: string, valueOn: string, valueOff: string, description: string, access = a.ALL) {
@@ -163,6 +165,7 @@ export class Lock extends Base {
 }
 
 export class Binary extends Base {
+    property: string = '';
     value_on: string | boolean;
     value_off: string | boolean;
     value_toggle?: string;
@@ -192,6 +195,7 @@ export class Binary extends Base {
 }
 
 export class List extends Base {
+    property: string = '';
     item_type: Numeric | Binary | Composite | Text;
     length_min?: number;
     length_max?: number;
@@ -227,6 +231,7 @@ export class List extends Base {
 }
 
 export class Numeric extends Base {
+    property: string = '';
     unit?: string;
     value_max?: number;
     value_min?: number;
@@ -283,6 +288,7 @@ export class Numeric extends Base {
 }
 
 export class Enum extends Base {
+    property: string = '';
     values: (string | number)[];
 
     constructor(name: string, access: number, values: (string | number)[]) {
@@ -303,6 +309,8 @@ export class Enum extends Base {
 }
 
 export class Text extends Base {
+    property: string = '';
+
     constructor(name: string, access: number) {
         super();
         this.type = 'text';
@@ -320,13 +328,15 @@ export class Text extends Base {
 }
 
 export class Composite extends Base {
+    property: string = '';
+    features: Feature[] = [];
+
     constructor(name: string, property: string, access: number) {
         super();
         this.type = 'composite';
         this.property = property;
         this.name = name;
         this.label = getLabelFromName(name);
-        this.features = [];
         this.access = access;
     }
 
@@ -343,10 +353,11 @@ export class Composite extends Base {
 }
 
 export class Light extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'light';
-        this.features = [];
         this.addFeature(new Binary('state', access.ALL, 'ON', 'OFF').withValueToggle('TOGGLE').withDescription('On/off state of this light'));
     }
 
@@ -516,10 +527,11 @@ export class Light extends Base {
 }
 
 export class Cover extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'cover';
-        this.features = [];
         this.addFeature(new Enum('state', a.STATE_SET, ['OPEN', 'CLOSE', 'STOP']));
     }
 
@@ -543,10 +555,11 @@ export class Cover extends Base {
 }
 
 export class Fan extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'fan';
-        this.features = [];
         this.addFeature(new Binary('state', access.ALL, 'ON', 'OFF').withDescription('On/off state of this fan').withProperty('fan_state'));
     }
 
@@ -563,10 +576,11 @@ export class Fan extends Base {
 }
 
 export class Climate extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'climate';
-        this.features = [];
     }
 
     withSetpoint(property: string, min: number, max: number, step: number, access = a.ALL) {
@@ -1259,6 +1273,7 @@ export const presets = {
             .withDescription('Determines if temperature control abnormalities should be detected')
             .withCategory('config'),
     vibration: () => new Binary('vibration', access.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
+    tilt: () => new Binary('tilt', access.STATE, true, false).withDescription('Indicates whether the device detected tilt'),
     voc: () => new Numeric('voc', access.STATE).withLabel('VOC').withUnit('µg/m³').withDescription('Measured VOC value'),
     voc_index: () => new Numeric('voc_index', access.STATE).withLabel('VOC index').withDescription('VOC index'),
     voltage: () =>

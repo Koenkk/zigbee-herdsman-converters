@@ -2,7 +2,7 @@ import * as iconv from 'iconv-lite';
 
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 import {Fz, Tz} from '../lib/types';
 
 const NS = 'zhc:easyiot';
@@ -86,7 +86,7 @@ const tzLocal = {
     } as Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'ZB-IR01', manufacturerName: 'easyiot'}],
         model: 'ZB-IR01',
