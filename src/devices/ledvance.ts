@@ -1,11 +1,8 @@
 import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import {forcePowerSource} from '../lib/modernExtend';
 import {Definition} from '../lib/types';
-const exposes = require('../lib/exposes');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
-const e = exposes.presets;
-
 const definitions: Definition[] = [
     {
         zigbeeModel: ['A60S TW'],
@@ -48,14 +45,6 @@ const definitions: Definition[] = [
         vendor: 'LEDVANCE',
         description: 'SMART+ Indoor Plug EU with Energy meter ',
         extend: [onOff(), electricityMeter()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-    },
-        exposes: [e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['PLUG COMPACT OUTDOOR EU EM T'],
@@ -63,14 +52,6 @@ const definitions: Definition[] = [
         vendor: 'LEDVANCE',
         description: 'SMART+ Compact Outdoor Plug EU with energy meter',
         extend: [onOff(), electricityMeter()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-    },
-        exposes: [e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['PL HCL300x1200 01'],
