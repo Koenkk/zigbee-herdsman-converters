@@ -11458,7 +11458,7 @@ const definitions: DefinitionWithExtend[] = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             // Required to get the device to start reporting
             await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
-        },    
+        },
         exposes: [
             e.switch().setAccess('state', ea.STATE_SET),
             e.power(),
@@ -11470,34 +11470,34 @@ const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [16, 'state', tuya.valueConverter.onOff],
-                [1, 'energy',tuya.valueConverter.divideBy100], // Total forward energy
+                [1, 'energy', tuya.valueConverter.divideBy100], // Total forward energy
                 [6, null, tuya.valueConverter.phaseVariant2], // Phase A voltage and current
-                [9, 'Fault',tuya.valueConverter.raw],
-                [11, 'Switch prepayment',tuya.valueConverter.raw],
-                [12, 'Clear energy',tuya.valueConverter.raw],
+                [9, 'Fault', tuya.valueConverter.raw],
+                [11, 'Switch prepayment', tuya.valueConverter.raw],
+                [12, 'Clear energy', tuya.valueConverter.raw],
                 // [13, 'Balance energy (kWh)', tuya.valueConverter.raw], // wrong, is always 0
-                [14, 'charge energy',tuya.valueConverter.raw],
-                [15, 'Leakage current',tuya.valueConverter.raw],
+                [14, 'charge energy', tuya.valueConverter.raw],
+                [15, 'Leakage current', tuya.valueConverter.raw],
                 // [17, 'Alarm set1',tuya.valueConverter.raw], noise
                 // [18, 'Alarm set2',tuya.valueConverter.raw], noise
                 // [101, 'Closing recovery time (Deprecated)',tuya.valueConverter.raw],
-                [102, 'reclosing allowed times',tuya.valueConverter.raw],
-                [103, 'current_temperature' ,tuya.valueConverter.raw],
-                [104, 'reclosing enable',tuya.valueConverter.raw],
-                [105, 'Timer',tuya.valueConverter.raw],
-                [106, 'Cycle Schedule',tuya.valueConverter.raw],
-                [107, 'reclose recover seconds',tuya.valueConverter.raw],
-                [108, 'Random Timing',tuya.valueConverter.raw],
-                [109, 'Switch Inching',tuya.valueConverter.raw],
-                [119, 'Power-on delay power-on time',tuya.valueConverter.raw],
-                [124, 'Overcurrent Event Threshold Time',tuya.valueConverter.raw],
-                [125, 'Time Threshold of Lost Flow Event',tuya.valueConverter.raw],
+                [102, 'reclosing allowed times', tuya.valueConverter.raw],
+                [103, 'current_temperature', tuya.valueConverter.raw],
+                [104, 'reclosing enable', tuya.valueConverter.raw],
+                [105, 'Timer', tuya.valueConverter.raw],
+                [106, 'Cycle Schedule', tuya.valueConverter.raw],
+                [107, 'reclose recover seconds', tuya.valueConverter.raw],
+                [108, 'Random Timing', tuya.valueConverter.raw],
+                [109, 'Switch Inching', tuya.valueConverter.raw],
+                [119, 'Power-on delay power-on time', tuya.valueConverter.raw],
+                [124, 'Overcurrent Event Threshold Time', tuya.valueConverter.raw],
+                [125, 'Time Threshold of Lost Flow Event', tuya.valueConverter.raw],
                 // [126, 'alarm set3',tuya.valueConverter.raw], nothing
-                [127, 'status',tuya.valueConverter.raw],
-                [134, 'relay status for power on',tuya.valueConverter.raw],
+                [127, 'status', tuya.valueConverter.raw],
+                [134, 'relay status for power on', tuya.valueConverter.raw],
             ],
-        }        
-    }
+        },
+    },
 ];
 
 export default definitions;
