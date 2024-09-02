@@ -1,9 +1,9 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS1001', manufacturerName: '_TZ3000_ztrfrcsu'}],
         model: '141L100RC',

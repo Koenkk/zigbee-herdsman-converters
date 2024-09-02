@@ -25,7 +25,7 @@ import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
-import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString, ModernExtend} from '../lib/types';
+import {KeyValue, DefinitionWithExtend, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString, ModernExtend} from '../lib/types';
 import * as utils from '../lib/utils';
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
 import * as zosung from '../lib/zosung';
@@ -793,7 +793,7 @@ const modernExtendLocal = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TS0204'],
         model: 'TS0204',
@@ -6448,6 +6448,16 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
         whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_t9qqxn70']),
+        model: 'THE01860A',
+        vendor: 'Tuya',
+        description: 'Temp & humidity flower sensor with illuminance',
+        fromZigbee: [fz.humidity, fz.battery, fz.temperature, fz.illuminance],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance_lux()],
     },
     {
         fingerprint: [

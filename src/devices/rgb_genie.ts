@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz} from '../lib/types';
 const e = exposes.presets;
 import {light} from '../lib/modernExtend';
 import * as utils from '../lib/utils';
@@ -29,7 +29,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RGBgenie ZB-1026'],
         model: 'ZB-1026',

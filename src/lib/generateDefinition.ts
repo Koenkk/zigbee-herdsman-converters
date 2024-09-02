@@ -5,7 +5,7 @@ import {Cluster} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
 import {logger} from './logger';
 import * as m from './modernExtend';
 import {philipsLight} from './philips';
-import {Definition, ModernExtend, Zh} from './types';
+import {DefinitionWithExtend, ModernExtend, Zh} from './types';
 import {getClusterAttributeValue} from './utils';
 
 const NS = 'zhc:gendef';
@@ -49,7 +49,7 @@ class Generator<T> implements GeneratedExtend {
 type ExtendGenerator = (device: Zh.Device, endpoints: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
 type Extender = [string[], ExtendGenerator];
 
-type DefinitionWithZigbeeModel = Definition & {zigbeeModel: string[]};
+type DefinitionWithZigbeeModel = DefinitionWithExtend & {zigbeeModel: string[]};
 
 function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: GeneratedExtend[]): string {
     const imports: {[s: string]: string[]} = {};
@@ -83,7 +83,7 @@ const definition = {
 module.exports = definition;`;
 }
 
-export async function generateDefinition(device: Zh.Device): Promise<{externalDefinitionSource: string; definition: Definition}> {
+export async function generateDefinition(device: Zh.Device): Promise<{externalDefinitionSource: string; definition: DefinitionWithExtend}> {
     // Map cluster to all endpoints that have this cluster.
     const mapClusters = (endpoint: Endpoint, clusters: Cluster[], clusterMap: Map<string, Endpoint[]>) => {
         for (const cluster of clusters) {
@@ -153,7 +153,7 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         extenders.unshift(generatedExtend[0].getExtend());
     }
 
-    const definition: Definition = {
+    const definition: DefinitionWithExtend = {
         zigbeeModel: [device.modelID],
         model: device.modelID ?? '',
         vendor: device.manufacturerName ?? '',
@@ -237,6 +237,8 @@ const inputExtenders: Extender[] = [
         ['closuresWindowCovering'],
         async (d, eps) => [new Generator({extend: m.windowCovering, args: {controls: ['lift', 'tilt']}, source: 'windowCovering'})],
     ],
+    [['genBinaryInput'], extenderBinaryInput],
+    [['genBinaryOutput'], extenderBinaryOutput],
 ];
 
 const outputExtenders: Extender[] = [
@@ -333,4 +335,44 @@ async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoin
         args.cluster = metering ? 'metering' : 'electrical';
     }
     return [new Generator({extend: m.electricityMeter, args, source: `electricityMeter`})];
+}
+
+async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    const generated: GeneratedExtend[] = [];
+    for (const endpoint of endpoints) {
+        const description = `binary_input_${endpoint.ID}`;
+        const args: m.BinaryArgs = {
+            name: await getClusterAttributeValue<string>(endpoint, 'genBinaryInput', 'description', description),
+            cluster: 'genBinaryInput',
+            attribute: 'presentValue',
+            reporting: {attribute: 'presentValue', min: 'MIN', max: 'MAX', change: 1},
+            valueOn: ['ON', 1],
+            valueOff: ['OFF', 0],
+            description: description,
+            access: 'STATE_GET',
+            endpointName: `${endpoint.ID}`,
+        };
+        generated.push(new Generator({extend: m.binary, args, source: 'binary'}));
+    }
+    return generated;
+}
+
+async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    const generated: GeneratedExtend[] = [];
+    for (const endpoint of endpoints) {
+        const description = `binary_output_${endpoint.ID}`;
+        const args: m.BinaryArgs = {
+            name: await getClusterAttributeValue<string>(endpoint, 'genBinaryOutput', 'description', description),
+            cluster: 'genBinaryOutput',
+            attribute: 'presentValue',
+            reporting: {attribute: 'presentValue', min: 'MIN', max: 'MAX', change: 1},
+            valueOn: ['ON', 1],
+            valueOff: ['OFF', 0],
+            description: description,
+            access: 'ALL',
+            endpointName: `${endpoint.ID}`,
+        };
+        generated.push(new Generator({extend: m.binary, args, source: 'binary'}));
+    }
+    return generated;
 }

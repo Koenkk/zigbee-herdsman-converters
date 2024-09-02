@@ -1,13 +1,13 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import {light} from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'TS110F', manufacturerName: '_TZ3210_lfbz816s'},

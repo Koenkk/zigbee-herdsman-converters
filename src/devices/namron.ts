@@ -9,7 +9,7 @@ import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
-import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz, KeyValue} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const ea = exposes.access;
@@ -101,7 +101,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['3308431'],
         model: '3308431',

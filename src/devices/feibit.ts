@@ -14,11 +14,11 @@ import {
 } from '../lib/modernExtend';
 import {philipsLight} from '../lib/philips';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['FZB56+ZSW2FYM1.1'],
         model: 'TZSW22FW-L4',

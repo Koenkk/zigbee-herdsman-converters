@@ -1,7 +1,7 @@
 import {battery, windowCovering} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TQL25-2211'],
         model: 'TQL25-2211',

@@ -5,7 +5,7 @@ import {onOff, numeric, enumLookup, deviceEndpoints} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Fz, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -171,7 +171,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'CSM-300Z', applicationVersion: 1},

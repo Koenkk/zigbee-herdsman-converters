@@ -8,12 +8,12 @@ import {deviceEndpoints, quirkCheckinInterval, identify} from '../lib/modernExte
 import * as ota from '../lib/ota';
 import {philipsOnOff, philipsLight, philipsFz, philipsTz} from '../lib/philips';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['929003598001'],
         model: '929003598001',

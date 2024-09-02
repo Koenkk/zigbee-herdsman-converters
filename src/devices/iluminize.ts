@@ -13,12 +13,12 @@ import {
     commandsScenes,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZGRC-KEY-005'],
         model: '5144.01',

@@ -9,7 +9,7 @@ import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
+import {DefinitionWithExtend, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
 import {ubisysModernExtend} from '../lib/ubisys';
 import * as utils from '../lib/utils';
 
@@ -610,7 +610,7 @@ const ubisys = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['S1 (5501)'],
         model: 'S1',

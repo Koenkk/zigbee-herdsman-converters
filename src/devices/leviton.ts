@@ -4,7 +4,7 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -23,7 +23,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['DL15S'],
         model: 'DL15S-1BZ',

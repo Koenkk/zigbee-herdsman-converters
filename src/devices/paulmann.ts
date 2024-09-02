@@ -1,11 +1,11 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {light, onOff} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['501.37'],
         model: '501.37',
