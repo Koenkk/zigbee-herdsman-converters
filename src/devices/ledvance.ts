@@ -1,8 +1,7 @@
 import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
-import {forcePowerSource} from '../lib/modernExtend';
+import {electricityMeter, forcePowerSource, onOff} from '../lib/modernExtend';
 import {Definition} from '../lib/types';
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+
 const definitions: Definition[] = [
     {
         zigbeeModel: ['A60S TW'],
@@ -43,14 +42,14 @@ const definitions: Definition[] = [
         zigbeeModel: ['PLUG EU EM T'],
         model: '4099854295232',
         vendor: 'LEDVANCE',
-        description: 'SMART+ Indoor Plug EU with Energy meter ',
+        description: 'SMART+ indoor plug EU with energy meter ',
         extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['PLUG COMPACT OUTDOOR EU EM T'],
         model: '4099854293276',
         vendor: 'LEDVANCE',
-        description: 'SMART+ Compact Outdoor Plug EU with energy meter',
+        description: 'SMART+ Compact outdoor plug EU with energy meter',
         extend: [onOff(), electricityMeter()],
     },
     {
@@ -184,20 +183,6 @@ const definitions: Definition[] = [
         model: '4058075729124',
         vendor: 'LEDVANCE',
         description: 'SMART+ CL P40 E14 Tunable white',
-        extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
-    },
-    {
-        zigbeeModel: ['PAR16 TW T'],
-        model: '4058075729162',
-        vendor: 'LEDVANCE',
-        description: 'SMART+ PAR16 GU10 Tunable white',
-        extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
-    },
-    {
-        zigbeeModel: ['B40 TW T'],
-        model: '4058075729087',
-        vendor: 'LEDVANCE',
-        description: 'SMART+ CL B40 E14 Tunable white',
         extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
     },
     {
