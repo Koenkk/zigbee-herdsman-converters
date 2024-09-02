@@ -53,7 +53,6 @@ const definitions: Definition[] = [
         vendor: 'SOMFY',
         description: 'Zigbee motion sensor',
         extend: [identify(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}), battery()],
-        meta: {},
     },
 ];
 
