@@ -25,7 +25,7 @@ import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
-import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString, ModernExtend} from '../lib/types';
+import {KeyValue, DefinitionWithExtend, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString, ModernExtend} from '../lib/types';
 import * as utils from '../lib/utils';
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
 import * as zosung from '../lib/zosung';
@@ -793,7 +793,7 @@ const modernExtendLocal = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TS0204'],
         model: 'TS0204',
@@ -3627,12 +3627,38 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },
+
+    ////////////////////////
+    // TS0002 DEFINITIONS //
+    ////////////////////////
+
     {
-        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_54hjn4vs', '_TZ3000_aa5t61rh']),
-        model: 'TS0002_switch_module_3',
+        // TS0002 model with only on/off capability
+        fingerprint: tuya.fingerprint('TS0002', [
+            '_TZ3000_01gpyda5',
+            '_TZ3000_bvrlqyj7',
+            '_TZ3000_7ed9cqgi',
+            '_TZ3000_zmy4lslw',
+            '_TZ3000_ruxexjfz',
+            '_TZ3000_4xfqlgqo',
+            '_TZ3000_eei0ubpy',
+            '_TZ3000_qaa59zqd',
+            '_TZ3000_lmlsduws',
+            '_TZ3000_lugaswf8',
+            '_TZ3000_fbjdkph9',
+        ]),
+        model: 'TS0002_basic',
         vendor: 'Tuya',
-        description: '2 gang switch with backlight',
-        extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, indicatorMode: true, endpoints: ['l1', 'l2']})],
+        description: '2 gang switch module',
+        whiteLabel: [
+            {vendor: 'OXT', model: 'SWTZ22'},
+            {vendor: 'Moes', model: 'ZM-104B-M'},
+            tuya.whitelabel('pcblab.io', 'RR620ZB', '2 gang Zigbee switch module', ['_TZ3000_4xfqlgqo']),
+            tuya.whitelabel('Nous', 'L13Z', '2 gang switch', ['_TZ3000_ruxexjfz']),
+            tuya.whitelabel('Tuya', 'ZG-2002-RF', 'Three mode Zigbee Switch', ['_TZ3000_lugaswf8']),
+            tuya.whitelabel('Mercator Ikuü', 'SSW02', '2 gang switch', ['_TZ3000_fbjdkph9']),
+        ],
+        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, endpoints: ['l1', 'l2']})],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
@@ -3642,24 +3668,80 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
-        whiteLabel: [tuya.whitelabel('Lonsonho', 'X702A', '2 gang switch with backlight', ['_TZ3000_54hjn4vs', '_TZ3000_aa5t61rh'])],
     },
     {
-        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_mufwv0ry']),
-        model: 'TS0002_switch_module_1',
+        // TS0002 model with limited functionality available
+        fingerprint: tuya.fingerprint('TS0002', [
+            '_TZ3000_fisb3ajo',
+            '_TZ3000_5gey1ohx',
+            '_TZ3000_mtnpt6ws',
+            '_TZ3000_mufwv0ry',
+            '_TZ3000_54hjn4vs',
+            '_TZ3000_aa5t61rh',
+            '_TZ3000_in5qxhtt',
+            '_TZ3000_ogpla3lh',
+            '_TZ3000_i9w5mehz',
+        ]),
+        model: 'TS0002_limited',
         vendor: 'Tuya',
-        description: '1 gang switch module',
-        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2'], indicatorMode: true, backlightModeOffOn: true})],
+        description: '2 gang switch module',
+        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, indicatorMode: true, backlightModeOffOn: true, endpoints: ['l1', 'l2']})],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
         meta: {multiEndpoint: true},
-        whiteLabel: [tuya.whitelabel('PSMART', 'T442', '2 gang switch module', ['_TZ3000_mufwv0ry'])],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
+        whiteLabel: [
+            tuya.whitelabel('AVATTO', 'ZWSM16-2-Zigbee', '2 gang switch module', ['_TZ3000_mtnpt6ws']),
+            tuya.whitelabel('PSMART', 'T442', '2 gang switch module', ['_TZ3000_mufwv0ry']),
+            tuya.whitelabel('Lonsonho', 'X702A', '2 gang switch with backlight', ['_TZ3000_54hjn4vs', '_TZ3000_aa5t61rh']),
+            tuya.whitelabel('Homeetec', '37022463', '2 Gang switch with backlight', ['_TZ3000_in5qxhtt']),
+            tuya.whitelabel('RoomsAI', '37022463', '2 Gang switch with backlight', ['_TZ3000_ogpla3lh']),
+        ],
     },
+    {
+        // TS0002 2 gang switch module with all available features. This is the default for TS0002 devices.
+        model: 'TS0002',
+        zigbeeModel: ['TS0002'],
+        vendor: 'Tuya',
+        description: '2-Gang switch with backlight, countdown and inching',
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                indicatorMode: true,
+                onOffCountdown: true,
+                inchingSwitch: true,
+                endpoints: ['l1', 'l2'],
+            }),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+        whiteLabel: [
+            tuya.whitelabel('Zemismart', 'TB26-2', '2 Gang switch with backlight, countdown, inching', ['_TZ3000_ywubfuvt']),
+            {vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'},
+            {vendor: 'Lonsonho', model: 'X702'},
+            {vendor: 'AVATTO', model: 'ZTS02'},
+        ],
+    },
+
+    ////////////////////////
+    // TS0003 DEFINITIONS //
+    ////////////////////////
+
     {
         fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_rhkfbfcv', '_TZ3000_empogkya', '_TZ3000_lubfc1t5', '_TZ3000_lsunm46z', '_TZ3000_v4l4b0lp']),
         model: 'TS0003_switch_3_gang_with_backlight',
@@ -3683,30 +3765,6 @@ const definitions: Definition[] = [
         ],
     },
     {
-        zigbeeModel: ['TS0002'],
-        model: 'TS0002',
-        vendor: 'Tuya',
-        description: '2 gang switch',
-        whiteLabel: [
-            {vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'},
-            {vendor: 'Lonsonho', model: 'X702'},
-            {vendor: 'AVATTO', model: 'ZTS02'},
-            tuya.whitelabel('Tuya', 'ZG-2002-RF', 'Three mode Zigbee Switch', ['_TZ3000_lugaswf8']),
-            tuya.whitelabel('Mercator Ikuü', 'SSW02', '2 gang switch', ['_TZ3000_fbjdkph9']),
-        ],
-        extend: [tuya.modernExtend.tuyaOnOff()],
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
         zigbeeModel: ['TS0003'],
         model: 'TS0003',
         vendor: 'Tuya',
@@ -3724,78 +3782,6 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
-    },
-    {
-        fingerprint: tuya.fingerprint('TS0001', [
-            '_TZ3000_tqlv4ug4',
-            '_TZ3000_gjrubzje',
-            '_TZ3000_tygpxwqa',
-            '_TZ3000_4rbqgcuv',
-            '_TZ3000_veu2v775',
-            '_TZ3000_prits6g4',
-        ]),
-        model: 'TS0001_switch_module',
-        vendor: 'Tuya',
-        description: '1 gang switch module',
-        whiteLabel: [
-            {vendor: 'OXT', model: 'SWTZ21'},
-            {vendor: 'Moes', model: 'ZM-104-M'},
-            tuya.whitelabel('AVATTO', 'ZWSM16-1-Zigbee', '1 gang switch module', ['_TZ3000_4rbqgcuv']),
-        ],
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true})],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint('TS0002', [
-            '_TZ3000_01gpyda5',
-            '_TZ3000_bvrlqyj7',
-            '_TZ3000_7ed9cqgi',
-            '_TZ3000_zmy4lslw',
-            '_TZ3000_ruxexjfz',
-            '_TZ3000_4xfqlgqo',
-            '_TZ3000_eei0ubpy',
-            '_TZ3000_qaa59zqd',
-            '_TZ3000_lmlsduws',
-        ]),
-        model: 'TS0002_switch_module',
-        vendor: 'Tuya',
-        description: '2 gang switch module',
-        whiteLabel: [
-            {vendor: 'OXT', model: 'SWTZ22'},
-            {vendor: 'Moes', model: 'ZM-104B-M'},
-            tuya.whitelabel('pcblab.io', 'RR620ZB', '2 gang Zigbee switch module', ['_TZ3000_4xfqlgqo']),
-            tuya.whitelabel('Nous', 'L13Z', '2 gang switch', ['_TZ3000_ruxexjfz']),
-        ],
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, endpoints: ['l1', 'l2']})],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_fisb3ajo', '_TZ3000_5gey1ohx', '_TZ3000_mtnpt6ws']),
-        model: 'TS0002_switch_module_2',
-        vendor: 'Tuya',
-        description: '2 gang switch module',
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, indicatorMode: true, endpoints: ['l1', 'l2']})],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-        whiteLabel: [tuya.whitelabel('AVATTO', 'ZWSM16-2-Zigbee', '2 gang switch module', ['_TZ3000_mtnpt6ws'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_4o16jdca', '_TZ3000_odzoiovu', '_TZ3000_hbic3ka3', '_TZ3000_lvhy15ix']),
@@ -3831,6 +3817,30 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+
+    {
+        fingerprint: tuya.fingerprint('TS0001', [
+            '_TZ3000_tqlv4ug4',
+            '_TZ3000_gjrubzje',
+            '_TZ3000_tygpxwqa',
+            '_TZ3000_4rbqgcuv',
+            '_TZ3000_veu2v775',
+            '_TZ3000_prits6g4',
+        ]),
+        model: 'TS0001_switch_module',
+        vendor: 'Tuya',
+        description: '1 gang switch module',
+        whiteLabel: [
+            {vendor: 'OXT', model: 'SWTZ21'},
+            {vendor: 'Moes', model: 'ZM-104-M'},
+            tuya.whitelabel('AVATTO', 'ZWSM16-1-Zigbee', '1 gang switch module', ['_TZ3000_4rbqgcuv']),
+        ],
+        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true})],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -6450,6 +6460,16 @@ const definitions: Definition[] = [
         whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
     },
     {
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_t9qqxn70']),
+        model: 'THE01860A',
+        vendor: 'Tuya',
+        description: 'Temp & humidity flower sensor with illuminance',
+        fromZigbee: [fz.humidity, fz.battery, fz.temperature, fz.illuminance],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance_lux()],
+    },
+    {
         fingerprint: [
             {modelID: 'TS0222', manufacturerName: '_TYZB01_4mdqxxnn'},
             {modelID: 'TS0222', manufacturerName: '_TYZB01_m6ec2pgj'},
@@ -8440,45 +8460,6 @@ const definitions: Definition[] = [
             tuya.whitelabel('Homeetec', 'Homeetec_37022454', '1 Gang switch with backlight', ['_TZ3000_bmqxalil']),
             tuya.whitelabel('RoomsAI', 'RoomsAI_37022454', '1 Gang switch with backlight', ['_TZ3000_w1tcofu8']),
         ],
-    },
-    {
-        fingerprint: [
-            {modelID: 'TS0002', manufacturerName: '_TZ3000_in5qxhtt'},
-            {modelID: 'TS0002', manufacturerName: '_TZ3000_ogpla3lh'},
-        ],
-        model: 'TS0002_switch_2_gang',
-        vendor: 'Tuya',
-        description: '2-Gang switch with backlight',
-        extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, backlightModeOffOn: true, endpoints: ['l1', 'l2']})],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-        whiteLabel: [
-            tuya.whitelabel('Homeetec', '37022463', '2 Gang switch with backlight', ['_TZ3000_in5qxhtt']),
-            tuya.whitelabel('RoomsAI', '37022463', '2 Gang switch with backlight', ['_TZ3000_ogpla3lh']),
-        ],
-    },
-    {
-        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_i9w5mehz'}],
-        model: 'TS0002_switch_module_4',
-        vendor: 'Tuya',
-        description: '2 gang switch with backlight',
-        extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, backlightModeOffOn: true, indicatorMode: true, endpoints: ['l1', 'l2']})],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
     },
     {
         fingerprint: [
@@ -11405,6 +11386,35 @@ const definitions: Definition[] = [
                 [113, 'switch_mode_l1_l2', tuya.valueConverter.switchMode2],
                 [114, 'switch_mode_l3_l4', tuya.valueConverter.switchMode2],
                 [115, 'switch_mode_l5_l6', tuya.valueConverter.switchMode2],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iba1ckek', '_TZE200_hggxgsjj']),
+        model: 'ZG-103Z',
+        vendor: 'Tuya',
+        description: 'Vibration sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.vibration(),
+            e.tilt(),
+            e.numeric('x', ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription('X coordinate'),
+            e.numeric('y', ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription('Y coordinate'),
+            e.numeric('z', ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription('Z coordinate'),
+            e.battery(),
+            e.enum('sensitivity', ea.STATE_SET, ['low', 'middle', 'high']).withDescription('Vibration detection sensitivity'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'vibration', tuya.valueConverter.trueFalseEnum1],
+                [7, 'tilt', tuya.valueConverter.trueFalseEnum1],
+                [101, 'x', tuya.valueConverter.raw],
+                [102, 'y', tuya.valueConverter.raw],
+                [103, 'z', tuya.valueConverter.raw],
+                [104, 'sensitivity', tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
+                [105, 'battery', tuya.valueConverter.raw],
             ],
         },
     },

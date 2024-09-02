@@ -7,7 +7,7 @@ import * as exposes from '../lib/exposes';
 import {battery, temperature, identify, light} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {KeyValue, Definition, Tz, Fz} from '../lib/types';
+import {KeyValue, DefinitionWithExtend, Tz, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -769,7 +769,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['mTouch Dim', 'DimmerPille'],
         model: 'mTouch_Dim',

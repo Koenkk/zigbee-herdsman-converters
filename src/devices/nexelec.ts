@@ -1,7 +1,7 @@
 import {temperature, humidity, co2, battery, identify} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Air Quality Sensor Nexelec'],
         model: "Open'R",

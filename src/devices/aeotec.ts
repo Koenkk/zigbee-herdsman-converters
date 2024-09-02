@@ -10,9 +10,9 @@ import {
     commandsOnOff,
     commandsLevelCtrl,
 } from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['WG001-Z01'],
         model: 'WG001',

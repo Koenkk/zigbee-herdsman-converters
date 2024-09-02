@@ -6,11 +6,11 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
         // changing those two too.

@@ -1,7 +1,7 @@
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_mcm6m1ma'}],
         model: 'DL41-03-10-R-ZB',

@@ -6,7 +6,7 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition, Tz, Fz, KeyValue, KeyValueAny, Zh, Expose} from '../lib/types';
+import {DefinitionWithExtend, Tz, Fz, KeyValue, KeyValueAny, Zh, Expose} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import {
@@ -239,7 +239,7 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     }
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ti.router'],
         model: 'ti.router',
@@ -1124,15 +1124,19 @@ const definitions: Definition[] = [
         exposes: [
             e.battery(),
             e
-                .enum('l3', ea.ALL, ['set'])
+                .numeric('l3', ea.ALL)
+                .withValueMin(-999999999)
+                .withValueMax(999999999)
                 .withDescription(
-                    'Counter value. Write zero or positive value to set a counter value. ' +
+                    'Counter 1 value. Write zero or positive value to set a counter value. ' +
                         'Write a negative value to set a wakeup interval in minutes',
                 ),
             e
-                .enum('l5', ea.ALL, ['set'])
+                .numeric('l5', ea.ALL)
+                .withValueMin(-999999999)
+                .withValueMax(999999999)
                 .withDescription(
-                    'Counter value. Write zero or positive value to set a counter value. ' +
+                    'Counter 2 value. Write zero or positive value to set a counter value. ' +
                         'Write a negative value to set a wakeup interval in minutes',
                 ),
             e.switch().withEndpoint('l6'),

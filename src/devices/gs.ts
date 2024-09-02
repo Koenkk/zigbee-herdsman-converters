@@ -10,9 +10,9 @@ import {
     iasWarning,
     identify,
 } from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['BRHM8E27W70-I1'],
         model: 'BRHM8E27W70-I1',

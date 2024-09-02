@@ -23,7 +23,7 @@ import {
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Tz, Fz, Definition, KeyValue, ModernExtend, Expose} from '../lib/types';
+import {Tz, Fz, DefinitionWithExtend, KeyValue, ModernExtend, Expose} from '../lib/types';
 import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -1112,7 +1112,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RBSH-OS-ZB-EU'],
         model: 'BSIR-EZ',

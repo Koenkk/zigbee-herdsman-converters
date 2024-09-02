@@ -18,6 +18,7 @@ import {
     battery,
     identify,
     windowCovering,
+    onOff,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
@@ -67,12 +68,12 @@ const {
     lumiBattery,
 } = lumi.modernExtend;
 import {logger} from '../lib/logger';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const NS = 'zhc:lumi';
 const {manufacturerCode} = lumi;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['lumi.flood.acn001'],
         model: 'SJCGQ13LM',
@@ -4487,6 +4488,13 @@ const definitions: Definition[] = [
             lumiPower(),
             lumiZigbeeOTA(),
         ],
+    },
+    {
+        zigbeeModel: ['lumi.valve.agl001'],
+        model: 'VC-X01D',
+        vendor: 'Aqara',
+        description: 'Valve controller T1',
+        extend: [lumiZigbeeOTA(), onOff({powerOnBehavior: false}), battery()],
     },
 ];
 

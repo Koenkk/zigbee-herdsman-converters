@@ -1,7 +1,7 @@
 import {light, onOff} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['FB56-ZCW11HG1.2', 'FB56-ZCW11HG1.4'],
         model: 'HGZB-07A',

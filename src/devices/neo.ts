@@ -4,9 +4,9 @@ import * as legacy from '../lib/legacy';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_d0yu2xgi'}],
         zigbeeModel: ['0yu2xgi'],
@@ -43,7 +43,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t1blo2bj', '_TZE204_t1blo2bj', '_TZE204_q76rtoa9']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t1blo2bj', '_TZE204_t1blo2bj', '_TZE204_q76rtoa9', '_TZE204_hcxvyxa5']),
         zigbeeModel: ['1blo2bj', 'lrfgpny', 'q76rtoa9'],
         model: 'NAS-AB02B2',
         vendor: 'Neo',
