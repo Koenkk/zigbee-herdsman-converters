@@ -43,7 +43,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t1blo2bj', '_TZE204_t1blo2bj', '_TZE204_q76rtoa9', '_TZE204_hcxvyxa5']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t1blo2bj', '_TZE204_t1blo2bj', '_TZE204_q76rtoa9']),
         zigbeeModel: ['1blo2bj', 'lrfgpny', 'q76rtoa9'],
         model: 'NAS-AB02B2',
         vendor: 'Neo',
