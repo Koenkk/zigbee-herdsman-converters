@@ -11423,7 +11423,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_hcxvyxa5'}],
         model: 'ZA03',
         vendor: 'Tuya',
-        description: 'Siren Alarm',
+        description: 'Siren alarm',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
