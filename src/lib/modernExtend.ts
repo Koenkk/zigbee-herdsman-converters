@@ -1685,26 +1685,23 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent];
         delete configureLookup.seMetering;
     }
+
     if (args.threePhase === true) {
         exposes.push(
-            ...[
-                e.power_phase_b().withAccess(ea.STATE_GET),
-                e.power_phase_c().withAccess(ea.STATE_GET),
-                e.voltage_phase_b().withAccess(ea.STATE_GET),
-                e.voltage_phase_c().withAccess(ea.STATE_GET),
-                e.current_phase_b().withAccess(ea.STATE_GET),
-                e.current_phase_c().withAccess(ea.STATE_GET),
-            ],
+            e.power_phase_b().withAccess(ea.STATE_GET),
+            e.power_phase_c().withAccess(ea.STATE_GET),
+            e.voltage_phase_b().withAccess(ea.STATE_GET),
+            e.voltage_phase_c().withAccess(ea.STATE_GET),
+            e.current_phase_b().withAccess(ea.STATE_GET),
+            e.current_phase_c().withAccess(ea.STATE_GET),
         );
         toZigbee.push(
-            ...[
-                tz.electrical_measurement_power_phase_b,
-                tz.electrical_measurement_power_phase_c,
-                tz.acvoltage_phase_b,
-                tz.acvoltage_phase_c,
-                tz.accurrent_phase_b,
-                tz.accurrent_phase_c,
-            ],
+            tz.electrical_measurement_power_phase_b,
+            tz.electrical_measurement_power_phase_c,
+            tz.acvoltage_phase_b,
+            tz.acvoltage_phase_c,
+            tz.accurrent_phase_b,
+            tz.accurrent_phase_c,
         );
     }
 
