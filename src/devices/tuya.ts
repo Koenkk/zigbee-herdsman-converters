@@ -11420,6 +11420,53 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_fhvdgeuh']),
+        model: 'TS0601_din_4',
+        vendor: 'Tuya',
+        description: 'Din rail switch with power monitoring and threshold settings',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            // Required to get the device to start reporting
+            await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
+        },
+        exposes: [
+            e.switch().setAccess('state', ea.STATE_SET),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+            e.numeric('temperature', ea.STATE).withUnit('°C').withDescription('Current temperature'),
+            e.numeric('leakage', ea.STATE).withUnit('mA').withDescription('Current leakage'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [16, 'state', tuya.valueConverter.onOff],
+                [1, 'energy', tuya.valueConverter.divideBy100], // Total forward energy
+                [6, null, tuya.valueConverter.phaseVariant2], // Phase A voltage and current
+                // [9, 'fault', tuya.valueConverter.raw], // no expose
+                // [11, 'switch_prepayment', tuya.valueConverter.raw], // no expose
+                // [12, 'clear_energy', tuya.valueConverter.raw], // no expose
+                // [14, 'charge_energy', tuya.valueConverter.raw], // no expose
+                [15, 'leakage', tuya.valueConverter.raw],
+                // [102, 'reclosing_allowed_times', tuya.valueConverter.raw], // no expose
+                [103, 'temperature', tuya.valueConverter.raw],
+                // [104, 'reclosing_enable', tuya.valueConverter.raw], // no expose
+                // [105, 'timer', tuya.valueConverter.raw], // no expose
+                // [106, 'cycle_schedule', tuya.valueConverter.raw], // no expose
+                // [107, 'reclose_recover_seconds', tuya.valueConverter.raw], // no expose
+                // [108, 'random_timing', tuya.valueConverter.raw], // no expose
+                // [109, 'switch_inching', tuya.valueConverter.raw], // no expose
+                // [119, 'power_on_delay_power_on_time', tuya.valueConverter.raw], // no expose
+                // [124, 'overcurrent_event_threshold_time', tuya.valueConverter.raw], // no expose
+                // [125, 'time_threshold_of_lost_flow_event', tuya.valueConverter.raw], // no expose
+                // [127, 'status', tuya.valueConverter.raw], // no expose
+                // [134, 'relay_status_for_power_on', tuya.valueConverter.raw], // no expose
+            ],
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_hcxvyxa5'}],
         model: 'ZA03',
         vendor: 'Tuya',
