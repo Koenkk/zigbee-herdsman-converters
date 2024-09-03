@@ -11452,7 +11452,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0601',
         vendor: 'Tuya',
         description: 'Din rail switch with power monitoring and threshold settings',
-        fromZigbee: [tuya.fz.datapoints, fz.metering],
+        fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -11466,35 +11466,31 @@ const definitions: DefinitionWithExtend[] = [
             e.voltage(),
             e.numeric('energy', ea.STATE).withUnit('kWh').withDescription('Sum of consumed energy'),
             e.numeric('current_temperature', ea.STATE).withUnit('°C').withDescription('Current temperature'),
+            e.numeric('current_leakage', ea.STATE).withUnit('mA').withDescription('Current leakage'),
         ],
         meta: {
             tuyaDatapoints: [
                 [16, 'state', tuya.valueConverter.onOff],
                 [1, 'energy', tuya.valueConverter.divideBy100], // Total forward energy
                 [6, null, tuya.valueConverter.phaseVariant2], // Phase A voltage and current
-                [9, 'Fault', tuya.valueConverter.raw],
-                [11, 'Switch prepayment', tuya.valueConverter.raw],
-                [12, 'Clear energy', tuya.valueConverter.raw],
-                // [13, 'Balance energy (kWh)', tuya.valueConverter.raw], // wrong, is always 0
-                [14, 'charge energy', tuya.valueConverter.raw],
-                [15, 'Leakage current', tuya.valueConverter.raw],
-                // [17, 'Alarm set1',tuya.valueConverter.raw], noise
-                // [18, 'Alarm set2',tuya.valueConverter.raw], noise
-                // [101, 'Closing recovery time (Deprecated)',tuya.valueConverter.raw],
-                [102, 'reclosing allowed times', tuya.valueConverter.raw],
+                // [9, 'fault', tuya.valueConverter.raw], // no expose
+                // [11, 'switch_prepayment', tuya.valueConverter.raw], // no expose
+                // [12, 'clear_energy', tuya.valueConverter.raw], // no expose
+                // [14, 'charge_energy', tuya.valueConverter.raw], // no expose
+                [15, 'current_leakage', tuya.valueConverter.raw],
+                // [102, 'reclosing_allowed_times', tuya.valueConverter.raw], // no expose
                 [103, 'current_temperature', tuya.valueConverter.raw],
-                [104, 'reclosing enable', tuya.valueConverter.raw],
-                [105, 'Timer', tuya.valueConverter.raw],
-                [106, 'Cycle Schedule', tuya.valueConverter.raw],
-                [107, 'reclose recover seconds', tuya.valueConverter.raw],
-                [108, 'Random Timing', tuya.valueConverter.raw],
-                [109, 'Switch Inching', tuya.valueConverter.raw],
-                [119, 'Power-on delay power-on time', tuya.valueConverter.raw],
-                [124, 'Overcurrent Event Threshold Time', tuya.valueConverter.raw],
-                [125, 'Time Threshold of Lost Flow Event', tuya.valueConverter.raw],
-                // [126, 'alarm set3',tuya.valueConverter.raw], nothing
-                [127, 'status', tuya.valueConverter.raw],
-                [134, 'relay status for power on', tuya.valueConverter.raw],
+                // [104, 'reclosing_enable', tuya.valueConverter.raw], // no expose
+                // [105, 'timer', tuya.valueConverter.raw], // no expose
+                // [106, 'cycle_schedule', tuya.valueConverter.raw], // no expose
+                // [107, 'reclose_recover_seconds', tuya.valueConverter.raw], // no expose
+                // [108, 'random_timing', tuya.valueConverter.raw], // no expose
+                // [109, 'switch_inching', tuya.valueConverter.raw], // no expose
+                // [119, 'power_on_delay_power_on_time', tuya.valueConverter.raw], // no expose
+                // [124, 'overcurrent_event_threshold_time', tuya.valueConverter.raw], // no expose
+                // [125, 'time_threshold_of_lost_flow_event', tuya.valueConverter.raw], // no expose
+                // [127, 'status', tuya.valueConverter.raw], // no expose
+                // [134, 'relay_status_for_power_on', tuya.valueConverter.raw], // no expose
             ],
         },
     },
