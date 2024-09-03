@@ -1,5 +1,5 @@
 import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
-import {forcePowerSource} from '../lib/modernExtend';
+import {electricityMeter, forcePowerSource, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -37,6 +37,20 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'LEDVANCE',
         description: 'Panel TW LED 625 UGR19',
         extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ['PLUG EU EM T'],
+        model: '4099854295232',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ indoor plug EU with energy meter ',
+        extend: [onOff(), electricityMeter()],
+    },
+    {
+        zigbeeModel: ['PLUG COMPACT OUTDOOR EU EM T'],
+        model: '4099854293276',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Compact outdoor plug EU with energy meter',
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['PL HCL300x1200 01'],
