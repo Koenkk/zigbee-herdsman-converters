@@ -11449,7 +11449,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_fhvdgeuh']),
-        model: 'TS0601',
+        model: 'TS0601_din_4',
         vendor: 'Tuya',
         description: 'Din rail switch with power monitoring and threshold settings',
         fromZigbee: [tuya.fz.datapoints],
@@ -11464,9 +11464,9 @@ const definitions: DefinitionWithExtend[] = [
             e.power(),
             e.current(),
             e.voltage(),
-            e.numeric('energy', ea.STATE).withUnit('kWh').withDescription('Sum of consumed energy'),
-            e.numeric('current_temperature', ea.STATE).withUnit('°C').withDescription('Current temperature'),
-            e.numeric('current_leakage', ea.STATE).withUnit('mA').withDescription('Current leakage'),
+            e.energy(),
+            e.numeric('temperature', ea.STATE).withUnit('°C').withDescription('Current temperature'),
+            e.numeric('leakage', ea.STATE).withUnit('mA').withDescription('Current leakage'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -11477,9 +11477,9 @@ const definitions: DefinitionWithExtend[] = [
                 // [11, 'switch_prepayment', tuya.valueConverter.raw], // no expose
                 // [12, 'clear_energy', tuya.valueConverter.raw], // no expose
                 // [14, 'charge_energy', tuya.valueConverter.raw], // no expose
-                [15, 'current_leakage', tuya.valueConverter.raw],
+                [15, 'leakage', tuya.valueConverter.raw],
                 // [102, 'reclosing_allowed_times', tuya.valueConverter.raw], // no expose
-                [103, 'current_temperature', tuya.valueConverter.raw],
+                [103, 'temperature', tuya.valueConverter.raw],
                 // [104, 'reclosing_enable', tuya.valueConverter.raw], // no expose
                 // [105, 'timer', tuya.valueConverter.raw], // no expose
                 // [106, 'cycle_schedule', tuya.valueConverter.raw], // no expose
