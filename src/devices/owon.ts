@@ -133,7 +133,7 @@ const tzLocal = {
             const endpoint = meta.device.getEndpoint(1);
             const group = 0xFFE0;
             const command = 0x00;
-            const payload = {"reset": ""};
+            const payload = {};
 
             await endpoint.command(group, command, payload, {disableDefaultResponse: true});
             meta.logger.info(`Sent clear command to ${entity.ieeeAddr}`);
