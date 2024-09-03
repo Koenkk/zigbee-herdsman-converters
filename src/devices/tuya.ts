@@ -11464,7 +11464,8 @@ const definitions: DefinitionWithExtend[] = [
                 'ringtone 31',
                 'ringtone 32',
             ]),
-            e.numeric('duration', ea.STATE_SET)
+            e
+                .numeric('duration', ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(380)
                 .withValueStep(1)
@@ -11475,7 +11476,8 @@ const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [
                     5,
-                    'volume', tuya.valueConverterBasic.lookup({
+                    'volume',
+                    tuya.valueConverterBasic.lookup({
                         low: tuya.enum(0),
                         medium: tuya.enum(1),
                         high: tuya.enum(2),
