@@ -3785,7 +3785,8 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Hue Tento color 42,1cm',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
-    {   zigbeeModel: ['929003736201_01', '929003736201_02'],
+    {
+        zigbeeModel: ['929003736201_01', '929003736201_02'],
         model: '929003736201',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance Datura Ceiling light small',
