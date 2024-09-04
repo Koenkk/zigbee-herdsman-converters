@@ -71,11 +71,11 @@ const definitions: DefinitionWithExtend[] = [
         extend: [light()],
     },
     {
-        zigbeeModel: ['HOMA1009', '050'],
+        zigbeeModel: ['HOMA1009', '050', 'HOMA1022'],
         model: 'HLD503-Z-CT',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver',
-        extend: [light({colorTemp: {range: undefined}})],
+        extend: [light({colorTemp: {range: [150, 500]}})],
     },
     {
         zigbeeModel: ['HOMA1002', 'HOMA1004', 'HOMA0019', 'HOMA0006', 'HOMA000F', '019'],

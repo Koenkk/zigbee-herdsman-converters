@@ -1581,11 +1581,12 @@ export interface ElectricityMeterArgs {
     power?: false | MultiplierDivisor;
     voltage?: false | MultiplierDivisor;
     energy?: false | MultiplierDivisor;
+    threePhase?: boolean;
     configureReporting?: boolean;
     endpointNames?: string[];
 }
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
-    args = {cluster: 'both', configureReporting: true, ...args};
+    args = {cluster: 'both', configureReporting: true, threePhase: false, ...args};
     if (
         args.cluster === 'metering' &&
         isObject(args.power) &&
@@ -1603,10 +1604,40 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         haElectricalMeasurement: {
             // Report change with every 5W change
             power: {attribute: 'activePower', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5},
+            power_phase_b: {attribute: 'activePowerPhB', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5},
+            power_phase_c: {attribute: 'activePowerPhC', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5},
             // Report change with every 0.05A change
             current: {attribute: 'rmsCurrent', divisor: 'acCurrentDivisor', multiplier: 'acCurrentMultiplier', forced: args.current, change: 0.05},
+            current_phase_b: {
+                attribute: 'rmsCurrentPhB',
+                divisor: 'acCurrentDivisor',
+                multiplier: 'acCurrentMultiplier',
+                forced: args.current,
+                change: 0.05,
+            },
+            current_phase_c: {
+                attribute: 'rmsCurrentPhC',
+                divisor: 'acCurrentDivisor',
+                multiplier: 'acCurrentMultiplier',
+                forced: args.current,
+                change: 0.05,
+            },
             // Report change with every 5V change
             voltage: {attribute: 'rmsVoltage', divisor: 'acVoltageDivisor', multiplier: 'acVoltageMultiplier', forced: args.voltage, change: 5},
+            voltage_phase_b: {
+                attribute: 'rmsVoltagePhB',
+                divisor: 'acVoltageDivisor',
+                multiplier: 'acVoltageMultiplier',
+                forced: args.voltage,
+                change: 5,
+            },
+            voltage_phase_c: {
+                attribute: 'rmsVoltagePhC',
+                divisor: 'acVoltageDivisor',
+                multiplier: 'acVoltageMultiplier',
+                forced: args.voltage,
+                change: 5,
+            },
         },
         seMetering: {
             // Report change with every 5W change
@@ -1624,6 +1655,14 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     if (args.voltage === false) delete configureLookup.haElectricalMeasurement.voltage;
     if (args.current === false) delete configureLookup.haElectricalMeasurement.current;
     if (args.energy === false) delete configureLookup.seMetering.energy;
+    if (args.threePhase === false) {
+        delete configureLookup.haElectricalMeasurement.power_phase_b;
+        delete configureLookup.haElectricalMeasurement.power_phase_c;
+        delete configureLookup.haElectricalMeasurement.current_phase_b;
+        delete configureLookup.haElectricalMeasurement.current_phase_c;
+        delete configureLookup.haElectricalMeasurement.voltage_phase_b;
+        delete configureLookup.haElectricalMeasurement.voltage_phase_c;
+    }
 
     if (args.cluster === 'both') {
         exposes = [
@@ -1645,6 +1684,25 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         fromZigbee = [fz.electrical_measurement];
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent];
         delete configureLookup.seMetering;
+    }
+
+    if (args.threePhase === true) {
+        exposes.push(
+            e.power_phase_b().withAccess(ea.STATE_GET),
+            e.power_phase_c().withAccess(ea.STATE_GET),
+            e.voltage_phase_b().withAccess(ea.STATE_GET),
+            e.voltage_phase_c().withAccess(ea.STATE_GET),
+            e.current_phase_b().withAccess(ea.STATE_GET),
+            e.current_phase_c().withAccess(ea.STATE_GET),
+        );
+        toZigbee.push(
+            tz.electrical_measurement_power_phase_b,
+            tz.electrical_measurement_power_phase_c,
+            tz.acvoltage_phase_b,
+            tz.acvoltage_phase_c,
+            tz.accurrent_phase_b,
+            tz.accurrent_phase_c,
+        );
     }
 
     if (args.endpointNames) {
