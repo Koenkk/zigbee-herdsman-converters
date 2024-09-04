@@ -23,7 +23,7 @@ jobs:
             - run: npx npm-check-updates -u -x eslint
             - run: rm -f package-lock.json
             - run: npm install
-            - uses: peter-evans/create-pull-request@v6
+            - uses: peter-evans/create-pull-request@v7
               env:
                   HUSKY: '0'
               with:
