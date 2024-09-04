@@ -125,7 +125,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FB56+SKT14AL2.1', 'FTB56+SKT1BCW1.0', 'FEB61-SKT1IFB1.2'],
+        zigbeeModel: ['FB56+SKT14AL2.1', 'FTB56+SKT1BCW1.0'],
         model: 'SFS01ZB',
         vendor: 'Feibit',
         description: 'Power plug',
@@ -294,6 +294,13 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TSKT113W-H4',
         vendor: 'Feibit',
         description: 'In-wall Power plug',
+        extend: [onOff({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ['FEB61-SKT1IFB1.2'],
+        model: 'SSKT11IW-F1',
+        vendor: 'Feibit',
+        description: 'Power plug',
         extend: [onOff({powerOnBehavior: false})],
     },
 ];
