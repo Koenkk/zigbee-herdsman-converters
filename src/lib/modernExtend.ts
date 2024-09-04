@@ -1596,7 +1596,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         throw new Error(`When cluster is metering, power and energy divisor/multiplier should be equal`);
     }
 
-    let exposes: Numeric[];
+    let exposes: Numeric[] = [];
     let fromZigbee: Fz.Converter[];
     let toZigbee: Tz.Converter[];
 
@@ -1651,10 +1651,22 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     if (args.power === false) {
         delete configureLookup.haElectricalMeasurement.power;
         delete configureLookup.seMetering.power;
+        delete configureLookup.haElectricalMeasurement.power_phase_b;
+        delete configureLookup.haElectricalMeasurement.power_phase_c;
     }
-    if (args.voltage === false) delete configureLookup.haElectricalMeasurement.voltage;
-    if (args.current === false) delete configureLookup.haElectricalMeasurement.current;
-    if (args.energy === false) delete configureLookup.seMetering.energy;
+    if (args.voltage === false) {
+        delete configureLookup.haElectricalMeasurement.voltage;
+        delete configureLookup.haElectricalMeasurement.voltage_phase_b;
+        delete configureLookup.haElectricalMeasurement.voltage_phase_c;
+    }
+    if (args.current === false) {
+        delete configureLookup.haElectricalMeasurement.current;
+        delete configureLookup.haElectricalMeasurement.current_phase_b;
+        delete configureLookup.haElectricalMeasurement.current_phase_c;
+    }
+    if (args.energy === false) {
+        delete configureLookup.seMetering.energy;
+    }
     if (args.threePhase === false) {
         delete configureLookup.haElectricalMeasurement.power_phase_b;
         delete configureLookup.haElectricalMeasurement.power_phase_c;
@@ -1665,22 +1677,23 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     }
 
     if (args.cluster === 'both') {
-        exposes = [
-            e.power().withAccess(ea.STATE_GET),
-            e.voltage().withAccess(ea.STATE_GET),
-            e.current().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
-        ];
+        if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
+        if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
+        if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
+        if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         fromZigbee = [fz.electrical_measurement, fz.metering];
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.currentsummdelivered];
         delete configureLookup.seMetering.power;
     } else if (args.cluster === 'metering') {
-        exposes = [e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET)];
+        if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
+        if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         fromZigbee = [fz.metering];
         toZigbee = [tz.metering_power, tz.currentsummdelivered];
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === 'electrical') {
-        exposes = [e.power().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET), e.current().withAccess(ea.STATE_GET)];
+        if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
+        if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
+        if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
         fromZigbee = [fz.electrical_measurement];
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent];
         delete configureLookup.seMetering;
