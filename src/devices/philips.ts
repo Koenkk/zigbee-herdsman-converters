@@ -3790,8 +3790,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance Datura Ceiling light small',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
-    }
-
+    },
 ];
 
 export default definitions;
