@@ -128,7 +128,6 @@ describe('OTA Common', () => {
                     mockGetImageMeta,
                     mockDownloadImage,
                     false,
-                    false,
                 ),
             ).resolves.toBeInstanceOf(Object);
         });
@@ -143,7 +142,6 @@ describe('OTA Common', () => {
                     {ieeeAddr: '0x000000000000000'},
                     mockGetImageMeta,
                     mockDownloadImage,
-                    false,
                     false,
                 ),
             ).rejects.toThrow(/File checksum validation failed/);
