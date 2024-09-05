@@ -225,6 +225,14 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ['RF 262'],
+        model: 'RF 262',
+        vendor: 'Innr',
+        description: 'E27 smart filament LED light bulb',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['RF 265'],
         model: 'RF 265',
         vendor: 'Innr',
