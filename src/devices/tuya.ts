@@ -3207,7 +3207,15 @@ const definitions: DefinitionWithExtend[] = [
          */
     },
     {
-        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_nuombroo', '_TZ3000_xabckq1v', '_TZ3000_czuyt8lz', '_TZ3000_0ht8dnxj', '_TZ3000_b3mgfu0d']),
+        fingerprint: tuya.fingerprint('TS004F', [
+            '_TZ3000_nuombroo',
+            '_TZ3000_xabckq1v',
+            '_TZ3000_czuyt8lz',
+            '_TZ3000_0ht8dnxj',
+            '_TZ3000_b3mgfu0d',
+            '_TZ3000_11pg3ima',
+            '_TZ3000_et7afzxz',
+        ]),
         model: 'TS004F',
         vendor: 'Tuya',
         description: 'Wireless switch with 4 buttons',
@@ -3223,6 +3231,9 @@ const definitions: DefinitionWithExtend[] = [
                 'brightness_step_down',
                 'brightness_move_up',
                 'brightness_move_down',
+                'color_temperature_step_up',
+                'color_temperature_step_down',
+                'brightness_stop',
                 '1_single',
                 '1_double',
                 '1_hold',
@@ -3237,7 +3248,18 @@ const definitions: DefinitionWithExtend[] = [
                 '4_hold',
             ]),
         ],
-        fromZigbee: [fz.battery, tuya.fz.on_off_action, fz.tuya_operation_mode, fz.command_on, fz.command_off, fz.command_step, fz.command_move],
+        fromZigbee: [
+            fz.battery,
+            tuya.fz.on_off_action,
+            fz.tuya_operation_mode,
+            fz.command_on,
+            fz.command_off,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_step_color_temperature,
+        ],
+        whiteLabel: [tuya.whitelabel('Zemismart', 'ZMR4', 'Wireless switch with 4 buttons', ['_TZ3000_11pg3ima', '_TZ3000_et7afzxz'])],
         toZigbee: [tz.tuya_operation_mode],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
