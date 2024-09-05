@@ -52,7 +52,9 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
     // Ledvance OTAs are not valid against the Zigbee spec, the last image element fails to parse but the
     // update succeeds even without sending it. Therefore set suppressElementImageParseFailure to true
     // https://github.com/Koenkk/zigbee2mqtt/issues/16900
-    return common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, null, true);
+    // The size check also needs to be disabled
+    // https://github.com/Koenkk/zigbee2mqtt/issues/22687
+    return common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, null, true, true);
 }
 
 exports.isUpdateAvailable = isUpdateAvailable;
