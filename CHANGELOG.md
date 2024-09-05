@@ -1,5 +1,24 @@
 # Changelog
 
+## [20.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.10.0...v20.11.0) (2024-09-05)
+
+
+### Features
+
+* **add:** 929003736201 ([#7941](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7941)) ([9454abc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9454abc01b8a27f49c24630d8225594bbf7e2fb8))
+* **add:** RF 262 https://github.com/Koenkk/zigbee2mqtt/issues/23854 ([84b7500](https://github.com/Koenkk/zigbee-herdsman-converters/commit/84b7500d02325e7d3cff031743fa91b0aec1e91f))
+* **add:** SSKT11IW-F1 ([#7940](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7940)) ([907bb12](https://github.com/Koenkk/zigbee-herdsman-converters/commit/907bb12ec9a5ad3ac9f8de718648fd1dbb079217))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZB210_ayx58ft5` as MiBoxer E2-ZR [#23379](https://github.com/Koenkk/zigbee-herdsman-converters/issues/23379) ([#7943](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7943)) ([0246b74](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0246b742adda663f7a3bb9eb99c83e3c87f8e09c))
+* Don't ignore off transition for TRADFRI bulbs with firmware 1.0.021 https://github.com/Koenkk/zigbee2mqtt/issues/23825 ([f3034ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f3034ffd409577f433eede8f2e700e776eb942cc))
+* Fix electricityMeter modern extend showing disabled exposes https://github.com/Koenkk/zigbee-herdsman-converters/issues/7831 ([6de4a02](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6de4a02eb5556baa3ae9a488d0d5f68389481c70))
+* Fix Ledvance OTA failing with `AssertionError [ERR_ASSERTION]: Size mismatch` https://github.com/Koenkk/zigbee2mqtt/issues/22687 ([7c7f454](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7c7f45434468fd4efb40ea34f694020811ca9494))
+* **ignore:** cleaner fix for 7c7f45434468fd4efb40ea34f694020811ca9494 ([725cdb1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/725cdb18bc249ee0b11eabd97299b4b334e66866))
+* Inovelli blue switches min/max modification ([#7944](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7944)) ([955f1c5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/955f1c5f20691007d6a044407b531a89bdd08e62))
+
 ## [20.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.9.0...v20.10.0) (2024-09-03)
 
 
