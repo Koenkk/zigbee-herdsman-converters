@@ -35,6 +35,7 @@ type GetNewImage = (
     getImageMeta: Ota.GetImageMeta,
     downloadImage: DownloadImage,
     suppressElementImageParseFailure: boolean,
+    skipSizeCheck: boolean,
 ) => Promise<Ota.Image>;
 type ImageBlockResponsePayload = {
     status: number;
@@ -226,7 +227,7 @@ function parseSubElement(buffer: Buffer, position: number): Ota.ImageElement {
     return {tagID, length, data};
 }
 
-export function parseImage(buffer: Buffer, suppressElementImageParseFailure: boolean = false): Ota.Image {
+export function parseImage(buffer: Buffer, suppressElementImageParseFailure: boolean = false, skipSizeCheck: boolean = false): Ota.Image {
     const header: Ota.ImageHeader = {
         otaUpgradeFileIdentifier: buffer.subarray(0, 4),
         otaHeaderVersion: buffer.readUInt16LE(4),
@@ -279,7 +280,10 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure: boo
         logger.debug('Partially failed to parse the image, continuing anyway...', NS);
     }
 
-    assert(position === header.totalImageSize, `Size mismatch`);
+    if (skipSizeCheck === false) {
+        assert(position === header.totalImageSize, `Size mismatch`);
+    }
+
     return {header, elements, raw};
 }
 
@@ -555,6 +559,7 @@ export async function updateToLatest(
     getImageMeta: Ota.GetImageMeta = null,
     downloadImage: DownloadImage = null,
     suppressElementImageParseFailure: boolean = false,
+    skipSizeCheck: boolean = false,
 ): Promise<number> {
     const logId = `'${device.ieeeAddr}' (${device.modelID})`;
     logger.debug(`Updating ${logId} to latest`, NS);
@@ -568,7 +573,7 @@ export async function updateToLatest(
 
     logger.debug(`Got request payload '${JSON.stringify(requestPayload)}'`, NS);
 
-    const image = await getNewImage(requestPayload, device, getImageMeta, downloadImage, suppressElementImageParseFailure);
+    const image = await getNewImage(requestPayload, device, getImageMeta, downloadImage, suppressElementImageParseFailure, skipSizeCheck);
 
     logger.debug(`Got new image for ${logId}`, NS);
 
@@ -751,6 +756,7 @@ export async function getNewImage(
     getImageMeta: Ota.GetImageMeta,
     downloadImage: DownloadImage,
     suppressElementImageParseFailure: boolean,
+    skipSizeCheck: boolean,
 ): Promise<Ota.Image> {
     // TODO: better errors (these are reported in frontend notifies)
     const logId = `'${device.ieeeAddr}' (${device.modelID})`;
@@ -774,7 +780,7 @@ export async function getNewImage(
     }
 
     const start = download.data.indexOf(UPGRADE_FILE_IDENTIFIER);
-    const image = parseImage(download.data.slice(start), suppressElementImageParseFailure);
+    const image = parseImage(download.data.slice(start), suppressElementImageParseFailure, skipSizeCheck);
 
     logger.debug(`Get new image for ${logId}, image header ${JSON.stringify(image.header)}`, NS);
 

@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {Definition, Tz, Fz, KeyValueAny} from '../lib/types';
+import {DefinitionWithExtend, Tz, Fz, KeyValueAny} from '../lib/types';
 import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -354,7 +354,7 @@ function zigusbBtnConfigExposes(epName: string) {
     return features;
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZigUSB'],
         model: 'ZigUSB',

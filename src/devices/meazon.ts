@@ -6,10 +6,10 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['101.301.001649', '101.301.001838', '101.301.001802', '101.301.001738', '101.301.001412', '101.301.001765', '101.301.001814'],
         model: 'MEAZON_BIZY_PLUG',

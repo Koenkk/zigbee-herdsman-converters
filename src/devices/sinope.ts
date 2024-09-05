@@ -6,7 +6,7 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -606,7 +606,7 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 };
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TH1123ZB'],
         model: 'TH1123ZB',

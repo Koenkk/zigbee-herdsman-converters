@@ -24,7 +24,7 @@ import {
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Fz, Zh} from '../lib/types';
+import {DefinitionWithExtend, Fz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const NS = 'zhc:sunricher';
@@ -73,7 +73,7 @@ async function syncTime(endpoint: Zh.Endpoint) {
     }
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZG2858A'],
         model: 'ZG2858A',

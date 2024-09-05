@@ -6,7 +6,7 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz, KeyValue} from '../lib/types';
 import {precisionRound, getFromLookup, postfixWithEndpointName, getKey, toNumber} from '../lib/utils';
 
 const e = exposes.presets;
@@ -140,7 +140,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['L101Z-SBI'],
         model: 'L101Z-SBI',

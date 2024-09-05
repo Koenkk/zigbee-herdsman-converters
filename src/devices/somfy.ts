@@ -1,12 +1,13 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {battery, iasZoneAlarm, identify} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Sonesse Ultra 30 WF Li-Ion Rolle'],
         model: 'SOMFY-1241752',
@@ -38,6 +39,20 @@ const definitions: Definition[] = [
             await reporting.currentSummDelivered(ep);
             await reporting.currentSummReceived(ep);
         },
+    },
+    {
+        zigbeeModel: ['1811680'],
+        model: '1811680',
+        vendor: 'SOMFY',
+        description: 'Zigbee opening sensor',
+        extend: [identify(), iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'battery_low']}), battery()],
+    },
+    {
+        zigbeeModel: ['1811681'],
+        model: '1811681',
+        vendor: 'SOMFY',
+        description: 'Zigbee motion sensor',
+        extend: [identify(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}), battery()],
     },
 ];
 

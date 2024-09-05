@@ -5,7 +5,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {Definition, KeyValue, Tz} from '../lib/types';
+import {DefinitionWithExtend, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -69,7 +69,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Adapter Zigbee FUJITSU'],
         model: 'GW003-AS-IN-TE-FC',

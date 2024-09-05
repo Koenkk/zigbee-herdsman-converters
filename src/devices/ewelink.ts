@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
-import {Definition, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz} from '../lib/types';
 const e = exposes.presets;
 
 const NS = 'zhc:ewelink';
@@ -18,7 +18,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['CK-BL702-ROUTER-01(7018)'],
         model: 'CK-BL702-ROUTER-01(7018)',

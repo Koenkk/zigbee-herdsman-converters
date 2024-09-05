@@ -1089,7 +1089,7 @@ const converters2 = {
                 //  'MoveToLevelWithOnOff' despite not supporting the cluster; others, like the LEDVANCE SMART+
                 //  plug, do not.)
                 brightness = transition.specified || brightness === 0 ? 0 : undefined;
-                if (brightness !== undefined && utils.getMetaValue(entity, meta.mapped, 'noOffTransition', 'first', false)) {
+                if (brightness !== undefined && utils.getMetaValue(entity, meta.mapped, 'noOffTransition', {atLeastOnce: true}, false)) {
                     logger.debug(`Supressing OFF transition since entity has noOffTransition=true`, NS);
                     brightness = undefined;
                 }
@@ -1779,6 +1779,18 @@ const converters2 = {
             await entity.read('haElectricalMeasurement', ['activePower']);
         },
     } satisfies Tz.Converter,
+    electrical_measurement_power_phase_b: {
+        key: ['power_phase_b'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['activePowerPhB']);
+        },
+    } satisfies Tz.Converter,
+    electrical_measurement_power_phase_c: {
+        key: ['power_phase_c'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['activePowerPhC']);
+        },
+    } satisfies Tz.Converter,
     metering_power: {
         key: ['power'],
         convertGet: async (entity, key, meta) => {
@@ -1817,10 +1829,34 @@ const converters2 = {
             await entity.read('haElectricalMeasurement', ['rmsVoltage']);
         },
     } satisfies Tz.Converter,
+    acvoltage_phase_b: {
+        key: ['voltage_phase_b'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['rmsVoltagePhB']);
+        },
+    } satisfies Tz.Converter,
+    acvoltage_phase_c: {
+        key: ['voltage_phase_c'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['rmsVoltagePhC']);
+        },
+    } satisfies Tz.Converter,
     accurrent: {
         key: ['current'],
         convertGet: async (entity, key, meta) => {
             await entity.read('haElectricalMeasurement', ['rmsCurrent']);
+        },
+    } satisfies Tz.Converter,
+    accurrent_phase_b: {
+        key: ['current_phase_b'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['rmsCurrentPhB']);
+        },
+    } satisfies Tz.Converter,
+    accurrent_phase_c: {
+        key: ['current_phase_c'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['rmsCurrentPhC']);
         },
     } satisfies Tz.Converter,
     temperature: {

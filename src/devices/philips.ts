@@ -8,12 +8,12 @@ import {deviceEndpoints, quirkCheckinInterval, identify} from '../lib/modernExte
 import * as ota from '../lib/ota';
 import {philipsOnOff, philipsLight, philipsFz, philipsTz} from '../lib/philips';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['929003598001'],
         model: '929003598001',
@@ -3783,6 +3783,13 @@ const definitions: Definition[] = [
         model: '929003823701',
         vendor: 'Philips',
         description: 'Hue Tento color 42,1cm',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ['929003736201_01', '929003736201_02'],
+        model: '929003736201',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance Datura Ceiling light small',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];

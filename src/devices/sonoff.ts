@@ -22,7 +22,7 @@ import {
     iasZoneAlarm,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 const {ewelinkAction} = ewelinkModernExtend;
 
@@ -544,7 +544,7 @@ const sonoffExtend = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['NSPanelP-Router'],
         model: 'NSPanelP-Router',
@@ -573,7 +573,10 @@ const definitions: Definition[] = [
             // Zigbee-herdsmans responds to the checkin message which causes the device
             // to poll slower.
             // https://github.com/Koenkk/zigbee2mqtt/issues/11676
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            }
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
@@ -589,7 +592,10 @@ const definitions: Definition[] = [
             // Zigbee-herdsmans responds to the checkin message which causes the device
             // to poll slower.
             // https://github.com/Koenkk/zigbee2mqtt/issues/11676
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            }
             device.powerSource = 'Mains (single phase)';
             device.save();
         },

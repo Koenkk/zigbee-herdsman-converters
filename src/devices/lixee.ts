@@ -3,7 +3,7 @@ import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz, KeyValue, Zh} from '../lib/types';
 const ea = exposes.access;
 const e = exposes.presets;
 import {Buffer} from 'buffer';
@@ -1741,7 +1741,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
 
     return myExpose;
 }
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZLinky_TIC', 'ZLinky_TIC\u0000'],
         model: 'ZLinky_TIC',

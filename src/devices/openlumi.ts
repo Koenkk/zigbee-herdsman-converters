@@ -2,10 +2,10 @@ import fz from '../converters/fromZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['openlumi.gw_router.jn5169'],
         model: 'GWRJN5169',
