@@ -45,7 +45,7 @@ const ubisysPollCurrentSummDelivered = async (type: OnEventType, data: OnEventDa
         await endpoint.read('seMetering', ['currentSummDelivered']);
     };
 
-    utils.onEventPoll(type, data, device, options, 'currentSummDelivered-poll', 60, poll);
+    utils.onEventPoll(type, data, device, options, 'measurement', 60, poll);
 };
 
 const ubisys = {
