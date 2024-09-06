@@ -1259,7 +1259,7 @@ const tuyaTz = {
             const state = meta.message.hasOwnProperty('state')
                 ? utils.isString(meta.message.state)
                     ? meta.message.state.toLowerCase()
-                    : null
+                    : undefined
                 : undefined;
             const countdown = meta.message.hasOwnProperty('countdown') ? meta.message.countdown : undefined;
             const result: KeyValue = {};
