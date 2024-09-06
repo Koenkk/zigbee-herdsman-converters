@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {light, onOff} from '../lib/modernExtend';
+import {light, onOff, deviceEndpoints, battery, commandsOnOff, commandsLevelCtrl, commandsColorCtrl, commandsScenes} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -242,6 +242,20 @@ const definitions: DefinitionWithExtend[] = [
                 'enhanced_move_to_hue_and_saturation',
                 'scene_*',
             ]),
+        ],
+    },
+    {
+        zigbeeModel: ['501.40'],
+        model: '501.40',
+        vendor: 'Paulmann',
+        description: 'RGB remote control',
+        extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            battery(),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            commandsColorCtrl(),
+            commandsScenes(),
         ],
     },
     {
