@@ -1,13 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {light, 
-		onOff, 
-		deviceEndpoints,
-		battery,
-		commandsOnOff,
-		commandsLevelCtrl,
-		commandsColorCtrl,
-		commandsScenes,} from '../lib/modernExtend';
+import {light, onOff, deviceEndpoints, battery, commandsOnOff, commandsLevelCtrl, commandsColorCtrl, commandsScenes} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
