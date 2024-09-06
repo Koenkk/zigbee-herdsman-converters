@@ -1363,11 +1363,23 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
 
 // #region Security and Safety
 
-export type iasZoneType = 'occupancy' | 'contact' | 'smoke' | 'water_leak' | 'carbon_monoxide' | 'sos' | 'vibration' | 'alarm' | 'gas' | 'generic';
+export type iasZoneType =
+    | 'occupancy'
+    | 'contact'
+    | 'smoke'
+    | 'water_leak'
+    | 'rain'
+    | 'carbon_monoxide'
+    | 'sos'
+    | 'vibration'
+    | 'alarm'
+    | 'gas'
+    | 'generic';
 export type iasZoneAttribute =
     | 'alarm_1'
     | 'alarm_2'
     | 'tamper'
+    //    | 'rain'
     | 'battery_low'
     | 'supervision_reports'
     | 'restore_reports'
@@ -1393,6 +1405,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         alarm_1: e.binary('alarm_1', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 1 is active'),
         alarm_2: e.binary('alarm_2', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 2 is active'),
         tamper: e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered').withCategory('diagnostic'),
+        rain: e.binary('rain', ea.STATE, true, false).withDescription('Indicates whether the device detected rainfall'),
         battery_low: e
             .binary('battery_low', ea.STATE, true, false)
             .withDescription('Indicates whether the battery of the device is almost empty')
