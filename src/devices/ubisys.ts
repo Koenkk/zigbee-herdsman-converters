@@ -39,6 +39,15 @@ const ubisysOnEventReadCurrentSummDelivered = async function (type: OnEventType,
     }
 };
 
+const ubisysPollCurrentSummDelivered = async (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
+    const endpoint = device.getEndpoint(endpointId);
+    const poll = async () => {
+        await endpoint.read('seMetering', ['currentSummDelivered']);
+    };
+
+    utils.onEventPoll(type, data, device, options, 'currentSummDelivered-poll', 60, poll);
+};
+
 const ubisys = {
     fz: {
         dimmer_setup: {
@@ -747,13 +756,14 @@ const definitions: DefinitionWithExtend[] = [
             commandsLevelCtrl({endpointNames: ['2', '3']}),
             commandsColorCtrl({endpointNames: ['2', '3']}),
         ],
+        options: [exposes.options.measurement_poll_interval()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        onEvent: async (type, data, device) => {
+        onEvent: async (type, data, device, settings) => {
             /*
              * As per technical doc page 18 section 7.3.4
              * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
@@ -769,7 +779,7 @@ const definitions: DefinitionWithExtend[] = [
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('genOnOff', ep1);
             } else {
-                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
+                await ubisysPollCurrentSummDelivered(type, data, device, 1, settings);
             }
         },
     },
