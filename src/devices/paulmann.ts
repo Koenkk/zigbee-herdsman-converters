@@ -264,7 +264,7 @@ const definitions: DefinitionWithExtend[] = [
 			commandsColorCtrl(),
 			commandsScenes(),
 		],
-	},
+	};
     {
         fingerprint: [{modelID: 'RGB', manufacturerName: 'Paulmann Licht GmbH'}],
         model: '150257',
