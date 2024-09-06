@@ -1896,18 +1896,20 @@ const definitions: DefinitionWithExtend[] = [
         model: 'RB-SRAIN01',
         vendor: 'Tuya',
         description: 'Solar rain sensor',
-        fromZigbee: [tuya.fz.datapoints, fz.battery, 
-			{
-				cluster: 'ssIasZone',
-				type: 'commandStatusChangeNotification',
-				convert: (model, msg, publish, options, meta) => {
-					const zoneStatus = msg.data.zonestatus;
-					return {
-						rain: (zoneStatus & 1) > 0,
-					};
-				},
-			}
-		],
+        fromZigbee: [
+            tuya.fz.datapoints,
+            fz.battery,
+            {
+                cluster: 'ssIasZone',
+                type: 'commandStatusChangeNotification',
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = msg.data.zonestatus;
+                    return {
+                        rain: (zoneStatus & 1) > 0,
+                    };
+                },
+            },
+        ],
         toZigbee: [],
         exposes: [
             e.rain(),
