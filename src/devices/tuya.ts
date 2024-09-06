@@ -4357,7 +4357,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.battery(),
-            e.cover_position(),
+            e.cover_position().setAccess('position', ea.STATE_SET),
             e.enum('reverse_direction', ea.STATE_SET, ['forward', 'back']).withDescription('Reverse the motor direction'),
             e.enum('border', ea.STATE_SET, ['up', 'down', 'up_delete', 'down_delete', 'remove_top_bottom']),
             e.enum('click_control', ea.STATE_SET, ['up', 'down']).withDescription('Single motor steps'),
@@ -8560,7 +8560,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.cover_position(),
+            e.cover_position().setAccess('position', ea.STATE_SET),
             e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
             e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
             e.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
@@ -8613,7 +8613,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.cover_position(),
+            e.cover_position().setAccess('position', ea.STATE_SET),
             tuya.exposes.switch().withEndpoint('l1'),
             e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
             e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
