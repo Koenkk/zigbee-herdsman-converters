@@ -7,10 +7,11 @@ import type {FrameControl} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstyp
 import * as exposes from './exposes';
 
 export interface Logger {
-    debug: (message: string, namespace: string) => void;
-    info: (message: string, namespace: string) => void;
-    warning: (message: string, namespace: string) => void;
-    error: (message: string, namespace: string) => void;
+    isEnabled: (level: string, namespace: string) => boolean;
+    debug: (messageOrLambda: string | (() => string), namespace: string) => void;
+    info: (messageOrLambda: string | (() => string), namespace: string) => void;
+    warning: (messageOrLambda: string | (() => string), namespace: string) => void;
+    error: (messageOrLambda: string | (() => string), namespace: string) => void;
 }
 
 export type Range = [number, number];
