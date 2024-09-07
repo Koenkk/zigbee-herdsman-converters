@@ -1,5 +1,23 @@
 # Changelog
 
+## [20.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.11.0...v20.12.0) (2024-09-07)
+
+
+### Features
+
+* **add:** 501.40 ([#7947](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7947)) ([ad373af](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ad373af414c56410585130b271cb188cf5413472))
+* **add:** S1-R-2 ([#7915](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7915)) ([0b51cc0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0b51cc068f54da5d384cf34f1feef98a4d98e0fe))
+
+
+### Bug Fixes
+
+* Fix `Invalid Version` error when controlling TRADFRI light https://github.com/Koenkk/zigbee2mqtt/issues/23863 ([e5c62b1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e5c62b11a68e33b1877fe7f1796eba97bd72bb87))
+* Fix on_off_countdown when payload had no `state` ([#7948](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7948)) ([f7b8999](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f7b8999aaf145b597f9a644fc0754708cef4adf6))
+* Fix state and position access of various Tuya covers https://github.com/Koenkk/zigbee2mqtt/issues/19665 ([5429c21](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5429c21931c87ec5bf963a48fe32c3c7679f1c4c))
+* Fix Zemismart ZMR4 integration https://github.com/Koenkk/zigbee2mqtt/issues/23187 ([0573499](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0573499913c2507b800a517bdc476c170dea2bec))
+* **ignore:** update dependencies ([#7949](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7949)) ([b800705](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b800705aa8ddb4ef3ce68e6ad15c36034420cf38))
+* Tuya RB-SRAIN01: change 'water-leak' to 'rain'; remove 'battery_low' and 'tamper' ([#7946](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7946)) ([d14b371](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d14b37116f79f7ba2b36eb1d4aa149f634812f25))
+
 ## [20.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.10.0...v20.11.0) (2024-09-05)
 
 
