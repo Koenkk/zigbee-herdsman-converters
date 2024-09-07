@@ -1902,7 +1902,7 @@ const definitions: DefinitionWithExtend[] = [
             e.illuminance().withUnit('lx'),
             e.numeric('illuminance_average_20min', ea.STATE).withUnit('lx').withDescription('Illuminance average for the last 20 minutes'),
             e.numeric('illuminance_maximum_today', ea.STATE).withUnit('lx').withDescription('Illuminance maximum for the last 24 hours'),
-            e.binary('cleaning_reminder', ea.STATE, 'ON', 'OFF').withDescription('Cleaning reminder'),
+            e.binary('cleaning_reminder', ea.STATE, true, false).withDescription('Cleaning reminder'),
             e.numeric('rain_intensity', ea.STATE).withUnit('mV').withDescription('Rainfall intensity'),
         ],
         meta: {
