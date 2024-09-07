@@ -1896,16 +1896,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'RB-SRAIN01',
         vendor: 'Tuya',
         description: 'Solar rain sensor',
-        fromZigbee: [tuya.fz.datapoints, fz.battery, fz.ias_water_leak_alarm_1],
-        toZigbee: [],
+        fromZigbee: [tuya.fz.datapoints],
+        extend: [iasZoneAlarm({zoneType: 'rain', zoneAttributes: ['alarm_1']}), battery({percentageReporting: false})],
         exposes: [
-            e.water_leak().withDescription('Droplet detection (raining)'),
             e.illuminance().withUnit('lx'),
             e.numeric('illuminance_average_20min', ea.STATE).withUnit('lx').withDescription('Illuminance average for the last 20 minutes'),
             e.numeric('illuminance_maximum_today', ea.STATE).withUnit('lx').withDescription('Illuminance maximum for the last 24 hours'),
             e.binary('cleaning_reminder', ea.STATE, 'ON', 'OFF').withDescription('Cleaning reminder'),
             e.numeric('rain_intensity', ea.STATE).withUnit('mV').withDescription('Rainfall intensity'),
-            e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
