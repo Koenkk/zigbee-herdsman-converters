@@ -108,7 +108,7 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
         ...result.meta,
         noOffTransition: (entity) => {
             const softwareBuildID = entity.getDevice().softwareBuildID;
-            return !softwareBuildID.includes('-') && semver.gt(softwareBuildID ?? '0.0.0', '1.0.021', true);
+            return softwareBuildID && !softwareBuildID.includes('-') && semver.gt(softwareBuildID ?? '0.0.0', '1.0.021', true);
         },
     };
 
