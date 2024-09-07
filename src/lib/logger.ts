@@ -1,7 +1,7 @@
 import {Logger} from './types';
 
 export let logger: Logger = {
-    isEnabled: (level, namespace) => true, 
+    isEnabled: () => true, 
     debug: (messageOrLambda, namespace) => console.debug(`${namespace}: ${(typeof messageOrLambda === "string") ? messageOrLambda : messageOrLambda()}`),
     info: (messageOrLambda, namespace) => console.info(`${namespace}: ${(typeof messageOrLambda === "string") ? messageOrLambda : messageOrLambda()}`),
     warning: (messageOrLambda, namespace) => console.warn(`${namespace}: ${(typeof messageOrLambda === "string") ? messageOrLambda : messageOrLambda()}`),
