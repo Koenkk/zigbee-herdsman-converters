@@ -1384,6 +1384,7 @@ export type iasZoneAttribute =
     | 'restore_reports'
     | 'ac_status'
     | 'test'
+    | 'trouble'
     | 'battery_defect';
 export interface IasArgs {
     zoneType: iasZoneType;
@@ -1424,6 +1425,10 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         test: e
             .binary('test', ea.STATE, true, false)
             .withDescription('Indicates whether the device is currently performing a test')
+            .withCategory('diagnostic'),
+        trouble: e
+            .binary('trouble', ea.STATE, true, false)
+            .withDescription('Indicates whether the device is currently havin trouble')
             .withCategory('diagnostic'),
         battery_defect: e
             .binary('battery_defect', ea.STATE, true, false)
@@ -1497,6 +1502,9 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                 }
                 if (args.zoneAttributes.includes('restore_reports')) {
                     payload = {restore_reports: (zoneStatus & (1 << 5)) > 0, ...payload};
+                }
+                if (args.zoneAttributes.includes('trouble')) {
+                    payload = {trouble: (zoneStatus & (1 << 6)) > 0, ...payload};
                 }
                 if (args.zoneAttributes.includes('ac_status')) {
                     payload = {ac_status: (zoneStatus & (1 << 7)) > 0, ...payload};
