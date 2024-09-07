@@ -51,7 +51,7 @@
         "iconv-lite": "^0.6.3",
         "semver": "^7.6.3",
         "tar-stream": "^3.1.7",
-        "zigbee-herdsman": "^0.57.3"
+        "zigbee-herdsman": "^0.57.4"
     },
     "devDependencies": {
         "@types/buffer-crc32": "^0.2.4",
