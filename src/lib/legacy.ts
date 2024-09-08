@@ -180,31 +180,31 @@ function dpValueFromBitmap(dp: number, bitmapBuffer: any) {
 
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoint(entity: Zh.Endpoint | Zh.Group, dpValue: any, cmd?: string, seq: number = undefined) {
-    return await sendDataPoints(entity, [dpValue], cmd, seq);
+    return sendDataPoints(entity, [dpValue], cmd, seq);
 }
 
 async function sendDataPointValue(entity: Zh.Endpoint | Zh.Group, dp: number, value: any, cmd?: string, seq: number = undefined) {
-    return await sendDataPoints(entity, [dpValueFromIntValue(dp, value)], cmd, seq);
+    return sendDataPoints(entity, [dpValueFromIntValue(dp, value)], cmd, seq);
 }
 
 async function sendDataPointBool(entity: Zh.Endpoint | Zh.Group, dp: number, value: boolean | number, cmd?: string, seq: number = undefined) {
-    return await sendDataPoints(entity, [dpValueFromBool(dp, value)], cmd, seq);
+    return sendDataPoints(entity, [dpValueFromBool(dp, value)], cmd, seq);
 }
 
 async function sendDataPointEnum(entity: Zh.Endpoint | Zh.Group, dp: number, value: number, cmd?: string, seq: number = undefined) {
-    return await sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
+    return sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
 }
 
 async function sendDataPointRaw(entity: Zh.Endpoint | Zh.Group, dp: number, value: any, cmd?: string, seq: number = undefined) {
-    return await sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
+    return sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
 }
 
 async function sendDataPointBitmap(entity: Zh.Endpoint | Zh.Group, dp: number, value: any, cmd?: string, seq: number = undefined) {
-    return await sendDataPoints(entity, [dpValueFromBitmap(dp, value)], cmd, seq);
+    return sendDataPoints(entity, [dpValueFromBitmap(dp, value)], cmd, seq);
 }
 
 async function sendDataPointStringBuffer(entity: Zh.Endpoint | Zh.Group, dp: number, value: any, cmd?: string, seq: number = undefined) {
-    return await sendDataPoints(entity, [dpValueFromStringBuffer(dp, value)], cmd, seq);
+    return sendDataPoints(entity, [dpValueFromStringBuffer(dp, value)], cmd, seq);
 }
 
 function convertRawToCycleTimer(value: any) {

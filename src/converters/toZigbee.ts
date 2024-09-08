@@ -966,7 +966,7 @@ const converters2 = {
         options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
-                return await converters1.light_color.convertSet(entity, key, value, meta);
+                return converters1.light_color.convertSet(entity, key, value, meta);
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 utils.assertNumber(value);
                 const xy = libColor.ColorXY.fromMireds(value);
@@ -4371,10 +4371,10 @@ const converters3 = {
                 message.brightness = deviceState.brightness;
             }
 
-            return await converters2.light_onoff_brightness.convertSet(entity, key, value, meta);
+            return converters2.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
         convertGet: async (entity, key, meta) => {
-            return await converters2.light_onoff_brightness.convertGet(entity, key, meta);
+            return converters2.light_onoff_brightness.convertGet(entity, key, meta);
         },
     } satisfies Tz.Converter,
     RM01_light_onoff_brightness: {
@@ -4383,7 +4383,7 @@ const converters3 = {
         convertSet: async (entity, key, value, meta) => {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
-                return await converters2.light_onoff_brightness.convertSet(endpoint, key, value, meta);
+                return converters2.light_onoff_brightness.convertSet(endpoint, key, value, meta);
             } else {
                 throw new Error('OnOff and LevelControl not supported on this RM01 device.');
             }
@@ -4391,7 +4391,7 @@ const converters3 = {
         convertGet: async (entity, key, meta) => {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
-                return await converters2.light_onoff_brightness.convertGet(endpoint, key, meta);
+                return converters2.light_onoff_brightness.convertGet(endpoint, key, meta);
             } else {
                 throw new Error('OnOff and LevelControl not supported on this RM01 device.');
             }
@@ -4403,7 +4403,7 @@ const converters3 = {
         convertSet: async (entity, key, value, meta) => {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
-                return await converters2.light_brightness_step.convertSet(endpoint, key, value, meta);
+                return converters2.light_brightness_step.convertSet(endpoint, key, value, meta);
             } else {
                 throw new Error('LevelControl not supported on this RM01 device.');
             }
@@ -4414,7 +4414,7 @@ const converters3 = {
         convertSet: async (entity, key, value, meta) => {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
-                return await converters2.light_brightness_move.convertSet(endpoint, key, value, meta);
+                return converters2.light_brightness_move.convertSet(endpoint, key, value, meta);
             } else {
                 throw new Error('LevelControl not supported on this RM01 device.');
             }
@@ -4441,7 +4441,7 @@ const converters3 = {
                     message.state = 'off';
                     message.brightness = 1;
                 }
-                return await converters2.light_onoff_brightness.convertSet(entity, key, value, meta);
+                return converters2.light_onoff_brightness.convertSet(entity, key, value, meta);
             } else {
                 throw new Error('LevelControl not supported on this endpoint.');
             }
@@ -4450,7 +4450,7 @@ const converters3 = {
             const cluster = 'genLevelCtrl';
             utils.assertEndpoint(entity);
             if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
-                return await converters2.light_onoff_brightness.convertGet(entity, key, meta);
+                return converters2.light_onoff_brightness.convertGet(entity, key, meta);
             } else {
                 throw new Error('LevelControl not supported on this endpoint.');
             }
@@ -4484,7 +4484,7 @@ const converters3 = {
         convertSet: async (entity, key, value, meta) => {
             const {message, state} = meta;
             if (message.state === 'OFF' || (message.hasOwnProperty('state') && !message.hasOwnProperty('brightness'))) {
-                return await converters1.on_off.convertSet(entity, key, value, meta);
+                return converters1.on_off.convertSet(entity, key, value, meta);
             } else if (message.hasOwnProperty('brightness')) {
                 // set brightness
                 if (state.state === 'OFF') {

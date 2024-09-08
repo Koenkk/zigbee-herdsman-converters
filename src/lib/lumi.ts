@@ -1865,7 +1865,7 @@ export const lumiModernExtend = {
                 cluster: 'manuSpecificLumi',
                 type: ['attributeReport', 'readResponse'],
                 convert: async (model, msg, publish, options, meta) => {
-                    return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+                    return numericAttributes2Payload(msg, meta, model, options, msg.data);
                 },
             },
         ];
@@ -2238,7 +2238,7 @@ export const fromZigbee = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+            return numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     } satisfies Fz.Converter,
     lumi_basic_raw: {
@@ -2257,7 +2257,7 @@ export const fromZigbee = {
         cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+            return numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     } satisfies Fz.Converter,
     lumi_co2: {

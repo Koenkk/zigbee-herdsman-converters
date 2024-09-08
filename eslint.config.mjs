@@ -20,7 +20,7 @@ export default tseslint.config(
             '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/no-unused-vars': 'off', // TODO error
             'array-bracket-spacing': ['error', 'never'],
-            'no-return-await': 'off', // TODO error
+            'no-return-await': 'error',
             'object-curly-spacing': ['error', 'never'],
             '@typescript-eslint/no-floating-promises': 'error',
             'no-prototype-builtins': 'off', // TODO remove (error by default)

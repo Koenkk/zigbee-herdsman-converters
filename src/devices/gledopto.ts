@@ -29,10 +29,10 @@ const tzLocal1 = {
                 }
             }
 
-            return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+            return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
         convertGet: async (entity, key, meta) => {
-            return await tz.light_onoff_brightness.convertGet(entity, key, meta);
+            return tz.light_onoff_brightness.convertGet(entity, key, meta);
         },
     } satisfies Tz.Converter,
     gledopto_light_colortemp: {
@@ -54,7 +54,7 @@ const tzLocal1 = {
             return result;
         },
         convertGet: async (entity, key, meta) => {
-            return await tz.light_colortemp.convertGet(entity, key, meta);
+            return tz.light_colortemp.convertGet(entity, key, meta);
         },
     } satisfies Tz.Converter,
     gledopto_light_color: {
@@ -81,7 +81,7 @@ const tzLocal1 = {
             return result;
         },
         convertGet: async (entity, key, meta) => {
-            return await tz.light_color.convertGet(entity, key, meta);
+            return tz.light_color.convertGet(entity, key, meta);
         },
     } satisfies Tz.Converter,
 };
@@ -108,7 +108,7 @@ const tzLocal = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            return await tz.light_color_colortemp.convertGet(entity, key, meta);
+            return tz.light_color_colortemp.convertGet(entity, key, meta);
         },
     } satisfies Tz.Converter,
 };
