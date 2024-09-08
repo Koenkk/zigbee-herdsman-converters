@@ -741,7 +741,13 @@ const definitions: DefinitionWithExtend[] = [
             {
                 manufacturerName: 'ubisys',
                 modelID: 'S1-R (5601)',
-                endpoints: [{ID: 1, profileID: 260, deviceID: 266, inputClusters: [0, 3, 4, 5, 6, 1794, 2820], outputClusters: []}],
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 266, inputClusters: [0, 3, 4, 5, 6, 1794, 2820], outputClusters: []},
+                    {ID: 2, profileID: 260, deviceID: 260, inputClusters: [0, 3], outputClusters: [3, 5, 6, 8, 768, 64514]},
+                    {ID: 3, profileID: 260, deviceID: 260, inputClusters: [0, 3], outputClusters: [3, 5, 6, 8, 768, 64514]},
+                    {ID: 232, profileID: 260, deviceID: 1287, inputClusters: [0, 61, 64512, 64599], outputClusters: [3, 25]},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
             },
         ],
         model: 'S1-R-2',
