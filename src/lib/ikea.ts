@@ -1,36 +1,37 @@
 import * as semver from 'semver';
+
 import {Zcl} from 'zigbee-herdsman';
 
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
-import {presets, access, options} from '../lib/exposes';
+import {access, options, presets} from '../lib/exposes';
 import {
+    deviceAddCustomCluster,
     LightArgs,
     light as lightDontUse,
-    ota,
-    ReportingConfigWithoutAttribute,
-    timeLookup,
     numeric,
     NumericArgs,
+    ota,
+    ReportingConfigWithoutAttribute,
     setupConfigureForBinding,
     setupConfigureForReporting,
-    deviceAddCustomCluster,
+    timeLookup,
 } from '../lib/modernExtend';
 import {tradfri as ikea} from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Fz, Tz, OnEvent, Configure, KeyValue, Range, ModernExtend, Expose, KeyValueAny} from '../lib/types';
+import {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
 import {
+    assertString,
+    getEndpointName,
+    getFromLookup,
+    hasAlreadyProcessedMessage,
+    isLegacyEnabled,
+    isObject,
+    mapNumberRange,
     postfixWithEndpointName,
     precisionRound,
-    isObject,
     replaceInArray,
-    isLegacyEnabled,
-    hasAlreadyProcessedMessage,
-    assertString,
-    getFromLookup,
-    mapNumberRange,
-    getEndpointName,
 } from '../lib/utils';
 
 export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN};

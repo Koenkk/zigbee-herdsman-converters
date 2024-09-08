@@ -2,8 +2,7 @@ import * as iconv from 'iconv-lite';
 
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {DefinitionWithExtend} from '../lib/types';
-import {Fz, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 
 const NS = 'zhc:easyiot';
 const ea = exposes.access;

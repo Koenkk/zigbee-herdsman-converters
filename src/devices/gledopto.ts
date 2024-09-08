@@ -2,10 +2,10 @@ import tz from '../converters/toZigbee';
 import * as libColor from '../lib/color';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {light, LightArgs, OnOffArgs, onOff, identify} from '../lib/modernExtend';
+import {identify, light, LightArgs, onOff, OnOffArgs} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
-import {Configure, DefinitionWithExtend, KeyValue, OnEventType, Zh, Tz, ModernExtend} from '../lib/types';
+import {Configure, DefinitionWithExtend, KeyValue, ModernExtend, OnEventType, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const NS = 'zhc:gledopto';

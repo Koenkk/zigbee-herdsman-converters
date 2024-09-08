@@ -1,6 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {Fz, Tz, Zh, OnEvent, KeyValueString, KeyValueAny} from '../lib/types';
+import {Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 import * as exposes from './exposes';
 import {logger} from './logger';

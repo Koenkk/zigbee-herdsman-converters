@@ -1,8 +1,9 @@
+import {logger} from '../logger';
+import {Ota, Zh} from '../types';
+import * as common from './common';
+
 const updateCheckUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/newer';
 const updateDownloadUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/download';
-import {logger} from '../logger';
-import {Zh, Ota} from '../types';
-import * as common from './common';
 
 const NS = 'zhc:ota:ledvance';
 const axios = common.getAxios();

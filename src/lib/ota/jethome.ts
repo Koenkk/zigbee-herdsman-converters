@@ -1,8 +1,9 @@
+import {logger} from '../logger';
+import {Ota, Zh} from '../types';
+import * as common from './common';
+
 const baseurl = 'https://fw.jethome.ru';
 const deviceurl = `${baseurl}/api/devices/`;
-import {logger} from '../logger';
-import {Zh, Ota} from '../types';
-import * as common from './common';
 
 const NS = 'zhc:ota:jethome';
 const axios = common.getAxios();

@@ -1,33 +1,36 @@
+import type {Binary, Climate, Composite, Cover, Enum, Fan, Feature, Light, List, Lock, Numeric, Switch, Text} from './lib/exposes';
+
+import assert from 'assert';
+
+import {Zcl} from 'zigbee-herdsman';
+
+import fromZigbee from './converters/fromZigbee';
+import toZigbee from './converters/toZigbee';
+import allDefinitions from './devices';
 import * as configureKey from './lib/configureKey';
 import * as exposesLib from './lib/exposes';
-import type {Feature, Numeric, Enum, Binary, Text, Composite, List, Light, Climate, Switch, Lock, Cover, Fan} from './lib/exposes';
 import {Enum as EnumClass} from './lib/exposes';
-import toZigbee from './converters/toZigbee';
-import fromZigbee from './converters/fromZigbee';
-import assert from 'assert';
+import {generateDefinition} from './lib/generateDefinition';
+import * as logger from './lib/logger';
 import * as ota from './lib/ota';
-import allDefinitions from './devices';
-import * as utils from './lib/utils';
 import {
-    DefinitionWithExtend,
-    Definition,
-    Fingerprint,
-    Zh,
-    OnEventData,
-    OnEventType,
     Configure,
-    Expose,
-    Option,
-    Tz,
-    OtaUpdateAvailableResult,
-    KeyValue,
-    OnEvent,
+    Definition,
     DefinitionExposes,
     DefinitionExposesFunction,
+    DefinitionWithExtend,
+    Expose,
+    Fingerprint,
+    KeyValue,
+    OnEvent,
+    OnEventData,
+    OnEventType,
+    Option,
+    OtaUpdateAvailableResult,
+    Tz,
+    Zh,
 } from './lib/types';
-import {generateDefinition} from './lib/generateDefinition';
-import {Zcl} from 'zigbee-herdsman';
-import * as logger from './lib/logger';
+import * as utils from './lib/utils';
 
 const NS = 'zhc';
 
@@ -209,7 +212,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             exposes = allExposes;
         } else {
             exposes = (device: Zh.Device | undefined, options: KeyValue | undefined) => {
-                let result: Expose[] = [];
+                const result: Expose[] = [];
                 for (const item of allExposes) {
                     if (typeof item === 'function') {
                         result.push(...item(device, options));

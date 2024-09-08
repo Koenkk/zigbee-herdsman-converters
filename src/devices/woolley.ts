@@ -4,6 +4,7 @@ import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 
 const fzLocal = {

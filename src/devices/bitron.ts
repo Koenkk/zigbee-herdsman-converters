@@ -1,14 +1,15 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {Zcl} from 'zigbee-herdsman';
-
-import {onOff, light} from '../lib/modernExtend';
-import {KeyValueAny, Fz, Tz, DefinitionWithExtend} from '../lib/types';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ASTREL_GROUP_SRL};
 

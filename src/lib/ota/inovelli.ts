@@ -1,3 +1,7 @@
+import {logger} from '../logger';
+import {KeyValueAny, Ota, Zh} from '../types';
+import * as common from './common';
+
 /**
  * Helper functions
  *
@@ -5,9 +9,6 @@
  */
 
 const url = 'https://files.inovelli.com/firmware/firmware.json';
-import {logger} from '../logger';
-import {Zh, Ota, KeyValueAny} from '../types';
-import * as common from './common';
 
 const NS = 'zhc:ota:inovelli';
 const axios = common.getAxios();

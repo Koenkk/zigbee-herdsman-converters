@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import {readFileSync} from 'fs';
 import {join} from 'path';
+
 import * as common from '../src/lib/ota/common';
 
 describe('OTA Common', () => {

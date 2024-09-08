@@ -3,6 +3,7 @@ import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [

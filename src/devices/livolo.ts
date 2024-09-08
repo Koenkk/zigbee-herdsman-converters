@@ -3,6 +3,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Zh} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 

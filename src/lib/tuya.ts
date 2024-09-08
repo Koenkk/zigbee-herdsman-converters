@@ -8,23 +8,24 @@ import {logger} from './logger';
 import * as modernExtend from './modernExtend';
 import * as globalStore from './store';
 import {
-    Tuya,
-    OnEventType,
-    OnEventData,
-    Zh,
+    DefinitionExposesFunction,
+    Expose,
+    Fz,
     KeyValue,
     KeyValueAny,
-    Tz,
-    Fz,
-    Expose,
-    OnEvent,
-    ModernExtend,
-    Range,
     KeyValueNumberString,
-    DefinitionExposesFunction,
+    ModernExtend,
+    OnEvent,
+    OnEventData,
+    OnEventType,
     Publish,
+    Range,
+    Tuya,
+    Tz,
+    Zh,
 } from './types';
 import * as utils from './utils';
+
 // import {Color} from './color';
 
 const NS = 'zhc:tuya';

@@ -5,13 +5,14 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+import {precisionRound} from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {onOff, electricityMeter, light} from '../lib/modernExtend';
-import {precisionRound} from '../lib/utils';
 
 const manuSinope = {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES};
 

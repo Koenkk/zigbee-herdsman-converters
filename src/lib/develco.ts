@@ -3,15 +3,15 @@ import {Zcl} from 'zigbee-herdsman';
 import {presets as e, access as ea} from './exposes';
 import {logger} from './logger';
 import {
+    deviceAddCustomCluster,
+    deviceTemperature,
     numeric,
     NumericArgs,
     ScaleFunction,
-    temperature,
-    deviceTemperature,
-    deviceAddCustomCluster,
     setupConfigureForReporting,
+    temperature,
 } from './modernExtend';
-import {Fz, Tz, ModernExtend, Configure} from './types';
+import {Configure, Fz, ModernExtend, Tz} from './types';
 
 const NS = 'zhc:develco';
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};

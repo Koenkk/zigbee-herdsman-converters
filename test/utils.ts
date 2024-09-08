@@ -1,9 +1,10 @@
-import {findByDevice} from '../src/index';
-import * as utils from '../src/lib/utils';
-import {Zh, DefinitionMeta, Fz, Definition} from '../src/lib/types';
-import tz from '../src/converters/toZigbee';
 import {Device} from 'zigbee-herdsman/dist/controller/model';
 import {Clusters} from 'zigbee-herdsman/dist/zspec/zcl/definition/cluster';
+
+import tz from '../src/converters/toZigbee';
+import {findByDevice} from '../src/index';
+import {Definition, DefinitionMeta, Fz, Zh} from '../src/lib/types';
+import * as utils from '../src/lib/utils';
 
 interface MockEndpointArgs {
     ID?: number;

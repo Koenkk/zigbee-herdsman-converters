@@ -7,7 +7,7 @@ import * as legacy from '../lib/legacy';
 import * as light from '../lib/light';
 import {logger} from '../lib/logger';
 import * as globalStore from '../lib/store';
-import {Tz, KeyValue, KeyValueAny} from '../lib/types';
+import {KeyValue, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const NS = 'zhc:tz';

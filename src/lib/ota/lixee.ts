@@ -1,7 +1,8 @@
-const firmwareOrigin = 'https://api.github.com/repos/fairecasoimeme/Zlinky_TIC/releases';
 import {logger} from '../logger';
-import {Zh, Ota, KeyValueAny} from '../types';
+import {KeyValueAny, Ota, Zh} from '../types';
 import * as common from './common';
+
+const firmwareOrigin = 'https://api.github.com/repos/fairecasoimeme/Zlinky_TIC/releases';
 
 const NS = 'zhc:ota:lixee';
 const axios = common.getAxios();

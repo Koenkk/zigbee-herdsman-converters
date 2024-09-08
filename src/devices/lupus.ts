@@ -1,12 +1,13 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
-const e = exposes.presets;
-const ea = exposes.access;
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
+
+const e = exposes.presets;
+const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {

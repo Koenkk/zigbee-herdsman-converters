@@ -1,4 +1,5 @@
 import * as semver from 'semver';
+
 import {Zcl} from 'zigbee-herdsman';
 
 import fz from '../converters/fromZigbee';
@@ -10,7 +11,7 @@ import {logger} from '../lib/logger';
 import {commandsColorCtrl, commandsLevelCtrl, commandsOnOff, deviceEndpoints, electricityMeter, identify, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, OnEventData, OnEventType, Tz, Zh} from '../lib/types';
 import {ubisysModernExtend} from '../lib/ubisys';
 import * as utils from '../lib/utils';
 

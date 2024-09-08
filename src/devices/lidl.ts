@@ -2,15 +2,16 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz, Tz, KeyValue, Publish} from '../lib/types';
-const e = exposes.presets;
-const ea = exposes.access;
 import {battery, iasZoneAlarm} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend, Fz, KeyValue, Publish, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
+const e = exposes.presets;
+const ea = exposes.access;
 
 const fzLocal = {
     FB20002_on: {

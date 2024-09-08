@@ -1,10 +1,11 @@
-const firmwareHtmlPageUrl = 'http://fwu.ubisys.de/smarthome/OTA/release/index';
-const imageRegex = /10F2-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{8})\S*ota1?\.zigbee/gi;
 import url from 'url';
 
 import {logger} from '../logger';
 import {Ota, Zh} from '../types';
 import * as common from './common';
+
+const firmwareHtmlPageUrl = 'http://fwu.ubisys.de/smarthome/OTA/release/index';
+const imageRegex = /10F2-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{8})\S*ota1?\.zigbee/gi;
 
 const NS = 'zhc:ota:ubisys';
 const axios = common.getAxios();

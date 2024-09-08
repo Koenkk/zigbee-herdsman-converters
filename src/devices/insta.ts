@@ -6,6 +6,7 @@ import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [

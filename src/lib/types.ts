@@ -1,5 +1,5 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-namespace */
+
 import type {Device as ZHDevice, Endpoint as ZHEndpoint, Group as ZHGroup} from 'zigbee-herdsman/dist/controller/model';
 import type {Header as ZHZclHeader} from 'zigbee-herdsman/dist/zspec/zcl';
 import type {FrameControl} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
@@ -81,7 +81,7 @@ export interface MockProperty {
     property: string;
     value: KeyValue | string;
 }
-// eslint-disable-next-line camelcase
+
 export interface DiscoveryEntry {
     mockProperties: MockProperty[];
     type: string;

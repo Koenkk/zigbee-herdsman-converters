@@ -7,23 +7,24 @@ import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import {
+    battery,
     binary,
+    bindCluster,
+    customTimeResponse,
+    deviceAddCustomCluster,
     enumLookup,
     forcePowerSource,
+    humidity,
+    iasZoneAlarm,
     numeric,
     onOff,
-    customTimeResponse,
-    battery,
     ota,
-    deviceAddCustomCluster,
     temperature,
-    humidity,
-    bindCluster,
-    iasZoneAlarm,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const {ewelinkAction} = ewelinkModernExtend;
 
 const NS = 'zhc:sonoff';

@@ -6,22 +6,23 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {
-    onOff,
-    commandsOnOff,
-    commandsLevelCtrl,
-    light,
     battery,
-    electricityMeter,
-    identify,
-    enumLookup,
-    deviceEndpoints,
+    commandsLevelCtrl,
+    commandsOnOff,
     deviceAddCustomCluster,
+    deviceEndpoints,
+    electricityMeter,
+    enumLookup,
+    identify,
+    light,
+    onOff,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz, Tz, KeyValue, ModernExtend} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 import {postfixWithEndpointName} from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 

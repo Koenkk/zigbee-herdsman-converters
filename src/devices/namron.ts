@@ -4,12 +4,12 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {forcePowerSource, light, onOff, electricityMeter} from '../lib/modernExtend';
+import {electricityMeter, forcePowerSource, light, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
-import {DefinitionWithExtend, Fz, Tz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const ea = exposes.access;

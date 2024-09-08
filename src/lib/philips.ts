@@ -1,7 +1,7 @@
 import {Zcl} from 'zigbee-herdsman';
 
 import tz from '../converters/toZigbee';
-import {ColorXY, ColorRGB} from './color';
+import {ColorRGB, ColorXY} from './color';
 import * as libColor from './color';
 import * as exposes from './exposes';
 import {logger} from './logger';

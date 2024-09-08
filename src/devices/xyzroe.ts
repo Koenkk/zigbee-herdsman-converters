@@ -2,8 +2,9 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {DefinitionWithExtend, Tz, Fz, KeyValueAny} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 

@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import fs from 'fs';
 
 import fromZigbeeConverters from '../converters/fromZigbee';
-import * as globalStore from './store';
-import * as utils from './utils';
-const fromZigbeeStore: KeyValueAny = {};
 import * as constants from './constants';
 import * as exposes from './exposes';
 import * as light from './light';
 import {logger} from './logger';
-import {Zh, KeyValueNumberString, Definition, Fz, Publish, Tz} from './types';
+import * as globalStore from './store';
+import {Definition, Fz, KeyValueNumberString, Publish, Tz, Zh} from './types';
+import * as utils from './utils';
+
+const fromZigbeeStore: KeyValueAny = {};
 
 interface KeyValueAny {
     [s: string]: any;

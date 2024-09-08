@@ -4,6 +4,7 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [

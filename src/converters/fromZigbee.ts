@@ -5,16 +5,16 @@ import {logger} from '../lib/logger';
 import * as globalStore from '../lib/store';
 import {Fz, KeyValue, KeyValueAny, KeyValueNumberString} from '../lib/types';
 import {
-    precisionRound,
-    mapNumberRange,
-    isLegacyEnabled,
-    toLocalISOString,
-    numberWithinRange,
-    hasAlreadyProcessedMessage,
     addActionGroup,
-    postfixWithEndpointName,
-    getKey,
     batteryVoltageToPercentage,
+    getKey,
+    hasAlreadyProcessedMessage,
+    isLegacyEnabled,
+    mapNumberRange,
+    numberWithinRange,
+    postfixWithEndpointName,
+    precisionRound,
+    toLocalISOString,
 } from '../lib/utils';
 import * as utils from '../lib/utils';
 

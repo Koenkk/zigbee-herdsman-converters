@@ -2,14 +2,15 @@ import {Zcl} from 'zigbee-herdsman';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Fz} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as constants from '../lib/constants';
-import {light, onOff} from '../lib/modernExtend';
 
 const fzLocal = {
     thermostat_3156105: {

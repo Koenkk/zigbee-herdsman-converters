@@ -6,8 +6,8 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz, Tz, KeyValue} from '../lib/types';
-import {precisionRound, getFromLookup, postfixWithEndpointName, getKey, toNumber} from '../lib/utils';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
+import {getFromLookup, getKey, postfixWithEndpointName, precisionRound, toNumber} from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;

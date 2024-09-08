@@ -6,26 +6,26 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {
+    actionEnumLookup,
+    battery,
+    commandsLevelCtrl,
+    commandsOnOff,
+    deviceEndpoints,
+    electricityMeter,
+    humidity,
+    iasZoneAlarm,
+    identify,
+    light,
     onOff,
     quirkCheckinInterval,
-    battery,
-    deviceEndpoints,
-    light,
-    iasZoneAlarm,
     temperature,
-    humidity,
-    identify,
-    actionEnumLookup,
-    commandsOnOff,
-    commandsLevelCtrl,
-    electricityMeter,
     windowCovering,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
-import {KeyValue, DefinitionWithExtend, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString, ModernExtend} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, KeyValueString, ModernExtend, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
 import * as zosung from '../lib/zosung';

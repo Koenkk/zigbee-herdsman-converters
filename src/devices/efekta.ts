@@ -1,17 +1,17 @@
 import {Zcl} from 'zigbee-herdsman';
 
 import {
-    deviceEndpoints,
-    temperature,
-    humidity,
-    enumLookup,
-    binary,
-    numeric,
-    co2,
-    illuminance,
-    soilMoisture,
     battery,
+    binary,
+    co2,
+    deviceEndpoints,
+    enumLookup,
+    humidity,
+    illuminance,
+    numeric,
     pressure,
+    soilMoisture,
+    temperature,
 } from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 

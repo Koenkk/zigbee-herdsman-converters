@@ -1,8 +1,9 @@
+import {logger} from '../logger';
+import {KeyValue, Ota, Zh} from '../types';
+import * as common from './common';
+
 const productionURL = 'http://fw.ota.homesmart.ikea.net/feed/version_info.json';
 const testURL = 'http://fw.test.ota.homesmart.ikea.net/feed/version_info.json';
-import {logger} from '../logger';
-import {Ota, Zh, KeyValue} from '../types';
-import * as common from './common';
 
 const NS = 'zhc:ota:tradfri';
 const axios = common.getAxios();

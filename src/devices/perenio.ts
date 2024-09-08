@@ -1,12 +1,13 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz, Tz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as ota from '../lib/ota';
 
 const switchTypeValues = ['maintained_state', 'maintained_toggle', 'momentary_state', 'momentary_press', 'momentary_release'];
 

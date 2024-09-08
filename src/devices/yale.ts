@@ -1,4 +1,5 @@
 import {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
+
 import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
 
 import fz from '../converters/fromZigbee';

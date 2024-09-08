@@ -10,8 +10,9 @@ import {battery, humidity, illuminance} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Fz, Tz, Zh, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 

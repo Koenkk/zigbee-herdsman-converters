@@ -2,12 +2,14 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import * as modernExtend from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Configure, DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz} from '../lib/types';
+import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as modernExtend from '../lib/modernExtend';
-import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
+
 const {forcePowerSource, temperature, humidity, co2, deviceEndpoints, onOff, illuminance, occupancy, ota} = modernExtend;
 
 const sprutCode = 0x6666;

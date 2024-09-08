@@ -7,20 +7,20 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {
+    battery,
+    commandsColorCtrl,
+    commandsLevelCtrl,
+    commandsOnOff,
+    commandsScenes,
     deviceEndpoints,
     electricityMeter,
-    light,
-    onOff,
-    battery,
-    identify,
-    occupancy,
-    temperature,
     humidity,
+    identify,
     illuminance,
-    commandsOnOff,
-    commandsLevelCtrl,
-    commandsColorCtrl,
-    commandsScenes,
+    light,
+    occupancy,
+    onOff,
+    temperature,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';

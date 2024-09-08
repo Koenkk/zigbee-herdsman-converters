@@ -4,25 +4,26 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {
+    battery,
+    binary,
+    commandsOnOff,
+    deviceEndpoints,
+    enumLookup,
+    humidity,
+    light,
+    numeric,
+    onOff,
+    quirkAddEndpointCluster,
+    temperature,
+} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Tz, Fz, KeyValue, KeyValueAny, Zh, Expose} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from '../lib/types';
+import {getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {
-    light,
-    onOff,
-    battery,
-    temperature,
-    humidity,
-    enumLookup,
-    binary,
-    numeric,
-    quirkAddEndpointCluster,
-    deviceEndpoints,
-    commandsOnOff,
-} from '../lib/modernExtend';
-import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib/utils';
 
 const switchTypesList = {
     switch: 0x00,

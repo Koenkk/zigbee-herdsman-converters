@@ -1,5 +1,5 @@
 import {logger} from './logger';
-import {Zh, Tz} from './types';
+import {Tz, Zh} from './types';
 import * as utils from './utils';
 
 const NS = 'zhc:light';

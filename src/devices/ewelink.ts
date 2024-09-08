@@ -3,6 +3,7 @@ import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend, Fz} from '../lib/types';
+
 const e = exposes.presets;
 
 const NS = 'zhc:ewelink';

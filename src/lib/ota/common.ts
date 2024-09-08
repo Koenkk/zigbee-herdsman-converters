@@ -1,17 +1,19 @@
 import assert from 'assert';
-import axios from 'axios';
-import crc32 from 'buffer-crc32';
 import crypto from 'crypto';
 import {readFileSync} from 'fs';
 import https from 'https';
-import {HttpsProxyAgent} from 'https-proxy-agent';
 import path from 'path';
 import tls from 'tls';
+
+import axios from 'axios';
+import crc32 from 'buffer-crc32';
+import {HttpsProxyAgent} from 'https-proxy-agent';
 import * as URI from 'uri-js';
+
 import {Zcl} from 'zigbee-herdsman';
 
 import {logger} from '../logger';
-import {Zh, Ota, KeyValueAny, KeyValue, OtaUpdateAvailableResult} from '../types';
+import {KeyValue, KeyValueAny, Ota, OtaUpdateAvailableResult, Zh} from '../types';
 import {sleep} from '../utils';
 
 interface Request {

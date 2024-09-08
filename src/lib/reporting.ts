@@ -1,6 +1,7 @@
 /* eslint camelcase: 0 */
+
 import {repInterval} from './constants';
-import {Zh, Reporting} from './types';
+import {Reporting, Zh} from './types';
 
 export function payload(attribute: string | number, min: number, max: number, change: number, overrides?: Reporting.Override) {
     const payload = {

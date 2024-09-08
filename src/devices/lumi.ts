@@ -2,29 +2,33 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import {logger} from '../lib/logger';
+import * as lumi from '../lib/lumi';
 import {
-    light,
-    numeric,
+    battery,
     binary,
-    enumLookup,
-    forceDeviceType,
-    temperature,
-    humidity,
-    forcePowerSource,
-    quirkAddEndpointCluster,
-    quirkCheckinInterval,
     customTimeResponse,
     deviceEndpoints,
-    battery,
+    enumLookup,
+    forceDeviceType,
+    forcePowerSource,
+    humidity,
     identify,
-    windowCovering,
+    light,
+    numeric,
     onOff,
+    quirkAddEndpointCluster,
+    quirkCheckinInterval,
+    temperature,
+    windowCovering,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as lumi from '../lib/lumi';
-import * as globalStore from '../lib/store';
+
 const {
     lumiAction,
     lumiOperationMode,
@@ -67,8 +71,6 @@ const {
     lumiCommandMode,
     lumiBattery,
 } = lumi.modernExtend;
-import {logger} from '../lib/logger';
-import {DefinitionWithExtend} from '../lib/types';
 
 const NS = 'zhc:lumi';
 const {manufacturerCode} = lumi;

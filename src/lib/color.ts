@@ -1,6 +1,6 @@
 import kelvinToXyLookup from './kelvinToXy';
-import {findColorTempRange, clampColorTemp} from './light';
-import {KeyValueAny, Tz, Zh, KeyValue} from './types';
+import {clampColorTemp, findColorTempRange} from './light';
+import {KeyValue, KeyValueAny, Tz, Zh} from './types';
 import {precisionRound} from './utils';
 
 /**

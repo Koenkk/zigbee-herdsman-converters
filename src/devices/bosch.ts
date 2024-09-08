@@ -6,25 +6,26 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import {
-    identify,
-    light,
-    onOff,
-    quirkCheckinInterval,
-    deviceAddCustomCluster,
-    binary,
-    numeric,
-    enumLookup,
     battery,
+    binary,
+    bindCluster,
+    deviceAddCustomCluster,
+    deviceEndpoints,
+    enumLookup,
     humidity,
     iasZoneAlarm,
-    bindCluster,
+    identify,
+    light,
+    numeric,
+    onOff,
     ota,
-    deviceEndpoints,
+    quirkCheckinInterval,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Tz, Fz, DefinitionWithExtend, KeyValue, ModernExtend, Expose} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 

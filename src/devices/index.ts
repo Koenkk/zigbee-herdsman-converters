@@ -166,6 +166,7 @@ import lixee from './lixee';
 import lonsonho from './lonsonho';
 import ls from './ls';
 import lubeez from './lubeez';
+import lumi from './lumi';
 import lupus from './lupus';
 import lutron from './lutron';
 import lux from './lux';
@@ -214,6 +215,7 @@ import plugwise from './plugwise';
 import profalux from './profalux';
 import prolight from './prolight';
 import pushok from './pushok';
+import qa from './qa';
 import qmotion from './qmotion';
 import qoto from './qoto';
 import quotra from './quotra';
@@ -284,7 +286,6 @@ import villeroy_boch from './villeroy_boch';
 import vimar from './vimar';
 import visonic from './visonic';
 import vrey from './vrey';
-import lumi from './lumi';
 import wally from './wally';
 import waxman from './waxman';
 import weiser from './weiser';
@@ -304,7 +305,6 @@ import zemismart from './zemismart';
 import zen from './zen';
 import zigbeetlc from './zigbeetlc';
 import zipato from './zipato';
-import qa from './qa';
 
 export default [
     ...acova,

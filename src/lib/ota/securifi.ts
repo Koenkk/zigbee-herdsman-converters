@@ -1,4 +1,4 @@
-import {Zh, Ota} from '../types';
+import {Ota, Zh} from '../types';
 import * as common from './common';
 import * as zigbeeOTA from './zigbeeOTA';
 

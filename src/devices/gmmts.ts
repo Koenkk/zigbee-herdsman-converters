@@ -1,4 +1,5 @@
 import {Buffer} from 'buffer';
+
 import {Zcl} from 'zigbee-herdsman';
 import {Device} from 'zigbee-herdsman/dist/controller/model';
 
@@ -9,7 +10,7 @@ import {logger} from '../lib/logger';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Fz, Tz, KeyValue, Zh, Expose} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, KeyValue, Tz, Zh} from '../lib/types';
 
 const ea = exposes.access;
 const e = exposes.presets;
