@@ -236,6 +236,15 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ['987b1869e4944218aa0034750d4ac585'],
+        model: 'SE20-O',
+        vendor: 'ORVIBO',
+        description: 'Smart emergency button',
+        fromZigbee: [fz.command_status_change_notification_action],
+        exposes: [e.action(['single'])],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['72bd56c539ca4c7fba73a9be0ae0d19f'],
         model: 'SE21',
         vendor: 'ORVIBO',
