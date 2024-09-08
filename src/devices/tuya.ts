@@ -666,12 +666,16 @@ const fzLocal = {
             const data = msg.data.slice(3);
             if (command == 0xe6) {
                 const value = splitToAttributes(data);
-                return {
-                    temperature_threshold: value[0x05][1],
-                    temperature_breaker: lookup[value[0x05][0]],
-                    power_threshold: value[0x07][1],
-                    power_breaker: lookup[value[0x07][0]],
-                };
+                const result: KeyValue = {};
+                if (0x05 in value) {
+                    result.temperature_threshold = value[0x05][1];
+                    result.temperature_breaker = lookup[value[0x05][0]];
+                }
+                if (0x07 in value) {
+                    result.power_threshold = value[0x07][1];
+                    result.power_breaker = lookup[value[0x07][0]];
+                }
+                return result;
             }
             if (command == 0xe7) {
                 const value = splitToAttributes(data);
@@ -8373,6 +8377,10 @@ const definitions: DefinitionWithExtend[] = [
                         .withUnit('*C')
                         .withDescription('High temperature threshold'),
                     e.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High temperature breaker'),
+                );
+            }
+            if (device?.manufacturerName !== '_TZ3000_303avxxt') {
+                exposes.push(
                     e
                         .numeric('power_threshold', ea.STATE_SET)
                         .withValueMin(1)
