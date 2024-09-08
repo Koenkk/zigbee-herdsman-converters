@@ -11437,7 +11437,10 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_fhvdgeuh']),
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE204_fhvdgeuh'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_abatw3kj'},
+        ],
         model: 'TS0601_din_4',
         vendor: 'Tuya',
         description: 'Din rail switch with power monitoring and threshold settings',
@@ -11448,6 +11451,7 @@ const definitions: DefinitionWithExtend[] = [
             // Required to get the device to start reporting
             await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
         },
+        whiteLabel: [tuya.whitelabel('RTX', 'TS0601_RTX_DIN', 'Din rail switch', ['_TZE200_abatw3kj'])],
         exposes: [
             e.switch().setAccess('state', ea.STATE_SET),
             e.power(),
