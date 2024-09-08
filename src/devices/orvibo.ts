@@ -243,7 +243,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.command_status_change_notification_action],
         exposes: [e.action(['single'])],
         toZigbee: [],
-    },    
+    },
     {
         zigbeeModel: ['72bd56c539ca4c7fba73a9be0ae0d19f'],
         model: 'SE21',
