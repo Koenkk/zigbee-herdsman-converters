@@ -322,9 +322,9 @@ const tzLocal = {
                     // Load current state or defaults
                     const newSettings = {
                         brightness: meta.state.brightness ?? 254, //      full brightness
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         hue: (meta.state.color ?? {}).hue ?? 0, //          red
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         saturation: (meta.state.color ?? {}).saturation ?? 100, // full saturation
                     };
 

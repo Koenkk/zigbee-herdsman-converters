@@ -105,7 +105,7 @@ const converters1 = {
                     } else {
                         zclData.hue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 254);
                     }
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     zclData.direction = value.direction || 0;
                 }
 
@@ -115,7 +115,7 @@ const converters1 = {
 
                 if (hsv.value !== null) {
                     // fallthrough to genLevelCtrl
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     value.brightness = utils.mapNumberRange(hsvCorrected.value, 0, 100, 0, 254);
                 }
 
@@ -140,7 +140,7 @@ const converters1 = {
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     {level: Number(value.brightness), transtime: utils.getTransition(entity, key, meta).time},
                     utils.getOptions(meta.mapped, entity),
                 );
@@ -385,7 +385,7 @@ const converters2 = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const user = meta && meta.message && meta.message.pin_code ? meta.message.pin_code.user : undefined;
             if (user === undefined) {
                 const max = utils.getMetaValue<number>(entity, meta.mapped, 'pinCodeCount');
@@ -437,7 +437,7 @@ const converters2 = {
             );
         },
         convertGet: async (entity, key, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const user = meta && meta.message && meta.message.user_status ? meta.message.user_status.user : undefined;
             const pinCodeCount = utils.getMetaValue<number>(entity, meta.mapped, 'pinCodeCount');
             if (user === undefined) {
@@ -500,17 +500,17 @@ const converters2 = {
             const strobeLevel = {low: 0, medium: 1, high: 2, very_high: 3};
 
             const values = {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 mode: value.mode || 'emergency',
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 level: value.level || 'medium',
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 duration: value.hasOwnProperty('duration') ? value.duration : 10,
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 strobeDutyCycle: value.hasOwnProperty('strobe_duty_cycle') ? value.strobe_duty_cycle * 10 : 0,
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 strobeLevel: value.hasOwnProperty('strobe_level') ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
             };
 
@@ -825,7 +825,7 @@ const converters2 = {
                 'lamp_burn_hours_trip_point',
             ]) {
                 try {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     result = {...result, ...(await entity.read('lightingBallastCfg', [utils.toCamelCase(attrName)]))};
                 } catch {
                     // continue regardless of error
@@ -1116,7 +1116,7 @@ const converters2 = {
                         try {
                             const attributeRead = await entity.read('genLevelCtrl', ['onLevel']);
                             if (attributeRead !== undefined) {
-                                // @ts-expect-error
+                                // @ts-expect-error ignore
                                 onLevel = attributeRead['onLevel'];
                             }
                         } catch {
@@ -2784,9 +2784,9 @@ const converters2 = {
 
             const zclData = {
                 brightness: globalStore.getValue(entity, 'brightness') || 100,
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254) || 100,
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254) || 100,
                 transtime: 0,
             };
@@ -3368,7 +3368,7 @@ const converters2 = {
             let value = utils.getFromLookup(rawValue, lookup, Number(rawValue));
 
             if (key == 'sensors_type') {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 value = utils.getFromLookup(rawValue, sensorsTypeLookup, Number(rawValue));
             }
 
@@ -3437,7 +3437,7 @@ const converters2 = {
             const modeOpenLookup = {never: '0', once: '1', always: '2', drop: '3'};
             let value = utils.getFromLookup(rawValue, lookup, Number(rawValue));
             if (key == 'mode') {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 value = utils.getFromLookup(rawValue, modeOpenLookup, Number(rawValue));
             }
             const payloads: KeyValueAny = {
@@ -3506,7 +3506,7 @@ const converters2 = {
             const options = {
                 // Don't send a manufacturerCode (otherwise set in herdsman):
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2827
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 manufacturerCode: null,
                 ...utils.getOptions(meta.mapped, entity),
             };
@@ -3563,11 +3563,11 @@ const converters2 = {
                         utils.saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr], scenename);
                     }
                 }
-                // @ts-expect-error
+                // @ts-expect-error ignore
             } else if (response.status === 0) {
                 utils.saveSceneState(entity, sceneid, groupid, meta.state, scenename);
             } else {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
             }
             logger.info('Successfully stored scene', NS);
@@ -3798,11 +3798,11 @@ const converters2 = {
                         utils.deleteSceneState(member, sceneid, groupid);
                     }
                 }
-                // @ts-expect-error
+                // @ts-expect-error ignore
             } else if (response.status === 0) {
                 utils.deleteSceneState(entity, sceneid, groupid);
             } else {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 throw new Error(`Scene remove not successful ('${Zcl.Status[response.status]}')`);
             }
             logger.info('Successfully removed scene', NS);

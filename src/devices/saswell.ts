@@ -51,7 +51,7 @@ const definitions: DefinitionWithExtend[] = [
             legacy.tz.saswell_thermostat_anti_scaling,
             legacy.tz.tuya_thermostat_weekly_schedule,
         ],
-        // @ts-expect-error
+        // @ts-expect-error ignore
         onEvent: (type, data, device) => !['_TZE200_c88teujp'].includes(device.manufacturerName) && tuya.onEventSetTime(type, data, device),
         meta: {
             thermostat: {

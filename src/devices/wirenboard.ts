@@ -128,7 +128,7 @@ const tzLocal = {
                 reservedBits: 0,
                 direction: 0,
                 writeUndiv: false,
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 transactionSequenceNumber: null,
             };
 
@@ -404,7 +404,7 @@ const sprutModernExtend = {
                         reservedBits: 0,
                         direction: 0,
                         writeUndiv: false,
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         transactionSequenceNumber: null,
                     };
 

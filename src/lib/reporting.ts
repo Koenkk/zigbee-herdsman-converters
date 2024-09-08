@@ -14,7 +14,7 @@ export function payload(attribute: string | number, min: number, max: number, ch
     if (overrides) {
         if (overrides.hasOwnProperty('min')) payload.minimumReportInterval = overrides.min;
         if (overrides.hasOwnProperty('max')) payload.maximumReportInterval = overrides.max;
-        // @ts-expect-error
+        // @ts-expect-error ignore
         if (overrides.hasOwnProperty('change')) payload.reportableChange = overrides.change;
     }
 
@@ -124,12 +124,12 @@ export const instantaneousDemand = async (endpoint: Zh.Endpoint, overrides?: Rep
     await endpoint.configureReporting('seMetering', p);
 };
 export const currentSummDelivered = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-    // @ts-expect-error
+    // @ts-expect-error ignore
     const p = payload('currentSummDelivered', 5, repInterval.HOUR, [1, 1], overrides);
     await endpoint.configureReporting('seMetering', p);
 };
 export const currentSummReceived = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-    // @ts-expect-error
+    // @ts-expect-error ignore
     const p = payload('currentSummReceived', 5, repInterval.HOUR, [1, 1], overrides);
     await endpoint.configureReporting('seMetering', p);
 };

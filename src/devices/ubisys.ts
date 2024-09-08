@@ -26,7 +26,7 @@ const manufacturerOptions = {
      * https://github.com/Koenkk/zigbee-herdsman/issues/52
      */
     ubisys: {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-    // @ts-expect-error
+    // @ts-expect-error ignore
     ubisysNull: {manufacturerCode: null},
 };
 
@@ -136,7 +136,7 @@ const ubisys = {
                     do {
                         await sleepSeconds(2);
                         const response = await entity.read('closuresWindowCovering', ['operationalStatus']);
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         operationalStatus = response.operationalStatus;
                     } while (operationalStatus != 0);
                     await sleepSeconds(2);
@@ -167,7 +167,7 @@ const ubisys = {
                 const stepsPerSecond = value.steps_per_second || 50;
                 const hasCalibrate = value.hasOwnProperty('calibrate');
                 // cancel any running calibration
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 let mode = (await entity.read('closuresWindowCovering', ['windowCoveringMode'])).windowCoveringMode;
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {
@@ -177,7 +177,7 @@ const ubisys = {
                 // delay a bit if reconfiguring basic configuration attributes
                 await writeAttrFromJson('windowCoveringType', undefined, undefined, 2);
                 await writeAttrFromJson('configStatus', undefined, undefined, 2);
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 if (await writeAttrFromJson('windowCoveringMode', undefined, undefined, 2)) {
                     mode = value['windowCoveringMode'];
                 }
@@ -527,7 +527,7 @@ const ubisys = {
                     const templates = Array.isArray(value.input_action_templates) ? value.input_action_templates : [value.input_action_templates];
                     let resultingInputActions: unknown[] = [];
                     for (const template of templates) {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const templateType = templateTypes[template.type];
                         if (!templateType) {
                             throw new Error(

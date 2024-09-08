@@ -111,7 +111,7 @@ export const philipsTz = {
         return {
             key: ['gradient'],
             convertSet: async (entity, key, value, meta) => {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 const scene = encodeGradientColors(value, opts);
                 const payload = {data: Buffer.from(scene, 'hex')};
                 await entity.command('manuSpecificPhilips2', 'multiColor', payload);
@@ -187,7 +187,7 @@ export const philipsTz = {
                             await entity.write('lightingColorCtrl', {0x0004: {value: 0xffff, type: 0x21}}, manufacturerOptions);
                         }
                     } else if (meta.message.hasOwnProperty('hue_power_on_color')) {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const colorXY = libColor.ColorRGB.fromHex(meta.message.hue_power_on_color).toXY();
                         const xy = {x: utils.mapNumberRange(colorXY.x, 0, 1, 0, 65535), y: utils.mapNumberRange(colorXY.y, 0, 1, 0, 65535)};
                         value = xy;
@@ -381,7 +381,7 @@ export const philipsFz = {
                 // simulated brightness
                 if (options.simulated_brightness) {
                     const opts = options.simulated_brightness;
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 35;
                     const delta = direction === 'right' ? deltaOpts : deltaOpts * -1;
                     const brightness = globalStore.getValue(msg.endpoint, 'brightness', 255) + delta;
@@ -538,7 +538,7 @@ function decodeGradientColors(input: string, opts: KeyValue) {
 
         // Effect mode
         const effect = input.slice(0, 4);
-        // @ts-expect-error
+        // @ts-expect-error ignore
         const name = knownEffects[effect] || `unknown_${effect}`;
         return {
             color_mode: 'xy',

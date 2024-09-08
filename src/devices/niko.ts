@@ -104,16 +104,16 @@ const local = {
                 //       this seems to brick the device and it will need to be rejoined
                 utils.assertEndpoint(entity);
                 const operationModeLookup = {control_relay: 0x02, decoupled: 0x01};
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 if (!operationModeLookup.hasOwnProperty(value)) {
                     throw new Error(`operation_mode was called with an invalid value (${value})`);
                 } else {
                     await utils.enforceEndpoint(entity, key, meta).write(
                         'manuSpecificNiko1',
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         {switchOperationMode: operationModeLookup[value]},
                     );
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     return {state: {operation_mode: value.toLowerCase()}};
                 }
             },

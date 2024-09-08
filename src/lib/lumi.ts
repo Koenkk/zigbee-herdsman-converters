@@ -346,7 +346,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 } else if (['WSDCGQ01LM', 'WSDCGQ11LM', 'WSDCGQ12LM', 'VOCKQJK11LM'].includes(model.model)) {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/798
                     // Sometimes the sensor publishes non-realistic vales, filter these
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const temperature = parseFloat(value) / 100.0;
                     if (temperature > -65 && temperature < 65) {
                         payload.temperature = temperature;
@@ -414,7 +414,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 } else if (['WSDCGQ01LM', 'WSDCGQ11LM', 'WSDCGQ12LM', 'VOCKQJK11LM'].includes(model.model)) {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/798
                     // Sometimes the sensor publishes non-realistic vales, filter these
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const humidity = parseFloat(value) / 100.0;
                     if (humidity >= 0 && humidity <= 100) {
                         payload.humidity = humidity;
@@ -792,7 +792,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                     payload.hand_open = !value;
                 } else {
                     // next values update only when curtain finished initial setup and knows current position
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     payload.options = {...payload.options, reverse_direction: value[2] == '\u0001', hand_open: value[5] == '\u0000'};
                 }
                 break;
@@ -889,7 +889,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 break;
             case '65281':
                 {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const payload65281 = await numericAttributes2Payload(msg, meta, model, options, value);
                     payload = {...payload, ...payload65281};
                 }
@@ -898,13 +898,13 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 // This is a a complete structure with attributes, like element 0 for state, element 1 for voltage...
                 // At this moment we only extract what we are sure, for example, position 0 seems to be always 1 for a
                 // occupancy sensor, so we ignore it at this moment
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 payload.voltage = value[1].elmVal;
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
                     assertNumber(payload.voltage);
                     payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
                 }
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 payload.power_outage_count = value[4].elmVal - 1;
                 break;
             case 'mode':
@@ -1133,7 +1133,7 @@ function writeDaySelection(buffer: Buffer, offset: number, selectedDays: Day[]) 
 
     const bitMap = dayNames.reduce((repeat, dayName, index) => {
         const isDaySelected = selectedDays.includes(dayName);
-        // @ts-expect-error
+        // @ts-expect-error ignore
         return repeat | (isDaySelected << (index + 1));
     }, 0);
 
@@ -1411,7 +1411,7 @@ export const trv = {
 
         stringifiedScheduleFragments.forEach((fragment, index) => {
             if (index === 0) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 schedule.days.push(...fragment.split(stringifiedScheduleValueSeparator));
             } else {
                 const entryFragments = fragment.split(stringifiedScheduleValueSeparator);
@@ -2558,16 +2558,16 @@ export const fromZigbee = {
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (parseInt(key)) {
                     case 0xfff1: {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         if (value.length < 8) {
                             logger.debug(`Cannot handle ${value}, frame too small`, 'zhc:lumi:feeder');
                             return;
                         }
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const attr = value.slice(3, 7);
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const len = value.slice(7, 8).readUInt8();
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const val = value.slice(8, 8 + len);
                         switch (attr.readInt32BE()) {
                             case 0x04150055: // feeding
@@ -2655,7 +2655,7 @@ export const fromZigbee = {
                         result['system_mode'] = getFromLookup(value, {1: 'heat', 0: 'off'});
                         break;
                     case 0x0272:
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         Object.assign(result, trv.decodePreset(value));
                         break;
                     case 0x0273:
@@ -2687,7 +2687,7 @@ export const fromZigbee = {
                         result['valve_alarm'] = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 247: {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const heartbeat = trv.decodeHeartbeat(meta, model, value);
 
                         logger.debug(`${model.model}: Processed heartbeat message into payload ${JSON.stringify(heartbeat)}`, 'zhc:lumi:trv');
@@ -2698,7 +2698,7 @@ export const fromZigbee = {
                             // This is not reflected in the frontend unless the device is reconfigured
                             // or the whole service restarted.
                             // See https://github.com/Koenkk/zigbee-herdsman-converters/pull/5363#discussion_r1081477047
-                            // @ts-expect-error
+                            // @ts-expect-error ignore
                             meta.device.softwareBuildID = heartbeat.firmware_version;
                             delete heartbeat.firmware_version;
                         }
@@ -2758,9 +2758,9 @@ export const fromZigbee = {
                         }
 
                         const [regionIdRaw, eventTypeCodeRaw] = value;
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const regionId = parseInt(regionIdRaw, 10);
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const eventTypeCode = parseInt(eventTypeCodeRaw, 10);
 
                         if (Number.isNaN(regionId)) {
@@ -3718,11 +3718,11 @@ export const toZigbee = {
         key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
         convertSet: async (entity, key, value, meta) => {
             const sendAttr = async (attrCode: number, value: number, length: number) => {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 entity.sendSeq = ((entity.sendSeq || 0) + 1) % 256;
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 entity.sendSeq += 1;
                 val.writeInt32BE(attrCode, 3);
                 val.writeUInt8(length, 7);
@@ -3738,7 +3738,7 @@ export const toZigbee = {
                         v.writeUInt32BE(value);
                         break;
                     default:
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         v = value;
                 }
                 await entity.write('manuSpecificLumi', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}}, {manufacturerCode: manufacturerCode});
@@ -3749,13 +3749,13 @@ export const toZigbee = {
                     break;
                 case 'schedule': {
                     const schedule: string[] = [];
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     value.forEach((item) => {
                         const schedItem = Buffer.from([getKey(feederDaysLookup, item.days, 0x7f), item.hour, item.minute, item.size, 0]);
                         schedule.push(schedItem.toString('hex'));
                     });
                     const val = Buffer.concat([Buffer.from(schedule.join(',')), Buffer.from([0])]);
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     await sendAttr(0x080008c8, val, val.length);
                     break;
                 }
@@ -3769,11 +3769,11 @@ export const toZigbee = {
                     await sendAttr(0x04180055, getFromLookup(value, {manual: 0, schedule: 1}), 1);
                     break;
                 case 'serving_size':
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     await sendAttr(0x0e5c0055, value, 4);
                     break;
                 case 'portion_weight':
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     await sendAttr(0x0e5f0055, value, 4);
                     break;
                 default: // Unknown key
@@ -3989,7 +3989,7 @@ export const toZigbee = {
                     );
                     break;
                 case 'schedule_settings': {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const schedule = trv.parseSchedule(value);
                     trv.validateSchedule(schedule);
                     const buffer = trv.encodeSchedule(schedule);
@@ -4094,7 +4094,7 @@ export const toZigbee = {
 
             if (!commandWrapper.isSuccess) {
                 logger.warning(
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     `Encountered an error (${commandWrapper.error.reason}) while parsing configuration commands (input: ${JSON.stringify(value)})`,
                     NS,
                 );
@@ -4274,7 +4274,7 @@ export const toZigbee = {
             const lookup = {rgbw: 3, dual_ct: 1};
             assertString(value, key);
             value = value.toLowerCase();
-            // @ts-expect-error
+            // @ts-expect-error ignore
             if (['rgbw'].includes(value)) {
                 await entity.write('manuSpecificLumi', {0x0509: {value: getFromLookup(value, lookup), type: 0x23}}, manufacturerOptions.lumi);
                 await entity.write('manuSpecificLumi', {0x050f: {value: 1, type: 0x23}}, manufacturerOptions.lumi);
@@ -5125,7 +5125,7 @@ export const toZigbee = {
                     payload.push(...value.switch_1_text.split('').map((c: string) => c.charCodeAt(0)));
                     statearr.switch_1_text = value.switch_1_text;
                 } else {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_1_text = '';
                 }
@@ -5147,7 +5147,7 @@ export const toZigbee = {
                     payload.push(...value.switch_2_text.split('').map((c: string) => c.charCodeAt(0)));
                     statearr.switch_2_text = value.switch_2_text;
                 } else {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_2_text = '';
                 }
@@ -5169,7 +5169,7 @@ export const toZigbee = {
                     payload.push(...value.switch_3_text.split('').map((c: string) => c.charCodeAt(0)));
                     statearr.switch_3_text = value.switch_3_text;
                 } else {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_3_text = '';
                 }
@@ -5210,7 +5210,7 @@ export const legacyFromZigbee = {
                         legacyFromZigbeeStore[key].long_timer = setTimeout(() => {
                             legacyFromZigbeeStore[key].long = false;
                         }, 4000); // After 4000 milliseconds of not receiving long_release we assume it will not happen.
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                     }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
                 } else if (state === 1) {
                     if (legacyFromZigbeeStore[key].long) {

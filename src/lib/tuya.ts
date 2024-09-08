@@ -703,7 +703,7 @@ export const valueConverter = {
         },
         to: (v: string) => {
             const numberPattern = /\d+/g;
-            // @ts-ignore
+            // @ts-expect-error ignore
             return v.match(numberPattern).join([]).toString();
         },
     },
@@ -813,7 +813,7 @@ export const valueConverter = {
                         ':' +
                         String(parseInt(v[index + 1])).padStart(2, '0') +
                         '/' +
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         (parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1),
                 );
             }
@@ -1242,7 +1242,7 @@ const tuyaTz = {
             if (countdown !== undefined) {
                 // OnTime is a 16bit register and so might very well work up to 0xFFFF seconds but
                 // the Tuya documentation says that the maximum is 43200 (so 12 hours).
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 if (!Number.isInteger(countdown) || countdown < 0 || countdown > 12 * 3600) {
                     throw new Error('countdown must be an integer between 1 and 43200 (12 hours) or 0 to cancel');
                 }

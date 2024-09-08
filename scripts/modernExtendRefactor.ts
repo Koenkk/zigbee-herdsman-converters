@@ -60,10 +60,10 @@ project.getSourceFiles().forEach((sourceFile) => {
                     const evalOpts = Object.entries(eval(`(${opts})`));
                     for (const [key, value] of evalOpts) {
                         if (key === 'colorTempRange') {
-                            // @ts-expect-error
+                            // @ts-expect-error ignore
                             newOpts.colorTemp = {...newOpts.colorTemp, range: value};
                         } else if (key === 'disableColorTempStartup') {
-                            // @ts-expect-error
+                            // @ts-expect-error ignore
                             newOpts.colorTemp = {...newOpts.colorTemp, startup: !value};
                         } else if (key === 'disablePowerOnBehavior') {
                             newOpts.powerOnBehavior = !value;
@@ -72,10 +72,10 @@ project.getSourceFiles().forEach((sourceFile) => {
                         } else if (key === 'disableHueEffects') {
                             newOpts.hueEffect = !value;
                         } else if (key === 'supportsHueAndSaturation' || key === 'preferHueAndSaturation') {
-                            // @ts-expect-error
+                            // @ts-expect-error ignore
                             newOpts.color = {...newOpts.color, modes: evalOpts.preferHueAndSaturation ? ['hs', 'xy'] : ['xy', 'hs']};
                         } else if (key === 'extraEffects') {
-                            // @ts-expect-error
+                            // @ts-expect-error ignore
                             newOpts.gradient = {...newOpts.gradient, extraEffects: value};
                         } else if (key === 'noConfigure') {
                             // ignore
@@ -89,10 +89,10 @@ project.getSourceFiles().forEach((sourceFile) => {
                 //         if (key === 'turnsOffAtBrightness1') {
                 //             newOpts.turnsOffAtBrightness1 = value;
                 //         } else if (key === 'applyRedFix') {
-                //             // @ts-expect-error
+                //             // @ts-expect-error ignore
                 //             newOpts.color = {...newOpts.color, applyRedFix: value};
                 //         } else if (key === 'supportsEnhancedHue') {
-                //             // @ts-expect-error
+                //             // @ts-expect-error ignore
                 //             newOpts.color = {...newOpts.color, enhancedHue: value};
                 //         } else if (key === 'multiEndpoint' || key === 'disableDefaultResponse') {
                 //             // ignore

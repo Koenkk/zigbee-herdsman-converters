@@ -34,7 +34,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             delete msg['running_state'];
             const result: KeyValue = {};
             const occupancyLookup = {0: 'unoccupied', 1: 'occupied'};
@@ -373,7 +373,7 @@ const tzLocal = {
             }
             const lookup = {ambiant: 1, floor: 2};
             value = value.toLowerCase();
-            // @ts-expect-error
+            // @ts-expect-error ignore
             if (lookup.hasOwnProperty(value)) {
                 await entity.write('manuSpecificSinope', {floorControlMode: utils.getFromLookup(value, lookup)});
             }
@@ -387,9 +387,9 @@ const tzLocal = {
         // TH1300ZB and TH1400ZB specific
         key: ['ambiant_max_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             if ((value >= 5 && value <= 36) || value == 'off') {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await entity.write('manuSpecificSinope', {ambiantMaxHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
                 return {readAfterWriteTime: 250, state: {ambiant_max_heat_setpoint: value}};
             }
@@ -402,9 +402,9 @@ const tzLocal = {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_min_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             if ((value >= 5 && value <= 34) || value == 'off') {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await entity.write('manuSpecificSinope', {floorMinHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
                 return {readAfterWriteTime: 250, state: {floor_min_heat_setpoint: value}};
             }
@@ -417,9 +417,9 @@ const tzLocal = {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_max_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             if ((value >= 7 && value <= 36) || value == 'off') {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await entity.write('manuSpecificSinope', {floorMaxHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
                 return {readAfterWriteTime: 250, state: {floor_max_heat_setpoint: value}};
             }
@@ -437,7 +437,7 @@ const tzLocal = {
             }
             const lookup = {'10k': 0, '12k': 1};
             value = value.toLowerCase();
-            // @ts-expect-error
+            // @ts-expect-error ignore
             if (lookup.hasOwnProperty(value)) {
                 await entity.write('manuSpecificSinope', {temperatureSensor: utils.getFromLookup(value, lookup)});
             }

@@ -1564,17 +1564,17 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
             key: ['warning'],
             convertSet: async (entity, key, value, meta) => {
                 const values = {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     mode: value.mode || 'emergency',
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     level: value.level || 'medium',
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     duration: value.hasOwnProperty('duration') ? value.duration : 10,
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     strobeDutyCycle: value.hasOwnProperty('strobe_duty_cycle') ? value.strobe_duty_cycle * 10 : 0,
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     strobeLevel: value.hasOwnProperty('strobe_level') ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
                 };
 

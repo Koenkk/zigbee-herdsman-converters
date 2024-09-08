@@ -451,7 +451,7 @@ export class Light extends Base {
             .withDescription('Color temperature of this light');
 
         if (process.env.ZHC_TEST) {
-            // @ts-ignore
+            // @ts-expect-error ignore
             feature._colorTempRangeProvided = rangeProvided;
         }
 

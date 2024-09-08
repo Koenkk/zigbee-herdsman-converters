@@ -73,7 +73,7 @@ async function downloadImage(meta: KeyValueAny) {
 
     const files = await untar(download.data);
 
-    // @ts-expect-error
+    // @ts-expect-error ignore
     const imageFile = files.find((file) => file.headers.name.endsWith('.ota'));
 
     return imageFile;

@@ -85,7 +85,7 @@ const fzPerenio = {
                 2: 'previous',
             };
             if (msg.data.hasOwnProperty(0)) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 result['default_on_off_state'] = powerOnStateLookup[msg.data[0]];
             }
             if (msg.data.hasOwnProperty(1)) {
@@ -198,7 +198,7 @@ const tzPerenio = {
     on_off_mod: {
         key: ['state', 'on_time', 'off_wait_time'],
         convertSet: async (entity, key, value, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
             const alarmVoltageMin = meta.state[`alarm_voltage_min${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];

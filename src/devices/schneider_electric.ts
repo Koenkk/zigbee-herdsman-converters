@@ -461,7 +461,7 @@ const fzLocal = {
 
             if (rxAfterTx) {
                 // Send Schneider specific ACK to make PowerTag happy
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 const networkParameters = await msg.device.constructor.adapter.getNetworkParameters();
                 const payload = {
                     options: 0b000,

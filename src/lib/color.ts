@@ -519,7 +519,7 @@ class ColorHSV {
     static correctHue(hue: number, meta: Tz.Meta): number {
         const {options} = meta;
         if (options.hasOwnProperty('hue_correction')) {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             return this.interpolateHue(hue, options.hue_correction);
         } else {
             return hue;
@@ -557,7 +557,7 @@ export class Color {
      * @param xy - ColorXY instance
      */
     constructor(hsv: ColorHSV, rgb: ColorRGB, xy: ColorXY) {
-        // @ts-expect-error
+        // @ts-expect-error ignore
         if ((hsv !== null) + (rgb !== null) + (xy !== null) != 1) {
             throw new Error('Color object should have exactly only one of hsv, rgb or xy properties');
         } else if (hsv !== null) {

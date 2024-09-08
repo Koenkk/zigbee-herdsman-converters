@@ -273,7 +273,7 @@ const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesLis
                 .binary(
                     key,
                     ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     ATTRIBUTES[key].values.Enabled,
                     ATTRIBUTES[key].values.Disabled,
                 )
@@ -1256,7 +1256,7 @@ const tzLocal = {
                     [ATTRIBUTES[key].ID]: {
                         value:
                             ATTRIBUTES[key].displayType === 'enum'
-                                ? // @ts-expect-error
+                                ? // @ts-expect-error ignore
                                   ATTRIBUTES[key].values[value]
                                 : value,
                         type: ATTRIBUTES[key].dataType,
@@ -1311,13 +1311,13 @@ const tzLocal = {
                 'manuSpecificInovelli',
                 'ledEffect',
                 {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     effect: ledEffects[values.effect],
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     color: Math.min(Math.max(0, values.color), 255),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     level: Math.min(Math.max(0, values.level), 100),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     duration: Math.min(Math.max(0, values.duration), 255),
                 },
                 {disableResponse: true, disableDefaultResponse: true},
@@ -1332,15 +1332,15 @@ const tzLocal = {
                 'manuSpecificInovelli',
                 'individualLedEffect',
                 {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     led: Math.min(Math.max(0, parseInt(values.led)), 7),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     effect: individualLedEffects[values.effect],
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     color: Math.min(Math.max(0, values.color), 255),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     level: Math.min(Math.max(0, values.level), 100),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     duration: Math.min(Math.max(0, values.duration), 255),
                 },
                 {disableResponse: true, disableDefaultResponse: true},
@@ -1359,7 +1359,7 @@ const tzLocal = {
             const transition = utils.getTransition(entity, 'brightness', meta);
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1', 'allEqual', false);
             let state = message.hasOwnProperty('state')
-                ? // @ts-expect-error
+                ? // @ts-expect-error ignore
                   message.state.toLowerCase()
                 : undefined;
             let brightness = undefined;
@@ -1403,7 +1403,7 @@ const tzLocal = {
                     const payload = {level, transtime: transition.time};
                     await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, utils.getOptions(meta.mapped, entity));
                     const result = {state: {state: state.toUpperCase()}};
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     if (state === 'on') result.state.brightness = level;
                     return result;
                 } else {
@@ -1415,10 +1415,10 @@ const tzLocal = {
                     }
 
                     const result = await inovelliOnOffConvertSet(entity, 'state', state, meta);
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     result.readAfterWriteTime = 0;
                     if (result.state && result.state.state === 'ON' && meta.state.brightness === 0) {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         result.state.brightness = 1;
                     }
 
@@ -1450,7 +1450,7 @@ const tzLocal = {
                     },
                     readAfterWriteTime:
                         transition.time === 0
-                            ? // @ts-expect-error
+                            ? // @ts-expect-error ignore
                               defaultTransitionTime.rampRateOnToOffRemote * 100
                             : transition.time * 100, // need on speed
                 };
@@ -1693,7 +1693,7 @@ const tzLocal = {
  * fallback to if a transition is not specified by passing 0xffff
  */
 const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
-    // @ts-expect-error
+    // @ts-expect-error ignore
     const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
     utils.validateValue(state, ['toggle', 'off', 'on']);
 

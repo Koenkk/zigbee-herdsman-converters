@@ -69,7 +69,7 @@ const kmpcilConverters = {
             if (msg.data.hasOwnProperty('batteryVoltage')) {
                 payload.voltage = msg.data['batteryVoltage'] * 100;
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     payload.battery = utils.batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
                 }
             }

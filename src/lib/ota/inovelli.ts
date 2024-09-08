@@ -32,9 +32,9 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
         .sort((a: KeyValueAny, b: KeyValueAny) => {
             const aRadix = a.version.match(/[A-F]/) ? 16 : 10;
             const bRadix = b.version.match(/[A-F]/) ? 16 : 10;
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const aVersion = parseFloat(a.version, aRadix);
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const bVersion = parseFloat(b.version, bRadix);
             // doesn't matter which order they are in
             if (aVersion < bVersion) {
@@ -55,7 +55,7 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
 
     // version in the firmware removes the zero padding and support hex versioning
     return {
-        // @ts-expect-error
+        // @ts-expect-error ignore
         fileVersion: parseFloat(image.version, image.version.match(/[A-F]/) ? 16 : 10),
         url: image.firmware,
     };

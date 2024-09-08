@@ -224,7 +224,7 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message, definiti
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
         logger.warning(`No meta passed to postfixWithEndpointName, update your external converter!`, NS);
-        // @ts-expect-error
+        // @ts-expect-error ignore
         meta = {device: null};
     }
 
@@ -245,7 +245,7 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message, definiti
 export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta) {
     const multiEndpointEnforce = getMetaValue(entity, meta.mapped, 'multiEndpointEnforce', 'allEqual', []);
     if (multiEndpointEnforce && multiEndpointEnforce.hasOwnProperty(key)) {
-        // @ts-expect-error
+        // @ts-expect-error ignore
         const endpoint = entity.getDevice().getEndpoint(multiEndpointEnforce[key]);
         if (endpoint) return endpoint;
     }
@@ -254,7 +254,7 @@ export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta)
 
 export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T, fallback?: T, convertTo?: (v: unknown) => T) {
     for (const key in object) {
-        // @ts-expect-error
+        // @ts-expect-error ignore
         if (object[key] === value) {
             return convertTo ? convertTo(key) : key;
         }
@@ -386,7 +386,7 @@ export function toSnakeCase(value: string | KeyValueAny) {
         for (const key of Object.keys(value)) {
             const keySnakeCase = toSnakeCase(key);
             if (key !== keySnakeCase) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 value[keySnakeCase] = value[key];
                 delete value[key];
             }
@@ -405,7 +405,7 @@ export function toCamelCase(value: KeyValueAny | string) {
         for (const key of Object.keys(value)) {
             const keyCamelCase = toCamelCase(key);
             if (key !== keyCamelCase) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 value[keyCamelCase] = value[key];
                 delete value[key];
             }
@@ -504,7 +504,7 @@ export function getMetaValues(definitions: Definition | Definition[], entity: Zh
         if (definition && definition.meta) {
             for (const key of Object.keys(definition.meta)) {
                 if (allowed == null || allowed.includes(key)) {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const value = definition.meta[key];
                     if (typeof value === 'function') {
                         if (isEndpoint(entity)) {
@@ -628,7 +628,7 @@ export function assertNumber(value: unknown, property?: string): asserts value i
 
 export function toNumber(value: unknown, property?: string): number {
     property = property ? `'${property}'` : 'Value';
-    // @ts-ignore
+    // @ts-expect-error ignore
     const result = parseFloat(value);
     if (Number.isNaN(result)) {
         throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);

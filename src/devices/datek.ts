@@ -130,7 +130,7 @@ const definitions: DefinitionWithExtend[] = [
                     attribute: {ID: 0x4000, type: 0x10},
                 },
             ];
-            // @ts-expect-error
+            // @ts-expect-error ignore
             await endpoint.configureReporting('ssIasZone', payload, options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
