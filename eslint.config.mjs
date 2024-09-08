@@ -14,7 +14,7 @@ export default tseslint.config(
             },
         },
         rules: {
-            '@typescript-eslint/await-thenable': 'off', // TODO error
+            '@typescript-eslint/await-thenable': 'error',
             '@typescript-eslint/ban-ts-comment': 'off', // TODO error
             '@typescript-eslint/explicit-function-return-type': 'off', // TODO error
             '@typescript-eslint/no-explicit-any': 'error',

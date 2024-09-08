@@ -4957,7 +4957,7 @@ const converters2 = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: async (model, msg, publish, options, meta) => {
-            const payload = await converters1.command_arm.convert(model, msg, publish, options, meta);
+            const payload = converters1.command_arm.convert(model, msg, publish, options, meta);
             if (!payload) return;
             payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
             return payload;
@@ -4967,7 +4967,7 @@ const converters2 = {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.metering.convert(model, msg, publish, options, meta);
+            const result = converters1.metering.convert(model, msg, publish, options, meta);
             // Filter incorrect 0 energy values reported by the device:
             // https://github.com/Koenkk/zigbee2mqtt/issues/7852
             if (result && result.energy === 0) {
@@ -4983,7 +4983,7 @@ const converters2 = {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.metering.convert(model, msg, publish, options, meta);
+            const result = converters1.metering.convert(model, msg, publish, options, meta);
             if (result && result.hasOwnProperty('power')) {
                 result.power /= 1000;
             }
@@ -4994,8 +4994,8 @@ const converters2 = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: async (model, msg, publish, options, meta) => {
-            const payload1 = await converters1.checkin_presence.convert(model, msg, publish, options, meta);
-            const payload2 = await converters1.command_on.convert(model, msg, publish, options, meta);
+            const payload1 = converters1.checkin_presence.convert(model, msg, publish, options, meta);
+            const payload2 = converters1.command_on.convert(model, msg, publish, options, meta);
             return {...payload1, ...payload2};
         },
     } satisfies Fz.Converter,
@@ -5037,7 +5037,7 @@ const converters2 = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.thermostat.convert(model, msg, publish, options, meta);
+            const result = converters1.thermostat.convert(model, msg, publish, options, meta);
             if (result && msg.data['StelproSystemMode'] === 5) {
                 // 'Eco' mode is translated into 'auto' here
                 result.system_mode = constants.thermostatSystemModes[1];
@@ -5052,7 +5052,7 @@ const converters2 = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.thermostat.convert(model, msg, publish, options, meta);
+            const result = converters1.thermostat.convert(model, msg, publish, options, meta);
 
             if (result) {
                 // ViessMann TRVs report piHeatingDemand from 0-5
@@ -5089,7 +5089,7 @@ const converters2 = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.thermostat.convert(model, msg, publish, options, meta);
+            const result = converters1.thermostat.convert(model, msg, publish, options, meta);
             if (result) {
                 if (typeof msg.data[0x4003] == 'number') {
                     result.current_heating_setpoint = precisionRound(msg.data[0x4003], 2) / 100;
@@ -5162,7 +5162,7 @@ const converters2 = {
                 const sidelookup: KeyValueAny = {5: 'right', 7: 'right', 40: 'left', 56: 'left'};
                 if (sidelookup[value]) {
                     msg.data.occupancy = 1;
-                    const payload = (await converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta)) as KeyValueAny;
+                    const payload = converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
                     if (payload) {
                         payload.action_side = sidelookup[value];
                         payload.side = sidelookup[value]; /* legacy: remove this line (replaced by action_side) */
@@ -5180,7 +5180,7 @@ const converters2 = {
             let result: KeyValueAny = {};
             const data = msg.data;
             if (data && data.hasOwnProperty('zoneStatus')) {
-                const result1 = await converters1.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
+                const result1 = converters1.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
                 result = {...result1};
             }
             if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
@@ -5198,7 +5198,7 @@ const converters2 = {
         cluster: 'lightingBallastCfg',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
+            const result = converters1.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
             const lookup: KeyValueAny = {1: 'RC', 2: 'RL'};
             if (result && msg.data.hasOwnProperty(0xe000)) {
                 result.dimmer_mode = lookup[msg.data[0xe000]];
@@ -5210,7 +5210,7 @@ const converters2 = {
         cluster: 'lightingBallastCfg',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
+            const result = converters1.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
             if (result && msg.data.hasOwnProperty('wiserControlMode')) {
                 result.dimmer_mode = constants.wiserDimmerControlMode[msg.data['wiserControlMode']];
             }
@@ -5221,7 +5221,7 @@ const converters2 = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.thermostat.convert(model, msg, publish, options, meta);
+            const result = converters1.thermostat.convert(model, msg, publish, options, meta);
 
             if (result) {
                 if (msg.data.hasOwnProperty(0xe010)) {

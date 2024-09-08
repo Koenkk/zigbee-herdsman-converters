@@ -31,7 +31,7 @@ const definitions: DefinitionWithExtend[] = [
             // {change: 0} Ensure that energy and produced energy report parameters correctly during initialization instead of showing null
             await reporting.currentSummDelivered(endpoint, {change: 0});
             await reporting.currentSummReceived(endpoint, {change: 0});
-            await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
                 acPowerMultiplier: 1,
                 acPowerDivisor: 1,
             });
@@ -74,7 +74,7 @@ const definitions: DefinitionWithExtend[] = [
             // {change: 0} Ensure that energy and produced energy report parameters correctly during initialization instead of showing null
             await reporting.currentSummDelivered(endpoint, {change: 0});
             await reporting.currentSummReceived(endpoint, {change: 0});
-            await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
                 acPowerMultiplier: 1,
                 acPowerDivisor: 1,
             });
