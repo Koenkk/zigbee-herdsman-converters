@@ -701,7 +701,7 @@ const definitions: DefinitionWithExtend[] = [
                     async () => {
                         try {
                             await device.endpoints[0].read('genBasic', ['zclVersion']);
-                        } catch (error) {
+                        } catch {
                             // Do nothing
                         }
                     },

@@ -5,7 +5,6 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {battery, iasZoneAlarm} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
 
 const e = exposes.presets;

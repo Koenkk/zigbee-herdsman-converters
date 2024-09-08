@@ -165,7 +165,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {
+            } catch {
                 /* Fails for some*/
             }
         },

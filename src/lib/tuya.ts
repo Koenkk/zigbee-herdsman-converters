@@ -96,33 +96,8 @@ export function onEvent(args?: {
                     payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
                 };
                 await endpoint.command('manuSpecificTuya', 'mcuSyncTime', payload, {});
-            } catch (error) {
+            } catch {
                 /* handle error to prevent crash */
-            }
-        }
-
-        // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-        if (args.queryOnDeviceAnnounce && type === 'deviceAnnounce') {
-            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
-        }
-
-        if (args.queryIntervalSeconds) {
-            if (type === 'stop') {
-                clearTimeout(globalStore.getValue(device, 'query_interval'));
-                globalStore.clearValue(device, 'query_interval');
-            } else if (!globalStore.hasValue(device, 'query_interval')) {
-                const setTimer = () => {
-                    const timer = setTimeout(async () => {
-                        try {
-                            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
-                        } catch (error) {
-                            /* Do nothing*/
-                        }
-                        setTimer();
-                    }, args.queryIntervalSeconds * 1000);
-                    globalStore.putValue(device, 'query_interval', timer);
-                };
-                setTimer();
             }
         }
     };
@@ -201,7 +176,7 @@ export async function onEventSetTime(type: OnEventType, data: KeyValue, device: 
                 payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
             };
             await endpoint.command('manuSpecificTuya', 'mcuSyncTime', payload, {});
-        } catch (error) {
+        } catch {
             // endpoint.command can throw an error which needs to
             // be caught or the zigbee-herdsman may crash
             // Debug message is handled in the zigbee-herdsman
@@ -234,7 +209,7 @@ export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, dev
                 payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
             };
             await endpoint.command('manuSpecificTuya', 'mcuSyncTime', payload, {});
-        } catch (error) {
+        } catch {
             // endpoint.command can throw an error which needs to
             // be caught or the zigbee-herdsman may crash
             // Debug message is handled in the zigbee-herdsman
@@ -1309,9 +1284,6 @@ const tuyaTz = {
     inchingSwitch: {
         key: ['inching_control_set'],
         convertSet: async (entity, key, value: KeyValue, meta) => {
-            const inchingControl = 'inching_control';
-            const inchingTime = 'inching_time';
-            const result = {};
             const inching = valueConverter.inchingSwitch.to(value);
             const payload = {payload: inching};
             const endpoint = meta.device.getEndpoint(1);

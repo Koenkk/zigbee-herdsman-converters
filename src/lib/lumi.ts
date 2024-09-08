@@ -32,7 +32,6 @@ import {
     getKey,
     getOptions,
     hasAlreadyProcessedMessage,
-    isEndpoint,
     isLegacyEnabled,
     isObject,
     isString,
@@ -619,7 +618,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                                 await callback();
                                 payload.operation_mode = newMode;
                                 globalStore.putValue(meta.device, 'opModeSwitchTask', null);
-                            } catch (error) {
+                            } catch {
                                 // do nothing when callback fails
                             }
                         } else {
@@ -1803,7 +1802,10 @@ export const lumiModernExtend = {
                                         try {
                                             await endpoint.bind(b.cluster.name, b.target);
                                         } catch (error) {
-                                            logger.debug(`Failed to re-bind ${b.cluster.name} from ${b.target} for ${msg.device.ieeeAddr}.`, NS);
+                                            logger.debug(
+                                                `Failed to re-bind ${b.cluster.name} from ${b.target} for ${msg.device.ieeeAddr} (${error})`,
+                                                NS,
+                                            );
                                         }
                                     }
 
@@ -1818,7 +1820,7 @@ export const lumiModernExtend = {
                                                     reportableChange: c.reportableChange,
                                                 },
                                             ]);
-                                        } catch (error) {
+                                        } catch {
                                             logger.debug(
                                                 `Failed to re-setup reporting of ${c.cluster.name}/${c.attribute.name} for ${msg.device.ieeeAddr}.`,
                                                 NS,

@@ -2001,7 +2001,7 @@ const definitions: DefinitionWithExtend[] = [
 
             try {
                 endpoint = device.getEndpoint(1);
-            } catch (error) {
+            } catch {
                 logger.warning('Exposes: No endpoint', 'TICMeter');
             }
 
@@ -2304,7 +2304,7 @@ const definitions: DefinitionWithExtend[] = [
                 const interval = setInterval(async () => {
                     try {
                         await poll(endpoint, device);
-                    } catch (error) {
+                    } catch {
                         /* Do nothing*/
                     }
                 }, seconds * 1000);
@@ -2312,7 +2312,7 @@ const definitions: DefinitionWithExtend[] = [
                 globalStore.putValue(device, 'refresh_rate', seconds);
                 try {
                     await poll(endpoint, device);
-                } catch (e) {
+                } catch {
                     // Do nothing
                 }
             } else {
@@ -2324,7 +2324,7 @@ const definitions: DefinitionWithExtend[] = [
                         const interval = setInterval(async () => {
                             try {
                                 await poll(endpoint, device);
-                            } catch (error) {
+                            } catch {
                                 /* Do nothing*/
                             }
                         }, seconds * 1000);

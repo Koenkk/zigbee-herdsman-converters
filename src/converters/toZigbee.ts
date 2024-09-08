@@ -659,7 +659,7 @@ const converters2 = {
             if (typeof value === 'string') {
                 try {
                     value = JSON.parse(value);
-                } catch (e) {
+                } catch {
                     throw new Error('Payload is not valid JSON');
                 }
             }
@@ -778,7 +778,7 @@ const converters2 = {
             for (const attribute of ['onOffTransitionTime', 'onTransitionTime', 'offTransitionTime', 'startUpCurrentLevel', 'onLevel', 'options']) {
                 try {
                     await entity.read('genLevelCtrl', [attribute]);
-                } catch (ex) {
+                } catch {
                     // continue regardless of error, all these are optional in ZCL
                 }
             }
@@ -827,7 +827,7 @@ const converters2 = {
                 try {
                     // @ts-expect-error
                     result = {...result, ...(await entity.read('lightingBallastCfg', [utils.toCamelCase(attrName)]))};
-                } catch (ex) {
+                } catch {
                     // continue regardless of error
                 }
             }
@@ -1119,7 +1119,7 @@ const converters2 = {
                                 // @ts-expect-error
                                 onLevel = attributeRead['onLevel'];
                             }
-                        } catch (e) {
+                        } catch {
                             // OnLevel not supported
                         }
                     }

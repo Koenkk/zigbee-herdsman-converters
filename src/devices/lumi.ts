@@ -328,7 +328,7 @@ const definitions: DefinitionWithExtend[] = [
             try {
                 const endpoint = device.endpoints[1];
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
-            } catch (error) {
+            } catch {
                 // fails for some but device works as expected: https://github.com/Koenkk/zigbee2mqtt/issues/9136
             }
         },
@@ -2135,7 +2135,7 @@ const definitions: DefinitionWithExtend[] = [
                 const interval = setInterval(async () => {
                     try {
                         await switchEndpoint.read('genDeviceTempCfg', ['currentTemperature']);
-                    } catch (error) {
+                    } catch {
                         // Do nothing
                     }
                 }, 1800000);

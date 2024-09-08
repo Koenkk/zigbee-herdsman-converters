@@ -10,7 +10,7 @@ import {battery, humidity, illuminance} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -537,7 +537,7 @@ const definitions: DefinitionWithExtend[] = [
             for (const cluster of ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']) {
                 try {
                     await endpoint.bind(cluster, coordinatorEndpoint);
-                } catch (error) {
+                } catch {
                     logger.debug(`Failed to bind '${cluster}'`, NS);
                 }
             }

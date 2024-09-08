@@ -129,7 +129,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(endpoint);
             try {
                 await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            } catch (exception) {
+            } catch {
                 // For some this fails so set manually
                 // https://github.com/Koenkk/zigbee2mqtt/issues/3575
                 endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {

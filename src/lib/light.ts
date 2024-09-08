@@ -101,7 +101,7 @@ export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpo
             if (readColorTempMinMaxAttribute) {
                 await readColorTempMinMax(endpoint);
             }
-        } catch (e) {
+        } catch {
             /* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */
         }
     }

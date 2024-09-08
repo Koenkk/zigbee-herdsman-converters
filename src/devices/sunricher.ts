@@ -68,7 +68,7 @@ async function syncTime(endpoint: Zh.Endpoint) {
         const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
         const values = {time: time};
         await endpoint.write('genTime', values);
-    } catch (error) {
+    } catch {
         /* Do nothing*/
     }
 }
@@ -623,7 +623,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             try {
                 await reporting.thermostatKeypadLockMode(endpoint);
-            } catch (error) {
+            } catch {
                 // Fails for some
                 // https://github.com/Koenkk/zigbee2mqtt/issues/15025
                 logger.debug(`Failed to setup keypadLockout reporting`, NS);

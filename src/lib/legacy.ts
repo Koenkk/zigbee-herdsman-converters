@@ -4443,7 +4443,7 @@ const fromZigbee1 = {
         convert: (model, msg, publish, options, meta) => {
             const separateWhite = model.meta && model.meta.separateWhite;
             const result: KeyValueAny = {};
-            for (const [i, dpValue] of msg.data.dpValues.entries()) {
+            for (const dpValue of msg.data.dpValues.values()) {
                 const dp = dpValue.dp;
                 const value = getDataValue(dpValue);
                 if (dp === dataPoints.state) {

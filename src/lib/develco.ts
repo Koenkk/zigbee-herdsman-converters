@@ -1,19 +1,9 @@
 import {Zcl} from 'zigbee-herdsman';
 
 import {presets as e, access as ea} from './exposes';
-import {logger} from './logger';
-import {
-    deviceAddCustomCluster,
-    deviceTemperature,
-    numeric,
-    NumericArgs,
-    ScaleFunction,
-    setupConfigureForReporting,
-    temperature,
-} from './modernExtend';
-import {Configure, Fz, ModernExtend, Tz} from './types';
+import {deviceAddCustomCluster, deviceTemperature, numeric, NumericArgs, temperature} from './modernExtend';
+import {Configure, Fz, ModernExtend} from './types';
 
-const NS = 'zhc:develco';
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
 export const develcoModernExtend = {
@@ -62,7 +52,7 @@ export const develcoModernExtend = {
                             }
 
                             device.save();
-                        } catch (error) {
+                        } catch {
                             /* catch timeouts of sleeping devices */
                         }
                         break;

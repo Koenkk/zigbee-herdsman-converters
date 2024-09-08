@@ -900,7 +900,7 @@ const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
                 await reporting.batteryPercentageRemaining(endpoint);
                 await reporting.batteryVoltage(endpoint);
-            } catch (error) {
+            } catch {
                 /* Fails for some*/
             }
         },
@@ -1760,7 +1760,7 @@ const definitions: DefinitionWithExtend[] = [
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
                 await reporting.batteryVoltage(endpoint);
-            } catch (error) {
+            } catch {
                 /* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708 */
             }
         },
@@ -3263,7 +3263,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
@@ -3324,7 +3324,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
@@ -5081,7 +5081,7 @@ const definitions: DefinitionWithExtend[] = [
                 await reporting.rmsVoltage(endpoint, {change: 5});
                 await reporting.rmsCurrent(endpoint, {change: 50});
                 await reporting.activePower(endpoint, {change: 10});
-            } catch (error) {
+            } catch {
                 /* fails for some https://github.com/Koenkk/zigbee2mqtt/issues/11179
                                 and https://github.com/Koenkk/zigbee2mqtt/issues/16864 */
             }
@@ -5951,7 +5951,7 @@ const definitions: DefinitionWithExtend[] = [
                     const endpoint = device.getEndpoint(ID);
                     await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
                 }
-            } catch (e) {
+            } catch {
                 // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
             }
             device.powerSource = 'Mains (single phase)';
@@ -5983,7 +5983,7 @@ const definitions: DefinitionWithExtend[] = [
                     const endpoint = device.getEndpoint(ID);
                     await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
                 }
-            } catch (e) {
+            } catch {
                 // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
             }
             device.powerSource = 'Mains (single phase)';
@@ -6013,7 +6013,7 @@ const definitions: DefinitionWithExtend[] = [
                     const endpoint = device.getEndpoint(ID);
                     await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
                 }
-            } catch (e) {
+            } catch {
                 // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
             }
             device.powerSource = 'Mains (single phase)';
@@ -6937,7 +6937,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
@@ -7032,7 +7032,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);

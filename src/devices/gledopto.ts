@@ -144,7 +144,7 @@ function gledoptoOnOff(args?: OnOffArgs) {
             const interval = setInterval(async () => {
                 try {
                     await device.endpoints[0].read('genOnOff', ['onOff']);
-                } catch (error) {
+                } catch {
                     // Do nothing
                 }
             }, 5000);

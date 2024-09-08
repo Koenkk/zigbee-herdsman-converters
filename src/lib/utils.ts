@@ -1,6 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {Feature, Light, Numeric} from './exposes';
+import {Light, Numeric} from './exposes';
 import {logger} from './logger';
 import * as globalStore from './store';
 import {
@@ -51,7 +51,7 @@ export function onEventPoll(
                 const timer = setTimeout(async () => {
                     try {
                         await poll();
-                    } catch (error) {
+                    } catch {
                         /* Do nothing*/
                     }
                     setTimer();
@@ -195,7 +195,7 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
     return precisionRound(number, precision);
 }
 
-export function toPercentage(value: number, min: number, max: number, log = false) {
+export function toPercentage(value: number, min: number, max: number) {
     if (value > max) {
         value = max;
     } else if (value < min) {

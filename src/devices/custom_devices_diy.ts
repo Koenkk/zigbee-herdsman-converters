@@ -574,7 +574,7 @@ const definitions: DefinitionWithExtend[] = [
                             ptvoSetMetaOption(device, 'device_config', deviceConfig);
                             device.save();
                         }
-                    } catch (err) {
+                    } catch {
                         /* do nothing */
                     }
                 }
@@ -871,7 +871,7 @@ const definitions: DefinitionWithExtend[] = [
                 await endpoint.read('hvacThermostat', [0x0010, 0x0011, 0x0102, 0x0103, 0x0104, 0x0105]);
                 await endpoint.read('msTemperatureMeasurement', [0x0010]);
                 await endpoint.read('msRelativeHumidity', [0x0010]);
-            } catch (e) {
+            } catch {
                 /* backward compatibility */
             }
         },
@@ -1085,7 +1085,7 @@ const definitions: DefinitionWithExtend[] = [
                 await endpoint.read('hvacThermostat', [0x0010, 0x0011, 0x0102, 0x0103, 0x0104, 0x0105, 0x0107]);
                 await endpoint.read('msTemperatureMeasurement', [0x0010]);
                 await endpoint.read('msRelativeHumidity', [0x0010]);
-            } catch (e) {
+            } catch {
                 /* backward compatibility */
             }
         },

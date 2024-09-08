@@ -394,7 +394,7 @@ async function requestOTA(endpoint: Zh.Endpoint): Promise<[transNum: number, Ota
         const response = await queryNextImageRequest.promise;
 
         return [response.header.transactionSequenceNumber, response.payload as Ota.ImageInfo];
-    } catch (e) {
+    } catch {
         queryNextImageRequest.cancel();
 
         throw new Error(`Device didn't respond to OTA request`);

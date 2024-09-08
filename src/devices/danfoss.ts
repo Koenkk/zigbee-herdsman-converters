@@ -296,7 +296,7 @@ const definitions: DefinitionWithExtend[] = [
                     ],
                     options,
                 );
-            } catch (e) {
+            } catch {
                 /* not supported by all */
             }
 
@@ -322,7 +322,7 @@ const definitions: DefinitionWithExtend[] = [
                     ],
                     options,
                 );
-            } catch (e) {
+            } catch {
                 /* not supported by all https://github.com/Koenkk/zigbee2mqtt/issues/11872 */
             }
 

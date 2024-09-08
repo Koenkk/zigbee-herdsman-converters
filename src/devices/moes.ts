@@ -552,7 +552,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);

@@ -20,7 +20,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
             try {
                 await reporting.brightness(endpoint);
-            } catch (e) {
+            } catch {
                 // Some version don't support this: https://github.com/Koenkk/zigbee2mqtt/issues/4246
             }
         },

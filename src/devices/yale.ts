@@ -47,7 +47,7 @@ const lockExtend = (meta = {}, lockStateOptions: Reporting.Override | false = nu
                 await reporting.batteryPercentageRemaining(endpoint);
                 try {
                     await reporting.batteryAlarmState(endpoint);
-                } catch (e) {
+                } catch {
                     // Fails for some: https://github.com/Koenkk/zigbee-herdsman-converters/pull/5414
                 }
             },
@@ -99,7 +99,7 @@ const fzLocal = {
             // We need to read the lock attributes as these are not reported by the device
             try {
                 await msg.endpoint.read('manuSpecificAssaDoorLock', ['batteryLevel']);
-            } catch (error) {
+            } catch {
                 logger.warning(`Failed to read lock attributes`, NS);
             }
             return result;
@@ -203,7 +203,7 @@ const fzLocal = {
                     // We need to read the lock state as the alarm code is unknown
                     try {
                         await msg.endpoint.read('closuresDoorLock', ['lockState']);
-                    } catch (error) {
+                    } catch {
                         logger.warning(`Failed to read lock state`, NS);
                     }
                 } else {

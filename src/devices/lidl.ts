@@ -261,7 +261,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
@@ -404,7 +404,7 @@ const definitions: DefinitionWithExtend[] = [
                 try {
                     await tuya.sendDataPointBool(endpoint, 109, false);
                     await tuya.sendDataPointBool(endpoint, 108, false);
-                } catch (e) {
+                } catch {
                     // ignore, just prevent any crashes
                 }
             }

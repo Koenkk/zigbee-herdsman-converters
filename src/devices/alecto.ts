@@ -1,5 +1,4 @@
 import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {DefinitionWithExtend} from '../lib/types';

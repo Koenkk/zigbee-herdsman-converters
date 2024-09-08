@@ -1647,7 +1647,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
             lMode.raiseError; // raise if undefined
             // @ts-expect-error
             return ((lMode >> bitLinkyMode) & 1) == 1 ? valueTrue : valueFalse;
-        } catch (err) {
+        } catch {
             logger.warning(`Was not able to detect the Linky ` + targetOption + `. Default to ` + valueDefault, NS);
             return valueDefault; // default value in the worst case
         }
@@ -1680,7 +1680,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
             lixAtts.raiseIfEmpty;
             // @ts-expect-error
             currentTarf = fzLocal.lixee_private_fz.convert({}, {data: lixAtts}).current_tarif;
-        } catch (error) {
+        } catch {
             logger.warning(`Not able to detect the current tarif. Not filtering any expose...`, NS);
         }
     }
@@ -1903,7 +1903,7 @@ const definitions: DefinitionWithExtend[] = [
                                     }
                                 }
                             }
-                        } catch (error) {
+                        } catch {
                             /* Do nothing*/
                         }
                         setTimer();

@@ -716,7 +716,7 @@ const definitions: DefinitionWithExtend[] = [
             ]);
             try {
                 await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {
+            } catch {
                 /* Not all support this */
             }
 
@@ -726,7 +726,7 @@ const definitions: DefinitionWithExtend[] = [
             try {
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            } catch (error) {
+            } catch {
                 endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
             }
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
@@ -841,7 +841,7 @@ const definitions: DefinitionWithExtend[] = [
             ]);
             try {
                 await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {
+            } catch {
                 /* Not all support this */
             }
 
@@ -851,7 +851,7 @@ const definitions: DefinitionWithExtend[] = [
             try {
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            } catch (error) {
+            } catch {
                 endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
             }
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
@@ -984,7 +984,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
-            } catch (error) {
+            } catch {
                 /* Do nothing */
             }
         },
@@ -1115,7 +1115,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
-            } catch (error) {
+            } catch {
                 /* Do nothing */
             }
         },
@@ -1223,36 +1223,36 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             try {
                 await reporting.readMeteringMultiplierDivisor(endpoint);
-            } catch (error) {
+            } catch {
                 /* Do nothing*/
             }
             try {
                 await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            } catch (error) {
+            } catch {
                 /* Do nothing*/
             }
             try {
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            } catch (error) {
+            } catch {
                 endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
             }
             try {
                 await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
                 await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            } catch (error) {
+            } catch {
                 /* Do nothing*/
             }
             try {
                 await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
                 await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-            } catch (error) {
+            } catch {
                 /* Do nothing*/
             }
 
             try {
                 await reporting.thermostatKeypadLockMode(endpoint);
-            } catch (error) {
+            } catch {
                 // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
             }
 
@@ -1414,7 +1414,7 @@ const definitions: DefinitionWithExtend[] = [
 
             try {
                 await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {
+            } catch {
                 /* Not all support this */
             }
 
@@ -1589,7 +1589,7 @@ const definitions: DefinitionWithExtend[] = [
             try {
                 await reporting.readMeteringMultiplierDivisor(endpoint);
                 await reporting.currentSummDelivered(endpoint, {min: 10, max: 300, change: [0, 10]});
-            } catch (error) {
+            } catch {
                 /* Do nothing*/
             }
             const payload = [
@@ -1869,12 +1869,12 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.brightness(endpoint); // valve position
             try {
                 await reporting.batteryVoltage(endpoint);
-            } catch (error) {
+            } catch {
                 /* Do Nothing */
             }
             try {
                 await reporting.batteryAlarmState(endpoint);
-            } catch (error) {
+            } catch {
                 /* Do Nothing */
             }
         },

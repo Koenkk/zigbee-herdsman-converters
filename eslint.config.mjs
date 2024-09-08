@@ -18,7 +18,7 @@ export default tseslint.config(
             '@typescript-eslint/ban-ts-comment': 'off', // TODO error
             '@typescript-eslint/explicit-function-return-type': 'off', // TODO error
             '@typescript-eslint/no-explicit-any': 'error',
-            '@typescript-eslint/no-unused-vars': 'off', // TODO error
+            '@typescript-eslint/no-unused-vars': ['error', {args: 'none'}],
             'array-bracket-spacing': ['error', 'never'],
             'no-return-await': 'error',
             'object-curly-spacing': ['error', 'never'],

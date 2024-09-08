@@ -61,7 +61,7 @@ function electricityMeterPoll(): ModernExtend {
                 try {
                     await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
                     await endpoint.read('seMetering', ['currentSummDelivered', 'multiplier', 'divisor']);
-                } catch (error) {
+                } catch {
                     // Do nothing
                 }
             }, 10 * 1000); // Every 10 seconds

@@ -622,7 +622,7 @@ const definitions: DefinitionWithExtend[] = [
                         const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
                         const values = {time: time};
                         await endpoint.write('genTime', values);
-                    } catch (error) {
+                    } catch {
                         /* Do nothing*/
                     }
                 }, hours24);

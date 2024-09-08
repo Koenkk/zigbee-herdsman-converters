@@ -39,7 +39,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {
+            } catch {
                 /* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708*/
             }
         },
@@ -68,7 +68,7 @@ const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
                 await reporting.batteryPercentageRemaining(endpoint);
                 await reporting.batteryVoltage(endpoint);
-            } catch (error) {
+            } catch {
                 /* Fails for some*/
             }
         },

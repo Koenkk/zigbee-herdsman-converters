@@ -34,7 +34,7 @@ const ubisysOnEventReadCurrentSummDelivered = async function (type: OnEventType,
     if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
         try {
             await data.endpoint.read('seMetering', ['currentSummDelivered']);
-        } catch (error) {
+        } catch {
             /* Do nothing*/
         }
     }
