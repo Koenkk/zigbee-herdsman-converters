@@ -11452,9 +11452,9 @@ const definitions: DefinitionWithExtend[] = [
             await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
         },
         whiteLabel: [
-            tuya.whitelabel('Tuya','TS0601_din_4', 'Din Rail switch', ['_TZE204_fhvdgeuh']),
+            tuya.whitelabel('Tuya', 'TS0601_din_4', 'Din Rail switch', ['_TZE204_fhvdgeuh']),
             tuya.whitelabel('RTX', 'TS0601_RTX_DIN', 'Din Rail switch', ['_TZE200_abatw3kj']),
-        ],        
+        ],
         exposes: [
             e.switch().setAccess('state', ea.STATE_SET),
             e.power(),
