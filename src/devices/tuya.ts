@@ -2545,7 +2545,7 @@ const definitions: DefinitionWithExtend[] = [
                 e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
                 e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time'),
             ];
-            if (!device || device.manufacturerName !== ('_TZ3210_xbpt8ewc' || '_TZ3000_1dd0d5yi')) {
+            if (device?.manufacturerName !== '_TZ3210_xbpt8ewc' && device?.manufacturerName !== '_TZ3000_1dd0d5yi') {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
             exps.push(e.linkquality());
