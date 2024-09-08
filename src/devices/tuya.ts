@@ -11591,6 +11591,36 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_abatw3kj']),
+        model: 'TS0601_RTX_DIN',
+        vendor: 'Tuya',
+        description: 'Din rail RTX TUYA switch with energy monitoring',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
+        },
+        exposes: [
+            e.switch().setAccess('state', ea.STATE_SET),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+            e.numeric('temperature', ea.STATE).withUnit('°C').withDescription('Current temperature'),
+            e.numeric('leakage', ea.STATE).withUnit('mA').withDescription('Current leakage'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [16, 'state', tuya.valueConverter.onOff],
+                [1, 'energy', tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2], 
+                [15, 'leakage', tuya.valueConverter.raw],
+                [103, 'temperature', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
 
 export default definitions;
