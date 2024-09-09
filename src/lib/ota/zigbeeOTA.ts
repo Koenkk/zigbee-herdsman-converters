@@ -21,7 +21,7 @@ function fillImageInfo(meta: KeyValueAny) {
     }
 
     // Nothing to do if needed fields were filled already
-    if (meta.hasOwnProperty('imageType') && meta.hasOwnProperty('manufacturerCode') && meta.hasOwnProperty('fileVersion')) {
+    if (meta.imageType !== undefined && meta.manufacturerCode !== undefined && meta.fileVersion !== undefined) {
         return meta;
     }
 
@@ -31,9 +31,9 @@ function fillImageInfo(meta: KeyValueAny) {
     const image = common.parseImage(buffer.subarray(start));
 
     // Will fill only those fields that were absent
-    if (!meta.hasOwnProperty('imageType')) meta.imageType = image.header.imageType;
-    if (!meta.hasOwnProperty('manufacturerCode')) meta.manufacturerCode = image.header.manufacturerCode;
-    if (!meta.hasOwnProperty('fileVersion')) meta.fileVersion = image.header.fileVersion;
+    if (meta.imageType === undefined) meta.imageType = image.header.imageType;
+    if (meta.manufacturerCode === undefined) meta.manufacturerCode = image.header.manufacturerCode;
+    if (meta.fileVersion === undefined) meta.fileVersion = image.header.fileVersion;
     return meta;
 }
 

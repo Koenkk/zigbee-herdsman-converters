@@ -40,72 +40,72 @@ const fzLocal = {
             const occupancyLookup = {0: 'unoccupied', 1: 'occupied'};
             const cycleOutputLookup = {15: '15_sec', 300: '5_min', 600: '10_min', 900: '15_min', 1200: '20_min', 1800: '30_min', 65535: 'off'};
 
-            if (msg.data.hasOwnProperty('1024')) {
+            if (msg.data['1024'] !== undefined) {
                 result.thermostat_occupancy = utils.getFromLookup(msg.data['1024'], occupancyLookup);
             }
-            if (msg.data.hasOwnProperty('SinopeOccupancy')) {
+            if (msg.data.SinopeOccupancy !== undefined) {
                 result.thermostat_occupancy = utils.getFromLookup(msg.data['SinopeOccupancy'], occupancyLookup);
             }
-            if (msg.data.hasOwnProperty('1025')) {
+            if (msg.data['1025'] !== undefined) {
                 result.main_cycle_output = utils.getFromLookup(msg.data['1025'], cycleOutputLookup);
             }
-            if (msg.data.hasOwnProperty('SinopeMainCycleOutput')) {
+            if (msg.data.SinopeMainCycleOutput !== undefined) {
                 result.main_cycle_output = utils.getFromLookup(msg.data['SinopeMainCycleOutput'], cycleOutputLookup);
             }
-            if (msg.data.hasOwnProperty('1026')) {
+            if (msg.data['1026'] !== undefined) {
                 const lookup = {0: 'on_demand', 1: 'sensing'};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data['1026'], lookup);
             }
-            if (msg.data.hasOwnProperty('SinopeBacklight')) {
+            if (msg.data.SinopeBacklight !== undefined) {
                 const lookup = {0: 'on_demand', 1: 'sensing'};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data['SinopeBacklight'], lookup);
             }
-            if (msg.data.hasOwnProperty('1028')) {
+            if (msg.data['1028'] !== undefined) {
                 result.aux_cycle_output = utils.getFromLookup(msg.data['1028'], cycleOutputLookup);
             }
-            if (msg.data.hasOwnProperty('localTemp')) {
+            if (msg.data.localTemp !== undefined) {
                 result.local_temperature = precisionRound(msg.data['localTemp'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('localTemperatureCalibration')) {
+            if (msg.data.localTemperatureCalibration !== undefined) {
                 result.local_temperature_calibration = precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
-            if (msg.data.hasOwnProperty('outdoorTemp')) {
+            if (msg.data.outdoorTemp !== undefined) {
                 result.outdoor_temperature = precisionRound(msg.data['outdoorTemp'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
+            if (msg.data.occupiedHeatingSetpoint !== undefined) {
                 result.occupied_heating_setpoint = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('unoccupiedHeatingSetpoint')) {
+            if (msg.data.unoccupiedHeatingSetpoint !== undefined) {
                 result.unoccupied_heating_setpoint = precisionRound(msg.data['unoccupiedHeatingSetpoint'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('occupiedCoolingSetpoint')) {
+            if (msg.data.occupiedCoolingSetpoint !== undefined) {
                 result.occupied_cooling_setpoint = precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('unoccupiedCoolingSetpoint')) {
+            if (msg.data.unoccupiedCoolingSetpoint !== undefined) {
                 result.unoccupied_cooling_setpoint = precisionRound(msg.data['unoccupiedCoolingSetpoint'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('ctrlSeqeOfOper')) {
+            if (msg.data.ctrlSeqeOfOper !== undefined) {
                 result.control_sequence_of_operation = constants.thermostatControlSequenceOfOperations[msg.data['ctrlSeqeOfOper']];
             }
-            if (msg.data.hasOwnProperty('systemMode')) {
+            if (msg.data.systemMode !== undefined) {
                 result.system_mode = constants.thermostatSystemModes[msg.data['systemMode']];
             }
-            if (msg.data.hasOwnProperty('pIHeatingDemand')) {
+            if (msg.data.pIHeatingDemand !== undefined) {
                 result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
             }
-            if (msg.data.hasOwnProperty('minHeatSetpointLimit')) {
+            if (msg.data.minHeatSetpointLimit !== undefined) {
                 result.min_heat_setpoint_limit = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('maxHeatSetpointLimit')) {
+            if (msg.data.maxHeatSetpointLimit !== undefined) {
                 result.max_heat_setpoint_limit = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('absMinHeatSetpointLimit')) {
+            if (msg.data.absMinHeatSetpointLimit !== undefined) {
                 result.abs_min_heat_setpoint_limit = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('absMaxHeatSetpointLimit')) {
+            if (msg.data.absMaxHeatSetpointLimit !== undefined) {
                 result.abs_max_heat_setpoint_limit = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('pIHeatingDemand')) {
+            if (msg.data.pIHeatingDemand !== undefined) {
                 result.running_state = msg.data['pIHeatingDemand'] >= 10 ? 'heat' : 'idle';
             }
             return result;
@@ -116,7 +116,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('presentValue')) {
+            if (msg.data.presentValue !== undefined) {
                 let x = msg.data['presentValue'];
                 if (x == -1) {
                     result.tank_level = 0;
@@ -147,84 +147,84 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('GFCiStatus')) {
+            if (msg.data.GFCiStatus !== undefined) {
                 const lookup = {0: 'off', 1: 'on'};
                 result.gfci_status = utils.getFromLookup(msg.data['GFCiStatus'], lookup);
             }
-            if (msg.data.hasOwnProperty('floorLimitStatus')) {
+            if (msg.data.floorLimitStatus !== undefined) {
                 const lookup = {0: 'off', 1: 'on'};
                 result.floor_limit_status = utils.getFromLookup(msg.data['floorLimitStatus'], lookup);
             }
-            if (msg.data.hasOwnProperty('secondScreenBehavior')) {
+            if (msg.data.secondScreenBehavior !== undefined) {
                 const lookup = {0: 'auto', 1: 'setpoint', 2: 'outdoor temp'};
                 result.second_display_mode = utils.getFromLookup(msg.data['secondScreenBehavior'], lookup);
             }
-            if (msg.data.hasOwnProperty('outdoorTempToDisplayTimeout')) {
+            if (msg.data.outdoorTempToDisplayTimeout !== undefined) {
                 result.outdoor_temperature_timeout = msg.data['outdoorTempToDisplayTimeout'];
                 // DEPRECATED: Use Second Display Mode or control via set outdoorTempToDisplayTimeout
                 result.enable_outdoor_temperature = msg.data['outdoorTempToDisplayTimeout'] === 12 ? 'OFF' : 'ON';
             }
-            if (msg.data.hasOwnProperty('outdoorTempToDisplay')) {
+            if (msg.data.outdoorTempToDisplay !== undefined) {
                 result.thermostat_outdoor_temperature = precisionRound(msg.data['outdoorTempToDisplay'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('currentTimeToDisplay')) {
+            if (msg.data.currentTimeToDisplay !== undefined) {
                 result.current_time_to_display = msg.data['currentTimeToDisplay'];
             }
-            if (msg.data.hasOwnProperty('floorControlMode')) {
+            if (msg.data.floorControlMode !== undefined) {
                 const lookup = {1: 'ambiant', 2: 'floor'};
                 result.floor_control_mode = utils.getFromLookup(msg.data['floorControlMode'], lookup);
             }
-            if (msg.data.hasOwnProperty('ambiantMaxHeatSetpointLimit')) {
+            if (msg.data.ambiantMaxHeatSetpointLimit !== undefined) {
                 result.ambiant_max_heat_setpoint = msg.data['ambiantMaxHeatSetpointLimit'] / 100.0;
                 if (result.ambiant_max_heat_setpoint === -327.68) {
                     result.ambiant_max_heat_setpoint = 'off';
                 }
             }
-            if (msg.data.hasOwnProperty('floorMinHeatSetpointLimit')) {
+            if (msg.data.floorMinHeatSetpointLimit !== undefined) {
                 result.floor_min_heat_setpoint = msg.data['floorMinHeatSetpointLimit'] / 100.0;
                 if (result.floor_min_heat_setpoint === -327.68) {
                     result.floor_min_heat_setpoint = 'off';
                 }
             }
-            if (msg.data.hasOwnProperty('floorMaxHeatSetpointLimit')) {
+            if (msg.data.floorMaxHeatSetpointLimit !== undefined) {
                 result.floor_max_heat_setpoint = msg.data['floorMaxHeatSetpointLimit'] / 100.0;
                 if (result.floor_max_heat_setpoint === -327.68) {
                     result.floor_max_heat_setpoint = 'off';
                 }
             }
-            if (msg.data.hasOwnProperty('temperatureSensor')) {
+            if (msg.data.temperatureSensor !== undefined) {
                 const lookup = {0: '10k', 1: '12k'};
                 result.floor_temperature_sensor = utils.getFromLookup(msg.data['temperatureSensor'], lookup);
             }
-            if (msg.data.hasOwnProperty('timeFormatToDisplay')) {
+            if (msg.data.timeFormatToDisplay !== undefined) {
                 const lookup = {0: '24h', 1: '12h'};
                 result.time_format = utils.getFromLookup(msg.data['timeFormatToDisplay'], lookup);
             }
-            if (msg.data.hasOwnProperty('connectedLoad')) {
+            if (msg.data.connectedLoad !== undefined) {
                 result.connected_load = msg.data['connectedLoad'];
             }
-            if (msg.data.hasOwnProperty('auxConnectedLoad')) {
+            if (msg.data.auxConnectedLoad !== undefined) {
                 result.aux_connected_load = msg.data['auxConnectedLoad'];
                 if (result.aux_connected_load == 65535) {
                     result.aux_connected_load = 'disabled';
                 }
             }
-            if (msg.data.hasOwnProperty('pumpProtection')) {
+            if (msg.data.pumpProtection !== undefined) {
                 result.pump_protection = msg.data['pumpProtection'] == 1 ? 'ON' : 'OFF';
             }
-            if (msg.data.hasOwnProperty('dimmerTimmer')) {
+            if (msg.data.dimmerTimmer !== undefined) {
                 result.timer_seconds = msg.data['dimmerTimmer'];
             }
-            if (msg.data.hasOwnProperty('ledIntensityOn')) {
+            if (msg.data.ledIntensityOn !== undefined) {
                 result.led_intensity_on = msg.data['ledIntensityOn'];
             }
-            if (msg.data.hasOwnProperty('ledIntensityOff')) {
+            if (msg.data.ledIntensityOff !== undefined) {
                 result.led_intensity_off = msg.data['ledIntensityOff'];
             }
-            if (msg.data.hasOwnProperty('minimumBrightness')) {
+            if (msg.data.minimumBrightness !== undefined) {
                 result.minimum_brightness = msg.data['minimumBrightness'];
             }
-            if (msg.data.hasOwnProperty('actionReport')) {
+            if (msg.data.actionReport !== undefined) {
                 const lookup = {
                     1: 'up_clickdown',
                     2: 'up_single',
@@ -237,11 +237,11 @@ const fzLocal = {
                 };
                 result.action = utils.getFromLookup(msg.data['actionReport'], lookup);
             }
-            if (msg.data.hasOwnProperty('keypadLockout')) {
+            if (msg.data.keypadLockout !== undefined) {
                 const lookup = {0: 'unlock', 1: 'lock'};
                 result.keypad_lockout = utils.getFromLookup(msg.data['keypadLockout'], lookup);
             }
-            if (msg.data.hasOwnProperty('drConfigWaterTempMin')) {
+            if (msg.data.drConfigWaterTempMin !== undefined) {
                 result.low_water_temp_protection = msg.data['drConfigWaterTempMin'];
             }
             return result;
@@ -374,7 +374,7 @@ const tzLocal = {
             const lookup = {ambiant: 1, floor: 2};
             value = value.toLowerCase();
             // @ts-expect-error ignore
-            if (lookup.hasOwnProperty(value)) {
+            if (lookup[value] !== undefined) {
                 await entity.write('manuSpecificSinope', {floorControlMode: utils.getFromLookup(value, lookup)});
             }
             return {readAfterWriteTime: 250, state: {floor_control_mode: value}};
@@ -438,7 +438,7 @@ const tzLocal = {
             const lookup = {'10k': 0, '12k': 1};
             value = value.toLowerCase();
             // @ts-expect-error ignore
-            if (lookup.hasOwnProperty(value)) {
+            if (lookup[value] !== undefined) {
                 await entity.write('manuSpecificSinope', {temperatureSensor: utils.getFromLookup(value, lookup)});
             }
             return {readAfterWriteTime: 250, state: {floor_temperature_sensor: value}};
@@ -450,16 +450,8 @@ const tzLocal = {
     time_format: {
         key: ['time_format'],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== 'string') {
-                return;
-            }
-            const lookup = {'24h': 0, '12h': 1};
-            value = value.toLowerCase();
-            utils.assertString(value);
-            if (lookup.hasOwnProperty(value)) {
-                await entity.write('manuSpecificSinope', {timeFormatToDisplay: utils.getFromLookup(value, lookup)}, manuSinope);
-                return {readAfterWriteTime: 250, state: {time_format: value}};
-            }
+            await entity.write('manuSpecificSinope', {timeFormatToDisplay: utils.getFromLookup(value, {'24h': 0, '12h': 1})}, manuSinope);
+            return {readAfterWriteTime: 250, state: {time_format: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['timeFormatToDisplay'], manuSinope);

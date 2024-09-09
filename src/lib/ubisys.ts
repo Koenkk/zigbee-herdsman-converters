@@ -214,7 +214,7 @@ export const ubisysModernExtend = {
                 cluster: clusterName,
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(readableAttributeName)) {
+                    if (msg.data[readableAttributeName] !== undefined) {
                         return {[propertyName]: msg.data.occupancy === 0};
                     }
                 },

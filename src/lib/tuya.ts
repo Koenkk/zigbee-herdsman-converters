@@ -416,7 +416,7 @@ export const skip = {
     stateOnAndBrightnessPresent: (meta: Tz.Meta) => {
         if (Array.isArray(meta.mapped)) throw new Error('Not supported');
         const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name ? `state_${meta.endpoint_name}` : 'state';
-        return meta.message.hasOwnProperty('brightness') && meta.state[convertedKey] === meta.message.state;
+        return meta.message.brightness !== undefined && meta.state[convertedKey] === meta.message.state;
     },
 };
 
@@ -909,7 +909,7 @@ export const valueConverter = {
             let weekdayFormat: string;
             let holidayFormat: string;
 
-            if (meta.message.hasOwnProperty('schedule_weekday')) {
+            if (meta.message.schedule_weekday !== undefined) {
                 weekdayFormat = v;
                 holidayFormat = meta.state['schedule_holiday'] as string;
             } else {
@@ -1232,12 +1232,9 @@ const tuyaTz = {
         //       provide datapoints so there is little reason to provide support.
         key: ['state', 'countdown'],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.hasOwnProperty('state')
-                ? utils.isString(meta.message.state)
-                    ? meta.message.state.toLowerCase()
-                    : undefined
-                : undefined;
-            const countdown = meta.message.hasOwnProperty('countdown') ? meta.message.countdown : undefined;
+            const state =
+                meta.message.state !== undefined ? (utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : undefined) : undefined;
+            const countdown = meta.message.countdown !== undefined ? meta.message.countdown : undefined;
             const result: KeyValue = {};
             if (countdown !== undefined) {
                 // OnTime is a 16bit register and so might very well work up to 0xFFFF seconds but
@@ -1267,7 +1264,7 @@ const tuyaTz = {
                 // be set to the same value than ontime.
                 const payload = {ctrlbits: 0, ontime: countdown, offwaittime: countdown};
                 await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
-                if (result.hasOwnProperty('state')) {
+                if (result.state !== undefined) {
                     result.countdown = countdown;
                 }
             }
@@ -1300,7 +1297,7 @@ const tuyaFz = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('61440')) {
+            if (msg.data['61440'] !== undefined) {
                 const property = utils.postfixWithEndpointName('brightness', msg, model, meta);
                 return {[property]: utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255)};
             }
@@ -1322,7 +1319,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
+            if (msg.data.moesStartUpOnOff !== undefined) {
                 const lookup: KeyValue = {0: 'off', 1: 'on', 2: 'previous'};
                 const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
@@ -1335,7 +1332,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             const attribute = 'powerOnBehavior';
             const lookup: KeyValue = {0: 'off', 1: 'on', 2: 'previous'};
-            if (msg.data.hasOwnProperty(attribute)) {
+            if (msg.data[attribute] !== undefined) {
                 const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data[attribute]]};
             }
@@ -1345,7 +1342,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
+            if (msg.data.moesStartUpOnOff !== undefined) {
                 const lookup: KeyValue = {0x00: 'off', 0x01: 'on', 0x02: 'restore'};
                 const property = utils.postfixWithEndpointName('power_outage_memory', msg, model, meta);
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
@@ -1356,7 +1353,7 @@ const tuyaFz = {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('switchType')) {
+            if (msg.data.switchType !== undefined) {
                 const lookup: KeyValue = {0: 'toggle', 1: 'state', 2: 'momentary'};
                 return {switch_type: lookup[msg.data['switchType']]};
             }
@@ -1366,7 +1363,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
+            if (msg.data.tuyaBacklightMode !== undefined) {
                 const value = msg.data['tuyaBacklightMode'];
                 const backlightLookup: KeyValue = {0: 'low', 1: 'medium', 2: 'high'};
                 return {backlight_mode: backlightLookup[value]};
@@ -1377,7 +1374,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
+            if (msg.data.tuyaBacklightMode !== undefined) {
                 return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'normal', 2: 'inverted'})};
             }
         },
@@ -1386,7 +1383,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightSwitch')) {
+            if (msg.data.tuyaBacklightSwitch !== undefined) {
                 return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightSwitch'], {0: 'OFF', 1: 'ON'})};
             }
         },
@@ -1395,7 +1392,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
+            if (msg.data.tuyaBacklightMode !== undefined) {
                 return {indicator_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'})};
             }
         },
@@ -1404,7 +1401,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('32768')) {
+            if (msg.data['32768'] !== undefined) {
                 const value = msg.data['32768'];
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             }
@@ -1414,7 +1411,7 @@ const tuyaFz = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(0xfc00)) {
+            if (msg.data[0xfc00] !== undefined) {
                 const property = utils.postfixWithEndpointName('min_brightness', msg, model, meta);
                 const value = parseInt(msg.data[0xfc00].toString(16).slice(0, 2), 16);
                 return {[property]: value};
@@ -1465,7 +1462,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onTime')) {
+            if (msg.data.onTime !== undefined) {
                 const payload: KeyValue = {};
                 const property = utils.postfixWithEndpointName('countdown', msg, model, meta);
                 const countdown = msg.data['onTime'];
@@ -1478,7 +1475,7 @@ const tuyaFz = {
         cluster: 'manuSpecificTuya_4',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('inching')) {
+            if (msg.data.inching !== undefined) {
                 const payload: KeyValue = {};
                 const value = valueConverter.inchingSwitch.from(msg.data['inching']);
                 payload['inching_control_set'] = value;

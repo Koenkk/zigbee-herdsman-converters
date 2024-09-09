@@ -21,13 +21,13 @@ const bitron = {
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValueAny = {};
 
-                if (msg.data.hasOwnProperty('fourNoksHysteresisHigh')) {
-                    if (!result.hasOwnProperty('hysteresis')) result.hysteresis = {};
+                if (msg.data.fourNoksHysteresisHigh !== undefined) {
+                    if (result.hysteresis === undefined) result.hysteresis = {};
                     result.hysteresis.high = msg.data.fourNoksHysteresisHigh;
                 }
 
-                if (msg.data.hasOwnProperty('fourNoksHysteresisLow')) {
-                    if (!result.hasOwnProperty('hysteresis')) result.hysteresis = {};
+                if (msg.data.fourNoksHysteresisLow !== undefined) {
+                    if (result.hysteresis === undefined) result.hysteresis = {};
                     result.hysteresis.low = msg.data.fourNoksHysteresisLow;
                 }
 
@@ -40,12 +40,12 @@ const bitron = {
             key: ['hysteresis', 'hysteresis'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const result: KeyValueAny = {state: {hysteresis: {}}};
-                if (value.hasOwnProperty('high')) {
+                if (value.high !== undefined) {
                     await entity.write('hvacThermostat', {fourNoksHysteresisHigh: value.high}, manufacturerOptions);
                     result.state.hysteresis.high = value.high;
                 }
 
-                if (value.hasOwnProperty('low')) {
+                if (value.low !== undefined) {
                     await entity.write('hvacThermostat', {fourNoksHysteresisLow: value.low}, manufacturerOptions);
                     result.state.hysteresis.low = value.low;
                 }

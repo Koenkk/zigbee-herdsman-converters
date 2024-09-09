@@ -24,7 +24,6 @@ export default tseslint.config(
             'no-return-await': 'error',
             'object-curly-spacing': ['error', 'never'],
             '@typescript-eslint/no-floating-promises': 'error',
-            'no-prototype-builtins': 'off', // TODO remove (error by default)
         },
     },
     {

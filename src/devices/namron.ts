@@ -24,26 +24,26 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x1000)) {
+            if (data[0x1000] !== undefined) {
                 // OperateDisplayBrightnesss
                 result.display_brightnesss = data[0x1000];
             }
-            if (data.hasOwnProperty(0x1001)) {
+            if (data[0x1001] !== undefined) {
                 // DisplayAutoOffActivation
                 const lookup = {0: 'deactivated', 1: 'activated'};
                 result.display_auto_off = utils.getFromLookup(data[0x1001], lookup);
             }
-            if (data.hasOwnProperty(0x1004)) {
+            if (data[0x1004] !== undefined) {
                 // PowerUpStatus
                 const lookup = {0: 'manual', 1: 'last_state'};
                 result.power_up_status = utils.getFromLookup(data[0x1004], lookup);
             }
-            if (data.hasOwnProperty(0x1009)) {
+            if (data[0x1009] !== undefined) {
                 // WindowOpenCheck
                 const lookup = {0: 'enable', 1: 'disable'};
                 result.window_open_check = utils.getFromLookup(data[0x1009], lookup);
             }
-            if (data.hasOwnProperty(0x100a)) {
+            if (data[0x100a] !== undefined) {
                 // Hysterersis
                 result.hysterersis = utils.precisionRound(data[0x100a], 2) / 10;
             }

@@ -33,7 +33,7 @@ const fzLocal = {
         cluster: 'msOccupancySensing',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('sprutOccupancyLevel')) {
+            if (msg.data.sprutOccupancyLevel !== undefined) {
                 return {occupancy_level: msg.data['sprutOccupancyLevel']};
             }
         },
@@ -42,7 +42,7 @@ const fzLocal = {
         cluster: 'sprutVoc',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('voc')) {
+            if (msg.data.voc !== undefined) {
                 return {voc: msg.data['voc']};
             }
         },
@@ -51,7 +51,7 @@ const fzLocal = {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('noise')) {
+            if (msg.data.noise !== undefined) {
                 return {noise: msg.data['noise'].toFixed(2)};
             }
         },
@@ -60,7 +60,7 @@ const fzLocal = {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('noiseDetected')) {
+            if (msg.data.noiseDetected !== undefined) {
                 return {noise_detected: msg.data['noiseDetected'] === 1};
             }
         },
@@ -97,10 +97,10 @@ const fzLocal = {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('sprutCO2AutoCalibration')) {
+            if (msg.data.sprutCO2AutoCalibration !== undefined) {
                 return {co2_autocalibration: switchActionValues[msg.data['sprutCO2AutoCalibration']]};
             }
-            if (msg.data.hasOwnProperty('sprutCO2Calibration')) {
+            if (msg.data.sprutCO2Calibration !== undefined) {
                 return {co2_manual_calibration: switchActionValues[msg.data['sprutCO2Calibration']]};
             }
         },
@@ -109,7 +109,7 @@ const fzLocal = {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('sprutHeater')) {
+            if (msg.data.sprutHeater !== undefined) {
                 return {th_heater: switchActionValues[msg.data['sprutHeater']]};
             }
         },

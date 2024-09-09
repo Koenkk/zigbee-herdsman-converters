@@ -12,10 +12,10 @@ export function payload(attribute: string | number, min: number, max: number, ch
     };
 
     if (overrides) {
-        if (overrides.hasOwnProperty('min')) payload.minimumReportInterval = overrides.min;
-        if (overrides.hasOwnProperty('max')) payload.maximumReportInterval = overrides.max;
+        if (overrides.min !== undefined) payload.minimumReportInterval = overrides.min;
+        if (overrides.max !== undefined) payload.maximumReportInterval = overrides.max;
         // @ts-expect-error ignore
-        if (overrides.hasOwnProperty('change')) payload.reportableChange = overrides.change;
+        if (overrides.change !== undefined) payload.reportableChange = overrides.change;
     }
 
     return [payload];

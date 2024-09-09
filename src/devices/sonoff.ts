@@ -42,7 +42,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('currentLevel')) {
+            if (msg.data.currentLevel !== undefined) {
                 result.light_indicator_level = msg.data['currentLevel'];
             }
         },
@@ -506,7 +506,7 @@ const sonoffExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const lookup: KeyValue = {edge: 0, pulse: 1, 'following(off)': 2, 'following(on)': 130};
                     // logger.debug(`from zigbee msg.data['externalTriggerMode'] ${msg.data['externalTriggerMode']}`, NS);
-                    if (msg.data.hasOwnProperty('externalTriggerMode')) {
+                    if (msg.data.externalTriggerMode !== undefined) {
                         let switchType = 'edge';
                         for (const name in lookup) {
                             if (lookup[name] === msg.data['externalTriggerMode']) {

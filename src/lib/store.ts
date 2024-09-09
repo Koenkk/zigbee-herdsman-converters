@@ -17,12 +17,12 @@ function getEntityKey(entity: Zh.Endpoint | Zh.Group | Zh.Device) {
 
 export function hasValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string) {
     const entityKey = getEntityKey(entity);
-    return store.has(entityKey) && store.get(entityKey).hasOwnProperty(key);
+    return store.has(entityKey) && store.get(entityKey)[key] !== undefined;
 }
 
 export function getValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string, default_: unknown = undefined) {
     const entityKey = getEntityKey(entity);
-    if (store.has(entityKey) && store.get(entityKey).hasOwnProperty(key)) {
+    if (store.has(entityKey) && store.get(entityKey)[key] !== undefined) {
         return store.get(entityKey)[key];
     }
 

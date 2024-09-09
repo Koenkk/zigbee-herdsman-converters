@@ -13,7 +13,7 @@ const fzLocal = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('16392')) {
+            if (msg.data['16392'] !== undefined) {
                 return {power: msg.data['16392']};
             }
         },
@@ -22,7 +22,7 @@ const fzLocal = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('16393')) {
+            if (msg.data['16393'] !== undefined) {
                 return {energy: parseFloat(msg.data['16393']) / 1000};
             }
         },

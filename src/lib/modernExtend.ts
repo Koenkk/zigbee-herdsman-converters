@@ -321,7 +321,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const payload: KeyValueAny = {};
-                if (msg.data.hasOwnProperty('batteryPercentageRemaining') && msg.data['batteryPercentageRemaining'] < 255) {
+                if (msg.data.batteryPercentageRemaining !== undefined && msg.data['batteryPercentageRemaining'] < 255) {
                     // Some devices do not comply to the ZCL and report a
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                     const dontDividePercentage = args.dontDividePercentage;
@@ -330,7 +330,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
                     if (args.percentage) payload.battery = precisionRound(percentage, 2);
                 }
 
-                if (msg.data.hasOwnProperty('batteryVoltage') && msg.data['batteryVoltage'] < 255) {
+                if (msg.data.batteryVoltage !== undefined && msg.data['batteryVoltage'] < 255) {
                     // Deprecated: voltage is = mV now but should be V
                     if (args.voltage) payload.voltage = msg.data['batteryVoltage'] * 100;
 
@@ -339,7 +339,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
                     }
                 }
 
-                if (msg.data.hasOwnProperty('batteryAlarmState')) {
+                if (msg.data.batteryAlarmState !== undefined) {
                     const battery1Low =
                         (msg.data.batteryAlarmState & (1 << 0) ||
                             msg.data.batteryAlarmState & (1 << 1) ||
@@ -1008,7 +1008,7 @@ export function light(args?: LightArgs): ModernExtend {
         toZigbee.push(tz.power_on_behavior);
     }
 
-    if (args.hasOwnProperty('turnsOffAtBrightness1')) {
+    if (args.turnsOffAtBrightness1 !== undefined) {
         meta.turnsOffAtBrightness1 = args.turnsOffAtBrightness1;
     }
 
@@ -1483,7 +1483,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                 const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
 
                 if (args.alarmTimeout) {
-                    const timeout = options?.hasOwnProperty(timeoutProperty) ? Number(options[timeoutProperty]) : 90;
+                    const timeout = options?.[timeoutProperty] !== undefined ? Number(options[timeoutProperty]) : 90;
                     clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
                     if (timeout !== 0) {
                         const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), timeout * 1000);
@@ -1569,13 +1569,13 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
                     // @ts-expect-error ignore
                     level: value.level || 'medium',
                     // @ts-expect-error ignore
-                    strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
+                    strobe: value.strobe !== undefined ? value.strobe : true,
                     // @ts-expect-error ignore
-                    duration: value.hasOwnProperty('duration') ? value.duration : 10,
+                    duration: value.duration !== undefined ? value.duration : 10,
                     // @ts-expect-error ignore
-                    strobeDutyCycle: value.hasOwnProperty('strobe_duty_cycle') ? value.strobe_duty_cycle * 10 : 0,
+                    strobeDutyCycle: value.strobe_duty_cycle !== undefined ? value.strobe_duty_cycle * 10 : 0,
                     // @ts-expect-error ignore
-                    strobeLevel: value.hasOwnProperty('strobe_level') ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
+                    strobeLevel: value.strobe_level !== undefined ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
                 };
 
                 let info;

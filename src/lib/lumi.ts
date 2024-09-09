@@ -1780,9 +1780,9 @@ export const lumiModernExtend = {
                     //  there is however an outage counter published in the 'special' buffer  data reported
                     //  under the manuSpecificLumi cluster as attribute 247, we simple decode and grab value with ID 5.
                     // Normal attribute publishing and decoding will be left to the classic fromZigbee or modernExtends.
-                    if (msg.data.hasOwnProperty('247')) {
+                    if (msg.data['247'] !== undefined) {
                         const dataDecoded = buffer2DataObject(model, msg.data['247']);
-                        if (dataDecoded.hasOwnProperty('5')) {
+                        if (dataDecoded['5'] !== undefined) {
                             assertNumber(dataDecoded['5']);
 
                             const currentOutageCount = dataDecoded['5'] - 1;
@@ -1982,7 +1982,7 @@ export const lumiModernExtend = {
                 cluster: 'manuSpecificLumi',
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(652)) {
+                    if (msg.data[652] !== undefined) {
                         const actionLookup: KeyValueNumberString = {
                             1: 'slider_single',
                             2: 'slider_double',
@@ -2056,7 +2056,7 @@ export const lumiModernExtend = {
                 cluster: 'ssIasZone',
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(45)) {
+                    if (msg.data[45] !== undefined) {
                         const zoneStatus = msg.data[45];
                         const actionLookup: KeyValueNumberString = {1: 'shake', 2: 'triple_strike'};
                         return {action: actionLookup[zoneStatus]};
@@ -2082,12 +2082,12 @@ export const lumiModernExtend = {
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
                     const payload: KeyValueAny = {};
-                    if (msg.data.hasOwnProperty(args.deviceTemperatureAttribute)) {
+                    if (msg.data[args.deviceTemperatureAttribute] !== undefined) {
                         const value = msg.data[args.deviceTemperatureAttribute];
                         assertNumber(value);
                         payload['device_temperature'] = value;
                     }
-                    if (msg.data.hasOwnProperty(args.powerOutageCountAttribute)) {
+                    if (msg.data[args.powerOutageCountAttribute] !== undefined) {
                         const value = msg.data[args.powerOutageCountAttribute];
                         assertNumber(value);
                         payload['power_outage_count'] = value - 1;
@@ -2118,7 +2118,7 @@ export const lumiModernExtend = {
                 cluster: 'manuSpecificLumi',
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(570)) {
+                    if (msg.data[570] !== undefined) {
                         const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
                         const state: KeyValueNumberString = {0: 'released', 128: 'pressed'};
                         return {
@@ -2825,17 +2825,17 @@ export const fromZigbee = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true()],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('illuminance')) {
+            if (msg.data.illuminance !== undefined) {
                 // The occupancy sensor only sends a message when motion detected.
                 // Therefore we need to publish the no_motion detected by ourselves.
                 let timeout =
-                    meta && meta.state && meta.state.hasOwnProperty('detection_interval')
+                    meta && meta.state && meta.state.detection_interval !== undefined
                         ? Number(meta.state.detection_interval)
                         : ['RTCGQ14LM'].includes(model.model)
                           ? 30
                           : 60;
                 timeout =
-                    options && options.hasOwnProperty('occupancy_timeout') && Number(options.occupancy_timeout) >= timeout
+                    options && options.occupancy_timeout !== undefined && Number(options.occupancy_timeout) >= timeout
                         ? Number(options.occupancy_timeout)
                         : timeout + 2;
 
@@ -2883,14 +2883,14 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
+            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data['currentPositionLiftPercentage'] <= 100) {
                 const value = msg.data['currentPositionLiftPercentage'];
                 const position = invert ? 100 - value : value;
                 const state = invert ? (position > 0 ? 'CLOSE' : 'OPEN') : position > 0 ? 'OPEN' : 'CLOSE';
                 result[postfixWithEndpointName('position', msg, model, meta)] = position;
                 result[postfixWithEndpointName('state', msg, model, meta)] = state;
             }
-            if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
+            if (msg.data.currentPositionTiltPercentage !== undefined && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
                 result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? 100 - value : value;
             }
@@ -2906,14 +2906,14 @@ export const fromZigbee = {
             if (model.meta && !model.meta.multiEndpoint) {
                 const mappingMode: KeyValueNumberString = {0x12: 'control_relay', 0xfe: 'decoupled'};
                 const key = 0xff22;
-                if (msg.data.hasOwnProperty(key)) {
+                if (msg.data[key] !== undefined) {
                     payload.operation_mode = mappingMode[msg.data[key]];
                 }
             } else {
                 const mappingButton: KeyValueNumberString = {0xff22: 'left', 0xff23: 'right'};
                 const mappingMode: KeyValueNumberString = {0x12: 'control_left_relay', 0x22: 'control_right_relay', 0xfe: 'decoupled'};
                 for (const key in mappingButton) {
-                    if (msg.data.hasOwnProperty(key)) {
+                    if (msg.data[key] !== undefined) {
                         payload[`operation_mode_${mappingButton[key]}`] = mappingMode[msg.data[key]];
                     }
                 }
@@ -2941,7 +2941,7 @@ export const fromZigbee = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // Lumi wall switches use endpoint 4, 5 or 6 to indicate an action on the button so we have to skip that.
-            if (msg.data.hasOwnProperty('onOff') && ![4, 5, 6].includes(msg.endpoint.ID)) {
+            if (msg.data.onOff !== undefined && ![4, 5, 6].includes(msg.endpoint.ID)) {
                 const property = postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
@@ -2960,7 +2960,7 @@ export const fromZigbee = {
             // for lumi.curtain.acn002
             if (['ZNJLBL01LM'].includes(model.model)) lookup = {0: 'closing', 1: 'opening', 2: 'stopped', 3: 'blocked'};
 
-            if (data && data.hasOwnProperty('presentValue')) {
+            if (data && data.presentValue !== undefined) {
                 const value = data['presentValue'];
                 if (value < 2) {
                     running = true;
@@ -2976,11 +2976,11 @@ export const fromZigbee = {
         cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('curtainHandOpen')) {
+            if (msg.data.curtainHandOpen !== undefined) {
                 return {hand_open: msg.data['curtainHandOpen'] === 0};
-            } else if (msg.data.hasOwnProperty('curtainReverse')) {
+            } else if (msg.data.curtainReverse !== undefined) {
                 return {reverse_direction: msg.data['curtainReverse'] === 1};
-            } else if (msg.data.hasOwnProperty('curtainCalibrated')) {
+            } else if (msg.data.curtainCalibrated !== undefined) {
                 return {limits_calibration: msg.data['curtainCalibrated'] === 1 ? 'calibrated' : 'recalibrate'};
             }
         },
@@ -3006,7 +3006,7 @@ export const fromZigbee = {
                 if (result.action === 'vibration') {
                     result.vibration = true;
 
-                    const timeout = options && options.hasOwnProperty('vibration_timeout') ? Number(options.vibration_timeout) : 90;
+                    const timeout = options && options.vibration_timeout !== undefined ? Number(options.vibration_timeout) : 90;
 
                     // Stop any existing timer cause vibration detected
                     clearTimeout(globalStore.getValue(msg.endpoint, 'vibration_timer', null));
@@ -3106,9 +3106,9 @@ export const fromZigbee = {
 
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
-            let timeout: number = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? Number(meta.state.detection_interval) : 60;
+            let timeout: number = meta && meta.state && meta.state.detection_interval !== undefined ? Number(meta.state.detection_interval) : 60;
             timeout =
-                options && options.hasOwnProperty('occupancy_timeout') && Number(options.occupancy_timeout) >= timeout
+                options && options.occupancy_timeout !== undefined && Number(options.occupancy_timeout) >= timeout
                     ? Number(options.occupancy_timeout)
                     : timeout + 2;
 
@@ -3145,7 +3145,7 @@ export const fromZigbee = {
             const data = msg.data;
             if (data && data['65281']) {
                 const basicAttrs = data['65281'];
-                if (basicAttrs.hasOwnProperty('100')) {
+                if (basicAttrs['100'] !== undefined) {
                     return {gas_density: basicAttrs['100']};
                 }
             }
@@ -3158,7 +3158,7 @@ export const fromZigbee = {
             const data = msg.data;
             const lookup: KeyValueAny = {'1': 'low', '2': 'medium', '3': 'high'};
 
-            if (data && data.hasOwnProperty('65520')) {
+            if (data && data['65520'] !== undefined) {
                 const value = data['65520'];
                 if (value && value.startsWith('0x020')) {
                     return {
@@ -3172,7 +3172,7 @@ export const fromZigbee = {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('batteryAlarmMask')) {
+            if (msg.data.batteryAlarmMask !== undefined) {
                 return {battery_low: msg.data['batteryAlarmMask'] === 1};
             }
         },
@@ -3521,65 +3521,65 @@ export const fromZigbee = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0215)) {
+            if (msg.data[0x0215] !== undefined) {
                 const lookup: KeyValueAny = {0: 'classic', 1: 'concise'};
                 result.theme = lookup[msg.data[0x0215]];
             }
-            if (msg.data.hasOwnProperty(0x0214)) {
+            if (msg.data[0x0214] !== undefined) {
                 const lookup: KeyValueAny = {1: 'classic', 2: 'analog clock'};
                 result.screen_saver_style = lookup[msg.data[0x0214]];
             }
-            if (msg.data.hasOwnProperty(0x0213)) {
+            if (msg.data[0x0213] !== undefined) {
                 result.standby_enabled = msg.data[0x0213] & 1 ? true : false;
             }
-            if (msg.data.hasOwnProperty(0x0212)) {
+            if (msg.data[0x0212] !== undefined) {
                 const lookup: KeyValueAny = {0: 'mute', 1: 'low', 2: 'medium', 3: 'high'};
                 result.beep_volume = lookup[msg.data[0x0212]];
             }
-            if (msg.data.hasOwnProperty(0x0211)) {
+            if (msg.data[0x0211] !== undefined) {
                 result.lcd_brightness = msg.data[0x0211];
             }
-            if (msg.data.hasOwnProperty(0x022b)) {
+            if (msg.data[0x022b] !== undefined) {
                 const lookup: KeyValueAny = {0: 'none', 1: '1', 2: '2', 3: '1 and 2', 4: '3', 5: '1 and 3', 6: '2 and 3', 7: 'all'};
                 result.available_switches = lookup[msg.data[0x022b]];
             }
-            if (msg.data.hasOwnProperty(0x217)) {
+            if (msg.data[0x217] !== undefined) {
                 const lookup: KeyValueAny = {3: 'small', 4: 'medium', 5: 'large'};
                 result.font_size = lookup[msg.data[0x217]];
             }
-            if (msg.data.hasOwnProperty(0x219)) {
+            if (msg.data[0x219] !== undefined) {
                 const lookup: KeyValueAny = {0: 'scene', 1: 'feel', 2: 'thermostat', 3: 'switch'};
                 result.homepage = lookup[msg.data[0x219]];
             }
-            if (msg.data.hasOwnProperty(0x210)) {
+            if (msg.data[0x210] !== undefined) {
                 const lookup: KeyValueAny = {0: 'chinese', 1: 'english'};
                 result.language = lookup[msg.data[0x210]];
             }
-            if (msg.data.hasOwnProperty(0x216)) {
+            if (msg.data[0x216] !== undefined) {
                 result.standby_time = msg.data[0x216];
             }
-            if (msg.data.hasOwnProperty(0x218)) {
+            if (msg.data[0x218] !== undefined) {
                 result.lcd_auto_brightness_enabled = msg.data[0x218] & 1 ? true : false;
             }
-            if (msg.data.hasOwnProperty(0x221)) {
+            if (msg.data[0x221] !== undefined) {
                 result.screen_saver_enabled = msg.data[0x221] & 1 ? true : false;
             }
-            if (msg.data.hasOwnProperty(0x222)) {
+            if (msg.data[0x222] !== undefined) {
                 result.standby_lcd_brightness = msg.data[0x222];
             }
-            if (msg.data.hasOwnProperty(0x223)) {
+            if (msg.data[0x223] !== undefined) {
                 const lookup: KeyValueAny = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
                 const textarr = msg.data[0x223].slice(1, msg.data[0x223].length);
                 result.switch_1_icon = lookup[msg.data[0x223][0]];
                 result.switch_1_text = String.fromCharCode(...textarr);
             }
-            if (msg.data.hasOwnProperty(0x224)) {
+            if (msg.data[0x224] !== undefined) {
                 const lookup: KeyValueAny = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
                 const textarr = msg.data[0x224].slice(1, msg.data[0x224].length);
                 result.switch_2_icon = lookup[msg.data[0x224][0]];
                 result.switch_2_text = String.fromCharCode(...textarr);
             }
-            if (msg.data.hasOwnProperty(0x225)) {
+            if (msg.data[0x225] !== undefined) {
                 const lookup: KeyValueAny = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
                 const textarr = msg.data[0x225].slice(1, msg.data[0x225].length);
                 result.switch_3_icon = lookup[msg.data[0x225][0]];
@@ -4014,9 +4014,7 @@ export const toZigbee = {
                 schedule_settings: 0x0276,
             };
 
-            if (dict.hasOwnProperty(key)) {
-                await entity.read('manuSpecificLumi', [getFromLookup(key, dict)], {manufacturerCode: manufacturerCode});
-            }
+            await entity.read('manuSpecificLumi', [getFromLookup(key, dict)], {manufacturerCode: manufacturerCode});
         },
     } satisfies Tz.Converter,
     lumi_presence_region_upsert: {
@@ -4152,7 +4150,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             assertEndpoint(entity);
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            let targetValue = isObject(value) && value.hasOwnProperty('state') ? value.state : value;
+            let targetValue = isObject(value) && value.state !== undefined ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
             let attrId;
@@ -4202,7 +4200,7 @@ export const toZigbee = {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
             // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-            const targetValue = isObject(value) && value.hasOwnProperty('state') ? value.state : value;
+            const targetValue = isObject(value) && value.state !== undefined ? value.state : value;
             // Switches using manuSpecificLumi 0x0200 on the same endpoints as the onOff clusters.
             const lookupState = {control_relay: 0x01, decoupled: 0x00};
             await entity.write('manuSpecificLumi', {0x0200: {value: getFromLookup(targetValue, lookupState), type: 0x20}}, manufacturerOptions.lumi);
@@ -4388,7 +4386,7 @@ export const toZigbee = {
                 await entity.write('genBasic', {0xfff0: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
             } else if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
                 // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-                const targetValue = isObject(value) && value.hasOwnProperty('state') ? value.state : value;
+                const targetValue = isObject(value) && value.state !== undefined ? value.state : value;
                 const lookupState = {on: 0x01, electric_appliances_on: 0x00, electric_appliances_off: 0x02, inverted: 0x03};
                 await entity.write(
                     'manuSpecificLumi',
@@ -4653,8 +4651,8 @@ export const toZigbee = {
             };
 
             // Legacy names
-            if (value.hasOwnProperty('auto_close')) opts.hand_open = value.auto_close;
-            if (value.hasOwnProperty('reset_move')) opts.reset_limits = value.reset_move;
+            if (value.auto_close !== undefined) opts.hand_open = value.auto_close;
+            if (value.reset_move !== undefined) opts.reset_limits = value.reset_move;
 
             if (meta.mapped.model === 'ZNCLDJ12LM') {
                 await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, manufacturerOptions.lumi);
@@ -5114,14 +5112,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.hasOwnProperty('switch_1_icon')) {
+                if (value.switch_1_icon !== undefined) {
                     payload.push(getFromLookup(value.switch_1_icon, lookup));
                     statearr.switch_1_icon = value.switch_1_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_1_icon = '1';
                 }
-                if (value.hasOwnProperty('switch_1_text')) {
+                if (value.switch_1_text !== undefined) {
                     payload.push(...value.switch_1_text.split('').map((c: string) => c.charCodeAt(0)));
                     statearr.switch_1_text = value.switch_1_text;
                 } else {
@@ -5136,14 +5134,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.hasOwnProperty('switch_2_icon')) {
+                if (value.switch_2_icon !== undefined) {
                     payload.push(getFromLookup(value.switch_2_icon, lookup));
                     statearr.switch_2_icon = value.switch_2_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_2_icon = '1';
                 }
-                if (value.hasOwnProperty('switch_2_text')) {
+                if (value.switch_2_text !== undefined) {
                     payload.push(...value.switch_2_text.split('').map((c: string) => c.charCodeAt(0)));
                     statearr.switch_2_text = value.switch_2_text;
                 } else {
@@ -5158,14 +5156,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.hasOwnProperty('switch_3_icon')) {
+                if (value.switch_3_icon !== undefined) {
                     payload.push(getFromLookup(value.switch_3_icon, lookup));
                     statearr.switch_3_icon = value.switch_3_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_3_icon = '1';
                 }
-                if (value.hasOwnProperty('switch_3_text')) {
+                if (value.switch_3_text !== undefined) {
                     payload.push(...value.switch_3_text.split('').map((c: string) => c.charCodeAt(0)));
                     statearr.switch_3_text = value.switch_3_text;
                 } else {

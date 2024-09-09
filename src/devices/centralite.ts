@@ -17,7 +17,7 @@ const fzLocal = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('runningState')) {
+            if (msg.data.runningState !== undefined) {
                 if (msg.data['runningState'] == 1) {
                     msg.data['runningState'] = 0;
                 } else if (msg.data['runningState'] == 5) {
@@ -28,7 +28,7 @@ const fzLocal = {
                     msg.data['runningState'] = 9;
                 }
             }
-            if (msg.data.hasOwnProperty('ctrlSeqeOfOper')) {
+            if (msg.data.ctrlSeqeOfOper !== undefined) {
                 if (msg.data['ctrlSeqeOfOper'] == 6) {
                     msg.data['ctrlSeqeOfOper'] = 4;
                 }

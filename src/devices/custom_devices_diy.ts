@@ -89,7 +89,7 @@ const fzLocal = {
             // Sometimes the sensor publishes non-realistic vales, it should only publish message
             // in the 0 - 100 range, don't produce messages beyond these values.
             if (humidity >= 0 && humidity <= 100) {
-                const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+                const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
                 const property = multiEndpoint ? postfixWithEndpointName('humidity', msg, model, meta) : 'humidity';
                 return {[property]: humidity};
             }
@@ -103,7 +103,7 @@ const fzLocal = {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
-            const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+            const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property1 = multiEndpoint ? postfixWithEndpointName('illuminance', msg, model, meta) : 'illuminance';
             const property2 = multiEndpoint ? postfixWithEndpointName('illuminance_lux', msg, model, meta) : 'illuminance_lux';
             return {[property1]: illuminance, [property2]: illuminanceLux};
@@ -115,13 +115,13 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.pressure'
             let pressure = 0;
-            if (msg.data.hasOwnProperty('scaledValue')) {
+            if (msg.data.scaledValue !== undefined) {
                 const scale = msg.endpoint.getClusterAttributeValue('msPressureMeasurement', 'scale') as number;
                 pressure = msg.data['scaledValue'] / Math.pow(10, scale) / 100.0; // convert to hPa
             } else {
                 pressure = parseFloat(msg.data['measuredValue']);
             }
-            const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+            const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property = multiEndpoint ? postfixWithEndpointName('pressure', msg, model, meta) : 'pressure';
             return {[property]: pressure};
         },
@@ -371,7 +371,7 @@ const definitions: DefinitionWithExtend[] = [
                 }
 
                 for (const endpoint of device.endpoints) {
-                    if (allEndpoints.hasOwnProperty(endpoint.ID)) {
+                    if (allEndpoints[endpoint.ID] !== undefined) {
                         continue;
                     }
                     epConfig = endpoint.ID.toString();
@@ -394,7 +394,7 @@ const definitions: DefinitionWithExtend[] = [
                     let valueId = valueConfigItems[0] ? valueConfigItems[0] : '';
                     let valueDescription = valueConfigItems[1] ? valueConfigItems[1] : '';
                     let valueUnit = valueConfigItems[2] !== undefined ? valueConfigItems[2] : '';
-                    if (!exposeDeviceOptions.hasOwnProperty(epName)) {
+                    if (exposeDeviceOptions[epName] === undefined) {
                         exposeDeviceOptions[epName] = {};
                     }
                     const exposeEpOptions: KeyValueAny = exposeDeviceOptions[epName];

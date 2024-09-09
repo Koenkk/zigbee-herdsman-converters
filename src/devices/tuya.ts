@@ -133,7 +133,7 @@ const storeLocal = {
                     // Only publish if the set is complete otherwise discard everything.
                     if (sign !== null && power !== null && current !== null && powerFactor !== null) {
                         const signedPowerKey = 'signed_power_' + channel;
-                        const signedPower = options.hasOwnProperty(signedPowerKey) ? options[signedPowerKey] : false;
+                        const signedPower = options[signedPowerKey] !== undefined ? options[signedPowerKey] : false;
                         if (signedPower) {
                             result['power_' + channel] = sign * power;
                             result['energy_flow_' + channel] = 'sign';
@@ -193,7 +193,7 @@ const convLocal = {
                 const result = {};
                 priv['sign_' + channel] = v == 1 ? -1 : +1;
                 const lateEnergyFlowKey = 'late_energy_flow_' + channel;
-                const lateEnergyFlow = options.hasOwnProperty(lateEnergyFlowKey) ? options[lateEnergyFlowKey] : false;
+                const lateEnergyFlow = options[lateEnergyFlowKey] !== undefined ? options[lateEnergyFlowKey] : false;
                 if (lateEnergyFlow) {
                     priv.flush(result, channel, options);
                 }
@@ -240,7 +240,7 @@ const convLocal = {
                 const result = {};
                 priv['power_factor_' + channel] = v;
                 const lateEnergyFlowKey = 'late_energy_flow_' + channel;
-                const lateEnergyFlow = options.hasOwnProperty(lateEnergyFlowKey) ? options[lateEnergyFlowKey] : false;
+                const lateEnergyFlow = options[lateEnergyFlowKey] !== undefined ? options[lateEnergyFlowKey] : false;
                 if (!lateEnergyFlow) {
                     priv.flush(result, channel, options);
                 }
@@ -594,7 +594,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('57355')) {
+            if (msg.data['57355'] !== undefined) {
                 result.temperature_unit = utils.getFromLookup(msg.data['57355'], {'0': 'celsius', '1': 'fahrenheit'});
             }
             return result;

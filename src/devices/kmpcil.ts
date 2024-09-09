@@ -28,10 +28,10 @@ const kmpcilOptions = {
 };
 
 function handleKmpcilPresence(model: DefinitionWithExtend, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta): KeyValue {
-    const useOptionsTimeoutBattery = options && options.hasOwnProperty('presence_timeout_battery');
+    const useOptionsTimeoutBattery = options && options.presence_timeout_battery !== undefined;
     const timeoutBattery = useOptionsTimeoutBattery ? options.presence_timeout_battery : 420; // 100 seconds by default
 
-    const useOptionsTimeoutDc = options && options.hasOwnProperty('presence_timeout_dc');
+    const useOptionsTimeoutDc = options && options.presence_timeout_dc !== undefined;
     const timeoutDc = useOptionsTimeoutDc ? options.presence_timeout_dc : 60;
 
     const mode = meta.state ? meta.state['power_state'] : false;
@@ -51,7 +51,7 @@ const kmpcilConverters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = handleKmpcilPresence(model, msg, publish, options, meta);
-            if (msg.data.hasOwnProperty('presentValue')) {
+            if (msg.data.presentValue !== undefined) {
                 const presentValue = msg.data['presentValue'];
                 payload.power_state = (presentValue & 0x01) > 0;
                 payload.occupancy = (presentValue & 0x04) > 0;
@@ -66,7 +66,7 @@ const kmpcilConverters = {
         options: [kmpcilOptions.presence_timeout_dc(), kmpcilOptions.presence_timeout_battery()],
         convert: (model, msg, publish, options, meta) => {
             const payload = handleKmpcilPresence(model, msg, publish, options, meta);
-            if (msg.data.hasOwnProperty('batteryVoltage')) {
+            if (msg.data.batteryVoltage !== undefined) {
                 payload.voltage = msg.data['batteryVoltage'] * 100;
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
                     // @ts-expect-error ignore

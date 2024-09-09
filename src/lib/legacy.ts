@@ -1090,7 +1090,7 @@ function getMetaValue(entity: any, definition: any, key: string, groupStrategy =
     if (entity.constructor.name === 'Group' && entity.members.length > 0) {
         const values = [];
         for (const memberMeta of definition) {
-            if (memberMeta.meta && memberMeta.meta.hasOwnProperty(key)) {
+            if (memberMeta.meta && memberMeta.meta[key] !== undefined) {
                 if (groupStrategy === 'first') {
                     return memberMeta.meta[key];
                 }
@@ -1104,7 +1104,7 @@ function getMetaValue(entity: any, definition: any, key: string, groupStrategy =
         if (groupStrategy === 'allEqual' && new Set(values).size === 1) {
             return values[0];
         }
-    } else if (definition && definition.meta && definition.meta.hasOwnProperty(key)) {
+    } else if (definition && definition.meta && definition.meta[key] !== undefined) {
         return definition.meta[key];
     }
 
@@ -1146,7 +1146,7 @@ const toPercentage = (value: number, min: number, max: number) => {
 
 const postfixWithEndpointName = (name: string, msg: KeyValueAny, definition: Definition) => {
     if (definition.meta && definition.meta.multiEndpoint) {
-        const endpointName = definition.hasOwnProperty('endpoint') ? getKey(definition.endpoint(msg.device), msg.endpoint.ID) : msg.endpoint.ID;
+        const endpointName = definition.endpoint !== undefined ? getKey(definition.endpoint(msg.device), msg.endpoint.ID) : msg.endpoint.ID;
         return `${name}_${endpointName}`;
     } else {
         return name;
@@ -2082,7 +2082,7 @@ const fromZigbee1 = {
                     3: 'hold',
                 };
 
-                if (msg.data.hasOwnProperty('data')) {
+                if (msg.data.data !== undefined) {
                     const zoneStatus = msg.data.zonestatus;
                     return {click: buttonStates[zoneStatus]};
                 } else {
@@ -3021,23 +3021,19 @@ const fromZigbee1 = {
                 result[postfixWithEndpointName('remote_sensing', msg, model)] = msg.data['remoteSensing'];
             }
             const ctrl = msg.data['ctrlSeqeOfOper'];
-            if (typeof ctrl == 'number' && thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
-                result[postfixWithEndpointName('control_sequence_of_operation', msg, model)] =
-                    // @ts-expect-error ignore
-                    thermostatControlSequenceOfOperations[ctrl];
+            if (typeof ctrl == 'number' && thermostatControlSequenceOfOperations[ctrl] !== undefined) {
+                result[postfixWithEndpointName('control_sequence_of_operation', msg, model)] = thermostatControlSequenceOfOperations[ctrl];
             }
             const smode = msg.data['systemMode'];
-            if (typeof smode == 'number' && thermostatSystemModes.hasOwnProperty(smode)) {
-                // @ts-expect-error ignore
+            if (typeof smode == 'number' && thermostatSystemModes[smode] !== undefined) {
                 result[postfixWithEndpointName('system_mode', msg, model)] = thermostatSystemModes[smode];
             }
             const rmode = msg.data['runningMode'];
-            if (typeof rmode == 'number' && thermostatSystemModes.hasOwnProperty(rmode)) {
-                // @ts-expect-error ignore
+            if (typeof rmode == 'number' && thermostatSystemModes[rmode] !== undefined) {
                 result[postfixWithEndpointName('running_mode', msg, model)] = thermostatSystemModes[rmode];
             }
             const state = msg.data['runningState'];
-            if (typeof state == 'number' && constants.thermostatRunningStates.hasOwnProperty(state)) {
+            if (typeof state == 'number' && constants.thermostatRunningStates[state] !== undefined) {
                 result[postfixWithEndpointName('running_state', msg, model)] = constants.thermostatRunningStates[state];
             }
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
@@ -3296,7 +3292,7 @@ const fromZigbee1 = {
                 return fromZigbeeConverters.hue_dimmer_switch.convert(model, msg, publish, options, meta);
             }
 
-            const multiplePressTimeout = options && options.hasOwnProperty('multiple_press_timeout') ? options.multiple_press_timeout : 0.25;
+            const multiplePressTimeout = options && options.multiple_press_timeout !== undefined ? options.multiple_press_timeout : 0.25;
 
             const getPayload = function (
                 button: any,
@@ -3325,7 +3321,7 @@ const fromZigbee1 = {
             const typeLookup: KeyValueAny = {0: 'press', 1: 'hold', 2: 'release', 3: 'release'};
             const type = typeLookup[msg.data['type']];
 
-            const brightnessEnabled = options && options.hasOwnProperty('send_brightess') ? options.send_brightess : true;
+            const brightnessEnabled = options && options.send_brightess !== undefined ? options.send_brightess : true;
             const brightnessSend = brightnessEnabled && button && (button == 'up' || button == 'down');
 
             // Initialize store
@@ -3800,7 +3796,7 @@ const fromZigbee1 = {
                         return {away_mode: 'OFF', preset_mode: 'none'};
                     }
                 case dataPoints.saswellScheduleMode:
-                    if (thermostatScheduleMode.hasOwnProperty(value)) {
+                    if (thermostatScheduleMode[value] !== undefined) {
                         return {schedule_mode: thermostatScheduleMode[value]};
                     } else {
                         logger.warning(`Unknown schedule mode ${value}`, 'zhc:legacy:fz:saswell_thermostat');
@@ -4060,7 +4056,7 @@ const fromZigbee1 = {
                     return {away_preset_days: value};
                 case dataPoints.mode: {
                     const ret: KeyValueAny = {};
-                    const presetOk = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(value);
+                    const presetOk = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value] !== undefined;
                     if (presetOk) {
                         ret.preset = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
                         ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
@@ -5513,7 +5509,7 @@ const fromZigbee1 = {
                 return result;
             }
 
-            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
+            if (thermostatMeta.weeklyScheduleConversion !== undefined) {
                 conversion = thermostatMeta.weeklyScheduleConversion;
             }
             if (conversion == 'saswell') {
@@ -5702,7 +5698,7 @@ const fromZigbee2 = {
                 return result;
             }
 
-            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
+            if (thermostatMeta.weeklyScheduleConversion !== undefined) {
                 conversion = thermostatMeta.weeklyScheduleConversion;
             }
             if (conversion == 'saswell') {
@@ -6153,9 +6149,9 @@ const toZigbee2 = {
                 'away_preset_days',
             ]) {
                 let v = 0;
-                if (value.hasOwnProperty(attrName)) {
+                if (value[attrName] !== undefined) {
                     v = value[attrName];
-                } else if (meta.state.hasOwnProperty(attrName)) {
+                } else if (meta.state[attrName] !== undefined) {
                     // @ts-expect-error ignore
                     v = meta.state[attrName];
                 }
@@ -6210,9 +6206,9 @@ const toZigbee2 = {
                 // temperature
                 const attrName = `${key}_temp_${i}`;
                 let v = 17;
-                if (value.hasOwnProperty(attrName)) {
+                if (value[attrName] !== undefined) {
                     v = value[attrName];
-                } else if (meta.state.hasOwnProperty(attrName)) {
+                } else if (meta.state[attrName] !== undefined) {
                     // @ts-expect-error ignore
                     v = meta.state[attrName];
                 }
@@ -6222,18 +6218,18 @@ const toZigbee2 = {
                     // hour
                     let attrName = `${key}_hour_${i}`;
                     let h = 0;
-                    if (value.hasOwnProperty(attrName)) {
+                    if (value[attrName] !== undefined) {
                         h = value[attrName];
-                    } else if (meta.state.hasOwnProperty(attrName)) {
+                    } else if (meta.state[attrName] !== undefined) {
                         // @ts-expect-error ignore
                         h = meta.state[attrName];
                     }
                     // minute
                     attrName = `${key}_minute_${i}`;
                     let m = 0;
-                    if (value.hasOwnProperty(attrName)) {
+                    if (value[attrName] !== undefined) {
                         m = value[attrName];
-                    } else if (meta.state.hasOwnProperty(attrName)) {
+                    } else if (meta.state[attrName] !== undefined) {
                         // @ts-expect-error ignore
                         m = meta.state[attrName];
                     }
@@ -6304,7 +6300,7 @@ const toZigbee2 = {
     matsee_garage_door_opener: {
         key: ['trigger'],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.hasOwnProperty('trigger') ? meta.message.trigger : true;
+            const state = meta.message.trigger !== undefined ? meta.message.trigger : true;
             // @ts-expect-error ignore
             await sendDataPointBool(entity, dataPoints.garageDoorTrigger, state);
             return {state: {trigger: state}};
@@ -6806,7 +6802,7 @@ const toZigbee2 = {
                 ret['state'][key] = value;
                 return ret;
             } else {
-                if ((meta.state.hasOwnProperty(key) && meta.state[key] == '') || !meta.state.hasOwnProperty(key)) {
+                if ((meta.state[key] !== undefined && meta.state[key] == '') || meta.state[key] === undefined) {
                     data.push(0x03);
                 } else {
                     data.push(0x02);
@@ -6868,7 +6864,7 @@ const toZigbee2 = {
                 ret['state'][key] = value;
                 return ret;
             } else {
-                if ((meta.state.hasOwnProperty(key) && meta.state[key] == '') || !meta.state.hasOwnProperty(key)) {
+                if ((meta.state[key] !== undefined && meta.state[key] == '') || meta.state[key] === undefined) {
                     data.push(0x03);
                 } else {
                     data.push(0x02);
@@ -6958,8 +6954,7 @@ const toZigbee2 = {
             // @ts-expect-error ignore
             const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
             let conversion = 'generic';
-            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
-                // @ts-expect-error ignore
+            if (utils.isObject(thermostatMeta) && thermostatMeta.weeklyScheduleConversion !== undefined) {
                 conversion = thermostatMeta.weeklyScheduleConversion;
             }
 
@@ -7682,7 +7677,7 @@ const toZigbee2 = {
 
                 let hsb: KeyValueAny = {};
 
-                if (value.hasOwnProperty('hsb')) {
+                if (value.hsb !== undefined) {
                     const split = value.hsb.split(',').map((i: string) => parseInt(i));
                     hsb = fillInHSB(split[0], split[1], split[2], meta.state);
                 } else {
@@ -8403,7 +8398,7 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
 };
 
-const thermostatControlSequenceOfOperations = {
+const thermostatControlSequenceOfOperations: {[s: number]: string} = {
     0: 'cooling only',
     1: 'cooling with reheat',
     2: 'heating only',
@@ -8412,7 +8407,7 @@ const thermostatControlSequenceOfOperations = {
     5: 'cooling and heating 4-pipes with reheat',
 };
 
-const thermostatSystemModes = {
+const thermostatSystemModes: {[s: number]: string} = {
     0: 'off',
     1: 'auto',
     3: 'cool',

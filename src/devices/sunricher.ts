@@ -54,11 +54,7 @@ const fzLocal = {
                 0x42: 'b_g_r',
                 0x40: 'rgb_release',
             };
-            if (!lookup.hasOwnProperty(commandID)) {
-                logger.error(`Missing command '0x${commandID.toString(16)}'`, NS);
-            } else {
-                return {action: utils.getFromLookup(commandID, lookup)};
-            }
+            return {action: utils.getFromLookup(commandID, lookup)};
         },
     } satisfies Fz.Converter,
 };

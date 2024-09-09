@@ -61,13 +61,13 @@ const fzZiPulses: Fz.Converter = {
     type: ['attributeReport', 'readResponse'],
     convert: (model, msg, publish, options, meta) => {
         const payload: KeyValue = {};
-        if (msg.data.hasOwnProperty('multiplier')) {
+        if (msg.data.multiplier !== undefined) {
             payload['multiplier'] = msg.data['multiplier'];
         }
-        if (msg.data.hasOwnProperty('divisor')) {
+        if (msg.data.divisor !== undefined) {
             payload['divisor'] = msg.data['divisor'];
         }
-        if (msg.data.hasOwnProperty('unitOfMeasure')) {
+        if (msg.data.unitOfMeasure !== undefined) {
             const val = msg.data['unitOfMeasure'];
             payload['unitOfMeasure'] = unitsZiPulses[val];
         }
@@ -179,7 +179,7 @@ const fzLocal = {
                     .toLowerCase();
                 let val = msg.data[at];
                 if (val != null) {
-                    if (val.hasOwnProperty('type') && val.type === 'Buffer') {
+                    if (val.type !== undefined && val.type === 'Buffer') {
                         val = Buffer.from(val.data);
                     }
                     if (Buffer.isBuffer(val)) {
@@ -1632,7 +1632,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     // @ts-expect-error ignore
     function getConfig(targetOption, bitLinkyMode, valueTrue, valueFalse) {
         const valueDefault = valueFalse;
-        if (options && options.hasOwnProperty(targetOption) && options[targetOption] != 'auto') {
+        if (options && options[targetOption] !== undefined && options[targetOption] != 'auto') {
             if (options[targetOption] === 'true' || options[targetOption] === 'false') {
                 return options[targetOption] === 'true'; // special case for production
             }
@@ -1671,7 +1671,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     // Filter even more, based on our current tarif
     let currentTarf = '';
 
-    if (options && options.hasOwnProperty('tarif') && options['tarif'] != 'auto') {
+    if (options && options.tarif !== undefined && options['tarif'] != 'auto') {
         currentTarf = Object.entries(tarifsDef).find(([k, v]) => v.fname == options['tarif'])[1].currentTarf;
     } else {
         try {
@@ -1730,7 +1730,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     }
 
     // Filter exposed attributes with user whitelist
-    if (options && options.hasOwnProperty('tic_command_whitelist')) {
+    if (options && options.tic_command_whitelist !== undefined) {
         // @ts-expect-error ignore
         const tic_commands_str = options['tic_command_whitelist'].toUpperCase();
         if (tic_commands_str !== 'ALL') {
@@ -1843,7 +1843,8 @@ const definitions: DefinitionWithExtend[] = [
                     change: 1,
                 };
                 // Override reportings
-                if (e.hasOwnProperty('report')) {
+                // @ts-expect-error ignore
+                if (e.report !== undefined) {
                     // @ts-expect-error ignore
                     params = {...params, ...e.report};
                 }

@@ -95,7 +95,7 @@ const tzLocal = {
             if (key == 'color') {
                 const result = await tzLocal1.gledopto_light_color.convertSet(entity, key, value, meta);
                 utils.assertObject(result);
-                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
+                if (result.state && result.state.color.x !== undefined && result.state.color.y !== undefined) {
                     result.state.color_temp = Math.round(libColor.ColorXY.fromObject(result.state.color).toMireds());
                 }
 

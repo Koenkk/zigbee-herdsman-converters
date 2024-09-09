@@ -43,11 +43,11 @@ export const develcoModernExtend = {
                         try {
                             const data = await ep.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
 
-                            if (data.hasOwnProperty('develcoPrimarySwVersion')) {
+                            if (data.develcoPrimarySwVersion !== undefined) {
                                 device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
                             }
 
-                            if (data.hasOwnProperty('develcoPrimaryHwVersion')) {
+                            if (data.develcoPrimaryHwVersion !== undefined) {
                                 device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
                             }
 
@@ -99,7 +99,7 @@ export const develcoModernExtend = {
                 cluster: clusterName,
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(attributeName)) {
+                    if (msg.data[attributeName] !== undefined) {
                         const vocPpb = parseFloat(msg.data[attributeName]);
 
                         // from aqszb-110-technical-manual-air-quality-sensor-04-08-20.pdf page 6, section 2.2 voc
@@ -149,7 +149,7 @@ export const develcoModernExtend = {
                 cluster: clusterName,
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(attributeName) && msg.data[attributeName] < 255) {
+                    if (msg.data[attributeName] !== undefined && msg.data[attributeName] < 255) {
                         const voltage = parseInt(msg.data[attributeName]);
                         return {[propertyName]: voltage <= 25};
                     }

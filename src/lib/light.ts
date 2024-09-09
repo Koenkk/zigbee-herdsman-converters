@@ -24,22 +24,22 @@ export function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Met
      */
     const attributes = ['colorMode'];
     if (meta && meta.message) {
-        if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('x'))) {
+        if (!meta.message.color || (utils.isObject(meta.message.color) && meta.message.color.x !== undefined)) {
             attributes.push('currentX');
         }
-        if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('y'))) {
+        if (!meta.message.color || (utils.isObject(meta.message.color) && meta.message.color.y !== undefined)) {
             attributes.push('currentY');
         }
 
         if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
-            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('hue'))) {
+            if (!meta.message.color || (utils.isObject(meta.message.color) && meta.message.color.hue !== undefined)) {
                 if (utils.getMetaValue(entity, meta.mapped, 'supportsEnhancedHue', 'allEqual', true)) {
                     attributes.push('enhancedCurrentHue');
                 } else {
                     attributes.push('currentHue');
                 }
             }
-            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('saturation'))) {
+            if (!meta.message.color || (utils.isObject(meta.message.color) && meta.message.color.saturation !== undefined)) {
                 attributes.push('currentSaturation');
             }
         }

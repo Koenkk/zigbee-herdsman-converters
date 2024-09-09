@@ -2441,7 +2441,7 @@ const definitions: DefinitionWithExtend[] = [
                 type === 'message' &&
                 data.type === 'attributeReport' &&
                 data.cluster === 'genBasic' &&
-                data.data.hasOwnProperty('1028') &&
+                data.data['1028'] !== undefined &&
                 data.data['1028'] == 0
             ) {
                 // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
@@ -2586,7 +2586,7 @@ const definitions: DefinitionWithExtend[] = [
                 type === 'message' &&
                 data.type === 'attributeReport' &&
                 data.cluster === 'genMultistateOutput' &&
-                data.data.hasOwnProperty('presentValue') &&
+                data.data.presentValue !== undefined &&
                 data.data['presentValue'] > 1
             ) {
                 // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
