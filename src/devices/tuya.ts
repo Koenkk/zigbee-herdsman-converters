@@ -4143,6 +4143,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_7fqkphoq'}, // AFINTEK
             {modelID: 'TS0601', manufacturerName: '_TZE200_rufdtfyv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_lpwgshtl'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_rk1wojce'}, // Emos P5630S
         ],
         model: 'TS0601_thermostat',
         vendor: 'Tuya',
@@ -4155,6 +4156,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Immax', model: '07732B'},
             tuya.whitelabel('Immax', '07732L', 'Radiator valve with thermostat', ['_TZE200_rufdtfyv']),
             {vendor: 'Evolveo', model: 'Heat M30'},
+            tuya.whitelabel('Emos', 'P5630S', 'Radiator valve with thermostat', ['_TZE200_rk1wojce']),
         ],
         meta: {tuyaThermostatPreset: legacy.thermostatPresets, tuyaThermostatSystemMode: legacy.thermostatSystemModes3},
         ota: ota.zigbeeOTA,
