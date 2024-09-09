@@ -1,7 +1,6 @@
 import {Logger} from './types';
 
 export let logger: Logger = {
-    isEnabled: () => true,
     debug: (messageOrLambda, namespace) =>
         console.debug(`${namespace}: ${typeof messageOrLambda === 'function' ? messageOrLambda() : messageOrLambda}`),
     info: (messageOrLambda, namespace) =>
