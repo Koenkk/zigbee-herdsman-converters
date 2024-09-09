@@ -60,8 +60,7 @@ project.getSourceFiles().forEach((sourceFile) => {
                     const evalOpts = Object.entries(eval(`(${opts})`));
                     for (const [key, value] of evalOpts) {
                         if (key === 'colorTempRange') {
-                            // @ts-expect-error ignore
-                            newOpts.colorTemp = {...newOpts.colorTemp, range: value};
+                            newOpts.colorTemp = {...(newOpts.colorTemp as object), range: value};
                         } else if (key === 'disableColorTempStartup') {
                             // @ts-expect-error ignore
                             newOpts.colorTemp = {...newOpts.colorTemp, startup: !value};

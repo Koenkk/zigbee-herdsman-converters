@@ -2360,8 +2360,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data[10];
             const defaults = {motor_direction: 'FORWARD', motor_speed: 40};
-            // @ts-expect-error ignore
-            if ((msg.data[0] === 0x7a) & (msg.data[1] === 0xd1)) {
+            if (msg.data[0] === 0x7a && msg.data[1] === 0xd1) {
                 const reportType = msg.data[12];
                 switch (dp) {
                     case 0x0c:
