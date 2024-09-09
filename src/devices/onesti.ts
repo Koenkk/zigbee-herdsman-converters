@@ -1,4 +1,4 @@
-import {Definition, Fz, KeyValue} from 'src/lib/types';
+import {DefinitionWithExtend, Fz, KeyValue} from 'src/lib/types';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -56,7 +56,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['easyCodeTouch_v1', 'EasyCodeTouch', 'EasyFingerTouch'],
         model: 'easyCodeTouch_v1',

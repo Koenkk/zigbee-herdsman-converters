@@ -7,7 +7,7 @@ import {identify, deviceAddCustomCluster} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Expose, Fz, Tz, Zh} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -396,7 +396,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 9,
         dataType: Zcl.DataType.UINT8,
         min: 1,
-        max: 253,
+        max: 254,
         description:
             'The minimum level that the dimmer allows the bulb to be dimmed to. ' +
             'Useful when the user has an LED bulb that does not turn on or flickers at a lower level.',
@@ -405,7 +405,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 10,
         dataType: Zcl.DataType.UINT8,
         min: 2,
-        max: 254,
+        max: 255,
         description:
             'The maximum level that the dimmer allows the bulb to be dimmed to.' +
             'Useful when the user has an LED bulb that reaches its maximum level before the ' +
@@ -2159,7 +2159,7 @@ exposesListVZM35.push(
     ]),
 );
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['VZM31-SN'],
         model: 'VZM31-SN',

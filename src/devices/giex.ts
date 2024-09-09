@@ -1,7 +1,7 @@
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 
 const {presets: ep, access: ea} = exposes;
@@ -33,7 +33,7 @@ const exportTemplates = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     // _TZE200_sh1btabb uses minutes, timezone is GMT+8
     {
         ...exportTemplates.giexWaterValve,
@@ -85,7 +85,7 @@ const definitions: Definition[] = [
                 .withUnit('sec')
                 .withDescription('Cycle irrigation interval'),
         ],
-        whiteLabel: [tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_7ytb3h8u', '_TZE284_7ytb3h8u'])],
+        whiteLabel: [tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_7ytb3h8u', '_TZE284_7ytb3h8u', '_TZE200_7ytb3h8u'])],
     },
 ];
 

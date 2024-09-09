@@ -5,12 +5,12 @@ import * as legacy from '../lib/legacy';
 import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TERNCY-WS01-S4'],
         model: 'TERNCY-WS01',

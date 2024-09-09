@@ -10,7 +10,7 @@ import {
     setupConfigureForReporting,
 } from '../lib/modernExtend';
 import * as globalStore from '../lib/store';
-import {Definition, ModernExtend, Fz, Expose, Configure, OnEvent} from '../lib/types';
+import {DefinitionWithExtend, ModernExtend, Fz, Expose, Configure, OnEvent} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -72,7 +72,7 @@ function electricityMeterPoll(): ModernExtend {
     return {configure, onEvent, isModernExtend: true};
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Leak_Sensor'],
         model: 'MCLH-07',

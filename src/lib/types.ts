@@ -10,7 +10,7 @@ export interface Logger {
     debug: (message: string, namespace: string) => void;
     info: (message: string, namespace: string) => void;
     warning: (message: string, namespace: string) => void;
-    error: (message: string | Error, namespace: string) => void;
+    error: (message: string, namespace: string) => void;
 }
 
 export type Range = [number, number];
@@ -49,6 +49,7 @@ export type Expose =
     | exposes.Lock
     | exposes.Cover
     | exposes.Climate
+    | exposes.Fan
     | exposes.Text;
 export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum | exposes.List | exposes.Text;
 export interface Fingerprint {
@@ -221,7 +222,7 @@ export interface DefinitionMeta {
     /**
      * Never use a transition when transitioning to off (even when specified)
      */
-    noOffTransition?: true;
+    noOffTransition?: boolean | ((entity: Zh.Endpoint) => boolean);
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
@@ -248,7 +249,7 @@ export interface OnEventData {
 }
 
 export type DefinitionOta = {
-    isUpdateAvailable: (device: Zh.Device, requestPayload: Ota.ImageInfo) => Promise<OtaUpdateAvailableResult>;
+    isUpdateAvailable: (device: Zh.Device, requestPayload: Ota.ImageInfo | undefined) => Promise<OtaUpdateAvailableResult>;
     updateToLatest: (device: Zh.Device, onProgress: Ota.OnProgress) => Promise<number>;
 };
 
@@ -256,7 +257,7 @@ export type DefinitionExposesFunction = (device: Zh.Device | undefined, options:
 
 export type DefinitionExposes = Expose[] | DefinitionExposesFunction;
 
-export type Definition = {
+type DefinitionBase = {
     model: string;
     vendor: string;
     description: string;
@@ -268,7 +269,15 @@ export type Definition = {
     onEvent?: OnEvent;
     ota?: DefinitionOta;
     generated?: boolean;
-} & ({zigbeeModel: string[]; fingerprint?: Fingerprint[]} | {zigbeeModel?: string[]; fingerprint: Fingerprint[]}) &
+} & ({zigbeeModel: string[]; fingerprint?: Fingerprint[]} | {zigbeeModel?: string[]; fingerprint: Fingerprint[]});
+
+export type Definition = DefinitionBase & {
+    fromZigbee: Fz.Converter[];
+    toZigbee: Tz.Converter[];
+    exposes: DefinitionExposes;
+};
+
+export type DefinitionWithExtend = DefinitionBase &
     (
         | {
               extend: ModernExtend[];
@@ -311,11 +320,11 @@ export namespace Fz {
 export namespace Tz {
     export interface Meta {
         message: KeyValue;
-        device: Zh.Device;
+        device: Zh.Device | undefined;
         mapped: Definition | Definition[];
         options: KeyValue;
         state: KeyValue;
-        endpoint_name: string;
+        endpoint_name: string | undefined;
         membersState?: {[s: string]: KeyValue};
     }
     export type ConvertSetResult = {state?: KeyValue; readAfterWriteTime?: number; membersState?: {[s: string]: KeyValue}} | void;

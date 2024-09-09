@@ -294,41 +294,42 @@ export function batteryVoltageToPercentage(voltage: number, option: BatteryNonLi
     }
 }
 
-// groupStrategy: allEqual: return only if all members in the groups have the same meta property value.
+// groupStrategy: allEqual: return only if all members in the groups have the same meta property value
 //                first: return the first property
+//                {atLeastOnce}: returns `atLeastOnce` value when at least one of the group members has this value
 export function getMetaValue<T>(
     entity: Zh.Group | Zh.Endpoint,
     definition: Definition | Definition[],
     key: string,
-    groupStrategy = 'first',
+    groupStrategy: 'allEqual' | 'first' | {atLeastOnce: T} = 'first',
     defaultValue: T = undefined,
 ): T {
+    // In case meta is a function, the first argument should be a `Zh.Entity`.
     if (isGroup(entity) && entity.members.length > 0) {
         const values = [];
         for (let i = 0; i < entity.members.length; i++) {
-            // @ts-expect-error
-            const memberMetaMeta = getMetaValues(definition[i], entity.members[i]);
-            if (memberMetaMeta && memberMetaMeta.hasOwnProperty(key)) {
+            const memberMetaMeta = getMetaValues((definition as Definition[])[i], entity.members[i]);
+            if (memberMetaMeta?.[key] !== undefined) {
+                const value = typeof memberMetaMeta[key] === 'function' ? memberMetaMeta[key](entity.members[i]) : memberMetaMeta[key];
                 if (groupStrategy === 'first') {
-                    // @ts-expect-error
-                    return memberMetaMeta[key];
+                    return value;
+                } else if (typeof groupStrategy === 'object' && value === groupStrategy.atLeastOnce) {
+                    return groupStrategy.atLeastOnce;
                 }
 
-                values.push(memberMetaMeta[key]);
+                values.push(value);
             } else {
                 values.push(defaultValue);
             }
         }
 
         if (groupStrategy === 'allEqual' && new Set(values).size === 1) {
-            // @ts-expect-error
             return values[0];
         }
     } else {
         const definitionMeta = getMetaValues(definition, entity);
-        if (definitionMeta && definitionMeta.hasOwnProperty(key)) {
-            // @ts-expect-error
-            return definitionMeta[key];
+        if (definitionMeta?.[key] !== undefined) {
+            return typeof definitionMeta[key] === 'function' ? definitionMeta[key](entity) : definitionMeta[key];
         }
     }
 
@@ -701,8 +702,8 @@ export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Grou
     return obj.constructor.name.toLowerCase() === 'group';
 }
 
-export function isNumericExposeFeature(feature: Feature): feature is Numeric {
-    return feature?.type === 'numeric';
+export function isNumericExpose(expose: Expose): expose is Numeric {
+    return expose?.type === 'numeric';
 }
 
 export function isLightExpose(expose: Expose): expose is Light {

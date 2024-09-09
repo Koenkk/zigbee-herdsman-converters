@@ -240,6 +240,7 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure: boo
         totalImageSize: buffer.readUInt32LE(52),
     };
     let headerPos = 56;
+    let didSuppressElementImageParseFailure = false;
 
     if (header.otaHeaderFieldControl & 1) {
         header.securityCredentialVersion = buffer.readUInt8(headerPos);
@@ -276,10 +277,14 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure: boo
             throw error;
         }
 
+        didSuppressElementImageParseFailure = true;
         logger.debug('Partially failed to parse the image, continuing anyway...', NS);
     }
 
-    assert(position === header.totalImageSize, `Size mismatch`);
+    if (!didSuppressElementImageParseFailure) {
+        assert(position === header.totalImageSize, `Size mismatch`);
+    }
+
     return {header, elements, raw};
 }
 

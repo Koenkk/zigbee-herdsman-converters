@@ -1,8 +1,8 @@
 import fz from '../converters/fromZigbee';
 import {onOff, light, electricityMeter} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['43076'],
         model: '43076',
