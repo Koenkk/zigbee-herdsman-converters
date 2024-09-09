@@ -16,7 +16,8 @@ export default tseslint.config(
         rules: {
             '@typescript-eslint/await-thenable': 'error',
             '@typescript-eslint/ban-ts-comment': 'error',
-            '@typescript-eslint/explicit-function-return-type': 'off', // TODO error
+            // Not enabled for now, gives 3.6k errors which require manual fixing.
+            // '@typescript-eslint/explicit-function-return-type': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/no-unused-vars': ['error', {args: 'none'}],
             'array-bracket-spacing': ['error', 'never'],
