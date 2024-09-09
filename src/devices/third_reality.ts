@@ -91,6 +91,18 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
+        extend: [
+            deviceAddCustomCluster('r3Specialcluster', {
+                ID: 0xff01,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    siren_on_off: {ID: 0x0010, type: Zcl.DataType.UINT8},
+                    siren_mintues: {ID: 0x0011, type: Zcl.DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [e.water_leak(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -207,6 +219,14 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.temperature(), e.humidity()],
         extend: [battery({voltage: true}), forcePowerSource({powerSource: 'Battery'})],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['3RSM0147Z'],
+        model: '3RSM0147Z',
+        vendor: 'Third Reality',
+        description: 'Soil sensor',
+        extend: [temperature(), humidity(), battery(), forcePowerSource({powerSource: 'Battery'})],
         ota: ota.zigbeeOTA,
     },
     {
