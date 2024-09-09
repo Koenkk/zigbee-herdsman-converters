@@ -226,10 +226,7 @@ const definitions: Definition[] = [
         model: '3RSM0147Z',
         vendor: 'Third Reality',
         description: 'Soil sensor',
-        fromZigbee: [fz.temperature, fz.humidity],
-        toZigbee: [],
-        exposes: [e.temperature(), e.humidity()],
-        extend: [battery({voltage: true}), forcePowerSource({powerSource: 'Battery'})],
+        extend: [temperature(), humidity(), battery(), forcePowerSource({powerSource: 'Battery'})],
         ota: ota.zigbeeOTA,
     },
     {
