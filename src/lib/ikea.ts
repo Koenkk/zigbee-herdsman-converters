@@ -102,7 +102,15 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
     // when the bulb has firmware > 1.0.012.
     // https://github.com/Koenkk/zigbee2mqtt/issues/19211
     // https://github.com/Koenkk/zigbee2mqtt/issues/22030#issuecomment-2292063140
-    result.meta = {...result.meta, noOffTransition: (entity) => semver.gt(entity.getDevice().softwareBuildID ?? '0.0.0', '1.0.012', true)};
+    // Some old softwareBuildID are not a valid semver, e.g. `1.1.1.0-5.7.2.0`
+    // https://github.com/Koenkk/zigbee2mqtt/issues/23863
+    result.meta = {
+        ...result.meta,
+        noOffTransition: (entity) => {
+            const softwareBuildID = entity.getDevice().softwareBuildID;
+            return softwareBuildID && !softwareBuildID.includes('-') && semver.gt(softwareBuildID ?? '0.0.0', '1.0.021', true);
+        },
+    };
 
     return result;
 }

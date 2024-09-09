@@ -1363,7 +1363,18 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
 
 // #region Security and Safety
 
-export type iasZoneType = 'occupancy' | 'contact' | 'smoke' | 'water_leak' | 'carbon_monoxide' | 'sos' | 'vibration' | 'alarm' | 'gas' | 'generic';
+export type iasZoneType =
+    | 'occupancy'
+    | 'contact'
+    | 'smoke'
+    | 'water_leak'
+    | 'rain'
+    | 'carbon_monoxide'
+    | 'sos'
+    | 'vibration'
+    | 'alarm'
+    | 'gas'
+    | 'generic';
 export type iasZoneAttribute =
     | 'alarm_1'
     | 'alarm_2'
@@ -1373,6 +1384,7 @@ export type iasZoneAttribute =
     | 'restore_reports'
     | 'ac_status'
     | 'test'
+    | 'trouble'
     | 'battery_defect';
 export interface IasArgs {
     zoneType: iasZoneType;
@@ -1393,6 +1405,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         alarm_1: e.binary('alarm_1', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 1 is active'),
         alarm_2: e.binary('alarm_2', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 2 is active'),
         tamper: e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered').withCategory('diagnostic'),
+        rain: e.binary('rain', ea.STATE, true, false).withDescription('Indicates whether the device detected rainfall'),
         battery_low: e
             .binary('battery_low', ea.STATE, true, false)
             .withDescription('Indicates whether the battery of the device is almost empty')
@@ -1412,6 +1425,10 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         test: e
             .binary('test', ea.STATE, true, false)
             .withDescription('Indicates whether the device is currently performing a test')
+            .withCategory('diagnostic'),
+        trouble: e
+            .binary('trouble', ea.STATE, true, false)
+            .withDescription('Indicates whether the device is currently havin trouble')
             .withCategory('diagnostic'),
         battery_defect: e
             .binary('battery_defect', ea.STATE, true, false)
@@ -1473,18 +1490,31 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                         globalStore.putValue(msg.endpoint, 'timer', timer);
                     }
                 }
-
-                let payload = {
-                    tamper: (zoneStatus & (1 << 2)) > 0,
-                    battery_low: (zoneStatus & (1 << 3)) > 0,
-                    supervision_reports: (zoneStatus & (1 << 4)) > 0,
-                    restore_reports: (zoneStatus & (1 << 5)) > 0,
-                    trouble: (zoneStatus & (1 << 6)) > 0,
-                    ac_status: (zoneStatus & (1 << 7)) > 0,
-                    test: (zoneStatus & (1 << 8)) > 0,
-                    battery_defect: (zoneStatus & (1 << 9)) > 0,
-                };
-
+                let payload = {};
+                if (args.zoneAttributes.includes('tamper')) {
+                    payload = {tamper: (zoneStatus & (1 << 2)) > 0, ...payload};
+                }
+                if (args.zoneAttributes.includes('battery_low')) {
+                    payload = {battery_low: (zoneStatus & (1 << 3)) > 0, ...payload};
+                }
+                if (args.zoneAttributes.includes('supervision_reports')) {
+                    payload = {supervision_reports: (zoneStatus & (1 << 4)) > 0, ...payload};
+                }
+                if (args.zoneAttributes.includes('restore_reports')) {
+                    payload = {restore_reports: (zoneStatus & (1 << 5)) > 0, ...payload};
+                }
+                if (args.zoneAttributes.includes('trouble')) {
+                    payload = {trouble: (zoneStatus & (1 << 6)) > 0, ...payload};
+                }
+                if (args.zoneAttributes.includes('ac_status')) {
+                    payload = {ac_status: (zoneStatus & (1 << 7)) > 0, ...payload};
+                }
+                if (args.zoneAttributes.includes('test')) {
+                    payload = {test: (zoneStatus & (1 << 8)) > 0, ...payload};
+                }
+                if (args.zoneAttributes.includes('battery_defect')) {
+                    payload = {battery_defect: (zoneStatus & (1 << 9)) > 0, ...payload};
+                }
                 let alarm1Payload = (zoneStatus & 1) > 0;
                 let alarm2Payload = (zoneStatus & (1 << 1)) > 0;
 

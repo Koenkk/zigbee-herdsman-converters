@@ -956,10 +956,7 @@ const definitions: DefinitionWithExtend[] = [
                 [10, 'battery', tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [
-            tuya.whitelabel('Linkoze', 'LKWSZ211', 'Wireless switch (2-key)', ['_TZ3210_3ulg9kpo']),
-            tuya.whitelabel('Adaprox', 'LKWSZ211', 'Remote wireless switch (2-key)', ['_TZ3210_3ulg9kpo']),
-        ],
+        whiteLabel: [tuya.whitelabel('Linkoze', 'LKWSZ211', 'Wireless switch (2-key)', ['_TZ3210_3ulg9kpo'])],
     },
     {
         fingerprint: [
@@ -1560,7 +1557,6 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Lidl', 'HG08131C', 'Livarno Home outdoor E27 bulb in set with flare', ['_TZ3000_q50zhdsc']),
             tuya.whitelabel('Lidl', 'HG07834C', 'Livarno Lux E27 bulb RGB', ['_TZ3000_qd7hej8u']),
             tuya.whitelabel('MiBoxer', 'FUT037Z+', 'RGB led controller', ['_TZB210_417ikxay', '_TZB210_wxazcmsh']),
-            tuya.whitelabel('MiBoxer', 'E2-ZR', '2 in 1 led controller', ['_TZB210_ayx58ft5']),
             tuya.whitelabel('Lidl', 'HG08383B', 'Livarno outdoor LED light chain', ['_TZ3000_bwlvyjwk']),
             tuya.whitelabel('Lidl', 'HG08383A', 'Livarno outdoor LED light chain', ['_TZ3000_taspddvq']),
             tuya.whitelabel('Garza Smart', 'Garza-Standard-A60', 'Standard A60 bulb', ['_TZ3210_sln7ah6r']),
@@ -1897,16 +1893,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'RB-SRAIN01',
         vendor: 'Tuya',
         description: 'Solar rain sensor',
-        fromZigbee: [tuya.fz.datapoints, fz.battery, fz.ias_water_leak_alarm_1],
-        toZigbee: [],
+        fromZigbee: [tuya.fz.datapoints],
+        extend: [iasZoneAlarm({zoneType: 'rain', zoneAttributes: ['alarm_1']}), battery({percentageReporting: false})],
         exposes: [
-            e.water_leak().withDescription('Droplet detection (raining)'),
             e.illuminance().withUnit('lx'),
             e.numeric('illuminance_average_20min', ea.STATE).withUnit('lx').withDescription('Illuminance average for the last 20 minutes'),
             e.numeric('illuminance_maximum_today', ea.STATE).withUnit('lx').withDescription('Illuminance maximum for the last 24 hours'),
-            e.binary('cleaning_reminder', ea.STATE, 'ON', 'OFF').withDescription('Cleaning reminder'),
+            e.binary('cleaning_reminder', ea.STATE, true, false).withDescription('Cleaning reminder'),
             e.numeric('rain_intensity', ea.STATE).withUnit('mV').withDescription('Rainfall intensity'),
-            e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -2959,6 +2953,7 @@ const definitions: DefinitionWithExtend[] = [
                 '_TZ3210_xwqng7ol',
                 '_TZB210_lmqquxus',
             ]),
+            tuya.whitelabel('MiBoxer', 'E2-ZR', '2 in 1 LED controller', ['_TZB210_ayx58ft5']),
             tuya.whitelabel('Lidl', '14156408L', 'Livarno Lux smart LED ceiling light', ['_TZ3210_c2iwpxf1']),
         ],
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, configureReporting: true})],
@@ -3207,7 +3202,15 @@ const definitions: DefinitionWithExtend[] = [
          */
     },
     {
-        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_nuombroo', '_TZ3000_xabckq1v', '_TZ3000_czuyt8lz', '_TZ3000_0ht8dnxj', '_TZ3000_b3mgfu0d']),
+        fingerprint: tuya.fingerprint('TS004F', [
+            '_TZ3000_nuombroo',
+            '_TZ3000_xabckq1v',
+            '_TZ3000_czuyt8lz',
+            '_TZ3000_0ht8dnxj',
+            '_TZ3000_b3mgfu0d',
+            '_TZ3000_11pg3ima',
+            '_TZ3000_et7afzxz',
+        ]),
         model: 'TS004F',
         vendor: 'Tuya',
         description: 'Wireless switch with 4 buttons',
@@ -3223,6 +3226,9 @@ const definitions: DefinitionWithExtend[] = [
                 'brightness_step_down',
                 'brightness_move_up',
                 'brightness_move_down',
+                'color_temperature_step_up',
+                'color_temperature_step_down',
+                'brightness_stop',
                 '1_single',
                 '1_double',
                 '1_hold',
@@ -3237,7 +3243,18 @@ const definitions: DefinitionWithExtend[] = [
                 '4_hold',
             ]),
         ],
-        fromZigbee: [fz.battery, tuya.fz.on_off_action, fz.tuya_operation_mode, fz.command_on, fz.command_off, fz.command_step, fz.command_move],
+        fromZigbee: [
+            fz.battery,
+            tuya.fz.on_off_action,
+            fz.tuya_operation_mode,
+            fz.command_on,
+            fz.command_off,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_step_color_temperature,
+        ],
+        whiteLabel: [tuya.whitelabel('Zemismart', 'ZMR4', 'Wireless switch with 4 buttons', ['_TZ3000_11pg3ima', '_TZ3000_et7afzxz'])],
         toZigbee: [tz.tuya_operation_mode],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -3700,8 +3717,8 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('AVATTO', 'ZWSM16-2-Zigbee', '2 gang switch module', ['_TZ3000_mtnpt6ws']),
             tuya.whitelabel('PSMART', 'T442', '2 gang switch module', ['_TZ3000_mufwv0ry']),
             tuya.whitelabel('Lonsonho', 'X702A', '2 gang switch with backlight', ['_TZ3000_54hjn4vs', '_TZ3000_aa5t61rh']),
-            tuya.whitelabel('Homeetec', '37022463', '2 Gang switch with backlight', ['_TZ3000_in5qxhtt']),
-            tuya.whitelabel('RoomsAI', '37022463', '2 Gang switch with backlight', ['_TZ3000_ogpla3lh']),
+            tuya.whitelabel('Homeetec', '37022463-1', '2 Gang switch with backlight', ['_TZ3000_in5qxhtt']),
+            tuya.whitelabel('RoomsAI', '37022463-2', '2 Gang switch with backlight', ['_TZ3000_ogpla3lh']),
         ],
     },
     {
@@ -4322,7 +4339,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.battery(),
-            e.cover_position(),
+            e.cover_position().setAccess('position', ea.STATE_SET),
             e.enum('reverse_direction', ea.STATE_SET, ['forward', 'back']).withDescription('Reverse the motor direction'),
             e.enum('border', ea.STATE_SET, ['up', 'down', 'up_delete', 'down_delete', 'remove_top_bottom']),
             e.enum('click_control', ea.STATE_SET, ['up', 'down']).withDescription('Single motor steps'),
@@ -8525,7 +8542,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.cover_position(),
+            e.cover_position().setAccess('position', ea.STATE_SET),
             e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
             e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
             e.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
@@ -8578,7 +8595,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.cover_position(),
+            e.cover_position().setAccess('position', ea.STATE_SET),
             tuya.exposes.switch().withEndpoint('l1'),
             e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
             e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
@@ -11420,7 +11437,10 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_fhvdgeuh']),
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE204_fhvdgeuh'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_abatw3kj'},
+        ],
         model: 'TS0601_din_4',
         vendor: 'Tuya',
         description: 'Din rail switch with power monitoring and threshold settings',
@@ -11431,6 +11451,7 @@ const definitions: DefinitionWithExtend[] = [
             // Required to get the device to start reporting
             await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
         },
+        whiteLabel: [tuya.whitelabel('RTX', 'TS0601_RTX_DIN', 'Din rail switch', ['_TZE200_abatw3kj'])],
         exposes: [
             e.switch().setAccess('state', ea.STATE_SET),
             e.power(),
