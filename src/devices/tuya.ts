@@ -8381,19 +8381,15 @@ const definitions: DefinitionWithExtend[] = [
                     e.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High temperature breaker'),
                 );
             }
-            if (device?.manufacturerName !== '_TZ3000_303avxxt') {
-                exposes.push(
-                    e
-                        .numeric('power_threshold', ea.STATE_SET)
-                        .withValueMin(1)
-                        .withValueMax(26)
-                        .withValueStep(1)
-                        .withUnit('kW')
-                        .withDescription('High power threshold'),
-                    e.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High power breaker'),
-                );
-            }
             exposes.push(
+                e
+                    .numeric('power_threshold', ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(26)
+                    .withValueStep(1)
+                    .withUnit('kW')
+                    .withDescription('High power threshold'),
+                e.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High power breaker'),
                 e
                     .numeric('over_current_threshold', ea.STATE_SET)
                     .withValueMin(1)
