@@ -342,7 +342,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'RB 178 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['BY 178 T'],

@@ -666,12 +666,16 @@ const fzLocal = {
             const data = msg.data.slice(3);
             if (command == 0xe6) {
                 const value = splitToAttributes(data);
-                return {
-                    temperature_threshold: value[0x05][1],
-                    temperature_breaker: lookup[value[0x05][0]],
-                    power_threshold: value[0x07][1],
-                    power_breaker: lookup[value[0x07][0]],
-                };
+                const result: KeyValue = {};
+                if (0x05 in value) {
+                    result.temperature_threshold = value[0x05][1];
+                    result.temperature_breaker = lookup[value[0x05][0]];
+                }
+                if (0x07 in value) {
+                    result.power_threshold = value[0x07][1];
+                    result.power_breaker = lookup[value[0x07][0]];
+                }
+                return result;
             }
             if (command == 0xe7) {
                 const value = splitToAttributes(data);
@@ -4139,6 +4143,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_7fqkphoq'}, // AFINTEK
             {modelID: 'TS0601', manufacturerName: '_TZE200_rufdtfyv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_lpwgshtl'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_rk1wojce'}, // Emos P5630S
         ],
         model: 'TS0601_thermostat',
         vendor: 'Tuya',
@@ -4151,6 +4156,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Immax', model: '07732B'},
             tuya.whitelabel('Immax', '07732L', 'Radiator valve with thermostat', ['_TZE200_rufdtfyv']),
             {vendor: 'Evolveo', model: 'Heat M30'},
+            tuya.whitelabel('Emos', 'P5630S', 'Radiator valve with thermostat', ['_TZE200_rk1wojce']),
         ],
         meta: {tuyaThermostatPreset: legacy.thermostatPresets, tuyaThermostatSystemMode: legacy.thermostatSystemModes3},
         ota: ota.zigbeeOTA,
@@ -8373,17 +8379,17 @@ const definitions: DefinitionWithExtend[] = [
                         .withUnit('*C')
                         .withDescription('High temperature threshold'),
                     e.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High temperature breaker'),
-                    e
-                        .numeric('power_threshold', ea.STATE_SET)
-                        .withValueMin(1)
-                        .withValueMax(26)
-                        .withValueStep(1)
-                        .withUnit('kW')
-                        .withDescription('High power threshold'),
-                    e.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High power breaker'),
                 );
             }
             exposes.push(
+                e
+                    .numeric('power_threshold', ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(26)
+                    .withValueStep(1)
+                    .withUnit('kW')
+                    .withDescription('High power threshold'),
+                e.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High power breaker'),
                 e
                     .numeric('over_current_threshold', ea.STATE_SET)
                     .withValueMin(1)
