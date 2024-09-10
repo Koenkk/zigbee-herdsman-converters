@@ -56,7 +56,7 @@ const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1233,
                 attributes: {
                     back_on: {ID: 0x0001, type: Zcl.DataType.UINT16},
-		            back_off: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    back_off: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -332,7 +332,7 @@ const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1233,
                 attributes: {
                     cool_down_time: {ID: 0x0004, type: Zcl.DataType.UINT16},
-		            x_axis: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    x_axis: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     y_axis: {ID: 0x0002, type: Zcl.DataType.UINT16},
                     Z_axis: {ID: 0x0003, type: Zcl.DataType.UINT16},
                 },
