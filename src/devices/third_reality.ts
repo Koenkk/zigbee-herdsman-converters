@@ -263,7 +263,7 @@ const definitions: DefinitionWithExtend[] = [
             temperature(),
             humidity(),
             battery(),
-            battery({voltage: true}), 
+            battery({voltage: true}),
             forcePowerSource({powerSource: 'Battery'}),
             deviceAddCustomCluster('THIRD_REALITY_TEMP_HUMI_SENSOR_CLUSTER_ID', {
                 ID: 0xff01,
@@ -289,7 +289,7 @@ const definitions: DefinitionWithExtend[] = [
             humidity(),
             battery(),
             forcePowerSource({powerSource: 'Battery'}),
-            deviceAddCustomCluster('THIRD_REALITY_TEMP_HUMI_SENSOR_CLUSTER_ID', {
+            deviceAddCustomCluster('THIRD_REALITY_SOIL_SENSOR_CLUSTER_ID', {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
@@ -313,7 +313,7 @@ const definitions: DefinitionWithExtend[] = [
             humidity(),
             battery(),
             forcePowerSource({powerSource: 'Battery'}),
-            deviceAddCustomCluster('THIRD_REALITY_TEMP_HUMI_SENSOR_CLUSTER_ID', {
+            deviceAddCustomCluster('THIRD_REALITY_TEMP_HUMI_SENSOR_gen2_CLUSTER_ID', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
