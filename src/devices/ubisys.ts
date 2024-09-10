@@ -1134,7 +1134,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [
             tz.on_off,
             tz.power_on_behavior,
-            ubisys.tz.configure_device_setup
+            ubisys.tz.configure_device_setup,
         ],
         exposes: [
             e.action([
