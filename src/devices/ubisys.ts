@@ -1119,14 +1119,23 @@ const definitions: DefinitionWithExtend[] = [
         model: 'C4',
         vendor: 'Ubisys',
         description: 'Control unit C4',
-        fromZigbee: [
-            legacy.fz.ubisys_c4_scenes,
-            legacy.fz.ubisys_c4_onoff,
-            legacy.fz.ubisys_c4_level,
+        fromZigbee: [            
+            fromZigbee_1.default.on_off,
+            fromZigbee_1.default.command_toggle,
+            fromZigbee_1.default.command_on,
+            fromZigbee_1.default.command_off,
+            fromZigbee_1.default.command_recall,
+            fromZigbee_1.default.command_move,
+            fromZigbee_1.default.command_stop,
+            fromZigbee_1.default.power_on_behavior,
             legacy.fz.ubisys_c4_cover,
             ubisys.fz.configure_device_setup,
         ],
-        toZigbee: [ubisys.tz.configure_device_setup],
+        toZigbee: [
+            toZigbee_1.default.on_off,
+            toZigbee_1.default.power_on_behavior,
+            ubisys.tz.configure_device_setup
+        ],
         exposes: [
             e.action([
                 'toggle_s1',
