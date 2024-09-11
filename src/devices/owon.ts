@@ -6,7 +6,7 @@ import * as legacy from '../lib/legacy';
 import {battery, iasZoneAlarm} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -126,19 +126,14 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
 };
+
 const tzLocal = {
     PC321_clearMetering: {
         key: ['clear_metering'],
         convertSet: async (entity, key, value, meta) => {
-            const endpoint = meta.device.getEndpoint(1);
-            const group = 0xFFE0;
-            const command = 0x00;
-            const payload = {};
-
-            await endpoint.command(group, command, payload, {disableDefaultResponse: true});
-            meta.logger.info(`Sent clear command to ${entity.ieeeAddr}`);
+            await entity.command(0xffe0, 0x00, {}, {disableDefaultResponse: true});
         },
-    },
+    } satisfies Tz.Converter,
 };
 
 const definitions: DefinitionWithExtend[] = [
@@ -354,7 +349,7 @@ const definitions: DefinitionWithExtend[] = [
             e.numeric('power_factor_l1', ea.STATE).withUnit('%').withDescription('Phase 1 power factor'),
             e.numeric('power_factor_l2', ea.STATE).withUnit('%').withDescription('Phase 2 power factor'),
             e.numeric('power_factor_l3', ea.STATE).withUnit('%').withDescription('Phase 3 power factor'),
-            e.enum('clear_metering', ea.SET, ['Clear']).withDescription('Clear measurement data'),
+            e.enum('clear_metering', ea.SET, ['clear']).withDescription('Clear measurement data'),
         ],
     },
     {
