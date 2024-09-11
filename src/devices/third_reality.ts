@@ -127,11 +127,11 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
-            deviceAddCustomCluster('THIRD_REALITY_MOTION_DELAY_CLUSTER_ID', {
+            deviceAddCustomCluster('3rMotionSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    cool_down_time: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    CoolDownTime: {ID: 0x0001, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -154,11 +154,11 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
-            deviceAddCustomCluster('THIRD_REALITY_DOOR_DELAY_CLUSTER_ID', {
+            deviceAddCustomCluster('3rDoorSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    DELAY_OPEN_ATTR_ID: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                    DelayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
