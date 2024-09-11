@@ -24,7 +24,7 @@ const fzBrightness = {
 const fzChildLock = {
     cluster: 'genBasic',
     type: ['attributeReport', 'readResponse'],
-    convert: (model, msg, publish, options, meta) => {
+    convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
         const endpoint = msg.endpoint.ID;
         const childLockState = msg.data['deviceEnabled'] === 1 ? 'UNLOCKED' : 'LOCKED';
         if (endpoint === 1) {
