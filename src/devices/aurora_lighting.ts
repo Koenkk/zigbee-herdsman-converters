@@ -9,7 +9,13 @@ import {identify, light} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
 import { Endpoint } from 'zigbee-herdsman/dist/controller/model';
-import { Group, Meta } from 'zigbee-herdsman/dist/controller/model'; 
+import { Group } from 'zigbee-herdsman/dist/controller/model'; 
+interface Meta {
+    device: any;
+    options: any;
+    message: any;
+}
+
 
 
 
