@@ -6433,7 +6433,7 @@ const definitions: DefinitionWithExtend[] = [
                         if (device.manufacturerName === '_TZE200_viy9ihs7') {
                             return {auto: tuya.enum(1), manual: tuya.enum(0), temporary_manual: tuya.enum(2)};
                         } else {
-                            return {manual: tuya.enum(0), auto: tuya.enum(1), temporary_manual: tuya.enum(2)};
+                            return {auto: tuya.enum(0), manual: tuya.enum(1), temporary_manual: tuya.enum(2)};
                         }
                     }),
                 ],
