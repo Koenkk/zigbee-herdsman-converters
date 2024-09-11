@@ -1119,7 +1119,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'C4',
         vendor: 'Ubisys',
         description: 'Control unit C4',
-        fromZigbee: [            
+        fromZigbee: [
             fz.command_toggle,
             fz.command_on,
             fz.command_off,
