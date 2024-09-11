@@ -116,16 +116,19 @@ const tzLocal = {
             await entity.command('genLevelCtrl', 'moveToLevel', { level: value, transtime: 0 }, utils.getOptions(meta.mapped, entity));
             return { state: { brightness: value } };
         },
-        convertGet: async (entity, key, meta) => {
-            try {
-                const endpoint = entity.getDevice().getEndpoint(1);
-                const result = await endpoint.read('genLevelCtrl', ['currentLevel']);
-                return { brightness: result['currentLevel'] };
-            } catch (error) {
-                console.error(`Error reading brightness: ${error}`);
-                throw error;
-            }
-        },
+    convertGet: async (entity: Endpoint | Group, key: string, meta: Meta): Promise<void> => {
+    try {
+        const endpoint = entity instanceof Endpoint ? entity : null; // Ensure you're dealing with Endpoint
+        if (endpoint) {
+            const result = await endpoint.read('genLevelCtrl', ['currentLevel']);
+            console.log(`Brightness: ${result['currentLevel']}`);
+            // Optionally, process the result here, but don't return any object
+        }
+    } catch (error) {
+        console.error(`Error reading brightness: ${error}`);
+        throw error;
+    }
+},
     } satisfies Tz.Converter,
 };
 
