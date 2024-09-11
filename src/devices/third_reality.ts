@@ -126,6 +126,17 @@ const definitions: DefinitionWithExtend[] = [
             device.powerSource = 'Battery';
             device.save();
         },
+        extend: [
+            deviceAddCustomCluster('3rMotionSpecialCluster', {
+                ID: 0xff01,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    CoolDownTime: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
     {
         zigbeeModel: ['3RDS17BZ'],
@@ -142,6 +153,17 @@ const definitions: DefinitionWithExtend[] = [
             device.powerSource = 'Battery';
             device.save();
         },
+        extend: [
+            deviceAddCustomCluster('3rDoorSpecialCluster', {
+                ID: 0xff01,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    DelayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
     {
         zigbeeModel: ['3RDTS01056Z'],
