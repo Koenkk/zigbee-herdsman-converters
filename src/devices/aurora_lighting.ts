@@ -380,9 +380,9 @@ const definitions: DefinitionWithExtend[] = [
                 const brightness = await endpoint1.read('genLevelCtrl', ['currentLevel']);
                 
                 // Publish the initial state to MQTT
-                device.publish('state_left', { state: stateLeft.onOff ? 'ON' : 'OFF' });
-                device.publish('state_right', { state: stateRight.onOff ? 'ON' : 'OFF' });
-                device.publish('brightness', { brightness: brightness.currentLevel });
+                console.log('State Left:', stateLeft.onOff ? 'ON' : 'OFF');
+                console.log('State Right:', stateRight.onOff ? 'ON' : 'OFF');
+                console.log('Brightness:', brightness.currentLevel);
             } catch (error) {
                 console.error('Failed to read state or brightness after configuration:', error);
             }
