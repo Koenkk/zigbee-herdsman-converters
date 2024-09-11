@@ -58,7 +58,7 @@ const tzChildLock = {
     },
     convertGet: async (entity, key, meta) => {
         const endpointId = (key === 'socket_left_child_lock') ? 1 : 2;
-        const endpoint = entity.getDevice().getEndpoint(endpointId);
+        const endpoint = (entity as Endpoint).getDevice().getEndpoint(1);
 
         try {
             const result = await endpoint.read('genBasic', ['deviceEnabled']);
