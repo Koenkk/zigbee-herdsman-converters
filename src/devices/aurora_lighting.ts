@@ -31,17 +31,40 @@ const fzBrightness = {
 };
 
 // Custom fromZigbee converter for child lock
-const fzChildLock = {
-    cluster: 'genBasic',
-    type: ['attributeReport', 'readResponse'],
-    convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
-        const endpoint = msg.endpoint.ID;
-        const childLockState = msg.data['deviceEnabled'] === 1 ? 'UNLOCKED' : 'LOCKED';
-        if (endpoint === 1) {
-            return { socket_left_child_lock: childLockState };
-        } else if (endpoint === 2) {
-            return { socket_right_child_lock: childLockState };
+const tzChildLock = {
+    key: ['socket_left_child_lock', 'socket_right_child_lock'],
+    convertSet: async (entity: Endpoint | Group, key: string, value: string, meta: Meta) => {
+        const childLock = value.toLowerCase() === 'locked' ? 0 : 1;
+        const endpointId = (key === 'socket_left_child_lock') ? 1 : 2;
+        const device = meta.device;
+        const endpoint = device.endpoints.find(e => e.ID === endpointId);
+
+        if (!endpoint) {
+            console.error(`Endpoint ${endpointId} not found`);
+            return;
         }
+
+        try {
+            await endpoint.write('genBasic', { deviceEnabled: childLock });
+        } catch (error) {
+            console.error(`Error setting child lock on endpoint ${endpointId}: ${error}`);
+        }
+        return { state: { [key]: value.toUpperCase() } };
+    },
+    convertGet: async (entity: Endpoint | Group, key: string, meta: Meta) => {
+        const endpointId = (key === 'socket_left_child_lock') ? 1 : 2;
+        const endpoint = (entity as Endpoint).getDevice().getEndpoint(endpointId);
+
+        try {
+            const result = await endpoint.read('genBasic', ['deviceEnabled']);
+            const childLockState = result['deviceEnabled'] === 1 ? 'UNLOCKED' : 'LOCKED';
+            meta.logger.info(`Child lock state for ${key}: ${childLockState}`);
+        } catch (error) {
+            meta.logger.error(`Error reading child lock state from endpoint ${endpointId}: ${error}`);
+        }
+
+        // Ensure the return type is void
+        return;
     },
 };
 
