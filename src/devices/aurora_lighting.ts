@@ -9,7 +9,6 @@ import {identify, light} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
 
-const ea = exposes.access;
 
 // Custom fromZigbee converter for brightness to handle global brightness
 const fzBrightness = {
