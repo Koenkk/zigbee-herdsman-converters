@@ -359,10 +359,13 @@ const definitions: DefinitionWithExtend[] = [
             try {
                 const result1 = await endpoint1.read('genBasic', ['deviceEnabled']);
                 const result2 = await endpoint2.read('genBasic', ['deviceEnabled']);
-                console.log(`Initial child lock state for endpoint 1: ${result1.deviceEnabled}, endpoint 2: ${result2.deviceEnabled}`);
+                const childLockState1 = result1['deviceEnabled'] === 1 ? 'UNLOCKED' : 'LOCKED';
+                const childLockState2 = result2['deviceEnabled'] === 1 ? 'UNLOCKED' : 'LOCKED';
+                meta.logger.info(`Initial child lock state for endpoint 1: ${childLockState1}, endpoint 2: ${childLockState2}`);
             } catch (error) {
-                console.error('Failed to read initial child lock states:', error);
+                meta.logger.error(`Failed to read initial child lock states: ${error}`);
             }
+
 
             // Set default brightness
             try {
