@@ -50,6 +50,18 @@ const definitions: DefinitionWithExtend[] = [
             device.powerSource = 'Battery';
             device.save();
         },
+        extend: [
+            deviceAddCustomCluster('3rSwitchGen3SpecialCluster', {
+                ID: 0xff02,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    backOn: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    backOff: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
     {
         zigbeeModel: ['3RSS008Z'],
@@ -131,7 +143,7 @@ const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    CoolDownTime: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    coolDownTime: {ID: 0x0001, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -158,7 +170,7 @@ const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    DelayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                    delayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -174,6 +186,16 @@ const definitions: DefinitionWithExtend[] = [
             battery(),
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']}),
             forcePowerSource({powerSource: 'Battery'}),
+            deviceAddCustomCluster('3rGarageDoorSpecialCluster', {
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    delayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                    zclCabrationAttrId: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
         ],
         ota: ota.zigbeeOTA,
     },
@@ -304,6 +326,20 @@ const definitions: DefinitionWithExtend[] = [
             device.powerSource = 'Battery';
             device.save();
         },
+        extend: [
+            deviceAddCustomCluster('3rVirationSpecialcluster', {
+                ID: 0xfff1,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    coolDownTime: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                    xAxis: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    yAxis: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    zAxis: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
     {
         zigbeeModel: ['3RSNL02043Z'],
@@ -317,9 +353,9 @@ const definitions: DefinitionWithExtend[] = [
                 ID: 0xfc00,
                 manufacturerCode: 0x130d,
                 attributes: {
-                    cold_down_time: {ID: 0x0003, type: Zcl.DataType.UINT16},
-                    local_routin_time: {ID: 0x0004, type: Zcl.DataType.UINT16},
-                    lux_threshold: {ID: 0x0005, type: Zcl.DataType.UINT16},
+                    coldDownTime: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                    localRoutinTime: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                    luxThreshold: {ID: 0x0005, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
