@@ -42,37 +42,52 @@ const fzChildLock = {
 // Custom toZigbee converter for child lock (with manual refresh support)
 const tzChildLock = {
     key: ['socket_left_child_lock', 'socket_right_child_lock'],
-    convertSet: async (entity: Endpoint | Group, key: string, value: any, meta: Meta) => {
+    
+    // Fixing the convertSet method
+    convertSet: async (entity: Endpoint | Group, key: string, value: string, meta: Meta) => {
         const childLock = value.toLowerCase() === 'locked' ? 0 : 1;
         const endpointId = (key === 'socket_left_child_lock') ? 1 : 2;
-        const device = meta.device;
-        const endpoint = device.endpoints.find(e => e.ID === endpointId);
 
-        if (!endpoint) {
-            console.error(`Endpoint ${endpointId} not found`);
-            return;
-        }
+        if (entity instanceof Endpoint) {
+            const endpoint = entity.getDevice().getEndpoint(endpointId);
 
-        try {
-            await endpoint.write('genBasic', { deviceEnabled: childLock });
-        } catch (error) {
-            console.error(`Error setting child lock on endpoint ${endpointId}: ${error}`);
+            if (!endpoint) {
+                console.error(`Endpoint ${endpointId} not found`);
+                return;
+            }
+
+            try {
+                await endpoint.write('genBasic', { deviceEnabled: childLock });
+            } catch (error) {
+                console.error(`Error setting child lock on endpoint ${endpointId}: ${error}`);
+            }
+
+            return { state: { [key]: value.toUpperCase() } };
+        } else {
+            console.error(`Entity is not an Endpoint`);
         }
-        return { state: { [key]: value.toUpperCase() } };
     },
-    convertGet: async (entity, key, meta) => {
-        const endpointId = (key === 'socket_left_child_lock') ? 1 : 2;
-        const endpoint = (entity as Endpoint).getDevice().getEndpoint(1);
 
-        try {
-            const result = await endpoint.read('genBasic', ['deviceEnabled']);
-            const childLockState = result['deviceEnabled'] === 1 ? 'UNLOCKED' : 'LOCKED';
-            return { [key]: childLockState };
-        } catch (error) {
-            console.error(`Error reading child lock state from endpoint ${endpointId}: ${error}`);
+    // Fixing the convertGet method
+    convertGet: async (entity: Endpoint | Group, key: string, meta: Meta) => {
+        const endpointId = (key === 'socket_left_child_lock') ? 1 : 2;
+
+        if (entity instanceof Endpoint) {
+            const endpoint = entity.getDevice().getEndpoint(endpointId);
+
+            try {
+                const result = await endpoint.read('genBasic', ['deviceEnabled']);
+                const childLockState = result['deviceEnabled'] === 1 ? 'UNLOCKED' : 'LOCKED';
+                return { [key]: childLockState };
+            } catch (error) {
+                console.error(`Error reading child lock state from endpoint ${endpointId}: ${error}`);
+            }
+        } else {
+            console.error(`Entity is not an Endpoint`);
         }
     },
 };
+
 
 const tzLocal = {
     aOneBacklight: {
