@@ -14,7 +14,7 @@ import * as utils from '../lib/utils';
 const fzBrightness = {
     cluster: 'genLevelCtrl',
     type: ['attributeReport', 'readResponse'],
-    convert: (model, msg, publish, options, meta) => {
+    convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
         const brightness = msg.data['currentLevel'];
         return { brightness: brightness !== undefined ? brightness : null };  // Ensure brightness is reported globally
     },
