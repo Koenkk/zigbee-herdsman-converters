@@ -55,8 +55,8 @@ const definitions: DefinitionWithExtend[] = [
                 ID: 0xff02,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    BackOn: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    BackOff: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    backOn: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    backOff: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -190,8 +190,8 @@ const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    DelayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                    ZclCabrationAttrId: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                    delayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                    zclCabrationAttrId: {ID: 0x0003, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
