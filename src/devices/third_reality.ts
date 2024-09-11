@@ -51,12 +51,12 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
-            deviceAddCustomCluster('THIRD_REALITY_SWITCH_GEN3_CLUSTER_ID', {
+            deviceAddCustomCluster('3rSwitchGen3SpecialCluster', {
                 ID: 0xff02,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    back_on: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    back_off: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    BackOn: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    BackOff: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -186,12 +186,12 @@ const definitions: DefinitionWithExtend[] = [
             battery(),
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']}),
             forcePowerSource({powerSource: 'Battery'}),
-            deviceAddCustomCluster('THIRD_REALITY_GARAGE_DELAY_CLUSTER_ID', {
+            deviceAddCustomCluster('3rGarageDoorSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    DELAY_OPEN_ATTR_ID: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                    ZCL_CABRATION_ATTR_ID: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                    DelayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                    ZclCabrationAttrId: {ID: 0x0003, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -327,14 +327,14 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
-            deviceAddCustomCluster('THIRD_REALITY_VIBRATE_DELAY_CLUSTER_ID', {
+            deviceAddCustomCluster('3rVirationSpecialcluster', {
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    cool_down_time: {ID: 0x0004, type: Zcl.DataType.UINT16},
-                    x_axis: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    y_axis: {ID: 0x0002, type: Zcl.DataType.UINT16},
-                    Z_axis: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                    CoolDownTime: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                    xAxis: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    yAxis: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    zAxis: {ID: 0x0003, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
