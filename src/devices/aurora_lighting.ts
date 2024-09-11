@@ -8,6 +8,8 @@ const ea = exposes.access;
 import {identify, light} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
+import { Endpoint } from 'zigbee-herdsman/dist/controller/model';
+
 
 
 // Custom fromZigbee converter for brightness to handle global brightness
@@ -38,7 +40,7 @@ const fzChildLock = {
 // Custom toZigbee converter for child lock (with manual refresh support)
 const tzChildLock = {
     key: ['socket_left_child_lock', 'socket_right_child_lock'],
-    convertSet: async (entity, key, value, meta) => {
+    convertSet: async (entity: Endpoint | Group, key: string, value: any, meta: Meta) => {
         const childLock = value.toLowerCase() === 'locked' ? 0 : 1;
         const endpointId = (key === 'socket_left_child_lock') ? 1 : 2;
         const device = meta.device;
