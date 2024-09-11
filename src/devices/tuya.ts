@@ -666,12 +666,16 @@ const fzLocal = {
             const data = msg.data.slice(3);
             if (command == 0xe6) {
                 const value = splitToAttributes(data);
-                return {
-                    temperature_threshold: value[0x05][1],
-                    temperature_breaker: lookup[value[0x05][0]],
-                    power_threshold: value[0x07][1],
-                    power_breaker: lookup[value[0x07][0]],
-                };
+                const result: KeyValue = {};
+                if (0x05 in value) {
+                    result.temperature_threshold = value[0x05][1];
+                    result.temperature_breaker = lookup[value[0x05][0]];
+                }
+                if (0x07 in value) {
+                    result.power_threshold = value[0x07][1];
+                    result.power_breaker = lookup[value[0x07][0]];
+                }
+                return result;
             }
             if (command == 0xe7) {
                 const value = splitToAttributes(data);
@@ -1899,7 +1903,7 @@ const definitions: DefinitionWithExtend[] = [
             e.illuminance().withUnit('lx'),
             e.numeric('illuminance_average_20min', ea.STATE).withUnit('lx').withDescription('Illuminance average for the last 20 minutes'),
             e.numeric('illuminance_maximum_today', ea.STATE).withUnit('lx').withDescription('Illuminance maximum for the last 24 hours'),
-            e.binary('cleaning_reminder', ea.STATE, 'ON', 'OFF').withDescription('Cleaning reminder'),
+            e.binary('cleaning_reminder', ea.STATE, true, false).withDescription('Cleaning reminder'),
             e.numeric('rain_intensity', ea.STATE).withUnit('mV').withDescription('Rainfall intensity'),
         ],
         meta: {
@@ -4139,6 +4143,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_7fqkphoq'}, // AFINTEK
             {modelID: 'TS0601', manufacturerName: '_TZE200_rufdtfyv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_lpwgshtl'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_rk1wojce'}, // Emos P5630S
         ],
         model: 'TS0601_thermostat',
         vendor: 'Tuya',
@@ -4151,6 +4156,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Immax', model: '07732B'},
             tuya.whitelabel('Immax', '07732L', 'Radiator valve with thermostat', ['_TZE200_rufdtfyv']),
             {vendor: 'Evolveo', model: 'Heat M30'},
+            tuya.whitelabel('Emos', 'P5630S', 'Radiator valve with thermostat', ['_TZE200_rk1wojce']),
         ],
         meta: {tuyaThermostatPreset: legacy.thermostatPresets, tuyaThermostatSystemMode: legacy.thermostatSystemModes3},
         ota: ota.zigbeeOTA,
@@ -6427,7 +6433,7 @@ const definitions: DefinitionWithExtend[] = [
                         if (device.manufacturerName === '_TZE200_viy9ihs7') {
                             return {auto: tuya.enum(1), manual: tuya.enum(0), temporary_manual: tuya.enum(2)};
                         } else {
-                            return {manual: tuya.enum(0), auto: tuya.enum(1), temporary_manual: tuya.enum(2)};
+                            return {auto: tuya.enum(0), manual: tuya.enum(1), temporary_manual: tuya.enum(2)};
                         }
                     }),
                 ],
@@ -8373,17 +8379,17 @@ const definitions: DefinitionWithExtend[] = [
                         .withUnit('*C')
                         .withDescription('High temperature threshold'),
                     e.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High temperature breaker'),
-                    e
-                        .numeric('power_threshold', ea.STATE_SET)
-                        .withValueMin(1)
-                        .withValueMax(26)
-                        .withValueStep(1)
-                        .withUnit('kW')
-                        .withDescription('High power threshold'),
-                    e.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High power breaker'),
                 );
             }
             exposes.push(
+                e
+                    .numeric('power_threshold', ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(26)
+                    .withValueStep(1)
+                    .withUnit('kW')
+                    .withDescription('High power threshold'),
+                e.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF').withDescription('High power breaker'),
                 e
                     .numeric('over_current_threshold', ea.STATE_SET)
                     .withValueMin(1)
@@ -11437,7 +11443,10 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_fhvdgeuh']),
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE204_fhvdgeuh'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_abatw3kj'},
+        ],
         model: 'TS0601_din_4',
         vendor: 'Tuya',
         description: 'Din rail switch with power monitoring and threshold settings',
@@ -11448,6 +11457,7 @@ const definitions: DefinitionWithExtend[] = [
             // Required to get the device to start reporting
             await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
         },
+        whiteLabel: [tuya.whitelabel('RTX', 'TS0601_RTX_DIN', 'Din rail switch', ['_TZE200_abatw3kj'])],
         exposes: [
             e.switch().setAccess('state', ea.STATE_SET),
             e.power(),

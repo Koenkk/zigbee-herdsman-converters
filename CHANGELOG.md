@@ -1,5 +1,26 @@
 # Changelog
 
+## [20.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.12.1...v20.13.0) (2024-09-09)
+
+
+### Features
+
+* **add:** 3RSM0147Z ([#7916](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7916)) ([0670d9f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0670d9f8b8ccd03734f5e5cd37320c5041ff2812))
+* **add:** P5630S ([#7964](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7964)) ([f003373](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f003373cad3aec3e6691835ff9aba46583620e68))
+* **add:** SE20-O ([#7957](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7957)) ([5e526c4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e526c41d95d980b2af8f04c2ba380389ee99b12))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_abatw3kj` as RTX TS0601_RTX_DIN ([#7958](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7958)) ([78384a9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/78384a981af1393436f0e605700c9447e0ee39bc))
+* Fix remove unsupported color from Innr RB 178 T https://github.com/Koenkk/zigbee2mqtt/issues/23911 ([822f991](https://github.com/Koenkk/zigbee-herdsman-converters/commit/822f9911fc164dd1f29ec77cccc1470f8117a287))
+* Fix S1-R (5601) fingerprint ([#7959](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7959)) ([b123439](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b1234398df5bb37d6e7d1bfed7a77ca13aedcaf7))
+* Fix Tuya-RB-SRAIN01 `cleaning_reminder` value ([#7953](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7953)) ([d0d8ec3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0d8ec30df24c65fc9e05fcfc637af8a7aba4822))
+* **ignore:** Fix some Tuya whitelabels ([1c61743](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c61743e881f35de22fbfa4ad453cb68f93ce1fe))
+* **ignore:** update dependencies ([#7954](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7954)) ([6f3e786](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f3e786a76044e67a974d4a97659dbcdf4e4aa95))
+* Improve compatibility with _TZ3000_303avxxt DIN rail switch ([#7965](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7965)) ([9862541](https://github.com/Koenkk/zigbee-herdsman-converters/commit/98625415e170ef812c51a9198738e3c84d1a57d4))
+* Improve compatibility with _TZ3000_zjchz7pd DIN rail switch ([#7963](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7963)) ([8625590](https://github.com/Koenkk/zigbee-herdsman-converters/commit/862559017ccab08b57ee5e054ae1158097199b52))
+
 ## [20.12.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.12.0...v20.12.1) (2024-09-07)
 
 
