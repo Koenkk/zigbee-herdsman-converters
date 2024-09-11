@@ -265,13 +265,13 @@ const definitions: DefinitionWithExtend[] = [
             battery(),
             battery({voltage: true}),
             forcePowerSource({powerSource: 'Battery'}),
-            deviceAddCustomCluster('THIRD_REALITY_TEMP_HUMI_SENSOR_CLUSTER_ID', {
+            deviceAddCustomCluster('3rSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    Celsius_degree_calibration: {ID: 0x0031, type: Zcl.DataType.INT16},
-                    humidity_calibration: {ID: 0x0032, type: Zcl.DataType.INT16},
-                    y_aFahrenheit_degree_calibrationxis: {ID: 0x0033, type: Zcl.DataType.INT16},
+                    CelsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16},
+                    HumidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16},
+                    FahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -289,13 +289,13 @@ const definitions: DefinitionWithExtend[] = [
             humidity(),
             battery(),
             forcePowerSource({powerSource: 'Battery'}),
-            deviceAddCustomCluster('THIRD_REALITY_SOIL_SENSOR_CLUSTER_ID', {
+            deviceAddCustomCluster('3rSoilSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    Celsius_degree_calibration: {ID: 0x0031, type: Zcl.DataType.INT16},
-                    humidity_calibration: {ID: 0x0032, type: Zcl.DataType.INT16},
-                    y_aFahrenheit_degree_calibrationxis: {ID: 0x0033, type: Zcl.DataType.INT16},
+                    CelsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16},
+                    HumidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16},
+                    FahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -313,13 +313,13 @@ const definitions: DefinitionWithExtend[] = [
             humidity(),
             battery(),
             forcePowerSource({powerSource: 'Battery'}),
-            deviceAddCustomCluster('THIRD_REALITY_TEMP_HUMI_SENSOR_gen2_CLUSTER_ID', {
+            deviceAddCustomCluster('3rSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    Celsius_degree_calibration: {ID: 0x0031, type: Zcl.DataType.INT16},
-                    humidity_calibration: {ID: 0x0032, type: Zcl.DataType.INT16},
-                    y_aFahrenheit_degree_calibrationxis: {ID: 0x0033, type: Zcl.DataType.INT16},
+                    CelsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16},
+                    HumidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16},
+                    FahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16},
                 },
                 commands: {},
                 commandsResponse: {},
