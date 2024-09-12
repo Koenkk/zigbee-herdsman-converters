@@ -326,7 +326,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
             if (value.toLowerCase() === 'on') value = 'low';
-            return tz.fan_mode.convertSet(entity, key, value, meta);
+            return await tz.fan_mode.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
 };

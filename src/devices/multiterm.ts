@@ -36,7 +36,7 @@ const tzLocal = {
         ...tz.fan_mode,
         convertSet: async (entity, key, value, meta) => {
             if (String(value).toLowerCase() === 'on') value = 'high';
-            return tz.fan_mode.convertSet(entity, key, value, meta);
+            return await tz.fan_mode.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
     binary_output: {

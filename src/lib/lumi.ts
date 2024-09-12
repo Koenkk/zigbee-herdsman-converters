@@ -1867,7 +1867,7 @@ export const lumiModernExtend = {
                 cluster: 'manuSpecificLumi',
                 type: ['attributeReport', 'readResponse'],
                 convert: async (model, msg, publish, options, meta) => {
-                    return numericAttributes2Payload(msg, meta, model, options, msg.data);
+                    return await numericAttributes2Payload(msg, meta, model, options, msg.data);
                 },
             },
         ];
@@ -2240,7 +2240,7 @@ export const fromZigbee = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            return numericAttributes2Payload(msg, meta, model, options, msg.data);
+            return await numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     } satisfies Fz.Converter,
     lumi_basic_raw: {
@@ -2259,7 +2259,7 @@ export const fromZigbee = {
         cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            return numericAttributes2Payload(msg, meta, model, options, msg.data);
+            return await numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     } satisfies Fz.Converter,
     lumi_co2: {
@@ -4889,7 +4889,7 @@ export const toZigbee = {
 
             // Wait until the curtain gets into a moving state, then wait until it gets blocked or stopped
             const waitForStateTransition = async (initialStates: number[], desiredStates: number[]): Promise<void> => {
-                return new Promise<void>((resolve) => {
+                return await new Promise<void>((resolve) => {
                     const checkState = async () => {
                         const result = await entity.read('manuSpecificLumi', [0x0421]);
                         const state = result ? result[0x0421] : null;

@@ -129,7 +129,7 @@ const ubisys = {
                     logger.warning(`ubisys: ${message}`, NS);
                 };
                 const sleepSeconds = async (s: number) => {
-                    return new Promise((resolve) => setTimeout(resolve, s * 1000));
+                    return await new Promise((resolve) => setTimeout(resolve, s * 1000));
                 };
                 const waitUntilStopped = async () => {
                     let operationalStatus = 0;

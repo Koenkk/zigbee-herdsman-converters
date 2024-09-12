@@ -128,7 +128,7 @@ export const philipsTz = {
             if (Object.keys(hueEffects).includes(value.toLowerCase())) {
                 await entity.command('manuSpecificPhilips2', 'multiColor', {data: Buffer.from(utils.getFromLookup(value, hueEffects), 'hex')});
             } else {
-                return tz.effect.convertSet(entity, key, value, meta);
+                return await tz.effect.convertSet(entity, key, value, meta);
             }
         },
     } satisfies Tz.Converter,

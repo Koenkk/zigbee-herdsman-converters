@@ -180,31 +180,31 @@ function dpValueFromBitmap(dp: number, bitmapBuffer: any) {
 
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoint(entity: Zh.Endpoint | Zh.Group, dpValue: any, cmd?: string, seq: number = undefined) {
-    return sendDataPoints(entity, [dpValue], cmd, seq);
+    return await sendDataPoints(entity, [dpValue], cmd, seq);
 }
 
 async function sendDataPointValue(entity: Zh.Endpoint | Zh.Group, dp: number, value: any, cmd?: string, seq: number = undefined) {
-    return sendDataPoints(entity, [dpValueFromIntValue(dp, value)], cmd, seq);
+    return await sendDataPoints(entity, [dpValueFromIntValue(dp, value)], cmd, seq);
 }
 
 async function sendDataPointBool(entity: Zh.Endpoint | Zh.Group, dp: number, value: boolean | number, cmd?: string, seq: number = undefined) {
-    return sendDataPoints(entity, [dpValueFromBool(dp, value)], cmd, seq);
+    return await sendDataPoints(entity, [dpValueFromBool(dp, value)], cmd, seq);
 }
 
 async function sendDataPointEnum(entity: Zh.Endpoint | Zh.Group, dp: number, value: number, cmd?: string, seq: number = undefined) {
-    return sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
+    return await sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
 }
 
 async function sendDataPointRaw(entity: Zh.Endpoint | Zh.Group, dp: number, value: any, cmd?: string, seq: number = undefined) {
-    return sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
+    return await sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
 }
 
 async function sendDataPointBitmap(entity: Zh.Endpoint | Zh.Group, dp: number, value: any, cmd?: string, seq: number = undefined) {
-    return sendDataPoints(entity, [dpValueFromBitmap(dp, value)], cmd, seq);
+    return await sendDataPoints(entity, [dpValueFromBitmap(dp, value)], cmd, seq);
 }
 
 async function sendDataPointStringBuffer(entity: Zh.Endpoint | Zh.Group, dp: number, value: any, cmd?: string, seq: number = undefined) {
-    return sendDataPoints(entity, [dpValueFromStringBuffer(dp, value)], cmd, seq);
+    return await sendDataPoints(entity, [dpValueFromStringBuffer(dp, value)], cmd, seq);
 }
 
 function convertRawToCycleTimer(value: any) {
@@ -5880,7 +5880,7 @@ const toZigbee2 = {
                     } else {
                         value = parseInt(value);
                     }
-                    return toZigbee1.tuya_cover_control.convertSet(entity, 'position', value, meta);
+                    return await toZigbee1.tuya_cover_control.convertSet(entity, 'position', value, meta);
                 }
                 case 'report': {
                     await sendDataPointBool(entity, 116, 0);

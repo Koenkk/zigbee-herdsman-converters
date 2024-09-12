@@ -49,13 +49,13 @@ const coverAndLightToZigbee: Tz.Converter = {
         const isCover = entity.ID === 0x0b || entity.ID === 0x0c;
         if (isCover) {
             if (key === 'state') {
-                return tz.cover_state.convertSet(entity, key, value, meta);
+                return await tz.cover_state.convertSet(entity, key, value, meta);
             } else if (key === 'position' || key === 'tilt') {
-                return tz.cover_position_tilt.convertSet(entity, key, value, meta);
+                return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
             }
         } else {
             if (key === 'state' || key === 'brightness' || key === 'brightness_percent' || key === 'on_time') {
-                return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+                return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
             }
         }
     },

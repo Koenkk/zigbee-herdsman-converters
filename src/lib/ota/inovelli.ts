@@ -66,11 +66,11 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
  */
 
 export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
-    return common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
+    return await common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta);
+    return await common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta);
 }
 
 exports.isUpdateAvailable = isUpdateAvailable;

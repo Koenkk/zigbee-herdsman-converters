@@ -401,7 +401,7 @@ const tzLocal = {
                 }
                 return {state: libColor.syncColorState(newState, meta.state, entity, meta.options) as KeyValue};
             } else {
-                return tz.light_color.convertSet(entity, key, value, meta);
+                return await tz.light_color.convertSet(entity, key, value, meta);
             }
         },
         convertGet: tz.light_color.convertGet,

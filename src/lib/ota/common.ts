@@ -154,7 +154,7 @@ export async function getFirmwareFile(image: KeyValueAny): Promise<{data: Buffer
     // First try to download firmware file with the URL provided
     if (isValidUrl(urlOrName)) {
         logger.debug(`Downloading firmware image from '${urlOrName}'`, NS);
-        return getAxios().get(urlOrName, {responseType: 'arraybuffer'});
+        return await getAxios().get(urlOrName, {responseType: 'arraybuffer'});
     }
 
     logger.debug(`Try to read firmware image from local file '${urlOrName}'`, NS);

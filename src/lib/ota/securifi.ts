@@ -8,7 +8,7 @@ export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.I
         const scenesEndpoint = device.endpoints.find((e) => e.supportsOutputCluster('genScenes'));
         await scenesEndpoint.write('genScenes', {currentGroup: 49502});
     }
-    return common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, zigbeeOTA.getImageMeta);
+    return await common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, zigbeeOTA.getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
@@ -17,7 +17,7 @@ export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgre
         const scenesEndpoint = device.endpoints.find((e) => e.supportsOutputCluster('genScenes'));
         await scenesEndpoint.write('genScenes', {currentGroup: 49502});
     }
-    return common.updateToLatest(device, onProgress, common.getNewImage, zigbeeOTA.getImageMeta);
+    return await common.updateToLatest(device, onProgress, common.getNewImage, zigbeeOTA.getImageMeta);
 }
 
 exports.isUpdateAvailable = isUpdateAvailable;

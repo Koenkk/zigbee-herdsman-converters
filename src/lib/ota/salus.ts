@@ -34,7 +34,7 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
 }
 
 async function untar(tarStream: NodeJS.ReadStream) {
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
         const extract = tar.extract();
 
         const result: KeyValue[] = [];
@@ -84,11 +84,11 @@ async function downloadImage(meta: KeyValueAny) {
  */
 
 export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
-    return common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
+    return await common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, downloadImage);
+    return await common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, downloadImage);
 }
 
 exports.isUpdateAvailable = isUpdateAvailable;

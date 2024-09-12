@@ -96,7 +96,7 @@ async function isNewImageAvailable(current: Ota.ImageInfo, device: Zh.Device, ge
             current = {...current, fileVersion: device.meta.lumiFileVersion};
         }
     }
-    return common.isNewImageAvailable(current, device, getImageMeta);
+    return await common.isNewImageAvailable(current, device, getImageMeta);
 }
 
 export async function getFirmwareFile(image: KeyValueAny) {
@@ -119,11 +119,11 @@ export async function getFirmwareFile(image: KeyValueAny) {
  */
 
 export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
-    return common.isUpdateAvailable(device, requestPayload, isNewImageAvailable, getImageMeta);
+    return await common.isUpdateAvailable(device, requestPayload, isNewImageAvailable, getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
+    return await common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
 }
 
 export const useIndexOverride = (indexFileName: string) => {

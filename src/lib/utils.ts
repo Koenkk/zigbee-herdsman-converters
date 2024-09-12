@@ -378,7 +378,7 @@ export function filterObject(obj: KeyValue, keys: string[]) {
 }
 
 export async function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function toSnakeCase(value: string | KeyValueAny) {
