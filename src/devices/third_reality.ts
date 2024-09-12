@@ -210,8 +210,8 @@ const definitions: DefinitionWithExtend[] = [
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    OnToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    OffToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -244,7 +244,7 @@ const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    infrared_off: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    infraredOff: {ID: 0x0000, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -385,8 +385,8 @@ const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1233,
                 attributes: {
                     ResetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    OnToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    OffToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -485,8 +485,8 @@ const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1233,
                 attributes: {
                     ResetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    OnToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    OffToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
