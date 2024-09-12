@@ -284,7 +284,6 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             temperature(),
             humidity(),
-            battery(),
             battery({voltage: true}),
             forcePowerSource({powerSource: 'Battery'}),
             deviceAddCustomCluster('3rSpecialCluster', {
