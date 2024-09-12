@@ -1,5 +1,28 @@
 # Changelog
 
+## [20.14.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.13.0...v20.14.0) (2024-09-12)
+
+
+### Features
+
+* **add:** 929003116301, 929003116401, 929003116501, 929003116601 ([#7968](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7968)) ([c29cbf7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c29cbf7ac7a3301cb6f6f91ab85f25f6bf5ae41c))
+* **add:** LST103 ([#7979](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7979)) ([622e65e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/622e65ecc3285eb5f65c6d02fbaa12a20e91d77e))
+* OWON PC 321 - support clear measurement data ([#7895](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7895)) ([42a3c21](https://github.com/Koenkk/zigbee-herdsman-converters/commit/42a3c2120ed19afb99100b74258368d23fa5194b))
+
+
+### Bug Fixes
+
+* Fix `preset` value for Tuya ZWT198/ZWT100-BH ([#7966](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7966)) ([f843534](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f843534c9094c1573034b0c51620fd35b38a9eaf))
+* Fix SLZB-06p7 configure failing https://github.com/Koenkk/zigbee2mqtt/issues/23918 ([5a6c1f9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5a6c1f9afe98f4bf0433185f06c64ac574447061))
+* Fix Tuya energy polling not working when measurement interval is set to "" https://github.com/Koenkk/zigbee2mqtt/issues/23887 ([861f8df](https://github.com/Koenkk/zigbee-herdsman-converters/commit/861f8df48f5587a5dfb8becd8ec052f229e722a8))
+* Fix Ubisys C4 integration ([#7972](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7972)) ([a699873](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a699873ae2246b460ad1be0d8a7cd95b4c33c2c3))
+* **ignore:** Add more Third Reality custom clusters  ([#7969](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7969)) ([3ef88dd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3ef88dd28bcf6802f255465e07676a189e360a73))
+* **ignore:** Add more Third Reality custom clusters ([#7967](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7967)) ([e24cbb0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e24cbb092455e92768e718c0c459b68b921fb906))
+* **ignore:** Add more Third Reality custom clusters ([#7970](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7970)) ([cc4c516](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cc4c5168054f37ad633ee67924499bf8c161c35b))
+* **ignore:** Add more Third Reality custom clusters ([#7978](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7978)) ([6c4b506](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6c4b506e60543a615902ee37a3192130ec5975aa))
+* **ignore:** Improve performance when logging is disabled ([#7955](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7955)) ([decaa92](https://github.com/Koenkk/zigbee-herdsman-converters/commit/decaa92b5a8ad8ded8e2e6d7c086518f46d9a03f))
+* Migrate to eslint 9 ([#7961](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7961)) ([c7b8902](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c7b89022bedfa0ec218fc7ffc9058ac7b80b19d9))
+
 ## [20.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.12.1...v20.13.0) (2024-09-09)
 
 
