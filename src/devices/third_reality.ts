@@ -373,9 +373,9 @@ const definitions: DefinitionWithExtend[] = [
                 ID: 0xFF03,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    ResetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.INT16},
-                    OnToOffDelay: {ID: 0x0001, type: Zcl.DataType.INT16},
-                    OffToOnDelay: {ID: 0x0002, type: Zcl.DataType.INT16},
+                    ResetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                    OnToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    OffToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
