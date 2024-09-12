@@ -240,16 +240,16 @@ const definitions: DefinitionWithExtend[] = [
         },
         exposes: [e.cover_position(), e.battery()],
         extend: [
-		deviceAddCustomCluster('3rRollerShadeSpecialCluster', {
-			ID: 0xfff1,
-			manufacturerCode: 0x1233,
-			attributes: {
-				infrared_off: {ID: 0x0000, type: Zcl.DataType.UINT8}, 
-			},
-			commands: {},
-			commandsResponse: {},
-		}),
-	],
+            deviceAddCustomCluster('3rRollerShadeSpecialCluster', {
+                ID: 0xfff1,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    infrared_off: {ID: 0x0000, type: Zcl.DataType.UINT8},
+            },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
     {
         zigbeeModel: ['TRZB3'],
