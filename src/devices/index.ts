@@ -98,6 +98,7 @@ import gledopto from './gledopto';
 import gmmts from './gmmts';
 import gmy from './gmy';
 import gs from './gs';
+import gumax from './gumax';
 import halemeier from './halemeier';
 import hampton_bay from './hampton_bay';
 import heatit from './heatit';
@@ -407,6 +408,7 @@ export default [
     ...gmmts,
     ...gmy,
     ...gs,
+    ...gumax,
     ...halemeier,
     ...hampton_bay,
     ...heatit,

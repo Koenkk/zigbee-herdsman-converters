@@ -42,7 +42,7 @@ export function onEventPoll(
         globalStore.clearValue(device, key);
     } else if (!globalStore.hasValue(device, key)) {
         const optionsKey = `${key}_poll_interval`;
-        const seconds = toNumber(options[optionsKey] ?? defaultIntervalSeconds, optionsKey);
+        const seconds = toNumber(options[optionsKey] || defaultIntervalSeconds, optionsKey);
         if (seconds <= 0) {
             logger.debug(`Not polling '${key}' for '${device.ieeeAddr}' since poll interval is <= 0 (got ${seconds})`, NS);
         } else {
