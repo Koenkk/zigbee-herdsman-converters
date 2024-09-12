@@ -6,8 +6,8 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz, Tz, KeyValue} from '../lib/types';
-import {precisionRound, getFromLookup, postfixWithEndpointName, getKey, toNumber} from '../lib/utils';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
+import {getFromLookup, getKey, postfixWithEndpointName, precisionRound, toNumber} from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -23,14 +23,14 @@ const fzLocal = {
             const ep = getKey(model.endpoint(msg.device), msg.endpoint.ID);
             const result: KeyValue = {};
 
-            if (msg.data.hasOwnProperty('minSetpointDeadBand')) {
+            if (msg.data.minSetpointDeadBand !== undefined) {
                 result[postfixWithEndpointName('min_setpoint_deadband', msg, model, meta)] = precisionRound(msg.data['minSetpointDeadBand'], 2) / 10;
             }
             // sensor type
-            if (msg.data.hasOwnProperty('30464')) {
+            if (msg.data['30464'] !== undefined) {
                 result[`sensor_type_${ep}`] = sensorTypes[toNumber(msg.data['30464'])];
             }
-            if (msg.data.hasOwnProperty('30465')) {
+            if (msg.data['30465'] !== undefined) {
                 result[postfixWithEndpointName('target_temp_first', msg, model, meta)] = msg.data['30465'] == 1;
             }
             return result;
@@ -41,13 +41,13 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('30464')) {
+            if (msg.data['30464'] !== undefined) {
                 result[postfixWithEndpointName('brightness', msg, model, meta)] = msg.data['30464'];
             }
-            if (msg.data.hasOwnProperty('30465')) {
+            if (msg.data['30465'] !== undefined) {
                 result[postfixWithEndpointName('brightness_standby', msg, model, meta)] = msg.data['30465'];
             }
-            if (msg.data.hasOwnProperty('keypadLockout')) {
+            if (msg.data.keypadLockout !== undefined) {
                 result[postfixWithEndpointName('keypad_lockout', msg, model, meta)] = getFromLookup(
                     msg.data['keypadLockout'],
                     constants.keypadLockoutMode,

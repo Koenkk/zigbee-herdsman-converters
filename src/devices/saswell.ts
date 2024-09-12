@@ -4,6 +4,7 @@ import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -50,7 +51,7 @@ const definitions: DefinitionWithExtend[] = [
             legacy.tz.saswell_thermostat_anti_scaling,
             legacy.tz.tuya_thermostat_weekly_schedule,
         ],
-        // @ts-expect-error
+        // @ts-expect-error ignore
         onEvent: (type, data, device) => !['_TZE200_c88teujp'].includes(device.manufacturerName) && tuya.onEventSetTime(type, data, device),
         meta: {
             thermostat: {

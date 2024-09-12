@@ -1,4 +1,5 @@
 import * as semver from 'semver';
+
 import {Zcl} from 'zigbee-herdsman';
 
 import fz from '../converters/fromZigbee';
@@ -10,7 +11,7 @@ import {logger} from '../lib/logger';
 import {commandsColorCtrl, commandsLevelCtrl, commandsOnOff, deviceEndpoints, electricityMeter, identify, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, OnEventData, OnEventType, Tz, Zh} from '../lib/types';
 import {ubisysModernExtend} from '../lib/ubisys';
 import * as utils from '../lib/utils';
 
@@ -25,7 +26,7 @@ const manufacturerOptions = {
      * https://github.com/Koenkk/zigbee-herdsman/issues/52
      */
     ubisys: {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-    // @ts-expect-error
+    // @ts-expect-error ignore
     ubisysNull: {manufacturerCode: null},
 };
 
@@ -33,7 +34,7 @@ const ubisysOnEventReadCurrentSummDelivered = async function (type: OnEventType,
     if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
         try {
             await data.endpoint.read('seMetering', ['currentSummDelivered']);
-        } catch (error) {
+        } catch {
             /* Do nothing*/
         }
     }
@@ -54,7 +55,7 @@ const ubisys = {
             cluster: 'manuSpecificUbisysDimmerSetup',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('capabilities')) {
+                if (msg.data.capabilities !== undefined) {
                     const capabilities = msg.data.capabilities;
                     const forwardPhaseControl = capabilities & 1;
                     const reversePhaseControl = (capabilities & 2) >>> 1;
@@ -69,7 +70,7 @@ const ubisys = {
                         capabilities_overload_detection: overloadDetection ? true : false,
                     };
                 }
-                if (msg.data.hasOwnProperty('status')) {
+                if (msg.data.status !== undefined) {
                     const status = msg.data.status;
                     const forwardPhaseControl = status & 1;
                     const reversePhaseControl = (status & 2) >>> 1;
@@ -84,7 +85,7 @@ const ubisys = {
                         status_inductive_load: inductiveLoad ? true : false,
                     };
                 }
-                if (msg.data.hasOwnProperty('mode')) {
+                if (msg.data.mode !== undefined) {
                     const mode = msg.data.mode;
                     const phaseControl = mode & 3;
                     const phaseControlValues = {0: 'automatic', 1: 'forward', 2: 'reverse'};
@@ -98,7 +99,7 @@ const ubisys = {
             cluster: 'genLevelCtrl',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('ubisysMinimumOnLevel')) {
+                if (msg.data.ubisysMinimumOnLevel !== undefined) {
                     return {minimum_on_level: msg.data.ubisysMinimumOnLevel};
                 }
             },
@@ -107,7 +108,7 @@ const ubisys = {
             cluster: 'manuSpecificUbisysDeviceSetup',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const result = (meta.state.hasOwnProperty('configure_device_setup') ? meta.state.configure_device_setup : {}) as KeyValue;
+                const result = (meta.state.configure_device_setup !== undefined ? meta.state.configure_device_setup : {}) as KeyValue;
                 if (msg.data['inputConfigurations'] != null) {
                     result['input_configurations'] = msg.data['inputConfigurations'];
                 }
@@ -128,14 +129,14 @@ const ubisys = {
                     logger.warning(`ubisys: ${message}`, NS);
                 };
                 const sleepSeconds = async (s: number) => {
-                    return new Promise((resolve) => setTimeout(resolve, s * 1000));
+                    return await new Promise((resolve) => setTimeout(resolve, s * 1000));
                 };
                 const waitUntilStopped = async () => {
                     let operationalStatus = 0;
                     do {
                         await sleepSeconds(2);
                         const response = await entity.read('closuresWindowCovering', ['operationalStatus']);
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         operationalStatus = response.operationalStatus;
                     } while (operationalStatus != 0);
                     await sleepSeconds(2);
@@ -150,7 +151,7 @@ const ubisys = {
                     if (jsonAttr.startsWith('ubisys')) {
                         jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
                     }
-                    if (value.hasOwnProperty(jsonAttr)) {
+                    if (value[jsonAttr] !== undefined) {
                         let attrValue = value[jsonAttr];
                         if (converterFunc) {
                             attrValue = converterFunc(attrValue);
@@ -164,9 +165,9 @@ const ubisys = {
                     }
                 };
                 const stepsPerSecond = value.steps_per_second || 50;
-                const hasCalibrate = value.hasOwnProperty('calibrate');
+                const hasCalibrate = value.calibrate !== undefined;
                 // cancel any running calibration
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 let mode = (await entity.read('closuresWindowCovering', ['windowCoveringMode'])).windowCoveringMode;
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {
@@ -176,7 +177,7 @@ const ubisys = {
                 // delay a bit if reconfiguring basic configuration attributes
                 await writeAttrFromJson('windowCoveringType', undefined, undefined, 2);
                 await writeAttrFromJson('configStatus', undefined, undefined, 2);
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 if (await writeAttrFromJson('windowCoveringMode', undefined, undefined, 2)) {
                     mode = value['windowCoveringMode'];
                 }
@@ -359,7 +360,7 @@ const ubisys = {
                     logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`, NS);
                 }
 
-                if (value.hasOwnProperty('input_configurations')) {
+                if (value.input_configurations !== undefined) {
                     // example: [0, 0, 0, 0]
                     if (useWriteStruct) {
                         await devMgmtEp.writeStructured(
@@ -386,7 +387,7 @@ const ubisys = {
                     }
                 }
 
-                if (value.hasOwnProperty('input_actions')) {
+                if (value.input_actions !== undefined) {
                     // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
                     if (useWriteStruct) {
                         await devMgmtEp.writeStructured(
@@ -413,7 +414,7 @@ const ubisys = {
                     }
                 }
 
-                if (value.hasOwnProperty('input_action_templates')) {
+                if (value.input_action_templates !== undefined) {
                     const templateTypes = {
                         // source: "ZigBee Device Physical Input Configurations Integrator’s Guide"
                         // (can be obtained directly from ubisys upon request)
@@ -526,7 +527,7 @@ const ubisys = {
                     const templates = Array.isArray(value.input_action_templates) ? value.input_action_templates : [value.input_action_templates];
                     let resultingInputActions: unknown[] = [];
                     for (const template of templates) {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const templateType = templateTypes[template.type];
                         if (!templateType) {
                             throw new Error(
@@ -535,10 +536,10 @@ const ubisys = {
                             );
                         }
 
-                        if (template.hasOwnProperty('input')) {
+                        if (template.input !== undefined) {
                             input = template.input;
                         }
-                        if (template.hasOwnProperty('endpoint')) {
+                        if (template.endpoint !== undefined) {
                             endpoint = template.endpoint;
                         }
                         // C4 cover endpoints only start at 5
@@ -553,16 +554,16 @@ const ubisys = {
                                 inputActions = templateType.getInputActions(input, endpoint, template);
                             } else {
                                 // scene(s) (always single input)
-                                if (!template.hasOwnProperty('scene_id')) {
+                                if (template.scene_id === undefined) {
                                     throw new Error(`input_action_templates: Need an attribute 'scene_id' for '${template.type}'`);
                                 }
-                                if (template.hasOwnProperty('group_id')) {
+                                if (template.group_id !== undefined) {
                                     groupId = template.group_id;
                                 }
                                 inputActions = templateType.getInputActions(input, endpoint, groupId, template.scene_id);
 
-                                if (template.hasOwnProperty('scene_id_2')) {
-                                    if (template.hasOwnProperty('group_id_2')) {
+                                if (template.scene_id_2 !== undefined) {
+                                    if (template.group_id_2 !== undefined) {
                                         groupId = template.group_id_2;
                                     }
                                     inputActions = inputActions.concat(templateType.getInputActions2(input, endpoint, groupId, template.scene_id_2));
@@ -570,7 +571,7 @@ const ubisys = {
                             }
                         } else {
                             // double inputs
-                            input = template.hasOwnProperty('inputs') ? template.inputs : [input, input + 1];
+                            input = template.inputs !== undefined ? template.inputs : [input, input + 1];
                             inputActions = templateType.getInputActions(input, endpoint, template);
                         }
                         resultingInputActions = resultingInputActions.concat(inputActions);

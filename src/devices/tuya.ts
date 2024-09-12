@@ -6,26 +6,26 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {
+    actionEnumLookup,
+    battery,
+    commandsLevelCtrl,
+    commandsOnOff,
+    deviceEndpoints,
+    electricityMeter,
+    humidity,
+    iasZoneAlarm,
+    identify,
+    light,
     onOff,
     quirkCheckinInterval,
-    battery,
-    deviceEndpoints,
-    light,
-    iasZoneAlarm,
     temperature,
-    humidity,
-    identify,
-    actionEnumLookup,
-    commandsOnOff,
-    commandsLevelCtrl,
-    electricityMeter,
     windowCovering,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
-import {KeyValue, DefinitionWithExtend, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString, ModernExtend} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, KeyValueString, ModernExtend, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
 import * as zosung from '../lib/zosung';
@@ -133,7 +133,7 @@ const storeLocal = {
                     // Only publish if the set is complete otherwise discard everything.
                     if (sign !== null && power !== null && current !== null && powerFactor !== null) {
                         const signedPowerKey = 'signed_power_' + channel;
-                        const signedPower = options.hasOwnProperty(signedPowerKey) ? options[signedPowerKey] : false;
+                        const signedPower = options[signedPowerKey] !== undefined ? options[signedPowerKey] : false;
                         if (signedPower) {
                             result['power_' + channel] = sign * power;
                             result['energy_flow_' + channel] = 'sign';
@@ -193,7 +193,7 @@ const convLocal = {
                 const result = {};
                 priv['sign_' + channel] = v == 1 ? -1 : +1;
                 const lateEnergyFlowKey = 'late_energy_flow_' + channel;
-                const lateEnergyFlow = options.hasOwnProperty(lateEnergyFlowKey) ? options[lateEnergyFlowKey] : false;
+                const lateEnergyFlow = options[lateEnergyFlowKey] !== undefined ? options[lateEnergyFlowKey] : false;
                 if (lateEnergyFlow) {
                     priv.flush(result, channel, options);
                 }
@@ -240,7 +240,7 @@ const convLocal = {
                 const result = {};
                 priv['power_factor_' + channel] = v;
                 const lateEnergyFlowKey = 'late_energy_flow_' + channel;
-                const lateEnergyFlow = options.hasOwnProperty(lateEnergyFlowKey) ? options[lateEnergyFlowKey] : false;
+                const lateEnergyFlow = options[lateEnergyFlowKey] !== undefined ? options[lateEnergyFlowKey] : false;
                 if (!lateEnergyFlow) {
                     priv.flush(result, channel, options);
                 }
@@ -322,9 +322,9 @@ const tzLocal = {
                     // Load current state or defaults
                     const newSettings = {
                         brightness: meta.state.brightness ?? 254, //      full brightness
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         hue: (meta.state.color ?? {}).hue ?? 0, //          red
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         saturation: (meta.state.color ?? {}).saturation ?? 100, // full saturation
                     };
 
@@ -538,7 +538,7 @@ const fzLocal = {
     TS0222_humidity: {
         ...fz.humidity,
         convert: async (model, msg, publish, options, meta) => {
-            const result = await fz.humidity.convert(model, msg, publish, options, meta);
+            const result = fz.humidity.convert(model, msg, publish, options, meta);
             if (result) result.humidity *= 10;
             return result;
         },
@@ -594,7 +594,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('57355')) {
+            if (msg.data['57355'] !== undefined) {
                 result.temperature_unit = utils.getFromLookup(msg.data['57355'], {'0': 'celsius', '1': 'fahrenheit'});
             }
             return result;
@@ -603,7 +603,7 @@ const fzLocal = {
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
         convert: async (model, msg, publish, options, meta) => {
-            const result = (await fz.electrical_measurement.convert(model, msg, publish, options, meta)) ?? {};
+            const result = fz.electrical_measurement.convert(model, msg, publish, options, meta) ?? {};
             const lookup: KeyValueString = {power: 'activePower', current: 'rmsCurrent', voltage: 'rmsVoltage'};
 
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
@@ -904,7 +904,7 @@ const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
                 await reporting.batteryPercentageRemaining(endpoint);
                 await reporting.batteryVoltage(endpoint);
-            } catch (error) {
+            } catch {
                 /* Fails for some*/
             }
         },
@@ -1764,7 +1764,7 @@ const definitions: DefinitionWithExtend[] = [
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
                 await reporting.batteryVoltage(endpoint);
-            } catch (error) {
+            } catch {
                 /* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708 */
             }
         },
@@ -2549,7 +2549,7 @@ const definitions: DefinitionWithExtend[] = [
                 e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
                 e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time'),
             ];
-            if (!device || device.manufacturerName !== ('_TZ3210_xbpt8ewc' || '_TZ3000_1dd0d5yi')) {
+            if (device?.manufacturerName !== '_TZ3210_xbpt8ewc' && device?.manufacturerName !== '_TZ3000_1dd0d5yi') {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
             exps.push(e.linkquality());
@@ -3267,7 +3267,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
@@ -3328,7 +3328,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
@@ -5087,7 +5087,7 @@ const definitions: DefinitionWithExtend[] = [
                 await reporting.rmsVoltage(endpoint, {change: 5});
                 await reporting.rmsCurrent(endpoint, {change: 50});
                 await reporting.activePower(endpoint, {change: 10});
-            } catch (error) {
+            } catch {
                 /* fails for some https://github.com/Koenkk/zigbee2mqtt/issues/11179
                                 and https://github.com/Koenkk/zigbee2mqtt/issues/16864 */
             }
@@ -5957,7 +5957,7 @@ const definitions: DefinitionWithExtend[] = [
                     const endpoint = device.getEndpoint(ID);
                     await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
                 }
-            } catch (e) {
+            } catch {
                 // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
             }
             device.powerSource = 'Mains (single phase)';
@@ -5989,7 +5989,7 @@ const definitions: DefinitionWithExtend[] = [
                     const endpoint = device.getEndpoint(ID);
                     await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
                 }
-            } catch (e) {
+            } catch {
                 // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
             }
             device.powerSource = 'Mains (single phase)';
@@ -6019,7 +6019,7 @@ const definitions: DefinitionWithExtend[] = [
                     const endpoint = device.getEndpoint(ID);
                     await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
                 }
-            } catch (e) {
+            } catch {
                 // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
             }
             device.powerSource = 'Mains (single phase)';
@@ -6943,7 +6943,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
@@ -7038,7 +7038,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);

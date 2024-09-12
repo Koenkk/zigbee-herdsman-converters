@@ -2,29 +2,33 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import {logger} from '../lib/logger';
+import * as lumi from '../lib/lumi';
 import {
-    light,
-    numeric,
+    battery,
     binary,
-    enumLookup,
-    forceDeviceType,
-    temperature,
-    humidity,
-    forcePowerSource,
-    quirkAddEndpointCluster,
-    quirkCheckinInterval,
     customTimeResponse,
     deviceEndpoints,
-    battery,
+    enumLookup,
+    forceDeviceType,
+    forcePowerSource,
+    humidity,
     identify,
-    windowCovering,
+    light,
+    numeric,
     onOff,
+    quirkAddEndpointCluster,
+    quirkCheckinInterval,
+    temperature,
+    windowCovering,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as lumi from '../lib/lumi';
-import * as globalStore from '../lib/store';
+
 const {
     lumiAction,
     lumiOperationMode,
@@ -67,8 +71,6 @@ const {
     lumiCommandMode,
     lumiBattery,
 } = lumi.modernExtend;
-import {logger} from '../lib/logger';
-import {DefinitionWithExtend} from '../lib/types';
 
 const NS = 'zhc:lumi';
 const {manufacturerCode} = lumi;
@@ -326,7 +328,7 @@ const definitions: DefinitionWithExtend[] = [
             try {
                 const endpoint = device.endpoints[1];
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
-            } catch (error) {
+            } catch {
                 // fails for some but device works as expected: https://github.com/Koenkk/zigbee2mqtt/issues/9136
             }
         },
@@ -2133,7 +2135,7 @@ const definitions: DefinitionWithExtend[] = [
                 const interval = setInterval(async () => {
                     try {
                         await switchEndpoint.read('genDeviceTempCfg', ['currentTemperature']);
-                    } catch (error) {
+                    } catch {
                         // Do nothing
                     }
                 }, 1800000);
@@ -2439,7 +2441,7 @@ const definitions: DefinitionWithExtend[] = [
                 type === 'message' &&
                 data.type === 'attributeReport' &&
                 data.cluster === 'genBasic' &&
-                data.data.hasOwnProperty('1028') &&
+                data.data['1028'] !== undefined &&
                 data.data['1028'] == 0
             ) {
                 // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
@@ -2584,7 +2586,7 @@ const definitions: DefinitionWithExtend[] = [
                 type === 'message' &&
                 data.type === 'attributeReport' &&
                 data.cluster === 'genMultistateOutput' &&
-                data.data.hasOwnProperty('presentValue') &&
+                data.data.presentValue !== undefined &&
                 data.data['presentValue'] > 1
             ) {
                 // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping

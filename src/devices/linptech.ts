@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
-import {KeyValue, DefinitionWithExtend, Tz, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -46,19 +46,19 @@ const fzLocal = {
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('57354')) {
+            if (msg.data['57354'] !== undefined) {
                 result['target_distance'] = msg.data['57354'];
             }
-            if (msg.data.hasOwnProperty('57355')) {
+            if (msg.data['57355'] !== undefined) {
                 result['motion_detection_distance'] = msg.data['57355'];
             }
-            if (msg.data.hasOwnProperty('57348')) {
+            if (msg.data['57348'] !== undefined) {
                 result['motion_detection_sensitivity'] = msg.data['57348'];
             }
-            if (msg.data.hasOwnProperty('57349')) {
+            if (msg.data['57349'] !== undefined) {
                 result['static_detection_sensitivity'] = msg.data['57349'];
             }
-            if (msg.data.hasOwnProperty('57345')) {
+            if (msg.data['57345'] !== undefined) {
                 result['presence_keep_time'] = msg.data['57345'];
             }
             return result;

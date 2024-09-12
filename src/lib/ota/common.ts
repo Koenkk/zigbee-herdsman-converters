@@ -1,17 +1,19 @@
 import assert from 'assert';
-import axios from 'axios';
-import crc32 from 'buffer-crc32';
 import crypto from 'crypto';
 import {readFileSync} from 'fs';
 import https from 'https';
-import {HttpsProxyAgent} from 'https-proxy-agent';
 import path from 'path';
 import tls from 'tls';
+
+import axios from 'axios';
+import crc32 from 'buffer-crc32';
+import {HttpsProxyAgent} from 'https-proxy-agent';
 import * as URI from 'uri-js';
+
 import {Zcl} from 'zigbee-herdsman';
 
 import {logger} from '../logger';
-import {Zh, Ota, KeyValueAny, KeyValue, OtaUpdateAvailableResult} from '../types';
+import {KeyValue, KeyValueAny, Ota, OtaUpdateAvailableResult, Zh} from '../types';
 import {sleep} from '../utils';
 
 interface Request {
@@ -392,7 +394,7 @@ async function requestOTA(endpoint: Zh.Endpoint): Promise<[transNum: number, Ota
         const response = await queryNextImageRequest.promise;
 
         return [response.header.transactionSequenceNumber, response.payload as Ota.ImageInfo];
-    } catch (e) {
+    } catch {
         queryNextImageRequest.cancel();
 
         throw new Error(`Device didn't respond to OTA request`);
@@ -710,7 +712,7 @@ export async function updateToLatest(
 
             let timer: NodeJS.Timeout = null;
 
-            return new Promise<number>((resolve) => {
+            return await new Promise<number>((resolve) => {
                 const onDeviceAnnounce = () => {
                     clearTimeout(timer);
                     logger.debug(`Received device announce, update finished.`, NS);

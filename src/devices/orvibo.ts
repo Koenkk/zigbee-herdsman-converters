@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, light, onOff, battery, humidity, temperature} from '../lib/modernExtend';
+import {battery, deviceEndpoints, humidity, light, onOff, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Tz} from '../lib/types';
 

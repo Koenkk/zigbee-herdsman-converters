@@ -10,8 +10,9 @@ import {battery, humidity, illuminance} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Fz, Tz, Zh, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -50,10 +51,10 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('totalActivePower') && msg.data['totalActivePower'] !== -0x80000000) {
+                if (msg.data.totalActivePower !== undefined && msg.data['totalActivePower'] !== -0x80000000) {
                     result[utils.postfixWithEndpointName('power', msg, model, meta)] = msg.data['totalActivePower'];
                 }
-                if (msg.data.hasOwnProperty('totalReactivePower') && msg.data['totalReactivePower'] !== -0x80000000) {
+                if (msg.data.totalReactivePower !== undefined && msg.data['totalReactivePower'] !== -0x80000000) {
                     result[utils.postfixWithEndpointName('power_reactive', msg, model, meta)] = msg.data['totalReactivePower'];
                 }
                 return result;
@@ -72,7 +73,7 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
+                if (msg.data.develcoPulseConfiguration !== undefined) {
                     result[utils.postfixWithEndpointName('pulse_configuration', msg, model, meta)] = msg.data['develcoPulseConfiguration'];
                 }
 
@@ -84,14 +85,13 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
-                    result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] = constants.develcoInterfaceMode.hasOwnProperty(
-                        msg.data['develcoInterfaceMode'],
-                    )
-                        ? constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']]
-                        : msg.data['develcoInterfaceMode'];
+                if (msg.data.develcoInterfaceMode !== undefined) {
+                    result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] =
+                        constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] !== undefined
+                            ? constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']]
+                            : msg.data['develcoInterfaceMode'];
                 }
-                if (msg.data.hasOwnProperty('status')) {
+                if (msg.data.status !== undefined) {
                     result['battery_low'] = (msg.data.status & 2) > 0;
                     result['check_meter'] = (msg.data.status & 1) > 0;
                 }
@@ -104,11 +104,11 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('reliability')) {
+                if (msg.data.reliability !== undefined) {
                     const lookup = {0: 'no_fault_detected', 7: 'unreliable_other', 8: 'process_error'};
                     result.reliability = utils.getFromLookup(msg.data['reliability'], lookup);
                 }
-                if (msg.data.hasOwnProperty('statusFlags')) {
+                if (msg.data.statusFlags !== undefined) {
                     result.fault = msg.data['statusFlags'] === 1;
                 }
                 return result;
@@ -120,7 +120,7 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
-                if (msg.data.hasOwnProperty('develcoLedControl')) {
+                if (msg.data.develcoLedControl !== undefined) {
                     state['led_control'] = utils.getFromLookup(msg.data['develcoLedControl'], develcoLedControlMap);
                 }
 
@@ -133,7 +133,7 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
-                if (msg.data.hasOwnProperty('develcoAlarmOffDelay')) {
+                if (msg.data.develcoAlarmOffDelay !== undefined) {
                     state['occupancy_timeout'] = msg.data['develcoAlarmOffDelay'];
                 }
 
@@ -145,7 +145,7 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('presentValue')) {
+                if (msg.data.presentValue !== undefined) {
                     const value = msg.data['presentValue'];
                     result[utils.postfixWithEndpointName('input', msg, model, meta)] = value == 1;
                 }
@@ -536,7 +536,7 @@ const definitions: DefinitionWithExtend[] = [
             for (const cluster of ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']) {
                 try {
                     await endpoint.bind(cluster, coordinatorEndpoint);
-                } catch (error) {
+                } catch {
                     logger.debug(`Failed to bind '${cluster}'`, NS);
                 }
             }

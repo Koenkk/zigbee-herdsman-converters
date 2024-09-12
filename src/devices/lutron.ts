@@ -3,6 +3,7 @@ import * as legacy from '../lib/legacy';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 

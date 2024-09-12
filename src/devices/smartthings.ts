@@ -169,7 +169,7 @@ const definitions: DefinitionWithExtend[] = [
             try {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/11706
                 await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            } catch (error) {
+            } catch {
                 /* Fails for some*/
             }
             await reporting.activePower(endpoint);

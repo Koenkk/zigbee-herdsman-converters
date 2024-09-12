@@ -6,6 +6,7 @@ import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -14,7 +15,7 @@ const fzLocal = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentLevel')) {
+            if (msg.data.currentLevel !== undefined) {
                 const currentLevel = Number(msg.data['currentLevel']);
                 const property = utils.postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: currentLevel > 0 ? 'ON' : 'OFF'};

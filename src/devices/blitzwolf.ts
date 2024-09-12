@@ -3,6 +3,7 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [

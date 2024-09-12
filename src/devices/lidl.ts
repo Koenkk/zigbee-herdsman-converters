@@ -2,15 +2,16 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz, Tz, KeyValue, Publish} from '../lib/types';
-const e = exposes.presets;
-const ea = exposes.access;
 import {battery, iasZoneAlarm} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend, Fz, KeyValue, Publish, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
+const e = exposes.presets;
+const ea = exposes.access;
 
 const fzLocal = {
     FB20002_on: {
@@ -50,19 +51,19 @@ const valueConverterLocal = {
                 const now = new Date();
                 const timeslot = [1, 2, 3, 4, 5, 6]
                     .map((slotNumber) => utils.getObjectProperty(meta.state, `schedule_slot_${slotNumber}`, {}))
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     .find((ts) => ts.state === 'ON' && ts.start_hour === now.getHours() && ts.start_minute === now.getMinutes() && ts.timer > 0);
 
                 if (timeslot) {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const iterationDuration = timeslot.timer + timeslot.pause;
                     // automatic watering detected
                     globalStore.putValue(meta.device, 'watering_timer_active_time_slot', {
                         timeslot_start_timestamp: now.getTime(),
                         // end of last watering excluding last pause
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         timeslot_end_timestamp: now.getTime() + (timeslot.iterations * iterationDuration - timeslot.pause) * 60 * 1000,
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         timer: timeslot.timer,
                         iteration_inverval: null, // will be set in the next step
                         iteration_start_timestamp: 0, // will be set in the next step
@@ -78,7 +79,7 @@ const valueConverterLocal = {
                     // time slot execution is already completed
                     Date.now() > ts.timeslot_end_timestamp - 5000 ||
                     // scheduling was interrupted by turning watering on manually
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     (result.state === 'ON' && result.state != meta.state.state && meta.state.time_left > 0)
                 ) {
                     // reporting is no longer necessary
@@ -144,11 +145,11 @@ const valueConverterLocal = {
         to: (value: KeyValue, meta: Tz.Meta) => {
             // map each day to ON/OFF and use current state as default to allow partial updates
             const dayValues = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 .map((dayName) => utils.getObjectProperty(value, dayName, utils.getObjectProperty(meta.state.schedule_weekday, dayName, 'OFF')));
 
             const scheduleValue = dayValues.reduce((dayConfig, value, index) => {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 return dayConfig | (value === 'ON' ? 1 << index : 0);
             }, 0);
 
@@ -188,7 +189,7 @@ const valueConverterLocal = {
             if (iterations > 1 && pauseInMin === 0) throw new Error(`Pause value must be at least 1 minute when using multiple iterations`);
 
             return [
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 state === 'ON' ? 1 : 0, // time slot enabled or not
                 startHour, // start hour
                 startMinute, // start minute
@@ -260,7 +261,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
@@ -391,10 +392,10 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: async (type, data, device) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             await tuya.onEventSetLocalTime(type, data, device);
 
-            // @ts-expect-error
+            // @ts-expect-error ignore
             if (type === 'deviceInterview' && data.status === 'successful') {
                 // dirty hack: reset frost guard & frost alarm to get the initial state
                 // wait 10 seconds to ensure configure is done
@@ -403,7 +404,7 @@ const definitions: DefinitionWithExtend[] = [
                 try {
                     await tuya.sendDataPointBool(endpoint, 109, false);
                     await tuya.sendDataPointBool(endpoint, 108, false);
-                } catch (e) {
+                } catch {
                     // ignore, just prevent any crashes
                 }
             }

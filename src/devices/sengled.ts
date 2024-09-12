@@ -1,6 +1,6 @@
 import {presets} from '../lib/exposes';
-import {onOff, LightArgs, light as lightDontUse, electricityMeter, forcePowerSource, ota, iasZoneAlarm, battery} from '../lib/modernExtend';
-import {DefinitionWithExtend, Expose, ModernExtend, Fz, KeyValueAny} from '../lib/types';
+import {battery, electricityMeter, forcePowerSource, iasZoneAlarm, LightArgs, light as lightDontUse, onOff, ota} from '../lib/modernExtend';
+import {DefinitionWithExtend, Expose, Fz, KeyValueAny, ModernExtend} from '../lib/types';
 
 export function sengledLight(args?: LightArgs) {
     return lightDontUse({effect: false, powerOnBehavior: false, ...args});

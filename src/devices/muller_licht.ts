@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {light as lightDontUse, onOff, LightArgs} from '../lib/modernExtend';
+import {LightArgs, light as lightDontUse, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend, Zh} from '../lib/types';

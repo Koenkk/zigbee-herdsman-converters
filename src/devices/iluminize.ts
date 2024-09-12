@@ -2,15 +2,15 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {
+    battery,
+    commandsColorCtrl,
+    commandsLevelCtrl,
+    commandsOnOff,
+    commandsScenes,
     deviceEndpoints,
+    identify,
     light,
     onOff,
-    battery,
-    identify,
-    commandsOnOff,
-    commandsLevelCtrl,
-    commandsColorCtrl,
-    commandsScenes,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import {DefinitionWithExtend} from '../lib/types';

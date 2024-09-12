@@ -1,8 +1,8 @@
 import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
-const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {

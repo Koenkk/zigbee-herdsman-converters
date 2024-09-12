@@ -3,8 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {forcePowerSource, iasZoneAlarm, light, onOff} from '../lib/modernExtend';
-import {temperature, humidity, battery, deviceAddCustomCluster} from '../lib/modernExtend';
+import {battery, deviceAddCustomCluster, forcePowerSource, humidity, iasZoneAlarm, light, onOff, temperature} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
@@ -234,7 +233,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {
+            } catch {
                 /* Fails for some*/
             }
         },

@@ -3,6 +3,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Zh} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -11,7 +12,7 @@ const poll = async (device: Zh.Device) => {
         const endpoint = device.getEndpoint(6);
         const options = {transactionSequenceNumber: 0, srcEndpoint: 8, disableResponse: true, disableRecovery: true};
         await endpoint.command('genOnOff', 'toggle', {}, options);
-    } catch (error) {
+    } catch {
         // device is lost, need to permit join
     }
 };

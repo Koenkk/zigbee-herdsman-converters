@@ -1,6 +1,6 @@
 import {presets} from './exposes';
 import {setupConfigureForBinding} from './modernExtend';
-import {Expose, Fz, ModernExtend, KeyValueAny, Configure} from './types';
+import {Configure, Expose, Fz, KeyValueAny, ModernExtend} from './types';
 
 export const ewelinkModernExtend = {
     ewelinkAction: (): ModernExtend => {

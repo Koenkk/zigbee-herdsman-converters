@@ -1,7 +1,7 @@
 import {Zcl} from 'zigbee-herdsman';
 
 import tz from '../converters/toZigbee';
-import {ColorXY, ColorRGB} from './color';
+import {ColorRGB, ColorXY} from './color';
 import * as libColor from './color';
 import * as exposes from './exposes';
 import {logger} from './logger';
@@ -111,7 +111,7 @@ export const philipsTz = {
         return {
             key: ['gradient'],
             convertSet: async (entity, key, value, meta) => {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 const scene = encodeGradientColors(value, opts);
                 const payload = {data: Buffer.from(scene, 'hex')};
                 await entity.command('manuSpecificPhilips2', 'multiColor', payload);
@@ -167,7 +167,7 @@ export const philipsTz = {
             } else if (value === 'on') {
                 await entity.write('genOnOff', {0x4003: {value: 0x01, type: 0x30}});
 
-                let brightness = meta.message.hasOwnProperty('hue_power_on_brightness') ? meta.message.hue_power_on_brightness : 0xfe;
+                let brightness = meta.message.hue_power_on_brightness !== undefined ? meta.message.hue_power_on_brightness : 0xfe;
                 if (brightness === 255) {
                     // 255 (0xFF) is the value for recover, therefore set it to 254 (0xFE)
                     brightness = 254;
@@ -176,9 +176,9 @@ export const philipsTz = {
 
                 utils.assertEndpoint(entity);
                 if (entity.supportsInputCluster('lightingColorCtrl')) {
-                    if (meta.message.hasOwnProperty('hue_power_on_color_temperature') && meta.message.hasOwnProperty('hue_power_on_color')) {
+                    if (meta.message.hue_power_on_color_temperature !== undefined && meta.message.hue_power_on_color !== undefined) {
                         logger.error(`Provide either color temperature or color, not both`, NS);
-                    } else if (meta.message.hasOwnProperty('hue_power_on_color_temperature')) {
+                    } else if (meta.message.hue_power_on_color_temperature !== undefined) {
                         const colortemp = meta.message.hue_power_on_color_temperature;
                         await entity.write('lightingColorCtrl', {0x4010: {value: colortemp, type: 0x21}});
                         // Set color to default
@@ -186,8 +186,8 @@ export const philipsTz = {
                             await entity.write('lightingColorCtrl', {0x0003: {value: 0xffff, type: 0x21}}, manufacturerOptions);
                             await entity.write('lightingColorCtrl', {0x0004: {value: 0xffff, type: 0x21}}, manufacturerOptions);
                         }
-                    } else if (meta.message.hasOwnProperty('hue_power_on_color')) {
-                        // @ts-expect-error
+                    } else if (meta.message.hue_power_on_color !== undefined) {
+                        // @ts-expect-error ignore
                         const colorXY = libColor.ColorRGB.fromHex(meta.message.hue_power_on_color).toXY();
                         const xy = {x: utils.mapNumberRange(colorXY.x, 0, 1, 0, 65535), y: utils.mapNumberRange(colorXY.y, 0, 1, 0, 65535)};
                         value = xy;
@@ -218,7 +218,7 @@ export const philipsTz = {
     hue_power_on_error: {
         key: ['hue_power_on_brightness', 'hue_power_on_color_temperature', 'hue_power_on_color'],
         convertSet: async (entity, key, value, meta) => {
-            if (!meta.message.hasOwnProperty('hue_power_on_behavior')) {
+            if (meta.message.hue_power_on_behavior === undefined) {
                 throw new Error(`Provide a value for 'hue_power_on_behavior'`);
             }
         },
@@ -349,7 +349,7 @@ export const philipsFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.type === 'commandOff' || msg.type === 'commandOn') {
                 return {contact: msg.type === 'commandOff'};
-            } else if (msg.data.hasOwnProperty('onOff')) {
+            } else if (msg.data.onOff !== undefined) {
                 return {contact: msg.data['onOff'] === 0};
             }
         },
@@ -381,8 +381,8 @@ export const philipsFz = {
                 // simulated brightness
                 if (options.simulated_brightness) {
                     const opts = options.simulated_brightness;
-                    // @ts-expect-error
-                    const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 35;
+                    // @ts-expect-error ignore
+                    const deltaOpts = typeof opts === 'object' && opts.delta !== undefined ? opts.delta : 35;
                     const delta = direction === 'right' ? deltaOpts : deltaOpts * -1;
                     const brightness = globalStore.getValue(msg.endpoint, 'brightness', 255) + delta;
                     payload.brightness = utils.numberWithinRange(brightness, 0, 255);
@@ -405,7 +405,7 @@ export const philipsFz = {
         cluster: 'manuSpecificPhilips2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data && msg.data.hasOwnProperty('state')) {
+            if (msg.data && msg.data.state !== undefined) {
                 const input = msg.data['state'].toString('hex');
                 const decoded = decodeGradientColors(input, {reverse: true});
                 if (decoded.color_mode === 'gradient') {
@@ -538,7 +538,7 @@ function decodeGradientColors(input: string, opts: KeyValue) {
 
         // Effect mode
         const effect = input.slice(0, 4);
-        // @ts-expect-error
+        // @ts-expect-error ignore
         const name = knownEffects[effect] || `unknown_${effect}`;
         return {
             color_mode: 'xy',

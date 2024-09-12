@@ -7,45 +7,45 @@ import * as globalLegacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {zigbeeOTA} from '../lib/ota';
 import * as globalStore from '../lib/store';
-import {presets as e, access as ea, options as opt, Cover, Numeric} from './exposes';
+import {Cover, presets as e, access as ea, Numeric, options as opt} from './exposes';
 import {configure as lightConfigure} from './light';
 import {
-    Fz,
-    Tz,
-    ModernExtend,
-    Range,
-    Zh,
-    DefinitionOta,
-    OnEvent,
     Access,
-    KeyValueString,
-    KeyValue,
-    Configure,
-    Expose,
-    DefinitionMeta,
-    KeyValueAny,
-    DefinitionExposesFunction,
-    BatteryNonLinearVoltage,
     BatteryLinearVoltage,
+    BatteryNonLinearVoltage,
+    Configure,
+    DefinitionExposesFunction,
+    DefinitionMeta,
+    DefinitionOta,
+    Expose,
+    Fz,
+    KeyValue,
+    KeyValueAny,
+    KeyValueString,
+    ModernExtend,
+    OnEvent,
+    Range,
+    Tz,
+    Zh,
 } from './types';
 import {
-    getFromLookupByValue,
-    isString,
-    isNumber,
-    isObject,
-    isEndpoint,
-    getFromLookup,
-    getEndpointName,
+    addActionGroup,
     assertNumber,
-    postfixWithEndpointName,
-    noOccupancySince,
-    precisionRound,
     batteryVoltageToPercentage,
+    flatten,
+    getEndpointName,
+    getFromLookup,
+    getFromLookupByValue,
     getOptions,
     hasAlreadyProcessedMessage,
-    addActionGroup,
+    isEndpoint,
     isLegacyEnabled,
-    flatten,
+    isNumber,
+    isObject,
+    isString,
+    noOccupancySince,
+    postfixWithEndpointName,
+    precisionRound,
 } from './utils';
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: 'input' | 'output') {
@@ -321,7 +321,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const payload: KeyValueAny = {};
-                if (msg.data.hasOwnProperty('batteryPercentageRemaining') && msg.data['batteryPercentageRemaining'] < 255) {
+                if (msg.data.batteryPercentageRemaining !== undefined && msg.data['batteryPercentageRemaining'] < 255) {
                     // Some devices do not comply to the ZCL and report a
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                     const dontDividePercentage = args.dontDividePercentage;
@@ -330,7 +330,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
                     if (args.percentage) payload.battery = precisionRound(percentage, 2);
                 }
 
-                if (msg.data.hasOwnProperty('batteryVoltage') && msg.data['batteryVoltage'] < 255) {
+                if (msg.data.batteryVoltage !== undefined && msg.data['batteryVoltage'] < 255) {
                     // Deprecated: voltage is = mV now but should be V
                     if (args.voltage) payload.voltage = msg.data['batteryVoltage'] * 100;
 
@@ -339,7 +339,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
                     }
                 }
 
-                if (msg.data.hasOwnProperty('batteryAlarmState')) {
+                if (msg.data.batteryAlarmState !== undefined) {
                     const battery1Low =
                         (msg.data.batteryAlarmState & (1 << 0) ||
                             msg.data.batteryAlarmState & (1 << 1) ||
@@ -1008,7 +1008,7 @@ export function light(args?: LightArgs): ModernExtend {
         toZigbee.push(tz.power_on_behavior);
     }
 
-    if (args.hasOwnProperty('turnsOffAtBrightness1')) {
+    if (args.turnsOffAtBrightness1 !== undefined) {
         meta.turnsOffAtBrightness1 = args.turnsOffAtBrightness1;
     }
 
@@ -1483,7 +1483,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                 const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
 
                 if (args.alarmTimeout) {
-                    const timeout = options?.hasOwnProperty(timeoutProperty) ? Number(options[timeoutProperty]) : 90;
+                    const timeout = options?.[timeoutProperty] !== undefined ? Number(options[timeoutProperty]) : 90;
                     clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
                     if (timeout !== 0) {
                         const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), timeout * 1000);
@@ -1564,18 +1564,18 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
             key: ['warning'],
             convertSet: async (entity, key, value, meta) => {
                 const values = {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     mode: value.mode || 'emergency',
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     level: value.level || 'medium',
-                    // @ts-expect-error
-                    strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
-                    // @ts-expect-error
-                    duration: value.hasOwnProperty('duration') ? value.duration : 10,
-                    // @ts-expect-error
-                    strobeDutyCycle: value.hasOwnProperty('strobe_duty_cycle') ? value.strobe_duty_cycle * 10 : 0,
-                    // @ts-expect-error
-                    strobeLevel: value.hasOwnProperty('strobe_level') ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
+                    // @ts-expect-error ignore
+                    strobe: value.strobe !== undefined ? value.strobe : true,
+                    // @ts-expect-error ignore
+                    duration: value.duration !== undefined ? value.duration : 10,
+                    // @ts-expect-error ignore
+                    strobeDutyCycle: value.strobe_duty_cycle !== undefined ? value.strobe_duty_cycle * 10 : 0,
+                    // @ts-expect-error ignore
+                    strobeLevel: value.strobe_level !== undefined ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
                 };
 
                 let info;

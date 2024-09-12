@@ -1,4 +1,4 @@
-import {light, onOff, electricityMeter, battery, identify, commandsOnOff, commandsLevelCtrl, commandsColorCtrl} from '../lib/modernExtend';
+import {battery, commandsColorCtrl, commandsLevelCtrl, commandsOnOff, electricityMeter, identify, light, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [

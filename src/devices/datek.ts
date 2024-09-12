@@ -8,6 +8,7 @@ import * as exposes from '../lib/exposes';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -129,7 +130,7 @@ const definitions: DefinitionWithExtend[] = [
                     attribute: {ID: 0x4000, type: 0x10},
                 },
             ];
-            // @ts-expect-error
+            // @ts-expect-error ignore
             await endpoint.configureReporting('ssIasZone', payload, options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);

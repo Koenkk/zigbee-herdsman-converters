@@ -1,16 +1,17 @@
+import {Buffer} from 'buffer';
+
 import fz from '../converters/fromZigbee';
 import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Fz, Tz, KeyValue, Zh} from '../lib/types';
-const ea = exposes.access;
-const e = exposes.presets;
-import {Buffer} from 'buffer';
-
 import {logger} from '../lib/logger';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
+
+const ea = exposes.access;
+const e = exposes.presets;
 
 const NS = 'zhc:lixee';
 /* Start ZiPulses */
@@ -60,13 +61,13 @@ const fzZiPulses: Fz.Converter = {
     type: ['attributeReport', 'readResponse'],
     convert: (model, msg, publish, options, meta) => {
         const payload: KeyValue = {};
-        if (msg.data.hasOwnProperty('multiplier')) {
+        if (msg.data.multiplier !== undefined) {
             payload['multiplier'] = msg.data['multiplier'];
         }
-        if (msg.data.hasOwnProperty('divisor')) {
+        if (msg.data.divisor !== undefined) {
             payload['divisor'] = msg.data['divisor'];
         }
-        if (msg.data.hasOwnProperty('unitOfMeasure')) {
+        if (msg.data.unitOfMeasure !== undefined) {
             const val = msg.data['unitOfMeasure'];
             payload['unitOfMeasure'] = unitsZiPulses[val];
         }
@@ -178,7 +179,7 @@ const fzLocal = {
                     .toLowerCase();
                 let val = msg.data[at];
                 if (val != null) {
-                    if (val.hasOwnProperty('type') && val.type === 'Buffer') {
+                    if (val.type !== undefined && val.type === 'Buffer') {
                         val = Buffer.from(val.data);
                     }
                     if (Buffer.isBuffer(val)) {
@@ -193,7 +194,7 @@ const fzLocal = {
                         case 'activeEnergyOutD02':
                         case 'activeEnergyOutD03':
                         case 'activeEnergyOutD04':
-                            // @ts-expect-error
+                            // @ts-expect-error ignore
                             val = utils.precisionRound(val / 1000, kWh_p); // from Wh to kWh
                             break;
                         case 'relais': {
@@ -413,7 +414,7 @@ const fzLocal = {
                         case 'currentTier8SummDelivered':
                         case 'currentTier9SummDelivered':
                         case 'currentTier10SummDelivered':
-                            // @ts-expect-error
+                            // @ts-expect-error ignore
                             result[at_snake] = utils.precisionRound(((val[0] << 32) + val[1]) / 1000, kWh_p); // Wh to kWh
                             break;
                     }
@@ -422,10 +423,10 @@ const fzLocal = {
             // TODO: Check if all tarifs which doesn't publish "currentSummDelivered" use just Tier1 & Tier2
             if (
                 result['current_summ_delivered'] == 0 &&
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 (result['current_tier1_summ_delivered'] > 0 || result['current_tier2_summ_delivered'] > 0)
             ) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 result['current_summ_delivered'] = result['current_tier1_summ_delivered'] + result['current_tier2_summ_delivered'];
             }
             return result;
@@ -1628,10 +1629,10 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     } catch (error) {
         logger.debug(error, NS);
     }
-    // @ts-expect-error
+    // @ts-expect-error ignore
     function getConfig(targetOption, bitLinkyMode, valueTrue, valueFalse) {
         const valueDefault = valueFalse;
-        if (options && options.hasOwnProperty(targetOption) && options[targetOption] != 'auto') {
+        if (options && options[targetOption] !== undefined && options[targetOption] != 'auto') {
             if (options[targetOption] === 'true' || options[targetOption] === 'false') {
                 return options[targetOption] === 'true'; // special case for production
             }
@@ -1641,12 +1642,12 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
         let lMode;
         try {
             lMode = endpoint.clusters[clustersDef._0xFF66].attributes['linkyMode'];
-            // @ts-expect-error
+            // @ts-expect-error ignore
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             lMode.raiseError; // raise if undefined
-            // @ts-expect-error
+            // @ts-expect-error ignore
             return ((lMode >> bitLinkyMode) & 1) == 1 ? valueTrue : valueFalse;
-        } catch (err) {
+        } catch {
             logger.warning(`Was not able to detect the Linky ` + targetOption + `. Default to ` + valueDefault, NS);
             return valueDefault; // default value in the worst case
         }
@@ -1670,16 +1671,16 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     // Filter even more, based on our current tarif
     let currentTarf = '';
 
-    if (options && options.hasOwnProperty('tarif') && options['tarif'] != 'auto') {
+    if (options && options.tarif !== undefined && options['tarif'] != 'auto') {
         currentTarf = Object.entries(tarifsDef).find(([k, v]) => v.fname == options['tarif'])[1].currentTarf;
     } else {
         try {
             const lixAtts = endpoint.clusters[clustersDef._0xFF66].attributes;
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             lixAtts.raiseIfEmpty;
-            // @ts-expect-error
+            // @ts-expect-error ignore
             currentTarf = fzLocal.lixee_private_fz.convert({}, {data: lixAtts}).current_tarif;
-        } catch (error) {
+        } catch {
             logger.warning(`Not able to detect the current tarif. Not filtering any expose...`, NS);
         }
     }
@@ -1696,7 +1697,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
         case linkyMode == linkyModeDef.legacy && tarifsDef.histo_EJP.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.histo_EJP.excluded.includes(a.exposes.name));
             break;
-        // @ts-expect-error
+        // @ts-expect-error ignore
         case linkyMode == linkyModeDef.legacy && currentTarf && currentTarf.startsWith(tarifsDef.histo_BBR.currentTarf):
             myExpose = myExpose.filter((a) => !tarifsDef.histo_BBR.excluded.includes(a.exposes.name));
             break;
@@ -1729,11 +1730,11 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     }
 
     // Filter exposed attributes with user whitelist
-    if (options && options.hasOwnProperty('tic_command_whitelist')) {
-        // @ts-expect-error
+    if (options && options.tic_command_whitelist !== undefined) {
+        // @ts-expect-error ignore
         const tic_commands_str = options['tic_command_whitelist'].toUpperCase();
         if (tic_commands_str !== 'ALL') {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const tic_commands = tic_commands_str.split(',').map((a) => a.trim());
             myExpose = myExpose.filter((a) => tic_commands.includes(a.exposes.name));
         }
@@ -1842,8 +1843,9 @@ const definitions: DefinitionWithExtend[] = [
                     change: 1,
                 };
                 // Override reportings
-                if (e.hasOwnProperty('report')) {
-                    // @ts-expect-error
+                // @ts-expect-error ignore
+                if (e.report !== undefined) {
+                    // @ts-expect-error ignore
                     params = {...params, ...e.report};
                 }
                 configReportings.push(
@@ -1884,7 +1886,7 @@ const definitions: DefinitionWithExtend[] = [
 
                             for (const key in clustersDef) {
                                 if (Object.hasOwnProperty.call(clustersDef, key)) {
-                                    // @ts-expect-error
+                                    // @ts-expect-error ignore
                                     const cluster = clustersDef[key];
                                     const targ = currentExposes.filter((e) => e.cluster == cluster).map((e) => e.att);
                                     if (targ.length) {
@@ -1902,7 +1904,7 @@ const definitions: DefinitionWithExtend[] = [
                                     }
                                 }
                             }
-                        } catch (error) {
+                        } catch {
                             /* Do nothing*/
                         }
                         setTimer();

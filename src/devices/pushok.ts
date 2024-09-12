@@ -1,16 +1,16 @@
 import {
-    identify,
-    onOff,
-    temperature,
-    binary,
-    numeric,
-    enumLookup,
     battery,
-    humidity,
-    illuminance,
-    ota,
+    binary,
+    enumLookup,
     EnumLookupArgs,
+    humidity,
+    identify,
+    illuminance,
+    numeric,
     NumericArgs,
+    onOff,
+    ota,
+    temperature,
 } from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 

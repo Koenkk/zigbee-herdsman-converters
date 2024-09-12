@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {onOff, numeric, enumLookup, deviceEndpoints} from '../lib/modernExtend';
+import {deviceEndpoints, enumLookup, numeric, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -47,7 +47,7 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 const endpoint = meta.device.getEndpoint(1);
                 await endpoint.read('genOnOff', [0x9007]); // for update : close_remain_timeout
                 return {gas_valve_state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};

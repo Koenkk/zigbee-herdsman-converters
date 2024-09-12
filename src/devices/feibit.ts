@@ -2,15 +2,15 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {
-    deviceEndpoints,
-    identify,
-    onOff,
-    light,
-    commandsOnOff,
-    windowCovering,
-    electricityMeter,
     battery,
     commandsLevelCtrl,
+    commandsOnOff,
+    deviceEndpoints,
+    electricityMeter,
+    identify,
+    light,
+    onOff,
+    windowCovering,
 } from '../lib/modernExtend';
 import {philipsLight} from '../lib/philips';
 import * as reporting from '../lib/reporting';

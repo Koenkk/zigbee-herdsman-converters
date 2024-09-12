@@ -1,14 +1,14 @@
 import fz from '../converters/fromZigbee';
 import {
+    commandsLevelCtrl,
+    commandsOnOff,
+    commandsWindowCovering,
     deviceEndpoints,
     deviceTemperature,
+    electricityMeter,
     identify,
     onOff,
-    electricityMeter,
     windowCovering,
-    commandsWindowCovering,
-    commandsOnOff,
-    commandsLevelCtrl,
 } from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 

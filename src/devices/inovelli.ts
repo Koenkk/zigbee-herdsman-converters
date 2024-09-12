@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {identify, deviceAddCustomCluster} from '../lib/modernExtend';
+import {deviceAddCustomCluster, identify} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -273,7 +273,7 @@ const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesLis
                 .binary(
                     key,
                     ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     ATTRIBUTES[key].values.Enabled,
                     ATTRIBUTES[key].values.Disabled,
                 )
@@ -1256,7 +1256,7 @@ const tzLocal = {
                     [ATTRIBUTES[key].ID]: {
                         value:
                             ATTRIBUTES[key].displayType === 'enum'
-                                ? // @ts-expect-error
+                                ? // @ts-expect-error ignore
                                   ATTRIBUTES[key].values[value]
                                 : value,
                         type: ATTRIBUTES[key].dataType,
@@ -1311,13 +1311,13 @@ const tzLocal = {
                 'manuSpecificInovelli',
                 'ledEffect',
                 {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     effect: ledEffects[values.effect],
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     color: Math.min(Math.max(0, values.color), 255),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     level: Math.min(Math.max(0, values.level), 100),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     duration: Math.min(Math.max(0, values.duration), 255),
                 },
                 {disableResponse: true, disableDefaultResponse: true},
@@ -1332,15 +1332,15 @@ const tzLocal = {
                 'manuSpecificInovelli',
                 'individualLedEffect',
                 {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     led: Math.min(Math.max(0, parseInt(values.led)), 7),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     effect: individualLedEffects[values.effect],
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     color: Math.min(Math.max(0, values.color), 255),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     level: Math.min(Math.max(0, values.level), 100),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     duration: Math.min(Math.max(0, values.duration), 255),
                 },
                 {disableResponse: true, disableDefaultResponse: true},
@@ -1358,14 +1358,15 @@ const tzLocal = {
             const {message} = meta;
             const transition = utils.getTransition(entity, 'brightness', meta);
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1', 'allEqual', false);
-            let state = message.hasOwnProperty('state')
-                ? // @ts-expect-error
-                  message.state.toLowerCase()
-                : undefined;
+            let state =
+                message.state !== undefined
+                    ? // @ts-expect-error ignore
+                      message.state.toLowerCase()
+                    : undefined;
             let brightness = undefined;
-            if (message.hasOwnProperty('brightness')) {
+            if (message.brightness !== undefined) {
                 brightness = Number(message.brightness);
-            } else if (message.hasOwnProperty('brightness_percent')) {
+            } else if (message.brightness_percent !== undefined) {
                 brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
             }
 
@@ -1403,22 +1404,22 @@ const tzLocal = {
                     const payload = {level, transtime: transition.time};
                     await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, utils.getOptions(meta.mapped, entity));
                     const result = {state: {state: state.toUpperCase()}};
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     if (state === 'on') result.state.brightness = level;
                     return result;
                 } else {
                     // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
                     // with transition.
-                    if (meta.state.hasOwnProperty('brightness') && state === 'off') {
+                    if (meta.state.brightness !== undefined && state === 'off') {
                         globalStore.putValue(entity, 'brightness', meta.state.brightness);
                         globalStore.putValue(entity, 'turnedOffWithTransition', true);
                     }
 
                     const result = await inovelliOnOffConvertSet(entity, 'state', state, meta);
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     result.readAfterWriteTime = 0;
                     if (result.state && result.state.state === 'ON' && meta.state.brightness === 0) {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         result.state.brightness = 1;
                     }
 
@@ -1450,7 +1451,7 @@ const tzLocal = {
                     },
                     readAfterWriteTime:
                         transition.time === 0
-                            ? // @ts-expect-error
+                            ? // @ts-expect-error ignore
                               defaultTransitionTime.rampRateOnToOffRemote * 100
                             : transition.time * 100, // need on speed
                 };
@@ -1490,7 +1491,7 @@ const tzLocal = {
     fan_state: {
         key: ['fan_state'],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.hasOwnProperty('fan_state') ? meta.message.fan_state.toString().toLowerCase() : null;
+            const state = meta.message.fan_state !== undefined ? meta.message.fan_state.toString().toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
 
             await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
@@ -1548,9 +1549,9 @@ const tzLocal = {
             const state = typeof meta.message.fan_state === 'string' ? meta.message.fan_state.toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
 
-            if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
-                const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
+            if (state === 'on' && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
+                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== 'number') {
                     throw Error('The on_time value must be a number!');
@@ -1693,13 +1694,13 @@ const tzLocal = {
  * fallback to if a transition is not specified by passing 0xffff
  */
 const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
-    // @ts-expect-error
-    const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
+    // @ts-expect-error ignore
+    const state = meta.message.state !== undefined ? meta.message.state.toLowerCase() : null;
     utils.validateValue(state, ['toggle', 'off', 'on']);
 
-    if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
-        const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
-        const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
+    if (state === 'on' && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
+        const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
+        const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
 
         if (typeof onTime !== 'number') {
             throw Error('The on_time value must be a number!');
@@ -1710,8 +1711,8 @@ const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: stri
 
         const payload = {
             ctrlbits: 0,
-            ontime: meta.message.hasOwnProperty('on_time') ? Math.round(onTime * 10) : 0xffff,
-            offwaittime: meta.message.hasOwnProperty('off_wait_time') ? Math.round(offWaitTime * 10) : 0xffff,
+            ontime: meta.message.on_time !== undefined ? Math.round(onTime * 10) : 0xffff,
+            offwaittime: meta.message.off_wait_time !== undefined ? Math.round(offWaitTime * 10) : 0xffff,
         };
         await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
     } else {
@@ -1769,7 +1770,7 @@ const fzLocal = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentLevel')) {
+            if (msg.data.currentLevel !== undefined) {
                 const mode = intToFanMode(msg.data['currentLevel'] || 1);
                 return {
                     fan_mode: mode,
@@ -1783,7 +1784,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 2) {
-                if (msg.data.hasOwnProperty('currentLevel')) {
+                if (msg.data.currentLevel !== undefined) {
                     const mode = intToFanMode(msg.data['currentLevel'] || 1);
                     return {
                         fan_mode: mode,
@@ -1797,7 +1798,7 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 return {fan_state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
             return msg.data;
@@ -1808,7 +1809,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 1) {
-                if (msg.data.hasOwnProperty('currentLevel')) {
+                if (msg.data.currentLevel !== undefined) {
                     return {brightness: msg.data['currentLevel']};
                 }
             }
@@ -1831,7 +1832,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 2) {
-                if (msg.data.hasOwnProperty('breeze_mode')) {
+                if (msg.data.breeze_mode !== undefined) {
                     const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
                     const raw = msg.data['breeze_mode'];
                     const s1 = breezemodes[raw & bitmasks[0]];
@@ -1869,11 +1870,11 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID === 1) {
-                if (msg.data.hasOwnProperty('onOff')) {
+                if (msg.data.onOff !== undefined) {
                     return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
                 }
             } else if (msg.endpoint.ID === 2) {
-                if (msg.data.hasOwnProperty('onOff')) {
+                if (msg.data.onOff !== undefined) {
                     return {fan_state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
                 }
             } else {

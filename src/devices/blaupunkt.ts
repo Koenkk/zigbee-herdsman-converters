@@ -3,6 +3,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -19,7 +20,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
             try {
                 await reporting.brightness(endpoint);
-            } catch (e) {
+            } catch {
                 // Some version don't support this: https://github.com/Koenkk/zigbee2mqtt/issues/4246
             }
         },

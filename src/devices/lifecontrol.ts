@@ -10,7 +10,7 @@ import {
     setupConfigureForReporting,
 } from '../lib/modernExtend';
 import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, ModernExtend, Fz, Expose, Configure, OnEvent} from '../lib/types';
+import {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, OnEvent} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -61,7 +61,7 @@ function electricityMeterPoll(): ModernExtend {
                 try {
                     await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
                     await endpoint.read('seMetering', ['currentSummDelivered', 'multiplier', 'divisor']);
-                } catch (error) {
+                } catch {
                     // Do nothing
                 }
             }, 10 * 1000); // Every 10 seconds

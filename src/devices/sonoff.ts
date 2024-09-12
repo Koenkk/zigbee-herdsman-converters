@@ -7,23 +7,24 @@ import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import {
+    battery,
     binary,
+    bindCluster,
+    customTimeResponse,
+    deviceAddCustomCluster,
     enumLookup,
     forcePowerSource,
+    humidity,
+    iasZoneAlarm,
     numeric,
     onOff,
-    customTimeResponse,
-    battery,
     ota,
-    deviceAddCustomCluster,
     temperature,
-    humidity,
-    bindCluster,
-    iasZoneAlarm,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const {ewelinkAction} = ewelinkModernExtend;
 
 const NS = 'zhc:sonoff';
@@ -41,7 +42,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('currentLevel')) {
+            if (msg.data.currentLevel !== undefined) {
                 result.light_indicator_level = msg.data['currentLevel'];
             }
         },
@@ -505,7 +506,7 @@ const sonoffExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const lookup: KeyValue = {edge: 0, pulse: 1, 'following(off)': 2, 'following(on)': 130};
                     // logger.debug(`from zigbee msg.data['externalTriggerMode'] ${msg.data['externalTriggerMode']}`, NS);
-                    if (msg.data.hasOwnProperty('externalTriggerMode')) {
+                    if (msg.data.externalTriggerMode !== undefined) {
                         let switchType = 'edge';
                         for (const name in lookup) {
                             if (lookup[name] === msg.data['externalTriggerMode']) {

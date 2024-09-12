@@ -16,7 +16,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('tuyaMovingState')) {
+            if (msg.data.tuyaMovingState !== undefined) {
                 const value = msg.data['tuyaMovingState'];
                 const movingLookup = {0: 'DOWN', 1: 'UP', 2: 'STOP'};
                 result.moving = utils.getFromLookup(value, movingLookup);
@@ -28,7 +28,7 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 return {state: msg.data['onOff'] === 1 ? 'CLOSE' : 'OPEN'};
             }
         },

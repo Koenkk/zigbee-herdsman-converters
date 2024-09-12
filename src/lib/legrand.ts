@@ -1,6 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {Fz, Tz, Zh, OnEvent, KeyValueString, KeyValueAny} from '../lib/types';
+import {Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 import * as exposes from './exposes';
 import {logger} from './logger';
@@ -185,7 +185,7 @@ export const fzLegrand = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const attr = 'calibrationMode';
-                if (msg.data.hasOwnProperty(attr)) {
+                if (msg.data[attr] !== undefined) {
                     const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
                     const idx = msg.data[attr];
                     utils.validateValue(String(idx), Object.keys(applicableModes));
@@ -201,7 +201,7 @@ export const fzLegrand = {
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
 
-            if (msg.data.hasOwnProperty('0')) {
+            if (msg.data['0'] !== undefined) {
                 const option0 = msg.data['0'];
 
                 if (option0 === 0x0001) payload.device_mode = 'pilot_off';
@@ -215,8 +215,8 @@ export const fzLegrand = {
                     payload.device_mode = 'unknown';
                 }
             }
-            if (msg.data.hasOwnProperty('1')) payload.led_in_dark = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
-            if (msg.data.hasOwnProperty('2')) payload.led_if_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
+            if (msg.data['1'] !== undefined) payload.led_in_dark = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
+            if (msg.data['2'] !== undefined) payload.led_if_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
             return payload;
         },
     } satisfies Fz.Converter,

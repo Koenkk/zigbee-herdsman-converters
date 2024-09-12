@@ -4,9 +4,9 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {deviceEndpoints, quirkCheckinInterval, identify} from '../lib/modernExtend';
+import {deviceEndpoints, identify, quirkCheckinInterval} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {philipsOnOff, philipsLight, philipsFz, philipsTz} from '../lib/philips';
+import {philipsFz, philipsLight, philipsOnOff, philipsTz} from '../lib/philips';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 

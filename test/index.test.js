@@ -203,7 +203,7 @@ describe('index.js', () => {
 
         index.definitions.forEach((device) => {
             // Check for duplicate zigbee model ids
-            if (device.hasOwnProperty('zigbeeModel')) {
+            if (device.zigbeeModel !== undefined) {
                 device.zigbeeModel.forEach((m) => {
                     if (foundZigbeeModels.includes(m.toLowerCase())) {
                         throw new Error(`Duplicate zigbee model ${m}`);

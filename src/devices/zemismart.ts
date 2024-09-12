@@ -2,11 +2,12 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {deviceEndpoints, forcePowerSource, identify, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
-const e = exposes.presets;
-import {forcePowerSource, light, onOff, identify, deviceEndpoints, battery} from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend} from '../lib/types';
+
+const e = exposes.presets;
 
 const ea = exposes.access;
 

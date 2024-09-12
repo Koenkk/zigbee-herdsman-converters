@@ -1,4 +1,5 @@
 import {Buffer} from 'buffer';
+
 import {Zcl} from 'zigbee-herdsman';
 import {Device} from 'zigbee-herdsman/dist/controller/model';
 
@@ -9,7 +10,7 @@ import {logger} from '../lib/logger';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Fz, Tz, KeyValue, Zh, Expose} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, KeyValue, Tz, Zh} from '../lib/types';
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -2000,30 +2001,30 @@ const definitions: DefinitionWithExtend[] = [
 
             try {
                 endpoint = device.getEndpoint(1);
-            } catch (error) {
+            } catch {
                 logger.warning('Exposes: No endpoint', 'TICMeter');
             }
 
-            if (endpoint != null && endpoint.hasOwnProperty('clusters') && endpoint.clusters[CLUSTER_TIC] != undefined) {
-                if (endpoint.clusters[CLUSTER_TIC].hasOwnProperty('attributes') && endpoint.clusters[CLUSTER_TIC].attributes != undefined) {
+            if (endpoint != null && endpoint.clusters !== undefined && endpoint.clusters[CLUSTER_TIC] != undefined) {
+                if (endpoint.clusters[CLUSTER_TIC].attributes !== undefined && endpoint.clusters[CLUSTER_TIC].attributes != undefined) {
                     const attr = endpoint.clusters[CLUSTER_TIC].attributes;
 
                     if (globalStore.getValue(device, 'tic_mode') == undefined) {
-                        if (attr.hasOwnProperty('ticMode') && attr.ticMode != null) {
+                        if (attr.ticMode !== undefined && attr.ticMode != null) {
                             logger.debug(`Load ticMode: ${attr.ticMode}`, 'TICMeter');
                             globalStore.putValue(device, 'tic_mode', modeTICEnum[Number(attr.ticMode)]);
                         }
                     }
 
                     if (globalStore.getValue(device, 'elec_mode') == undefined) {
-                        if (attr.hasOwnProperty('elecMode') && attr.elecMode != null) {
+                        if (attr.elecMode !== undefined && attr.elecMode != null) {
                             logger.debug(`Load elecMode: ${attr.elecMode}`, 'TICMeter');
                             globalStore.putValue(device, 'elec_mode', modeElecEnum[Number(attr.elecMode)]);
                         }
                     }
 
                     if (globalStore.getValue(device, 'contract_type') == undefined) {
-                        if (attr.hasOwnProperty('contractType') && attr.contractType != null) {
+                        if (attr.contractType !== undefined && attr.contractType != null) {
                             let string = attr.contractType;
                             if (Buffer.isBuffer(string)) {
                                 string = string.toString();
@@ -2033,14 +2034,14 @@ const definitions: DefinitionWithExtend[] = [
                         }
                     }
 
-                    if (attr.hasOwnProperty('powerInjected') && attr.powerInjected != null) {
+                    if (attr.powerInjected !== undefined && attr.powerInjected != null) {
                         logger.debug(`Load powerInjected: ${attr.powerInjected}`, 'TICMeter');
                         globalStore.putValue(device, 'producer', 'ON');
                     }
                 }
             }
 
-            if (options && options.hasOwnProperty('contract_type') && options.contract_type != 'AUTO') {
+            if (options && options.contract_type !== undefined && options.contract_type != 'AUTO') {
                 currentContract = String(options.contract_type);
                 logger.debug(`contract: ${currentContract}`, 'TICMeter');
             } else {
@@ -2052,7 +2053,7 @@ const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.hasOwnProperty('linky_elec') && options.linky_elec != 'AUTO') {
+            if (options && options.linky_elec !== undefined && options.linky_elec != 'AUTO') {
                 currentElec = String(options.linky_elec);
                 logger.debug(`Manual elec: ${currentElec}`, 'TICMeter');
             } else {
@@ -2064,7 +2065,7 @@ const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.hasOwnProperty('tic_mode') && options.tic_mode != 'AUTO') {
+            if (options && options.tic_mode !== undefined && options.tic_mode != 'AUTO') {
                 currentTIC = String(options.tic_mode);
                 logger.debug(`Manual tic: ${currentTIC}`, 'TICMeter');
             } else {
@@ -2076,7 +2077,7 @@ const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.hasOwnProperty('producer') && options.producer != 'AUTO') {
+            if (options && options.producer !== undefined && options.producer != 'AUTO') {
                 currentProducer = String(options.producer);
                 logger.debug(`Manual producer: ${currentProducer}`, 'TICMeter');
             } else {
@@ -2087,7 +2088,7 @@ const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.hasOwnProperty('translation')) {
+            if (options && options.translation !== undefined) {
                 translation = String(options.translation);
             } else {
                 translation = TRANSLATION_FR;
@@ -2104,7 +2105,7 @@ const definitions: DefinitionWithExtend[] = [
                 let elecOK = false;
                 let ticOK = false;
                 let producerOK = true;
-                if (item.hasOwnProperty('contract')) {
+                if (item.contract !== undefined) {
                     if (item['contract'] == currentContract || item['contract'] == C.ANY) {
                         contractOK = true;
                     }
@@ -2112,7 +2113,7 @@ const definitions: DefinitionWithExtend[] = [
                     logger.warning(`No contract for ${item.name}`, 'TICMeter');
                 }
 
-                if (item.hasOwnProperty('elec')) {
+                if (item.elec !== undefined) {
                     if (item['elec'] == currentElec || item['elec'] == E.ANY) {
                         elecOK = true;
                     }
@@ -2120,7 +2121,7 @@ const definitions: DefinitionWithExtend[] = [
                     logger.warning(`No elec for ${item.name}`, 'TICMeter');
                 }
 
-                if (item.hasOwnProperty('tic')) {
+                if (item.tic !== undefined) {
                     if (item['tic'] == currentTIC || item['tic'] == T.ANY) {
                         ticOK = true;
                     }
@@ -2128,7 +2129,7 @@ const definitions: DefinitionWithExtend[] = [
                     logger.warning(`No tic for ${item.name}`, 'TICMeter');
                 }
 
-                if (item.hasOwnProperty('prod')) {
+                if (item.prod !== undefined) {
                     if (item['prod'] == true && currentProducer == 'OFF') {
                         producerOK = false;
                     }
@@ -2176,7 +2177,7 @@ const definitions: DefinitionWithExtend[] = [
             });
             logger.debug(`Exposes ${exposes.length} attributes`, 'TICMeter');
 
-            if (options.hasOwnProperty('translation')) {
+            if (options.translation !== undefined) {
                 switch (options.translation) {
                     case TRANSLATION_FR:
                         for (let i = 0; i < ticmeterOptions.length; i++) {
@@ -2274,16 +2275,16 @@ const definitions: DefinitionWithExtend[] = [
 
             const intervalDefined = globalStore.hasValue(device, 'interval');
             if (data.data) {
-                if (data.data.hasOwnProperty('ticMode')) {
+                if (data.data.ticMode !== undefined) {
                     const ticMode = modeTICEnum[data.data.ticMode];
                     globalStore.putValue(device, 'tic_mode', ticMode);
                     // settings.changeEntityOptions(device, { tic_mode: ticMode });
                 }
-                if (data.data.hasOwnProperty('elecMode')) {
+                if (data.data.elecMode !== undefined) {
                     const elecMode = modeElecEnum[data.data.elecMode];
                     globalStore.putValue(device, 'elec_mode', elecMode);
                 }
-                if (data.data.hasOwnProperty('contractType')) {
+                if (data.data.contractType !== undefined) {
                     let contractType;
                     if (Buffer.isBuffer(data.data.contractType)) {
                         contractType = data.data.contractType.toString();
@@ -2303,7 +2304,7 @@ const definitions: DefinitionWithExtend[] = [
                 const interval = setInterval(async () => {
                     try {
                         await poll(endpoint, device);
-                    } catch (error) {
+                    } catch {
                         /* Do nothing*/
                     }
                 }, seconds * 1000);
@@ -2311,7 +2312,7 @@ const definitions: DefinitionWithExtend[] = [
                 globalStore.putValue(device, 'refresh_rate', seconds);
                 try {
                     await poll(endpoint, device);
-                } catch (e) {
+                } catch {
                     // Do nothing
                 }
             } else {
@@ -2323,7 +2324,7 @@ const definitions: DefinitionWithExtend[] = [
                         const interval = setInterval(async () => {
                             try {
                                 await poll(endpoint, device);
-                            } catch (error) {
+                            } catch {
                                 /* Do nothing*/
                             }
                         }, seconds * 1000);

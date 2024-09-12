@@ -7,6 +7,7 @@ import * as exposes from '../lib/exposes';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -295,7 +296,7 @@ const definitions: DefinitionWithExtend[] = [
                     ],
                     options,
                 );
-            } catch (e) {
+            } catch {
                 /* not supported by all */
             }
 
@@ -321,7 +322,7 @@ const definitions: DefinitionWithExtend[] = [
                     ],
                     options,
                 );
-            } catch (e) {
+            } catch {
                 /* not supported by all https://github.com/Koenkk/zigbee2mqtt/issues/11872 */
             }
 

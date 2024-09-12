@@ -1,6 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {Feature, Light, Numeric} from './exposes';
+import {Light, Numeric} from './exposes';
 import {logger} from './logger';
 import * as globalStore from './store';
 import {
@@ -21,7 +21,7 @@ import {
 const NS = 'zhc:utils';
 
 export function isLegacyEnabled(options: KeyValue) {
-    return !options.hasOwnProperty('legacy') || options.legacy;
+    return options.legacy === undefined || options.legacy;
 }
 
 export function flatten<Type>(arr: Type[][]): Type[] {
@@ -51,7 +51,7 @@ export function onEventPoll(
                 const timer = setTimeout(async () => {
                     try {
                         await poll();
-                    } catch (error) {
+                    } catch {
                         /* Do nothing*/
                     }
                     setTimer();
@@ -180,7 +180,7 @@ export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
 export function calibrateAndPrecisionRoundOptions(number: number, options: KeyValue, type: string) {
     // Calibrate
     const calibrateKey = `${type}_calibration`;
-    let calibrationOffset = toNumber(options && options.hasOwnProperty(calibrateKey) ? options[calibrateKey] : 0, calibrateKey);
+    let calibrationOffset = toNumber(options && options[calibrateKey] !== undefined ? options[calibrateKey] : 0, calibrateKey);
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
@@ -191,11 +191,11 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
     // Precision round
     const precisionKey = `${type}_precision`;
     const defaultValue = calibrateAndPrecisionRoundOptionsDefaultPrecision[type] || 0;
-    const precision = toNumber(options && options.hasOwnProperty(precisionKey) ? options[precisionKey] : defaultValue, precisionKey);
+    const precision = toNumber(options && options[precisionKey] !== undefined ? options[precisionKey] : defaultValue, precisionKey);
     return precisionRound(number, precision);
 }
 
-export function toPercentage(value: number, min: number, max: number, log = false) {
+export function toPercentage(value: number, min: number, max: number) {
     if (value > max) {
         value = max;
     } else if (value < min) {
@@ -224,7 +224,7 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message, definiti
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
         logger.warning(`No meta passed to postfixWithEndpointName, update your external converter!`, NS);
-        // @ts-expect-error
+        // @ts-expect-error ignore
         meta = {device: null};
     }
 
@@ -233,7 +233,7 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message, definiti
         definition.meta.multiEndpoint &&
         (!definition.meta.multiEndpointSkip || !definition.meta.multiEndpointSkip.includes(value))
     ) {
-        const endpointName = definition.hasOwnProperty('endpoint') ? getKey(definition.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
+        const endpointName = definition.endpoint !== undefined ? getKey(definition.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
 
         // NOTE: endpointName can be undefined if we have a definition.endpoint and the endpoint is
         //       not listed.
@@ -243,9 +243,9 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message, definiti
 }
 
 export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta) {
-    const multiEndpointEnforce = getMetaValue(entity, meta.mapped, 'multiEndpointEnforce', 'allEqual', []);
-    if (multiEndpointEnforce && multiEndpointEnforce.hasOwnProperty(key)) {
-        // @ts-expect-error
+    // @ts-expect-error ignore
+    const multiEndpointEnforce: {[s: string]: number} = getMetaValue(entity, meta.mapped, 'multiEndpointEnforce', 'allEqual', []);
+    if (multiEndpointEnforce && isObject(multiEndpointEnforce) && multiEndpointEnforce[key] !== undefined) {
         const endpoint = entity.getDevice().getEndpoint(multiEndpointEnforce[key]);
         if (endpoint) return endpoint;
     }
@@ -254,7 +254,7 @@ export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta)
 
 export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T, fallback?: T, convertTo?: (v: unknown) => T) {
     for (const key in object) {
-        // @ts-expect-error
+        // @ts-expect-error ignore
         if (object[key] === value) {
             return convertTo ? convertTo(key) : key;
         }
@@ -378,7 +378,7 @@ export function filterObject(obj: KeyValue, keys: string[]) {
 }
 
 export async function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function toSnakeCase(value: string | KeyValueAny) {
@@ -386,7 +386,7 @@ export function toSnakeCase(value: string | KeyValueAny) {
         for (const key of Object.keys(value)) {
             const keySnakeCase = toSnakeCase(key);
             if (key !== keySnakeCase) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 value[keySnakeCase] = value[key];
                 delete value[key];
             }
@@ -405,7 +405,7 @@ export function toCamelCase(value: KeyValueAny | string) {
         for (const key of Object.keys(value)) {
             const keyCamelCase = toCamelCase(key);
             if (key !== keyCamelCase) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 value[keyCamelCase] = value[key];
                 delete value[key];
             }
@@ -423,7 +423,7 @@ export function getLabelFromName(name: string) {
 
 export function saveSceneState(entity: Zh.Endpoint, sceneID: number, groupID: number, state: KeyValue, name: string) {
     const attributes = ['state', 'brightness', 'color', 'color_temp', 'color_mode'];
-    if (!entity.meta.hasOwnProperty('scenes')) entity.meta.scenes = {};
+    if (entity.meta.scenes === undefined) entity.meta.scenes = {};
     const metaKey = `${sceneID}_${groupID}`;
     entity.meta.scenes[metaKey] = {name, state: filterObject(state, attributes)};
     entity.save();
@@ -435,7 +435,7 @@ export function deleteSceneState(entity: Zh.Endpoint, sceneID: number = null, gr
             entity.meta.scenes = {};
         } else {
             const metaKey = `${sceneID}_${groupID}`;
-            if (entity.meta.scenes.hasOwnProperty(metaKey)) {
+            if (entity.meta.scenes[metaKey] !== undefined) {
                 delete entity.meta.scenes[metaKey];
             }
         }
@@ -445,7 +445,7 @@ export function deleteSceneState(entity: Zh.Endpoint, sceneID: number = null, gr
 
 export function getSceneState(entity: Zh.Group | Zh.Endpoint, sceneID: number, groupID: number) {
     const metaKey = `${sceneID}_${groupID}`;
-    if (entity.meta.hasOwnProperty('scenes') && entity.meta.scenes.hasOwnProperty(metaKey)) {
+    if (entity.meta.scenes !== undefined && entity.meta.scenes[metaKey] !== undefined) {
         return entity.meta.scenes[metaKey].state;
     }
 
@@ -477,15 +477,15 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
          * To workaround this we skip the transition for the brightness as it is applied first.
          * https://github.com/Koenkk/zigbee2mqtt/issues/1810
          */
-        if (key === 'brightness' && (message.hasOwnProperty('color') || message.hasOwnProperty('color_temp'))) {
+        if (key === 'brightness' && (message.color !== undefined || message.color_temp !== undefined)) {
             return {time: 0, specified: false};
         }
     }
 
-    if (message.hasOwnProperty('transition')) {
+    if (message.transition !== undefined) {
         const time = toNumber(message.transition, 'transition');
         return {time: time * 10, specified: true};
-    } else if (options.hasOwnProperty('transition') && options.transition !== '') {
+    } else if (options.transition !== undefined && options.transition !== '') {
         const transition = toNumber(options.transition, 'transition');
         return {time: transition * 10, specified: true};
     } else {
@@ -504,7 +504,7 @@ export function getMetaValues(definitions: Definition | Definition[], entity: Zh
         if (definition && definition.meta) {
             for (const key of Object.keys(definition.meta)) {
                 if (allowed == null || allowed.includes(key)) {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const value = definition.meta[key];
                     if (typeof value === 'function') {
                         if (isEndpoint(entity)) {
@@ -521,7 +521,7 @@ export function getMetaValues(definitions: Definition | Definition[], entity: Zh
 }
 
 export function getObjectProperty(object: KeyValue, key: string, defaultValue: unknown) {
-    return object && object.hasOwnProperty(key) ? object[key] : defaultValue;
+    return object && object[key] !== undefined ? object[key] : defaultValue;
 }
 
 export function validateValue(value: unknown, allowed: unknown[]) {
@@ -628,7 +628,7 @@ export function assertNumber(value: unknown, property?: string): asserts value i
 
 export function toNumber(value: unknown, property?: string): number {
     property = property ? `'${property}'` : 'Value';
-    // @ts-ignore
+    // @ts-expect-error ignore
     const result = parseFloat(value);
     if (Number.isNaN(result)) {
         throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
@@ -640,12 +640,12 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
     if (!keyIsBool) {
         if (typeof value === 'string') {
             for (const key of [value, value.toLowerCase(), value.toUpperCase()]) {
-                if (lookup.hasOwnProperty(key)) {
+                if (lookup[key] !== undefined) {
                     return lookup[key];
                 }
             }
         } else if (typeof value === 'number') {
-            if (lookup.hasOwnProperty(value)) {
+            if (lookup[value] !== undefined) {
                 return lookup[value];
             }
         } else {
@@ -656,7 +656,7 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
         if (typeof value === 'boolean') {
             const stringValue = value.toString();
             for (const key of [stringValue, stringValue.toLowerCase(), stringValue.toUpperCase()]) {
-                if (lookup.hasOwnProperty(key)) {
+                if (lookup[key] !== undefined) {
                     return lookup[key];
                 }
             }
