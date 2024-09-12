@@ -276,7 +276,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [],
         whiteLabel: [{vendor: 'SMLIGHT', model: 'SLZB-07', description: 'Router', fingerprint: [{modelID: 'SLZB-07'}]}],
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
+            const endpoint = device.endpoints[0];
             const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
             await endpoint.configureReporting('genBasic', payload);
