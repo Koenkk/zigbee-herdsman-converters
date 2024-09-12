@@ -1,6 +1,4 @@
-import {
-    light,
-} from '../lib/modernExtend';
+import {light} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -9,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LST103',
         vendor: 'Gumax',
         description: 'Gumax Lighting System',
-        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
         meta: {},
     },
 ];
