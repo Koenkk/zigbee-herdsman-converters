@@ -207,7 +207,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             onOff(),
             deviceAddCustomCluster('3rPlugGen1SpecialCluster', {
-                ID: 0xFF03,
+                ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
                     OnToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
@@ -370,7 +370,7 @@ const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             deviceAddCustomCluster('3rPlugGen2SpecialCluster', {
-                ID: 0xFF03,
+                ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
                     ResetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
@@ -470,7 +470,7 @@ const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             deviceAddCustomCluster('3rPlugE2Specialcluster', {
-                ID: 0xFF03,
+                ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
                     ResetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
