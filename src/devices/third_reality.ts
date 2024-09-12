@@ -245,7 +245,7 @@ const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1233,
                 attributes: {
                     infrared_off: {ID: 0x0000, type: Zcl.DataType.UINT8},
-            },
+                },
                 commands: {},
                 commandsResponse: {},
             }),
