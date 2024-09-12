@@ -204,8 +204,21 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RSP019BZ',
         vendor: 'Third Reality',
         description: 'Zigbee / BLE smart plug',
-        extend: [onOff()],
+        extend: [
+            onOff(),
+            deviceAddCustomCluster('3rPlugGen1SpecialCluster', {
+                ID: 0xFF03,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    OnToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    OffToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         ota: ota.zigbeeOTA,
+
     },
     {
         zigbeeModel: ['3RSB015BZ'],
@@ -356,6 +369,19 @@ const definitions: DefinitionWithExtend[] = [
             });
             device.save();
         },
+        extend: [
+            deviceAddCustomCluster('3rPlugGen2SpecialCluster', {
+                ID: 0xFF03,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    ResetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.INT16},
+                    OnToOffDelay: {ID: 0x0001, type: Zcl.DataType.INT16},
+                    OffToOnDelay: {ID: 0x0002, type: Zcl.DataType.INT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
     {
         zigbeeModel: ['3RVS01031Z'],
@@ -443,6 +469,19 @@ const definitions: DefinitionWithExtend[] = [
             });
             device.save();
         },
+        extend: [
+            deviceAddCustomCluster('3rPlugE2Specialcluster', {
+                ID: 0xFF03,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    ResetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                    OnToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    OffToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
 ];
 
