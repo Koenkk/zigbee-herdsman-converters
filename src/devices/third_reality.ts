@@ -241,7 +241,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position(), e.battery()],
         extend: [
 		deviceAddCustomCluster('3rRollerShadeSpecialCluster', {
-			ID: 0xFFF1,
+			ID: 0xfff1,
 			manufacturerCode: 0x1233,
 			attributes: {
 				infrared_off: {ID: 0x0000, type: Zcl.DataType.UINT8}, 
