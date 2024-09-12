@@ -1,5 +1,12 @@
 # Changelog
 
+## [20.14.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.14.0...v20.14.1) (2024-09-12)
+
+
+### Bug Fixes
+
+* **ignore:** Fix 3RTHS24BZ exposes ([a0cf779](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a0cf779ff125b22f6bba95f6c854fbf4dc448b24))
+
 ## [20.14.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.13.0...v20.14.0) (2024-09-12)
 
 
