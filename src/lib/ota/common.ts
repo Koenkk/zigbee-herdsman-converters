@@ -712,7 +712,7 @@ export async function updateToLatest(
 
             let timer: NodeJS.Timeout = null;
 
-            return new Promise<number>((resolve) => {
+            return await new Promise<number>((resolve) => {
                 const onDeviceAnnounce = () => {
                     clearTimeout(timer);
                     logger.debug(`Received device announce, update finished.`, NS);

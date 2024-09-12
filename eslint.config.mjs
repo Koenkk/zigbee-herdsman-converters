@@ -21,7 +21,7 @@ export default tseslint.config(
             '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/no-unused-vars': ['error', {args: 'none'}],
             'array-bracket-spacing': ['error', 'never'],
-            'no-return-await': 'error',
+            '@typescript-eslint/return-await': 'error',
             'object-curly-spacing': ['error', 'never'],
             '@typescript-eslint/no-floating-promises': 'error',
         },
