@@ -384,7 +384,7 @@ const definitions: DefinitionWithExtend[] = [
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    ResetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
@@ -484,7 +484,7 @@ const definitions: DefinitionWithExtend[] = [
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    ResetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
