@@ -218,7 +218,6 @@ const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: ota.zigbeeOTA,
-
     },
     {
         zigbeeModel: ['3RSB015BZ'],
@@ -484,7 +483,6 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
 
 export default definitions;
 module.exports = definitions;
