@@ -259,10 +259,24 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RTHS24BZ',
         vendor: 'Third Reality',
         description: 'Temperature and humidity sensor',
-        fromZigbee: [fz.temperature, fz.humidity],
-        toZigbee: [],
-        exposes: [e.temperature(), e.humidity()],
-        extend: [battery({voltage: true}), forcePowerSource({powerSource: 'Battery'})],
+        extend: [
+            temperature(),
+            humidity(),
+            battery(),
+            battery({voltage: true}),
+            forcePowerSource({powerSource: 'Battery'}),
+            deviceAddCustomCluster('3rSpecialCluster', {
+                ID: 0xff01,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16},
+                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16},
+                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
@@ -270,7 +284,23 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RSM0147Z',
         vendor: 'Third Reality',
         description: 'Soil sensor',
-        extend: [temperature(), humidity(), battery(), forcePowerSource({powerSource: 'Battery'})],
+        extend: [
+            temperature(),
+            humidity(),
+            battery(),
+            forcePowerSource({powerSource: 'Battery'}),
+            deviceAddCustomCluster('3rSoilSpecialCluster', {
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16},
+                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16},
+                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
@@ -278,7 +308,23 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RTHS0224Z',
         vendor: 'Third Reality',
         description: 'Temperature and humidity sensor lite',
-        extend: [temperature(), humidity(), battery(), forcePowerSource({powerSource: 'Battery'})],
+        extend: [
+            temperature(),
+            humidity(),
+            battery(),
+            forcePowerSource({powerSource: 'Battery'}),
+            deviceAddCustomCluster('3rSpecialCluster', {
+                ID: 0xff01,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16},
+                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16},
+                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
