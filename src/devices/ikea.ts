@@ -604,7 +604,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'IKEA',
         description: 'INSPELNING smart plug',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta(), electricityMeter()],
-    },    
+    },
     // #endregion on/off controls
     // #region blinds
     {
