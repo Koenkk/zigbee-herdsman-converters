@@ -36,7 +36,7 @@
         "build": "tsc",
         "build-watch": "tsc --watch",
         "prepack": "npm run clean && npm run build",
-        "prepare": "husky"
+        "prepare": "husky && npm run build"
     },
     "author": "Koen Kanters",
     "license": "MIT",
