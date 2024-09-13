@@ -6,7 +6,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
+//import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {commandsColorCtrl, commandsLevelCtrl, commandsOnOff, deviceEndpoints, electricityMeter, identify, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
