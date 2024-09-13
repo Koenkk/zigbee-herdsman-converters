@@ -4435,7 +4435,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Thermostat radiator valve',
         whiteLabel: [
             {vendor: 'Moes', model: 'TV01-ZB'},
-            {vendor: 'AVATTO', model: 'TRV06'},
+            {vendor: 'AVATTO', model: 'TRV06-1'},
             {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
             {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
             tuya.whitelabel('Moes', 'ZTRV-ZX-TV01-MS', 'Thermostat radiator valve', ['_TZE200_7yoranx2']),
@@ -4610,6 +4610,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_6rdj8dzm' /* model: 'ME167', vendor: 'AVATTO' */,
             '_TZE200_p3dbf6qs' /* model: 'ME168', vendor: 'AVATTO' */,
             '_TZE200_rxntag7i' /* model: 'ME168', vendor: 'AVATTO' */,
+            '_TZE200_yqgbrdyo',
         ]),
         model: 'TS0601_thermostat_3',
         vendor: 'Tuya',
@@ -4619,6 +4620,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('AVATTO', 'ME167', 'Thermostatic radiator valve', ['_TZE200_bvu2wnxz', '_TZE200_6rdj8dzm']),
             tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_p3dbf6qs', '_TZE200_rxntag7i']),
+            tuya.whitelabel('EARU', 'TRV06', 'Smart thermostat module', ['_TZE200_yqgbrdyo']),
         ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
