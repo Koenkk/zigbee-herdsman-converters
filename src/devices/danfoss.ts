@@ -139,7 +139,8 @@ const definitions: DefinitionWithExtend[] = [
                             'property *at most* every 5 minutes or every 0.1K change in measured room temperature.',
                     )
                     .withValueMin(-8000)
-                    .withValueMax(3500),
+                    .withValueMax(3500)
+                    .withUnit('0.01 °C'),
                 e
                     .binary('radiator_covered', ea.ALL, true, false)
                     .withDescription(
