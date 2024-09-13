@@ -11603,6 +11603,87 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_ex3rcdha',
+            },
+        ],
+        model: 'TS0601',
+        vendor: 'Tuya',
+        description: 'mmWave radar ZY_HPS01 V1.2',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        extend: [],
+        exposes: [
+            e.illuminance_lux(),
+            e.occupancy(),
+            e
+                .numeric('presence_timeout', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(180)
+                .withValueStep(1)
+                .withDescription('Presence timeout')
+                .withUnit('s'),
+            e
+                .numeric('move_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('sensitivity of the radar')
+                .withUnit('X'),
+            e
+                .numeric('move_minimum_range', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withValueStep(10)
+                .withDescription('Movement minimum range')
+                .withUnit('cm'),
+            e
+                .numeric('move_maximum_range', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withValueStep(10)
+                .withDescription('Movement maximum range')
+                .withUnit('cm'),
+            e
+                .numeric('breath_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Breath sensitivity of the radar')
+                .withUnit('X'),
+            e
+                .numeric('breath_minimum_range', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withValueStep(10)
+                .withDescription('Breath minimum range')
+                .withUnit('cm'),
+            e
+                .numeric('breath_maximum_range', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withValueStep(10)
+                .withDescription('Breath maximum range')
+                .withUnit('cm'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [12, 'illuminance_lux', tuya.valueConverter.raw],
+                [101, 'occupancy', tuya.valueConverter.trueFalse0],
+                [104, 'presence_timeout', tuya.valueConverter.raw],
+                [105, 'move_sensitivity', tuya.valueConverter.raw],
+                [107, 'breath_sensitivity', tuya.valueConverter.raw],
+                [109, 'move_maximum_range', tuya.valueConverter.raw],
+                [110, 'move_minimum_range', tuya.valueConverter.raw],
+                [111, 'breath_maximum_range', tuya.valueConverter.raw],
+                [112, 'breath_minimum_range', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
 
 export default definitions;
