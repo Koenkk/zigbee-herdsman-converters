@@ -25,7 +25,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZGA002'],
         model: 'ZGA002',
-        vendor: 'AEOTEC',
+        vendor: 'Aeotec',
         description: 'Pico switch with power meter',
         extend: [
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}, multiEndpointSkip: ['state', 'voltage', 'power', 'current', 'energy']}),
@@ -40,7 +40,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZGA003'],
         model: 'ZGA003',
-        vendor: 'AEOTEC',
+        vendor: 'Aeotec',
         description: 'Pico switch duo with power meter',
         extend: [
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
@@ -55,7 +55,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZGA004'],
         model: 'ZGA004',
-        vendor: 'AEOTEC',
+        vendor: 'Aeotec',
         description: 'Pico shutter',
         extend: [
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}}),
