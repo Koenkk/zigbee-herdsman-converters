@@ -31,7 +31,6 @@ const fzLocal = {
             return {last_received_status: hexString};
         },
     } satisfies Fz.Converter,
-
     easyiot_sp1000_recv_status: {
         cluster: 'tunneling',
         type: ['commandTransferDataResp'],
@@ -39,7 +38,6 @@ const fzLocal = {
             logger.debug(`"easyiot_tts_recv_status" received (msg:${JSON.stringify(msg.data)})`, NS);
             const hexString = msg.data.data.toString('hex');
             logger.debug(`"easyiot_tts_recv_status" received status ${hexString}`, NS);
-
             if (msg.data.data[0] == 0x80 && msg.data.data[1] == 0) {
                 const result = msg.data.data[4];
                 return {last_received_status: result};
@@ -68,7 +66,7 @@ const tzLocal = {
             );
             logger.debug(`Sending IR command success.`, NS);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 
     easyiot_tts_send_command: {
         key: ['send_tts'],
@@ -98,8 +96,7 @@ const tzLocal = {
             );
             logger.debug(`Sending IR command success.`, NS);
         },
-    } as Tz.Converter,
-
+    } satisfies Tz.Converter,
     easyiot_sp1000_play_voice: {
         key: ['play_voice'],
         convertSet: async (entity, key, value, meta) => {
@@ -126,8 +123,7 @@ const tzLocal = {
             );
             logger.debug(`Sending IR command success.`, NS);
         },
-    } as Tz.Converter,
-
+    } satisfies Tz.Converter,
     easyiot_sp1000_set_volume: {
         key: ['set_volume'],
         convertSet: async (entity, key, value, meta) => {
@@ -154,7 +150,7 @@ const tzLocal = {
             );
             logger.debug(`Sending IR command success.`, NS);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: DefinitionWithExtend[] = [
@@ -189,7 +185,6 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZB-SP1000',
         vendor: 'easyiot',
         description: 'ZB-SP1000 is an MP3 player that can support 1,000 voices.',
-
         fromZigbee: [fzLocal.easyiot_sp1000_recv_status],
         toZigbee: [tzLocal.easyiot_sp1000_play_voice, tzLocal.easyiot_sp1000_set_volume],
         exposes: [
