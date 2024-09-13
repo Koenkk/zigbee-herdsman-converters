@@ -136,7 +136,7 @@ const definitions: DefinitionWithExtend[] = [
                             'If `Radiator_covered` is `true` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property *at ' +
                             'least* every 30 minutes. After 35 minutes the TRV disables this function and resets the value of the ' +
                             '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
-                            'property *at most* every 5 minutes or every 0.1°C change in measured room temperature. ' + 
+                            'property *at most* every 5 minutes or every 0.1°C change in measured room temperature. ' +
                             'The unit of this value is 0.01 `°C` (so e.g. 21°C would be represented as 2100).',
                     )
                     .withValueMin(-8000)
