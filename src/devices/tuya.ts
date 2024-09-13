@@ -8231,7 +8231,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_r32ctezx','_TZE204_r32ctezx']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_r32ctezx', '_TZE204_r32ctezx']),
         model: 'TS0601_fan_switch',
         vendor: 'Tuya',
         description: 'Fan switch',
