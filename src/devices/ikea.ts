@@ -30,6 +30,7 @@ import {
     commandsWindowCovering,
     deviceAddCustomCluster,
     deviceEndpoints,
+    electricityMeter,
     forcePowerSource,
     humidity,
     iasZoneAlarm,
@@ -597,6 +598,13 @@ const definitions: DefinitionWithExtend[] = [
         description: 'TRETAKT smart plug',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta()],
     },
+    {
+        zigbeeModel: ['INSPELNING Smart plug'],
+        model: 'E2206',
+        vendor: 'IKEA',
+        description: 'INSPELNING smart plug',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta(), electricityMeter()],
+    },    
     // #endregion on/off controls
     // #region blinds
     {
