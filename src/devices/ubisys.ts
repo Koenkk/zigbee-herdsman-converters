@@ -6,7 +6,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
+//import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {commandsColorCtrl, commandsLevelCtrl, commandsOnOff, deviceEndpoints, electricityMeter, identify, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
@@ -740,7 +740,7 @@ const definitions: DefinitionWithExtend[] = [
         // S1-R Series 2 uses the same modelId as the regular S1-R, but the energy clusters are located in endpoint 1 (instead of 4, like the regular S1-R).
         fingerprint: [
             {
-                manufacturerName: 'ubisys',
+                manufacturerName: 'Ubisys',
                 modelID: 'S1-R (5601)',
                 endpoints: [
                     {ID: 1, profileID: 260, deviceID: 266, inputClusters: [0, 3, 4, 5, 6, 1794, 2820], outputClusters: []},
@@ -752,7 +752,7 @@ const definitions: DefinitionWithExtend[] = [
             },
         ],
         model: 'S1-R-2',
-        vendor: 'ubisys',
+        vendor: 'Ubisys',
         description: 'Power switch S1-R (Series 2)',
         extend: [
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '232': 232}, multiEndpointSkip: ['state', 'power', 'energy']}),
@@ -1127,7 +1127,14 @@ const definitions: DefinitionWithExtend[] = [
             fz.command_recall,
             fz.command_move,
             fz.command_stop,
-            legacy.fz.ubisys_c4_cover,
+            fz.command_cover_open,
+            fz.command_cover_close,
+            fz.command_cover_stop,
+            // NOTE:    Previous configuration if something does not work correctly. Easy way to roll back
+            //legacy.fz.ubisys_c4_scenes,
+            //legacy.fz.ubisys_c4_onoff,
+            //legacy.fz.ubisys_c4_level,
+            //legacy.fz.ubisys_c4_cover,
             ubisys.fz.configure_device_setup,
         ],
         toZigbee: [ubisys.tz.configure_device_setup],
