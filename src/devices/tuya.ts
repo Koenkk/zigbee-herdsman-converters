@@ -11604,12 +11604,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_ex3rcdha',
-            },
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ex3rcdha']),
         model: 'TS0601',
         vendor: 'Tuya',
         description: 'mmWave radar ZY_HPS01 V1.2',
