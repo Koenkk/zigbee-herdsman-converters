@@ -11605,9 +11605,9 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ex3rcdha']),
-        model: 'TS0601',
+        model: 'ZY_HPS01',
         vendor: 'Tuya',
-        description: 'mmWave radar ZY_HPS01 V1.2',
+        description: 'mmWave radar 5.8GHz',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
