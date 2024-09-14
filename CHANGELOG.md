@@ -1,5 +1,25 @@
 # Changelog
 
+## [20.15.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.14.1...v20.15.0) (2024-09-14)
+
+
+### Features
+
+* **add:** E2206 ([#7988](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7988)) ([b197ca0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b197ca0568252018e0c6102148816edd97d0228e))
+* **add:** TRV06 https://github.com/Koenkk/zigbee2mqtt/issues/23755 ([5efc97c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5efc97cd1b11e70d4064cda8fc0fd7fe6cb27ce9))
+* **add:** ZB-SP1000 ([#7977](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7977)) ([24e7045](https://github.com/Koenkk/zigbee-herdsman-converters/commit/24e7045dd70c912f2686a8d67074e0156e92e485))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZB210_lmqquxus` as Tuya TS0502B https://github.com/Koenkk/zigbee2mqtt/issues/16768 ([3d90c8a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3d90c8afca9ac22b1c2bd77e290c9ca9ee712098))
+* **detect:** Detect `_TZE204_r32ctezx` as Tuya TS0601_fan_switch ([#7985](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7985)) ([9c99f39](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c99f39834cf21f2d1a6453cdd6c4c2034f11374))
+* **ignore:** https://github.com/Koenkk/zigbee2mqtt.io/pull/3019 ([202a4bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/202a4bbce48b369bf7894bdccce515db716a8e0b))
+* Increase poll interval of Livolo TI0001-hygrometer and TI0001-pir to 300 seconds ([#7986](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7986)) ([1121ba1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1121ba125ae5c8e0dee26c70f89a6fc9a3a054ce))
+* Rename `AEOTEC` -&gt; `Aeotec` ([#7982](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7982)) ([0502b9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0502b9e0569bc702b92b5072a4e9b5da14fba69c))
+* Rename `ubisys` -&gt; `Ubisys` and update converters for C4 ([#7981](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7981)) ([4e81c45](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4e81c459a0d41581f872f91d10df7b99eb9453b5))
+* Update Danfoss 014G2461 external_measured_room_sensor description ([#7983](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7983)) ([7ec0bea](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7ec0bea0e2ef58d25586a8e7b8cf96bee19adb2c))
+
 ## [20.14.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.14.0...v20.14.1) (2024-09-12)
 
 
