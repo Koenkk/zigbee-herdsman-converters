@@ -359,13 +359,13 @@ const definitions: DefinitionWithExtend[] = [
                 let epConfig;
                 for (let i = 0; i < deviceConfigArray.length; i++) {
                     epConfig = deviceConfigArray[i];
-                    const epId = parseInt(epConfig.substr(0, 1), 16);
-                    if (epId <= 0) {
+                    const matches = epConfig.match(/^([0-9A-F]+)/);
+                    if (!matches || matches.length == 0) {
                         continue;
                     }
-                    if (epId < 10) {
-                        epConfig = '0' + epConfig;
-                    }
+                    const epId = parseInt(matches[0], 16);
+                    const epId2 = epId < 10 ? '0' + epId : epId;
+                    epConfig = epConfig.replace(/^[0-9A-F]+/, epId2);
                     allEndpoints[epId] = '1';
                     allEndpointsSorted.push(epConfig);
                 }
