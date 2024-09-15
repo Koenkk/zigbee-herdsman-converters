@@ -1,12 +1,13 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {Configure, Definition, Fz, OnEvent, Tz, Zh} from '../lib/types';
-const e = exposes.presets;
 import {identify, light} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {Configure, DefinitionWithExtend, Fz, OnEvent, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
+
+const e = exposes.presets;
 
 const ea = exposes.access;
 
@@ -87,7 +88,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
     }) satisfies OnEvent,
 });
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TWBulb51AU'],
         model: 'AU-A1GSZ9CX',

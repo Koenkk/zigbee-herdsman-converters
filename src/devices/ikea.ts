@@ -1,51 +1,52 @@
 import {Zcl} from 'zigbee-herdsman';
 
 import {
-    ikeaConfigureRemote,
-    ikeaLight,
-    ikeaOta,
-    ikeaConfigureStyrbar,
-    ikeaBattery,
+    addCustomClusterManuSpecificIkeaAirPurifier,
+    addCustomClusterManuSpecificIkeaUnknown,
+    addCustomClusterManuSpecificIkeaVocIndexMeasurement,
     ikeaAirPurifier,
-    legacy as ikeaLegacy,
-    ikeaVoc,
+    ikeaArrowClick,
+    ikeaBattery,
     ikeaConfigureGenPollCtrl,
+    ikeaConfigureRemote,
+    ikeaConfigureStyrbar,
+    ikeaDotsClick,
+    legacy as ikeaLegacy,
+    ikeaLight,
+    ikeaMediaCommands,
+    ikeaOta,
+    ikeaVoc,
+    styrbarCommandOn,
+    tradfriCommandsLevelCtrl,
+    tradfriCommandsOnOff,
     tradfriOccupancy,
     tradfriRequestedBrightness,
-    tradfriCommandsOnOff,
-    tradfriCommandsLevelCtrl,
-    styrbarCommandOn,
-    ikeaDotsClick,
-    ikeaArrowClick,
-    ikeaMediaCommands,
-    addCustomClusterManuSpecificIkeaUnknown,
-    addCustomClusterManuSpecificIkeaAirPurifier,
-    addCustomClusterManuSpecificIkeaVocIndexMeasurement,
 } from '../lib/ikea';
 import {
-    onOff,
     battery,
+    bindCluster,
+    commandsLevelCtrl,
+    commandsOnOff,
+    commandsWindowCovering,
+    deviceAddCustomCluster,
+    deviceEndpoints,
+    electricityMeter,
+    forcePowerSource,
+    humidity,
     iasZoneAlarm,
     identify,
-    forcePowerSource,
-    temperature,
-    humidity,
-    occupancy,
     illuminance,
-    windowCovering,
-    commandsOnOff,
-    commandsLevelCtrl,
-    commandsWindowCovering,
-    pm25,
     linkQuality,
-    deviceEndpoints,
-    deviceAddCustomCluster,
-    bindCluster,
+    occupancy,
+    onOff,
+    pm25,
+    temperature,
+    windowCovering,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     // #region light
     // lights naming convention: type, light capabilities, form, diffuser type, brightness
     // #region E26/E27/B22
@@ -596,6 +597,13 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRETAKT smart plug',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta()],
+    },
+    {
+        zigbeeModel: ['INSPELNING Smart plug'],
+        model: 'E2206',
+        vendor: 'IKEA',
+        description: 'INSPELNING smart plug',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta(), electricityMeter()],
     },
     // #endregion on/off controls
     // #region blinds

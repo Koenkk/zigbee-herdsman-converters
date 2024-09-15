@@ -1,18 +1,18 @@
 import {
-    identify,
-    onOff,
-    temperature,
-    binary,
-    numeric,
-    enumLookup,
     battery,
-    humidity,
-    illuminance,
-    ota,
+    binary,
+    enumLookup,
     EnumLookupArgs,
+    humidity,
+    identify,
+    illuminance,
+    numeric,
     NumericArgs,
+    onOff,
+    ota,
+    temperature,
 } from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const pushokExtend = {
     valveStatus: (args?: Partial<EnumLookupArgs>) =>
@@ -43,7 +43,7 @@ const pushokExtend = {
         }),
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['POK001'],
         model: 'POK001',

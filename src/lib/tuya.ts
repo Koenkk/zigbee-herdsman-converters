@@ -1,3 +1,5 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from './constants';
@@ -6,22 +8,24 @@ import {logger} from './logger';
 import * as modernExtend from './modernExtend';
 import * as globalStore from './store';
 import {
-    Tuya,
-    OnEventType,
-    OnEventData,
-    Zh,
-    KeyValue,
-    Tz,
-    Fz,
-    Expose,
-    OnEvent,
-    ModernExtend,
-    Range,
-    KeyValueNumberString,
     DefinitionExposesFunction,
+    Expose,
+    Fz,
+    KeyValue,
+    KeyValueAny,
+    KeyValueNumberString,
+    ModernExtend,
+    OnEvent,
+    OnEventData,
+    OnEventType,
     Publish,
+    Range,
+    Tuya,
+    Tz,
+    Zh,
 } from './types';
 import * as utils from './utils';
+
 // import {Color} from './color';
 
 const NS = 'zhc:tuya';
@@ -92,33 +96,8 @@ export function onEvent(args?: {
                     payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
                 };
                 await endpoint.command('manuSpecificTuya', 'mcuSyncTime', payload, {});
-            } catch (error) {
+            } catch {
                 /* handle error to prevent crash */
-            }
-        }
-
-        // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-        if (args.queryOnDeviceAnnounce && type === 'deviceAnnounce') {
-            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
-        }
-
-        if (args.queryIntervalSeconds) {
-            if (type === 'stop') {
-                clearTimeout(globalStore.getValue(device, 'query_interval'));
-                globalStore.clearValue(device, 'query_interval');
-            } else if (!globalStore.hasValue(device, 'query_interval')) {
-                const setTimer = () => {
-                    const timer = setTimeout(async () => {
-                        try {
-                            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
-                        } catch (error) {
-                            /* Do nothing*/
-                        }
-                        setTimer();
-                    }, args.queryIntervalSeconds * 1000);
-                    globalStore.putValue(device, 'query_interval', timer);
-                };
-                setTimer();
             }
         }
     };
@@ -197,7 +176,7 @@ export async function onEventSetTime(type: OnEventType, data: KeyValue, device: 
                 payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
             };
             await endpoint.command('manuSpecificTuya', 'mcuSyncTime', payload, {});
-        } catch (error) {
+        } catch {
             // endpoint.command can throw an error which needs to
             // be caught or the zigbee-herdsman may crash
             // Debug message is handled in the zigbee-herdsman
@@ -230,7 +209,7 @@ export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, dev
                 payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
             };
             await endpoint.command('manuSpecificTuya', 'mcuSyncTime', payload, {});
-        } catch (error) {
+        } catch {
             // endpoint.command can throw an error which needs to
             // be caught or the zigbee-herdsman may crash
             // Debug message is handled in the zigbee-herdsman
@@ -398,6 +377,35 @@ const tuyaExposes = {
         On: Always white. Off: Always orange.
         Flash: Flashes white when triggered.
         Note: Orange light will turn off after light off delay, white light always stays on. Light mode updates on next state change.'`),
+    // Inching can be enabled for multiple endpoints (1 to 6) but it is always controlled on endpoint 1
+    // So instead of pinning the values to each endpoint, it is easier to keep the structure stand alone.
+    inchingSwitch: (quantity: number) => {
+        const x = e
+            .composite('inching_control_set', 'inching_control_set', ea.SET)
+            .withDescription(
+                'Device Inching function Settings. The device will automatically turn off ' + 'after each turn on for a specified period of time.',
+            );
+        for (let i = 1; i <= quantity; i++) {
+            x.withFeature(
+                e
+                    .binary('inching_control', ea.SET, 'ENABLE', 'DISABLE')
+                    .withDescription('Enable/disable inching function for endpoint ' + i + '.')
+                    .withLabel('Inching for Endpoint ' + i)
+                    .withProperty('inching_control_' + i),
+            ).withFeature(
+                e
+                    .numeric('inching_time', ea.SET)
+                    .withDescription('Delay time for executing a inching action for endpoint ' + i + '.')
+                    .withLabel('Inching time for endpoint ' + i)
+                    .withProperty('inching_time_' + i)
+                    .withUnit('seconds')
+                    .withValueMin(1)
+                    .withValueMax(65535)
+                    .withValueStep(1),
+            );
+        }
+        return x;
+    },
 };
 export {tuyaExposes as exposes};
 
@@ -408,7 +416,7 @@ export const skip = {
     stateOnAndBrightnessPresent: (meta: Tz.Meta) => {
         if (Array.isArray(meta.mapped)) throw new Error('Not supported');
         const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name ? `state_${meta.endpoint_name}` : 'state';
-        return meta.message.hasOwnProperty('brightness') && meta.state[convertedKey] === meta.message.state;
+        return meta.message.brightness !== undefined && meta.state[convertedKey] === meta.message.state;
     },
 };
 
@@ -695,7 +703,7 @@ export const valueConverter = {
         },
         to: (v: string) => {
             const numberPattern = /\d+/g;
-            // @ts-ignore
+            // @ts-expect-error ignore
             return v.match(numberPattern).join([]).toString();
         },
     },
@@ -805,7 +813,7 @@ export const valueConverter = {
                         ':' +
                         String(parseInt(v[index + 1])).padStart(2, '0') +
                         '/' +
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         (parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1),
                 );
             }
@@ -901,7 +909,7 @@ export const valueConverter = {
             let weekdayFormat: string;
             let holidayFormat: string;
 
-            if (meta.message.hasOwnProperty('schedule_weekday')) {
+            if (meta.message.schedule_weekday !== undefined) {
                 weekdayFormat = v;
                 holidayFormat = meta.state['schedule_holiday'] as string;
             } else {
@@ -1001,6 +1009,60 @@ export const valueConverter = {
             if (v === 0) return {battery_low: false};
             if (v === 1) return {battery_low: true};
             return {error: v};
+        },
+    },
+    // https://developer.tuya.com/en/docs/connect-subdevices-to-gateways/tuya-zigbee-multiple-switch-access-standard?id=K9ik6zvnqr09m
+    inchingSwitch: {
+        to: (value: KeyValueAny) => {
+            let result = '';
+            for (let i = 1; i <= 6; i++) {
+                if (value['inching_control_' + i] == undefined || value['inching_time_' + i] == undefined) continue;
+
+                let state = value['inching_control_' + i] == 'ENABLE' ? 1 : 0;
+                if (i != 1) {
+                    // Second endpoint onwards base number is determined by 2 powered by endpoint number less 1
+                    state += 2 ** (i - 1);
+                }
+                const secs: number = parseInt(value['inching_time_' + i]);
+                const byte1 = secs >> 8; // Equivalent to Math.truc(secs / 256)
+                const byte2 = secs % 256;
+                const ascii = String.fromCharCode(state, byte1, byte2);
+                result += Buffer.from(ascii).toString('base64');
+            }
+            return result;
+        },
+
+        from: (value: string) => {
+            // break the value into 4 char encoded char which will give 3 char when decoded
+            const data: KeyValue = {};
+            for (let i = 0; i < value.length; i += 4) {
+                const b64asc = value.substring(i, i + 4);
+                const str = Buffer.from(b64asc, 'base64').toString('utf8');
+                const cca0 = str.charCodeAt(0);
+                const cca1 = str.charCodeAt(1);
+                const cca2 = str.charCodeAt(2);
+                let tmp = 0;
+                let status = '';
+                // first value indicates the endpoint and if it is on or off
+                // 0-1 - 1st endpoint, 2-3 - 2nd endpoint, ...
+                switch (cca0) {
+                    case 0:
+                        data['inching_control_1'] = 'DISABLE';
+                        data['inching_time_1'] = (cca1 << 8) + cca2;
+                        break;
+                    case 1:
+                        data['inching_control_1'] = 'ENABLE';
+                        data['inching_time_1'] = (cca1 << 8) + cca2;
+                        break;
+                    default:
+                        // endpoint #
+                        tmp = Math.trunc(Math.log2(cca0)) + 1;
+                        status = cca0 % 2 ? 'ENABLE' : 'DISABLE';
+                        data['inching_control_' + tmp] = status;
+                        data['inching_time_' + tmp] = (cca1 << 8) + cca2;
+                }
+            }
+            return data;
         },
     },
 };
@@ -1170,17 +1232,14 @@ const tuyaTz = {
         //       provide datapoints so there is little reason to provide support.
         key: ['state', 'countdown'],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.hasOwnProperty('state')
-                ? utils.isString(meta.message.state)
-                    ? meta.message.state.toLowerCase()
-                    : null
-                : undefined;
-            const countdown = meta.message.hasOwnProperty('countdown') ? meta.message.countdown : undefined;
+            const state =
+                meta.message.state !== undefined ? (utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : undefined) : undefined;
+            const countdown = meta.message.countdown !== undefined ? meta.message.countdown : undefined;
             const result: KeyValue = {};
             if (countdown !== undefined) {
                 // OnTime is a 16bit register and so might very well work up to 0xFFFF seconds but
                 // the Tuya documentation says that the maximum is 43200 (so 12 hours).
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 if (!Number.isInteger(countdown) || countdown < 0 || countdown > 12 * 3600) {
                     throw new Error('countdown must be an integer between 1 and 43200 (12 hours) or 0 to cancel');
                 }
@@ -1205,7 +1264,7 @@ const tuyaTz = {
                 // be set to the same value than ontime.
                 const payload = {ctrlbits: 0, ontime: countdown, offwaittime: countdown};
                 await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
-                if (result.hasOwnProperty('state')) {
+                if (result.state !== undefined) {
                     result.countdown = countdown;
                 }
             }
@@ -1219,6 +1278,17 @@ const tuyaTz = {
             }
         },
     } satisfies Tz.Converter,
+    inchingSwitch: {
+        key: ['inching_control_set'],
+        convertSet: async (entity, key, value: KeyValue, meta) => {
+            const inching = valueConverter.inchingSwitch.to(value);
+            const payload = {payload: inching};
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.command('manuSpecificTuya_4', 'setInchingSwitch', payload, utils.getOptions(meta.mapped, endpoint));
+
+            return {state: {inching_control_set: value}};
+        },
+    } satisfies Tz.Converter,
 };
 export {tuyaTz as tz};
 
@@ -1227,7 +1297,7 @@ const tuyaFz = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('61440')) {
+            if (msg.data['61440'] !== undefined) {
                 const property = utils.postfixWithEndpointName('brightness', msg, model, meta);
                 return {[property]: utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255)};
             }
@@ -1249,7 +1319,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
+            if (msg.data.moesStartUpOnOff !== undefined) {
                 const lookup: KeyValue = {0: 'off', 1: 'on', 2: 'previous'};
                 const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
@@ -1262,7 +1332,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             const attribute = 'powerOnBehavior';
             const lookup: KeyValue = {0: 'off', 1: 'on', 2: 'previous'};
-            if (msg.data.hasOwnProperty(attribute)) {
+            if (msg.data[attribute] !== undefined) {
                 const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data[attribute]]};
             }
@@ -1272,7 +1342,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
+            if (msg.data.moesStartUpOnOff !== undefined) {
                 const lookup: KeyValue = {0x00: 'off', 0x01: 'on', 0x02: 'restore'};
                 const property = utils.postfixWithEndpointName('power_outage_memory', msg, model, meta);
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
@@ -1283,7 +1353,7 @@ const tuyaFz = {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('switchType')) {
+            if (msg.data.switchType !== undefined) {
                 const lookup: KeyValue = {0: 'toggle', 1: 'state', 2: 'momentary'};
                 return {switch_type: lookup[msg.data['switchType']]};
             }
@@ -1293,7 +1363,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
+            if (msg.data.tuyaBacklightMode !== undefined) {
                 const value = msg.data['tuyaBacklightMode'];
                 const backlightLookup: KeyValue = {0: 'low', 1: 'medium', 2: 'high'};
                 return {backlight_mode: backlightLookup[value]};
@@ -1304,7 +1374,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
+            if (msg.data.tuyaBacklightMode !== undefined) {
                 return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'normal', 2: 'inverted'})};
             }
         },
@@ -1313,7 +1383,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightSwitch')) {
+            if (msg.data.tuyaBacklightSwitch !== undefined) {
                 return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightSwitch'], {0: 'OFF', 1: 'ON'})};
             }
         },
@@ -1322,7 +1392,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
+            if (msg.data.tuyaBacklightMode !== undefined) {
                 return {indicator_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'})};
             }
         },
@@ -1331,7 +1401,7 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('32768')) {
+            if (msg.data['32768'] !== undefined) {
                 const value = msg.data['32768'];
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             }
@@ -1341,7 +1411,7 @@ const tuyaFz = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(0xfc00)) {
+            if (msg.data[0xfc00] !== undefined) {
                 const property = utils.postfixWithEndpointName('min_brightness', msg, model, meta);
                 const value = parseInt(msg.data[0xfc00].toString(16).slice(0, 2), 16);
                 return {[property]: value};
@@ -1392,11 +1462,23 @@ const tuyaFz = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onTime')) {
+            if (msg.data.onTime !== undefined) {
                 const payload: KeyValue = {};
                 const property = utils.postfixWithEndpointName('countdown', msg, model, meta);
                 const countdown = msg.data['onTime'];
                 payload[property] = countdown;
+                return payload;
+            }
+        },
+    } satisfies Fz.Converter,
+    inchingSwitch: {
+        cluster: 'manuSpecificTuya_4',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.inching !== undefined) {
+                const payload: KeyValue = {};
+                const value = valueConverter.inchingSwitch.from(msg.data['inching']);
+                payload['inching_control_set'] = value;
                 return payload;
             }
         },
@@ -1826,6 +1908,7 @@ const tuyaModernExtend = {
             childLock?: boolean;
             switchMode?: boolean;
             onOffCountdown?: boolean;
+            inchingSwitch?: boolean;
         } = {},
     ): ModernExtend => {
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
@@ -1919,6 +2002,16 @@ const tuyaModernExtend = {
             }
         }
 
+        if (args.inchingSwitch) {
+            let quantity = 1;
+            if (args.endpoints) {
+                quantity = args.endpoints.length;
+            }
+            fromZigbee.push(tuyaFz.inchingSwitch);
+            exposes.push(tuyaExposes.inchingSwitch(quantity));
+            toZigbee.push(tuyaTz.inchingSwitch);
+        }
+
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
     },
     dpBacklightMode(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
@@ -1998,10 +2091,40 @@ const tuyaModernExtend = {
 };
 export {tuyaModernExtend as modernExtend};
 
+const tuyaClusters = {
+    addTuyaCommonPrivateCluster: (): ModernExtend =>
+        modernExtend.deviceAddCustomCluster('manuSpecificTuya_4', {
+            ID: 0xe000,
+            attributes: {
+                random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR},
+                cycle_timing: {ID: 0xd002, type: Zcl.DataType.CHAR_STR},
+                inching: {ID: 0xd003, type: Zcl.DataType.CHAR_STR},
+            },
+            commands: {
+                setRandomTiming: {
+                    ID: 0xf7,
+                    parameters: [{name: 'payload', type: Zcl.BuffaloZclDataType.BUFFER}],
+                },
+                setCycleTiming: {
+                    ID: 0xf8,
+                    parameters: [{name: 'payload', type: Zcl.BuffaloZclDataType.BUFFER}],
+                },
+                setInchingSwitch: {
+                    ID: 0xfb,
+                    parameters: [{name: 'payload', type: Zcl.BuffaloZclDataType.BUFFER}],
+                },
+            },
+            commandsResponse: {},
+        }),
+};
+
+export {tuyaClusters as clusters};
+
 exports.exposes = tuyaExposes;
 exports.modernExtend = tuyaModernExtend;
 exports.tz = tuyaTz;
 exports.fz = tuyaFz;
+exports.clusters = tuyaClusters;
 exports.enum = (value: number) => new Enum(value);
 exports.bitmap = (value: number) => new Bitmap(value);
 exports.valueConverter = valueConverter;

@@ -1,11 +1,11 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {onOff, numeric, enumLookup, deviceEndpoints} from '../lib/modernExtend';
+import {deviceEndpoints, enumLookup, numeric, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Fz, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -47,7 +47,7 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 const endpoint = meta.device.getEndpoint(1);
                 await endpoint.read('genOnOff', [0x9007]); // for update : close_remain_timeout
                 return {gas_valve_state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
@@ -171,7 +171,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'CSM-300Z', applicationVersion: 1},
@@ -928,6 +928,30 @@ const definitions: Definition[] = [
             await endpoint.read('hvacThermostat', ['systemMode', 'occupiedHeatingSetpoint', 'occupiedCoolingSetpoint', 'localTemp']);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
         },
+    },
+    {
+        zigbeeModel: ['SQM300Z1'],
+        model: 'SQM300Z1',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS big button switch 1 gang',
+        extend: [onOff({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ['SQM300Z2'],
+        model: 'SQM300Z2',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS big button switch 2 gang',
+        extend: [deviceEndpoints({endpoints: {top: 1, bottom: 2}}), onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ['SQM300Z3'],
+        model: 'SQM300Z3',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS big button switch 3 gang',
+        extend: [
+            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
+            onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
+        ],
     },
 ];
 

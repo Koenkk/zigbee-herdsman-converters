@@ -1,15 +1,17 @@
 import * as semver from 'semver';
+
 import {Zcl} from 'zigbee-herdsman';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
+//import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
+import {commandsColorCtrl, commandsLevelCtrl, commandsOnOff, deviceEndpoints, electricityMeter, identify, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, OnEventData, OnEventType, Tz, Zh} from '../lib/types';
 import {ubisysModernExtend} from '../lib/ubisys';
 import * as utils from '../lib/utils';
 
@@ -24,7 +26,7 @@ const manufacturerOptions = {
      * https://github.com/Koenkk/zigbee-herdsman/issues/52
      */
     ubisys: {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-    // @ts-expect-error
+    // @ts-expect-error ignore
     ubisysNull: {manufacturerCode: null},
 };
 
@@ -32,10 +34,19 @@ const ubisysOnEventReadCurrentSummDelivered = async function (type: OnEventType,
     if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
         try {
             await data.endpoint.read('seMetering', ['currentSummDelivered']);
-        } catch (error) {
+        } catch {
             /* Do nothing*/
         }
     }
+};
+
+const ubisysPollCurrentSummDelivered = async (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
+    const endpoint = device.getEndpoint(endpointId);
+    const poll = async () => {
+        await endpoint.read('seMetering', ['currentSummDelivered']);
+    };
+
+    utils.onEventPoll(type, data, device, options, 'measurement', 60, poll);
 };
 
 const ubisys = {
@@ -44,7 +55,7 @@ const ubisys = {
             cluster: 'manuSpecificUbisysDimmerSetup',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('capabilities')) {
+                if (msg.data.capabilities !== undefined) {
                     const capabilities = msg.data.capabilities;
                     const forwardPhaseControl = capabilities & 1;
                     const reversePhaseControl = (capabilities & 2) >>> 1;
@@ -59,7 +70,7 @@ const ubisys = {
                         capabilities_overload_detection: overloadDetection ? true : false,
                     };
                 }
-                if (msg.data.hasOwnProperty('status')) {
+                if (msg.data.status !== undefined) {
                     const status = msg.data.status;
                     const forwardPhaseControl = status & 1;
                     const reversePhaseControl = (status & 2) >>> 1;
@@ -74,7 +85,7 @@ const ubisys = {
                         status_inductive_load: inductiveLoad ? true : false,
                     };
                 }
-                if (msg.data.hasOwnProperty('mode')) {
+                if (msg.data.mode !== undefined) {
                     const mode = msg.data.mode;
                     const phaseControl = mode & 3;
                     const phaseControlValues = {0: 'automatic', 1: 'forward', 2: 'reverse'};
@@ -88,7 +99,7 @@ const ubisys = {
             cluster: 'genLevelCtrl',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('ubisysMinimumOnLevel')) {
+                if (msg.data.ubisysMinimumOnLevel !== undefined) {
                     return {minimum_on_level: msg.data.ubisysMinimumOnLevel};
                 }
             },
@@ -97,7 +108,7 @@ const ubisys = {
             cluster: 'manuSpecificUbisysDeviceSetup',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const result = (meta.state.hasOwnProperty('configure_device_setup') ? meta.state.configure_device_setup : {}) as KeyValue;
+                const result = (meta.state.configure_device_setup !== undefined ? meta.state.configure_device_setup : {}) as KeyValue;
                 if (msg.data['inputConfigurations'] != null) {
                     result['input_configurations'] = msg.data['inputConfigurations'];
                 }
@@ -118,14 +129,14 @@ const ubisys = {
                     logger.warning(`ubisys: ${message}`, NS);
                 };
                 const sleepSeconds = async (s: number) => {
-                    return new Promise((resolve) => setTimeout(resolve, s * 1000));
+                    return await new Promise((resolve) => setTimeout(resolve, s * 1000));
                 };
                 const waitUntilStopped = async () => {
                     let operationalStatus = 0;
                     do {
                         await sleepSeconds(2);
                         const response = await entity.read('closuresWindowCovering', ['operationalStatus']);
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         operationalStatus = response.operationalStatus;
                     } while (operationalStatus != 0);
                     await sleepSeconds(2);
@@ -140,7 +151,7 @@ const ubisys = {
                     if (jsonAttr.startsWith('ubisys')) {
                         jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
                     }
-                    if (value.hasOwnProperty(jsonAttr)) {
+                    if (value[jsonAttr] !== undefined) {
                         let attrValue = value[jsonAttr];
                         if (converterFunc) {
                             attrValue = converterFunc(attrValue);
@@ -154,9 +165,9 @@ const ubisys = {
                     }
                 };
                 const stepsPerSecond = value.steps_per_second || 50;
-                const hasCalibrate = value.hasOwnProperty('calibrate');
+                const hasCalibrate = value.calibrate !== undefined;
                 // cancel any running calibration
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 let mode = (await entity.read('closuresWindowCovering', ['windowCoveringMode'])).windowCoveringMode;
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {
@@ -166,7 +177,7 @@ const ubisys = {
                 // delay a bit if reconfiguring basic configuration attributes
                 await writeAttrFromJson('windowCoveringType', undefined, undefined, 2);
                 await writeAttrFromJson('configStatus', undefined, undefined, 2);
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 if (await writeAttrFromJson('windowCoveringMode', undefined, undefined, 2)) {
                     mode = value['windowCoveringMode'];
                 }
@@ -349,7 +360,7 @@ const ubisys = {
                     logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`, NS);
                 }
 
-                if (value.hasOwnProperty('input_configurations')) {
+                if (value.input_configurations !== undefined) {
                     // example: [0, 0, 0, 0]
                     if (useWriteStruct) {
                         await devMgmtEp.writeStructured(
@@ -376,7 +387,7 @@ const ubisys = {
                     }
                 }
 
-                if (value.hasOwnProperty('input_actions')) {
+                if (value.input_actions !== undefined) {
                     // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
                     if (useWriteStruct) {
                         await devMgmtEp.writeStructured(
@@ -403,7 +414,7 @@ const ubisys = {
                     }
                 }
 
-                if (value.hasOwnProperty('input_action_templates')) {
+                if (value.input_action_templates !== undefined) {
                     const templateTypes = {
                         // source: "ZigBee Device Physical Input Configurations Integrator’s Guide"
                         // (can be obtained directly from ubisys upon request)
@@ -516,7 +527,7 @@ const ubisys = {
                     const templates = Array.isArray(value.input_action_templates) ? value.input_action_templates : [value.input_action_templates];
                     let resultingInputActions: unknown[] = [];
                     for (const template of templates) {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const templateType = templateTypes[template.type];
                         if (!templateType) {
                             throw new Error(
@@ -525,10 +536,10 @@ const ubisys = {
                             );
                         }
 
-                        if (template.hasOwnProperty('input')) {
+                        if (template.input !== undefined) {
                             input = template.input;
                         }
-                        if (template.hasOwnProperty('endpoint')) {
+                        if (template.endpoint !== undefined) {
                             endpoint = template.endpoint;
                         }
                         // C4 cover endpoints only start at 5
@@ -543,16 +554,16 @@ const ubisys = {
                                 inputActions = templateType.getInputActions(input, endpoint, template);
                             } else {
                                 // scene(s) (always single input)
-                                if (!template.hasOwnProperty('scene_id')) {
+                                if (template.scene_id === undefined) {
                                     throw new Error(`input_action_templates: Need an attribute 'scene_id' for '${template.type}'`);
                                 }
-                                if (template.hasOwnProperty('group_id')) {
+                                if (template.group_id !== undefined) {
                                     groupId = template.group_id;
                                 }
                                 inputActions = templateType.getInputActions(input, endpoint, groupId, template.scene_id);
 
-                                if (template.hasOwnProperty('scene_id_2')) {
-                                    if (template.hasOwnProperty('group_id_2')) {
+                                if (template.scene_id_2 !== undefined) {
+                                    if (template.group_id_2 !== undefined) {
                                         groupId = template.group_id_2;
                                     }
                                     inputActions = inputActions.concat(templateType.getInputActions2(input, endpoint, groupId, template.scene_id_2));
@@ -560,7 +571,7 @@ const ubisys = {
                             }
                         } else {
                             // double inputs
-                            input = template.hasOwnProperty('inputs') ? template.inputs : [input, input + 1];
+                            input = template.inputs !== undefined ? template.inputs : [input, input + 1];
                             inputActions = templateType.getInputActions(input, endpoint, template);
                         }
                         resultingInputActions = resultingInputActions.concat(inputActions);
@@ -610,7 +621,7 @@ const ubisys = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['S1 (5501)'],
         model: 'S1',
@@ -724,6 +735,60 @@ const definitions: Definition[] = [
             }
         },
         ota: ota.ubisys,
+    },
+    {
+        // S1-R Series 2 uses the same modelId as the regular S1-R, but the energy clusters are located in endpoint 1 (instead of 4, like the regular S1-R).
+        fingerprint: [
+            {
+                manufacturerName: 'Ubisys',
+                modelID: 'S1-R (5601)',
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 266, inputClusters: [0, 3, 4, 5, 6, 1794, 2820], outputClusters: []},
+                    {ID: 2, profileID: 260, deviceID: 260, inputClusters: [0, 3], outputClusters: [3, 5, 6, 8, 768, 64514]},
+                    {ID: 3, profileID: 260, deviceID: 260, inputClusters: [0, 3], outputClusters: [3, 5, 6, 8, 768, 64514]},
+                    {ID: 232, profileID: 260, deviceID: 1287, inputClusters: [0, 61, 64512, 64599], outputClusters: [3, 25]},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
+        ],
+        model: 'S1-R-2',
+        vendor: 'Ubisys',
+        description: 'Power switch S1-R (Series 2)',
+        extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '232': 232}, multiEndpointSkip: ['state', 'power', 'energy']}),
+            identify(),
+            onOff({powerOnBehavior: false}),
+            electricityMeter({cluster: 'metering', configureReporting: false}),
+            commandsOnOff({endpointNames: ['2', '3']}),
+            commandsLevelCtrl({endpointNames: ['2', '3']}),
+            commandsColorCtrl({endpointNames: ['2', '3']}),
+        ],
+        options: [exposes.options.measurement_poll_interval()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
+        onEvent: async (type, data, device, settings) => {
+            /*
+             * As per technical doc page 18 section 7.3.4
+             * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
+             *
+             * This cluster uses the binding table for managing command targets.
+             * When factory fresh, this cluster is bound to endpoint #1 to
+             * enable local control.
+             *
+             * We use addBinding to 'record' this default binding.
+             */
+            if (type === 'deviceInterview') {
+                const ep1 = device.getEndpoint(1);
+                const ep2 = device.getEndpoint(2);
+                ep2.addBinding('genOnOff', ep1);
+            } else {
+                await ubisysPollCurrentSummDelivered(type, data, device, 1, settings);
+            }
+        },
     },
     {
         zigbeeModel: ['S2 (5502)', 'S2-R (5602)'],
@@ -1056,10 +1121,20 @@ const definitions: Definition[] = [
         vendor: 'Ubisys',
         description: 'Control unit C4',
         fromZigbee: [
-            legacy.fz.ubisys_c4_scenes,
-            legacy.fz.ubisys_c4_onoff,
-            legacy.fz.ubisys_c4_level,
-            legacy.fz.ubisys_c4_cover,
+            fz.command_toggle,
+            fz.command_on,
+            fz.command_off,
+            fz.command_recall,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_cover_open,
+            fz.command_cover_close,
+            fz.command_cover_stop,
+            // NOTE:    Previous configuration if something does not work correctly. Easy way to roll back
+            //legacy.fz.ubisys_c4_scenes,
+            //legacy.fz.ubisys_c4_onoff,
+            //legacy.fz.ubisys_c4_level,
+            //legacy.fz.ubisys_c4_cover,
             ubisys.fz.configure_device_setup,
         ],
         toZigbee: [ubisys.tz.configure_device_setup],

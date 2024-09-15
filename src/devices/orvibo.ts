@@ -1,9 +1,9 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, light, onOff, battery, humidity, temperature} from '../lib/modernExtend';
+import {battery, deviceEndpoints, humidity, light, onOff, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Tz} from '../lib/types';
+import {DefinitionWithExtend, Tz} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -22,7 +22,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ccb9f56837ab41dcad366fb1452096b6', '250bccf66c41421b91b5e3242942c164'],
         model: 'DD10Z',
@@ -234,6 +234,15 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['987b1869e4944218aa0034750d4ac585'],
+        model: 'SE20-O',
+        vendor: 'ORVIBO',
+        description: 'Smart emergency button',
+        fromZigbee: [fz.command_status_change_notification_action],
+        exposes: [e.action(['single'])],
+        toZigbee: [],
     },
     {
         zigbeeModel: ['72bd56c539ca4c7fba73a9be0ae0d19f'],

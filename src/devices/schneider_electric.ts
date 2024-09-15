@@ -6,22 +6,23 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {
-    onOff,
-    commandsOnOff,
-    commandsLevelCtrl,
-    light,
     battery,
-    electricityMeter,
-    identify,
-    enumLookup,
-    deviceEndpoints,
+    commandsLevelCtrl,
+    commandsOnOff,
     deviceAddCustomCluster,
+    deviceEndpoints,
+    electricityMeter,
+    enumLookup,
+    identify,
+    light,
+    onOff,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, Tz, KeyValue, ModernExtend} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 import {postfixWithEndpointName} from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -325,7 +326,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
             if (value.toLowerCase() === 'on') value = 'low';
-            return tz.fan_mode.convertSet(entity, key, value, meta);
+            return await tz.fan_mode.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
 };
@@ -358,63 +359,63 @@ const fzLocal = {
                             const acFrequencyDivisor = attr['acFrequencyDivisor'];
                             const powerDivisor = attr['powerDivisor'];
 
-                            if (attr.hasOwnProperty('rmsVoltage')) {
+                            if (attr.rmsVoltage !== undefined) {
                                 ret['voltage_phase_a'] = attr['rmsVoltage'] / acVoltageDivisor;
                             }
 
-                            if (attr.hasOwnProperty('rmsVoltagePhB')) {
+                            if (attr.rmsVoltagePhB !== undefined) {
                                 ret['voltage_phase_b'] = attr['rmsVoltagePhB'] / acVoltageDivisor;
                             }
 
-                            if (attr.hasOwnProperty('rmsVoltagePhC')) {
+                            if (attr.rmsVoltagePhC !== undefined) {
                                 ret['voltage_phase_c'] = attr['rmsVoltagePhC'] / acVoltageDivisor;
                             }
 
-                            if (attr.hasOwnProperty('19200')) {
+                            if (attr['19200'] !== undefined) {
                                 ret['voltage_phase_ab'] = attr['19200'] / acVoltageDivisor;
                             }
 
-                            if (attr.hasOwnProperty('19456')) {
+                            if (attr['19456'] !== undefined) {
                                 ret['voltage_phase_bc'] = attr['19456'] / acVoltageDivisor;
                             }
 
-                            if (attr.hasOwnProperty('19712')) {
+                            if (attr['19712'] !== undefined) {
                                 ret['voltage_phase_ca'] = attr['19712'] / acVoltageDivisor;
                             }
 
-                            if (attr.hasOwnProperty('rmsCurrent')) {
+                            if (attr.rmsCurrent !== undefined) {
                                 ret['current_phase_a'] = attr['rmsCurrent'] / acCurrentDivisor;
                             }
 
-                            if (attr.hasOwnProperty('rmsCurrentPhB')) {
+                            if (attr.rmsCurrentPhB !== undefined) {
                                 ret['current_phase_b'] = attr['rmsCurrentPhB'] / acCurrentDivisor;
                             }
 
-                            if (attr.hasOwnProperty('rmsCurrentPhC')) {
+                            if (attr.rmsCurrentPhC !== undefined) {
                                 ret['current_phase_c'] = attr['rmsCurrentPhC'] / acCurrentDivisor;
                             }
 
-                            if (attr.hasOwnProperty('totalActivePower')) {
+                            if (attr.totalActivePower !== undefined) {
                                 ret['power'] = (attr['totalActivePower'] * 1000) / powerDivisor;
                             }
 
-                            if (attr.hasOwnProperty('totalApparentPower')) {
+                            if (attr.totalApparentPower !== undefined) {
                                 ret['power_apparent'] = (attr['totalApparentPower'] * 1000) / powerDivisor;
                             }
 
-                            if (attr.hasOwnProperty('acFrequency')) {
+                            if (attr.acFrequency !== undefined) {
                                 ret['ac_frequency'] = attr['acFrequency'] / acFrequencyDivisor;
                             }
 
-                            if (attr.hasOwnProperty('activePower')) {
+                            if (attr.activePower !== undefined) {
                                 ret['power_phase_a'] = (attr['activePower'] * 1000) / powerDivisor;
                             }
 
-                            if (attr.hasOwnProperty('activePowerPhB')) {
+                            if (attr.activePowerPhB !== undefined) {
                                 ret['power_phase_b'] = (attr['activePowerPhB'] * 1000) / powerDivisor;
                             }
 
-                            if (attr.hasOwnProperty('activePowerPhC')) {
+                            if (attr.activePowerPhC !== undefined) {
                                 ret['power_phase_c'] = (attr['activePowerPhC'] * 1000) / powerDivisor;
                             }
                             break;
@@ -423,27 +424,27 @@ const fzLocal = {
                             // seMetering
                             const divisor = attr['divisor'];
 
-                            if (attr.hasOwnProperty('currentSummDelivered')) {
+                            if (attr.currentSummDelivered !== undefined) {
                                 const val = attr['currentSummDelivered'];
                                 ret['energy'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
                             }
 
-                            if (attr.hasOwnProperty('16652')) {
+                            if (attr['16652'] !== undefined) {
                                 const val = attr['16652'];
                                 ret['energy_phase_a'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
                             }
 
-                            if (attr.hasOwnProperty('16908')) {
+                            if (attr['16908'] !== undefined) {
                                 const val = attr['16908'];
                                 ret['energy_phase_b'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
                             }
 
-                            if (attr.hasOwnProperty('17164')) {
+                            if (attr['17164'] !== undefined) {
                                 const val = attr['17164'];
                                 ret['energy_phase_c'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
                             }
 
-                            if (attr.hasOwnProperty('powerFactor')) {
+                            if (attr.powerFactor !== undefined) {
                                 ret['power_factor'] = attr['powerFactor'];
                             }
 
@@ -460,7 +461,7 @@ const fzLocal = {
 
             if (rxAfterTx) {
                 // Send Schneider specific ACK to make PowerTag happy
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 const networkParameters = await msg.device.constructor.adapter.getNetworkParameters();
                 const payload = {
                     options: 0b000,
@@ -485,7 +486,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PUCK/SHUTTER/1'],
         model: 'CCT5015-0001',

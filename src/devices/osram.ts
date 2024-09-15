@@ -1,15 +1,15 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {ledvanceLight, ledvanceFz, ledvanceOnOff} from '../lib/ledvance';
+import {ledvanceFz, ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import * as legacy from '../lib/legacy';
 import {deviceEndpoints} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Gardenspot RGB'],
         model: '73699',

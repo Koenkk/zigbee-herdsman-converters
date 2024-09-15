@@ -3,14 +3,15 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {battery, iasZoneAlarm, light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Zh, Reporting} from '../lib/types';
+import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend, Reporting, Zh} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {light, battery, iasZoneAlarm} from '../lib/modernExtend';
-import * as tuya from '../lib/tuya';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PIRILLSensor-EF-3.0'],
         model: 'HS1MIS-3.0',

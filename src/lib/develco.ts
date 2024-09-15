@@ -1,19 +1,9 @@
 import {Zcl} from 'zigbee-herdsman';
 
 import {presets as e, access as ea} from './exposes';
-import {logger} from './logger';
-import {
-    numeric,
-    NumericArgs,
-    ScaleFunction,
-    temperature,
-    deviceTemperature,
-    deviceAddCustomCluster,
-    setupConfigureForReporting,
-} from './modernExtend';
-import {Fz, Tz, ModernExtend, Configure} from './types';
+import {deviceAddCustomCluster, deviceTemperature, numeric, NumericArgs, temperature} from './modernExtend';
+import {Configure, Fz, ModernExtend} from './types';
 
-const NS = 'zhc:develco';
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
 export const develcoModernExtend = {
@@ -53,16 +43,16 @@ export const develcoModernExtend = {
                         try {
                             const data = await ep.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
 
-                            if (data.hasOwnProperty('develcoPrimarySwVersion')) {
+                            if (data.develcoPrimarySwVersion !== undefined) {
                                 device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
                             }
 
-                            if (data.hasOwnProperty('develcoPrimaryHwVersion')) {
+                            if (data.develcoPrimaryHwVersion !== undefined) {
                                 device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
                             }
 
                             device.save();
-                        } catch (error) {
+                        } catch {
                             /* catch timeouts of sleeping devices */
                         }
                         break;
@@ -109,7 +99,7 @@ export const develcoModernExtend = {
                 cluster: clusterName,
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(attributeName)) {
+                    if (msg.data[attributeName] !== undefined) {
                         const vocPpb = parseFloat(msg.data[attributeName]);
 
                         // from aqszb-110-technical-manual-air-quality-sensor-04-08-20.pdf page 6, section 2.2 voc
@@ -159,7 +149,7 @@ export const develcoModernExtend = {
                 cluster: clusterName,
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(attributeName) && msg.data[attributeName] < 255) {
+                    if (msg.data[attributeName] !== undefined && msg.data[attributeName] < 255) {
                         const voltage = parseInt(msg.data[attributeName]);
                         return {[propertyName]: voltage <= 25};
                     }

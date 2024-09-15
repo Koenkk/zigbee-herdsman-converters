@@ -1,13 +1,14 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
-const e = exposes.presets;
 import {battery} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['HC-SLM-1'],
         model: 'HC-SLM-1',

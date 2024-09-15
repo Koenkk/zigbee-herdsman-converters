@@ -21,7 +21,7 @@ export function getConfigureKey(definition: Definition) {
     }
 
     // Prevent unnecessary recalculation of the hash
-    // @ts-expect-error
+    // @ts-expect-error ignore
     if (definition.configure in lookup) return lookup[definition.configure];
 
     const body = definition.configure.toString().replace(/\s/g, '');
@@ -37,7 +37,7 @@ export function getConfigureKey(definition: Definition) {
      * if the hash dind't change.
      */
     const configureKey = legacyKey in legacyKeys ? legacyKeys[legacyKey] : hash;
-    // @ts-expect-error
+    // @ts-expect-error ignore
     lookup[definition.configure] = configureKey;
     return configureKey;
 }

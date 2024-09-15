@@ -4,25 +4,26 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {
+    battery,
+    binary,
+    commandsOnOff,
+    deviceEndpoints,
+    enumLookup,
+    humidity,
+    light,
+    numeric,
+    onOff,
+    quirkAddEndpointCluster,
+    temperature,
+} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition, Tz, Fz, KeyValue, KeyValueAny, Zh, Expose} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from '../lib/types';
+import {getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {
-    light,
-    onOff,
-    battery,
-    temperature,
-    humidity,
-    enumLookup,
-    binary,
-    numeric,
-    quirkAddEndpointCluster,
-    deviceEndpoints,
-    commandsOnOff,
-} from '../lib/modernExtend';
-import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib/utils';
 
 const switchTypesList = {
     switch: 0x00,
@@ -88,7 +89,7 @@ const fzLocal = {
             // Sometimes the sensor publishes non-realistic vales, it should only publish message
             // in the 0 - 100 range, don't produce messages beyond these values.
             if (humidity >= 0 && humidity <= 100) {
-                const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+                const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
                 const property = multiEndpoint ? postfixWithEndpointName('humidity', msg, model, meta) : 'humidity';
                 return {[property]: humidity};
             }
@@ -102,7 +103,7 @@ const fzLocal = {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
-            const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+            const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property1 = multiEndpoint ? postfixWithEndpointName('illuminance', msg, model, meta) : 'illuminance';
             const property2 = multiEndpoint ? postfixWithEndpointName('illuminance_lux', msg, model, meta) : 'illuminance_lux';
             return {[property1]: illuminance, [property2]: illuminanceLux};
@@ -114,13 +115,13 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.pressure'
             let pressure = 0;
-            if (msg.data.hasOwnProperty('scaledValue')) {
+            if (msg.data.scaledValue !== undefined) {
                 const scale = msg.endpoint.getClusterAttributeValue('msPressureMeasurement', 'scale') as number;
                 pressure = msg.data['scaledValue'] / Math.pow(10, scale) / 100.0; // convert to hPa
             } else {
                 pressure = parseFloat(msg.data['measuredValue']);
             }
-            const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+            const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property = multiEndpoint ? postfixWithEndpointName('pressure', msg, model, meta) : 'pressure';
             return {[property]: pressure};
         },
@@ -239,7 +240,7 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     }
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ti.router'],
         model: 'ti.router',
@@ -276,7 +277,7 @@ const definitions: Definition[] = [
         exposes: [],
         whiteLabel: [{vendor: 'SMLIGHT', model: 'SLZB-07', description: 'Router', fingerprint: [{modelID: 'SLZB-07'}]}],
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
+            const endpoint = device.endpoints[0];
             const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
             await endpoint.configureReporting('genBasic', payload);
@@ -370,7 +371,7 @@ const definitions: Definition[] = [
                 }
 
                 for (const endpoint of device.endpoints) {
-                    if (allEndpoints.hasOwnProperty(endpoint.ID)) {
+                    if (allEndpoints[endpoint.ID] !== undefined) {
                         continue;
                     }
                     epConfig = endpoint.ID.toString();
@@ -393,7 +394,7 @@ const definitions: Definition[] = [
                     let valueId = valueConfigItems[0] ? valueConfigItems[0] : '';
                     let valueDescription = valueConfigItems[1] ? valueConfigItems[1] : '';
                     let valueUnit = valueConfigItems[2] !== undefined ? valueConfigItems[2] : '';
-                    if (!exposeDeviceOptions.hasOwnProperty(epName)) {
+                    if (exposeDeviceOptions[epName] === undefined) {
                         exposeDeviceOptions[epName] = {};
                     }
                     const exposeEpOptions: KeyValueAny = exposeDeviceOptions[epName];
@@ -573,7 +574,7 @@ const definitions: Definition[] = [
                             ptvoSetMetaOption(device, 'device_config', deviceConfig);
                             device.save();
                         }
-                    } catch (err) {
+                    } catch {
                         /* do nothing */
                     }
                 }
@@ -870,7 +871,7 @@ const definitions: Definition[] = [
                 await endpoint.read('hvacThermostat', [0x0010, 0x0011, 0x0102, 0x0103, 0x0104, 0x0105]);
                 await endpoint.read('msTemperatureMeasurement', [0x0010]);
                 await endpoint.read('msRelativeHumidity', [0x0010]);
-            } catch (e) {
+            } catch {
                 /* backward compatibility */
             }
         },
@@ -1084,7 +1085,7 @@ const definitions: Definition[] = [
                 await endpoint.read('hvacThermostat', [0x0010, 0x0011, 0x0102, 0x0103, 0x0104, 0x0105, 0x0107]);
                 await endpoint.read('msTemperatureMeasurement', [0x0010]);
                 await endpoint.read('msRelativeHumidity', [0x0010]);
-            } catch (e) {
+            } catch {
                 /* backward compatibility */
             }
         },

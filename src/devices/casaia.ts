@@ -1,12 +1,13 @@
 import fz from '../converters/fromZigbee';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
-const e = exposes.presets;
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import {onOff} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['CSLC601-D-E'],
         model: 'CSLC601-D-E',

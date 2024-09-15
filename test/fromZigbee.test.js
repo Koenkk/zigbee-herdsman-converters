@@ -1,8 +1,7 @@
 const legacy = require('../src/lib/legacy');
 
 jest.mock('fs');
-const fs = require('fs');
-const {fromZigbee} = require('../index');
+const {fromZigbee} = require('../src/index');
 
 describe('converters/fromZigbee', () => {
     describe('tuya', () => {

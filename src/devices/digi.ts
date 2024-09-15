@@ -1,5 +1,6 @@
-import {Definition} from '../lib/types';
-const definitions: Definition[] = [
+import {DefinitionWithExtend} from '../lib/types';
+
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {

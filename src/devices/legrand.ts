@@ -6,11 +6,12 @@ import {tzLegrand, fzLegrand, readInitialBatteryState, eLegrand, legrandOptions}
 import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: [
             ' Pocket remote\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
@@ -377,7 +378,7 @@ const definitions: Definition[] = [
             await reporting.activePower(endpoint);
             try {
                 await reporting.apparentPower(endpoint);
-            } catch (e) {
+            } catch {
                 // Some version/firmware don't seem to support this.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/16732
             }
@@ -480,7 +481,7 @@ const definitions: Definition[] = [
             try {
                 await reporting.apparentPower(endpoint);
                 await endpoint.read('haElectricalMeasurement', ['apparentPower']);
-            } catch (e) {
+            } catch {
                 // Some version/firmware don't seem to support this.
             }
             // Read configuration values that are not sent periodically.

@@ -1,10 +1,11 @@
-import {Definition} from '../src/lib/types';
-import fz from '../src/converters/fromZigbee';
 import * as zh from 'zigbee-herdsman/dist';
-import {repInterval} from '../src/lib/constants';
-import {assertDefintion, AssertDefinitionArgs, mockDevice, reportingItem} from './utils';
-import {findByDevice, generateExternalDefinitionSource} from '../src';
 import Device from 'zigbee-herdsman/dist/controller/model/device';
+
+import {findByDevice, generateExternalDefinitionSource} from '../src';
+import fz from '../src/converters/fromZigbee';
+import {repInterval} from '../src/lib/constants';
+import {Definition} from '../src/lib/types';
+import {AssertDefinitionArgs, assertDefintion, mockDevice, reportingItem} from './utils';
 
 const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalDefintionSource?: string}) => {
     const getDefinition = async (device: Device): Promise<Definition> => findByDevice(device, true);
