@@ -11613,7 +11613,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         extend: [],
         exposes: [
-            e.illuminance_lux(),
+            e.illuminance().withUnit('lx'),
             e.occupancy(),
             e
                 .numeric('presence_timeout', ea.STATE_SET)
@@ -11667,7 +11667,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [12, 'illuminance_lux', tuya.valueConverter.raw],
+                [12, 'illuminance', tuya.valueConverter.raw],
                 [101, 'occupancy', tuya.valueConverter.trueFalse0],
                 [104, 'presence_timeout', tuya.valueConverter.raw],
                 [105, 'move_sensitivity', tuya.valueConverter.raw],
