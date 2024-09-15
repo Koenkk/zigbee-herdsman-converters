@@ -360,11 +360,11 @@ const definitions: DefinitionWithExtend[] = [
                 for (let i = 0; i < deviceConfigArray.length; i++) {
                     epConfig = deviceConfigArray[i];
                     const matches = epConfig.match(/^([0-9A-F]+)/);
-                    if (matches && (matches.length == 0)) {
+                    if (!matches || matches.length == 0) {
                         continue;
                     }
                     const epId = parseInt(matches[0], 16);
-                    const epId2 = (epId < 10) ? '0' + epId: epId;
+                    const epId2 = epId < 10 ? '0' + epId : epId;
                     epConfig = epConfig.replace(/^[0-9A-F]+/, epId2);
                     allEndpoints[epId] = '1';
                     allEndpointsSorted.push(epConfig);
