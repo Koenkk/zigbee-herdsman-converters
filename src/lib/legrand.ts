@@ -60,8 +60,23 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
 
 export const legrandOptions = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
 
-export const _067776 = {
-    getCover: (device: Zh.Device) => {
+export const eLegrand = {
+    identify: () => {
+        return e
+            .enum('identify', ea.SET, ['identify'])
+            .withDescription('Blinks the built-in LED to make it easier to identify the device')
+            .withCategory('config');
+    },
+    ledInDark: () => {
+        return e
+            .binary('led_in_dark', ea.ALL, 'ON', 'OFF')
+            .withDescription('Enables the built-in LED allowing to see the switch in the dark')
+            .withCategory('config');
+    },
+    ledIfOn: () => {
+        return e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED on activity').withCategory('config');
+    },
+	getCover: (device: Zh.Device) => {
         const c = e.cover_position();
 
         const calMode = Number(device?.getEndpoint(1)?.clusters?.closuresWindowCovering?.attributes?.calibrationMode);
@@ -90,24 +105,6 @@ export const _067776 = {
             .enum('calibration_mode', ea.ALL, Object.values(modes))
             .withDescription('Defines the calibration mode of the switch. (Caution: Changing modes requires a recalibration of the shutter switch!)')
             .withCategory('config');
-    },
-};
-
-export const eLegrand = {
-    identify: () => {
-        return e
-            .enum('identify', ea.SET, ['identify'])
-            .withDescription('Blinks the built-in LED to make it easier to identify the device')
-            .withCategory('config');
-    },
-    ledInDark: () => {
-        return e
-            .binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-            .withDescription('Enables the built-in LED allowing to see the switch in the dark')
-            .withCategory('config');
-    },
-    ledIfOn: () => {
-        return e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED on activity').withCategory('config');
     },
 };
 
@@ -220,4 +217,46 @@ export const fzLegrand = {
             return payload;
         },
     } satisfies Fz.Converter,
+	command_cover: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+			const payload: KeyValueAny = {};
+			if (msg.data.hasOwnProperty('tuyaMovingState')) {
+				if ((0, utils.hasAlreadyProcessedMessage)(msg, model))
+					return;
+				if (msg.data['tuyaMovingState'] === 0) {
+                   // return {
+                        // action: 'open',
+                    // };
+					payload['action'] = (0, utils.postfixWithEndpointName)('OPEN', msg, model, meta);
+					(0, utils.addActionGroup)(payload, msg, model);
+                }
+                if (msg.data['tuyaMovingState'] === 100) {
+                    // return {
+                        // action: 'closed',
+                    // };
+					payload['action'] = (0, utils.postfixWithEndpointName)('CLOSE', msg, model, meta);
+					(0, utils.addActionGroup)(payload, msg, model);
+				}
+				if (msg.data['tuyaMovingState'] >= 1 && msg.data['tuyaMovingState'] < 100 ) {
+					// return {
+                        // action: 'stop',
+                    // };
+					payload['action'] = (0, utils.postfixWithEndpointName)('STOP', msg, model, meta);
+					(0, utils.addActionGroup)(payload, msg, model);
+				}
+			}
+			return payload;
+        },
+    } satisfies Fz.Converter,
+	identify: {
+        cluster: 'genIdentify',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {};
+        },
+    } satisfies Fz.Converter,
+	
+				 
 };
