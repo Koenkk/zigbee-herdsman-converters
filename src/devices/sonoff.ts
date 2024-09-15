@@ -808,7 +808,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position(), e.battery()],
     },
     {
-        zigbeeModel: ['Z111PL0H-1JX', 'SA-029-1'],
+        zigbeeModel: ['Z111PL0H-1JX', 'SA-029-1', 'SA-028-1'],
         model: 'SA-028/SA-029',
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
