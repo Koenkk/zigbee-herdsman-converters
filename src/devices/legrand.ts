@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {tzLegrand, fzLegrand, readInitialBatteryState, eLegrand, legrandOptions} from '../lib/legrand';
+import {eLegrand, fzLegrand, legrandOptions, readInitialBatteryState, tzLegrand} from '../lib/legrand';
 import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
@@ -148,7 +148,7 @@ const definitions: DefinitionWithExtend[] = [
             fz.identify,
             fzLegrand.cluster_fc01,
             fzLegrand.calibration_mode(false),
-            fzLegrand.command_cover,									 
+            fzLegrand.command_cover,
         ],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(false)],
         exposes: (device, options) => {
@@ -220,7 +220,7 @@ const definitions: DefinitionWithExtend[] = [
             fz.identify,
             fzLegrand.cluster_fc01,
             fzLegrand.calibration_mode(true),
-            fzLegrand.command_cover,									 
+            fzLegrand.command_cover,
         ],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
         exposes: (device, options) => {

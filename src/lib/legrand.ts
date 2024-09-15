@@ -76,7 +76,7 @@ export const eLegrand = {
     ledIfOn: () => {
         return e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED on activity').withCategory('config');
     },
-	getCover: (device: Zh.Device) => {
+    getCover: (device: Zh.Device) => {
         const c = e.cover_position();
 
         const calMode = Number(device?.getEndpoint(1)?.clusters?.closuresWindowCovering?.attributes?.calibrationMode);
@@ -217,46 +217,43 @@ export const fzLegrand = {
             return payload;
         },
     } satisfies Fz.Converter,
-	command_cover: {
+    command_cover: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-			const payload: KeyValueAny = {};
-			if (msg.data.hasOwnProperty('tuyaMovingState')) {
-				if ((0, utils.hasAlreadyProcessedMessage)(msg, model))
-					return;
-				if (msg.data['tuyaMovingState'] === 0) {
-                   // return {
-                        // action: 'open',
+            const payload: KeyValueAny = {};
+            if (msg.data.tuyaMovingState !== undefined) {
+                if ((0, utils.hasAlreadyProcessedMessage)(msg, model)) return;
+                if (msg.data['tuyaMovingState'] === 0) {
+                    // return {
+                    // action: 'open',
                     // };
-					payload['action'] = (0, utils.postfixWithEndpointName)('OPEN', msg, model, meta);
-					(0, utils.addActionGroup)(payload, msg, model);
+                    payload['action'] = (0, utils.postfixWithEndpointName)('OPEN', msg, model, meta);
+                    (0, utils.addActionGroup)(payload, msg, model);
                 }
                 if (msg.data['tuyaMovingState'] === 100) {
                     // return {
-                        // action: 'closed',
+                    // action: 'closed',
                     // };
-					payload['action'] = (0, utils.postfixWithEndpointName)('CLOSE', msg, model, meta);
-					(0, utils.addActionGroup)(payload, msg, model);
-				}
-				if (msg.data['tuyaMovingState'] >= 1 && msg.data['tuyaMovingState'] < 100 ) {
-					// return {
-                        // action: 'stop',
+                    payload['action'] = (0, utils.postfixWithEndpointName)('CLOSE', msg, model, meta);
+                    (0, utils.addActionGroup)(payload, msg, model);
+                }
+                if (msg.data['tuyaMovingState'] >= 1 && msg.data['tuyaMovingState'] < 100) {
+                    // return {
+                    // action: 'stop',
                     // };
-					payload['action'] = (0, utils.postfixWithEndpointName)('STOP', msg, model, meta);
-					(0, utils.addActionGroup)(payload, msg, model);
-				}
-			}
-			return payload;
+                    payload['action'] = (0, utils.postfixWithEndpointName)('STOP', msg, model, meta);
+                    (0, utils.addActionGroup)(payload, msg, model);
+                }
+            }
+            return payload;
         },
     } satisfies Fz.Converter,
-	identify: {
+    identify: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {};
         },
     } satisfies Fz.Converter,
-	
-				 
 };
