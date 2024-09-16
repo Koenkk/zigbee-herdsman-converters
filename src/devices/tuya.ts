@@ -6450,7 +6450,18 @@ const definitions: DefinitionWithExtend[] = [
                 [101, 'running_state', tuya.valueConverterBasic.lookup({heat: tuya.enum(1), idle: tuya.enum(0)})],
                 [102, 'frost_protection', tuya.valueConverter.onOff],
                 [103, 'factory_reset', tuya.valueConverter.onOff],
-                [104, 'working_day', tuya.valueConverter.workingDay],
+                [
+                    104,
+                    'working_day',
+                    tuya.valueConverterBasic.lookup((_, device) => {
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/23979
+                        if (device.manufacturerName === '_TZE204_lzriup1j') {
+                            return {disabled: tuya.enum(0), '6-1': tuya.enum(2), '5-2': tuya.enum(1), '7': tuya.enum(3)};
+                        } else {
+                            return {disabled: tuya.enum(0), '6-1': tuya.enum(1), '5-2': tuya.enum(2), '7': tuya.enum(3)};
+                        }
+                    }),
+                ],
                 [106, 'sensor', tuya.valueConverterBasic.lookup({internal: tuya.enum(0), external: tuya.enum(1), both: tuya.enum(2)})],
                 [107, 'deadzone_temperature', tuya.valueConverter.divideBy10],
                 [109, null, tuya.valueConverter.ZWT198_schedule],
