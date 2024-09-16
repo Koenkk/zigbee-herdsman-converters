@@ -496,7 +496,10 @@ const tzLocal = {
                 }
                 case 'over_voltage_threshold': {
                     const state = meta.state['over_voltage_breaker'];
-                    const buf = Buffer.from([3, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, 'over_voltage_breaker')]);
+                    const buf = Buffer.alloc(4);
+                    buf.writeUInt8(3, 0);
+                    buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 1);
+                    buf.writeUInt16BE(utils.toNumber(value, 'over_voltage_threshold'), 2);
                     await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                     break;
                 }
