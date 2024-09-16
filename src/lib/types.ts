@@ -426,6 +426,6 @@ export namespace Reporting {
     export interface Override {
         min?: number;
         max?: number;
-        change?: number | [number, number];
+        change?: number;
     }
 }

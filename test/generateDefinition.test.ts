@@ -440,7 +440,18 @@ module.exports = definition;
             }),
             meta: undefined,
             fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-            toZigbee: ['state', 'on_time', 'off_wait_time', 'power', 'voltage', 'current', 'energy'],
+            toZigbee: [
+                'state',
+                'on_time',
+                'off_wait_time',
+                'power',
+                'voltage',
+                'current',
+                'energy',
+                'produced_energy',
+                'ac_frequency',
+                'power_factor',
+            ],
             exposes: ['current', 'energy', 'linkquality', 'power', 'switch(state)', 'voltage'],
             bind: {1: ['genOnOff', 'haElectricalMeasurement', 'seMetering']},
             read: {
@@ -465,7 +476,7 @@ module.exports = definition;
                             reportingItem('rmsVoltage', 10, 65000, 5000),
                         ],
                     ],
-                    ['seMetering', [reportingItem('currentSummDelivered', 10, 65000, [0, 100])]],
+                    ['seMetering', [reportingItem('currentSummDelivered', 10, 65000, 100)]],
                 ],
             },
             externalDefintionSource: `

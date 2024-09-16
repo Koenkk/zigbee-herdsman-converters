@@ -605,14 +605,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TH1123ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [
-            fzLocal.thermostat,
-            fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
-            fz.electrical_measurement,
-            fz.metering,
-            fz.ignore_temperature_report,
-        ],
+        extend: [electricityMeter()],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -629,7 +623,6 @@ const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
-            tz.electrical_measurement_power,
         ],
         exposes: [
             e
@@ -673,10 +666,6 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
             e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current(),
-            e.voltage(),
-            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -688,8 +677,6 @@ const definitions: DefinitionWithExtend[] = [
                 'hvacThermostat',
                 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement',
-                'haElectricalMeasurement',
-                'seMetering',
                 'manuSpecificSinope',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -711,18 +698,6 @@ const definitions: DefinitionWithExtend[] = [
             } catch {
                 /* Not all support this */
             }
-
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            try {
-                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            } catch {
-                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
-            }
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
         },
     },
     {
@@ -730,14 +705,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TH1124ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [
-            fzLocal.thermostat,
-            fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
-            fz.electrical_measurement,
-            fz.metering,
-            fz.ignore_temperature_report,
-        ],
+        extend: [electricityMeter()],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -754,7 +723,6 @@ const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
-            tz.electrical_measurement_power,
         ],
         exposes: [
             e
@@ -798,10 +766,6 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
             e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current(),
-            e.voltage(),
-            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -813,8 +777,6 @@ const definitions: DefinitionWithExtend[] = [
                 'hvacThermostat',
                 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement',
-                'haElectricalMeasurement',
-                'seMetering',
                 'manuSpecificSinope',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -836,18 +798,6 @@ const definitions: DefinitionWithExtend[] = [
             } catch {
                 /* Not all support this */
             }
-
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            try {
-                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            } catch {
-                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
-            }
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
         },
     },
     {
@@ -855,14 +805,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TH1123ZB-G2',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [
-            fzLocal.thermostat,
-            fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
-            fz.electrical_measurement,
-            fz.metering,
-            fz.ignore_temperature_report,
-        ],
+        extend: [electricityMeter()],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -879,7 +823,6 @@ const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
-            tz.electrical_measurement_power,
         ],
         exposes: [
             e
@@ -923,10 +866,6 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
             e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current(),
-            e.voltage(),
-            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -938,8 +877,6 @@ const definitions: DefinitionWithExtend[] = [
                 'hvacThermostat',
                 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement',
-                'haElectricalMeasurement',
-                'seMetering',
                 'manuSpecificSinope',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds); // This G2 version has limited memory space
@@ -964,13 +901,6 @@ const definitions: DefinitionWithExtend[] = [
                     reportableChange: 1,
                 },
             ]);
-
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
 
             // Disable default reporting (not used by Sinope)
             await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
@@ -986,14 +916,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TH1124ZB-G2',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [
-            fzLocal.thermostat,
-            fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
-            fz.electrical_measurement,
-            fz.metering,
-            fz.ignore_temperature_report,
-        ],
+        extend: [electricityMeter()],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -1010,7 +934,6 @@ const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
-            tz.electrical_measurement_power,
         ],
         exposes: [
             e
@@ -1054,10 +977,6 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
             e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current(),
-            e.voltage(),
-            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -1069,8 +988,6 @@ const definitions: DefinitionWithExtend[] = [
                 'hvacThermostat',
                 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement',
-                'haElectricalMeasurement',
-                'seMetering',
                 'manuSpecificSinope',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds); // This G2 version has limited memory space
@@ -1095,13 +1012,6 @@ const definitions: DefinitionWithExtend[] = [
                     reportableChange: 1,
                 },
             ]);
-
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
 
             // Disable default reporting (not used by Sinope)
             await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
@@ -1120,14 +1030,8 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {model: 'TH1320ZB-04', vendor: 'Sinopé', description: 'Zigbee smart floor heating thermostat', fingerprint: [{modelID: 'TH1320ZB-04'}]},
         ],
-        fromZigbee: [
-            fzLocal.thermostat,
-            fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
-            fz.electrical_measurement,
-            fz.metering,
-            fz.ignore_temperature_report,
-        ],
+        extend: [electricityMeter()],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -1148,7 +1052,6 @@ const definitions: DefinitionWithExtend[] = [
             tzLocal.floor_min_heat_setpoint,
             tzLocal.floor_max_heat_setpoint,
             tzLocal.temperature_sensor,
-            tz.electrical_measurement_power,
         ],
         exposes: [
             e
@@ -1191,10 +1094,6 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('time_format', ea.ALL, ['24h', '12h']).withDescription('The time format featured on the thermostat display'),
             e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current(),
-            e.voltage(),
-            e.energy(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1204,43 +1103,13 @@ const definitions: DefinitionWithExtend[] = [
                 'genGroups',
                 'hvacThermostat',
                 'hvacUserInterfaceCfg',
-                'haElectricalMeasurement',
                 'msTemperatureMeasurement',
-                'seMetering',
                 'manuSpecificSinope',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            try {
-                await reporting.readMeteringMultiplierDivisor(endpoint);
-            } catch {
-                /* Do nothing*/
-            }
-            try {
-                await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            } catch {
-                /* Do nothing*/
-            }
-            try {
-                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            } catch {
-                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
-            }
-            try {
-                await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
-                await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            } catch {
-                /* Do nothing*/
-            }
-            try {
-                await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
-                await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-            } catch {
-                /* Do nothing*/
-            }
 
             try {
                 await reporting.thermostatKeypadLockMode(endpoint);
@@ -1524,9 +1393,9 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SW2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
-        fromZigbee: [fz.on_off, fzLocal.sinope, fz.metering],
+        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        fromZigbee: [fzLocal.sinope],
         toZigbee: [
-            tz.on_off,
             tzLocal.timer_seconds,
             tzLocal.led_intensity_on,
             tzLocal.led_intensity_off,
@@ -1536,7 +1405,6 @@ const definitions: DefinitionWithExtend[] = [
             tzLocal.connected_load,
         ],
         exposes: [
-            e.switch(),
             e.action(['up_single', 'up_double', 'up_hold', 'down_single', 'down_double', 'down_hold']),
             e
                 .numeric('timer_seconds', ea.ALL)
@@ -1571,19 +1439,11 @@ const definitions: DefinitionWithExtend[] = [
                 .withDescription('Control status LED color when load OFF'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock']).withDescription('Enables or disables the device’s buttons'),
             e.numeric('connected_load', ea.ALL).withUnit('W').withValueMin(0).withValueMax(1800).withDescription('Load connected in watt'),
-            e.energy(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'manuSpecificSinope', 'seMetering'];
+            const binds = ['manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.onOff(endpoint);
-            try {
-                await reporting.readMeteringMultiplierDivisor(endpoint);
-                await reporting.currentSummDelivered(endpoint, {min: 10, max: 300, change: [0, 10]});
-            } catch {
-                /* Do nothing*/
-            }
             const payload = [
                 {
                     attribute: 'actionReport',
@@ -1700,63 +1560,21 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SP2600ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart plug',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.frequency],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [0, 1]}); // divider 1
-        },
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['SP2610ZB'],
         model: 'SP2610ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart plug',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.frequency],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [0, 1]}); // divider 1
-        },
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['RM3250ZB'],
         model: 'RM3250ZB',
         vendor: 'Sinopé',
         description: '50A Smart electrical load controller',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'haElectricalMeasurement', 'seMetering'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['WL4200'],

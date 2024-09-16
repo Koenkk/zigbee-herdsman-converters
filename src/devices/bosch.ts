@@ -11,6 +11,7 @@ import {
     bindCluster,
     deviceAddCustomCluster,
     deviceEndpoints,
+    electricityMeter,
     enumLookup,
     humidity,
     iasZoneAlarm,
@@ -1762,21 +1763,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'BSP-FZ2',
         vendor: 'Bosch',
         description: 'Plug compact EU',
-        fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        extend: [ota()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 1]});
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.activePower(endpoint);
-        },
-        exposes: [e.switch(), e.power_on_behavior(), e.power(), e.energy()],
+        extend: [onOff(), electricityMeter(), ota()],
         whiteLabel: [
             {vendor: 'Bosch', model: 'BSP-EZ2', description: 'Plug compact FR', fingerprint: [{modelID: 'RBSH-SP-ZB-FR'}]},
             {vendor: 'Bosch', model: 'BSP-GZ2', description: 'Plug compact UK', fingerprint: [{modelID: 'RBSH-SP-ZB-GB'}]},
