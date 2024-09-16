@@ -8034,7 +8034,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r']),
         model: 'TS110E_1gang_1',
         vendor: 'Tuya',
         description: '1 channel dimmer',
@@ -8045,7 +8045,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia', '_TZ3210_weaqkhab']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia', '_TZ3210_weaqkhab', '_TZ3210_k1msuvg6']),
         model: 'TS110E_1gang_2',
         vendor: 'Tuya',
         description: '1 channel dimmer',
