@@ -13,7 +13,7 @@ interface MockEndpointArgs {
     attributes?: {[s: string]: {[s: string]: unknown}};
 }
 
-export function reportingItem(attribute: string, min: number, max: number, change: number | [number, number]) {
+export function reportingItem(attribute: string, min: number, max: number, change: number) {
     return {attribute: attribute, minimumReportInterval: min, maximumReportInterval: max, reportableChange: change};
 }
 

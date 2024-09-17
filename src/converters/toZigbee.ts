@@ -1804,6 +1804,13 @@ const converters2 = {
             await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['currentSummDelivered']);
         },
     } satisfies Tz.Converter,
+    currentsummreceived: {
+        key: ['produced_energy'],
+        convertGet: async (entity, key, meta) => {
+            utils.assertEndpoint(entity);
+            await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['currentSummReceived']);
+        },
+    } satisfies Tz.Converter,
     frequency: {
         key: ['ac_frequency'],
         convertGet: async (entity, key, meta) => {

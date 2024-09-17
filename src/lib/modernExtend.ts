@@ -78,7 +78,7 @@ export const timeLookup = {
 
 type ReportingConfigTime = number | keyof typeof timeLookup;
 type ReportingConfigAttribute = string | number | {ID: number; type: number};
-type ReportingConfig = {min: ReportingConfigTime; max: ReportingConfigTime; change: number | [number, number]; attribute: ReportingConfigAttribute};
+type ReportingConfig = {min: ReportingConfigTime; max: ReportingConfigTime; change: number; attribute: ReportingConfigAttribute};
 export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, 'attribute'>;
 
 function convertReportingConfigTime(time: ReportingConfigTime): number {
@@ -1611,19 +1611,45 @@ export interface ElectricityMeterArgs {
     power?: false | MultiplierDivisor;
     voltage?: false | MultiplierDivisor;
     energy?: false | MultiplierDivisor;
+    producedEnergy?: false | true | MultiplierDivisor;
+    acFrequency?: false | true | MultiplierDivisor;
     threePhase?: boolean;
     configureReporting?: boolean;
+    powerFactor?: boolean;
     endpointNames?: string[];
+    fzMetering?: Fz.Converter;
+    fzElectricalMeasurement?: Fz.Converter;
 }
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
-    args = {cluster: 'both', configureReporting: true, threePhase: false, ...args};
-    if (
-        args.cluster === 'metering' &&
-        isObject(args.power) &&
-        isObject(args.energy) &&
-        (args.power?.divisor !== args.energy?.divisor || args.power?.multiplier !== args.energy?.multiplier)
-    ) {
-        throw new Error(`When cluster is metering, power and energy divisor/multiplier should be equal`);
+    args = {cluster: 'both', configureReporting: true, threePhase: false, producedEnergy: false, acFrequency: false, powerFactor: false, ...args};
+    if (args.cluster !== 'electrical') {
+        const divisors = new Set([
+            args.cluster === 'metering' && isObject(args.power) ? args.power?.divisor : false,
+            isObject(args.energy) ? args.energy?.divisor : false,
+            isObject(args.producedEnergy) ? args.producedEnergy?.divisor : false,
+        ]);
+        divisors.delete(false);
+        const multipliers = new Set([
+            args.cluster === 'metering' && isObject(args.power) ? args.power?.multiplier : false,
+            isObject(args.energy) ? args.energy?.multiplier : false,
+            isObject(args.producedEnergy) ? args.producedEnergy?.multiplier : false,
+        ]);
+        multipliers.delete(false);
+        if (multipliers.size > 1 || divisors.size > 1) {
+            throw new Error(
+                `When cluster is metering, power and energy divisor/multiplier should be equal, got divisors=${Array.from(divisors).join(', ')}, multipliers=${Array.from(multipliers).join(', ')}`,
+            );
+        }
+    }
+
+    if (args.cluster === 'electrical' && args.producedEnergy) {
+        throw new Error(`Produced energy is not supported with cluster 'electrical', use 'both' or 'metering'`);
+    }
+    if (args.cluster === 'metering' && args.acFrequency) {
+        throw new Error(`AC frequency is not supported with cluster 'metering', use 'both' or 'electrical'`);
+    }
+    if (args.cluster === 'metering' && args.powerFactor) {
+        throw new Error(`Power factor is not supported with cluster 'metering', use 'both' or 'electrical'`);
     }
 
     let exposes: Numeric[] = [];
@@ -1638,6 +1664,14 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
             power_phase_c: {attribute: 'activePowerPhC', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5},
             // Report change with every 0.05A change
             current: {attribute: 'rmsCurrent', divisor: 'acCurrentDivisor', multiplier: 'acCurrentMultiplier', forced: args.current, change: 0.05},
+            // Report change every 1 Hz
+            ac_frequency: {
+                attribute: 'acFrequency',
+                divisor: 'acFrequencyDivisor',
+                multiplier: 'acFrequencyMultiplier',
+                forced: isObject(args.acFrequency) ? args.acFrequency : (false as const),
+                change: 1,
+            },
             current_phase_b: {
                 attribute: 'rmsCurrentPhB',
                 divisor: 'acCurrentDivisor',
@@ -1651,6 +1685,10 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                 multiplier: 'acCurrentMultiplier',
                 forced: args.current,
                 change: 0.05,
+            },
+            power_factor: {
+                attribute: 'powerFactor',
+                change: 10,
             },
             // Report change with every 5V change
             voltage: {attribute: 'rmsVoltage', divisor: 'acVoltageDivisor', multiplier: 'acVoltageMultiplier', forced: args.voltage, change: 5},
@@ -1674,7 +1712,13 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
             power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 5},
             // Report change with every 0.1kWh change
             energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1},
-            // produced_energy: {attribute: 'currentSummReceived', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1},
+            produced_energy: {
+                attribute: 'currentSummReceived',
+                divisor: 'divisor',
+                multiplier: 'multiplier',
+                forced: isObject(args.producedEnergy) ? args.producedEnergy : (false as const),
+                change: 0.1,
+            },
         },
     };
 
@@ -1697,6 +1741,15 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     if (args.energy === false) {
         delete configureLookup.seMetering.energy;
     }
+    if (args.producedEnergy === false) {
+        delete configureLookup.seMetering.produced_energy;
+    }
+    if (args.powerFactor === false) {
+        delete configureLookup.haElectricalMeasurement.power_factor;
+    }
+    if (args.acFrequency === false) {
+        delete configureLookup.haElectricalMeasurement.ac_frequency;
+    }
     if (args.threePhase === false) {
         delete configureLookup.haElectricalMeasurement.power_phase_b;
         delete configureLookup.haElectricalMeasurement.power_phase_c;
@@ -1709,23 +1762,37 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     if (args.cluster === 'both') {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
+        if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET));
+        if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
-        fromZigbee = [fz.electrical_measurement, fz.metering];
-        toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.currentsummdelivered];
+        if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
+        fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement, args.fzMetering ?? fz.metering];
+        toZigbee = [
+            tz.electrical_measurement_power,
+            tz.acvoltage,
+            tz.accurrent,
+            tz.currentsummdelivered,
+            tz.currentsummreceived,
+            tz.frequency,
+            tz.powerfactor,
+        ];
         delete configureLookup.seMetering.power;
     } else if (args.cluster === 'metering') {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
-        fromZigbee = [fz.metering];
-        toZigbee = [tz.metering_power, tz.currentsummdelivered];
+        if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
+        fromZigbee = [args.fzMetering ?? fz.metering];
+        toZigbee = [tz.metering_power, tz.currentsummdelivered, tz.currentsummreceived];
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === 'electrical') {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
-        fromZigbee = [fz.electrical_measurement];
-        toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent];
+        if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET));
+        if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
+        fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement];
+        toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.frequency, tz.powerfactor];
         delete configureLookup.seMetering;
     }
 
@@ -1761,24 +1828,26 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                     for (const endpoint of getEndpointsWithCluster(device, cluster, 'input')) {
                         const items: ReportingConfig[] = [];
                         for (const property of Object.values(properties)) {
-                            // In case multiplier or divisor was provided, use that instead of reading from device.
-                            if (property.forced) {
-                                endpoint.saveClusterAttributeKeyValue(cluster, {
-                                    [property.divisor]: property.forced.divisor ?? 1,
-                                    [property.multiplier]: property.forced.multiplier ?? 1,
-                                });
-                                endpoint.save();
-                            } else {
-                                await endpoint.read(cluster, [property.divisor, property.multiplier]);
-                            }
+                            let change = property.change;
+                            // Check if this property has a divisor and multiplier, e.g. AC frequency doesn't.
+                            if ('divisor' in property) {
+                                // In case multiplier or divisor was provided, use that instead of reading from device.
+                                if (property.forced) {
+                                    endpoint.saveClusterAttributeKeyValue(cluster, {
+                                        [property.divisor]: property.forced.divisor ?? 1,
+                                        [property.multiplier]: property.forced.multiplier ?? 1,
+                                    });
+                                    endpoint.save();
+                                } else {
+                                    await endpoint.read(cluster, [property.divisor, property.multiplier]);
+                                }
 
-                            const divisor = endpoint.getClusterAttributeValue(cluster, property.divisor);
-                            assertNumber(divisor, property.divisor);
-                            const multiplier = endpoint.getClusterAttributeValue(cluster, property.multiplier);
-                            assertNumber(multiplier, property.multiplier);
-                            let change: number | [number, number] = property.change * (divisor / multiplier);
-                            // currentSummDelivered data type is uint48, so reportableChange also is uint48
-                            if (property.attribute === 'currentSummDelivered') change = [0, change];
+                                const divisor = endpoint.getClusterAttributeValue(cluster, property.divisor);
+                                assertNumber(divisor, property.divisor);
+                                const multiplier = endpoint.getClusterAttributeValue(cluster, property.multiplier);
+                                assertNumber(multiplier, property.multiplier);
+                                change = property.change * (divisor / multiplier);
+                            }
                             items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
                         }
                         if (items.length) {

@@ -46,7 +46,7 @@ function electricityMeterPoll(): ModernExtend {
             'acPowerDivisor',
         ]),
         setupConfigureForReading('seMetering', ['multiplier', 'divisor']),
-        setupConfigureForReporting('seMetering', 'currentSummDelivered', {min: '5_SECONDS', max: '1_HOUR', change: [1, 1]}, exposes.access.STATE_GET),
+        setupConfigureForReporting('seMetering', 'currentSummDelivered', {min: '5_SECONDS', max: '1_HOUR', change: 257}, exposes.access.STATE_GET),
     ];
 
     const onEvent: OnEvent = async (type, data, device) => {
