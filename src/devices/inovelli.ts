@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceAddCustomCluster, identify} from '../lib/modernExtend';
+import {deviceAddCustomCluster, deviceEndpoints, identify, light, illuminance, occupancy, electricityMeter, commandsOnOff, commandsLevelCtrl} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -143,6 +143,18 @@ const inovelliExtend = {
                 ledIntensityWhenOn: {ID: 0x0061, type: Zcl.DataType.UINT8},
                 ledIntensityWhenOff: {ID: 0x0062, type: Zcl.DataType.UINT8},
                 ledBarScaling: {ID: 0x0064, type: Zcl.DataType.BOOLEAN},
+                mmwaveMinRange: { ID: 0x0065, type: Zcl.DataType.UINT16 },
+                mmwaveMaxRange: { ID: 0x0066, type: Zcl.DataType.UINT16 },
+                mmwaveSensitivity: { ID: 0x0067, type: Zcl.DataType.UINT8 },
+                mmwaveDetectionDelay: { ID: 0x0068, type: Zcl.DataType.UINT8 },
+                mmwaveDetectionTimeout: { ID: 0x0069, type: Zcl.DataType.UINT16 },
+                mmwaveProxLedDistance: { ID: 0x006A, type: Zcl.DataType.UINT8 },
+                mmwaveProxLedMode: { ID: 0x006B, type: Zcl.DataType.UINT8 },
+                mmwaveControlBoundDevice: { ID: 0x006C, type: Zcl.DataType.BOOLEAN },
+                luxLimit: { ID: 0x006D, type: Zcl.DataType.UINT16 },
+                lightOnPresenceBehavior: { ID: 0x006E, type: Zcl.DataType.UINT8 },
+                mmwaveStartFilter: { ID: 0x0072, type: Zcl.DataType.UINT16 },
+                mmwaveEndFilter: { ID: 0x0073, type: Zcl.DataType.UINT16 },
                 singleTapBehavior: {ID: 0x0078, type: Zcl.DataType.UINT8},
                 fanTimerMode: {ID: 0x0079, type: Zcl.DataType.UINT8},
                 auxSwitchUniqueScenes: {ID: 0x007b, type: Zcl.DataType.BOOLEAN},
@@ -1236,6 +1248,94 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     },
 };
 
+const DZM32_ATTRIBUTES: {[s: string]: Attribute} = {
+    ...COMMON_ATTRIBUTES,
+    mmwaveMinRange: {
+        ID: 101,
+        dataType: Zcl.DataType.UINT16,
+        description: "The minimum range from the sensor that presence can be detected (in cm).",
+        min: 10,
+        max: 600,
+    },
+    mmwaveMaxRange: {
+        ID: 102,
+        dataType: Zcl.DataType.UINT16,
+        description: "The maximum range from the sensor that presence can be detected (in cm).",
+        min: 10,
+        max: 600,
+    },
+    mmwaveSensitivity: {
+        ID: 103,
+        dataType: Zcl.DataType.UINT8,
+        description: "Adjust the sensitivity of the mmWave sensor. ",
+        min: 0,
+        max: 10,
+    },
+    mmwaveDetectionDelay: {
+        ID: 104,
+        dataType: Zcl.DataType.UINT8,
+        description: "Adjust this value to reduce false positives or false negatives. Increasing the value reduces false events, but at the sacrifice of response time. ",
+        min: 0,
+        max: 3600,
+    },
+    mmwaveDetectionTimeout: {
+        ID: 105,
+        dataType: Zcl.DataType.UINT16,
+        description: "Amount of time after presence detection that a no-presence report is sent",
+        min: 0,
+        max: 3600,
+    },
+    mmwaveProxLedDistance: {
+        ID: 106,
+        dataType: Zcl.DataType.UINT8,
+        description: "How many feet to use for proximity mode ",
+        min: 0,
+        max: 8,
+    },
+    mmwaveProxLedMode: {
+        ID: 107,
+        dataType: Zcl.DataType.UINT8,
+        description: "Turn off the LEDs unless the user is within x feet ",
+        min: 0,
+        max: 2,
+    },
+    mmwaveControlBoundDevice: {
+        ID: 108,
+        dataType: Zcl.DataType.BOOLEAN,
+        description: "Turn on / off bound device on presence detection",
+        displayType: 'enum',
+        values: {Enabled: 1, Disabled: 0},
+    },
+    luxLimit: {
+        ID: 109,
+        dataType: Zcl.DataType.UINT16,
+        description: "Only turn on light if Lux is at this value",
+        min: 0,
+        max: 1001,
+    },
+    lightOnPresenceBehavior: {
+        ID: 110,
+        dataType: Zcl.DataType.UINT8,
+        description: "When presence is detected, choose how to control the light load",
+        displayType: 'enum',
+        values: {Disabled: 0, Enabled: 1},
+    },
+    mmwaveStartFilter: {
+        ID: 114,
+        dataType: Zcl.DataType.UINT16,
+        description: "The beginning of the filter zone from the switch (in cm).",
+        min: 0,
+        max: 600,
+    },
+    mmwaveEndFilter: {
+        ID: 115,
+        dataType: Zcl.DataType.UINT16,
+        description: "The ending of the filter zone from the switch (in cm).",
+        min: 0,
+        max: 600,
+    },
+};
+
 const tzLocal = {
     inovelli_parameters: (ATTRIBUTES: {[s: string]: Attribute}) =>
         ({
@@ -2102,10 +2202,106 @@ const exposesListVZM36: Expose[] = [
         .withCategory('config'),
 ];
 
+const exposesListDZM32: Expose[] = [
+    e.light_brightness(),
+    e.power(),
+    e.energy(),
+    e
+        .composite('led_effect', 'led_effect', ea.STATE_SET)
+        .withFeature(
+            e
+                .enum('effect', ea.STATE_SET, [
+                    'off',
+                    'solid',
+                    'fast_blink',
+                    'slow_blink',
+                    'pulse',
+                    'chase',
+                    'open_close',
+                    'small_to_big',
+                    'aurora',
+                    'slow_falling',
+                    'medium_falling',
+                    'fast_falling',
+                    'slow_rising',
+                    'medium_rising',
+                    'fast_rising',
+                    'medium_blink',
+                    'slow_chase',
+                    'fast_chase',
+                    'fast_siren',
+                    'slow_siren',
+                    'clear_effect',
+                ])
+                .withDescription('Animation Effect to use for the LEDs'),
+        )
+        .withFeature(
+            e
+                .numeric('color', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription('Calculated by using a hue color circle(value/255*360) If color = 255 display white'),
+        )
+        .withFeature(e.numeric('level', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Brightness of the LEDs'))
+        .withFeature(
+            e
+                .numeric('duration', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription(
+                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
+                        'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
+                        'Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
+                ),
+        )
+        .withCategory('config'),
+    e
+        .composite('individual_led_effect', 'individual_led_effect', ea.STATE_SET)
+        .withFeature(e.enum('led', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7']).withDescription('Individual LED to target.'))
+        .withFeature(
+            e
+                .enum('effect', ea.STATE_SET, [
+                    'off',
+                    'solid',
+                    'fast_blink',
+                    'slow_blink',
+                    'pulse',
+                    'chase',
+                    'falling',
+                    'rising',
+                    'aurora',
+                    'clear_effect',
+                ])
+                .withDescription('Animation Effect to use for the LED'),
+        )
+        .withFeature(
+            e
+                .numeric('color', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription('Calculated by using a hue color circle(value/255*360) If color = 255 display white'),
+        )
+        .withFeature(e.numeric('level', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Brightness of the LED'))
+        .withFeature(
+            e
+                .numeric('duration', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription(
+                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
+                        'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
+                        ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
+                ),
+        )
+        .withCategory('config'),
+];
+
+
 // Populate exposes list from the attributes description
 attributesToExposeList(VZM31_ATTRIBUTES, exposesListVZM31);
 attributesToExposeList(VZM35_ATTRIBUTES, exposesListVZM35);
 attributesToExposeList(VZM36_ATTRIBUTES, exposesListVZM36);
+attributesToExposeList(DZM32_ATTRIBUTES, exposesListDZM32);
 
 // Put actions at the bottom of ui
 exposesListVZM31.push(
@@ -2135,6 +2331,32 @@ exposesListVZM31.push(
 );
 
 exposesListVZM35.push(
+    e.action([
+        'down_single',
+        'up_single',
+        'config_single',
+        'down_release',
+        'up_release',
+        'config_release',
+        'down_held',
+        'up_held',
+        'config_held',
+        'down_double',
+        'up_double',
+        'config_double',
+        'down_triple',
+        'up_triple',
+        'config_triple',
+        'down_quadruple',
+        'up_quadruple',
+        'config_quadruple',
+        'down_quintuple',
+        'up_quintuple',
+        'config_quintuple',
+    ]),
+);
+
+exposesListDZM32.push(
     e.action([
         'down_single',
         'up_single',
@@ -2268,6 +2490,51 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint2);
+        },
+    },
+    {
+        zigbeeModel: ['DZM32-SN'],
+        model: 'DZM32-SN',
+        vendor: 'Inovelli',
+        description: 'mmWave Zigbee Dimmer',
+        exposes: exposesListDZM32.concat(identify().exposes as Expose[]),
+        extend: [inovelliExtend.addCustomClusterInovelli(), illuminance(), occupancy()],
+        toZigbee: [
+            tzLocal.light_onoff_brightness_inovelli,
+            tz.power_on_behavior,
+            tz.ignore_transition,
+            tz.identify,
+            tzLocal.inovelli_led_effect,
+            tzLocal.inovelli_individual_led_effect,
+            tzLocal.inovelli_parameters(DZM32_ATTRIBUTES),
+            tzLocal.inovelli_parameters_readOnly(DZM32_ATTRIBUTES),
+        ],
+        fromZigbee: [
+            fz.on_off,
+            fz.brightness,
+            fz.level_config,
+            fz.power_on_behavior,
+            fz.ignore_basic_report,
+            fz.electrical_measurement,
+            fz.metering,
+            fzLocal.inovelli(DZM32_ATTRIBUTES),
+        ],
+        ota: ota.inovelli,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering', 'haElectricalMeasurement', 'genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+            // Bind for Button Event Reporting
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificInovelli']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.activePower(endpoint, { min: 15, max: 3600, change: 1 });
+            await reporting.currentSummDelivered(endpoint, {
+                min: 15,
+                max: 3600,
+                change: 0,
+            });
         },
     },
 ];
