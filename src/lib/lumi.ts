@@ -1103,7 +1103,7 @@ function readTemperature(buffer: Buffer, offset: number): number {
 }
 
 function writeTemperature(buffer: Buffer, offset: number, temperature: number): void {
-    buffer.writeUint16BE(temperature * 100, offset);
+    buffer.writeUInt16BE(temperature * 100, offset);
 }
 
 const dayNames: Day[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -1168,7 +1168,7 @@ function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: bool
         minutesWithDayFlag = minutesWithDayFlag | timeNextDayFlag;
     }
 
-    buffer.writeUint16BE(minutesWithDayFlag, offset);
+    buffer.writeUInt16BE(minutesWithDayFlag, offset);
 }
 
 /**
@@ -3873,7 +3873,7 @@ export const toZigbee = {
                     assertEndpoint(entity);
                     const device = Buffer.from(entity.deviceIeeeAddress.substring(2), 'hex');
                     const timestamp = Buffer.alloc(4);
-                    timestamp.writeUint32BE(Date.now() / 1000);
+                    timestamp.writeUInt32BE(Date.now() / 1000);
 
                     if (value === 'external') {
                         const params1 = [
