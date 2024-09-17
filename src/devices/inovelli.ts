@@ -3,7 +3,17 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceAddCustomCluster, deviceEndpoints, identify, light, illuminance, occupancy, electricityMeter, commandsOnOff, commandsLevelCtrl} from '../lib/modernExtend';
+import {
+    deviceAddCustomCluster,
+    deviceEndpoints,
+    identify,
+    light,
+    illuminance,
+    occupancy,
+    electricityMeter,
+    commandsOnOff,
+    commandsLevelCtrl,
+} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -143,18 +153,18 @@ const inovelliExtend = {
                 ledIntensityWhenOn: {ID: 0x0061, type: Zcl.DataType.UINT8},
                 ledIntensityWhenOff: {ID: 0x0062, type: Zcl.DataType.UINT8},
                 ledBarScaling: {ID: 0x0064, type: Zcl.DataType.BOOLEAN},
-                mmwaveMinRange: { ID: 0x0065, type: Zcl.DataType.UINT16 },
-                mmwaveMaxRange: { ID: 0x0066, type: Zcl.DataType.UINT16 },
-                mmwaveSensitivity: { ID: 0x0067, type: Zcl.DataType.UINT8 },
-                mmwaveDetectionDelay: { ID: 0x0068, type: Zcl.DataType.UINT8 },
-                mmwaveDetectionTimeout: { ID: 0x0069, type: Zcl.DataType.UINT16 },
-                mmwaveProxLedDistance: { ID: 0x006A, type: Zcl.DataType.UINT8 },
-                mmwaveProxLedMode: { ID: 0x006B, type: Zcl.DataType.UINT8 },
-                mmwaveControlBoundDevice: { ID: 0x006C, type: Zcl.DataType.BOOLEAN },
-                luxLimit: { ID: 0x006D, type: Zcl.DataType.UINT16 },
-                lightOnPresenceBehavior: { ID: 0x006E, type: Zcl.DataType.UINT8 },
-                mmwaveStartFilter: { ID: 0x0072, type: Zcl.DataType.UINT16 },
-                mmwaveEndFilter: { ID: 0x0073, type: Zcl.DataType.UINT16 },
+                mmwaveMinRange: {ID: 0x0065, type: Zcl.DataType.UINT16},
+                mmwaveMaxRange: {ID: 0x0066, type: Zcl.DataType.UINT16},
+                mmwaveSensitivity: {ID: 0x0067, type: Zcl.DataType.UINT8},
+                mmwaveDetectionDelay: {ID: 0x0068, type: Zcl.DataType.UINT8},
+                mmwaveDetectionTimeout: {ID: 0x0069, type: Zcl.DataType.UINT16},
+                mmwaveProxLedDistance: {ID: 0x006a, type: Zcl.DataType.UINT8},
+                mmwaveProxLedMode: {ID: 0x006b, type: Zcl.DataType.UINT8},
+                mmwaveControlBoundDevice: {ID: 0x006c, type: Zcl.DataType.BOOLEAN},
+                luxLimit: {ID: 0x006d, type: Zcl.DataType.UINT16},
+                lightOnPresenceBehavior: {ID: 0x006e, type: Zcl.DataType.UINT8},
+                mmwaveStartFilter: {ID: 0x0072, type: Zcl.DataType.UINT16},
+                mmwaveEndFilter: {ID: 0x0073, type: Zcl.DataType.UINT16},
                 singleTapBehavior: {ID: 0x0078, type: Zcl.DataType.UINT8},
                 fanTimerMode: {ID: 0x0079, type: Zcl.DataType.UINT8},
                 auxSwitchUniqueScenes: {ID: 0x007b, type: Zcl.DataType.BOOLEAN},
@@ -1253,84 +1263,85 @@ const DZM32_ATTRIBUTES: {[s: string]: Attribute} = {
     mmwaveMinRange: {
         ID: 101,
         dataType: Zcl.DataType.UINT16,
-        description: "The minimum range from the sensor that presence can be detected (in cm).",
+        description: 'The minimum range from the sensor that presence can be detected (in cm).',
         min: 10,
         max: 600,
     },
     mmwaveMaxRange: {
         ID: 102,
         dataType: Zcl.DataType.UINT16,
-        description: "The maximum range from the sensor that presence can be detected (in cm).",
+        description: 'The maximum range from the sensor that presence can be detected (in cm).',
         min: 10,
         max: 600,
     },
     mmwaveSensitivity: {
         ID: 103,
         dataType: Zcl.DataType.UINT8,
-        description: "Adjust the sensitivity of the mmWave sensor. ",
+        description: 'Adjust the sensitivity of the mmWave sensor. ',
         min: 0,
         max: 10,
     },
     mmwaveDetectionDelay: {
         ID: 104,
         dataType: Zcl.DataType.UINT8,
-        description: "Adjust this value to reduce false positives or false negatives. Increasing the value reduces false events, but at the sacrifice of response time. ",
+        description:
+            'Adjust this value to reduce false positives or false negatives. Increasing the value reduces false events, but at the sacrifice of response time. ',
         min: 0,
         max: 3600,
     },
     mmwaveDetectionTimeout: {
         ID: 105,
         dataType: Zcl.DataType.UINT16,
-        description: "Amount of time after presence detection that a no-presence report is sent",
+        description: 'Amount of time after presence detection that a no-presence report is sent',
         min: 0,
         max: 3600,
     },
     mmwaveProxLedDistance: {
         ID: 106,
         dataType: Zcl.DataType.UINT8,
-        description: "How many feet to use for proximity mode ",
+        description: 'How many feet to use for proximity mode ',
         min: 0,
         max: 8,
     },
     mmwaveProxLedMode: {
         ID: 107,
         dataType: Zcl.DataType.UINT8,
-        description: "Turn off the LEDs unless the user is within x feet ",
+        description: 'Turn off the LEDs unless the user is within x feet ',
         min: 0,
         max: 2,
     },
     mmwaveControlBoundDevice: {
         ID: 108,
         dataType: Zcl.DataType.BOOLEAN,
-        description: "Turn on / off bound device on presence detection",
+        description: 'Turn on / off bound device on presence detection',
         displayType: 'enum',
         values: {Enabled: 1, Disabled: 0},
     },
     luxLimit: {
         ID: 109,
         dataType: Zcl.DataType.UINT16,
-        description: "Only turn on light if Lux is at this value",
+        description: 'Only turn on light if Lux is at this value',
         min: 0,
         max: 1001,
     },
     lightOnPresenceBehavior: {
         ID: 110,
         dataType: Zcl.DataType.UINT8,
-        description: "When presence is detected, choose how to control the light load",
+        description: 'When presence is detected, choose how to control the light load',
         displayType: 'enum',
         values: {Disabled: 0, Enabled: 1},
     },
     mmwaveStartFilter: {
         ID: 114,
         dataType: Zcl.DataType.UINT16,
-        description: "The beginning of the filter zone from the switch (in cm).",
+        description: 'The beginning of the filter zone from the switch (in cm).',
         min: 0,
         max: 600,
     },
     mmwaveEndFilter: {
         ID: 115,
         dataType: Zcl.DataType.UINT16,
-        description: "The ending of the filter zone from the switch (in cm).",
+        description: 'The ending of the filter zone from the switch (in cm).',
         min: 0,
         max: 600,
     },
@@ -2296,7 +2307,6 @@ const exposesListDZM32: Expose[] = [
         .withCategory('config'),
 ];
 
-
 // Populate exposes list from the attributes description
 attributesToExposeList(VZM31_ATTRIBUTES, exposesListVZM31);
 attributesToExposeList(VZM35_ATTRIBUTES, exposesListVZM35);
@@ -2529,7 +2539,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificInovelli']);
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.activePower(endpoint, { min: 15, max: 3600, change: 1 });
+            await reporting.activePower(endpoint, {min: 15, max: 3600, change: 1});
             await reporting.currentSummDelivered(endpoint, {
                 min: 15,
                 max: 3600,
