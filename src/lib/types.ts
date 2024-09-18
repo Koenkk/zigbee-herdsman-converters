@@ -222,7 +222,7 @@ export interface DefinitionMeta {
     /**
      * Never use a transition when transitioning to off (even when specified)
      */
-    noOffTransition?: boolean | ((entity: Zh.Endpoint) => boolean);
+    noOffTransitionWhenOff?: boolean | ((entity: Zh.Endpoint) => boolean);
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
