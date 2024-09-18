@@ -123,7 +123,6 @@ const definitions: DefinitionWithExtend[] = [
             legacy.tz.moes_thermostat_min_temperature_limit,
             legacy.tz.moes_thermostat_program_schedule,
         ],
-        whiteLabel: [tuya.whitelabel('Moes', 'BHT-002/BHT-006', 'Smart heating thermostat', ['_TZE204_aoclfnxz'])],
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === '_TZE204_5toc8efa' ? 0.5 : 1;
             return [
