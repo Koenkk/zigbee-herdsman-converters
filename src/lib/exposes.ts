@@ -1142,6 +1142,12 @@ export const presets = {
             )
             .withValueMin(1)
             .withValueMax(5),
+    min_temperature_limit_deadzone: () =>
+        new Numeric('min_temperature_limit', access.STATE_SET)
+            .withUnit('°C')
+            .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat')
+            .withValueMin(1)
+            .withValueMax(5),
     min_temperature: () =>
         new Numeric('min_temperature', access.STATE_SET).withUnit('°C').withDescription('Minimum temperature').withValueMin(1).withValueMax(15),
     mode_switch_select: (mode_switch_names: string[]) =>
@@ -1257,7 +1263,7 @@ export const presets = {
         new Enum('sensor', access.STATE_SET, sensor_names).withDescription('Select temperature sensor to use').withCategory('config'),
     test: () => new Binary('test', access.STATE, true, false).withDescription('Indicates whether the device is being tested'),
     trigger_count: (sinceScheduledReport = true) =>
-        new Numeric('trigger_count', exports.access.STATE)
+        new Numeric('trigger_count', access.STATE)
             .withDescription('Indicates how many times the sensor was triggered' + (sinceScheduledReport ? ' (since last scheduled report)' : ''))
             .withCategory('diagnostic'),
     trigger_indicator: () =>
