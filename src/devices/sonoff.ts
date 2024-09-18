@@ -814,6 +814,10 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
         extend: [onOff()],
+        configure: async (device, coordinatorEndpoint) => {
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['SNZB-01P'],
