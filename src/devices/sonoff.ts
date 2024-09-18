@@ -813,7 +813,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
-        extend: [onOff()],
+        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['SNZB-01P'],
