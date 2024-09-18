@@ -1,5 +1,16 @@
 # Changelog
 
+## [20.16.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.16.1...v20.16.2) (2024-09-18)
+
+
+### Bug Fixes
+
+* **detet:** Detect `_TZ3000_bjawzodf` as Tuya WSD500A ([#8001](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8001)) ([09c745c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/09c745c9f422cb3ce57b534f244be7c5bef226f1))
+* Fix power source unknown for Sonoff plugs SA-028/SA-09 ([#8003](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8003)) ([831dd1b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/831dd1b6eb77dc6f79b4291d1f2473e2142b367e))
+* Hint for required firmware for auto close valve in SONOFF SWV ([#8002](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8002)) ([cb2a0b0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb2a0b066b4b25402213ea9ead9ec2877bf9f511))
+* **ignore:** `writeUint` -&gt; `writeUInt` ([a084f2e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a084f2e8b2e5133630fd745f686aa9dc39317adc))
+* Send transition when IKEA bulb is turned OFF when not already OFF https://github.com/Koenkk/zigbee2mqtt/issues/23825 ([21fbf64](https://github.com/Koenkk/zigbee-herdsman-converters/commit/21fbf64e07bf2bde419ef31edd9113505424bd04))
+
 ## [20.16.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.16.0...v20.16.1) (2024-09-17)
 
 
