@@ -1152,7 +1152,9 @@ const definitions: DefinitionWithExtend[] = [
                 name: 'auto_close_when_water_shortage',
                 cluster: 'customClusterEwelink',
                 attribute: 'lackWaterCloseValveTimeout',
-                description: 'Automatically shut down the water valve after the water shortage exceeds 30 minutes.',
+                description: 
+                    'Automatically shut down the water valve after the water shortage exceeds 30 minutes. ' +
+                    'This feature requires firmware version 1.0.4 or later!',
                 valueOff: ['DISABLE', 0],
                 valueOn: ['ENABLE', 30],
             }),
