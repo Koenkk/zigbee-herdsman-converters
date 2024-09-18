@@ -813,7 +813,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
-        extend: [onOff()],
+        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['SNZB-01P'],
@@ -1152,7 +1152,8 @@ const definitions: DefinitionWithExtend[] = [
                 name: 'auto_close_when_water_shortage',
                 cluster: 'customClusterEwelink',
                 attribute: 'lackWaterCloseValveTimeout',
-                description: 'Automatically shut down the water valve after the water shortage exceeds 30 minutes.',
+                description:
+                    'Automatically shut down the water valve after the water shortage exceeds 30 minutes. Requires firmware version 1.0.4 or later!',
                 valueOff: ['DISABLE', 0],
                 valueOn: ['ENABLE', 30],
             }),

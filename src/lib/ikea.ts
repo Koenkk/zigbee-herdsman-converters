@@ -107,7 +107,7 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
     // https://github.com/Koenkk/zigbee2mqtt/issues/23863
     result.meta = {
         ...result.meta,
-        noOffTransition: (entity) => {
+        noOffTransitionWhenOff: (entity) => {
             const softwareBuildID = entity.getDevice().softwareBuildID;
             return softwareBuildID && !softwareBuildID.includes('-') && semver.gt(softwareBuildID ?? '0.0.0', '1.0.021', true);
         },
