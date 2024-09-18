@@ -6,7 +6,7 @@ import * as constants from '../lib/constants';
 import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {battery, humidity, illuminance} from '../lib/modernExtend';
+import {battery, electricityMeter, humidity, illuminance, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -223,28 +223,15 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SPLZB-131',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.power_reactive(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-            await reporting.acFrequency(endpoint, {change: 10});
-        },
         endpoint: (device) => {
             return {default: 2};
         },
@@ -254,34 +241,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SPLZB-132',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
-        toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
-        options: [exposes.options.precision(`ac_frequency`)],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            // Set to true, to access the acFrequencyDivisor and acFrequencyMultiplier attribute. Not all devices support this.
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            /*
-                seMetering.instantaneousDemand and haElectricalMeasurement.activePower both return the same thing
-                spot checks indicate both return the exact same value, no point in having both report
-            */
-            // await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-            await reporting.acFrequency(endpoint);
-        },
         endpoint: (device) => {
             return {default: 2};
         },
@@ -291,31 +258,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SPLZB-134',
         vendor: 'Develco',
         description: 'Power plug (type G)',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
-        toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            /*
-                seMetering.instantaneousDemand and haElectricalMeasurement.activePower both return the same thing
-                spot checks indicate both return the exact same value, no point in having both report
-            */
-            // await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-        },
         endpoint: (device) => {
             return {default: 2};
         },
@@ -351,26 +301,13 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SMRZB-143',
         vendor: 'Develco',
         description: 'Smart cable',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-        },
         endpoint: (device) => {
             return {default: 2};
         },

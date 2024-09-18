@@ -496,7 +496,10 @@ const tzLocal = {
                 }
                 case 'over_voltage_threshold': {
                     const state = meta.state['over_voltage_breaker'];
-                    const buf = Buffer.from([3, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, 'over_voltage_breaker')]);
+                    const buf = Buffer.alloc(4);
+                    buf.writeUInt8(3, 0);
+                    buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 1);
+                    buf.writeUInt16BE(utils.toNumber(value, 'over_voltage_threshold'), 2);
                     await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                     break;
                 }
@@ -6447,7 +6450,18 @@ const definitions: DefinitionWithExtend[] = [
                 [101, 'running_state', tuya.valueConverterBasic.lookup({heat: tuya.enum(1), idle: tuya.enum(0)})],
                 [102, 'frost_protection', tuya.valueConverter.onOff],
                 [103, 'factory_reset', tuya.valueConverter.onOff],
-                [104, 'working_day', tuya.valueConverter.workingDay],
+                [
+                    104,
+                    'working_day',
+                    tuya.valueConverterBasic.lookup((_, device) => {
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/23979
+                        if (device.manufacturerName === '_TZE204_lzriup1j') {
+                            return {disabled: tuya.enum(0), '6-1': tuya.enum(2), '5-2': tuya.enum(1), '7': tuya.enum(3)};
+                        } else {
+                            return {disabled: tuya.enum(0), '6-1': tuya.enum(1), '5-2': tuya.enum(2), '7': tuya.enum(3)};
+                        }
+                    }),
+                ],
                 [106, 'sensor', tuya.valueConverterBasic.lookup({internal: tuya.enum(0), external: tuya.enum(1), both: tuya.enum(2)})],
                 [107, 'deadzone_temperature', tuya.valueConverter.divideBy10],
                 [109, null, tuya.valueConverter.ZWT198_schedule],
@@ -8020,7 +8034,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r']),
         model: 'TS110E_1gang_1',
         vendor: 'Tuya',
         description: '1 channel dimmer',
@@ -8031,7 +8045,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia', '_TZ3210_weaqkhab']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia', '_TZ3210_weaqkhab', '_TZ3210_k1msuvg6']),
         model: 'TS110E_1gang_2',
         vendor: 'Tuya',
         description: '1 channel dimmer',
@@ -11601,6 +11615,82 @@ const definitions: DefinitionWithExtend[] = [
                         'ringtone 32': tuya.enum(31),
                     }),
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ex3rcdha']),
+        model: 'ZY_HPS01',
+        vendor: 'Tuya',
+        description: 'mmWave radar 5.8GHz',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        extend: [],
+        exposes: [
+            e.illuminance().withUnit('lx'),
+            e.occupancy(),
+            e
+                .numeric('presence_timeout', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(180)
+                .withValueStep(1)
+                .withDescription('Presence timeout')
+                .withUnit('s'),
+            e
+                .numeric('move_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('sensitivity of the radar')
+                .withUnit('X'),
+            e
+                .numeric('move_minimum_range', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withValueStep(10)
+                .withDescription('Movement minimum range')
+                .withUnit('cm'),
+            e
+                .numeric('move_maximum_range', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withValueStep(10)
+                .withDescription('Movement maximum range')
+                .withUnit('cm'),
+            e
+                .numeric('breath_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Breath sensitivity of the radar')
+                .withUnit('X'),
+            e
+                .numeric('breath_minimum_range', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withValueStep(10)
+                .withDescription('Breath minimum range')
+                .withUnit('cm'),
+            e
+                .numeric('breath_maximum_range', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withValueStep(10)
+                .withDescription('Breath maximum range')
+                .withUnit('cm'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [12, 'illuminance', tuya.valueConverter.raw],
+                [101, 'occupancy', tuya.valueConverter.trueFalse0],
+                [104, 'presence_timeout', tuya.valueConverter.raw],
+                [105, 'move_sensitivity', tuya.valueConverter.raw],
+                [107, 'breath_sensitivity', tuya.valueConverter.raw],
+                [109, 'move_maximum_range', tuya.valueConverter.raw],
+                [110, 'move_minimum_range', tuya.valueConverter.raw],
+                [111, 'breath_maximum_range', tuya.valueConverter.raw],
+                [112, 'breath_minimum_range', tuya.valueConverter.raw],
             ],
         },
     },

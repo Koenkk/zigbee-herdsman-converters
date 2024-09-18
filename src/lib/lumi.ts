@@ -250,9 +250,9 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 payload.power_outage_count = value - 1;
                 break;
             case '6':
-                if (['MCCGQ11LM', 'SJCGQ11LM'].includes(model.model) && Array.isArray(value)) {
-                    assertNumber(value[1]);
-                    let count = value[1];
+                if (['MCCGQ11LM', 'SJCGQ11LM'].includes(model.model)) {
+                    assertNumber(value);
+                    let count = value;
                     // Sometimes, especially when the device is connected through another lumi router, the sensor
                     // send random values after 16 bit (>65536), so we truncate and read this as 16BitUInt.
                     count = parseInt(count.toString(16).slice(-4), 16);
@@ -1103,7 +1103,7 @@ function readTemperature(buffer: Buffer, offset: number): number {
 }
 
 function writeTemperature(buffer: Buffer, offset: number, temperature: number): void {
-    buffer.writeUint16BE(temperature * 100, offset);
+    buffer.writeUInt16BE(temperature * 100, offset);
 }
 
 const dayNames: Day[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -1168,7 +1168,7 @@ function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: bool
         minutesWithDayFlag = minutesWithDayFlag | timeNextDayFlag;
     }
 
-    buffer.writeUint16BE(minutesWithDayFlag, offset);
+    buffer.writeUInt16BE(minutesWithDayFlag, offset);
 }
 
 /**
@@ -3873,7 +3873,7 @@ export const toZigbee = {
                     assertEndpoint(entity);
                     const device = Buffer.from(entity.deviceIeeeAddress.substring(2), 'hex');
                     const timestamp = Buffer.alloc(4);
-                    timestamp.writeUint32BE(Date.now() / 1000);
+                    timestamp.writeUInt32BE(Date.now() / 1000);
 
                     if (value === 'external') {
                         const params1 = [

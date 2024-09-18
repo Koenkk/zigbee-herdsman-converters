@@ -541,7 +541,6 @@ export const valueConverter = {
     switchMode2: valueConverterBasic.lookup({switch: new Enum(0), curtain: new Enum(1)}),
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
     raw: valueConverterBasic.raw(),
-    workingDay: valueConverterBasic.lookup({disabled: new Enum(0), '6-1': new Enum(1), '5-2': new Enum(2), '7': new Enum(3)}),
     localTemperatureCalibration: {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),

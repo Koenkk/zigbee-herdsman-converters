@@ -1,5 +1,31 @@
 # Changelog
 
+## [20.16.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.16.0...v20.16.1) (2024-09-17)
+
+
+### Bug Fixes
+
+* **ignore:** Refactor for `reportableChange` change of https://github.com/Koenkk/zigbee-herdsman/pull/1190 ([#7996](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7996)) ([e8883c0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8883c0d012ecf9b3f103ca070e44877da4f368f))
+
+## [20.16.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.15.0...v20.16.0) (2024-09-16)
+
+
+### Features
+
+* **add:** ROB_200-004-1 [@william-sy](https://github.com/william-sy) https://github.com/Koenkk/zigbee2mqtt/issues/23965 ([77603de](https://github.com/Koenkk/zigbee-herdsman-converters/commit/77603de41095012cbc8497ea63d0d292cd35f622))
+* **add:** ZY_HPS01 ([#7987](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7987)) ([16a859e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/16a859e2f4fff5a6304766bd7ae5494b6a91a95c))
+
+
+### Bug Fixes
+
+* Add status shutter for Legrand 067776 ([#7992](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7992)) ([19a9847](https://github.com/Koenkk/zigbee-herdsman-converters/commit/19a9847d7fcbeaf1ba464dae88c2049521926573))
+* **detect:** Detect `_TZ3210_k1msuvg6` as Tuya TS110E_1gang_2 @RoGu777 https://github.com/Koenkk/zigbee2mqtt/issues/23967 ([401d1c4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/401d1c4be1690c89c9d05dd69ce998af284484bc))
+* **detect:** Detect `SA-028-1` as SONOFF SA-028/SA-029 ([#7991](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7991)) ([305d492](https://github.com/Koenkk/zigbee-herdsman-converters/commit/305d49289292d222b8efa0eb6785fabff4c873fe))
+* Fix Tuya `_TZE204_lzriup1j` `working_day` https://github.com/Koenkk/zigbee2mqtt/issues/23979 ([fb000f0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fb000f03f793e587774ad25c15862bfbd50fb41f))
+* Fixes in ptvo.switch converter ([#7993](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7993)) ([427c644](https://github.com/Koenkk/zigbee-herdsman-converters/commit/427c6449e9b1d3e3b1fd275dd8f540b214c70df7))
+* **ignore:** update dependencies ([#7989](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7989)) ([6b83620](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6b8362013eb779c326de81caf20362147cd38aff))
+* TO-Q-SY2-163JZT unable to set over voltage higher than 255 ([#7995](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7995)) ([34b0c30](https://github.com/Koenkk/zigbee-herdsman-converters/commit/34b0c30bf764daf74fded6d902e35b3567a7f271))
+
 ## [20.15.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.14.1...v20.15.0) (2024-09-14)
 
 

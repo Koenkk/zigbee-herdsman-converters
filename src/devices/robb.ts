@@ -21,6 +21,13 @@ const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['ROB_200-004-1'],
+        model: 'ROB_200-004-1',
+        vendor: 'ROBB',
+        description: 'ZigBee AC phase-cut dimmer',
+        extend: [light({configureReporting: true})],
+    },
+    {
         zigbeeModel: ['ROB_200-060-0'],
         model: 'ROB_200-060-0',
         vendor: 'ROBB',

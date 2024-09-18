@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {_067776, eLegrand, fzLegrand, legrandOptions, readInitialBatteryState, tzLegrand} from '../lib/legrand';
+import {eLegrand, fzLegrand, legrandOptions, readInitialBatteryState, tzLegrand} from '../lib/legrand';
 import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
@@ -145,20 +145,20 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.ignore_basic_report,
             fz.cover_position_tilt,
-            fz.legrand_binary_input_moving,
             fz.identify,
             fzLegrand.cluster_fc01,
             fzLegrand.calibration_mode(false),
+            fzLegrand.command_cover,
         ],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(false)],
         exposes: (device, options) => {
             return [
-                _067776.getCover(device),
-                e.action(['moving', 'identify']),
+                eLegrand.getCover(device),
+                e.action(['identify', 'open', 'close', 'stop', 'moving', 'stopped']),
                 eLegrand.identify(),
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
-                _067776.getCalibrationModes(false),
+                eLegrand.getCalibrationModes(false),
                 e.linkquality(),
             ];
         },
@@ -217,20 +217,20 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.ignore_basic_report,
             fz.cover_position_tilt,
-            fz.legrand_binary_input_moving,
             fz.identify,
             fzLegrand.cluster_fc01,
             fzLegrand.calibration_mode(true),
+            fzLegrand.command_cover,
         ],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
         exposes: (device, options) => {
             return [
-                _067776.getCover(device),
-                e.action(['moving', 'identify']),
+                eLegrand.getCover(device),
+                e.action(['identify', 'open', 'close', 'stop', 'moving', 'stopped']),
                 eLegrand.identify(),
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
-                _067776.getCalibrationModes(true),
+                eLegrand.getCalibrationModes(true),
                 e.linkquality(),
             ];
         },
