@@ -812,6 +812,18 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.gas(), e.tamper()],
     },
     {
+        fingerprint: [
+            {
+                modelID: 'TS0205',
+                manufacturerName: '_TZ3210_up3pngle',
+            },
+        ],
+        model: 'TS0205_smoke_2',
+        vendor: 'Tuya',
+        description: 'Smoke sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'smoke', zoneAttributes: ['alarm_1', 'tamper']})],
+    },
+    {
         zigbeeModel: ['TS0205'],
         model: 'TS0205',
         vendor: 'Tuya',
@@ -819,7 +831,6 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'},
             {vendor: 'Dongguan Daying Electornics Technology', model: 'YG400A'},
-            tuya.whitelabel('Tuya', 'TS0205_smoke_2', 'Smoke sensor', ['_TZ3210_up3pngle']),
         ],
         fromZigbee: [fz.ias_smoke_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
