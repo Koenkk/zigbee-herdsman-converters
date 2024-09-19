@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {battery, deviceAddCustomCluster, forcePowerSource, humidity, iasZoneAlarm, light, onOff, temperature} from '../lib/modernExtend';
+import {battery, deviceAddCustomCluster, humidity, iasZoneAlarm, light, onOff, temperature} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
@@ -184,7 +184,6 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             battery(),
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']}),
-            forcePowerSource({powerSource: 'Battery'}),
             deviceAddCustomCluster('3rGarageDoorSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
@@ -255,10 +254,10 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TRZB3',
         vendor: 'Third Reality',
         description: 'Roller blind motor',
-        extend: [forcePowerSource({powerSource: 'Battery'})],
-        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        extend: [battery()],
+        fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        exposes: [e.cover_position(), e.battery()],
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['3RSB22BZ'],
@@ -285,7 +284,6 @@ const definitions: DefinitionWithExtend[] = [
             temperature(),
             humidity(),
             battery({voltage: true}),
-            forcePowerSource({powerSource: 'Battery'}),
             deviceAddCustomCluster('3rSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
@@ -309,7 +307,6 @@ const definitions: DefinitionWithExtend[] = [
             temperature(),
             humidity(),
             battery(),
-            forcePowerSource({powerSource: 'Battery'}),
             deviceAddCustomCluster('3rSoilSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
@@ -333,7 +330,6 @@ const definitions: DefinitionWithExtend[] = [
             temperature(),
             humidity(),
             battery(),
-            forcePowerSource({powerSource: 'Battery'}),
             deviceAddCustomCluster('3rSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
