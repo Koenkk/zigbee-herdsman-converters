@@ -1,6 +1,9 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {deviceAddCustomCluster} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
@@ -12,6 +15,19 @@ const ea = exposes.access;
 const switchTypeValues = ['maintained_state', 'maintained_toggle', 'momentary_state', 'momentary_press', 'momentary_release'];
 
 const defaultOnOffStateValues = ['on', 'off', 'previous'];
+
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.CUSTOM_PERENIO};
+
+const perenioExtend = {
+    addCustomClusterPerenio: () =>
+        deviceAddCustomCluster('perenioSpecific', {
+            ID: 64635,
+            manufacturerCode: Zcl.ManufacturerCode.CUSTOM_PERENIO,
+            attributes: {},
+            commands: {},
+            commandsResponse: {},
+        }),
+};
 
 const fzPerenio = {
     diagnostic: {
@@ -48,7 +64,7 @@ const fzPerenio = {
         },
     } satisfies Fz.Converter,
     smart_plug: {
-        cluster: '64635',
+        cluster: 'perenioSpecific',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
@@ -142,21 +158,21 @@ const tzPerenio = {
                 on: 1,
                 previous: 2,
             };
-            await entity.write(64635, {0: {value: powerOnStateLookup[val], type: 0x20}}, {manufacturerCode: 0x007b});
+            await entity.write('perenioSpecific', {0: {value: powerOnStateLookup[val], type: 0x20}}, manufacturerOptions);
             return {state: {default_on_off_state: val}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read(64635, [0]);
+            await entity.read('perenioSpecific', [0]);
         },
     } satisfies Tz.Converter,
     alarms_reset: {
         key: ['alarm_voltage_min', 'alarm_voltage_max', 'alarm_power_max', 'alarm_consumed_energy'],
         convertSet: async (entity, key, val, meta) => {
-            await entity.write(64635, {1: {value: 0, type: 0x20}}, {manufacturerCode: 0x007b});
+            await entity.write('perenioSpecific', {1: {value: 0, type: 0x20}}, manufacturerOptions);
             return {state: {alarm_voltage_min: false, alarm_voltage_max: false, alarm_power_max: false, alarm_consumed_energy: false}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read(64635, [1]);
+            await entity.read('perenioSpecific', [1]);
         },
     } satisfies Tz.Converter,
     alarms_limits: {
@@ -164,16 +180,16 @@ const tzPerenio = {
         convertSet: async (entity, key, val, meta) => {
             switch (key) {
                 case 'voltage_min':
-                    await entity.write(64635, {4: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    await entity.write('perenioSpecific', {4: {value: val, type: 0x21}}, manufacturerOptions);
                     break;
                 case 'voltage_max':
-                    await entity.write(64635, {5: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    await entity.write('perenioSpecific', {5: {value: val, type: 0x21}}, manufacturerOptions);
                     break;
                 case 'power_max':
-                    await entity.write(64635, {11: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    await entity.write('perenioSpecific', {11: {value: val, type: 0x21}}, manufacturerOptions);
                     break;
                 case 'consumed_energy_limit':
-                    await entity.write(64635, {15: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    await entity.write('perenioSpecific', {15: {value: val, type: 0x21}}, manufacturerOptions);
                     break;
             }
             return {state: {[key]: val}};
@@ -181,16 +197,16 @@ const tzPerenio = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
                 case 'voltage_min':
-                    await entity.read(64635, [4]);
+                    await entity.read('perenioSpecific', [4]);
                     break;
                 case 'voltage_max':
-                    await entity.read(64635, [5]);
+                    await entity.read('perenioSpecific', [5]);
                     break;
                 case 'power_max':
-                    await entity.read(64635, [11]);
+                    await entity.read('perenioSpecific', [11]);
                     break;
                 case 'consumed_energy_limit':
-                    await entity.read(64635, [15]);
+                    await entity.read('perenioSpecific', [15]);
                     break;
             }
         },
@@ -347,11 +363,12 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PEHPL0X',
         vendor: 'Perenio',
         description: 'Power link',
+        extend: [perenioExtend.addCustomClusterPerenio()],
         fromZigbee: [fz.on_off, fzPerenio.smart_plug, fz.metering],
         toZigbee: [tzPerenio.on_off_mod, tzPerenio.default_state, tzPerenio.alarms_reset, tzPerenio.alarms_limits],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 64635]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'perenioSpecific']);
             const payload = [
                 {
                     attribute: 'onOff',
@@ -361,7 +378,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
             ];
             await endpoint.configureReporting('genOnOff', payload);
-            await endpoint.configureReporting(64635, [
+            await endpoint.configureReporting('perenioSpecific', [
                 {
                     attribute: {ID: 0x000a, type: 0x21},
                     minimumReportInterval: 5,
@@ -369,7 +386,7 @@ const definitions: DefinitionWithExtend[] = [
                     reportableChange: 0,
                 },
             ]);
-            await endpoint.configureReporting(64635, [
+            await endpoint.configureReporting('perenioSpecific', [
                 {
                     attribute: {ID: 0x000e, type: 0x23},
                     minimumReportInterval: 5,
@@ -377,7 +394,7 @@ const definitions: DefinitionWithExtend[] = [
                     reportableChange: 0,
                 },
             ]);
-            await endpoint.configureReporting(64635, [
+            await endpoint.configureReporting('perenioSpecific', [
                 {
                     attribute: {ID: 0x0003, type: 0x21},
                     minimumReportInterval: 5,
@@ -385,8 +402,8 @@ const definitions: DefinitionWithExtend[] = [
                     reportableChange: 0,
                 },
             ]);
-            await endpoint.read(64635, [0, 1, 2, 3]);
-            await endpoint.read(64635, [4, 5, 11, 15]);
+            await endpoint.read('perenioSpecific', [0, 1, 2, 3]);
+            await endpoint.read('perenioSpecific', [4, 5, 11, 15]);
         },
         exposes: [
             e.switch(),
