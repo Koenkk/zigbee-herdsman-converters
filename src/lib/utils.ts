@@ -6,6 +6,7 @@ import * as globalStore from './store';
 import {
     BatteryLinearVoltage,
     BatteryNonLinearVoltage,
+    Configure,
     Definition,
     Expose,
     Fz,
@@ -710,6 +711,14 @@ export function isNumericExpose(expose: Expose): expose is Numeric {
 export function isLightExpose(expose: Expose): expose is Light {
     return expose?.type === 'light';
 }
+
+export const configureSetBatteryPowerSourceWhenUnknown: Configure = async (device) => {
+    if (!device.powerSource) {
+        logger.debug(`Device has no power source, forcing to 'Battery'`, NS);
+        device.powerSource = 'Battery';
+        device.save();
+    }
+};
 
 exports.noOccupancySince = noOccupancySince;
 exports.getOptions = getOptions;
