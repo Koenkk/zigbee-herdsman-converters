@@ -1142,12 +1142,6 @@ export const presets = {
             )
             .withValueMin(1)
             .withValueMax(5),
-    min_temperature_limit_deadzone: () =>
-        new Numeric('min_temperature_limit', access.STATE_SET)
-            .withUnit('°C')
-            .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat')
-            .withValueMin(1)
-            .withValueMax(5),
     min_temperature: () =>
         new Numeric('min_temperature', access.STATE_SET).withUnit('°C').withDescription('Minimum temperature').withValueMin(1).withValueMax(15),
     mode_switch_select: (mode_switch_names: string[]) =>

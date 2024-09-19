@@ -99,10 +99,11 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_5toc8efa'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_5toc8efa'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_aoclfnxz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_u9bfwha0'},
@@ -112,34 +113,46 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Moes BHT series Thermostat',
         fromZigbee: [legacy.fz.moes_thermostat],
         toZigbee: [
-            legacy.tz.moes_thermostat_child_lock,
-            legacy.tz.moes_thermostat_current_heating_setpoint,
-            legacy.tz.moes_thermostat_mode,
-            legacy.tz.moes_thermostat_standby,
-            legacy.tz.moes_thermostat_sensor,
-            legacy.tz.moes_thermostat_calibration,
-            legacy.tz.moes_thermostat_deadzone_temperature,
-            legacy.tz.moes_thermostat_max_temperature_limit,
-            legacy.tz.moes_thermostat_min_temperature_limit,
-            legacy.tz.moes_thermostat_program_schedule,
+            legacy.tz.moes_thermostat_child_lock, //40 //child lock
+            legacy.tz.moes_thermostat_current_heating_setpoint, //16 //current set temp
+            legacy.tz.moes_thermostat_mode, //2 (hold/heat) also sets 3 - schedule enabled //hold/program
+            legacy.tz.moes_thermostat_standby, //1 //on/off
+            legacy.tz.moes_thermostat_sensor, //43 //sensor selection
+            legacy.tz.moes_thermostat_calibration, //27 //temperature correction
+            legacy.tz.moes_thermostat_deadzone_temperature, //20 //not used in this model
+            legacy.tz.moes_thermostat_max_temperature_limit, //18 //not used in this model
+            legacy.tz.moes_thermostat_max_temp, //19 //high limit temperature ceiling
+            legacy.tz.moes_thermostat_min_temperature_limit, //26 //DeadZone temp
+            legacy.tz.moes_thermostat_program_schedule, //101 //week program
         ],
+        whiteLabel: [tuya.whitelabel('Moes', 'BHT-002/BHT-006', 'Smart heating thermostat', ['_TZE204_aoclfnxz'])],
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === '_TZE204_5toc8efa' ? 0.5 : 1;
-            return [
+            const calibrationLimit = device?.manufacturerName === '_TZE200_aoclfnxz' ? 9 : 30;
+            const calibrationStep = device?.manufacturerName === '_TZE200_aoclfnxz' ? 1 : 0.1;
+            const arr = [
                 e.linkquality(),
                 e.child_lock(),
-                e.deadzone_temperature(),
-                e.max_temperature_limit().withValueMax(45),
-                e.min_temperature_limit(),
+
+                device?.manufacturerName === '_TZE200_aoclfnxz'
+                    ? e.max_temperature_limit().withValueMin(45).withValueMax(70)
+                    : e.max_temperature_limit().withValueMax(45),
+
+                device?.manufacturerName === '_TZE200_aoclfnxz'
+                    ? e.min_temperature_limit().withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat')
+                    : e.min_temperature_limit(),
+
                 e
                     .climate()
                     .withSetpoint('current_heating_setpoint', 5, 45, heatingStepSize, ea.STATE_SET)
                     .withLocalTemperature(ea.STATE)
-                    .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                    .withLocalTemperatureCalibration(-calibrationLimit, calibrationLimit, calibrationStep, ea.STATE_SET)
                     .withSystemMode(['off', 'heat'], ea.STATE_SET)
                     .withRunningState(['idle', 'heat', 'cool'], ea.STATE)
                     .withPreset(['hold', 'program']),
+
                 e.temperature_sensor_select(['IN', 'AL', 'OU']),
+
                 e
                     .composite('program', 'program', ea.STATE_SET)
                     .withDescription('Time of day and setpoint to use when in program mode')
@@ -180,91 +193,12 @@ const definitions: DefinitionWithExtend[] = [
                     .withFeature(exposesLocal.minute('sunday_p4_minute'))
                     .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
             ];
-        },
-        onEvent: tuya.onEventSetLocalTime,
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'}],
-        model: 'BHT-006-GB-ZB',
-        vendor: 'Moes',
-        description: 'Moes BHT-006 series Thermostat, electric floor heating',
-        fromZigbee: [legacy.fz.moes_thermostat],
-        toZigbee: [
-            legacy.tz.moes_thermostat_current_heating_setpoint, //16 //current set temp
 
-            legacy.tz.moes_thermostat_standby, //1 //on/off
-            legacy.tz.moes_thermostat_mode, //2 (hold/heat) also sets 3 - schedule enabled //hold/program
+            if (device?.manufacturerName != '_TZE200_aoclfnxz') {
+                arr.splice(2, 0, e.deadzone_temperature());
+            }
 
-            legacy.tz.moes_thermostat_program_schedule, //101 //week program
-
-            legacy.tz.moes_thermostat_child_lock, //40 //child lock
-            legacy.tz.moes_thermostat_calibration, //27 //temperature correction
-            legacy.tz.moes_thermostat_max_temp, //19 //high limit temperature ceiling
-            legacy.tz.moes_thermostat_min_temperature_limit, //26 //DeadZone temp
-
-            legacy.tz.moes_thermostat_sensor, //43 //sensor selection
-
-            //24 //device temp
-            //36 //state of the valve
-
-            //legacy.tz.moes_thermostat_max_temperature_limit, //18 //not used in this model
-            //legacy.tz.moes_thermostat_deadzone_temperature, //20 //not used in this model
-        ],
-        exposes: (device, options) => {
-            return [
-                e.linkquality(),
-                e.child_lock(),
-                e.min_temperature_limit_deadzone(),
-                e.max_temperature_limit().withValueMin(45).withValueMax(70),
-                e
-                    .climate()
-                    .withSetpoint('current_heating_setpoint', 0, 45, 1, ea.STATE_SET)
-                    .withLocalTemperature(ea.STATE)
-                    .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
-                    .withSystemMode(['off', 'heat'], ea.STATE_SET)
-                    .withRunningState(['idle', 'heat'], ea.STATE)
-                    .withPreset(['hold', 'program']),
-                e.temperature_sensor_select(['IN', 'AL', 'OU']),
-                e
-                    .composite('program', 'program', ea.STATE_SET)
-                    .withDescription('Time of day and setpoint to use when in program mode')
-                    .withFeature(exposesLocal.hour('weekdays_p1_hour'))
-                    .withFeature(exposesLocal.minute('weekdays_p1_minute'))
-                    .withFeature(exposesLocal.program_temperature('weekdays_p1_temperature'))
-                    .withFeature(exposesLocal.hour('weekdays_p2_hour'))
-                    .withFeature(exposesLocal.minute('weekdays_p2_minute'))
-                    .withFeature(exposesLocal.program_temperature('weekdays_p2_temperature'))
-                    .withFeature(exposesLocal.hour('weekdays_p3_hour'))
-                    .withFeature(exposesLocal.minute('weekdays_p3_minute'))
-                    .withFeature(exposesLocal.program_temperature('weekdays_p3_temperature'))
-                    .withFeature(exposesLocal.hour('weekdays_p4_hour'))
-                    .withFeature(exposesLocal.minute('weekdays_p4_minute'))
-                    .withFeature(exposesLocal.program_temperature('weekdays_p4_temperature'))
-                    .withFeature(exposesLocal.hour('saturday_p1_hour'))
-                    .withFeature(exposesLocal.minute('saturday_p1_minute'))
-                    .withFeature(exposesLocal.program_temperature('saturday_p1_temperature'))
-                    .withFeature(exposesLocal.hour('saturday_p2_hour'))
-                    .withFeature(exposesLocal.minute('saturday_p2_minute'))
-                    .withFeature(exposesLocal.program_temperature('saturday_p2_temperature'))
-                    .withFeature(exposesLocal.hour('saturday_p3_hour'))
-                    .withFeature(exposesLocal.minute('saturday_p3_minute'))
-                    .withFeature(exposesLocal.program_temperature('saturday_p3_temperature'))
-                    .withFeature(exposesLocal.hour('saturday_p4_hour'))
-                    .withFeature(exposesLocal.minute('saturday_p4_minute'))
-                    .withFeature(exposesLocal.program_temperature('saturday_p4_temperature'))
-                    .withFeature(exposesLocal.hour('sunday_p1_hour'))
-                    .withFeature(exposesLocal.minute('sunday_p1_minute'))
-                    .withFeature(exposesLocal.program_temperature('sunday_p1_temperature'))
-                    .withFeature(exposesLocal.hour('sunday_p2_hour'))
-                    .withFeature(exposesLocal.minute('sunday_p2_minute'))
-                    .withFeature(exposesLocal.program_temperature('sunday_p2_temperature'))
-                    .withFeature(exposesLocal.hour('sunday_p3_hour'))
-                    .withFeature(exposesLocal.minute('sunday_p3_minute'))
-                    .withFeature(exposesLocal.program_temperature('sunday_p3_temperature'))
-                    .withFeature(exposesLocal.hour('sunday_p4_hour'))
-                    .withFeature(exposesLocal.minute('sunday_p4_minute'))
-                    .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
-            ];
+            return arr;
         },
         onEvent: tuya.onEventSetLocalTime,
     },
