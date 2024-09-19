@@ -173,6 +173,15 @@ export const tzLegrand = {
             await entity.command('genIdentify', 'identify', {identifytime: 10}, {});
         },
     } satisfies Tz.Converter,
+    shutter_switch_multi_gang: {
+        key: ['shutter_state'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {open: 'upOpen', close: 'downClose', stop: 'stop', on: 'upOpen', off: 'downClose'};
+            utils.assertString(value, key);
+            value = value.toLowerCase();
+            await entity.command('closuresWindowCovering', utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
+        },
+    } satisfies Tz.Converter,
 };
 
 export const fzLegrand = {

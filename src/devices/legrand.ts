@@ -3,7 +3,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {eLegrand, fzLegrand, legrandOptions, readInitialBatteryState, tzLegrand} from '../lib/legrand';
-import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, electricityMeter, light, onOff, windowCovering} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -695,6 +695,52 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
             await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['NLIS - Light switch'],
+        model: 'NLIS - Light switch',
+        vendor: 'Legrand',
+        description: 'Light switch 1 gang Legrand',
+        ota: ota.zigbeeOTA,
+        toZigbee: [tzLegrand.led_mode],
+        exposes: [eLegrand.ledInDark(), eLegrand.ledIfOn()],
+        extend: [deviceEndpoints({endpoints: {l1: 1}}), light({configureReporting: true, endpointNames: ['l1']})],
+    },
+    {
+        zigbeeModel: ['NLIS - Double light switch'],
+        model: 'NLIS - Double light switch',
+        vendor: 'Legrand',
+        description: 'Light switch 2 gang Legrand',
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), light({configureReporting: true, endpointNames: ['l1', 'l2']})],
+    },
+    {
+        zigbeeModel: ['NLIS - Triple light switch'],
+        model: 'NLIS - Triple light switch',
+        vendor: 'Legrand',
+        description: 'Light switch 3 gang Legrand',
+        ota: ota.zigbeeOTA,
+        toZigbee: [tzLegrand.led_mode],
+        exposes: [eLegrand.ledInDark(), eLegrand.ledIfOn()],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}), light({configureReporting: true, endpointNames: ['l1', 'l2', 'l3']})],
+    },
+    {
+        zigbeeModel: ['NLIV - Double shutter switch'],
+        model: 'NLIV - Double shutter switch',
+        vendor: 'Legrand',
+        description: 'Shutter switch 2 gang Legrand',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [],
+        toZigbee: [tzLegrand.shutter_switch_multi_gang, tzLegrand.led_mode],
+        extend: [windowCovering({controls: ['lift', 'tilt']})],
+        exposes: [
+            eLegrand.ledIfOn(),
+            e.enum('shutter_state', ea.STATE_SET, ['OPEN', 'CLOSE', 'STOP']).withEndpoint('l1'),
+            e.enum('shutter_state', ea.STATE_SET, ['OPEN', 'CLOSE', 'STOP']).withEndpoint('l2'),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
         },
     },
 ];
