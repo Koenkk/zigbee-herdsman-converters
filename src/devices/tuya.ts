@@ -4149,6 +4149,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_rufdtfyv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_lpwgshtl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rk1wojce'}, // Emos P5630S
+            {modelID: 'TS0601', manufacturerName: '_TZE200_rndg81sf'},
         ],
         model: 'TS0601_thermostat',
         vendor: 'Tuya',
