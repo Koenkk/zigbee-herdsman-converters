@@ -133,6 +133,7 @@ const definitions: DefinitionWithExtend[] = [
             const arr = [
                 e.linkquality(),
                 e.child_lock(),
+                e.deadzone_temperature(),
 
                 device?.manufacturerName === '_TZE200_aoclfnxz'
                     ? e.max_temperature_limit().withValueMin(45).withValueMax(70)
@@ -194,8 +195,8 @@ const definitions: DefinitionWithExtend[] = [
                     .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
             ];
 
-            if (device?.manufacturerName != '_TZE200_aoclfnxz') {
-                arr.splice(2, 0, e.deadzone_temperature());
+            if (device?.manufacturerName === '_TZE200_aoclfnxz') {
+                arr.splice(2, 1);
             }
 
             return arr;
