@@ -312,6 +312,7 @@ export class Enum extends Base {
 export class Text extends Base {
     property: string = '';
     pattern?: RegExp;
+    patternComment?: string;
 
     constructor(name: string, access: number) {
         super();
@@ -322,14 +323,15 @@ export class Text extends Base {
         this.access = access;
     }
 
-    withPattern(pattern: RegExp): Text {
+    withPattern(pattern: RegExp, comment: string): Text {
         this.pattern = pattern;
+        this.patternComment = comment;
         return this;
     }
 
     checkPatternMatch() {
         if (!this.pattern.test(this.property)) {
-            throw new Error('String format pattern check failed:' + this.label);
+            throw new Error('String format pattern check failed:' + this.label + '\n' + this.patternComment);
         }
     }
 

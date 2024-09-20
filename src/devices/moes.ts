@@ -15,7 +15,7 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
-const programText = (name: string) => e.text(name, ea.STATE_SET).withPattern(/\d\d:\d\d\/\d\d°C/);
+const programText = (name: string) => e.text(name, ea.STATE_SET).withPattern(/\d\d:\d\d\/\d\d°C/, 'Template is: 00:00/00°C');
 
 const definitions: DefinitionWithExtend[] = [
     {
