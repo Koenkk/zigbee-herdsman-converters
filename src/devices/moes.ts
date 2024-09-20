@@ -15,11 +15,7 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
-const exposesLocal = {
-    hour: (name: string) => e.numeric(name, ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23),
-    minute: (name: string) => e.numeric(name, ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59),
-    program_temperature: (name: string) => e.numeric(name, ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5),
-};
+const programText = (name: string) => e.text(name, ea.STATE_SET).withPattern(/\d\d:\d\d\/\d\d°C/);
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -122,7 +118,7 @@ const definitions: DefinitionWithExtend[] = [
             legacy.tz.moes_thermostat_deadzone_temperature,
             legacy.tz.moes_thermostat_max_temperature_limit,
             legacy.tz.moes_thermostat_min_temperature_limit,
-            legacy.tz.moes_thermostat_program_schedule,
+            legacy.tz.moes_thermostat_program_schedule_v2,
         ],
         whiteLabel: [tuya.whitelabel('Moes', 'BHT-002/BHT-006', 'Smart heating thermostat', ['_TZE204_aoclfnxz'])],
         exposes: (device, options) => {
@@ -143,44 +139,26 @@ const definitions: DefinitionWithExtend[] = [
                     .withPreset(['hold', 'program']),
                 e.temperature_sensor_select(['IN', 'AL', 'OU']),
                 e
-                    .composite('program', 'program', ea.STATE_SET)
-                    .withDescription('Time of day and setpoint to use when in program mode')
-                    .withFeature(exposesLocal.hour('weekdays_p1_hour'))
-                    .withFeature(exposesLocal.minute('weekdays_p1_minute'))
-                    .withFeature(exposesLocal.program_temperature('weekdays_p1_temperature'))
-                    .withFeature(exposesLocal.hour('weekdays_p2_hour'))
-                    .withFeature(exposesLocal.minute('weekdays_p2_minute'))
-                    .withFeature(exposesLocal.program_temperature('weekdays_p2_temperature'))
-                    .withFeature(exposesLocal.hour('weekdays_p3_hour'))
-                    .withFeature(exposesLocal.minute('weekdays_p3_minute'))
-                    .withFeature(exposesLocal.program_temperature('weekdays_p3_temperature'))
-                    .withFeature(exposesLocal.hour('weekdays_p4_hour'))
-                    .withFeature(exposesLocal.minute('weekdays_p4_minute'))
-                    .withFeature(exposesLocal.program_temperature('weekdays_p4_temperature'))
-                    .withFeature(exposesLocal.hour('saturday_p1_hour'))
-                    .withFeature(exposesLocal.minute('saturday_p1_minute'))
-                    .withFeature(exposesLocal.program_temperature('saturday_p1_temperature'))
-                    .withFeature(exposesLocal.hour('saturday_p2_hour'))
-                    .withFeature(exposesLocal.minute('saturday_p2_minute'))
-                    .withFeature(exposesLocal.program_temperature('saturday_p2_temperature'))
-                    .withFeature(exposesLocal.hour('saturday_p3_hour'))
-                    .withFeature(exposesLocal.minute('saturday_p3_minute'))
-                    .withFeature(exposesLocal.program_temperature('saturday_p3_temperature'))
-                    .withFeature(exposesLocal.hour('saturday_p4_hour'))
-                    .withFeature(exposesLocal.minute('saturday_p4_minute'))
-                    .withFeature(exposesLocal.program_temperature('saturday_p4_temperature'))
-                    .withFeature(exposesLocal.hour('sunday_p1_hour'))
-                    .withFeature(exposesLocal.minute('sunday_p1_minute'))
-                    .withFeature(exposesLocal.program_temperature('sunday_p1_temperature'))
-                    .withFeature(exposesLocal.hour('sunday_p2_hour'))
-                    .withFeature(exposesLocal.minute('sunday_p2_minute'))
-                    .withFeature(exposesLocal.program_temperature('sunday_p2_temperature'))
-                    .withFeature(exposesLocal.hour('sunday_p3_hour'))
-                    .withFeature(exposesLocal.minute('sunday_p3_minute'))
-                    .withFeature(exposesLocal.program_temperature('sunday_p3_temperature'))
-                    .withFeature(exposesLocal.hour('sunday_p4_hour'))
-                    .withFeature(exposesLocal.minute('sunday_p4_minute'))
-                    .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
+                    .composite('program_v2', 'program_v2', ea.STATE_SET)
+                    .withDescription(
+                        'PROGRAMMING MODE ⏱ - In this mode, ' +
+                            'the device executes a preset week programming temperature time and temperature. ' +
+                            'You can set up to 4 stages of temperature every for WEEKDAY ➀➁➂➃➄,  SATURDAY ➅ and SUNDAY ➆.',
+                    )
+                    .withFeature(programText('weekdays_p1'))
+                    .withFeature(programText('weekdays_p2'))
+                    .withFeature(programText('weekdays_p3'))
+                    .withFeature(programText('weekdays_p4'))
+
+                    .withFeature(programText('saturday_p1'))
+                    .withFeature(programText('saturday_p2'))
+                    .withFeature(programText('saturday_p3'))
+                    .withFeature(programText('saturday_p4'))
+
+                    .withFeature(programText('sunday_p1'))
+                    .withFeature(programText('sunday_p2'))
+                    .withFeature(programText('sunday_p3'))
+                    .withFeature(programText('sunday_p4')),
             ];
         },
         onEvent: tuya.onEventSetLocalTime,
