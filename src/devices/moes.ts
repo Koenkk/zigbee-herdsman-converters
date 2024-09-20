@@ -128,18 +128,18 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Moes', 'BHT-002/BHT-006', 'Smart heating thermostat', ['_TZE204_aoclfnxz'])],
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === '_TZE204_5toc8efa' ? 0.5 : 1;
-            const calibrationLimit = device?.manufacturerName === '_TZE200_aoclfnxz' ? 9 : 30;
-            const calibrationStep = device?.manufacturerName === '_TZE200_aoclfnxz' ? 1 : 0.1;
+            const calibrationLimit = device?.manufacturerName === '_TZE204_aoclfnxz' ? 9 : 30;
+            const calibrationStep = device?.manufacturerName === '_TZE204_aoclfnxz' ? 1 : 0.1;
             const arr = [
                 e.linkquality(),
                 e.child_lock(),
                 e.deadzone_temperature(),
 
-                device?.manufacturerName === '_TZE200_aoclfnxz'
+                device?.manufacturerName === '_TZE204_aoclfnxz'
                     ? e.max_temp().withValueMin(45).withValueMax(70)
                     : e.max_temperature_limit().withValueMax(45),
 
-                device?.manufacturerName === '_TZE200_aoclfnxz'
+                device?.manufacturerName === '_TZE204_aoclfnxz'
                     ? e.min_temperature_limit().withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat')
                     : e.min_temperature_limit(),
 
@@ -195,7 +195,7 @@ const definitions: DefinitionWithExtend[] = [
                     .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
             ];
 
-            if (device?.manufacturerName === '_TZE200_aoclfnxz') {
+            if (device?.manufacturerName === '_TZE204_aoclfnxz') {
                 arr.splice(2, 1);
             }
 
