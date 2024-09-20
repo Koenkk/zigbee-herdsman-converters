@@ -1134,6 +1134,14 @@ export const presets = {
             )
             .withValueMin(0)
             .withValueMax(35),
+    max_temp: () =>
+        new Numeric('max_temp', access.STATE_SET)
+            .withUnit('°C')
+            .withDescription(
+                'Maximum temperature limit. Cuts the thermostat out regardless of air temperature if the external floor sensor exceeds this temperature. Only used by the thermostat when in AL sensor mode.',
+            )
+            .withValueMin(0)
+            .withValueMax(35),
     min_temperature_limit: () =>
         new Numeric('min_temperature_limit', access.STATE_SET)
             .withUnit('°C')

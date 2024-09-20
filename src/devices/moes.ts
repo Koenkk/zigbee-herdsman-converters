@@ -136,7 +136,7 @@ const definitions: DefinitionWithExtend[] = [
                 e.deadzone_temperature(),
 
                 device?.manufacturerName === '_TZE200_aoclfnxz'
-                    ? e.max_temperature_limit().withValueMin(45).withValueMax(70)
+                    ? e.max_temp().withValueMin(45).withValueMax(70)
                     : e.max_temperature_limit().withValueMax(45),
 
                 device?.manufacturerName === '_TZE200_aoclfnxz'

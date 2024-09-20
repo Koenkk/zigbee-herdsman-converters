@@ -6434,7 +6434,7 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     moes_thermostat_max_temp: {
-        key: ['max_temperature_limit'],
+        key: ['max_temp'],
         convertSet: async (entity, key, value: any, meta) => {
             if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesMaxTemp, value * 10);
