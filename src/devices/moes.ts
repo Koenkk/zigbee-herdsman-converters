@@ -120,8 +120,7 @@ const definitions: DefinitionWithExtend[] = [
             legacy.tz.moes_thermostat_sensor, //43 //sensor selection
             legacy.tz.moes_thermostat_calibration, //27 //temperature correction
             legacy.tz.moes_thermostat_deadzone_temperature, //20 //not used in this model
-            legacy.tz.moes_thermostat_max_temperature_limit, //18 //not used in this model
-            legacy.tz.moes_thermostat_max_temp, //19 //high limit temperature ceiling
+            legacy.tz.moes_thermostat_max_temperature_limit, //18/19 for different models
             legacy.tz.moes_thermostat_min_temperature_limit, //26 //DeadZone temp
             legacy.tz.moes_thermostat_program_schedule, //101 //week program
         ],
@@ -133,15 +132,12 @@ const definitions: DefinitionWithExtend[] = [
             const arr = [
                 e.linkquality(),
                 e.child_lock(),
-                e.deadzone_temperature(),
+
+                device?.manufacturerName === '_TZE204_aoclfnxz' ? e.deadzone_temperature().withValueMin(1) : e.deadzone_temperature(),
 
                 device?.manufacturerName === '_TZE204_aoclfnxz'
-                    ? e.max_temp().withValueMin(45).withValueMax(70)
+                    ? e.max_temperature_limit().withValueMin(45).withValueMax(70)
                     : e.max_temperature_limit().withValueMax(45),
-
-                device?.manufacturerName === '_TZE204_aoclfnxz'
-                    ? e.min_temperature_limit().withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat')
-                    : e.min_temperature_limit(),
 
                 e
                     .climate()
@@ -196,7 +192,7 @@ const definitions: DefinitionWithExtend[] = [
             ];
 
             if (device?.manufacturerName === '_TZE204_aoclfnxz') {
-                arr.splice(2, 1);
+                arr.splice(3, 0, e.min_temperature_limit());
             }
 
             return arr;
