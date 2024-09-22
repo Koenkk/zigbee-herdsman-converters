@@ -38,6 +38,13 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee micro smart dimmer',
         extend: [light({configureReporting: true}), electricityMeter()],
     },
+    {
+        fingerprint: [{modelID: 'Candeo Zigbee Dimmer', manufacturerID: 4107}],
+        model: 'C201',
+        vendor: 'Candeo',
+        description: 'Zigbee micro smart dimmer',
+        extend: [light({configureReporting: true})],
+    },
 ];
 
 export default definitions;
