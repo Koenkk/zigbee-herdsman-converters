@@ -176,7 +176,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '371050043',
         vendor: 'Paulmann Licht',
         description: 'Solar LED house number light',
-        extend: [onOff({ "powerOnBehavior": false })],
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['371232040'],
