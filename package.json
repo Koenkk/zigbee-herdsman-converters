@@ -54,6 +54,7 @@
         "zigbee-herdsman": "^1.1.0"
     },
     "devDependencies": {
+        "@eslint/core": "^0.6.0",
         "@eslint/js": "^9.11.0",
         "@ianvs/prettier-plugin-sort-imports": "^4.3.1",
         "@types/buffer-crc32": "^0.2.4",
