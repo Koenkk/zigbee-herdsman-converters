@@ -172,6 +172,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
     },
     {
+        zigbeeModel: ['371050043'],
+        model: '371050043',
+        vendor: 'Paulmann Licht',
+        description: 'Solar LED house number light',
+        extend: [onOff({ "powerOnBehavior": false })],
+    },
+    {
         zigbeeModel: ['371232040'],
         model: '371232040',
         vendor: 'Paulmann',
