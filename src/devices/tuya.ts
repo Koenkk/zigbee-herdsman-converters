@@ -821,12 +821,18 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Dongguan Daying Electornics Technology', model: 'YG400A'},
             tuya.whitelabel('Tuya', 'TS0205_smoke_2', 'Smoke sensor', ['_TZ3210_up3pngle']),
         ],
-        fromZigbee: [fz.ias_smoke_alarm_1, fz.ignore_basic_report],
-        toZigbee: [],
-        exposes: [e.smoke(), e.battery_low(), e.tamper()],
         // Configure battery % fails
         // https://github.com/Koenkk/zigbee2mqtt/issues/22421
-        extend: [battery({percentageReporting: false})],
+        extend: [battery({percentageReporting: false}), iasZoneAlarm({zoneType: 'smoke', zoneAttributes: ['alarm_1', 'tamper']})],
+        configure: async (device, coordinatorEndpoint) => {
+            if (device?.manufacturerName === '_TZ3210_up3pngle') {
+                // Required for this version
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8004
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+                await reporting.batteryPercentageRemaining(endpoint);
+            }
+        },
     },
     {
         zigbeeModel: ['TS0111'],
