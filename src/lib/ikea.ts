@@ -23,6 +23,7 @@ import * as globalStore from '../lib/store';
 import {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
 import {
     assertString,
+    configureSetBatteryPowerSourceWhenUnknown,
     getEndpointName,
     getFromLookup,
     hasAlreadyProcessedMessage,
@@ -107,7 +108,7 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
     // https://github.com/Koenkk/zigbee2mqtt/issues/23863
     result.meta = {
         ...result.meta,
-        noOffTransition: (entity) => {
+        noOffTransitionWhenOff: (entity) => {
             const softwareBuildID = entity.getDevice().softwareBuildID;
             return softwareBuildID && !softwareBuildID.includes('-') && semver.gt(softwareBuildID ?? '0.0.0', '1.0.021', true);
         },
@@ -176,7 +177,10 @@ export function ikeaBattery(): ModernExtend {
 
     const defaultReporting: ReportingConfigWithoutAttribute = {min: '1_HOUR', max: 'MAX', change: 10};
 
-    const configure: Configure[] = [setupConfigureForReporting('genPowerCfg', 'batteryPercentageRemaining', defaultReporting, access.STATE_GET)];
+    const configure: Configure[] = [
+        setupConfigureForReporting('genPowerCfg', 'batteryPercentageRemaining', defaultReporting, access.STATE_GET),
+        configureSetBatteryPowerSourceWhenUnknown,
+    ];
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }

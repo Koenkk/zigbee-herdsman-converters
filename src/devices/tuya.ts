@@ -3035,6 +3035,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0201', manufacturerName: '_TZ3000_xr3htd96'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_fllyghyj'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_saiqcn0y'},
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_bjawzodf'},
         ],
         model: 'WSD500A',
         vendor: 'Tuya',
@@ -3627,6 +3628,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Lonsonho', model: 'X701'},
             {vendor: 'Bandi', model: 'BDS03G1'},
             tuya.whitelabel('Nous', 'B1Z', '1 gang switch', ['_TZ3000_ctftgjwb']),
+            tuya.whitelabel('Tuya', 'XMSJ', 'Zigbee USB power switch', ['_TZ3000_8n7lqbm0']),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -4154,6 +4156,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_rufdtfyv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_lpwgshtl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rk1wojce'}, // Emos P5630S
+            {modelID: 'TS0601', manufacturerName: '_TZE200_rndg81sf'},
         ],
         model: 'TS0601_thermostat',
         vendor: 'Tuya',
@@ -5165,14 +5168,14 @@ const definitions: DefinitionWithExtend[] = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            // await reporting.rmsVoltage(endpoint, {change: 5});
-            // await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
 
-            // if (!['_TZ3000_0zfrhq4i', '_TZ3000_okaz9tjs', '_TZ3000_typdpbpg'].includes(device.manufacturerName)) {
-            //     // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i (as well as a few others in issue 20028)
-            //     // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
-            //     await reporting.activePower(endpoint, {change: 10});
-            // }
+            if (!['_TZ3000_0zfrhq4i', '_TZ3000_okaz9tjs', '_TZ3000_typdpbpg'].includes(device.manufacturerName)) {
+                // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i (as well as a few others in issue 20028)
+                // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
+                await reporting.activePower(endpoint, {change: 10});
+            }
             await reporting.currentSummDelivered(endpoint);
             const acCurrentDivisor = device.manufacturerName === '_TZ3000_typdpbpg' ? 2000 : 1000;
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor, acCurrentMultiplier: 1});

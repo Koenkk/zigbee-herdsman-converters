@@ -32,6 +32,7 @@ import {
     addActionGroup,
     assertNumber,
     batteryVoltageToPercentage,
+    configureSetBatteryPowerSourceWhenUnknown,
     flatten,
     getEndpointName,
     getFromLookup,
@@ -394,6 +395,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
         if (args.voltageReporting) {
             configure.push(setupConfigureForReporting('genPowerCfg', 'batteryVoltage', args.voltageReportingConfig, ea.STATE_GET));
         }
+        configure.push(configureSetBatteryPowerSourceWhenUnknown);
         result.configure = configure;
     }
 

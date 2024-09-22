@@ -31,7 +31,6 @@ import {
     deviceAddCustomCluster,
     deviceEndpoints,
     electricityMeter,
-    forcePowerSource,
     humidity,
     iasZoneAlarm,
     identify,
@@ -872,7 +871,6 @@ const definitions: DefinitionWithExtend[] = [
         description: 'TRADFRI motion sensor',
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
-            forcePowerSource({powerSource: 'Battery'}),
             tradfriOccupancy(),
             tradfriRequestedBrightness(),
             identify({isSleepy: true}),

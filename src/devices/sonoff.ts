@@ -729,13 +729,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SNZB-02D',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor with screen',
-        extend: [
-            forcePowerSource({powerSource: 'Battery'}),
-            battery({percentage: true}),
-            temperature(),
-            humidity(),
-            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
-        ],
+        extend: [battery({percentage: true}), temperature(), humidity(), bindCluster({cluster: 'genPollCtrl', clusterType: 'input'})],
     },
     {
         fingerprint: [
@@ -813,7 +807,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
-        extend: [onOff()],
+        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['SNZB-01P'],
@@ -821,7 +815,6 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Wireless button',
         extend: [
-            forcePowerSource({powerSource: 'Battery'}),
             ewelinkAction(),
             battery({
                 percentageReportingConfig: {min: 3600, max: 7200, change: 0},
@@ -837,13 +830,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SNZB-02P',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor',
-        extend: [
-            forcePowerSource({powerSource: 'Battery'}),
-            battery({percentage: true}),
-            temperature(),
-            humidity(),
-            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
-        ],
+        extend: [battery({percentage: true}), temperature(), humidity(), bindCluster({cluster: 'genPollCtrl', clusterType: 'input'})],
     },
     {
         zigbeeModel: ['SNZB-04P'],
@@ -1152,7 +1139,8 @@ const definitions: DefinitionWithExtend[] = [
                 name: 'auto_close_when_water_shortage',
                 cluster: 'customClusterEwelink',
                 attribute: 'lackWaterCloseValveTimeout',
-                description: 'Automatically shut down the water valve after the water shortage exceeds 30 minutes.',
+                description:
+                    'Automatically shut down the water valve after the water shortage exceeds 30 minutes. Requires firmware version 1.0.4 or later!',
                 valueOff: ['DISABLE', 0],
                 valueOn: ['ENABLE', 30],
             }),
