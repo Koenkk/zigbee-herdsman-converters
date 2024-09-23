@@ -32,6 +32,7 @@ import {
     addActionGroup,
     assertNumber,
     batteryVoltageToPercentage,
+    configureSetPowerSourceWhenUnknown,
     flatten,
     getEndpointName,
     getFromLookup,
@@ -47,18 +48,6 @@ import {
     postfixWithEndpointName,
     precisionRound,
 } from './utils';
-
-const NS = 'zhc:modernextend';
-
-function configureSetPowerSourceWhenUnknown(powerSource: 'Battery' | 'Mains (single phase)'): Configure {
-    return async (device: Zh.Device): Promise<void> => {
-        if (!device.powerSource) {
-            logger.debug(`Device has no power source, forcing to '${powerSource}'`, NS);
-            device.powerSource = powerSource;
-            device.save();
-        }
-    };
-}
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: 'input' | 'output') {
     if (!device.endpoints) {

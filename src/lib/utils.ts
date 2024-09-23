@@ -6,6 +6,7 @@ import * as globalStore from './store';
 import {
     BatteryLinearVoltage,
     BatteryNonLinearVoltage,
+    Configure,
     Definition,
     Expose,
     Fz,
@@ -681,6 +682,16 @@ export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unkno
         throw new Error(`Expected one of: ${Object.values(lookup).join(', ')}, got: '${value}'`);
     }
     return defaultValue;
+}
+
+export function configureSetPowerSourceWhenUnknown(powerSource: 'Battery' | 'Mains (single phase)'): Configure {
+    return async (device: Zh.Device): Promise<void> => {
+        if (!device.powerSource) {
+            logger.debug(`Device has no power source, forcing to '${powerSource}'`, NS);
+            device.powerSource = powerSource;
+            device.save();
+        }
+    };
 }
 
 export function assertEndpoint(obj: unknown): asserts obj is Zh.Endpoint {

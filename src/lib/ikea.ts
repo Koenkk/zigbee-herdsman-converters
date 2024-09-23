@@ -23,7 +23,7 @@ import * as globalStore from '../lib/store';
 import {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
 import {
     assertString,
-    configureSetBatteryPowerSourceWhenUnknown,
+    configureSetPowerSourceWhenUnknown,
     getEndpointName,
     getFromLookup,
     hasAlreadyProcessedMessage,
@@ -179,7 +179,7 @@ export function ikeaBattery(): ModernExtend {
 
     const configure: Configure[] = [
         setupConfigureForReporting('genPowerCfg', 'batteryPercentageRemaining', defaultReporting, access.STATE_GET),
-        configureSetBatteryPowerSourceWhenUnknown,
+        configureSetPowerSourceWhenUnknown('Battery'),
     ];
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
