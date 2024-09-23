@@ -32,7 +32,6 @@ import {
     addActionGroup,
     assertNumber,
     batteryVoltageToPercentage,
-    configureSetBatteryPowerSourceWhenUnknown,
     flatten,
     getEndpointName,
     getFromLookup,
@@ -48,6 +47,18 @@ import {
     postfixWithEndpointName,
     precisionRound,
 } from './utils';
+
+const NS = 'zhc:modernextend';
+
+function configureSetPowerSourceWhenUnknown(powerSource: 'Battery' | 'Mains (single phase)'): Configure {
+    return async (device: Zh.Device): Promise<void> => {
+        if (!device.powerSource) {
+            logger.debug(`Device has no power source, forcing to '${powerSource}'`, NS);
+            device.powerSource = powerSource;
+            device.save();
+        }
+    };
+}
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: 'input' | 'output') {
     if (!device.endpoints) {
@@ -395,7 +406,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
         if (args.voltageReporting) {
             configure.push(setupConfigureForReporting('genPowerCfg', 'batteryVoltage', args.voltageReportingConfig, ea.STATE_GET));
         }
-        configure.push(configureSetBatteryPowerSourceWhenUnknown);
+        configure.push(configureSetPowerSourceWhenUnknown('Battery'));
         result.configure = configure;
     }
 
@@ -505,6 +516,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
                     }
                 }
             },
+            configureSetPowerSourceWhenUnknown('Mains (single phase)'),
         ];
     }
     return result;
@@ -1046,6 +1058,7 @@ export function light(args?: LightArgs): ModernExtend {
                 }
             }
         },
+        configureSetPowerSourceWhenUnknown('Mains (single phase)'),
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, meta, isModernExtend: true};
