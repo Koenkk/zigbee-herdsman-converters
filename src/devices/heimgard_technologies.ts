@@ -1,20 +1,27 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
-const e = exposes.presets;
-import * as ota from '../lib/ota';
+import * as exposes from '../lib/exposes';
 import {battery} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['HC-SLM-1'],
         model: 'HC-SLM-1',
         vendor: 'Heimgard Technologies',
         description: 'Wattle door lock pro',
-        fromZigbee: [fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock, fz.lock_pin_code_response,
-            fz.lock_user_status_response],
+        fromZigbee: [
+            fz.battery,
+            fz.lock_operation_event,
+            fz.lock_programming_event,
+            fz.lock,
+            fz.lock_pin_code_response,
+            fz.lock_user_status_response,
+        ],
         toZigbee: [tz.identify, tz.lock, tz.lock_sound_volume, tz.lock_auto_relock_time, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 39},
         ota: ota.zigbeeOTA,
@@ -26,8 +33,13 @@ const definitions: Definition[] = [
             await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
         },
         exposes: [
-            e.lock(), e.battery(), e.sound_volume(), e.auto_relock_time().withValueMin(0).withValueMax(3600),
-            e.lock_action_user(), e.lock_action_source_name(), e.pincode(),
+            e.lock(),
+            e.battery(),
+            e.sound_volume(),
+            e.auto_relock_time().withValueMin(0).withValueMax(3600),
+            e.lock_action_user(),
+            e.lock_action_source_name(),
+            e.pincode(),
         ],
     },
     {

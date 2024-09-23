@@ -1,7 +1,7 @@
-import {Definition} from '../lib/types';
 import {light} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Connected A-19 60W Equivalent ', 'Connected A-19 60W Equivalent   '],
         model: 'B00TN589ZG',

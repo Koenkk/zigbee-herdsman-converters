@@ -1,9 +1,9 @@
-import {Definition, Tz} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import {battery, deviceEndpoints, humidity, light, onOff, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {deviceEndpoints, light, onOff, battery, humidity, temperature} from '../lib/modernExtend';
+import {DefinitionWithExtend, Tz} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -22,7 +22,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ccb9f56837ab41dcad366fb1452096b6', '250bccf66c41421b91b5e3242942c164'],
         model: 'DD10Z',
@@ -53,8 +53,22 @@ const definitions: Definition[] = [
         vendor: 'ORVIBO',
         description: 'Smart sticker switch',
         fromZigbee: [fz.orvibo_raw_1],
-        exposes: [e.action(['button_1_click', 'button_1_hold', 'button_1_release', 'button_2_click', 'button_2_hold', 'button_2_release',
-            'button_3_click', 'button_3_hold', 'button_3_release', 'button_4_click', 'button_4_hold', 'button_4_release'])],
+        exposes: [
+            e.action([
+                'button_1_click',
+                'button_1_hold',
+                'button_1_release',
+                'button_2_click',
+                'button_2_hold',
+                'button_2_release',
+                'button_3_click',
+                'button_3_hold',
+                'button_3_release',
+                'button_4_click',
+                'button_4_hold',
+                'button_4_release',
+            ]),
+        ],
         toZigbee: [],
     },
     {
@@ -62,10 +76,7 @@ const definitions: Definition[] = [
         model: 'T18W3Z',
         vendor: 'ORVIBO',
         description: 'Neutral smart switch 3 gang',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}), onOff({endpointNames: ['l1', 'l2', 'l3']})],
     },
     {
         zigbeeModel: ['fdd76effa0e146b4bdafa0c203a37192', 'c670e231d1374dbc9e3c6a9fffbd0ae6', '75a4bfe8ef9c4350830a25d13e3ab068'],
@@ -88,20 +99,14 @@ const definitions: Definition[] = [
         model: 'RL804QZB',
         vendor: 'ORVIBO',
         description: 'Multi-functional 3 gang relay',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3'], configureReporting: false}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}), onOff({endpointNames: ['l1', 'l2', 'l3'], configureReporting: false})],
     },
     {
         zigbeeModel: ['396483ce8b3f4e0d8e9d79079a35a420'],
         model: 'CM10ZW',
         vendor: 'ORVIBO',
         description: 'Multi-functional 3 gang relay',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}), onOff({endpointNames: ['l1', 'l2', 'l3']})],
     },
     {
         zigbeeModel: ['b467083cfc864f5e826459e5d8ea6079'],
@@ -110,7 +115,7 @@ const definitions: Definition[] = [
         description: 'Temperature & humidity sensor',
         fromZigbee: [fz.humidity, fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
@@ -130,7 +135,7 @@ const definitions: Definition[] = [
         description: 'Temperature & humidity Sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
@@ -155,20 +160,14 @@ const definitions: Definition[] = [
         model: 'T30W3Z',
         vendor: 'ORVIBO',
         description: 'Smart light switch - 3 gang',
-        extend: [
-            deviceEndpoints({endpoints: {'top': 1, 'center': 2, 'bottom': 3}}),
-            onOff({endpointNames: ['top', 'center', 'bottom']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}), onOff({endpointNames: ['top', 'center', 'bottom']})],
     },
     {
         zigbeeModel: ['074b3ffba5a045b7afd94c47079dd553'],
         model: 'T21W2Z',
         vendor: 'ORVIBO',
         description: 'Smart light switch - 2 gang',
-        extend: [
-            deviceEndpoints({endpoints: {'top': 1, 'bottom': 2}}),
-            onOff({endpointNames: ['top', 'bottom']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {top: 1, bottom: 2}}), onOff({endpointNames: ['top', 'bottom']})],
     },
     {
         zigbeeModel: ['095db3379e414477ba6c2f7e0c6aa026'],
@@ -200,20 +199,14 @@ const definitions: Definition[] = [
         model: 'R11W2Z',
         vendor: 'ORVIBO',
         description: 'In wall switch - 2 gang',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         zigbeeModel: ['9ea4d5d8778d4f7089ac06a3969e784b', '83b9b27d5ffb4830bf35be5b1023623e', '2810c2403b9c4a5db62cc62d1030d95e'],
         model: 'R20W2Z',
         vendor: 'ORVIBO',
         description: 'In wall switch - 2 gang',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         zigbeeModel: ['131c854783bc45c9b2ac58088d09571c', 'b2e57a0f606546cd879a1a54790827d6', '585fdfb8c2304119a2432e9845cf2623'],
@@ -241,6 +234,15 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['987b1869e4944218aa0034750d4ac585'],
+        model: 'SE20-O',
+        vendor: 'ORVIBO',
+        description: 'Smart emergency button',
+        fromZigbee: [fz.command_status_change_notification_action],
+        exposes: [e.action(['single'])],
+        toZigbee: [],
     },
     {
         zigbeeModel: ['72bd56c539ca4c7fba73a9be0ae0d19f'],
@@ -280,30 +282,21 @@ const definitions: Definition[] = [
         model: 'T40W2Z',
         vendor: 'ORVIBO',
         description: 'MixSwitch 2 gangs',
-        extend: [
-            deviceEndpoints({endpoints: {'left': 1, 'right': 2}}),
-            onOff({endpointNames: ['left', 'right']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {left: 1, right: 2}}), onOff({endpointNames: ['left', 'right']})],
     },
     {
         zigbeeModel: ['e8d667cb184b4a2880dd886c23d00976'],
         model: 'T40W3Z',
         vendor: 'ORVIBO',
         description: 'MixSwitch 3 gangs',
-        extend: [
-            deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
-            onOff({endpointNames: ['left', 'center', 'right']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), onOff({endpointNames: ['left', 'center', 'right']})],
     },
     {
         zigbeeModel: ['20513b10079f4cc68cffb8b0dc6d3277'],
         model: 'T40W4Z',
         vendor: 'ORVIBO',
         description: 'MixSwitch 4 gangs',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l4': 3, 'l5': 5, 'l6': 6}}),
-            onOff({endpointNames: ['l1', 'l2', 'l4', 'l5', 'l6']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l4: 3, l5: 5, l6: 6}}), onOff({endpointNames: ['l1', 'l2', 'l4', 'l5', 'l6']})],
     },
     {
         zigbeeModel: ['bcb949e87e8c4ea6bc2803052dd8fbf5'],
@@ -326,10 +319,7 @@ const definitions: Definition[] = [
         model: 'T41W2Z',
         vendor: 'ORVIBO',
         description: 'MixSwitch 2 gang (without neutral wire)',
-        extend: [
-            deviceEndpoints({endpoints: {'left': 1, 'right': 2}}),
-            onOff({endpointNames: ['left', 'right']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {left: 1, right: 2}}), onOff({endpointNames: ['left', 'right']})],
     },
     {
         zigbeeModel: ['cb7ce9fe2cb147e69c5ea700b39b3d5b'],
@@ -350,10 +340,7 @@ const definitions: Definition[] = [
         model: 'R30W3Z',
         vendor: 'ORVIBO',
         description: 'In-wall switch 3 gang',
-        extend: [
-            deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
-            onOff({endpointNames: ['left', 'center', 'right']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), onOff({endpointNames: ['left', 'center', 'right']})],
     },
     {
         zigbeeModel: ['0e93fa9c36bb417a90ad5d8a184b683a'],

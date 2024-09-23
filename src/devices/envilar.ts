@@ -1,10 +1,11 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-const e = exposes.presets;
 import fz from '../converters/fromZigbee';
-import {deviceEndpoints, light, onOff, identify, electricityMeter} from '../lib/modernExtend';
+import * as exposes from '../lib/exposes';
+import {deviceEndpoints, electricityMeter, identify, light, onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZG_LED_DRIVER42CC'],
         model: 'ZG_LED_DRIVER42CC',
@@ -27,8 +28,7 @@ const definitions: Definition[] = [
         meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(),
-            e.action(['recall_1', 'recall_2', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
+        exposes: [e.battery(), e.action(['recall_1', 'recall_2', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
     },
     {
         zigbeeModel: ['ZG102-BOX-UNIDIM'],
@@ -49,10 +49,7 @@ const definitions: Definition[] = [
         model: '2CH-ZG-BOX-RELAY',
         vendor: 'Envilar',
         description: '2 channel box relay',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         zigbeeModel: ['7853'],

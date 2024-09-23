@@ -1,8 +1,8 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {Definition, Fz} from '../lib/types';
+import * as exposes from '../lib/exposes';
 import {onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend, Fz} from '../lib/types';
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -22,7 +22,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['DTB190502A1'],
         model: 'DTB190502A1',
@@ -30,8 +30,7 @@ const definitions: Definition[] = [
         description: 'CC2530 based IO Board',
         fromZigbee: [fz.DTB190502A1],
         toZigbee: [tz.DTB190502A1_LED],
-        exposes: [e.binary('led_state', ea.STATE, 'ON', 'OFF'),
-            e.enum('key_state', ea.STATE, ['KEY_SYS', 'KEY_UP', 'KEY_DOWN', 'KEY_NONE'])],
+        exposes: [e.binary('led_state', ea.STATE, 'ON', 'OFF'), e.enum('key_state', ea.STATE, ['KEY_SYS', 'KEY_UP', 'KEY_DOWN', 'KEY_NONE'])],
     },
     {
         zigbeeModel: ['DTB-ED2004-012'],
@@ -47,7 +46,9 @@ const definitions: Definition[] = [
         description: 'Wall touchsensor with 4 keys',
         fromZigbee: [fzLocal.DTB2011014, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.linkquality(),
+        exposes: [
+            e.battery(),
+            e.linkquality(),
             e.binary('key_1', ea.STATE, 'ON', 'OFF'),
             e.binary('key_2', ea.STATE, 'ON', 'OFF'),
             e.binary('key_3', ea.STATE, 'ON', 'OFF'),

@@ -1,12 +1,13 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
-const e = exposes.presets;
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import {onOff} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['CSLC601-D-E'],
         model: 'CSLC601-D-E',
@@ -21,7 +22,7 @@ const definitions: Definition[] = [
         description: 'Remote temperature probe on cable',
         fromZigbee: [fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);

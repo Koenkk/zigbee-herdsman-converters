@@ -1,11 +1,12 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
+import {electricityMeter, onOff, ota} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {electricityMeter, onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['EMIZB-141'],
         model: 'EMIZB-141',
@@ -13,6 +14,7 @@ const definitions: Definition[] = [
         description: 'Smart powermeter Zigbee bridge',
         fromZigbee: [fz.metering, fz.battery],
         toZigbee: [],
+        extend: [ota()],
         exposes: [e.battery(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -33,4 +35,3 @@ const definitions: Definition[] = [
 
 export default definitions;
 module.exports = definitions;
-

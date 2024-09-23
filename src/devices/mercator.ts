@@ -1,12 +1,13 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_yvxjawlt'}],
         model: 'SPP04G',
@@ -38,7 +39,9 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708*/}
+            } catch {
+                /* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708*/
+            }
         },
     },
     {
@@ -65,7 +68,9 @@ const definitions: Definition[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
                 await reporting.batteryPercentageRemaining(endpoint);
                 await reporting.batteryVoltage(endpoint);
-            } catch (error) {/* Fails for some*/}
+            } catch {
+                /* Fails for some*/
+            }
         },
     },
     {
@@ -145,7 +150,7 @@ const definitions: Definition[] = [
         description: 'Triple switch',
         extend: [tuya.modernExtend.tuyaOnOff({backlightModeLowMediumHigh: true, endpoints: ['left', 'center', 'right']})],
         endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
+            return {left: 1, center: 2, right: 3};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -159,8 +164,10 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0501', manufacturerName: '_TZ3210_lzqq3u4r'},
-            {modelID: 'TS0501', manufacturerName: '_TZ3210_4whigl8i'}],
+        fingerprint: [
+            {modelID: 'TS0501', manufacturerName: '_TZ3210_lzqq3u4r'},
+            {modelID: 'TS0501', manufacturerName: '_TZ3210_4whigl8i'},
+        ],
         model: 'SSWF01G',
         vendor: 'Mercator Ikuü',
         description: 'AC fan controller',

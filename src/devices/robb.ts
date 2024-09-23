@@ -1,13 +1,32 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import {
+    battery,
+    deviceEndpoints,
+    electricityMeter,
+    humidity,
+    iasZoneAlarm,
+    identify,
+    illuminance,
+    light,
+    occupancy,
+    onOff,
+    temperature,
+} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['ROB_200-004-1'],
+        model: 'ROB_200-004-1',
+        vendor: 'ROBB',
+        description: 'ZigBee AC phase-cut dimmer',
+        extend: [light({configureReporting: true})],
+    },
     {
         zigbeeModel: ['ROB_200-060-0'],
         model: 'ROB_200-060-0',
@@ -38,14 +57,27 @@ const definitions: Definition[] = [
         exposes: [e.cover_position()],
     },
     {
+        zigbeeModel: ['ROB_200-070-0'],
+        model: 'ROB_200-070-0',
+        vendor: 'ROBB',
+        description: 'Battery powered PIR presence, temperature, humidity and light sensors',
+        extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}}),
+            battery(),
+            identify(),
+            occupancy(),
+            iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low']}),
+            temperature({endpointNames: ['3']}),
+            humidity({endpointNames: ['4']}),
+            illuminance({endpointNames: ['5']}),
+        ],
+    },
+    {
         zigbeeModel: ['ROB_200-050-0'],
         model: 'ROB_200-050-0',
         vendor: 'ROBB',
         description: '4 port switch with 2 usb ports (no metering)',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']})],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9023A(EU)'}],
     },
     {
@@ -67,10 +99,7 @@ const definitions: Definition[] = [
         model: 'ROB_200-011-0',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: [
-            light({configureReporting: true}),
-            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 10}, power: {divisor: 10}}),
-        ],
+        extend: [light({configureReporting: true}), electricityMeter({current: {divisor: 1000}, voltage: {divisor: 10}, power: {divisor: 10}})],
     },
     {
         zigbeeModel: ['ROB_200-003-0'],
@@ -84,7 +113,7 @@ const definitions: Definition[] = [
         model: 'ROB_200-003-1',
         vendor: 'ROBB',
         description: 'Zigbee AC in wall switch (normal switch)',
-        extend: [onOff({'powerOnBehavior': false})],
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['ROB_200-030-0'],
@@ -98,11 +127,11 @@ const definitions: Definition[] = [
         model: 'ROB_200-014-0',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut rotary dimmer',
-        extend: [
-            light({configureReporting: true}),
-            electricityMeter(),
+        extend: [light({configureReporting: true}), electricityMeter()],
+        whiteLabel: [
+            {vendor: 'YPHIX', model: '50208695'},
+            {vendor: 'Samotech', model: 'SM311'},
         ],
-        whiteLabel: [{vendor: 'YPHIX', model: '50208695'}, {vendor: 'Samotech', model: 'SM311'}],
     },
     {
         zigbeeModel: ['ZG2833K8_EU05', 'ROB_200-007-0'],
@@ -110,11 +139,31 @@ const definitions: Definition[] = [
         vendor: 'ROBB',
         description: 'Zigbee 8 button wall switch',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery, fz.ignore_genOta],
-        exposes: [e.battery(), e.action([
-            'on_1', 'off_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
-            'on_2', 'off_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
-            'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
-            'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on_1',
+                'off_1',
+                'brightness_move_up_1',
+                'brightness_move_down_1',
+                'brightness_stop_1',
+                'on_2',
+                'off_2',
+                'brightness_move_up_2',
+                'brightness_move_down_2',
+                'brightness_stop_2',
+                'on_3',
+                'off_3',
+                'brightness_move_up_3',
+                'brightness_move_down_3',
+                'brightness_stop_3',
+                'on_4',
+                'off_4',
+                'brightness_move_up_4',
+                'brightness_move_down_4',
+                'brightness_stop_4',
+            ]),
+        ],
         toZigbee: [],
         meta: {multiEndpoint: true},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
@@ -142,11 +191,31 @@ const definitions: Definition[] = [
         vendor: 'ROBB',
         description: 'Zigbee 8 button wall switch',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery, fz.ignore_genOta],
-        exposes: [e.battery(), e.action([
-            'on_1', 'off_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
-            'on_2', 'off_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
-            'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
-            'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on_1',
+                'off_1',
+                'brightness_move_up_1',
+                'brightness_move_down_1',
+                'brightness_stop_1',
+                'on_2',
+                'off_2',
+                'brightness_move_up_2',
+                'brightness_move_down_2',
+                'brightness_stop_2',
+                'on_3',
+                'off_3',
+                'brightness_move_up_3',
+                'brightness_move_down_3',
+                'brightness_stop_3',
+                'on_4',
+                'off_4',
+                'brightness_move_up_4',
+                'brightness_move_down_4',
+                'brightness_stop_4',
+            ]),
+        ],
         toZigbee: [],
         meta: {multiEndpoint: true},
     },
@@ -156,9 +225,23 @@ const definitions: Definition[] = [
         vendor: 'ROBB',
         description: 'Zigbee 4 button wall switch',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action([
-            'on_1', 'off_1', 'stop_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
-            'on_2', 'off_2', 'stop_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on_1',
+                'off_1',
+                'stop_1',
+                'brightness_move_up_1',
+                'brightness_move_down_1',
+                'brightness_stop_1',
+                'on_2',
+                'off_2',
+                'stop_2',
+                'brightness_move_up_2',
+                'brightness_move_down_2',
+                'brightness_stop_2',
+            ]),
+        ],
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K4-DIM2'}],
@@ -169,10 +252,9 @@ const definitions: Definition[] = [
         vendor: 'ROBB',
         description: 'Zigbee 2 button wall switch',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action([
-            'on_1', 'off_1', 'stop_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1'])],
+        exposes: [e.battery(), e.action(['on_1', 'off_1', 'stop_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1'])],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K2-DIM'}],
     },
     {
@@ -195,8 +277,7 @@ const definitions: Definition[] = [
         model: 'ROB_200-018-0',
         vendor: 'ROBB',
         description: 'ZigBee knob smart dimmer',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.battery,
-            fz.command_move_to_color],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.battery, fz.command_move_to_color],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move', 'color_move'])],
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
@@ -211,8 +292,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint,
-                ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -233,8 +313,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint,
-                ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -251,14 +330,42 @@ const definitions: Definition[] = [
         model: 'ROB_200-016-0',
         vendor: 'ROBB',
         description: 'RGB CCT DIM 3 in 1 Zigbee Remote',
-        fromZigbee: [fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
-            fz.command_step, fz.command_recall, fz.command_on, fz.command_off, fz.command_toggle, fz.command_stop,
-            fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation],
+        fromZigbee: [
+            fz.battery,
+            fz.command_move_to_color,
+            fz.command_move_to_color_temp,
+            fz.command_move_hue,
+            fz.command_step,
+            fz.command_recall,
+            fz.command_on,
+            fz.command_off,
+            fz.command_toggle,
+            fz.command_stop,
+            fz.command_move,
+            fz.command_color_loop_set,
+            fz.command_ehanced_move_to_hue_and_saturation,
+        ],
         toZigbee: [],
-        exposes: [e.battery(), e.action([
-            'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down',
-            'recall_*', 'on', 'off', 'toggle', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
-            'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'hue_stop'])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'color_move',
+                'color_temperature_move',
+                'hue_move',
+                'brightness_step_up',
+                'brightness_step_down',
+                'recall_*',
+                'on',
+                'off',
+                'toggle',
+                'brightness_stop',
+                'brightness_move_up',
+                'brightness_move_down',
+                'color_loop_set',
+                'enhanced_move_to_hue_and_saturation',
+                'hue_stop',
+            ]),
+        ],
     },
     {
         zigbeeModel: ['ROB_200-026-0'],
@@ -269,7 +376,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tz.power_on_behavior, tz.electrical_measurement_power],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.energy()],
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
+            return {l1: 1, l2: 2};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         configure: async (device, coordinatorEndpoint) => {

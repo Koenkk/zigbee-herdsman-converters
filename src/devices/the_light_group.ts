@@ -1,13 +1,13 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['S24019'],
         model: 'S24019',
@@ -37,12 +37,31 @@ const definitions: Definition[] = [
         vendor: 'The Light Group',
         description: 'SLC SmartOne Zigbee wall remote 4-channels',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
-        exposes: [e.battery(), e.action([
-            'on_l1', 'off_l1', 'brightness_move_up_l1', 'brightness_move_down_l1', 'brightness_stop_l1',
-            'on_l2', 'off_l2', 'brightness_move_up_l2', 'brightness_move_down_l2', 'brightness_stop_l2',
-            'on_l3', 'off_l3', 'brightness_move_up_l3', 'brightness_move_down_l3', 'brightness_stop_l3',
-            'on_l4', 'off_l4', 'brightness_move_up_l4', 'brightness_move_down_l4', 'brightness_stop_l4',
-        ])],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on_l1',
+                'off_l1',
+                'brightness_move_up_l1',
+                'brightness_move_down_l1',
+                'brightness_stop_l1',
+                'on_l2',
+                'off_l2',
+                'brightness_move_up_l2',
+                'brightness_move_down_l2',
+                'brightness_stop_l2',
+                'on_l3',
+                'off_l3',
+                'brightness_move_up_l3',
+                'brightness_move_down_l3',
+                'brightness_stop_l3',
+                'on_l4',
+                'off_l4',
+                'brightness_move_up_l4',
+                'brightness_move_down_l4',
+                'brightness_stop_l4',
+            ]),
+        ],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {

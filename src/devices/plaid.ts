@@ -1,10 +1,11 @@
-import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'PS-SPRZMS-SLP3', manufacturerName: 'PLAID SYSTEMS'}],
         zigbeeModel: ['PS-SPRZMS-SLP3'],
@@ -14,7 +15,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         fromZigbee: [fz.temperature, fz.humidity, fz.plaid_battery],
         exposes: [e.humidity(), e.temperature(), e.battery(), e.battery_voltage()],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);

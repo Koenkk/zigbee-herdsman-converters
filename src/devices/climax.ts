@@ -1,14 +1,14 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
 import {forcePowerSource, identify, onOff} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PSS_00.00.00.15TC'],
         model: 'PSS-23ZBS',
@@ -24,7 +24,6 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [tz.warning],
         exposes: [e.smoke(), e.battery(), e.battery_low(), e.tamper(), e.warning()],
-
     },
     {
         zigbeeModel: ['WS15_00.00.00.10TC'],
@@ -45,8 +44,15 @@ const definitions: Definition[] = [
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
     {
-        zigbeeModel: ['PSM_00.00.00.35TC', 'PSMP5_00.00.02.02TC', 'PSMP5_00.00.05.01TC', 'PSMP5_00.00.05.10TC', 'PSMP5_00.00.03.15TC',
-            'PSMP5_00.00.03.16TC', 'PSMP5_00.00.03.19TC'],
+        zigbeeModel: [
+            'PSM_00.00.00.35TC',
+            'PSMP5_00.00.02.02TC',
+            'PSMP5_00.00.05.01TC',
+            'PSMP5_00.00.05.10TC',
+            'PSMP5_00.00.03.15TC',
+            'PSMP5_00.00.03.16TC',
+            'PSMP5_00.00.03.19TC',
+        ],
         model: 'PSM-29ZBSR',
         vendor: 'Climax',
         description: 'Power plug',
@@ -91,9 +97,14 @@ const definitions: Definition[] = [
             await endpoint.read('ssIasZone', ['zoneState', 'iasCieAddr', 'zoneId']);
             await endpoint.read('ssIasWd', ['maxDuration']);
         },
-        exposes: [e.battery_low(), e.tamper(), e.warning(), e.squawk(),
+        exposes: [
+            e.battery_low(),
+            e.tamper(),
+            e.warning(),
+            e.squawk(),
             e.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
-            e.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual start of siren')],
+            e.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual start of siren'),
+        ],
     },
     {
         zigbeeModel: ['WS15_00.00.00.14TC'],
@@ -120,8 +131,7 @@ const definitions: Definition[] = [
         description: 'Remote Keypad',
         fromZigbee: [fz.ias_keypad, fz.battery, fz.command_arm, fz.command_panic, fz.command_emergency],
         toZigbee: [],
-        exposes: [e.battery_low(), e.tamper(), e.action(['emergency', 'panic', 'disarm', 'arm_all_zones', 'arm_day_zones']),
-        ],
+        exposes: [e.battery_low(), e.tamper(), e.action(['emergency', 'panic', 'disarm', 'arm_all_zones', 'arm_day_zones'])],
     },
     {
         zigbeeModel: ['PRL_00.00.03.04TC'],

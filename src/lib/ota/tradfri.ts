@@ -1,8 +1,9 @@
+import {logger} from '../logger';
+import {KeyValue, Ota, Zh} from '../types';
+import * as common from './common';
+
 const productionURL = 'http://fw.ota.homesmart.ikea.net/feed/version_info.json';
 const testURL = 'http://fw.test.ota.homesmart.ikea.net/feed/version_info.json';
-import {logger} from '../logger';
-import {Ota, Zh, KeyValue} from '../types';
-import * as common from './common';
 
 const NS = 'zhc:ota:tradfri';
 const axios = common.getAxios();
@@ -37,12 +38,12 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, requestPayload:Ota.ImageInfo=null) {
-    return common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
+export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
+    return await common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta);
+    return await common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta);
 }
 
 const useTestURL_ = () => {

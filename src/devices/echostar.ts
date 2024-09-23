@@ -1,9 +1,10 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['   Bell'],
         model: 'SAGE206612',
@@ -12,7 +13,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.SAGE206612_state, fz.battery],
         exposes: [e.battery(), e.action(['bell1', 'bell2'])],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
     },
     {
         zigbeeModel: [' Switch'],

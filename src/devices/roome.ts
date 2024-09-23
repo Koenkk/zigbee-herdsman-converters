@@ -1,9 +1,10 @@
-import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['MULTI-MECI--EA01'],
         model: 'HSC1-WD-0',

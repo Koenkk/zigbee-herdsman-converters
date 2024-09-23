@@ -1,10 +1,11 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TYZB01_ujfk3xd9'}],
         model: 'M423-9E',
@@ -13,7 +14,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);

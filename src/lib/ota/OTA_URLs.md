@@ -42,11 +42,11 @@ EUROTRONICS Zigbee OTA firmware images are made publicly available by EUROTRONIC
 
 https://github.com/EUROTRONIC-Technology/Spirit-ZigBee/releases/download/
 
-### IKEA Trådfri 
+### IKEA Trådfri
 
 IKEA Tradfi Zigbee OTA firmware images are made publicly available by IKEA (first-party) at the following URL:
 
-Download-URL: 
+Download-URL:
 
 http://fw.ota.homesmart.ikea.net/feed/version_info.json
 
