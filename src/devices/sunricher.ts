@@ -15,6 +15,7 @@ import {
     deviceEndpoints,
     electricityMeter,
     humidity,
+    iasZoneAlarm,
     identify,
     illuminance,
     light,
@@ -70,6 +71,13 @@ async function syncTime(endpoint: Zh.Endpoint) {
 }
 
 const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['HK-SENSOR-CT-MINI'],
+        model: 'SR-ZG9011A-DS',
+        vendor: 'Sunricher',
+        description: 'Door/window sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
+    },
     {
         zigbeeModel: ['ZG2858A'],
         model: 'ZG2858A',
@@ -360,7 +368,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['HK-SL-DIM-A'],
-        model: 'SR-ZG9040A',
+        model: 'SR-ZG9040A/ZG9041A-D',
         vendor: 'Sunricher',
         description: 'Zigbee micro smart dimmer',
         extend: [light({configureReporting: true}), electricityMeter()],
