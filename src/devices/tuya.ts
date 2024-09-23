@@ -5574,6 +5574,69 @@ const definitions: DefinitionWithExtend[] = [
             tuya.exposes.currentWithPhase('c'),
             e.temperature(),
             e.binary('leakage_test', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn ON to perform a leagage test'),
+            e
+                .binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will turn off when threshold reached'),
+            e
+                .numeric('over_current_threshold', ea.STATE_SET)
+                .withUnit('A')
+                .withDescription('Setup the value on the device')
+                .withValueMin(1)
+                .withValueMax(63),
+            e
+                .binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will turn off when threshold reached'),
+            e
+                .numeric('over_voltage_threshold', ea.STATE_SET)
+                .withUnit('V')
+                .withDescription('Setup value on the device')
+                .withValueMin(250)
+                .withValueMax(300),
+            e
+                .binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will turn off when threshold reached'),
+            e
+                .numeric('under_voltage_threshold', ea.STATE_SET)
+                .withUnit('V')
+                .withDescription('Setup value on the device')
+                .withValueMin(150)
+                .withValueMax(200),
+            e
+                .binary('insufficient_balance_breaker', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will turn off when threshold reached'),
+            e
+                .numeric('insufficient_balance_threshold', ea.STATE_SET)
+                .withUnit('kWh')
+                .withDescription('Setup value on the device')
+                .withValueMin(1)
+                .withValueMax(65535),
+            e
+                .binary('overload_breaker', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will turn off when threshold reached'),
+            e
+                .numeric('overload_threshold', ea.STATE_SET)
+                .withUnit('kW')
+                .withDescription('Setup value on the device')
+                .withValueMin(1)
+                .withValueMax(25),
+            e
+                .binary('leakage_breaker', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will turn off when threshold reached'),
+            e
+                .numeric('leakage_threshold', ea.STATE_SET)
+                .withUnit('mA')
+                .withDescription('Setup value on the device')
+                .withValueMin(10)
+                .withValueMax(90),
+            e
+                .binary('high_temperature_breaker', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will turn off when threshold reached'),
+            e
+                .numeric('high_temperature_threshold', ea.STATE_SET)
+                .withUnit('°C')
+                .withDescription('Setup value on the device')
+                .withValueMin(40)
+                .withValueMax(100),
         ],
         meta: {
             tuyaDatapoints: [
@@ -5606,6 +5669,22 @@ const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [16, 'state', tuya.valueConverter.onOff],
+                [17, null, tuya.valueConverter.threshold_2],
+                [17, 'overload_breaker', tuya.valueConverter.threshold_2],
+                [17, 'overload_threshold', tuya.valueConverter.threshold_2],
+                [17, 'leakage_threshold', tuya.valueConverter.threshold_2],
+                [17, 'leakage_breaker', tuya.valueConverter.threshold_2],
+                [17, 'high_temperature_threshold', tuya.valueConverter.threshold_2],
+                [17, 'high_temperature_breaker', tuya.valueConverter.threshold_2],
+                [18, null, tuya.valueConverter.threshold_3],
+                [18, 'over_current_threshold', tuya.valueConverter.threshold_3],
+                [18, 'over_current_breaker', tuya.valueConverter.threshold_3],
+                [18, 'over_voltage_threshold', tuya.valueConverter.threshold_3],
+                [18, 'over_voltage_breaker', tuya.valueConverter.threshold_3],
+                [18, 'under_voltage_threshold', tuya.valueConverter.threshold_3],
+                [18, 'under_voltage_breaker', tuya.valueConverter.threshold_3],
+                [18, 'insufficient_balance_threshold', tuya.valueConverter.threshold_3],
+                [18, 'insufficient_balance_breaker', tuya.valueConverter.threshold_3],
                 [21, 'leakage_test', tuya.valueConverter.onOff], // Leakage test
                 [102, 'temperature', tuya.valueConverter.divideBy10],
                 // Ignored for now; we don't know what the values mean

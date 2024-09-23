@@ -649,6 +649,170 @@ export const valueConverter = {
             };
         },
     },
+    threshold_2: {
+        to: async (v: number, meta: Tz.Meta) => {
+            const entity = meta.device.endpoints[0];
+            const onOffLookup = {on: 1, off: 0};
+            const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+
+            if (meta.message.overload_breaker) {
+                const threshold = meta.state['overload_threshold'];
+                const buf = Buffer.from([
+                    3,
+                    utils.getFromLookup(meta.message.overload_breaker, onOffLookup),
+                    0,
+                    utils.toNumber(threshold, 'overload_threshold'),
+                ]);
+                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.overload_threshold) {
+                const state = meta.state['overload_breaker'];
+                const buf = Buffer.from([
+                    3,
+                    utils.getFromLookup(state, onOffLookup),
+                    0,
+                    utils.toNumber(meta.message.overload_threshold, 'overload_threshold'),
+                ]);
+                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.leakage_threshold) {
+                const state = meta.state['leakage_breaker'];
+                const buf = Buffer.alloc(8);
+                buf.writeUInt8(4, 4);
+                buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 5);
+                buf.writeUInt16BE(utils.toNumber(meta.message.leakage_threshold, 'leakage_threshold'), 6);
+                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.leakage_breaker) {
+                const threshold = meta.state['leakage_threshold'];
+                const buf = Buffer.alloc(8);
+                buf.writeUInt8(4, 4);
+                buf.writeUInt8(utils.getFromLookup(meta.message.leakage_breaker, onOffLookup), 5);
+                buf.writeUInt16BE(utils.toNumber(threshold, 'leakage_threshold'), 6);
+                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.high_temperature_threshold) {
+                const state = meta.state['high_temperature_breaker'];
+                const buf = Buffer.alloc(12);
+                buf.writeUInt8(5, 8);
+                buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 9);
+                buf.writeUInt16BE(utils.toNumber(meta.message.high_temperature_threshold, 'high_temperature_threshold'), 10);
+                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.high_temperature_breaker) {
+                const threshold = meta.state['high_temperature_threshold'];
+                const buf = Buffer.alloc(12);
+                buf.writeUInt8(5, 8);
+                buf.writeUInt8(utils.getFromLookup(meta.message.high_temperature_breaker, onOffLookup), 9);
+                buf.writeUInt16BE(utils.toNumber(threshold, 'high_temperature_threshold'), 10);
+                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+            }
+        },
+        from: (v: string) => {
+            const data = Buffer.from(v, 'base64');
+            const result: KeyValue = {};
+            const lookup: KeyValue = {0: 'OFF', 1: 'ON'};
+            const alarmLookup: KeyValue = {3: 'overload', 4: 'leakage', 5: 'high_temperature'};
+
+            const len = data.length;
+            let i = 0;
+            while (i < len) {
+                if (Object.prototype.hasOwnProperty.call(alarmLookup, data[i])) {
+                    const alarm = alarmLookup[data[i]];
+                    const state = lookup[data[i + 1]];
+                    const threshold = data[i + 3] | (data[i + 2] << 8);
+                    result[`${alarm}_breaker`] = state;
+                    result[`${alarm}_threshold`] = threshold;
+                }
+                i += 4;
+            }
+            return result;
+        },
+    },
+    threshold_3: {
+        to: async (v: number, meta: Tz.Meta) => {
+            const entity = meta.device.endpoints[0];
+            const onOffLookup = {on: 1, off: 0};
+            const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+
+            if (meta.message.over_current_threshold) {
+                const state = meta.state['over_current_breaker'];
+                const buf = Buffer.from([
+                    1,
+                    utils.getFromLookup(state, onOffLookup),
+                    0,
+                    utils.toNumber(meta.message.over_current_threshold, 'over_current_threshold'),
+                ]);
+                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.over_current_breaker) {
+                const threshold = meta.state['over_current_threshold'];
+                const buf = Buffer.from([
+                    1,
+                    utils.getFromLookup(meta.message.over_current_breaker, onOffLookup),
+                    0,
+                    utils.toNumber(threshold, 'over_current_threshold'),
+                ]);
+                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.over_voltage_threshold) {
+                const state = meta.state['over_voltage_breaker'];
+                const buf = Buffer.alloc(8);
+                buf.writeUInt8(3, 4);
+                buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 5);
+                buf.writeUInt16BE(utils.toNumber(meta.message.over_voltage_threshold, 'over_voltage_threshold'), 6);
+                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.over_voltage_breaker) {
+                const threshold = meta.state['over_voltage_threshold'];
+                const buf = Buffer.alloc(8);
+                buf.writeUInt8(3, 4);
+                buf.writeUInt8(utils.getFromLookup(meta.message.over_voltage_breaker, onOffLookup), 5);
+                buf.writeUInt16BE(utils.toNumber(threshold, 'over_voltage_threshold'), 6);
+                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.under_voltage_threshold) {
+                const state = meta.state['under_voltage_breaker'];
+                const buf = Buffer.alloc(12);
+                buf.writeUInt8(4, 8);
+                buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 9);
+                buf.writeUInt16BE(utils.toNumber(meta.message.under_voltage_threshold, 'under_voltage_threshold'), 10);
+                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.under_voltage_breaker) {
+                const threshold = meta.state['under_voltage_threshold'];
+                const buf = Buffer.alloc(12);
+                buf.writeUInt8(4, 8);
+                buf.writeUInt8(utils.getFromLookup(meta.message.under_voltage_breaker, onOffLookup), 9);
+                buf.writeUInt16BE(utils.toNumber(threshold, 'under_voltage_threshold'), 10);
+                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.insufficient_balance_threshold) {
+                const state = meta.state['insufficient_balance_breaker'];
+                const buf = Buffer.alloc(16);
+                buf.writeUInt8(8, 12);
+                buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 13);
+                buf.writeUInt16BE(utils.toNumber(meta.message.insufficient_balance_threshold, 'insufficient_balance_threshold'), 14);
+                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+            } else if (meta.message.insufficient_balance_breaker) {
+                const threshold = meta.state['insufficient_balance_threshold'];
+                const buf = Buffer.alloc(16);
+                buf.writeUInt8(8, 12);
+                buf.writeUInt8(utils.getFromLookup(meta.message.insufficient_balance_breaker, onOffLookup), 13);
+                buf.writeUInt16BE(utils.toNumber(threshold, 'insufficient_balance_threshold'), 14);
+                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+            }
+        },
+        from: (v: string) => {
+            const data = Buffer.from(v, 'base64');
+            const result: KeyValue = {};
+            const lookup: KeyValue = {0: 'OFF', 1: 'ON'};
+            const alarmLookup: KeyValue = {1: 'over_current', 3: 'over_voltage', 4: 'under_voltage', 8: 'insufficient_balance'};
+
+            const len = data.length;
+            let i = 0;
+            while (i < len) {
+                if (Object.prototype.hasOwnProperty.call(alarmLookup, data[i])) {
+                    const alarm = alarmLookup[data[i]];
+                    const state = lookup[data[i + 1]];
+                    const threshold = data[i + 3] | (data[i + 2] << 8);
+                    result[`${alarm}_breaker`] = state;
+                    result[`${alarm}_threshold`] = threshold;
+                }
+                i += 4;
+            }
+            return result;
+        },
+    },
     selfTestResult: valueConverterBasic.lookup({checking: 0, success: 1, failure: 2, others: 3}),
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
     localTempCalibration1: {
