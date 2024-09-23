@@ -75,7 +75,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['HK-SENSOR-CT-MINI'],
         model: 'SR-ZG9011A-DS',
         vendor: 'Sunricher',
-        description: 'Door/Window Sensor',
+        description: 'Door/window sensor',
         extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
     {
