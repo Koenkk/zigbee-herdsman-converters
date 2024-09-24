@@ -1,5 +1,14 @@
 # Changelog
 
+## [20.17.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.17.0...v20.17.1) (2024-09-24)
+
+
+### Bug Fixes
+
+* Expose `toggle` command for SONOFF ZBMINIR2 https://github.com/Koenkk/zigbee-herdsman-converters/issues/8018 ([88fc9f6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/88fc9f600411d04eb040afe398cb02e9ae23e805))
+* **ignore:** Fix parsing of serveral uint48 attributes https://github.com/Koenkk/zigbee2mqtt/issues/23457 ([843f7a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/843f7a2160215d230e6bd53ebc053e4ac4573df3))
+* Improve `_TZE204_aoclfnxz` integration ([#8005](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8005)) ([ad72d4a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ad72d4a8b74e0e4cd4c56d8458cb70a3a4126471))
+
 ## [20.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.16.3...v20.17.0) (2024-09-23)
 
 
