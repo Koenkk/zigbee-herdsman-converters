@@ -426,22 +426,22 @@ const fzLocal = {
 
                             if (attr.currentSummDelivered !== undefined) {
                                 const val = attr['currentSummDelivered'];
-                                ret['energy'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                                ret['energy'] = val / divisor;
                             }
 
                             if (attr['16652'] !== undefined) {
                                 const val = attr['16652'];
-                                ret['energy_phase_a'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                                ret['energy_phase_a'] = val / divisor;
                             }
 
                             if (attr['16908'] !== undefined) {
                                 const val = attr['16908'];
-                                ret['energy_phase_b'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                                ret['energy_phase_b'] = val / divisor;
                             }
 
                             if (attr['17164'] !== undefined) {
                                 const val = attr['17164'];
-                                ret['energy_phase_c'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                                ret['energy_phase_c'] = val / divisor;
                             }
 
                             if (attr.powerFactor !== undefined) {

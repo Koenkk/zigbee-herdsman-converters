@@ -755,14 +755,12 @@ const converters1 = {
 
             if (factor != null && (msg.data.currentSummDelivered !== undefined || msg.data.currentSummReceived !== undefined)) {
                 if (msg.data.currentSummDelivered !== undefined) {
-                    const data = msg.data['currentSummDelivered'];
-                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    const value = msg.data['currentSummDelivered'];
                     const property = postfixWithEndpointName('energy', msg, model, meta);
                     payload[property] = value * factor;
                 }
                 if (msg.data.currentSummReceived !== undefined) {
-                    const data = msg.data['currentSummReceived'];
-                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    const value = msg.data['currentSummReceived'];
                     const property = postfixWithEndpointName('produced_energy', msg, model, meta);
                     payload[property] = value * factor;
                 }
@@ -5016,8 +5014,7 @@ const converters2 = {
                 }
                 // Summation is reported in Watthours
                 if (msg.data.currentSummDelivered !== undefined) {
-                    const data = msg.data['currentSummDelivered'];
-                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    const value = msg.data['currentSummDelivered'];
                     result.energy = value / 1000.0;
                 }
                 return result;

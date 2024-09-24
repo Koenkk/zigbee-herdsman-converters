@@ -123,13 +123,11 @@ export const instantaneousDemand = async (endpoint: Zh.Endpoint, overrides?: Rep
     await endpoint.configureReporting('seMetering', p);
 };
 export const currentSummDelivered = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-    // @ts-expect-error ignore
-    const p = payload('currentSummDelivered', 5, repInterval.HOUR, [1, 1], overrides);
+    const p = payload('currentSummDelivered', 5, repInterval.HOUR, 257, overrides);
     await endpoint.configureReporting('seMetering', p);
 };
 export const currentSummReceived = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-    // @ts-expect-error ignore
-    const p = payload('currentSummReceived', 5, repInterval.HOUR, [1, 1], overrides);
+    const p = payload('currentSummReceived', 5, repInterval.HOUR, 257, overrides);
     await endpoint.configureReporting('seMetering', p);
 };
 export const thermostatSystemMode = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {

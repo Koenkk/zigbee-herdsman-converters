@@ -1824,11 +1824,7 @@ function ticmeterConverter(msg: Fz.Message) {
                     break;
                 case NUMBER:
                 case NUM_RW:
-                    if (Array.isArray(msg.data[key])) {
-                        value = (msg.data[key][0] << 32) + msg.data[key][1];
-                    } else {
-                        value = msg.data[key];
-                    }
+                    value = msg.data[key];
                     break;
                 case ENUM:
                     value = found.values[msg.data[key]];

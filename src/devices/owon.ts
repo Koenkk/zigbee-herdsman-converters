@@ -26,33 +26,27 @@ const fzLocal = {
             const factor = 0.001;
             const payload: KeyValue = {};
             if (msg.data.owonL1Energy !== undefined) {
-                const data = msg.data['owonL1Energy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                const value = msg.data['owonL1Energy'];
                 payload.energy_l1 = value * factor;
             }
             if (msg.data.owonL2Energy !== undefined) {
-                const data = msg.data['owonL2Energy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                const value = msg.data['owonL2Energy'];
                 payload.energy_l2 = value * factor;
             }
             if (msg.data.owonL3Energy !== undefined) {
-                const data = msg.data['owonL3Energy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                const value = msg.data['owonL3Energy'];
                 payload.energy_l3 = value * factor;
             }
             if (msg.data.owonL1ReactiveEnergy !== undefined) {
-                const data = msg.data['owonL1ReactiveEnergy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                const value = msg.data['owonL1ReactiveEnergy'];
                 payload.reactive_energy_l1 = value * factor;
             }
             if (msg.data.owonL2ReactiveEnergy !== undefined) {
-                const data = msg.data['owonL2ReactiveEnergy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                const value = msg.data['owonL2ReactiveEnergy'];
                 payload.reactive_energy_l2 = value * factor;
             }
             if (msg.data.owonL3ReactiveEnergy !== undefined) {
-                const data = msg.data['owonL3ReactiveEnergy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                const value = msg.data['owonL3ReactiveEnergy'];
                 payload.reactive_energy_l3 = value / 1000;
             }
             if (msg.data.owonL1PhasePower !== undefined) {
@@ -107,8 +101,7 @@ const fzLocal = {
             }
             if (msg.data.owonReactiveEnergySum !== undefined || msg.data['16643'] !== undefined) {
                 // 0x4103 -> 16643
-                const data = msg.data['owonReactiveEnergySum'] || msg.data['16643'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                const value = msg.data['owonReactiveEnergySum'] || msg.data['16643'];
                 payload.reactive_energy = value * factor;
             }
             if (msg.data.owonL1PowerFactor !== undefined) {

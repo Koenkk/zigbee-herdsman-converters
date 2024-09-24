@@ -415,7 +415,7 @@ const fzLocal = {
                         case 'currentTier9SummDelivered':
                         case 'currentTier10SummDelivered':
                             // @ts-expect-error ignore
-                            result[at_snake] = utils.precisionRound(((val[0] << 32) + val[1]) / 1000, kWh_p); // Wh to kWh
+                            result[at_snake] = utils.precisionRound(val / 1000, kWh_p); // Wh to kWh
                             break;
                     }
                 }
