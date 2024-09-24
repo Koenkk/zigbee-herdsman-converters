@@ -1257,7 +1257,7 @@ export const presets = {
         new Enum('sensor', access.STATE_SET, sensor_names).withDescription('Select temperature sensor to use').withCategory('config'),
     test: () => new Binary('test', access.STATE, true, false).withDescription('Indicates whether the device is being tested'),
     trigger_count: (sinceScheduledReport = true) =>
-        new Numeric('trigger_count', exports.access.STATE)
+        new Numeric('trigger_count', access.STATE)
             .withDescription('Indicates how many times the sensor was triggered' + (sinceScheduledReport ? ' (since last scheduled report)' : ''))
             .withCategory('diagnostic'),
     trigger_indicator: () =>
