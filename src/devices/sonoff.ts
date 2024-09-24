@@ -10,6 +10,7 @@ import {
     battery,
     binary,
     bindCluster,
+    commandsOnOff,
     customTimeResponse,
     deviceAddCustomCluster,
     enumLookup,
@@ -1189,6 +1190,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee smart switch',
         exposes: [],
         extend: [
+            commandsOnOff({commands: ['toggle']}),
             ota(),
             onOff(),
             sonoffExtend.addCustomClusterEwelink(),
