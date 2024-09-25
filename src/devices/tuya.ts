@@ -1985,14 +1985,14 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE284_g2e6cpnw', '_TZE284_sgabhwa6']),
-        model: 'TS0601_soil_2',
-        vendor: 'Tuya',
-        description: 'Soil sensor',
+        model: 'NAS-STH01B2',
+        vendor: 'NEO',
+        description: 'Soil moisture and temperature',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.soil_moisture(),
+            e.numeric('humidity', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Soil humidity'),
             e.numeric('temperature', ea.STATE).withUnit('°C').withValueMin(-10).withValueMax(60).withDescription('Soil temperature'),
             e.numeric('temperature_f', ea.STATE).withUnit('°F').withValueMin(14).withValueMax(140).withDescription('Soil temperature'),
             e
@@ -2001,8 +2001,8 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0.3)
                 .withValueMax(1)
                 .withValueStep(0.1)
-                .withDescription('Temperature sensitivity'),
-            e.numeric('humidity_sensitivity', ea.STATE_SET).withUnit('%').withValueMin(1).withValueMax(5).withDescription('Humidity sensitivity'),
+                .withDescription('Upper temperature limit'),
+            e.numeric('humidity_sensitivity', ea.STATE_SET).withUnit('%').withValueMin(1).withValueMax(5).withDescription('Upper temperature limit'),
             e.enum('temperature_alarm', ea.STATE, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Temperature alarm state'),
             e.enum('humidity_alarm', ea.STATE, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Humidity alarm state'),
             e
@@ -2021,7 +2021,6 @@ const definitions: DefinitionWithExtend[] = [
             e.numeric('min_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Lower humidity limit'),
             e.numeric('schedule_periodic', ea.STATE_SET).withUnit('min').withValueMin(5).withValueMax(60).withDescription('Report sensitivity'),
             e.battery(),
-            tuya.exposes.batteryState(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -2043,7 +2042,7 @@ const definitions: DefinitionWithExtend[] = [
                         cancel: tuya.enum(2),
                     }),
                 ],
-                [3, 'soil_moisture', tuya.valueConverter.raw],
+                [3, 'humidity', tuya.valueConverter.raw],
                 [5, 'temperature', tuya.valueConverter.divideBy10],
                 [110, 'temperature_f', tuya.valueConverter.divideBy10],
                 [107, 'temperature_sensitivity', tuya.valueConverter.divideBy10],
@@ -2054,7 +2053,6 @@ const definitions: DefinitionWithExtend[] = [
                 [106, 'min_humidity_alarm', tuya.valueConverter.raw],
                 [109, 'schedule_periodic', tuya.valueConverter.raw],
                 [15, 'battery', tuya.valueConverter.raw],
-                [14, 'battery_state', tuya.valueConverter.batteryState],
             ],
         },
     },
