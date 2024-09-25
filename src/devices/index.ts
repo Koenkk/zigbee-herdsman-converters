@@ -111,7 +111,6 @@ import hive from './hive';
 import hommyn from './hommyn';
 import honyar from './honyar';
 import hornbach from './hornbach';
-import hzc from './hzc';
 import hzc_electric from './hzc_electric';
 import icasa from './icasa';
 import idinio from './idinio';
@@ -422,7 +421,6 @@ export default [
     ...honyar,
     ...hornbach,
     ...hzc_electric,
-    ...hzc,
     ...icasa,
     ...idinio,
     ...ihorn,

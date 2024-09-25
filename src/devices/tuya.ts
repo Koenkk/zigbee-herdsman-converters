@@ -3656,7 +3656,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_gbshwgag'}],
         model: 'TS0001_switch_module_2',
-        vendor: 'TuYa',
+        vendor: 'Tuya',
         description: '1 gang switch with backlight',
         extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, backlightModeOffOn: true, indicatorMode: true})],
         configure: async (device, coordinatorEndpoint) => {
@@ -6318,7 +6318,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaOnOff()],
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4')],
-        whiteLabel: [{vendor: 'LEELKI', model: 'WP33-EU'}],
+        whiteLabel: [{vendor: 'LELLKI', model: 'WP33-EU'}],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
