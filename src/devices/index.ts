@@ -421,7 +421,6 @@ export default [
     ...honyar,
     ...hornbach,
     ...hzc_electric,
-    ...hzc,
     ...icasa,
     ...idinio,
     ...ihorn,
