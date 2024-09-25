@@ -1,5 +1,19 @@
 # Changelog
 
+## [20.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.17.1...v20.18.0) (2024-09-25)
+
+
+### Features
+
+* **add:** CSAC451-WTC-E ([#8021](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8021)) ([9a74a84](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9a74a84e97e12654c8ad611a0de3730d312f1d6f))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_ohvnwamm` as Fantem ZB003-X ([#8020](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8020)) ([03c67d9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/03c67d992c1d34444d7c9a0af8048f7b526a0f4c))
+* Fix vendor naming resulting in duplicate vendors ([#8024](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8024)) ([a13c401](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a13c40155cc4322979bd815c60e7833f35b17807))
+* Log Lumi `Unhandled key` as debug https://github.com/Koenkk/zigbee2mqtt/issues/24081 ([1c4df30](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c4df30b1e45852bb0e443aab91b7a26a19793af))
+
 ## [20.17.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.17.0...v20.17.1) (2024-09-24)
 
 
