@@ -16,6 +16,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [onOff()],
     },
     {
+        zigbeeModel: ['CSAC451-WTC-E'],
+        model: 'CSAC451-WTC-E',
+        vendor: 'CASAIA',
+        description: 'Dry contact relay switch module in 6-24v AC',
+        extend: [onOff()],
+    },
+    {
         zigbeeModel: ['CTHS317ET'],
         model: 'CTHS-317-ET',
         vendor: 'CASAIA',
