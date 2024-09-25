@@ -6318,7 +6318,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaOnOff()],
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4')],
-        whiteLabel: [{vendor: 'LEELKI', model: 'WP33-EU'}],
+        whiteLabel: [{vendor: 'LELLKI', model: 'WP33-EU'}],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
