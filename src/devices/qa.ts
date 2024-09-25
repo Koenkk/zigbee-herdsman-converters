@@ -2,14 +2,15 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {deviceEndpoints, actionEnumLookup, light} from '../lib/modernExtend';
+import {actionEnumLookup, deviceEndpoints, light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0726', ['_TZ3000_kt6xxa4o']),
         model: 'QAT42Z3',
@@ -228,7 +229,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6', '_TZ3210_hzdhb62z', '_TZ3210_v5yquxma']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_hzdhb62z', '_TZ3210_v5yquxma']),
         model: 'QADZ1',
         vendor: 'QA',
         description: 'Dimmer 1 channel',

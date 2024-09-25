@@ -2,23 +2,44 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {
+    battery,
+    commandsColorCtrl,
+    commandsLevelCtrl,
+    commandsOnOff,
+    commandsScenes,
     deviceEndpoints,
+    identify,
     light,
     onOff,
-    battery,
-    identify,
-    commandsOnOff,
-    commandsLevelCtrl,
-    commandsColorCtrl,
-    commandsScenes,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['ZGRC-KEY-005'],
+        model: '5144.01',
+        vendor: 'Iluminize',
+        description: 'RGB CCT 3 in 1 Remote Controller',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl(), commandsColorCtrl()],
+    },
+    {
+        zigbeeModel: ['ZGRC-KEY-001'],
+        model: '5144.11',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 wall dimmer with switches',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl()],
+    },
+    {
+        zigbeeModel: ['ZGRC-KEY-002'],
+        model: '5144.21',
+        vendor: 'Iluminize',
+        description: 'Single color wall mounted push button remote',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl(), commandsColorCtrl()],
+    },
     {
         zigbeeModel: ['5121.10'],
         model: '5121.10',

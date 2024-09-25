@@ -5,12 +5,12 @@ import * as legacy from '../lib/legacy';
 import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'TS130F', manufacturerName: '_TZ3000_vd43bbfq'},
@@ -20,14 +20,14 @@ const definitions: Definition[] = [
         vendor: 'Lonsonho',
         description: 'Curtain/blind motor controller',
         fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.moes_cover_calibration, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
         meta: {coverInverted: true},
         exposes: [
             e.cover_position(),
             e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             e.binary('calibration', ea.ALL, 'ON', 'OFF'),
             e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
-            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time'),
+            e.numeric('calibration_time', ea.ALL).withUnit('s').withValueMin(0).withValueMax(100).withDescription('Calibration time'),
         ],
     },
     {

@@ -4,16 +4,16 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {deviceEndpoints, quirkCheckinInterval, identify} from '../lib/modernExtend';
+import {deviceEndpoints, identify, quirkCheckinInterval} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {philipsOnOff, philipsLight, philipsFz, philipsTz} from '../lib/philips';
+import {philipsFz, philipsLight, philipsOnOff, philipsTz} from '../lib/philips';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['929003598001'],
         model: '929003598001',
@@ -1284,6 +1284,13 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['LTG002'],
         model: '929001953301',
+        vendor: 'Philips',
+        description: 'Hue white ambiance GU10 with Bluetooth',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['LTG005'],
+        model: '929003666701',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
@@ -3020,6 +3027,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['LCG006'],
+        model: '929003666501',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance GU10 spot LED with Bluetooth',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ['5309030P9', '5309031P9', '5309030P6', '5309031P6', '929003046101'],
         model: '5309030P9',
         vendor: 'Philips',
@@ -3681,6 +3695,34 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929003116301'],
+        model: '929003116301',
+        vendor: 'Philips',
+        description: 'Hue Perifo gradient light tube small (black)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
+        zigbeeModel: ['929003116401'],
+        model: '929003116401',
+        vendor: 'Philips',
+        description: 'Hue Perifo gradient light tube small (white)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
+        zigbeeModel: ['929003116501'],
+        model: '929003116501',
+        vendor: 'Philips',
+        description: 'Hue Perifo gradient light tube large (black)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
+        zigbeeModel: ['929003116601'],
+        model: '929003116601',
+        vendor: 'Philips',
+        description: 'Hue Perifo gradient light tube large (white)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
         zigbeeModel: ['915005988101'],
         model: '915005988101',
         vendor: 'Philips',
@@ -3763,6 +3805,20 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance Play Gradient Light Tube Compact',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ['929003823701'],
+        model: '929003823701',
+        vendor: 'Philips',
+        description: 'Hue Tento color 42,1cm',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ['929003736201_01', '929003736201_02'],
+        model: '929003736201',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance Datura Ceiling light small',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
 

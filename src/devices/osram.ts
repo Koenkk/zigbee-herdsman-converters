@@ -1,15 +1,15 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {ledvanceLight, ledvanceFz, ledvanceOnOff} from '../lib/ledvance';
+import {ledvanceFz, ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import * as legacy from '../lib/legacy';
 import {deviceEndpoints} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Gardenspot RGB'],
         model: '73699',
@@ -253,6 +253,13 @@ const definitions: Definition[] = [
         vendor: 'OSRAM',
         description: 'SMART+ Candle E14 Dimmable White',
         extend: [ledvanceLight({})],
+    },
+    {
+        zigbeeModel: ['Control box TW'],
+        model: 'AB390020055',
+        vendor: 'OSRAM',
+        description: 'Lightify tunable white controller',
+        extend: [ledvanceLight({colorTemp: {range: [150, 370]}})],
     },
     {
         zigbeeModel: ['Motion Sensor-A'],

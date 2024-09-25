@@ -1,14 +1,15 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
-const e = exposes.presets;
-const ea = exposes.access;
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+const ea = exposes.access;
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SCM_00.00.03.11TC'],
         model: '12031',
@@ -48,14 +49,14 @@ const definitions: Definition[] = [
         model: '12126',
         vendor: 'Lupus',
         description: '1 channel relay',
-        extend: [onOff()],
+        extend: [onOff({powerOnBehavior: false, ota: ota.zigbeeOTA})],
     },
     {
         zigbeeModel: ['PRS3CH2_00.00.05.10TC', 'PRS3CH2_00.00.05.11TC', 'PRS3CH2_00.00.05.12TC'],
         model: '12127',
         vendor: 'Lupus',
         description: '2 channel relay',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2'], powerOnBehavior: false, ota: ota.zigbeeOTA})],
     },
 ];
 

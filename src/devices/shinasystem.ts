@@ -1,11 +1,11 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {onOff, numeric, enumLookup, deviceEndpoints} from '../lib/modernExtend';
+import {deviceEndpoints, electricityMeter, enumLookup, numeric, onOff, temperature} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Fz, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -47,7 +47,7 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 const endpoint = meta.device.getEndpoint(1);
                 await endpoint.read('genOnOff', [0x9007]); // for update : close_remain_timeout
                 return {gas_valve_state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
@@ -171,7 +171,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'CSM-300Z', applicationVersion: 1},
@@ -206,7 +206,7 @@ const definitions: Definition[] = [
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
         description: 'SiHAS multipurpose ToF sensor',
-        meta: {battery: {voltageToPercentage: {min: 2900, max: 4100, vOffset: 1000}}},
+        meta: {battery: {voltageToPercentage: {min: 3200, max: 4100, vOffset: 1000}}},
         fromZigbee: [fz.battery, fz.sihas_people_cnt],
         toZigbee: [tz.sihas_set_people, tzLocal.CSM300_SETUP],
         configure: async (device, coordinatorEndpoint) => {
@@ -578,17 +578,7 @@ const definitions: Definition[] = [
         model: 'PMM-300Z1',
         vendor: 'ShinaSystem',
         description: 'SiHAS energy monitor',
-        fromZigbee: [fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.electrical_measurement_power],
-        exposes: [e.power().withAccess(ea.STATE_GET), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
-            await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});
-            await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 1});
-            endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 1000});
-            await reporting.currentSummDelivered(endpoint, {min: 1, max: 600, change: [0, 5]});
-        },
+        extend: [electricityMeter()],
     },
     {
         zigbeeModel: ['PMM-300Z2'],
@@ -596,39 +586,7 @@ const definitions: Definition[] = [
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
         description: 'SiHAS energy monitor',
-        fromZigbee: [fz.electrical_measurement, fz.metering, fz.temperature],
-        toZigbee: [tz.metering_power, tz.currentsummdelivered, tz.frequency, tz.powerfactor, tz.acvoltage, tz.accurrent, tz.temperature],
-        exposes: [
-            e.power().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
-            e.current().withAccess(ea.STATE_GET),
-            e.voltage().withAccess(ea.STATE_GET),
-            e.temperature().withAccess(ea.STATE_GET).withDescription('temperature of device internal mcu'),
-            e.numeric('power_factor', ea.STATE_GET).withDescription('Measured electrical power factor'),
-            e.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency'),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
-            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier', 'acCurrentDivisor']);
-            await endpoint.read('seMetering', ['multiplier', 'divisor']);
-            // await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});  // no need, duplicate for power value.
-            await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 5});
-            await reporting.powerFactor(endpoint, {min: 10, max: 600, change: 1});
-            await reporting.rmsVoltage(endpoint, {min: 5, max: 600, change: 1});
-            await reporting.rmsCurrent(endpoint, {min: 5, max: 600, change: 1});
-            await reporting.currentSummDelivered(endpoint, {min: 1, max: 600, change: [0, 5]});
-            await reporting.temperature(endpoint, {min: 20, max: 300, change: 10});
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acFrequencyMultiplier: 1, acFrequencyDivisor: 10});
-            await endpoint.configureReporting('haElectricalMeasurement', [
-                {
-                    attribute: 'acFrequency',
-                    minimumReportInterval: 10,
-                    maximumReportInterval: 600,
-                    reportableChange: 3,
-                },
-            ]);
-        },
+        extend: [electricityMeter({acFrequency: true, powerFactor: true}), temperature()],
     },
     {
         zigbeeModel: ['PMM-300Z3'],
@@ -636,39 +594,7 @@ const definitions: Definition[] = [
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
         description: 'SiHAS 3phase energy monitor',
-        fromZigbee: [fz.electrical_measurement, fz.metering, fz.temperature],
-        toZigbee: [tz.metering_power, tz.currentsummdelivered, tz.frequency, tz.powerfactor, tz.acvoltage, tz.accurrent, tz.temperature],
-        exposes: [
-            e.power().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
-            e.current().withAccess(ea.STATE_GET),
-            e.voltage().withAccess(ea.STATE_GET),
-            e.temperature().withAccess(ea.STATE_GET).withDescription('temperature of device internal mcu'),
-            e.numeric('power_factor', ea.STATE_GET).withDescription('Measured electrical power factor'),
-            e.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency'),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
-            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier', 'acCurrentDivisor']);
-            await endpoint.read('seMetering', ['multiplier', 'divisor']);
-            // await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});  // no need, duplicate for power value.
-            await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 5});
-            await reporting.powerFactor(endpoint, {min: 10, max: 600, change: 1});
-            await reporting.rmsVoltage(endpoint, {min: 5, max: 600, change: 1});
-            await reporting.rmsCurrent(endpoint, {min: 5, max: 600, change: 1});
-            await reporting.currentSummDelivered(endpoint, {min: 1, max: 600, change: [0, 5]});
-            await reporting.temperature(endpoint, {min: 20, max: 300, change: 10});
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acFrequencyMultiplier: 1, acFrequencyDivisor: 10});
-            await endpoint.configureReporting('haElectricalMeasurement', [
-                {
-                    attribute: 'acFrequency',
-                    minimumReportInterval: 10,
-                    maximumReportInterval: 600,
-                    reportableChange: 3,
-                },
-            ]);
-        },
+        extend: [electricityMeter({acFrequency: true, powerFactor: true}), temperature()],
     },
     {
         zigbeeModel: ['DLM-300Z'],
@@ -928,6 +854,30 @@ const definitions: Definition[] = [
             await endpoint.read('hvacThermostat', ['systemMode', 'occupiedHeatingSetpoint', 'occupiedCoolingSetpoint', 'localTemp']);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
         },
+    },
+    {
+        zigbeeModel: ['SQM300Z1'],
+        model: 'SQM300Z1',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS big button switch 1 gang',
+        extend: [onOff({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ['SQM300Z2'],
+        model: 'SQM300Z2',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS big button switch 2 gang',
+        extend: [deviceEndpoints({endpoints: {top: 1, bottom: 2}}), onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ['SQM300Z3'],
+        model: 'SQM300Z3',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS big button switch 3 gang',
+        extend: [
+            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
+            onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
+        ],
     },
 ];
 

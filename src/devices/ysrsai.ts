@@ -1,7 +1,7 @@
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'YSRSAI'}],
         zigbeeModel: ['ZB-CL03', 'FB56-ZCW20FB1.2'],

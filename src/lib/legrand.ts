@@ -1,6 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {Fz, Tz, Zh, OnEvent, KeyValueString, KeyValueAny} from '../lib/types';
+import {Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 import * as exposes from './exposes';
 import {logger} from './logger';
@@ -60,7 +60,22 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
 
 export const legrandOptions = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
 
-export const _067776 = {
+export const eLegrand = {
+    identify: () => {
+        return e
+            .enum('identify', ea.SET, ['identify'])
+            .withDescription('Blinks the built-in LED to make it easier to identify the device')
+            .withCategory('config');
+    },
+    ledInDark: () => {
+        return e
+            .binary('led_in_dark', ea.ALL, 'ON', 'OFF')
+            .withDescription('Enables the built-in LED allowing to see the switch in the dark')
+            .withCategory('config');
+    },
+    ledIfOn: () => {
+        return e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED on activity').withCategory('config');
+    },
     getCover: (device: Zh.Device) => {
         const c = e.cover_position();
 
@@ -90,24 +105,6 @@ export const _067776 = {
             .enum('calibration_mode', ea.ALL, Object.values(modes))
             .withDescription('Defines the calibration mode of the switch. (Caution: Changing modes requires a recalibration of the shutter switch!)')
             .withCategory('config');
-    },
-};
-
-export const eLegrand = {
-    identify: () => {
-        return e
-            .enum('identify', ea.SET, ['identify'])
-            .withDescription('Blinks the built-in LED to make it easier to identify the device')
-            .withCategory('config');
-    },
-    ledInDark: () => {
-        return e
-            .binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-            .withDescription('Enables the built-in LED allowing to see the switch in the dark')
-            .withCategory('config');
-    },
-    ledIfOn: () => {
-        return e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED on activity').withCategory('config');
     },
 };
 
@@ -185,7 +182,7 @@ export const fzLegrand = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const attr = 'calibrationMode';
-                if (msg.data.hasOwnProperty(attr)) {
+                if (msg.data[attr] !== undefined) {
                     const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
                     const idx = msg.data[attr];
                     utils.validateValue(String(idx), Object.keys(applicableModes));
@@ -201,7 +198,7 @@ export const fzLegrand = {
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
 
-            if (msg.data.hasOwnProperty('0')) {
+            if (msg.data['0'] !== undefined) {
                 const option0 = msg.data['0'];
 
                 if (option0 === 0x0001) payload.device_mode = 'pilot_off';
@@ -215,9 +212,48 @@ export const fzLegrand = {
                     payload.device_mode = 'unknown';
                 }
             }
-            if (msg.data.hasOwnProperty('1')) payload.led_in_dark = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
-            if (msg.data.hasOwnProperty('2')) payload.led_if_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
+            if (msg.data['1'] !== undefined) payload.led_in_dark = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
+            if (msg.data['2'] !== undefined) payload.led_if_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
             return payload;
+        },
+    } satisfies Fz.Converter,
+    command_cover: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            if (msg.data.tuyaMovingState !== undefined) {
+                if ((0, utils.hasAlreadyProcessedMessage)(msg, model)) return;
+                if (msg.data['tuyaMovingState'] === 0) {
+                    // return {
+                    // action: 'open',
+                    // };
+                    payload['action'] = (0, utils.postfixWithEndpointName)('OPEN', msg, model, meta);
+                    (0, utils.addActionGroup)(payload, msg, model);
+                }
+                if (msg.data['tuyaMovingState'] === 100) {
+                    // return {
+                    // action: 'closed',
+                    // };
+                    payload['action'] = (0, utils.postfixWithEndpointName)('CLOSE', msg, model, meta);
+                    (0, utils.addActionGroup)(payload, msg, model);
+                }
+                if (msg.data['tuyaMovingState'] >= 1 && msg.data['tuyaMovingState'] < 100) {
+                    // return {
+                    // action: 'stop',
+                    // };
+                    payload['action'] = (0, utils.postfixWithEndpointName)('STOP', msg, model, meta);
+                    (0, utils.addActionGroup)(payload, msg, model);
+                }
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter,
+    identify: {
+        cluster: 'genIdentify',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {};
         },
     } satisfies Fz.Converter,
 };

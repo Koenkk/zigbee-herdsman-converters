@@ -7,39 +7,40 @@ import * as modernExtend from './modernExtend';
 import * as ota from './ota';
 import * as globalStore from './store';
 import {
-    Fz,
+    BatteryLinearVoltage,
+    BatteryNonLinearVoltage,
+    Configure,
     Definition,
+    Expose,
+    Fz,
     KeyValue,
     KeyValueAny,
-    Tz,
-    ModernExtend,
-    Range,
     KeyValueNumberString,
+    ModernExtend,
     OnEvent,
-    Expose,
-    Configure,
-    BatteryNonLinearVoltage,
-    BatteryLinearVoltage,
+    Range,
+    Tz,
 } from './types';
 import {
-    batteryVoltageToPercentage,
-    postfixWithEndpointName,
-    precisionRound,
+    assertEndpoint,
     assertNumber,
+    assertObject,
+    assertString,
+    batteryVoltageToPercentage,
+    calibrateAndPrecisionRoundOptions,
     getFromLookup,
     getKey,
-    printNumbersAsHexSequence,
-    toNumber,
-    assertEndpoint,
-    assertString,
+    getOptions,
     hasAlreadyProcessedMessage,
     isLegacyEnabled,
-    noOccupancySince,
     isObject,
     isString,
-    getOptions,
-    assertObject,
-    calibrateAndPrecisionRoundOptions,
+    noOccupancySince,
+    postfixWithEndpointName,
+    precisionRound,
+    printNumbersAsHexSequence,
+    sleep,
+    toNumber,
 } from './utils';
 
 const NS = 'zhc:lumi';
@@ -249,9 +250,9 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 payload.power_outage_count = value - 1;
                 break;
             case '6':
-                if (['MCCGQ11LM', 'SJCGQ11LM'].includes(model.model) && Array.isArray(value)) {
-                    assertNumber(value[1]);
-                    let count = value[1];
+                if (['MCCGQ11LM', 'SJCGQ11LM'].includes(model.model)) {
+                    assertNumber(value);
+                    let count = value;
                     // Sometimes, especially when the device is connected through another lumi router, the sensor
                     // send random values after 16 bit (>65536), so we truncate and read this as 16BitUInt.
                     count = parseInt(count.toString(16).slice(-4), 16);
@@ -345,7 +346,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 } else if (['WSDCGQ01LM', 'WSDCGQ11LM', 'WSDCGQ12LM', 'VOCKQJK11LM'].includes(model.model)) {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/798
                     // Sometimes the sensor publishes non-realistic vales, filter these
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const temperature = parseFloat(value) / 100.0;
                     if (temperature > -65 && temperature < 65) {
                         payload.temperature = temperature;
@@ -413,7 +414,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 } else if (['WSDCGQ01LM', 'WSDCGQ11LM', 'WSDCGQ12LM', 'VOCKQJK11LM'].includes(model.model)) {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/798
                     // Sometimes the sensor publishes non-realistic vales, filter these
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const humidity = parseFloat(value) / 100.0;
                     if (humidity >= 0 && humidity <= 100) {
                         payload.humidity = humidity;
@@ -617,7 +618,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                                 await callback();
                                 payload.operation_mode = newMode;
                                 globalStore.putValue(meta.device, 'opModeSwitchTask', null);
-                            } catch (error) {
+                            } catch {
                                 // do nothing when callback fails
                             }
                         } else {
@@ -791,7 +792,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                     payload.hand_open = !value;
                 } else {
                     // next values update only when curtain finished initial setup and knows current position
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     payload.options = {...payload.options, reverse_direction: value[2] == '\u0001', hand_open: value[5] == '\u0000'};
                 }
                 break;
@@ -888,7 +889,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 break;
             case '65281':
                 {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const payload65281 = await numericAttributes2Payload(msg, meta, model, options, value);
                     payload = {...payload, ...payload65281};
                 }
@@ -897,13 +898,13 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 // This is a a complete structure with attributes, like element 0 for state, element 1 for voltage...
                 // At this moment we only extract what we are sure, for example, position 0 seems to be always 1 for a
                 // occupancy sensor, so we ignore it at this moment
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 payload.voltage = value[1].elmVal;
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
                     assertNumber(payload.voltage);
                     payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
                 }
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 payload.power_outage_count = value[4].elmVal - 1;
                 break;
             case 'mode':
@@ -1102,7 +1103,7 @@ function readTemperature(buffer: Buffer, offset: number): number {
 }
 
 function writeTemperature(buffer: Buffer, offset: number, temperature: number): void {
-    buffer.writeUint16BE(temperature * 100, offset);
+    buffer.writeUInt16BE(temperature * 100, offset);
 }
 
 const dayNames: Day[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -1132,7 +1133,7 @@ function writeDaySelection(buffer: Buffer, offset: number, selectedDays: Day[]) 
 
     const bitMap = dayNames.reduce((repeat, dayName, index) => {
         const isDaySelected = selectedDays.includes(dayName);
-        // @ts-expect-error
+        // @ts-expect-error ignore
         return repeat | (isDaySelected << (index + 1));
     }, 0);
 
@@ -1167,7 +1168,7 @@ function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: bool
         minutesWithDayFlag = minutesWithDayFlag | timeNextDayFlag;
     }
 
-    buffer.writeUint16BE(minutesWithDayFlag, offset);
+    buffer.writeUInt16BE(minutesWithDayFlag, offset);
 }
 
 /**
@@ -1410,7 +1411,7 @@ export const trv = {
 
         stringifiedScheduleFragments.forEach((fragment, index) => {
             if (index === 0) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 schedule.days.push(...fragment.split(stringifiedScheduleValueSeparator));
             } else {
                 const entryFragments = fragment.split(stringifiedScheduleValueSeparator);
@@ -1536,6 +1537,158 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
+    lumiCurtainSpeed: (args?: Partial<modernExtend.NumericArgs>) =>
+        modernExtend.numeric({
+            name: 'curtain_speed',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x043b, type: 0x20},
+            description: 'Speed of curtain movement',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            unit: '%',
+            valueMin: 1,
+            valueMax: 100,
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainManualOpenClose: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'manual_open_close',
+            valueOn: ['ON', 1],
+            valueOff: ['OFF', 0],
+            cluster: 'manuSpecificLumi',
+            attribute: 'curtainHandOpen',
+            description: 'Gently pull to open/close the curtain automatically',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainAdaptivePullingSpeed: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'adaptive_pulling_speed',
+            valueOn: ['ON', 1],
+            valueOff: ['OFF', 0],
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0442, type: 0x20},
+            description: 'The faster/slower the curtain is pulled manually, the faster/slower the curtain will move',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainManualStop: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'manual_stop',
+            valueOn: ['ON', 1],
+            valueOff: ['OFF', 0],
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x043a, type: 0x10},
+            description: 'Manually pulling the curtain during operation stops the motor',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainReverse: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'reverse_direction',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            cluster: 'closuresWindowCovering',
+            attribute: 'windowCoveringMode',
+            description: 'Whether the curtain direction is inverted',
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiCurtainStatus: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'status',
+            lookup: {closing: 0, opening: 1, stopped: 2, blocked: 3},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0421, type: 0x20},
+            description: 'Current status of the curtain (Opening, Closing, Stopped, Blocked)',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainLastManualOperation: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'last_manual_operation',
+            lookup: {open: 1, close: 2, stop: 3},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0425, type: 0x20},
+            description: 'Last triggered manual operation',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainPosition: (args?: Partial<modernExtend.NumericArgs>) =>
+        modernExtend.numeric({
+            name: 'curtain_position',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x041f, type: 0x20},
+            description: 'Current position of the curtain',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            unit: '%',
+            valueMin: 1,
+            valueMax: 100,
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainTraverseTime: (args?: Partial<modernExtend.NumericArgs>) =>
+        modernExtend.numeric({
+            name: 'traverse_time',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0403, type: 0x20},
+            description: 'Time in seconds to get from one end to another',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            unit: 'sec',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainCalibrationStatus: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'calibration_status',
+            lookup: {not_calibrated: 0, half_calibrated: 1, fully_calibrated: 2},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0426, type: 0x20},
+            description: 'Calibration status of the curtain (Not calibrated, Half calibrated, Fully calibrated)',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainCalibrated: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'calibrated',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            cluster: 'manuSpecificLumi',
+            attribute: 'curtainCalibrated',
+            description: 'Indicates if this device is calibrated',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'STATE',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    lumiCurtainIdentifyBeep: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'identify_beep',
+            lookup: {short: 0, '1_sec': 1, '2_sec': 2},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0404, type: 0x20},
+            description: 'Device will beep for chosen time duration',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
     lumiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
             name: 'power_on_behavior',
@@ -1627,9 +1780,9 @@ export const lumiModernExtend = {
                     //  there is however an outage counter published in the 'special' buffer  data reported
                     //  under the manuSpecificLumi cluster as attribute 247, we simple decode and grab value with ID 5.
                     // Normal attribute publishing and decoding will be left to the classic fromZigbee or modernExtends.
-                    if (msg.data.hasOwnProperty('247')) {
+                    if (msg.data['247'] !== undefined) {
                         const dataDecoded = buffer2DataObject(model, msg.data['247']);
-                        if (dataDecoded.hasOwnProperty('5')) {
+                        if (dataDecoded['5'] !== undefined) {
                             assertNumber(dataDecoded['5']);
 
                             const currentOutageCount = dataDecoded['5'] - 1;
@@ -1649,7 +1802,10 @@ export const lumiModernExtend = {
                                         try {
                                             await endpoint.bind(b.cluster.name, b.target);
                                         } catch (error) {
-                                            logger.debug(`Failed to re-bind ${b.cluster.name} from ${b.target} for ${msg.device.ieeeAddr}.`, NS);
+                                            logger.debug(
+                                                `Failed to re-bind ${b.cluster.name} from ${b.target} for ${msg.device.ieeeAddr} (${error})`,
+                                                NS,
+                                            );
                                         }
                                     }
 
@@ -1664,7 +1820,7 @@ export const lumiModernExtend = {
                                                     reportableChange: c.reportableChange,
                                                 },
                                             ]);
-                                        } catch (error) {
+                                        } catch {
                                             logger.debug(
                                                 `Failed to re-setup reporting of ${c.cluster.name}/${c.attribute.name} for ${msg.device.ieeeAddr}.`,
                                                 NS,
@@ -1826,7 +1982,7 @@ export const lumiModernExtend = {
                 cluster: 'manuSpecificLumi',
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(652)) {
+                    if (msg.data[652] !== undefined) {
                         const actionLookup: KeyValueNumberString = {
                             1: 'slider_single',
                             2: 'slider_double',
@@ -1900,7 +2056,7 @@ export const lumiModernExtend = {
                 cluster: 'ssIasZone',
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(45)) {
+                    if (msg.data[45] !== undefined) {
                         const zoneStatus = msg.data[45];
                         const actionLookup: KeyValueNumberString = {1: 'shake', 2: 'triple_strike'};
                         return {action: actionLookup[zoneStatus]};
@@ -1926,12 +2082,12 @@ export const lumiModernExtend = {
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
                     const payload: KeyValueAny = {};
-                    if (msg.data.hasOwnProperty(args.deviceTemperatureAttribute)) {
+                    if (msg.data[args.deviceTemperatureAttribute] !== undefined) {
                         const value = msg.data[args.deviceTemperatureAttribute];
                         assertNumber(value);
                         payload['device_temperature'] = value;
                     }
-                    if (msg.data.hasOwnProperty(args.powerOutageCountAttribute)) {
+                    if (msg.data[args.powerOutageCountAttribute] !== undefined) {
                         const value = msg.data[args.powerOutageCountAttribute];
                         assertNumber(value);
                         payload['power_outage_count'] = value - 1;
@@ -1962,7 +2118,7 @@ export const lumiModernExtend = {
                 cluster: 'manuSpecificLumi',
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(570)) {
+                    if (msg.data[570] !== undefined) {
                         const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
                         const state: KeyValueNumberString = {0: 'released', 128: 'pressed'};
                         return {
@@ -2386,7 +2542,7 @@ export const fromZigbee = {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await fz.pressure.convert(model, msg, publish, options, meta);
+            const result = fz.pressure.convert(model, msg, publish, options, meta);
             if (result && result.pressure > 500 && result.pressure < 2000) {
                 return result;
             }
@@ -2402,16 +2558,16 @@ export const fromZigbee = {
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (parseInt(key)) {
                     case 0xfff1: {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         if (value.length < 8) {
                             logger.debug(`Cannot handle ${value}, frame too small`, 'zhc:lumi:feeder');
                             return;
                         }
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const attr = value.slice(3, 7);
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const len = value.slice(7, 8).readUInt8();
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const val = value.slice(8, 8 + len);
                         switch (attr.readInt32BE()) {
                             case 0x04150055: // feeding
@@ -2499,7 +2655,7 @@ export const fromZigbee = {
                         result['system_mode'] = getFromLookup(value, {1: 'heat', 0: 'off'});
                         break;
                     case 0x0272:
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         Object.assign(result, trv.decodePreset(value));
                         break;
                     case 0x0273:
@@ -2531,7 +2687,7 @@ export const fromZigbee = {
                         result['valve_alarm'] = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 247: {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const heartbeat = trv.decodeHeartbeat(meta, model, value);
 
                         logger.debug(`${model.model}: Processed heartbeat message into payload ${JSON.stringify(heartbeat)}`, 'zhc:lumi:trv');
@@ -2542,7 +2698,7 @@ export const fromZigbee = {
                             // This is not reflected in the frontend unless the device is reconfigured
                             // or the whole service restarted.
                             // See https://github.com/Koenkk/zigbee-herdsman-converters/pull/5363#discussion_r1081477047
-                            // @ts-expect-error
+                            // @ts-expect-error ignore
                             meta.device.softwareBuildID = heartbeat.firmware_version;
                             delete heartbeat.firmware_version;
                         }
@@ -2602,9 +2758,9 @@ export const fromZigbee = {
                         }
 
                         const [regionIdRaw, eventTypeCodeRaw] = value;
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const regionId = parseInt(regionIdRaw, 10);
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         const eventTypeCode = parseInt(eventTypeCodeRaw, 10);
 
                         if (Number.isNaN(regionId)) {
@@ -2669,17 +2825,17 @@ export const fromZigbee = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true()],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('illuminance')) {
+            if (msg.data.illuminance !== undefined) {
                 // The occupancy sensor only sends a message when motion detected.
                 // Therefore we need to publish the no_motion detected by ourselves.
                 let timeout =
-                    meta && meta.state && meta.state.hasOwnProperty('detection_interval')
+                    meta && meta.state && meta.state.detection_interval !== undefined
                         ? Number(meta.state.detection_interval)
                         : ['RTCGQ14LM'].includes(model.model)
                           ? 30
                           : 60;
                 timeout =
-                    options && options.hasOwnProperty('occupancy_timeout') && Number(options.occupancy_timeout) >= timeout
+                    options && options.occupancy_timeout !== undefined && Number(options.occupancy_timeout) >= timeout
                         ? Number(options.occupancy_timeout)
                         : timeout + 2;
 
@@ -2727,14 +2883,14 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
+            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data['currentPositionLiftPercentage'] <= 100) {
                 const value = msg.data['currentPositionLiftPercentage'];
                 const position = invert ? 100 - value : value;
                 const state = invert ? (position > 0 ? 'CLOSE' : 'OPEN') : position > 0 ? 'OPEN' : 'CLOSE';
                 result[postfixWithEndpointName('position', msg, model, meta)] = position;
                 result[postfixWithEndpointName('state', msg, model, meta)] = state;
             }
-            if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
+            if (msg.data.currentPositionTiltPercentage !== undefined && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
                 result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? 100 - value : value;
             }
@@ -2750,14 +2906,14 @@ export const fromZigbee = {
             if (model.meta && !model.meta.multiEndpoint) {
                 const mappingMode: KeyValueNumberString = {0x12: 'control_relay', 0xfe: 'decoupled'};
                 const key = 0xff22;
-                if (msg.data.hasOwnProperty(key)) {
+                if (msg.data[key] !== undefined) {
                     payload.operation_mode = mappingMode[msg.data[key]];
                 }
             } else {
                 const mappingButton: KeyValueNumberString = {0xff22: 'left', 0xff23: 'right'};
                 const mappingMode: KeyValueNumberString = {0x12: 'control_left_relay', 0x22: 'control_right_relay', 0xfe: 'decoupled'};
                 for (const key in mappingButton) {
-                    if (msg.data.hasOwnProperty(key)) {
+                    if (msg.data[key] !== undefined) {
                         payload[`operation_mode_${mappingButton[key]}`] = mappingMode[msg.data[key]];
                     }
                 }
@@ -2785,7 +2941,7 @@ export const fromZigbee = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // Lumi wall switches use endpoint 4, 5 or 6 to indicate an action on the button so we have to skip that.
-            if (msg.data.hasOwnProperty('onOff') && ![4, 5, 6].includes(msg.endpoint.ID)) {
+            if (msg.data.onOff !== undefined && ![4, 5, 6].includes(msg.endpoint.ID)) {
                 const property = postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
@@ -2804,7 +2960,7 @@ export const fromZigbee = {
             // for lumi.curtain.acn002
             if (['ZNJLBL01LM'].includes(model.model)) lookup = {0: 'closing', 1: 'opening', 2: 'stopped', 3: 'blocked'};
 
-            if (data && data.hasOwnProperty('presentValue')) {
+            if (data && data.presentValue !== undefined) {
                 const value = data['presentValue'];
                 if (value < 2) {
                     running = true;
@@ -2820,11 +2976,11 @@ export const fromZigbee = {
         cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('curtainHandOpen')) {
+            if (msg.data.curtainHandOpen !== undefined) {
                 return {hand_open: msg.data['curtainHandOpen'] === 0};
-            } else if (msg.data.hasOwnProperty('curtainReverse')) {
+            } else if (msg.data.curtainReverse !== undefined) {
                 return {reverse_direction: msg.data['curtainReverse'] === 1};
-            } else if (msg.data.hasOwnProperty('curtainCalibrated')) {
+            } else if (msg.data.curtainCalibrated !== undefined) {
                 return {limits_calibration: msg.data['curtainCalibrated'] === 1 ? 'calibrated' : 'recalibrate'};
             }
         },
@@ -2850,7 +3006,7 @@ export const fromZigbee = {
                 if (result.action === 'vibration') {
                     result.vibration = true;
 
-                    const timeout = options && options.hasOwnProperty('vibration_timeout') ? Number(options.vibration_timeout) : 90;
+                    const timeout = options && options.vibration_timeout !== undefined ? Number(options.vibration_timeout) : 90;
 
                     // Stop any existing timer cause vibration detected
                     clearTimeout(globalStore.getValue(msg.endpoint, 'vibration_timer', null));
@@ -2950,9 +3106,9 @@ export const fromZigbee = {
 
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
-            let timeout: number = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? Number(meta.state.detection_interval) : 60;
+            let timeout: number = meta && meta.state && meta.state.detection_interval !== undefined ? Number(meta.state.detection_interval) : 60;
             timeout =
-                options && options.hasOwnProperty('occupancy_timeout') && Number(options.occupancy_timeout) >= timeout
+                options && options.occupancy_timeout !== undefined && Number(options.occupancy_timeout) >= timeout
                     ? Number(options.occupancy_timeout)
                     : timeout + 2;
 
@@ -2989,7 +3145,7 @@ export const fromZigbee = {
             const data = msg.data;
             if (data && data['65281']) {
                 const basicAttrs = data['65281'];
-                if (basicAttrs.hasOwnProperty('100')) {
+                if (basicAttrs['100'] !== undefined) {
                     return {gas_density: basicAttrs['100']};
                 }
             }
@@ -3002,7 +3158,7 @@ export const fromZigbee = {
             const data = msg.data;
             const lookup: KeyValueAny = {'1': 'low', '2': 'medium', '3': 'high'};
 
-            if (data && data.hasOwnProperty('65520')) {
+            if (data && data['65520'] !== undefined) {
                 const value = data['65520'];
                 if (value && value.startsWith('0x020')) {
                     return {
@@ -3016,7 +3172,7 @@ export const fromZigbee = {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('batteryAlarmMask')) {
+            if (msg.data.batteryAlarmMask !== undefined) {
                 return {battery_low: msg.data['batteryAlarmMask'] === 1};
             }
         },
@@ -3365,65 +3521,65 @@ export const fromZigbee = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0215)) {
+            if (msg.data[0x0215] !== undefined) {
                 const lookup: KeyValueAny = {0: 'classic', 1: 'concise'};
                 result.theme = lookup[msg.data[0x0215]];
             }
-            if (msg.data.hasOwnProperty(0x0214)) {
+            if (msg.data[0x0214] !== undefined) {
                 const lookup: KeyValueAny = {1: 'classic', 2: 'analog clock'};
                 result.screen_saver_style = lookup[msg.data[0x0214]];
             }
-            if (msg.data.hasOwnProperty(0x0213)) {
+            if (msg.data[0x0213] !== undefined) {
                 result.standby_enabled = msg.data[0x0213] & 1 ? true : false;
             }
-            if (msg.data.hasOwnProperty(0x0212)) {
+            if (msg.data[0x0212] !== undefined) {
                 const lookup: KeyValueAny = {0: 'mute', 1: 'low', 2: 'medium', 3: 'high'};
                 result.beep_volume = lookup[msg.data[0x0212]];
             }
-            if (msg.data.hasOwnProperty(0x0211)) {
+            if (msg.data[0x0211] !== undefined) {
                 result.lcd_brightness = msg.data[0x0211];
             }
-            if (msg.data.hasOwnProperty(0x022b)) {
+            if (msg.data[0x022b] !== undefined) {
                 const lookup: KeyValueAny = {0: 'none', 1: '1', 2: '2', 3: '1 and 2', 4: '3', 5: '1 and 3', 6: '2 and 3', 7: 'all'};
                 result.available_switches = lookup[msg.data[0x022b]];
             }
-            if (msg.data.hasOwnProperty(0x217)) {
+            if (msg.data[0x217] !== undefined) {
                 const lookup: KeyValueAny = {3: 'small', 4: 'medium', 5: 'large'};
                 result.font_size = lookup[msg.data[0x217]];
             }
-            if (msg.data.hasOwnProperty(0x219)) {
+            if (msg.data[0x219] !== undefined) {
                 const lookup: KeyValueAny = {0: 'scene', 1: 'feel', 2: 'thermostat', 3: 'switch'};
                 result.homepage = lookup[msg.data[0x219]];
             }
-            if (msg.data.hasOwnProperty(0x210)) {
+            if (msg.data[0x210] !== undefined) {
                 const lookup: KeyValueAny = {0: 'chinese', 1: 'english'};
                 result.language = lookup[msg.data[0x210]];
             }
-            if (msg.data.hasOwnProperty(0x216)) {
+            if (msg.data[0x216] !== undefined) {
                 result.standby_time = msg.data[0x216];
             }
-            if (msg.data.hasOwnProperty(0x218)) {
+            if (msg.data[0x218] !== undefined) {
                 result.lcd_auto_brightness_enabled = msg.data[0x218] & 1 ? true : false;
             }
-            if (msg.data.hasOwnProperty(0x221)) {
+            if (msg.data[0x221] !== undefined) {
                 result.screen_saver_enabled = msg.data[0x221] & 1 ? true : false;
             }
-            if (msg.data.hasOwnProperty(0x222)) {
+            if (msg.data[0x222] !== undefined) {
                 result.standby_lcd_brightness = msg.data[0x222];
             }
-            if (msg.data.hasOwnProperty(0x223)) {
+            if (msg.data[0x223] !== undefined) {
                 const lookup: KeyValueAny = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
                 const textarr = msg.data[0x223].slice(1, msg.data[0x223].length);
                 result.switch_1_icon = lookup[msg.data[0x223][0]];
                 result.switch_1_text = String.fromCharCode(...textarr);
             }
-            if (msg.data.hasOwnProperty(0x224)) {
+            if (msg.data[0x224] !== undefined) {
                 const lookup: KeyValueAny = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
                 const textarr = msg.data[0x224].slice(1, msg.data[0x224].length);
                 result.switch_2_icon = lookup[msg.data[0x224][0]];
                 result.switch_2_text = String.fromCharCode(...textarr);
             }
-            if (msg.data.hasOwnProperty(0x225)) {
+            if (msg.data[0x225] !== undefined) {
                 const lookup: KeyValueAny = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
                 const textarr = msg.data[0x225].slice(1, msg.data[0x225].length);
                 result.switch_3_icon = lookup[msg.data[0x225][0]];
@@ -3562,11 +3718,11 @@ export const toZigbee = {
         key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
         convertSet: async (entity, key, value, meta) => {
             const sendAttr = async (attrCode: number, value: number, length: number) => {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 entity.sendSeq = ((entity.sendSeq || 0) + 1) % 256;
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 entity.sendSeq += 1;
                 val.writeInt32BE(attrCode, 3);
                 val.writeUInt8(length, 7);
@@ -3582,7 +3738,7 @@ export const toZigbee = {
                         v.writeUInt32BE(value);
                         break;
                     default:
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         v = value;
                 }
                 await entity.write('manuSpecificLumi', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}}, {manufacturerCode: manufacturerCode});
@@ -3593,13 +3749,13 @@ export const toZigbee = {
                     break;
                 case 'schedule': {
                     const schedule: string[] = [];
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     value.forEach((item) => {
                         const schedItem = Buffer.from([getKey(feederDaysLookup, item.days, 0x7f), item.hour, item.minute, item.size, 0]);
                         schedule.push(schedItem.toString('hex'));
                     });
                     const val = Buffer.concat([Buffer.from(schedule.join(',')), Buffer.from([0])]);
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     await sendAttr(0x080008c8, val, val.length);
                     break;
                 }
@@ -3613,11 +3769,11 @@ export const toZigbee = {
                     await sendAttr(0x04180055, getFromLookup(value, {manual: 0, schedule: 1}), 1);
                     break;
                 case 'serving_size':
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     await sendAttr(0x0e5c0055, value, 4);
                     break;
                 case 'portion_weight':
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     await sendAttr(0x0e5f0055, value, 4);
                     break;
                 default: // Unknown key
@@ -3717,7 +3873,7 @@ export const toZigbee = {
                     assertEndpoint(entity);
                     const device = Buffer.from(entity.deviceIeeeAddress.substring(2), 'hex');
                     const timestamp = Buffer.alloc(4);
-                    timestamp.writeUint32BE(Date.now() / 1000);
+                    timestamp.writeUInt32BE(Date.now() / 1000);
 
                     if (value === 'external') {
                         const params1 = [
@@ -3833,7 +3989,7 @@ export const toZigbee = {
                     );
                     break;
                 case 'schedule_settings': {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     const schedule = trv.parseSchedule(value);
                     trv.validateSchedule(schedule);
                     const buffer = trv.encodeSchedule(schedule);
@@ -3858,9 +4014,7 @@ export const toZigbee = {
                 schedule_settings: 0x0276,
             };
 
-            if (dict.hasOwnProperty(key)) {
-                await entity.read('manuSpecificLumi', [getFromLookup(key, dict)], {manufacturerCode: manufacturerCode});
-            }
+            await entity.read('manuSpecificLumi', [getFromLookup(key, dict)], {manufacturerCode: manufacturerCode});
         },
     } satisfies Tz.Converter,
     lumi_presence_region_upsert: {
@@ -3938,7 +4092,7 @@ export const toZigbee = {
 
             if (!commandWrapper.isSuccess) {
                 logger.warning(
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     `Encountered an error (${commandWrapper.error.reason}) while parsing configuration commands (input: ${JSON.stringify(value)})`,
                     NS,
                 );
@@ -3996,7 +4150,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             assertEndpoint(entity);
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            let targetValue = isObject(value) && value.hasOwnProperty('state') ? value.state : value;
+            let targetValue = isObject(value) && value.state !== undefined ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
             let attrId;
@@ -4046,7 +4200,7 @@ export const toZigbee = {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
             // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-            const targetValue = isObject(value) && value.hasOwnProperty('state') ? value.state : value;
+            const targetValue = isObject(value) && value.state !== undefined ? value.state : value;
             // Switches using manuSpecificLumi 0x0200 on the same endpoints as the onOff clusters.
             const lookupState = {control_relay: 0x01, decoupled: 0x00};
             await entity.write('manuSpecificLumi', {0x0200: {value: getFromLookup(targetValue, lookupState), type: 0x20}}, manufacturerOptions.lumi);
@@ -4118,7 +4272,7 @@ export const toZigbee = {
             const lookup = {rgbw: 3, dual_ct: 1};
             assertString(value, key);
             value = value.toLowerCase();
-            // @ts-expect-error
+            // @ts-expect-error ignore
             if (['rgbw'].includes(value)) {
                 await entity.write('manuSpecificLumi', {0x0509: {value: getFromLookup(value, lookup), type: 0x23}}, manufacturerOptions.lumi);
                 await entity.write('manuSpecificLumi', {0x050f: {value: 1, type: 0x23}}, manufacturerOptions.lumi);
@@ -4232,7 +4386,7 @@ export const toZigbee = {
                 await entity.write('genBasic', {0xfff0: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
             } else if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
                 // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-                const targetValue = isObject(value) && value.hasOwnProperty('state') ? value.state : value;
+                const targetValue = isObject(value) && value.state !== undefined ? value.state : value;
                 const lookupState = {on: 0x01, electric_appliances_on: 0x00, electric_appliances_off: 0x02, inverted: 0x03};
                 await entity.write(
                     'manuSpecificLumi',
@@ -4497,8 +4651,8 @@ export const toZigbee = {
             };
 
             // Legacy names
-            if (value.hasOwnProperty('auto_close')) opts.hand_open = value.auto_close;
-            if (value.hasOwnProperty('reset_move')) opts.reset_limits = value.reset_move;
+            if (value.auto_close !== undefined) opts.hand_open = value.auto_close;
+            if (value.reset_move !== undefined) opts.reset_limits = value.reset_move;
 
             if (meta.mapped.model === 'ZNCLDJ12LM') {
                 await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, manufacturerOptions.lumi);
@@ -4673,7 +4827,9 @@ export const toZigbee = {
     lumi_curtain_limits_calibration: {
         key: ['limits_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            switch (value) {
+            assertString(value);
+            const normalizedValue = value.toLowerCase();
+            switch (normalizedValue) {
                 case 'start':
                     await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
                     break;
@@ -4704,6 +4860,84 @@ export const toZigbee = {
                     await entity.write('genMultistateOutput', {presentValue: 0}, manufacturerOptions.lumi);
                     break;
             }
+        },
+    } satisfies Tz.Converter,
+    lumi_curtain_automatic_calibration_ZNCLDJ01LM: {
+        key: ['automatic_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            // Check if the curtain is already calibrated
+            const checkIfCalibrated = async (): Promise<boolean> => {
+                const result = await entity.read('manuSpecificLumi', ['curtainCalibrated']);
+                return result ? result.curtainCalibrated : false;
+            };
+
+            if (await checkIfCalibrated()) {
+                logger.info('End positions already calibrated. Reset the calibration before proceeding.', NS);
+                return;
+            }
+
+            // Reset Calibration
+            await entity.write('manuSpecificLumi', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
+            logger.info('Starting the calibration process...', NS);
+
+            // Wait for 3 seconds
+            await sleep(3000);
+
+            // Move the curtain to one direction
+            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: 100}, getOptions(meta.mapped, entity));
+            logger.info('Moving curtain and waiting to reach the end position.', NS);
+
+            // Wait until the curtain gets into a moving state, then wait until it gets blocked or stopped
+            const waitForStateTransition = async (initialStates: number[], desiredStates: number[]): Promise<void> => {
+                return await new Promise<void>((resolve) => {
+                    const checkState = async () => {
+                        const result = await entity.read('manuSpecificLumi', [0x0421]);
+                        const state = result ? result[0x0421] : null;
+                        if (!initialStates.includes(state)) {
+                            const checkDesiredState = async () => {
+                                const result = await entity.read('manuSpecificLumi', [0x0421]);
+                                const state = result ? result[0x0421] : null;
+                                if (desiredStates.includes(state)) {
+                                    resolve();
+                                } else {
+                                    setTimeout(checkDesiredState, 500);
+                                }
+                            };
+                            setTimeout(checkDesiredState, 500);
+                        } else {
+                            setTimeout(checkState, 500);
+                        }
+                    };
+                    void checkState();
+                });
+            };
+
+            await waitForStateTransition([2, 3], [2, 3]);
+
+            // Wait for 1 second
+            await sleep(1000);
+
+            // Set First Calibration Position
+            await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
+            logger.info('End position 1 has been set.', NS);
+
+            // Wait for 3 seconds
+            await sleep(3000);
+
+            // Move the curtain in the opposite direction
+            await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: 0}, getOptions(meta.mapped, entity));
+            logger.info('Moving curtain in the opposite direction and waiting to reach the end position.', NS);
+
+            // Wait until the curtain gets into a moving state, then wait until it gets blocked or stopped
+            await waitForStateTransition([2, 3], [2, 3]);
+
+            // Wait for 1 second
+            await sleep(1000);
+
+            // Set Second Calibration Position
+            await entity.write('manuSpecificLumi', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
+            logger.info('End position 2 has been set.', NS);
+            logger.info('Calibration process completed.', NS);
         },
     } satisfies Tz.Converter,
     lumi_buzzer: {
@@ -4878,18 +5112,18 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.hasOwnProperty('switch_1_icon')) {
+                if (value.switch_1_icon !== undefined) {
                     payload.push(getFromLookup(value.switch_1_icon, lookup));
                     statearr.switch_1_icon = value.switch_1_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_1_icon = '1';
                 }
-                if (value.hasOwnProperty('switch_1_text')) {
+                if (value.switch_1_text !== undefined) {
                     payload.push(...value.switch_1_text.split('').map((c: string) => c.charCodeAt(0)));
                     statearr.switch_1_text = value.switch_1_text;
                 } else {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_1_text = '';
                 }
@@ -4900,18 +5134,18 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.hasOwnProperty('switch_2_icon')) {
+                if (value.switch_2_icon !== undefined) {
                     payload.push(getFromLookup(value.switch_2_icon, lookup));
                     statearr.switch_2_icon = value.switch_2_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_2_icon = '1';
                 }
-                if (value.hasOwnProperty('switch_2_text')) {
+                if (value.switch_2_text !== undefined) {
                     payload.push(...value.switch_2_text.split('').map((c: string) => c.charCodeAt(0)));
                     statearr.switch_2_text = value.switch_2_text;
                 } else {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_2_text = '';
                 }
@@ -4922,18 +5156,18 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.hasOwnProperty('switch_3_icon')) {
+                if (value.switch_3_icon !== undefined) {
                     payload.push(getFromLookup(value.switch_3_icon, lookup));
                     statearr.switch_3_icon = value.switch_3_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_3_icon = '1';
                 }
-                if (value.hasOwnProperty('switch_3_text')) {
+                if (value.switch_3_text !== undefined) {
                     payload.push(...value.switch_3_text.split('').map((c: string) => c.charCodeAt(0)));
                     statearr.switch_3_text = value.switch_3_text;
                 } else {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_3_text = '';
                 }
@@ -4974,7 +5208,7 @@ export const legacyFromZigbee = {
                         legacyFromZigbeeStore[key].long_timer = setTimeout(() => {
                             legacyFromZigbeeStore[key].long = false;
                         }, 4000); // After 4000 milliseconds of not receiving long_release we assume it will not happen.
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                     }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
                 } else if (state === 1) {
                     if (legacyFromZigbeeStore[key].long) {

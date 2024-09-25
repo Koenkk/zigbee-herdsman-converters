@@ -7,23 +7,25 @@ import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import {
+    battery,
     binary,
+    bindCluster,
+    commandsOnOff,
+    customTimeResponse,
+    deviceAddCustomCluster,
     enumLookup,
     forcePowerSource,
+    humidity,
+    iasZoneAlarm,
     numeric,
     onOff,
-    customTimeResponse,
-    battery,
     ota,
-    deviceAddCustomCluster,
     temperature,
-    humidity,
-    bindCluster,
-    iasZoneAlarm,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const {ewelinkAction} = ewelinkModernExtend;
 
 const NS = 'zhc:sonoff';
@@ -41,7 +43,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('currentLevel')) {
+            if (msg.data.currentLevel !== undefined) {
                 result.light_indicator_level = msg.data['currentLevel'];
             }
         },
@@ -63,6 +65,7 @@ const sonoffExtend = {
                 delayedPowerOnTime: {ID: 0x0015, type: Zcl.DataType.UINT16},
                 externalTriggerMode: {ID: 0x0016, type: Zcl.DataType.UINT8},
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
+                lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16},
             },
             commands: {
                 protocolData: {ID: 0x01, parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -504,7 +507,7 @@ const sonoffExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const lookup: KeyValue = {edge: 0, pulse: 1, 'following(off)': 2, 'following(on)': 130};
                     // logger.debug(`from zigbee msg.data['externalTriggerMode'] ${msg.data['externalTriggerMode']}`, NS);
-                    if (msg.data.hasOwnProperty('externalTriggerMode')) {
+                    if (msg.data.externalTriggerMode !== undefined) {
                         let switchType = 'edge';
                         for (const name in lookup) {
                             if (lookup[name] === msg.data['externalTriggerMode']) {
@@ -543,7 +546,7 @@ const sonoffExtend = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['NSPanelP-Router'],
         model: 'NSPanelP-Router',
@@ -572,7 +575,10 @@ const definitions: Definition[] = [
             // Zigbee-herdsmans responds to the checkin message which causes the device
             // to poll slower.
             // https://github.com/Koenkk/zigbee2mqtt/issues/11676
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            }
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
@@ -588,7 +594,10 @@ const definitions: Definition[] = [
             // Zigbee-herdsmans responds to the checkin message which causes the device
             // to poll slower.
             // https://github.com/Koenkk/zigbee2mqtt/issues/11676
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            }
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
@@ -656,6 +665,21 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['KF01', 'KF-01'],
+        model: 'SNZB-01-KF',
+        vendor: 'SONOFF',
+        description: 'Wireless button',
+        exposes: [e.battery(), e.action(['off', 'single']), e.battery_voltage()],
+        fromZigbee: [fz.command_status_change_notification_action, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'genPowerCfg']);
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+        },
+    },
+    {
         fingerprint: [
             // ModelID is from the button (SNZB-01) but this is SNZB-02, wrong modelID in firmware?
             // https://github.com/Koenkk/zigbee2mqtt/issues/4338
@@ -706,13 +730,7 @@ const definitions: Definition[] = [
         model: 'SNZB-02D',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor with screen',
-        extend: [
-            forcePowerSource({powerSource: 'Battery'}),
-            battery({percentage: true}),
-            temperature(),
-            humidity(),
-            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
-        ],
+        extend: [battery({percentage: true}), temperature(), humidity(), bindCluster({cluster: 'genPollCtrl', clusterType: 'input'})],
     },
     {
         fingerprint: [
@@ -785,12 +803,12 @@ const definitions: Definition[] = [
         exposes: [e.cover_position(), e.battery()],
     },
     {
-        zigbeeModel: ['Z111PL0H-1JX', 'SA-029-1'],
+        zigbeeModel: ['Z111PL0H-1JX', 'SA-029-1', 'SA-028-1'],
         model: 'SA-028/SA-029',
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
-        extend: [onOff()],
+        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['SNZB-01P'],
@@ -798,7 +816,6 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Wireless button',
         extend: [
-            forcePowerSource({powerSource: 'Battery'}),
             ewelinkAction(),
             battery({
                 percentageReportingConfig: {min: 3600, max: 7200, change: 0},
@@ -814,13 +831,7 @@ const definitions: Definition[] = [
         model: 'SNZB-02P',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor',
-        extend: [
-            forcePowerSource({powerSource: 'Battery'}),
-            battery({percentage: true}),
-            temperature(),
-            humidity(),
-            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
-        ],
+        extend: [battery({percentage: true}), temperature(), humidity(), bindCluster({cluster: 'genPollCtrl', clusterType: 'input'})],
     },
     {
         zigbeeModel: ['SNZB-04P'],
@@ -855,7 +866,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee PIR sensor',
         fromZigbee: [fz.occupancy, fz.battery],
-        exposes: [e.occupancy(), e.battery_low(), e.battery()],
+        exposes: [e.occupancy(), e.battery()],
         extend: [
             numeric({
                 name: 'motion_timeout',
@@ -1125,6 +1136,15 @@ const definitions: Definition[] = [
                 description: 'The water valve is in normal state, water shortage or water leakage',
                 access: 'STATE_GET',
             }),
+            binary({
+                name: 'auto_close_when_water_shortage',
+                cluster: 'customClusterEwelink',
+                attribute: 'lackWaterCloseValveTimeout',
+                description:
+                    'Automatically shut down the water valve after the water shortage exceeds 30 minutes. Requires firmware version 1.0.4 or later!',
+                valueOff: ['DISABLE', 0],
+                valueOn: ['ENABLE', 30],
+            }),
             sonoffExtend.cyclicTimedIrrigation(),
             sonoffExtend.cyclicQuantitativeIrrigation(),
         ],
@@ -1133,7 +1153,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msFlowMeasurement']);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read('customClusterEwelink', [0x500c]);
+            await endpoint.read('customClusterEwelink', [0x500c, 0x5011]);
         },
     },
     {
@@ -1170,6 +1190,7 @@ const definitions: Definition[] = [
         description: 'Zigbee smart switch',
         exposes: [],
         extend: [
+            commandsOnOff({commands: ['toggle']}),
             ota(),
             onOff(),
             sonoffExtend.addCustomClusterEwelink(),

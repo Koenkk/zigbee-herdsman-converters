@@ -1,36 +1,38 @@
 import * as semver from 'semver';
+
 import {Zcl} from 'zigbee-herdsman';
 
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
-import {presets, access, options} from '../lib/exposes';
+import {access, options, presets} from '../lib/exposes';
 import {
+    deviceAddCustomCluster,
     LightArgs,
     light as lightDontUse,
-    ota,
-    ReportingConfigWithoutAttribute,
-    timeLookup,
     numeric,
     NumericArgs,
+    ota,
+    ReportingConfigWithoutAttribute,
     setupConfigureForBinding,
     setupConfigureForReporting,
-    deviceAddCustomCluster,
+    timeLookup,
 } from '../lib/modernExtend';
 import {tradfri as ikea} from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Fz, Tz, OnEvent, Configure, KeyValue, Range, ModernExtend, Expose, KeyValueAny} from '../lib/types';
+import {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
 import {
+    assertString,
+    configureSetPowerSourceWhenUnknown,
+    getEndpointName,
+    getFromLookup,
+    hasAlreadyProcessedMessage,
+    isLegacyEnabled,
+    isObject,
+    mapNumberRange,
     postfixWithEndpointName,
     precisionRound,
-    isObject,
     replaceInArray,
-    isLegacyEnabled,
-    hasAlreadyProcessedMessage,
-    assertString,
-    getFromLookup,
-    mapNumberRange,
-    getEndpointName,
 } from '../lib/utils';
 
 export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
@@ -97,6 +99,21 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
     if (args?.colorTemp || args?.color) {
         result.exposes.push(presets.light_color_options());
     }
+
+    // Never use a transition when transitioning to OFF as this turns on the light when sending OFF twice
+    // when the bulb has firmware > 1.0.012.
+    // https://github.com/Koenkk/zigbee2mqtt/issues/19211
+    // https://github.com/Koenkk/zigbee2mqtt/issues/22030#issuecomment-2292063140
+    // Some old softwareBuildID are not a valid semver, e.g. `1.1.1.0-5.7.2.0`
+    // https://github.com/Koenkk/zigbee2mqtt/issues/23863
+    result.meta = {
+        ...result.meta,
+        noOffTransitionWhenOff: (entity) => {
+            const softwareBuildID = entity.getDevice().softwareBuildID;
+            return softwareBuildID && !softwareBuildID.includes('-') && semver.gt(softwareBuildID ?? '0.0.0', '1.0.021', true);
+        },
+    };
+
     return result;
 }
 
@@ -121,7 +138,7 @@ export function ikeaBattery(): ModernExtend {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const payload: KeyValue = {};
-                if (msg.data.hasOwnProperty('batteryPercentageRemaining') && msg.data['batteryPercentageRemaining'] < 255) {
+                if (msg.data.batteryPercentageRemaining !== undefined && msg.data['batteryPercentageRemaining'] < 255) {
                     // Some devices do not comply to the ZCL and report a
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                     let dividePercentage = true;
@@ -160,7 +177,10 @@ export function ikeaBattery(): ModernExtend {
 
     const defaultReporting: ReportingConfigWithoutAttribute = {min: '1_HOUR', max: 'MAX', change: 10};
 
-    const configure: Configure[] = [setupConfigureForReporting('genPowerCfg', 'batteryPercentageRemaining', defaultReporting, access.STATE_GET)];
+    const configure: Configure[] = [
+        setupConfigureForReporting('genPowerCfg', 'batteryPercentageRemaining', defaultReporting, access.STATE_GET),
+        configureSetPowerSourceWhenUnknown('Battery'),
+    ];
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -235,7 +255,7 @@ export function ikeaAirPurifier(): ModernExtend {
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
-                if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
+                if (msg.data.particulateMatter25Measurement !== undefined) {
                     const pm25Property = postfixWithEndpointName('pm25', msg, model, meta);
                     let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
 
@@ -268,25 +288,25 @@ export function ikeaAirPurifier(): ModernExtend {
                     state[airQualityProperty] = airQuality;
                 }
 
-                if (msg.data.hasOwnProperty('filterRunTime')) {
+                if (msg.data.filterRunTime !== undefined) {
                     // Filter needs to be replaced after 6 months
                     state['replace_filter'] = parseInt(msg.data['filterRunTime']) >= 259200;
                     state['filter_age'] = parseInt(msg.data['filterRunTime']);
                 }
 
-                if (msg.data.hasOwnProperty('deviceRunTime')) {
+                if (msg.data.deviceRunTime !== undefined) {
                     state['device_age'] = parseInt(msg.data['deviceRunTime']);
                 }
 
-                if (msg.data.hasOwnProperty('controlPanelLight')) {
+                if (msg.data.controlPanelLight !== undefined) {
                     state['led_enable'] = msg.data['controlPanelLight'] == 0;
                 }
 
-                if (msg.data.hasOwnProperty('childLock')) {
+                if (msg.data.childLock !== undefined) {
                     state['child_lock'] = msg.data['childLock'] == 0 ? 'UNLOCK' : 'LOCK';
                 }
 
-                if (msg.data.hasOwnProperty('fanSpeed')) {
+                if (msg.data.fanSpeed !== undefined) {
                     let fanSpeed = msg.data['fanSpeed'];
                     if (fanSpeed >= 10) {
                         fanSpeed = ((fanSpeed - 5) * 2) / 10;
@@ -297,7 +317,7 @@ export function ikeaAirPurifier(): ModernExtend {
                     state['fan_speed'] = fanSpeed;
                 }
 
-                if (msg.data.hasOwnProperty('fanMode')) {
+                if (msg.data.fanMode !== undefined) {
                     let fanMode = msg.data['fanMode'];
                     if (fanMode >= 10) {
                         fanMode = (((fanMode - 5) * 2) / 10).toString();
@@ -484,12 +504,12 @@ export function tradfriOccupancy(): ModernExtend {
                 const onlyWhenOnFlag = (msg.data.ctrlbits & 1) != 0;
                 if (
                     onlyWhenOnFlag &&
-                    (!options || !options.hasOwnProperty('illuminance_below_threshold_check') || options.illuminance_below_threshold_check) &&
+                    (!options || options.illuminance_below_threshold_check === undefined || options.illuminance_below_threshold_check) &&
                     !globalStore.hasValue(msg.endpoint, 'timer')
                 )
                     return;
 
-                const timeout = options && options.hasOwnProperty('occupancy_timeout') ? Number(options.occupancy_timeout) : msg.data.ontime / 10;
+                const timeout = options && options.occupancy_timeout !== undefined ? Number(options.occupancy_timeout) : msg.data.ontime / 10;
 
                 // Stop existing timer because motion is detected and set a new one.
                 clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));

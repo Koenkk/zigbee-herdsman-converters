@@ -10,7 +10,7 @@ import {
     setupConfigureForReporting,
 } from '../lib/modernExtend';
 import * as globalStore from '../lib/store';
-import {Definition, ModernExtend, Fz, Expose, Configure, OnEvent} from '../lib/types';
+import {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, OnEvent} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -46,7 +46,7 @@ function electricityMeterPoll(): ModernExtend {
             'acPowerDivisor',
         ]),
         setupConfigureForReading('seMetering', ['multiplier', 'divisor']),
-        setupConfigureForReporting('seMetering', 'currentSummDelivered', {min: '5_SECONDS', max: '1_HOUR', change: [1, 1]}, exposes.access.STATE_GET),
+        setupConfigureForReporting('seMetering', 'currentSummDelivered', {min: '5_SECONDS', max: '1_HOUR', change: 257}, exposes.access.STATE_GET),
     ];
 
     const onEvent: OnEvent = async (type, data, device) => {
@@ -61,7 +61,7 @@ function electricityMeterPoll(): ModernExtend {
                 try {
                     await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
                     await endpoint.read('seMetering', ['currentSummDelivered', 'multiplier', 'divisor']);
-                } catch (error) {
+                } catch {
                     // Do nothing
                 }
             }, 10 * 1000); // Every 10 seconds
@@ -72,7 +72,7 @@ function electricityMeterPoll(): ModernExtend {
     return {configure, onEvent, isModernExtend: true};
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Leak_Sensor'],
         model: 'MCLH-07',

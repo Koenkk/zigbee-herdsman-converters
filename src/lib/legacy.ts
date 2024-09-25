@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import fs from 'fs';
 
 import fromZigbeeConverters from '../converters/fromZigbee';
-import * as globalStore from './store';
-import * as utils from './utils';
-const fromZigbeeStore: KeyValueAny = {};
 import * as constants from './constants';
 import * as exposes from './exposes';
 import * as light from './light';
 import {logger} from './logger';
-import {Zh, KeyValueNumberString, Definition, Fz, Publish, Tz} from './types';
+import * as globalStore from './store';
+import {Definition, Fz, KeyValueNumberString, Publish, Tz, Zh} from './types';
+import * as utils from './utils';
+
+const fromZigbeeStore: KeyValueAny = {};
 
 interface KeyValueAny {
     [s: string]: any;
@@ -229,10 +231,10 @@ function convertRawToCycleTimer(value: any) {
             weekdays = 'once';
         }
         let minsincemidnight: any = value[4] * 256 + value[5];
-        // @ts-ignore
+        // @ts-expect-error ignore
         starttime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
         minsincemidnight = value[6] * 256 + value[7];
-        // @ts-ignore
+        // @ts-expect-error ignore
         endtime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
         irrigationDuration = value[8] * 256 + value[9];
         pauseDuration = value[10] * 256 + value[11];
@@ -465,7 +467,7 @@ function convertRawToTimer(value: any) {
     if (value.length > 12) {
         timernr = value[1];
         const minsincemidnight = value[2] * 256 + value[3];
-        // @ts-ignore
+        // @ts-expect-error ignore
         starttime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
         duration = value[4] * 256 + value[5];
         if (value[6] > 0) {
@@ -1088,7 +1090,7 @@ function getMetaValue(entity: any, definition: any, key: string, groupStrategy =
     if (entity.constructor.name === 'Group' && entity.members.length > 0) {
         const values = [];
         for (const memberMeta of definition) {
-            if (memberMeta.meta && memberMeta.meta.hasOwnProperty(key)) {
+            if (memberMeta.meta && memberMeta.meta[key] !== undefined) {
                 if (groupStrategy === 'first') {
                     return memberMeta.meta[key];
                 }
@@ -1102,7 +1104,7 @@ function getMetaValue(entity: any, definition: any, key: string, groupStrategy =
         if (groupStrategy === 'allEqual' && new Set(values).size === 1) {
             return values[0];
         }
-    } else if (definition && definition.meta && definition.meta.hasOwnProperty(key)) {
+    } else if (definition && definition.meta && definition.meta[key] !== undefined) {
         return definition.meta[key];
     }
 
@@ -1144,7 +1146,7 @@ const toPercentage = (value: number, min: number, max: number) => {
 
 const postfixWithEndpointName = (name: string, msg: KeyValueAny, definition: Definition) => {
     if (definition.meta && definition.meta.multiEndpoint) {
-        const endpointName = definition.hasOwnProperty('endpoint') ? getKey(definition.endpoint(msg.device), msg.endpoint.ID) : msg.endpoint.ID;
+        const endpointName = definition.endpoint !== undefined ? getKey(definition.endpoint(msg.device), msg.endpoint.ID) : msg.endpoint.ID;
         return `${name}_${endpointName}`;
     } else {
         return name;
@@ -1537,7 +1539,7 @@ const fromZigbee1 = {
                         break;
                     }
                     case 1: // report state
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.state = {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value];
                         break;
                     case dataPoints.motorDirection: // reverse direction
@@ -1547,7 +1549,7 @@ const fromZigbee1 = {
                         result.cycle_time = value;
                         break;
                     case 101: // model
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.motor_type = {
                             0: '',
                             1: 'AM0/6-28R-Sm',
@@ -1561,11 +1563,11 @@ const fromZigbee1 = {
                         result.cycle_count = value;
                         break;
                     case 103: // set or clear bottom limit
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.bottom_limit = {0: 'SET', 1: 'CLEAR'}[value];
                         break;
                     case 104: // set or clear top limit
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.top_limit = {0: 'SET', 1: 'CLEAR'}[value];
                         break;
                     case 109: // active power
@@ -1577,7 +1579,7 @@ const fromZigbee1 = {
                     case 116: // report confirmation
                         break;
                     case 121: // running state
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.motor_state = {0: 'OPENING', 1: 'STOPPED', 2: 'CLOSING'}[value];
                         result.running = value !== 1 ? true : false;
                         break;
@@ -1807,7 +1809,7 @@ const fromZigbee1 = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
-            // @ts-ignore
+            // @ts-expect-error ignore
             const modelConverters = giexFzModelConverters[model.model] || {};
             for (const dpValue of msg.data.dpValues) {
                 const value = getDataValue(dpValue);
@@ -1850,14 +1852,14 @@ const fromZigbee1 = {
             const value = getDataValue(dpValue);
             switch (dp) {
                 case dataPoints.alectoSmokeState:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {smoke_state: {0: 'alarm', 1: 'normal'}[value]};
                 case dataPoints.alectoSmokeValue:
                     return {smoke_value: value};
                 case dataPoints.alectoSelfChecking:
                     return {self_checking: value};
                 case dataPoints.alectoCheckingResult:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {checking_result: {0: 'checking', 1: 'check_success', 2: 'check_failure', 3: 'others'}[value]};
                 case dataPoints.alectoSmokeTest:
                     return {smoke_test: value};
@@ -1866,7 +1868,7 @@ const fromZigbee1 = {
                 case dataPoints.alectoBatteryPercentage:
                     return {battery: value};
                 case dataPoints.alectoBatteryState:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {battery_state: {0: 'low', 1: 'middle', 2: 'high'}[value]};
                 case dataPoints.alectoSilence:
                     return {silence: value};
@@ -2080,7 +2082,7 @@ const fromZigbee1 = {
                     3: 'hold',
                 };
 
-                if (msg.data.hasOwnProperty('data')) {
+                if (msg.data.data !== undefined) {
                     const zoneStatus = msg.data.zonestatus;
                     return {click: buttonStates[zoneStatus]};
                 } else {
@@ -3019,24 +3021,19 @@ const fromZigbee1 = {
                 result[postfixWithEndpointName('remote_sensing', msg, model)] = msg.data['remoteSensing'];
             }
             const ctrl = msg.data['ctrlSeqeOfOper'];
-            if (typeof ctrl == 'number' && thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
-                result[postfixWithEndpointName('control_sequence_of_operation', msg, model)] =
-                    // @ts-ignore
-                    thermostatControlSequenceOfOperations[ctrl];
+            if (typeof ctrl == 'number' && thermostatControlSequenceOfOperations[ctrl] !== undefined) {
+                result[postfixWithEndpointName('control_sequence_of_operation', msg, model)] = thermostatControlSequenceOfOperations[ctrl];
             }
             const smode = msg.data['systemMode'];
-            if (typeof smode == 'number' && thermostatSystemModes.hasOwnProperty(smode)) {
-                // @ts-ignore
+            if (typeof smode == 'number' && thermostatSystemModes[smode] !== undefined) {
                 result[postfixWithEndpointName('system_mode', msg, model)] = thermostatSystemModes[smode];
             }
             const rmode = msg.data['runningMode'];
-            if (typeof rmode == 'number' && thermostatSystemModes.hasOwnProperty(rmode)) {
-                // @ts-ignore
+            if (typeof rmode == 'number' && thermostatSystemModes[rmode] !== undefined) {
                 result[postfixWithEndpointName('running_mode', msg, model)] = thermostatSystemModes[rmode];
             }
             const state = msg.data['runningState'];
-            if (typeof state == 'number' && constants.thermostatRunningStates.hasOwnProperty(state)) {
-                // @ts-ignore
+            if (typeof state == 'number' && constants.thermostatRunningStates[state] !== undefined) {
                 result[postfixWithEndpointName('running_state', msg, model)] = constants.thermostatRunningStates[state];
             }
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
@@ -3295,7 +3292,7 @@ const fromZigbee1 = {
                 return fromZigbeeConverters.hue_dimmer_switch.convert(model, msg, publish, options, meta);
             }
 
-            const multiplePressTimeout = options && options.hasOwnProperty('multiple_press_timeout') ? options.multiple_press_timeout : 0.25;
+            const multiplePressTimeout = options && options.multiple_press_timeout !== undefined ? options.multiple_press_timeout : 0.25;
 
             const getPayload = function (
                 button: any,
@@ -3324,7 +3321,7 @@ const fromZigbee1 = {
             const typeLookup: KeyValueAny = {0: 'press', 1: 'hold', 2: 'release', 3: 'release'};
             const type = typeLookup[msg.data['type']];
 
-            const brightnessEnabled = options && options.hasOwnProperty('send_brightess') ? options.send_brightess : true;
+            const brightnessEnabled = options && options.send_brightess !== undefined ? options.send_brightess : true;
             const brightnessSend = brightnessEnabled && button && (button == 'up' || button == 'down');
 
             // Initialize store
@@ -3412,7 +3409,7 @@ const fromZigbee1 = {
                                 ),
                             );
                             fromZigbeeStore[deviceID].delayedTimer = null;
-                            // @ts-expect-error
+                            // @ts-expect-error ignore
                         }, multiplePressTimeout * 1000);
                     } else {
                         const pressDuration =
@@ -3593,7 +3590,7 @@ const fromZigbee1 = {
             const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
             switch (dp) {
                 case dataPoints.moesSsystemMode:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {preset: presetLookup[value], system_mode: 'heat'};
                 case dataPoints.moesSheatingSetpoint:
                     return {current_heating_setpoint: value};
@@ -3623,7 +3620,7 @@ const fromZigbee1 = {
                         // local_temperature is now stale: the valve does not report the re-calibrated value until an actual temperature change
                         // so update local_temperature by subtracting the old calibration and adding the new one
                         ...(meta && meta.state && meta.state.local_temperature != null && meta.state.local_temperature_calibration != null
-                            ? // @ts-expect-error
+                            ? // @ts-expect-error ignore
                               {local_temperature: meta.state.local_temperature + (value - meta.state.local_temperature_calibration)}
                             : {}),
                     };
@@ -3664,14 +3661,14 @@ const fromZigbee1 = {
                     return {humidity: value / 10};
                 // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
                 case dataPoints.tuyaSabFormaldehyd:
-                    if (['_TZE200_dwcarsat', '_TZE200_ryfmq5rl', '_TZE200_mja3fuja'].includes(meta.device.manufacturerName)) {
+                    if (['_TZE200_dwcarsat', '_TZE200_ryfmq5rl', '_TZE200_mja3fuja', '_TZE204_dwcarsat'].includes(meta.device.manufacturerName)) {
                         return {co2: value};
                     } else {
                         return {formaldehyd: value};
                     }
                 // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
                 case dataPoints.tuyaSabCO2:
-                    if (['_TZE200_dwcarsat'].includes(meta.device.manufacturerName)) {
+                    if (['_TZE200_dwcarsat', '_TZE204_dwcarsat'].includes(meta.device.manufacturerName)) {
                         // Ignore: https://github.com/Koenkk/zigbee2mqtt/issues/11033#issuecomment-1109808552
                         if (value === 0xaaac || value === 0xaaab) return;
                         return {pm25: value};
@@ -3744,7 +3741,7 @@ const fromZigbee1 = {
                 case dataPoints.connecteTempFloor:
                     return {external_temperature: value};
                 case dataPoints.connecteSensorType:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {sensor: {0: 'internal', 1: 'external', 2: 'both'}[value]};
                 case dataPoints.connecteHysteresis:
                     return {hysteresis: value};
@@ -3799,7 +3796,7 @@ const fromZigbee1 = {
                         return {away_mode: 'OFF', preset_mode: 'none'};
                     }
                 case dataPoints.saswellScheduleMode:
-                    if (thermostatScheduleMode.hasOwnProperty(value)) {
+                    if (thermostatScheduleMode[value] !== undefined) {
                         return {schedule_mode: thermostatScheduleMode[value]};
                     } else {
                         logger.warning(`Unknown schedule mode ${value}`, 'zhc:legacy:fz:saswell_thermostat');
@@ -4059,13 +4056,13 @@ const fromZigbee1 = {
                     return {away_preset_days: value};
                 case dataPoints.mode: {
                     const ret: KeyValueAny = {};
-                    const presetOk = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(value);
+                    const presetOk = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value] !== undefined;
                     if (presetOk) {
                         ret.preset = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
                         ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
                         const presetToSystemMode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPresetToSystemMode', null, {});
                         if (value in presetToSystemMode) {
-                            // @ts-expect-error
+                            // @ts-expect-error ignore
                             ret.system_mode = presetToSystemMode[value];
                         }
                     } else {
@@ -4137,7 +4134,7 @@ const fromZigbee1 = {
             let result = null;
             switch (dp) {
                 case dataPoints.state:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {occupancy: {1: true, 0: false}[value]};
                     break;
                 case dataPoints.msReferenceLuminance:
@@ -4150,7 +4147,7 @@ const fromZigbee1 = {
                     result = {v_sensitivity: msLookups.VSensitivity[value]};
                     break;
                 case dataPoints.msLedStatus:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {led_status: {1: 'OFF', 0: 'ON'}[value]};
                     break;
                 case dataPoints.msVacancyDelay:
@@ -4258,11 +4255,11 @@ const fromZigbee1 = {
                     }
                     break;
                 case dataPoints.tvWindowDetection:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {window_detection: {1: true, 0: false}[value]};
                     break;
                 case dataPoints.tvFrostDetection:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {frost_detection: {1: true, 0: false}[value]};
                     break;
                 case dataPoints.tvHeatingSetpoint:
@@ -4282,7 +4279,7 @@ const fromZigbee1 = {
                     result = {battery: value};
                     break;
                 case dataPoints.tvChildLock:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {child_lock: {1: 'LOCK', 0: 'UNLOCK'}[value]};
                     break;
                 case dataPoints.tvErrorStatus:
@@ -4441,7 +4438,7 @@ const fromZigbee1 = {
         convert: (model, msg, publish, options, meta) => {
             const separateWhite = model.meta && model.meta.separateWhite;
             const result: KeyValueAny = {};
-            for (const [i, dpValue] of msg.data.dpValues.entries()) {
+            for (const dpValue of msg.data.dpValues.values()) {
                 const dp = dpValue.dp;
                 const value = getDataValue(dpValue);
                 if (dp === dataPoints.state) {
@@ -4596,7 +4593,7 @@ const fromZigbee1 = {
             let result = null;
             switch (dp) {
                 case dataPoints.tshpsPresenceState:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {presence: {0: false, 1: true}[value]};
                     break;
                 case dataPoints.tshpscSensitivity:
@@ -4648,11 +4645,11 @@ const fromZigbee1 = {
                         result.battery = value;
                         break;
                     case dataPoints.lmsSensitivity:
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.sensitivity = {'0': 'low', '1': 'medium', '2': 'high'}[value];
                         break;
                     case dataPoints.lmsKeepTime:
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.keep_time = {'0': '10', '1': '30', '2': '60', '3': '120'}[value];
                         break;
                     case dataPoints.lmsIlluminance:
@@ -4682,19 +4679,18 @@ const fromZigbee1 = {
                     break;
                 }
                 case dataPoints.state:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {state: {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value], running: {0: true, 1: false, 2: true}[value]};
                     break;
                 case dataPoints.moesCoverBacklight:
-                    // @ts-ignore
                     result = {backlight: value ? 'ON' : 'OFF'};
                     break;
                 case dataPoints.moesCoverCalibration:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {calibration: {0: 'ON', 1: 'OFF'}[value]};
                     break;
                 case dataPoints.moesCoverMotorReversal:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {motor_reversal: {0: 'OFF', 1: 'ON'}[value]};
                     break;
                 default:
@@ -4717,7 +4713,7 @@ const fromZigbee1 = {
                     return {humidity: value / (['_TZE200_bjawzodf', '_TZE200_zl1kmjqx'].includes(meta.device.manufacturerName) ? 10 : 1)};
                 case dataPoints.tthBatteryLevel:
                     return {
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         battery_level: {0: 'low', 1: 'middle', 2: 'high'}[value],
                         battery_low: value === 0 ? true : false,
                     };
@@ -4747,7 +4743,7 @@ const fromZigbee1 = {
                         result.battery = value;
                         break;
                     case dataPoints.nousTempUnitConvert:
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.temperature_unit_convert = {0x00: 'celsius', 0x01: 'fahrenheit'}[value];
                         break;
                     case dataPoints.nousMaxTemp:
@@ -4763,11 +4759,11 @@ const fromZigbee1 = {
                         result.min_humidity = value;
                         break;
                     case dataPoints.nousTempAlarm:
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.temperature_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                         break;
                     case dataPoints.nousHumiAlarm:
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.humidity_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                         break;
                     case dataPoints.nousTempSensitivity:
@@ -4921,15 +4917,15 @@ const fromZigbee1 = {
                 case dataPoints.hyLocalTemp: // 0x027F MCU reporting room temperature
                     return {local_temperature: (value / 10).toFixed(1)};
                 case dataPoints.hySensor: // Sensor type
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {sensor_type: {0: 'internal', 1: 'external', 2: 'both'}[value]};
                 case dataPoints.hyPowerOnBehavior: // 0x0475 State after power on
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {power_on_behavior: {0: 'restore', 1: 'off', 2: 'on'}[value]};
                 case dataPoints.hyWeekFormat: // 0x0476 Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
                     return {week: thermostatWeekFormat[value]};
                 case dataPoints.hyMode: // 0x0480 mode
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {system_mode: {0: 'manual', 1: 'auto', 2: 'away'}[value]};
                 case dataPoints.hyAlarm: // [16] [0]
                     return {alarm: value > 0 ? true : false};
@@ -4950,7 +4946,7 @@ const fromZigbee1 = {
                     return {occupancy: value > 0 ? true : false};
                 case 102:
                     return {
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
                         battery_low: value === 3,
                     };
@@ -4975,7 +4971,7 @@ const fromZigbee1 = {
                 case 112:
                     return {unknown_112: value ? 'ON' : 'OFF'};
                 case dataPoints.neoTempHumidityAlarm:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {alarm: {0: 'over_temperature', 1: 'over_humidity', 2: 'below_min_temperature', 3: 'below_min_humdity', 4: 'off'}[value]};
                 default: // Unknown code
                     logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:neo_nas_pd07');
@@ -5014,7 +5010,7 @@ const fromZigbee1 = {
                     return {humidity_max: value};
                 case dataPoints.neoPowerType: // 0x0465 [4]
                     return {
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
                         battery_low: value === 3,
                     };
@@ -5023,7 +5019,7 @@ const fromZigbee1 = {
                 case dataPoints.neoUnknown3: // 0x0473 [0]
                     break;
                 case dataPoints.neoVolume: // 0x0474 [0]/[1]/[2] Volume 0-max, 2-low
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
                 default: // Unknown code
                     logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:neo_t_h_alarm');
@@ -5048,7 +5044,7 @@ const fromZigbee1 = {
                 case dataPoints.neoAOMelody: // 0x21 [5] Melody
                     return {melody: value};
                 case dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-low, 2-max
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {volume: {0: 'low', 1: 'medium', 2: 'high'}[value]};
                 default: // Unknown code
                     logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(msg.data)}`, 'zhc:legacy:fz:neo_alarm');
@@ -5064,18 +5060,18 @@ const fromZigbee1 = {
             const value = getDataValue(dpValue);
             switch (dp) {
                 case dataPoints.fantemPowerSupplyMode:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {power_supply_mode: {0: 'unknown', 1: 'no_neutral', 2: 'with_neutral'}[value]};
                 case dataPoints.fantemExtSwitchType:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {switch_type: {0: 'unknown', 1: 'toggle', 2: 'momentary', 3: 'rotary', 4: 'auto_config'}[value]};
                 case dataPoints.fantemLoadDetectionMode:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {load_detection_mode: {0: 'none', 1: 'first_power_on', 2: 'every_power_on'}[value]};
                 case dataPoints.fantemExtSwitchStatus:
                     return {switch_status: value};
                 case dataPoints.fantemControlMode:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {control_mode: {0: 'ext_switch', 1: 'remote', 2: 'both'}[value]};
                 case 111:
                     // Value 0 is received after each device power-on. No idea what it means.
@@ -5083,10 +5079,10 @@ const fromZigbee1 = {
                 case dataPoints.fantemLoadType:
                     // Not sure if 0 is 'resistive' and 2 is 'resistive_inductive'.
                     // If you see 'unknown', pls. check with Tuya gateway and app and update with label shown in Tuya app.
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {load_type: {0: 'unknown', 1: 'resistive_capacitive', 2: 'unknown', 3: 'detecting'}[value]};
                 case dataPoints.fantemLoadDimmable:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {load_dimmable: {0: 'unknown', 1: 'dimmable', 2: 'not_dimmable'}[value]};
                 default:
                     logger.debug(`Unrecognized DP|Value [${dp}|${value}][${JSON.stringify(dpValue)}]`, 'zhc:legacy:fz:zb006x_settings');
@@ -5513,7 +5509,7 @@ const fromZigbee1 = {
                 return result;
             }
 
-            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
+            if (thermostatMeta.weeklyScheduleConversion !== undefined) {
                 conversion = thermostatMeta.weeklyScheduleConversion;
             }
             if (conversion == 'saswell') {
@@ -5525,7 +5521,6 @@ const fromZigbee1 = {
                 return {
                     // Same as in hvacThermostat:getWeeklyScheduleRsp hvacThermostat:setWeeklySchedule cluster format
                     weekly_schedule: {
-                        // @ts-ignore
                         days: [constants.thermostatDayOfWeek[dayOfWeek]],
                         transitions: dataToTransitions(value, maxTransitions, dataOffset),
                     },
@@ -5673,7 +5668,6 @@ const fromZigbee2 = {
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             if (!utils.isLegacyEnabled(options)) {
-                // @ts-ignore
                 return fromZigbee1.tuya_thermostat_weekly_schedule_2.convert(model, msg, publish, options, meta);
             }
 
@@ -5704,7 +5698,7 @@ const fromZigbee2 = {
                 return result;
             }
 
-            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
+            if (thermostatMeta.weeklyScheduleConversion !== undefined) {
                 conversion = thermostatMeta.weeklyScheduleConversion;
             }
             if (conversion == 'saswell') {
@@ -5739,7 +5733,6 @@ const toZigbee1 = {
     SA12IZL_alarm: {
         key: ['alarm'],
         convertSet: async (entity, key, value: any, meta) => {
-            // @ts-ignore
             await sendDataPointEnum(entity, 20, value ? 0 : 1);
         },
     } satisfies Tz.Converter,
@@ -5868,12 +5861,12 @@ const toZigbee2 = {
                     break;
                 }
                 case 'top_limit': {
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, 104, {SET: 0, CLEAR: 1}[value]);
                     break;
                 }
                 case 'bottom_limit': {
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, 103, {SET: 0, CLEAR: 1}[value]);
                     break;
                 }
@@ -5887,7 +5880,7 @@ const toZigbee2 = {
                     } else {
                         value = parseInt(value);
                     }
-                    return toZigbee1.tuya_cover_control.convertSet(entity, 'position', value, meta);
+                    return await toZigbee1.tuya_cover_control.convertSet(entity, 'position', value, meta);
                 }
                 case 'report': {
                     await sendDataPointBool(entity, 116, 0);
@@ -6156,10 +6149,10 @@ const toZigbee2 = {
                 'away_preset_days',
             ]) {
                 let v = 0;
-                if (value.hasOwnProperty(attrName)) {
+                if (value[attrName] !== undefined) {
                     v = value[attrName];
-                } else if (meta.state.hasOwnProperty(attrName)) {
-                    // @ts-expect-error
+                } else if (meta.state[attrName] !== undefined) {
+                    // @ts-expect-error ignore
                     v = meta.state[attrName];
                 }
                 switch (attrName) {
@@ -6213,10 +6206,10 @@ const toZigbee2 = {
                 // temperature
                 const attrName = `${key}_temp_${i}`;
                 let v = 17;
-                if (value.hasOwnProperty(attrName)) {
+                if (value[attrName] !== undefined) {
                     v = value[attrName];
-                } else if (meta.state.hasOwnProperty(attrName)) {
-                    // @ts-expect-error
+                } else if (meta.state[attrName] !== undefined) {
+                    // @ts-expect-error ignore
                     v = meta.state[attrName];
                 }
                 if (v < 0.5 || v > 29.5) v = 17;
@@ -6225,19 +6218,19 @@ const toZigbee2 = {
                     // hour
                     let attrName = `${key}_hour_${i}`;
                     let h = 0;
-                    if (value.hasOwnProperty(attrName)) {
+                    if (value[attrName] !== undefined) {
                         h = value[attrName];
-                    } else if (meta.state.hasOwnProperty(attrName)) {
-                        // @ts-expect-error
+                    } else if (meta.state[attrName] !== undefined) {
+                        // @ts-expect-error ignore
                         h = meta.state[attrName];
                     }
                     // minute
                     attrName = `${key}_minute_${i}`;
                     let m = 0;
-                    if (value.hasOwnProperty(attrName)) {
+                    if (value[attrName] !== undefined) {
                         m = value[attrName];
-                    } else if (meta.state.hasOwnProperty(attrName)) {
-                        // @ts-expect-error
+                    } else if (meta.state[attrName] !== undefined) {
+                        // @ts-expect-error ignore
                         m = meta.state[attrName];
                     }
                     let rt = h * 4 + m / 15;
@@ -6307,8 +6300,8 @@ const toZigbee2 = {
     matsee_garage_door_opener: {
         key: ['trigger'],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.hasOwnProperty('trigger') ? meta.message.trigger : true;
-            // @ts-expect-error
+            const state = meta.message.trigger !== undefined ? meta.message.trigger : true;
+            // @ts-expect-error ignore
             await sendDataPointBool(entity, dataPoints.garageDoorTrigger, state);
             return {state: {trigger: state}};
         },
@@ -6335,7 +6328,7 @@ const toZigbee2 = {
                     await sendDataPointBool(entity, dataPoints.connecteChildLock, value === 'LOCK');
                     break;
                 case 'local_temperature_calibration':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     if (value < 0) value = 0xffffffff + value + 1;
                     await sendDataPointValue(entity, dataPoints.connecteTempCalibration, value);
                     break;
@@ -6344,7 +6337,7 @@ const toZigbee2 = {
                     await sendDataPointValue(entity, dataPoints.connecteHysteresis, value);
                     break;
                 case 'max_temperature_protection':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointValue(entity, dataPoints.connecteMaxProtectTemp, Math.round(value));
                     break;
                 case 'current_heating_setpoint':
@@ -6354,7 +6347,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.connecteSensorType,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {internal: 0, external: 1, both: 2}[value],
                     );
                     break;
@@ -6408,6 +6401,8 @@ const toZigbee2 = {
         convertSet: async (entity, key, value: any, meta) => {
             if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value * 10);
+            } else if (meta.device.manufacturerName === '_TZE204_aoclfnxz') {
+                await sendDataPointValue(entity, dataPoints.moesMinTempLimit, value);
             } else {
                 await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value);
             }
@@ -6435,6 +6430,8 @@ const toZigbee2 = {
         convertSet: async (entity, key, value: any, meta) => {
             if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesMaxTempLimit, value * 10);
+            } else if (meta.device.manufacturerName === '_TZE204_aoclfnxz') {
+                await sendDataPointValue(entity, dataPoints.moesMaxTemp, value);
             } else {
                 await sendDataPointValue(entity, dataPoints.moesMaxTempLimit, value);
             }
@@ -6492,7 +6489,7 @@ const toZigbee2 = {
 
             /* Merge modified value into existing state and send all over in one go */
             const newProgram = {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 ...meta.state.program,
                 ...value,
             };
@@ -6654,7 +6651,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.moesSwitchPowerOnBehavior,
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         utils.getKey(moesSwitch.powerOnBehavior, value),
                     );
                     break;
@@ -6662,7 +6659,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.moesSwitchIndicateLight,
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         utils.getKey(moesSwitch.indicateLight, value),
                     );
                     break;
@@ -6809,7 +6806,7 @@ const toZigbee2 = {
                 ret['state'][key] = value;
                 return ret;
             } else {
-                if ((meta.state.hasOwnProperty(key) && meta.state[key] == '') || !meta.state.hasOwnProperty(key)) {
+                if ((meta.state[key] !== undefined && meta.state[key] == '') || meta.state[key] === undefined) {
                     data.push(0x03);
                 } else {
                     data.push(0x02);
@@ -6871,7 +6868,7 @@ const toZigbee2 = {
                 ret['state'][key] = value;
                 return ret;
             } else {
-                if ((meta.state.hasOwnProperty(key) && meta.state[key] == '') || !meta.state.hasOwnProperty(key)) {
+                if ((meta.state[key] !== undefined && meta.state[key] == '') || meta.state[key] === undefined) {
                     data.push(0x03);
                 } else {
                     data.push(0x02);
@@ -6954,15 +6951,14 @@ const toZigbee2 = {
         key: ['weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {
             const thermostatMeta = utils.getMetaValue(entity, meta.mapped, 'thermostat');
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const supportedModes = thermostatMeta.weeklyScheduleSupportedModes;
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
             let conversion = 'generic';
-            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
-                // @ts-expect-error
+            if (utils.isObject(thermostatMeta) && thermostatMeta.weeklyScheduleConversion !== undefined) {
                 conversion = thermostatMeta.weeklyScheduleConversion;
             }
 
@@ -7068,7 +7064,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
             if (modeId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.mode, parseInt(modeId));
             } else {
                 throw new Error(`TRV system mode ${value} is not recognized.`);
@@ -7080,7 +7076,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const presetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null, Number);
             if (presetId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.mode, parseInt(presetId));
             } else {
                 throw new Error(`TRV preset ${value} is not recognized.`);
@@ -7091,13 +7087,13 @@ const toZigbee2 = {
         key: ['away_mode'],
         convertSet: async (entity, key, value, meta) => {
             // HA has special behavior for the away mode
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const awayPresetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null, Number);
             const schedulePresetId = utils.getKey(
                 utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'),
                 'schedule',
                 null,
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 Number,
             );
             if (awayPresetId !== null) {
@@ -7117,7 +7113,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(fanModes, value, null, Number);
             if (modeId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.fanMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV fan mode ${value} is not recognized.`);
@@ -7129,7 +7125,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(fanModes, value, null, Number);
             if (modeId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.bacFanMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV fan mode ${value} is not recognized.`);
@@ -7187,7 +7183,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(thermostatForceMode, value, null, Number);
             if (modeId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.forceMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV force mode ${value} is not recognized.`);
@@ -7199,7 +7195,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
             if (modeId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.forceMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV system mode ${value} is not recognized.`);
@@ -7363,7 +7359,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.neoVolume,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {low: 2, medium: 1, high: 0}[value],
                     );
                     break;
@@ -7407,7 +7403,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.neoAOVolume,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {low: 0, medium: 1, high: 2}[value],
                     );
                     break;
@@ -7582,9 +7578,9 @@ const toZigbee2 = {
 
                 data = data.concat(convertStringToHexArray(speedString));
                 let colors = value.colors;
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 if (!colors && meta.state && meta.state.effect && meta.state.effect.colors) {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     colors = meta.state.effect.colors;
                 }
 
@@ -7685,7 +7681,7 @@ const toZigbee2 = {
 
                 let hsb: KeyValueAny = {};
 
-                if (value.hasOwnProperty('hsb')) {
+                if (value.hsb !== undefined) {
                     const split = value.hsb.split(',').map((i: string) => parseInt(i));
                     hsb = fillInHSB(split[0], split[1], split[2], meta.state);
                 } else {
@@ -7812,7 +7808,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.hySensor,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {internal: 0, external: 1, both: 2}[value],
                     );
                     break;
@@ -7820,7 +7816,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.hyPowerOnBehavior,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {restore: 0, off: 1, on: 2}[value],
                     );
                     break;
@@ -7831,7 +7827,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.hyMode,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {manual: 0, auto: 1, away: 2}[value],
                     );
                     break;
@@ -7880,11 +7876,11 @@ const toZigbee2 = {
                     await sendDataPointBool(entity, dataPoints.fantemReportingEnable, value, 'sendData');
                     break;
                 case 'sensitivity':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await entity.write('ssIasZone', {currentZoneSensitivityLevel: {low: 0, medium: 1, high: 2}[value]});
                     break;
                 case 'keep_time':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await entity.write('ssIasZone', {61441: {value: {'0': 0, '30': 1, '60': 2, '120': 3, '240': 4, '480': 5}[value], type: 0x20}});
                     break;
                 default: // Unknown key
@@ -7900,7 +7896,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.fantemExtSwitchType,
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         {unknown: 0, toggle: 1, momentary: 2, rotary: 3, auto_config: 4}[value],
                         'sendData',
                     );
@@ -7909,13 +7905,13 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.fantemLoadDetectionMode,
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         {none: 0, first_power_on: 1, every_power_on: 2}[value],
                         'sendData',
                     );
                     break;
                 case 'control_mode':
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, dataPoints.fantemControlMode, {ext_switch: 0, remote: 1, both: 2}[value], 'sendData');
                     break;
                 default: // Unknown key
@@ -7934,7 +7930,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(entity, dataPoints.msVSensitivity, utils.getKey(msLookups.VSensitivity, value));
                     break;
                 case 'led_status':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, dataPoints.msLedStatus, {on: 0, off: 1}[value.toLowerCase()]);
                     break;
                 case 'vacancy_delay':
@@ -8109,7 +8105,7 @@ const toZigbee2 = {
                     cool: 250,
                     coolest: colorTempMin,
                 };
-                // @ts-ignore
+                // @ts-expect-error ignore
                 if (typeof value === 'string' && isNaN(value)) {
                     const presetName = value.toLowerCase();
                     if (presetName in preset) {
@@ -8289,11 +8285,11 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
                 case 'sensitivity':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, dataPoints.lmsSensitivity, {low: 0, medium: 1, high: 2}[value]);
                     break;
                 case 'keep_time':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, dataPoints.lmsKeepTime, {'10': 0, '30': 1, '60': 2, '120': 3}[value]);
                     break;
                 default: // Unknown key
@@ -8327,7 +8323,7 @@ const toZigbee2 = {
                     }
                     break;
                 case 'state': {
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     const state = {OPEN: 0, STOP: 1, CLOSE: 2}[value.toUpperCase()];
                     await sendDataPointEnum(entity, dataPoints.state, state);
                     break;
@@ -8406,7 +8402,7 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
 };
 
-const thermostatControlSequenceOfOperations = {
+const thermostatControlSequenceOfOperations: {[s: number]: string} = {
     0: 'cooling only',
     1: 'cooling with reheat',
     2: 'heating only',
@@ -8415,7 +8411,7 @@ const thermostatControlSequenceOfOperations = {
     5: 'cooling and heating 4-pipes with reheat',
 };
 
-const thermostatSystemModes = {
+const thermostatSystemModes: {[s: number]: string} = {
     0: 'off',
     1: 'auto',
     3: 'cool',

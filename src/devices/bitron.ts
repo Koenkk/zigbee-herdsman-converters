@@ -1,14 +1,15 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {Zcl} from 'zigbee-herdsman';
-
-import {onOff, light} from '../lib/modernExtend';
-import {KeyValueAny, Fz, Tz, Definition} from '../lib/types';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ASTREL_GROUP_SRL};
 
@@ -20,13 +21,13 @@ const bitron = {
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValueAny = {};
 
-                if (msg.data.hasOwnProperty('fourNoksHysteresisHigh')) {
-                    if (!result.hasOwnProperty('hysteresis')) result.hysteresis = {};
+                if (msg.data.fourNoksHysteresisHigh !== undefined) {
+                    if (result.hysteresis === undefined) result.hysteresis = {};
                     result.hysteresis.high = msg.data.fourNoksHysteresisHigh;
                 }
 
-                if (msg.data.hasOwnProperty('fourNoksHysteresisLow')) {
-                    if (!result.hasOwnProperty('hysteresis')) result.hysteresis = {};
+                if (msg.data.fourNoksHysteresisLow !== undefined) {
+                    if (result.hysteresis === undefined) result.hysteresis = {};
                     result.hysteresis.low = msg.data.fourNoksHysteresisLow;
                 }
 
@@ -39,12 +40,12 @@ const bitron = {
             key: ['hysteresis', 'hysteresis'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const result: KeyValueAny = {state: {hysteresis: {}}};
-                if (value.hasOwnProperty('high')) {
+                if (value.high !== undefined) {
                     await entity.write('hvacThermostat', {fourNoksHysteresisHigh: value.high}, manufacturerOptions);
                     result.state.hysteresis.high = value.high;
                 }
 
-                if (value.hasOwnProperty('low')) {
+                if (value.low !== undefined) {
                     await entity.write('hvacThermostat', {fourNoksHysteresisLow: value.low}, manufacturerOptions);
                     result.state.hysteresis.low = value.low;
                 }
@@ -58,7 +59,7 @@ const bitron = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['AV2010/14', '902010/14'],
         model: 'AV2010/14',
@@ -183,7 +184,7 @@ const definitions: Definition[] = [
             await reporting.currentSummDelivered(endpoint);
             try {
                 await reporting.currentSummReceived(endpoint);
-            } catch (error) {
+            } catch {
                 /* fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/13258 */
             }
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 10000, multiplier: 1});

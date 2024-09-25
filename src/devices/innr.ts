@@ -1,12 +1,13 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
-const e = exposes.presets;
-import {light, onOff, electricityMeter, reconfigureReportingsOnDeviceAnnounce} from '../lib/modernExtend';
+import {electricityMeter, light, onOff, reconfigureReportingsOnDeviceAnnounce} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RC 210'],
         model: 'RC 210',
@@ -225,6 +226,14 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['RF 262'],
+        model: 'RF 262',
+        vendor: 'Innr',
+        description: 'E27 smart filament LED light bulb',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['RF 265'],
         model: 'RF 265',
         vendor: 'Innr',
@@ -334,7 +343,7 @@ const definitions: Definition[] = [
         model: 'RB 178 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['BY 178 T'],

@@ -3,14 +3,15 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {battery, iasZoneAlarm, light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Zh, Reporting} from '../lib/types';
+import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend, Reporting, Zh} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {light, battery, iasZoneAlarm} from '../lib/modernExtend';
-import * as tuya from '../lib/tuya';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PIRILLSensor-EF-3.0'],
         model: 'HS1MIS-3.0',
@@ -520,7 +521,7 @@ const definitions: Definition[] = [
                     },
                     formAldehydeMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
-                        await endpoint.configureReporting('heimanSpecificFormaldehydeMeasurement', payload);
+                        await endpoint.configureReporting('msFormaldehyde', payload);
                     },
                     batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('batteryState', 0, constants.repInterval.HOUR, 1, overrides);
@@ -548,7 +549,7 @@ const definitions: Definition[] = [
                 'msTemperatureMeasurement',
                 'msRelativeHumidity',
                 'pm25Measurement',
-                'heimanSpecificFormaldehydeMeasurement',
+                'msFormaldehyde',
                 'heimanSpecificAirQuality',
             ]);
 

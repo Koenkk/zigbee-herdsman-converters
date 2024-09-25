@@ -1,31 +1,36 @@
+import type {Binary, Climate, Composite, Cover, Enum, Fan, Feature, Light, List, Lock, Numeric, Switch, Text} from './lib/exposes';
+
+import assert from 'assert';
+
+import {Zcl} from 'zigbee-herdsman';
+
+import fromZigbee from './converters/fromZigbee';
+import toZigbee from './converters/toZigbee';
+import allDefinitions from './devices';
 import * as configureKey from './lib/configureKey';
 import * as exposesLib from './lib/exposes';
-import type {Feature, Numeric, Enum, Binary, Text, Composite, List, Light, Climate, Switch, Lock, Cover, Fan} from './lib/exposes';
 import {Enum as EnumClass} from './lib/exposes';
-import toZigbee from './converters/toZigbee';
-import fromZigbee from './converters/fromZigbee';
-import assert from 'assert';
+import {generateDefinition} from './lib/generateDefinition';
+import * as logger from './lib/logger';
 import * as ota from './lib/ota';
-import allDefinitions from './devices';
-import * as utils from './lib/utils';
 import {
-    Definition,
-    Fingerprint,
-    Zh,
-    OnEventData,
-    OnEventType,
     Configure,
-    Expose,
-    Tz,
-    OtaUpdateAvailableResult,
-    KeyValue,
-    OnEvent,
+    Definition,
     DefinitionExposes,
     DefinitionExposesFunction,
+    DefinitionWithExtend,
+    Expose,
+    Fingerprint,
+    KeyValue,
+    OnEvent,
+    OnEventData,
+    OnEventType,
+    Option,
+    OtaUpdateAvailableResult,
+    Tz,
+    Zh,
 } from './lib/types';
-import {generateDefinition} from './lib/generateDefinition';
-import {Zcl} from 'zigbee-herdsman';
-import * as logger from './lib/logger';
+import * as utils from './lib/utils';
 
 const NS = 'zhc';
 
@@ -34,6 +39,7 @@ export {
     OnEventType as OnEventType,
     Feature as Feature,
     Expose as Expose,
+    Option as Option,
     Numeric as Numeric,
     Binary as Binary,
     Enum as Enum,
@@ -96,34 +102,39 @@ const converterRequiredFields = {
 
 function validateDefinition(definition: Definition) {
     for (const [field, expectedType] of Object.entries(converterRequiredFields)) {
-        // @ts-expect-error
+        // @ts-expect-error ignore
         assert.notStrictEqual(null, definition[field], `Converter field ${field} is null`);
-        // @ts-expect-error
+        // @ts-expect-error ignore
         assert.notStrictEqual(undefined, definition[field], `Converter field ${field} is undefined`);
-        // @ts-expect-error
+        // @ts-expect-error ignore
         const msg = `Converter field ${field} expected type doenst match to ${definition[field]}`;
-        // @ts-expect-error
+        // @ts-expect-error ignore
         assert.strictEqual(definition[field].constructor.name, expectedType, msg);
     }
     assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
-function processExtensions(definition: Definition): Definition {
+function processExtensions(definition: DefinitionWithExtend): Definition {
     if ('extend' in definition) {
         if (!Array.isArray(definition.extend)) {
             assert.fail(`'${definition.model}' has legacy extend which is not supported anymore`);
         }
         // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
         let {
+            // eslint-disable-next-line prefer-const
             extend,
             toZigbee,
             fromZigbee,
+            // eslint-disable-next-line prefer-const
             exposes: definitionExposes,
             meta,
             endpoint,
             ota,
+            // eslint-disable-next-line prefer-const
             configure: definitionConfigure,
+            // eslint-disable-next-line prefer-const
             onEvent: definitionOnEvent,
+            // eslint-disable-next-line prefer-const
             ...definitionWithoutExtend
         } = definition;
 
@@ -134,7 +145,11 @@ function processExtensions(definition: Definition): Definition {
         };
         let allExposes: (Expose | DefinitionExposesFunction)[] = [];
         if (definitionExposes) {
-            typeof definitionExposes === 'function' ? allExposes.push(definitionExposes) : allExposes.push(...definitionExposes);
+            if (typeof definitionExposes === 'function') {
+                allExposes.push(definitionExposes);
+            } else {
+                allExposes.push(...definitionExposes);
+            }
         }
         toZigbee = [...(toZigbee ?? [])];
         fromZigbee = [...(fromZigbee ?? [])];
@@ -206,7 +221,7 @@ function processExtensions(definition: Definition): Definition {
             exposes = allExposes;
         } else {
             exposes = (device: Zh.Device | undefined, options: KeyValue | undefined) => {
-                let result: Expose[] = [];
+                const result: Expose[] = [];
                 for (const item of allExposes) {
                     if (typeof item === 'function') {
                         result.push(...item(device, options));
@@ -224,7 +239,7 @@ function processExtensions(definition: Definition): Definition {
     return definition;
 }
 
-function prepareDefinition(definition: Definition): Definition {
+function prepareDefinition(definition: DefinitionWithExtend): Definition {
     definition = processExtensions(definition);
 
     definition.toZigbee.push(
@@ -255,7 +270,7 @@ function prepareDefinition(definition: Definition): Definition {
     for (const expose of Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null)) {
         if (
             !optionKeys.includes(expose.name) &&
-            utils.isNumericExposeFeature(expose) &&
+            utils.isNumericExpose(expose) &&
             expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision
         ) {
             // Battery voltage is not calibratable
@@ -299,7 +314,7 @@ export function postProcessConvertedFromZigbeeMessage(definition: Definition, pa
     }
 }
 
-export function addDefinition(definition: Definition) {
+export function addDefinition(definition: DefinitionWithExtend) {
     definition = prepareDefinition(definition);
 
     definitions.splice(0, 0, definition);

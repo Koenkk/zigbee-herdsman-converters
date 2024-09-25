@@ -7,24 +7,25 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {
+    battery,
+    commandsColorCtrl,
+    commandsLevelCtrl,
+    commandsOnOff,
+    commandsScenes,
     deviceEndpoints,
     electricityMeter,
-    light,
-    onOff,
-    battery,
-    identify,
-    occupancy,
-    temperature,
     humidity,
+    iasZoneAlarm,
+    identify,
     illuminance,
-    commandsOnOff,
-    commandsLevelCtrl,
-    commandsColorCtrl,
-    commandsScenes,
+    light,
+    occupancy,
+    onOff,
+    temperature,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Fz, Zh} from '../lib/types';
+import {DefinitionWithExtend, Fz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const NS = 'zhc:sunricher';
@@ -54,11 +55,7 @@ const fzLocal = {
                 0x42: 'b_g_r',
                 0x40: 'rgb_release',
             };
-            if (!lookup.hasOwnProperty(commandID)) {
-                logger.error(`Missing command '0x${commandID.toString(16)}'`, NS);
-            } else {
-                return {action: utils.getFromLookup(commandID, lookup)};
-            }
+            return {action: utils.getFromLookup(commandID, lookup)};
         },
     } satisfies Fz.Converter,
 };
@@ -68,12 +65,19 @@ async function syncTime(endpoint: Zh.Endpoint) {
         const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
         const values = {time: time};
         await endpoint.write('genTime', values);
-    } catch (error) {
+    } catch {
         /* Do nothing*/
     }
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['HK-SENSOR-CT-MINI'],
+        model: 'SR-ZG9011A-DS',
+        vendor: 'Sunricher',
+        description: 'Door/window sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
+    },
     {
         zigbeeModel: ['ZG2858A'],
         model: 'ZG2858A',
@@ -364,7 +368,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['HK-SL-DIM-A'],
-        model: 'SR-ZG9040A',
+        model: 'SR-ZG9040A/ZG9041A-D',
         vendor: 'Sunricher',
         description: 'Zigbee micro smart dimmer',
         extend: [light({configureReporting: true}), electricityMeter()],
@@ -623,7 +627,7 @@ const definitions: Definition[] = [
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             try {
                 await reporting.thermostatKeypadLockMode(endpoint);
-            } catch (error) {
+            } catch {
                 // Fails for some
                 // https://github.com/Koenkk/zigbee2mqtt/issues/15025
                 logger.debug(`Failed to setup keypadLockout reporting`, NS);

@@ -1,11 +1,11 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {light, onOff} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {battery, commandsColorCtrl, commandsLevelCtrl, commandsOnOff, commandsScenes, deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['501.37'],
         model: '501.37',
@@ -172,6 +172,13 @@ const definitions: Definition[] = [
         extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
     },
     {
+        zigbeeModel: ['371050043'],
+        model: '371050043',
+        vendor: 'Paulmann',
+        description: 'Solar LED house number light',
+        extend: [onOff({powerOnBehavior: false})],
+    },
+    {
         zigbeeModel: ['371232040'],
         model: '371232040',
         vendor: 'Paulmann',
@@ -242,6 +249,20 @@ const definitions: Definition[] = [
                 'enhanced_move_to_hue_and_saturation',
                 'scene_*',
             ]),
+        ],
+    },
+    {
+        zigbeeModel: ['501.40'],
+        model: '501.40',
+        vendor: 'Paulmann',
+        description: 'RGB remote control',
+        extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            battery(),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            commandsColorCtrl(),
+            commandsScenes(),
         ],
     },
     {

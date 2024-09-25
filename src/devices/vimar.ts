@@ -1,12 +1,13 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {onOff, light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['On_Off_Switch_Module_v1.0'],
         model: '03981',
@@ -86,7 +87,7 @@ const definitions: Definition[] = [
                 .withSetpoint('occupied_heating_setpoint', 4, 40, 0.1)
                 .withSetpoint('occupied_cooling_setpoint', 4, 40, 0.1)
                 .withLocalTemperature()
-                .withSystemMode(['heat', 'cool']),
+                .withSystemMode(['off', 'heat', 'cool']),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);

@@ -197,67 +197,13 @@ describe('index.js', () => {
     });
 
     it('Verify definitions', () => {
-        function verifyKeys(expected, actual, id) {
-            expected.forEach((key) => {
-                if (!actual.includes(key)) {
-                    throw new Error(`${id}: missing key '${key}'`);
-                }
-            });
-        }
-
         let foundZigbeeModels = [];
         let foundModels = [];
         let foundFingerprints = [];
 
         index.definitions.forEach((device) => {
-            // Verify device attributes.
-            verifyKeys(['model', 'vendor', 'description', 'fromZigbee', 'toZigbee', 'exposes'], Object.keys(device), device.model);
-
-            if (!device.hasOwnProperty('zigbeeModel') && !device.hasOwnProperty('fingerprint')) {
-                throw new Error(`'${device.model}' has no zigbeeModel or fingerprint`);
-            }
-
-            if (device.fromZigbee.includes(undefined)) {
-                console.log(device.model);
-            }
-
-            expect(device.fromZigbee).not.toContain(undefined);
-
-            // Verify fromConverters
-            Object.keys(device.fromZigbee).forEach((converterKey) => {
-                const converter = device.fromZigbee[converterKey];
-
-                if (!converter) {
-                    throw new Error(`fromZigbee[${converterKey}] not defined on device ${device.model}.`);
-                }
-
-                const keys = Object.keys(converter);
-                verifyKeys(['cluster', 'type', 'convert'], keys, converterKey);
-
-                if (5 != converter.convert.length) {
-                    throw new Error(`${converterKey}: convert() invalid arguments length`);
-                }
-            });
-
-            // Verify toConverters
-            Object.keys(device.toZigbee).forEach((converterKey) => {
-                const converter = device.toZigbee[converterKey];
-
-                if (!converter) {
-                    throw new Error(`toZigbee[${converterKey}] not defined on device ${device.model}.`);
-                }
-
-                verifyKeys(['key'], Object.keys(converter), converterKey);
-
-                expect(Array.isArray(converter.key)).toBe(true);
-
-                if (converter.convertSet && 4 != converter.convertSet.length) {
-                    throw new Error(`${converterKey}: convert() invalid arguments length`);
-                }
-            });
-
             // Check for duplicate zigbee model ids
-            if (device.hasOwnProperty('zigbeeModel')) {
+            if (device.zigbeeModel !== undefined) {
                 device.zigbeeModel.forEach((m) => {
                     if (foundZigbeeModels.includes(m.toLowerCase())) {
                         throw new Error(`Duplicate zigbee model ${m}`);
@@ -285,8 +231,6 @@ describe('index.js', () => {
 
             if (device.whiteLabel) {
                 for (const whiteLabel of device.whiteLabel) {
-                    verifyKeys(['vendor', 'model'], Object.keys(whiteLabel), `whitelabel-of-${device.model}`);
-                    containsOnly(['vendor', 'model', 'description', 'fingerprint'], Object.keys(whiteLabel));
                     if (whiteLabel.fingerprint && foundModels.includes(whiteLabel.model.toLowerCase())) {
                         throw new Error(`Duplicate whitelabel zigbee model ${whiteLabel.model}`);
                     }
@@ -298,38 +242,6 @@ describe('index.js', () => {
             foundModels.push(device.model.toLowerCase());
             if (device.whiteLabel) {
                 foundModels.push(...device.whiteLabel.filter((w) => w.fingerprint).map((w) => w.model.toLowerCase()));
-            }
-
-            if (device.meta) {
-                containsOnly(
-                    [
-                        'disableActionGroup',
-                        'multiEndpoint',
-                        'multiEndpointSkip',
-                        'multiEndpointEnforce',
-                        'applyRedFix',
-                        'disableDefaultResponse',
-                        'supportsEnhancedHue',
-                        'timeout',
-                        'supportsHueAndSaturation',
-                        'battery',
-                        'coverInverted',
-                        'turnsOffAtBrightness1',
-                        'coverStateFromTilt',
-                        'pinCodeCount',
-                        'tuyaThermostatSystemMode',
-                        'tuyaThermostatPreset',
-                        'tuyaDatapoints',
-                        'tuyaThermostatPresetToSystemMode',
-                        'thermostat',
-                        'separateWhite',
-                        'publishDuplicateTransaction',
-                        'tuyaSendCommand',
-                        'coverPositionTiltDisableReport',
-                        'overrideHaDiscoveryPayload',
-                    ],
-                    Object.keys(device.meta),
-                );
             }
 
             if (device.zigbeeModel) {

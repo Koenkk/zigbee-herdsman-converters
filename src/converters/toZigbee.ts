@@ -7,7 +7,7 @@ import * as legacy from '../lib/legacy';
 import * as light from '../lib/light';
 import {logger} from '../lib/logger';
 import * as globalStore from '../lib/store';
-import {Tz, KeyValue, KeyValueAny} from '../lib/types';
+import {KeyValue, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const NS = 'zhc:tz';
@@ -32,9 +32,9 @@ const converters1 = {
             const state = utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
 
-            if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
-                const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
+            if (state === 'on' && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
+                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== 'number') {
                     throw Error('The on_time value must be a number!');
@@ -105,7 +105,7 @@ const converters1 = {
                     } else {
                         zclData.hue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 254);
                     }
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     zclData.direction = value.direction || 0;
                 }
 
@@ -115,7 +115,7 @@ const converters1 = {
 
                 if (hsv.value !== null) {
                     // fallthrough to genLevelCtrl
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     value.brightness = utils.mapNumberRange(hsvCorrected.value, 0, 100, 0, 254);
                 }
 
@@ -136,11 +136,10 @@ const converters1 = {
                 }
             }
 
-            if (value.hasOwnProperty('brightness')) {
+            if (utils.isObject(value) && value.brightness !== undefined) {
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
-                    // @ts-expect-error
                     {level: Number(value.brightness), transtime: utils.getTransition(entity, key, meta).time},
                     utils.getOptions(meta.mapped, entity),
                 );
@@ -196,9 +195,9 @@ const converters2 = {
         key: ['read'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertObject(value, key);
-            const result = await entity.read(value.cluster, value.attributes, value.hasOwnProperty('options') ? value.options : {});
+            const result = await entity.read(value.cluster, value.attributes, value.options !== undefined ? value.options : {});
             logger.info(`Read result of '${value.cluster}': ${JSON.stringify(result)}`, NS);
-            if (value.hasOwnProperty('state_property')) {
+            if (value.state_property !== undefined) {
                 return {state: {[value.state_property]: result}};
             }
         },
@@ -208,7 +207,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertObject(value, key);
             const options = utils.getOptions(meta.mapped, entity);
-            if (value.hasOwnProperty('options')) {
+            if (value.options !== undefined) {
                 Object.assign(options, value.options);
             }
             await entity.write(value.cluster, value.payload, options);
@@ -220,7 +219,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertObject(value, key);
             const options = utils.getOptions(meta.mapped, entity);
-            await entity.command(value.cluster, value.command, value.hasOwnProperty('payload') ? value.payload : {}, options);
+            await entity.command(value.cluster, value.command, value.payload !== undefined ? value.payload : {}, options);
             logger.info(`Invoked '${value.cluster}.${value.command}' with payload '${JSON.stringify(value.payload)}'`, NS);
         },
     } satisfies Tz.Converter,
@@ -243,9 +242,9 @@ const converters2 = {
         key: ['zclcommand'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertObject(value, key);
-            const payload = value.hasOwnProperty('payload') ? value.payload : {};
+            const payload = value.payload !== undefined ? value.payload : {};
             utils.assertEndpoint(entity);
-            await entity.zclCommand(value.cluster, value.command, payload, value.hasOwnProperty('options') ? value.options : {});
+            await entity.zclCommand(value.cluster, value.command, payload, value.options !== undefined ? value.options : {});
             logger.info(`Invoked ZCL command ${value.cluster}.${value.command} with payload '${JSON.stringify(payload)}'`, NS);
         },
     } satisfies Tz.Converter,
@@ -255,7 +254,7 @@ const converters2 = {
             utils.assertEndpoint(entity);
             utils.assertObject(value, key);
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            const isNotification = value.hasOwnProperty('transaction');
+            const isNotification = value.transaction !== undefined;
             const modeSrc = isNotification ? constants.armNotification : constants.armMode;
             const mode = utils.getKey(modeSrc, value.mode, undefined, Number);
             if (mode === undefined) {
@@ -316,7 +315,7 @@ const converters2 = {
         key: ['color_options'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertObject(value, key);
-            const options = value.hasOwnProperty('execute_if_off') && value.execute_if_off ? 1 : 0;
+            const options = value.execute_if_off !== undefined && value.execute_if_off ? 1 : 0;
             await entity.write('lightingColorCtrl', {options}, utils.getOptions(meta.mapped, entity));
             return {state: {color_options: value}};
         },
@@ -364,7 +363,7 @@ const converters2 = {
             utils.assertObject(value, key);
             const user = value.user;
             const userType = value.user_type || 'unrestricted';
-            const userEnabled = value.hasOwnProperty('user_enabled') ? value.user_enabled : true;
+            const userEnabled = value.user_enabled !== undefined ? value.user_enabled : true;
             const pinCode = value.pin_code;
             if (isNaN(user)) throw new Error('user must be numbers');
             const pinCodeCount = utils.getMetaValue<number>(entity, meta.mapped, 'pinCodeCount');
@@ -385,7 +384,7 @@ const converters2 = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const user = meta && meta.message && meta.message.pin_code ? meta.message.pin_code.user : undefined;
             if (user === undefined) {
                 const max = utils.getMetaValue<number>(entity, meta.mapped, 'pinCodeCount');
@@ -437,7 +436,7 @@ const converters2 = {
             );
         },
         convertGet: async (entity, key, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const user = meta && meta.message && meta.message.user_status ? meta.message.user_status.user : undefined;
             const pinCodeCount = utils.getMetaValue<number>(entity, meta.mapped, 'pinCodeCount');
             if (user === undefined) {
@@ -500,18 +499,18 @@ const converters2 = {
             const strobeLevel = {low: 0, medium: 1, high: 2, very_high: 3};
 
             const values = {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 mode: value.mode || 'emergency',
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 level: value.level || 'medium',
-                // @ts-expect-error
-                strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
-                // @ts-expect-error
-                duration: value.hasOwnProperty('duration') ? value.duration : 10,
-                // @ts-expect-error
-                strobeDutyCycle: value.hasOwnProperty('strobe_duty_cycle') ? value.strobe_duty_cycle * 10 : 0,
-                // @ts-expect-error
-                strobeLevel: value.hasOwnProperty('strobe_level') ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
+                // @ts-expect-error ignore
+                strobe: value.strobe !== undefined ? value.strobe : true,
+                // @ts-expect-error ignore
+                duration: value.duration !== undefined ? value.duration : 10,
+                // @ts-expect-error ignore
+                strobeDutyCycle: value.strobe_duty_cycle !== undefined ? value.strobe_duty_cycle * 10 : 0,
+                // @ts-expect-error ignore
+                strobeLevel: value.strobe_level !== undefined ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
             };
 
             let info;
@@ -572,7 +571,7 @@ const converters2 = {
             const values = {
                 state: value.state,
                 level: value.level || 'very_high',
-                strobe: value.hasOwnProperty('strobe') ? value.strobe : false,
+                strobe: value.strobe !== undefined ? value.strobe : false,
             };
             const info = utils.getFromLookup(values.state, state) + ((values.strobe ? 1 : 0) << 4) + (utils.getFromLookup(values.level, level) << 6);
             await entity.command('ssIasWd', 'squawk', {squawkinfo: info}, utils.getOptions(meta.mapped, entity));
@@ -659,14 +658,14 @@ const converters2 = {
             if (typeof value === 'string') {
                 try {
                     value = JSON.parse(value);
-                } catch (e) {
+                } catch {
                     throw new Error('Payload is not valid JSON');
                 }
             }
 
             utils.assertObject(value, key);
             // onOffTransitionTime - range 0x0000 to 0xffff - optional
-            if (value.hasOwnProperty('on_off_transition_time')) {
+            if (value.on_off_transition_time !== undefined) {
                 let onOffTransitionTimeValue = Number(value.on_off_transition_time);
                 if (onOffTransitionTimeValue > 65535) onOffTransitionTimeValue = 65535;
                 if (onOffTransitionTimeValue < 0) onOffTransitionTimeValue = 0;
@@ -677,7 +676,7 @@ const converters2 = {
 
             // onTransitionTime - range 0x0000 to 0xffff - optional
             //                    0xffff = use onOffTransitionTime
-            if (value.hasOwnProperty('on_transition_time')) {
+            if (value.on_transition_time !== undefined) {
                 let onTransitionTimeValue = value.on_transition_time;
                 if (typeof onTransitionTimeValue === 'string' && onTransitionTimeValue.toLowerCase() == 'disabled') {
                     onTransitionTimeValue = 65535;
@@ -698,7 +697,7 @@ const converters2 = {
 
             // offTransitionTime - range 0x0000 to 0xffff - optional
             //                    0xffff = use onOffTransitionTime
-            if (value.hasOwnProperty('off_transition_time')) {
+            if (value.off_transition_time !== undefined) {
                 let offTransitionTimeValue = value.off_transition_time;
                 if (typeof offTransitionTimeValue === 'string' && offTransitionTimeValue.toLowerCase() == 'disabled') {
                     offTransitionTimeValue = 65535;
@@ -720,7 +719,7 @@ const converters2 = {
             // startUpCurrentLevel - range 0x00 to 0xff - optional
             //                       0x00 = return to minimum supported level
             //                       0xff = return to previous previous
-            if (value.hasOwnProperty('current_level_startup')) {
+            if (value.current_level_startup !== undefined) {
                 let startUpCurrentLevelValue = value.current_level_startup;
                 if (typeof startUpCurrentLevelValue === 'string' && startUpCurrentLevelValue.toLowerCase() == 'previous') {
                     startUpCurrentLevelValue = 255;
@@ -746,7 +745,7 @@ const converters2 = {
 
             // onLevel - range 0x00 to 0xff - optional
             //           Any value outside of MinLevel to MaxLevel, including 0xff and 0x00, is interpreted as "previous".
-            if (value.hasOwnProperty('on_level')) {
+            if (value.on_level !== undefined) {
                 let onLevel = value.on_level;
                 if (typeof onLevel === 'string' && onLevel.toLowerCase() == 'previous') {
                     onLevel = 255;
@@ -764,7 +763,7 @@ const converters2 = {
             //          when 1, CurrentLevel can be changed while the device is off.
             //   bit 1: CoupleColorTempToLevel - when 1, changes to level also change color temperature.
             //          (What this means is not defined, but it's most likely to be "dim to warm".)
-            if (value.hasOwnProperty('execute_if_off')) {
+            if (value.execute_if_off !== undefined) {
                 const executeIfOffValue = !!value.execute_if_off;
                 await entity.write('genLevelCtrl', {options: executeIfOffValue ? 1 : 0}, utils.getOptions(meta.mapped, entity));
                 Object.assign(state, {execute_if_off: executeIfOffValue});
@@ -778,7 +777,7 @@ const converters2 = {
             for (const attribute of ['onOffTransitionTime', 'onTransitionTime', 'offTransitionTime', 'startUpCurrentLevel', 'onLevel', 'options']) {
                 try {
                     await entity.read('genLevelCtrl', [attribute]);
-                } catch (ex) {
+                } catch {
                     // continue regardless of error, all these are optional in ZCL
                 }
             }
@@ -825,9 +824,9 @@ const converters2 = {
                 'lamp_burn_hours_trip_point',
             ]) {
                 try {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     result = {...result, ...(await entity.read('lightingBallastCfg', [utils.toCamelCase(attrName)]))};
-                } catch (ex) {
+                } catch {
                     // continue regardless of error
                 }
             }
@@ -850,7 +849,7 @@ const converters2 = {
             const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
             await entity.command('genLevelCtrl', command, payload, utils.getOptions(meta.mapped, entity));
 
-            if (meta.state.hasOwnProperty('brightness')) {
+            if (meta.state.brightness !== undefined) {
                 utils.assertNumber(meta.state.brightness);
                 let brightness = onOff || meta.state.state === 'ON' ? meta.state.brightness + value : meta.state.brightness;
                 if (value === 0) {
@@ -950,7 +949,7 @@ const converters2 = {
                 const stop = (val: string) => ['stop', 'release', '0'].some((el) => val.includes(el));
                 const up = (val: string) => ['1', 'up'].some((el) => val.includes(el));
                 const arr = [value.toString()];
-                const moverate = meta.message.hasOwnProperty('rate') ? Number(meta.message.rate) : 55;
+                const moverate = meta.message.rate !== undefined ? Number(meta.message.rate) : 55;
                 payload.rate = moverate;
                 if (arr.filter(stop).length) {
                     payload.movemode = 0;
@@ -1047,11 +1046,11 @@ const converters2 = {
             const {message} = meta;
             const transition = utils.getTransition(entity, 'brightness', meta);
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1', 'allEqual', false);
-            let state = message.hasOwnProperty('state') ? (typeof message.state === 'string' ? message.state.toLowerCase() : null) : undefined;
+            let state = message.state !== undefined ? (typeof message.state === 'string' ? message.state.toLowerCase() : null) : undefined;
             let brightness = undefined;
-            if (message.hasOwnProperty('brightness')) {
+            if (message.brightness !== undefined) {
                 brightness = Number(message.brightness);
-            } else if (message.hasOwnProperty('brightness_percent')) {
+            } else if (message.brightness_percent !== undefined) {
                 brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
             }
 
@@ -1089,7 +1088,15 @@ const converters2 = {
                 //  'MoveToLevelWithOnOff' despite not supporting the cluster; others, like the LEDVANCE SMART+
                 //  plug, do not.)
                 brightness = transition.specified || brightness === 0 ? 0 : undefined;
-                if (meta.state.hasOwnProperty('brightness') && meta.state.state === 'ON') {
+                if (
+                    brightness !== undefined &&
+                    meta.state.state === 'OFF' &&
+                    utils.getMetaValue(entity, meta.mapped, 'noOffTransitionWhenOff', {atLeastOnce: true}, false)
+                ) {
+                    logger.debug(`Supressing OFF transition since entity is OFF and has noOffTransitionWhenOff=true`, NS);
+                    brightness = undefined;
+                }
+                if (meta.state.brightness !== undefined && meta.state.state === 'ON') {
                     // The light's current level gets clobbered in two cases:
                     //   1. when 'Off' has a transition, in which case it is really 'MoveToLevelWithOnOff'
                     //      https://github.com/Koenkk/zigbee-herdsman-converters/issues/1073
@@ -1112,10 +1119,10 @@ const converters2 = {
                         try {
                             const attributeRead = await entity.read('genLevelCtrl', ['onLevel']);
                             if (attributeRead !== undefined) {
-                                // @ts-expect-error
+                                // @ts-expect-error ignore
                                 onLevel = attributeRead['onLevel'];
                             }
-                        } catch (e) {
+                        } catch {
                             // OnLevel not supported
                         }
                     }
@@ -1336,10 +1343,10 @@ const converters2 = {
                 // transform transition payload values if needed
                 for (const elem of payload.transitions) {
                     // update payload.mode if needed
-                    if (elem.hasOwnProperty('heatSetpoint') && !payload.mode.includes('heat')) {
+                    if (elem.heatSetpoint !== undefined && !payload.mode.includes('heat')) {
                         payload.mode.push('heat');
                     }
-                    if (elem.hasOwnProperty('coolSetpoint') && !payload.mode.includes('cool')) {
+                    if (elem.coolSetpoint !== undefined && !payload.mode.includes('cool')) {
                         payload.mode.push('cool');
                     }
 
@@ -1363,7 +1370,7 @@ const converters2 = {
                             elem['transitionTime'] = timeHour + timeMinute;
                         }
                     } else if (typeof elem['transitionTime'] === 'object') {
-                        if (!elem['transitionTime'].hasOwnProperty('hour') || !elem['transitionTime'].hasOwnProperty('minute')) {
+                        if (elem['transitionTime'].hour === undefined || elem['transitionTime'].minute === undefined) {
                             throw new Error(
                                 'weekly_schedule: expected 24h time object (e.g. {"hour": 19, "minute": 30}), ' +
                                     `but got '${JSON.stringify(elem['transitionTime'])}'!`,
@@ -1399,7 +1406,7 @@ const converters2 = {
                 let dayofweek = 0;
                 for (let d of payload.dayofweek) {
                     if (typeof d === 'object') {
-                        if (!d.hasOwnProperty('day')) {
+                        if (d.day === undefined) {
                             throw new Error(
                                 'weekly_schedule: expected dayofweek to be string or {"day": "str"}, ' + `but got '${JSON.stringify(d)}'!`,
                             );
@@ -1775,6 +1782,18 @@ const converters2 = {
             await entity.read('haElectricalMeasurement', ['activePower']);
         },
     } satisfies Tz.Converter,
+    electrical_measurement_power_phase_b: {
+        key: ['power_phase_b'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['activePowerPhB']);
+        },
+    } satisfies Tz.Converter,
+    electrical_measurement_power_phase_c: {
+        key: ['power_phase_c'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['activePowerPhC']);
+        },
+    } satisfies Tz.Converter,
     metering_power: {
         key: ['power'],
         convertGet: async (entity, key, meta) => {
@@ -1787,6 +1806,13 @@ const converters2 = {
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
             await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['currentSummDelivered']);
+        },
+    } satisfies Tz.Converter,
+    currentsummreceived: {
+        key: ['produced_energy'],
+        convertGet: async (entity, key, meta) => {
+            utils.assertEndpoint(entity);
+            await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['currentSummReceived']);
         },
     } satisfies Tz.Converter,
     frequency: {
@@ -1813,10 +1839,34 @@ const converters2 = {
             await entity.read('haElectricalMeasurement', ['rmsVoltage']);
         },
     } satisfies Tz.Converter,
+    acvoltage_phase_b: {
+        key: ['voltage_phase_b'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['rmsVoltagePhB']);
+        },
+    } satisfies Tz.Converter,
+    acvoltage_phase_c: {
+        key: ['voltage_phase_c'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['rmsVoltagePhC']);
+        },
+    } satisfies Tz.Converter,
     accurrent: {
         key: ['current'],
         convertGet: async (entity, key, meta) => {
             await entity.read('haElectricalMeasurement', ['rmsCurrent']);
+        },
+    } satisfies Tz.Converter,
+    accurrent_phase_b: {
+        key: ['current_phase_b'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['rmsCurrentPhB']);
+        },
+    } satisfies Tz.Converter,
+    accurrent_phase_c: {
+        key: ['current_phase_c'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['rmsCurrentPhC']);
         },
     } satisfies Tz.Converter,
     temperature: {
@@ -1840,16 +1890,6 @@ const converters2 = {
     // #endregion
 
     // #region Non-generic converters
-    elko_load: {
-        key: ['load'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoLoad: value});
-            return {state: {load: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoLoad']);
-        },
-    } satisfies Tz.Converter,
     elko_display_text: {
         key: ['display_text'],
         convertSet: async (entity, key, value, meta) => {
@@ -1875,79 +1915,10 @@ const converters2 = {
             await entity.read('hvacThermostat', ['elkoPowerStatus']);
         },
     } satisfies Tz.Converter,
-    elko_external_temp: {
-        key: ['floor_temp'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoExternalTemp']);
-        },
-    } satisfies Tz.Converter,
-    elko_mean_power: {
-        key: ['mean_power'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoMeanPower']);
-        },
-    } satisfies Tz.Converter,
-    elko_child_lock: {
-        key: ['child_lock'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoChildLock: value === 'lock'});
-            return {state: {child_lock: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoChildLock']);
-        },
-    } satisfies Tz.Converter,
-    elko_frost_guard: {
-        key: ['frost_guard'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoFrostGuard: value === 'on'});
-            return {state: {frost_guard: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoFrostGuard']);
-        },
-    } satisfies Tz.Converter,
-    elko_night_switching: {
-        key: ['night_switching'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoNightSwitching: value === 'on'});
-            return {state: {night_switching: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoNightSwitching']);
-        },
-    } satisfies Tz.Converter,
     elko_relay_state: {
         key: ['running_state'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['elkoRelayState']);
-        },
-    } satisfies Tz.Converter,
-    elko_sensor_mode: {
-        key: ['sensor'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoSensor: utils.getFromLookup(value, {air: '0', floor: '1', supervisor_floor: '3'})});
-            return {state: {sensor: value}};
-        },
-    } satisfies Tz.Converter,
-    elko_regulator_time: {
-        key: ['regulator_time'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoRegulatorTime: value});
-            return {state: {sensor: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoRegulatorTime']);
-        },
-    } satisfies Tz.Converter,
-    elko_regulator_mode: {
-        key: ['regulator_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {elkoRegulatorMode: value === 'regulator'});
-            return {state: {regulator_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoRegulatorMode']);
         },
     } satisfies Tz.Converter,
     elko_local_temperature_calibration: {
@@ -1959,19 +1930,6 @@ const converters2 = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['elkoCalibration']);
-        },
-    } satisfies Tz.Converter,
-    elko_max_floor_temp: {
-        key: ['max_floor_temp'],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertArray(value);
-            if (value.length <= 14) {
-                await entity.write('hvacThermostat', {elkoMaxFloorTemp: value});
-                return {state: {max_floor_temp: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoMaxFloorTemp']);
         },
     } satisfies Tz.Converter,
     livolo_socket_switch_on_off: {
@@ -2193,7 +2151,7 @@ const converters2 = {
                 transactionSequenceNumber: 0xe9,
             };
 
-            if (value.hasOwnProperty('motor_direction')) {
+            if (value.motor_direction !== undefined) {
                 let direction;
                 switch (value.motor_direction) {
                     case 'FORWARD':
@@ -2211,7 +2169,7 @@ const converters2 = {
                 await entity.write('genPowerCfg', payload, options);
             }
 
-            if (value.hasOwnProperty('motor_speed')) {
+            if (value.motor_speed !== undefined) {
                 if (value.motor_speed < 20 || value.motor_speed > 40) {
                     throw new Error('livolo_cover_options: Motor speed is out of range (20-40)');
                 }
@@ -2272,7 +2230,7 @@ const converters2 = {
             utils.assertString(value, key);
             utils.validateValue(value, ['toggle', 'off', 'on']);
             if (value === 'toggle') {
-                if (!meta.state.hasOwnProperty('state')) {
+                if (meta.state.state === undefined) {
                     throw new Error('Cannot toggle, state not known yet');
                 } else {
                     const payload = {0x0055: {value: meta.state.state === 'OFF' ? 0x01 : 0x00, type: 0x10}};
@@ -2599,9 +2557,9 @@ const converters2 = {
         key: ['position', 'tilt'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
-            if (meta.options.hasOwnProperty('time_close') && meta.options.hasOwnProperty('time_open')) {
+            if (meta.options.time_close !== undefined && meta.options.time_open !== undefined) {
                 const sleepSeconds = async (s: number) => {
-                    return new Promise((resolve) => setTimeout(resolve, s * 1000));
+                    return await new Promise((resolve) => setTimeout(resolve, s * 1000));
                 };
 
                 const oldPosition = meta.state.position;
@@ -2785,8 +2743,8 @@ const converters2 = {
             if (
                 key === 'brightness' &&
                 meta.state.color_mode == constants.colorModeLookup[2] &&
-                !meta.message.hasOwnProperty('color') &&
-                !meta.message.hasOwnProperty('color_temp')
+                meta.message.color === undefined &&
+                meta.message.color_temp === undefined
             ) {
                 const zclData = {level: Number(value), transtime: 0};
 
@@ -2836,9 +2794,9 @@ const converters2 = {
 
             const zclData = {
                 brightness: globalStore.getValue(entity, 'brightness') || 100,
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254) || 100,
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254) || 100,
                 transtime: 0,
             };
@@ -2867,7 +2825,7 @@ const converters2 = {
                 }
             }
 
-            if (meta.message.hasOwnProperty('color')) {
+            if (meta.message.color !== undefined) {
                 if (utils.isObject(meta.message.color)) {
                     if (meta.message.color.h) {
                         zclData.hue = utils.mapNumberRange(meta.message.color.h, 0, 360, 0, 254);
@@ -3420,7 +3378,7 @@ const converters2 = {
             let value = utils.getFromLookup(rawValue, lookup, Number(rawValue));
 
             if (key == 'sensors_type') {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 value = utils.getFromLookup(rawValue, sensorsTypeLookup, Number(rawValue));
             }
 
@@ -3489,7 +3447,7 @@ const converters2 = {
             const modeOpenLookup = {never: '0', once: '1', always: '2', drop: '3'};
             let value = utils.getFromLookup(rawValue, lookup, Number(rawValue));
             if (key == 'mode') {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 value = utils.getFromLookup(rawValue, modeOpenLookup, Number(rawValue));
             }
             const payloads: KeyValueAny = {
@@ -3558,7 +3516,7 @@ const converters2 = {
             const options = {
                 // Don't send a manufacturerCode (otherwise set in herdsman):
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2827
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 manufacturerCode: null,
                 ...utils.getOptions(meta.mapped, entity),
             };
@@ -3615,11 +3573,11 @@ const converters2 = {
                         utils.saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr], scenename);
                     }
                 }
-                // @ts-expect-error
+                // @ts-expect-error ignore
             } else if (response.status === 0) {
                 utils.saveSceneState(entity, sceneid, groupid, meta.state, scenename);
             } else {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
             }
             logger.info('Successfully stored scene', NS);
@@ -3635,10 +3593,10 @@ const converters2 = {
             await entity.command('genScenes', 'recall', {groupid, sceneid}, utils.getOptions(meta.mapped, entity));
 
             const addColorMode = (newState: KeyValueAny) => {
-                if (newState.hasOwnProperty('color_temp')) {
+                if (newState.color_temp !== undefined) {
                     newState.color_mode = constants.colorModeLookup[2];
-                } else if (newState.hasOwnProperty('color')) {
-                    if (newState.color.hasOwnProperty('x')) {
+                } else if (newState.color !== undefined) {
+                    if (newState.color.x !== undefined) {
                         newState.color_mode = constants.colorModeLookup[1];
                     } else {
                         newState.color_mode = constants.colorModeLookup[0];
@@ -3654,7 +3612,7 @@ const converters2 = {
                     let recalledState = utils.getSceneState(member, sceneid, groupid);
                     if (recalledState) {
                         // add color_mode if saved state does not contain it
-                        if (!recalledState.hasOwnProperty('color_mode')) {
+                        if (recalledState.color_mode === undefined) {
                             recalledState = addColorMode(recalledState);
                         }
 
@@ -3671,7 +3629,7 @@ const converters2 = {
                 let recalledState = utils.getSceneState(entity, sceneid, groupid);
                 if (recalledState) {
                     // add color_mode if saved state does not contain it
-                    if (!recalledState.hasOwnProperty('color_mode')) {
+                    if (recalledState.color_mode === undefined) {
                         recalledState = addColorMode(recalledState);
                     }
 
@@ -3749,8 +3707,8 @@ const converters2 = {
                 } else if (attribute === 'color') {
                     try {
                         val = JSON.parse(val);
-                    } catch (e) {
-                        e;
+                    } catch {
+                        /* empty */
                     }
 
                     const newColor = libColor.Color.fromConverterArg(val);
@@ -3850,11 +3808,11 @@ const converters2 = {
                         utils.deleteSceneState(member, sceneid, groupid);
                     }
                 }
-                // @ts-expect-error
+                // @ts-expect-error ignore
             } else if (response.status === 0) {
                 utils.deleteSceneState(entity, sceneid, groupid);
             } else {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 throw new Error(`Scene remove not successful ('${Zcl.Status[response.status]}')`);
             }
             logger.info('Successfully removed scene', NS);
@@ -3887,7 +3845,7 @@ const converters2 = {
             const isGroup = utils.isGroup(entity);
             const sceneid = value.ID;
             const scenename = value.name;
-            const groupid = isGroup ? entity.groupID : value.hasOwnProperty('group_id') ? value.group_id : 0;
+            const groupid = isGroup ? entity.groupID : value.group_id !== undefined ? value.group_id : 0;
 
             if (isGroup) {
                 if (meta.membersState) {
@@ -4416,7 +4374,7 @@ const converters3 = {
             const deviceState = meta.state || {};
             const message = meta.message;
             const state = utils.isString(message.state) ? message.state.toLowerCase() : null;
-            const hasBrightness = message.hasOwnProperty('brightness') || message.hasOwnProperty('brightness_percent');
+            const hasBrightness = message.brightness !== undefined || message.brightness_percent !== undefined;
 
             // Add brightness if command is 'on' and we can restore previous value
             if (state === 'on' && !hasBrightness && utils.isNumber(deviceState.brightness) && deviceState.brightness > 0) {
@@ -4485,9 +4443,9 @@ const converters3 = {
                 const message = meta.message;
 
                 let brightness = undefined;
-                if (message.hasOwnProperty('brightness')) {
+                if (message.brightness !== undefined) {
                     brightness = Number(message.brightness);
-                } else if (message.hasOwnProperty('brightness_percent')) brightness = Math.round(Number(message.brightness_percent) * 2.55);
+                } else if (message.brightness_percent !== undefined) brightness = Math.round(Number(message.brightness_percent) * 2.55);
 
                 if (brightness !== undefined && brightness === 0) {
                     message.state = 'off';
@@ -4535,9 +4493,9 @@ const converters3 = {
         key: ['state', 'brightness'],
         convertSet: async (entity, key, value, meta) => {
             const {message, state} = meta;
-            if (message.state === 'OFF' || (message.hasOwnProperty('state') && !message.hasOwnProperty('brightness'))) {
+            if (message.state === 'OFF' || (message.state !== undefined && message.brightness === undefined)) {
                 return await converters1.on_off.convertSet(entity, key, value, meta);
-            } else if (message.hasOwnProperty('brightness')) {
+            } else if (message.brightness !== undefined) {
                 // set brightness
                 if (state.state === 'OFF') {
                     await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
@@ -4563,7 +4521,7 @@ const converters3 = {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/15902#issuecomment-1382848150
                 await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
             }
-            return converters2.light_onoff_brightness.convertSet(entity, key, value, meta);
+            return await converters2.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
 };

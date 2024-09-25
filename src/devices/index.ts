@@ -16,6 +16,7 @@ import atsmart from './atsmart';
 import aubess from './aubess';
 import aurora_lighting from './aurora_lighting';
 import automaton from './automaton';
+import avatto from './avatto';
 import awox from './awox';
 import axis from './axis';
 import bankamp from './bankamp';
@@ -97,6 +98,7 @@ import gledopto from './gledopto';
 import gmmts from './gmmts';
 import gmy from './gmy';
 import gs from './gs';
+import gumax from './gumax';
 import halemeier from './halemeier';
 import hampton_bay from './hampton_bay';
 import heatit from './heatit';
@@ -165,6 +167,7 @@ import lixee from './lixee';
 import lonsonho from './lonsonho';
 import ls from './ls';
 import lubeez from './lubeez';
+import lumi from './lumi';
 import lupus from './lupus';
 import lutron from './lutron';
 import lux from './lux';
@@ -179,6 +182,7 @@ import micromatic from './micromatic';
 import modular from './modular';
 import moes from './moes';
 import muller_licht from './muller_licht';
+import multiterm from './multiterm';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
 import neo from './neo';
@@ -212,6 +216,7 @@ import plugwise from './plugwise';
 import profalux from './profalux';
 import prolight from './prolight';
 import pushok from './pushok';
+import qa from './qa';
 import qmotion from './qmotion';
 import qoto from './qoto';
 import quotra from './quotra';
@@ -282,7 +287,6 @@ import villeroy_boch from './villeroy_boch';
 import vimar from './vimar';
 import visonic from './visonic';
 import vrey from './vrey';
-import lumi from './lumi';
 import wally from './wally';
 import waxman from './waxman';
 import weiser from './weiser';
@@ -302,7 +306,6 @@ import zemismart from './zemismart';
 import zen from './zen';
 import zigbeetlc from './zigbeetlc';
 import zipato from './zipato';
-import qa from './qa';
 
 export default [
     ...acova,
@@ -323,6 +326,7 @@ export default [
     ...aubess,
     ...aurora_lighting,
     ...automaton,
+    ...avatto,
     ...awox,
     ...axis,
     ...bankamp,
@@ -404,6 +408,7 @@ export default [
     ...gmmts,
     ...gmy,
     ...gs,
+    ...gumax,
     ...halemeier,
     ...hampton_bay,
     ...heatit,
@@ -486,6 +491,7 @@ export default [
     ...modular,
     ...moes,
     ...muller_licht,
+    ...multiterm,
     ...namron,
     ...nanoleaf,
     ...neo,

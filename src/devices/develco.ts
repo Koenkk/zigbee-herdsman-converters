@@ -6,12 +6,13 @@ import * as constants from '../lib/constants';
 import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {battery, humidity, illuminance} from '../lib/modernExtend';
+import {battery, electricityMeter, humidity, illuminance, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Fz, Tz, Zh, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -50,10 +51,10 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('totalActivePower') && msg.data['totalActivePower'] !== -0x80000000) {
+                if (msg.data.totalActivePower !== undefined && msg.data['totalActivePower'] !== -0x80000000) {
                     result[utils.postfixWithEndpointName('power', msg, model, meta)] = msg.data['totalActivePower'];
                 }
-                if (msg.data.hasOwnProperty('totalReactivePower') && msg.data['totalReactivePower'] !== -0x80000000) {
+                if (msg.data.totalReactivePower !== undefined && msg.data['totalReactivePower'] !== -0x80000000) {
                     result[utils.postfixWithEndpointName('power_reactive', msg, model, meta)] = msg.data['totalReactivePower'];
                 }
                 return result;
@@ -72,7 +73,7 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
+                if (msg.data.develcoPulseConfiguration !== undefined) {
                     result[utils.postfixWithEndpointName('pulse_configuration', msg, model, meta)] = msg.data['develcoPulseConfiguration'];
                 }
 
@@ -84,14 +85,13 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
-                    result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] = constants.develcoInterfaceMode.hasOwnProperty(
-                        msg.data['develcoInterfaceMode'],
-                    )
-                        ? constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']]
-                        : msg.data['develcoInterfaceMode'];
+                if (msg.data.develcoInterfaceMode !== undefined) {
+                    result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] =
+                        constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] !== undefined
+                            ? constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']]
+                            : msg.data['develcoInterfaceMode'];
                 }
-                if (msg.data.hasOwnProperty('status')) {
+                if (msg.data.status !== undefined) {
                     result['battery_low'] = (msg.data.status & 2) > 0;
                     result['check_meter'] = (msg.data.status & 1) > 0;
                 }
@@ -104,11 +104,11 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('reliability')) {
+                if (msg.data.reliability !== undefined) {
                     const lookup = {0: 'no_fault_detected', 7: 'unreliable_other', 8: 'process_error'};
                     result.reliability = utils.getFromLookup(msg.data['reliability'], lookup);
                 }
-                if (msg.data.hasOwnProperty('statusFlags')) {
+                if (msg.data.statusFlags !== undefined) {
                     result.fault = msg.data['statusFlags'] === 1;
                 }
                 return result;
@@ -120,7 +120,7 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
-                if (msg.data.hasOwnProperty('develcoLedControl')) {
+                if (msg.data.develcoLedControl !== undefined) {
                     state['led_control'] = utils.getFromLookup(msg.data['develcoLedControl'], develcoLedControlMap);
                 }
 
@@ -133,7 +133,7 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
-                if (msg.data.hasOwnProperty('develcoAlarmOffDelay')) {
+                if (msg.data.develcoAlarmOffDelay !== undefined) {
                     state['occupancy_timeout'] = msg.data['develcoAlarmOffDelay'];
                 }
 
@@ -145,7 +145,7 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('presentValue')) {
+                if (msg.data.presentValue !== undefined) {
                     const value = msg.data['presentValue'];
                     result[utils.postfixWithEndpointName('input', msg, model, meta)] = value == 1;
                 }
@@ -217,34 +217,21 @@ const develco = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SPLZB-131'],
         model: 'SPLZB-131',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.power_reactive(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-            await reporting.acFrequency(endpoint, {change: 10});
-        },
         endpoint: (device) => {
             return {default: 2};
         },
@@ -254,34 +241,14 @@ const definitions: Definition[] = [
         model: 'SPLZB-132',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
-        toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
-        options: [exposes.options.precision(`ac_frequency`)],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            // Set to true, to access the acFrequencyDivisor and acFrequencyMultiplier attribute. Not all devices support this.
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            /*
-                seMetering.instantaneousDemand and haElectricalMeasurement.activePower both return the same thing
-                spot checks indicate both return the exact same value, no point in having both report
-            */
-            // await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-            await reporting.acFrequency(endpoint);
-        },
         endpoint: (device) => {
             return {default: 2};
         },
@@ -291,31 +258,14 @@ const definitions: Definition[] = [
         model: 'SPLZB-134',
         vendor: 'Develco',
         description: 'Power plug (type G)',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
-        toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            /*
-                seMetering.instantaneousDemand and haElectricalMeasurement.activePower both return the same thing
-                spot checks indicate both return the exact same value, no point in having both report
-            */
-            // await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-        },
         endpoint: (device) => {
             return {default: 2};
         },
@@ -351,26 +301,13 @@ const definitions: Definition[] = [
         model: 'SMRZB-143',
         vendor: 'Develco',
         description: 'Smart cable',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-        },
         endpoint: (device) => {
             return {default: 2};
         },
@@ -404,8 +341,8 @@ const definitions: Definition[] = [
                     [{attribute: 'totalReactivePower', minimumReportInterval: 5, maximumReportInterval: 3600, reportableChange: 1}],
                     manufacturerOptions,
                 );
-            } catch (e) {
-                e;
+            } catch {
+                /* empty */
             }
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -536,7 +473,7 @@ const definitions: Definition[] = [
             for (const cluster of ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']) {
                 try {
                     await endpoint.bind(cluster, coordinatorEndpoint);
-                } catch (error) {
+                } catch {
                     logger.debug(`Failed to bind '${cluster}'`, NS);
                 }
             }

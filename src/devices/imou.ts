@@ -1,7 +1,7 @@
 import {battery, forceDeviceType, iasWarning, iasZoneAlarm} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZP1-EN'],
         model: 'ZP1-EN',

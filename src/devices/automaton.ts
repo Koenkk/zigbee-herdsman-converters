@@ -1,14 +1,16 @@
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_j0ktmul1']),
         model: 'AUT000069',
         vendor: 'AutomatOn',
-        description: 'Underfloor heating controller - 5 zones',
-        extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, childLock: true, endpoints: ['l1', 'l2', 'l3', 'l4', 'l5']})],
+        description: 'Underfloor heating / Irrigation valves controller - 5 zones',
+        extend: [
+            tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, childLock: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3', 'l4', 'l5']}),
+        ],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
         },

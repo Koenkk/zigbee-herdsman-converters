@@ -1,7 +1,7 @@
 import {Zcl} from 'zigbee-herdsman';
 
 import * as ota from '../lib/ota';
-import {Tz, Fz, KeyValue} from '../lib/types';
+import {Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 import * as modernExtend from './modernExtend';
 import {isObject} from './utils';

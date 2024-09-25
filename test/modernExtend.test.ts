@@ -1,7 +1,7 @@
-import {repInterval} from '../src/lib/constants';
-import {philipsFz} from '../src/lib/philips';
-import {fromZigbee as lumiFz} from '../src/lib/lumi';
 import fz from '../src/converters/fromZigbee';
+import {repInterval} from '../src/lib/constants';
+import {fromZigbee as lumiFz} from '../src/lib/lumi';
+import {philipsFz} from '../src/lib/philips';
 import {assertDefintion, mockDevice, reportingItem} from './utils';
 
 describe('ModernExtend', () => {
@@ -174,7 +174,18 @@ describe('ModernExtend', () => {
             device: mockDevice({modelID: 'SP 120', endpoints: [{inputClusters: ['genOnOff', 'haElectricalMeasurement', 'seMetering']}]}),
             meta: undefined,
             fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-            toZigbee: ['state', 'on_time', 'off_wait_time', 'power', 'voltage', 'current', 'energy'],
+            toZigbee: [
+                'state',
+                'on_time',
+                'off_wait_time',
+                'power',
+                'voltage',
+                'current',
+                'energy',
+                'produced_energy',
+                'ac_frequency',
+                'power_factor',
+            ],
             exposes: ['current', 'energy', 'linkquality', 'power', 'switch(state)', 'voltage'],
             bind: {1: ['genOnOff', 'haElectricalMeasurement', 'seMetering']},
             read: {
@@ -195,7 +206,7 @@ describe('ModernExtend', () => {
                             reportingItem('rmsVoltage', 10, 65000, 5),
                         ],
                     ],
-                    ['seMetering', [reportingItem('currentSummDelivered', 10, 65000, [0, 10])]],
+                    ['seMetering', [reportingItem('currentSummDelivered', 10, 65000, 10)]],
                 ],
             },
         });
@@ -203,7 +214,10 @@ describe('ModernExtend', () => {
 
     test(`philipsLight({gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}, colorTemp: {range: [153, 500]}})`, async () => {
         await assertDefintion({
-            device: mockDevice({modelID: 'LCX012', endpoints: [{inputClusters: ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl']}]}),
+            device: mockDevice({
+                modelID: 'LCX012',
+                endpoints: [{ID: 1, inputClusters: ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'manuSpecificPhilips2']}, {ID: 242}],
+            }),
             meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
             fromZigbee: [
                 fz.on_off,

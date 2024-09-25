@@ -2,13 +2,15 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {actionEnumLookup, battery, deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+import * as zosung from '../lib/zosung';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {onOff, deviceEndpoints, actionEnumLookup, battery} from '../lib/modernExtend';
-import * as zosung from '../lib/zosung';
+
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -19,7 +21,7 @@ const exposesLocal = {
     program_temperature: (name: string) => e.numeric(name, ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5),
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'},
@@ -58,8 +60,8 @@ const definitions: Definition[] = [
                 // Fails for some devices.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/4598
                 await reporting.onOff(endpoint);
-            } catch (e) {
-                e;
+            } catch {
+                /* empty */
             }
         },
     },
@@ -97,11 +99,11 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_5toc8efa'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_5toc8efa'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_aoclfnxz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_u9bfwha0'},
@@ -111,35 +113,43 @@ const definitions: Definition[] = [
         description: 'Moes BHT series Thermostat',
         fromZigbee: [legacy.fz.moes_thermostat],
         toZigbee: [
-            legacy.tz.moes_thermostat_child_lock,
-            legacy.tz.moes_thermostat_current_heating_setpoint,
-            legacy.tz.moes_thermostat_mode,
-            legacy.tz.moes_thermostat_standby,
-            legacy.tz.moes_thermostat_sensor,
-            legacy.tz.moes_thermostat_calibration,
-            legacy.tz.moes_thermostat_deadzone_temperature,
-            legacy.tz.moes_thermostat_max_temperature_limit,
-            legacy.tz.moes_thermostat_min_temperature_limit,
-            legacy.tz.moes_thermostat_program_schedule,
+            legacy.tz.moes_thermostat_child_lock, //40 //child lock
+            legacy.tz.moes_thermostat_current_heating_setpoint, //16 //current set temp
+            legacy.tz.moes_thermostat_mode, //2 (hold/heat) also sets 3 - schedule enabled //hold/program
+            legacy.tz.moes_thermostat_standby, //1 //on/off
+            legacy.tz.moes_thermostat_sensor, //43 //sensor selection
+            legacy.tz.moes_thermostat_calibration, //27 //temperature correction
+            legacy.tz.moes_thermostat_deadzone_temperature, //20 //not used in this model
+            legacy.tz.moes_thermostat_max_temperature_limit, //18/19 for different models
+            legacy.tz.moes_thermostat_min_temperature_limit, //26 //DeadZone temp
+            legacy.tz.moes_thermostat_program_schedule, //101 //week program
         ],
         whiteLabel: [tuya.whitelabel('Moes', 'BHT-002/BHT-006', 'Smart heating thermostat', ['_TZE204_aoclfnxz'])],
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === '_TZE204_5toc8efa' ? 0.5 : 1;
-            return [
+            const calibrationLimit = device?.manufacturerName === '_TZE204_aoclfnxz' ? 9 : 30;
+            const calibrationStep = device?.manufacturerName === '_TZE204_aoclfnxz' ? 1 : 0.1;
+            const arr = [
                 e.linkquality(),
                 e.child_lock(),
-                e.deadzone_temperature(),
-                e.max_temperature_limit().withValueMax(45),
-                e.min_temperature_limit(),
+
+                device?.manufacturerName === '_TZE204_aoclfnxz' ? e.deadzone_temperature().withValueMin(1) : e.deadzone_temperature(),
+
+                device?.manufacturerName === '_TZE204_aoclfnxz'
+                    ? e.max_temperature_limit().withValueMin(45).withValueMax(70)
+                    : e.max_temperature_limit().withValueMax(45),
+
                 e
                     .climate()
                     .withSetpoint('current_heating_setpoint', 5, 45, heatingStepSize, ea.STATE_SET)
                     .withLocalTemperature(ea.STATE)
-                    .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                    .withLocalTemperatureCalibration(-calibrationLimit, calibrationLimit, calibrationStep, ea.STATE_SET)
                     .withSystemMode(['off', 'heat'], ea.STATE_SET)
                     .withRunningState(['idle', 'heat', 'cool'], ea.STATE)
                     .withPreset(['hold', 'program']),
+
                 e.temperature_sensor_select(['IN', 'AL', 'OU']),
+
                 e
                     .composite('program', 'program', ea.STATE_SET)
                     .withDescription('Time of day and setpoint to use when in program mode')
@@ -180,6 +190,12 @@ const definitions: Definition[] = [
                     .withFeature(exposesLocal.minute('sunday_p4_minute'))
                     .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
             ];
+
+            if (device?.manufacturerName === '_TZE204_aoclfnxz') {
+                arr.splice(3, 0, e.min_temperature_limit());
+            }
+
+            return arr;
         },
         onEvent: tuya.onEventSetLocalTime,
     },
@@ -545,12 +561,12 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await endpoint.write('genOnOff', {tuyaOperationMode: 1});
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);

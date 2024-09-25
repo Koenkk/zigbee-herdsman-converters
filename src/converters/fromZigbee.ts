@@ -5,16 +5,16 @@ import {logger} from '../lib/logger';
 import * as globalStore from '../lib/store';
 import {Fz, KeyValue, KeyValueAny, KeyValueNumberString} from '../lib/types';
 import {
-    precisionRound,
-    mapNumberRange,
-    isLegacyEnabled,
-    toLocalISOString,
-    numberWithinRange,
-    hasAlreadyProcessedMessage,
     addActionGroup,
-    postfixWithEndpointName,
-    getKey,
     batteryVoltageToPercentage,
+    getKey,
+    hasAlreadyProcessedMessage,
+    isLegacyEnabled,
+    mapNumberRange,
+    numberWithinRange,
+    postfixWithEndpointName,
+    precisionRound,
+    toLocalISOString,
 } from '../lib/utils';
 import * as utils from '../lib/utils';
 
@@ -29,7 +29,7 @@ const converters1 = {
         cluster: 'hvacFanCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('fanMode')) {
+            if (msg.data.fanMode !== undefined) {
                 const key = getKey(constants.fanMode, msg.data.fanMode);
                 return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
             }
@@ -41,58 +41,58 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             const dontMapPIHeatingDemand = model.meta && model.meta.thermostat && model.meta.thermostat.dontMapPIHeatingDemand;
-            if (msg.data.hasOwnProperty('localTemp')) {
+            if (msg.data.localTemp !== undefined) {
                 const value = precisionRound(msg.data['localTemp'], 2) / 100;
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('localTemperatureCalibration')) {
+            if (msg.data.localTemperatureCalibration !== undefined) {
                 result[postfixWithEndpointName('local_temperature_calibration', msg, model, meta)] =
                     precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
-            if (msg.data.hasOwnProperty('outdoorTemp')) {
+            if (msg.data.outdoorTemp !== undefined) {
                 const value = precisionRound(msg.data['outdoorTemp'], 2) / 100;
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('outdoor_temperature', msg, model, meta)] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('occupancy')) {
+            if (msg.data.occupancy !== undefined) {
                 result[postfixWithEndpointName('occupancy', msg, model, meta)] = msg.data.occupancy % 2 > 0;
             }
-            if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
+            if (msg.data.occupiedHeatingSetpoint !== undefined) {
                 const value = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
                 // Stelpro will return -325.65 when set to off, value is not realistic anyway
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('occupied_heating_setpoint', msg, model, meta)] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('unoccupiedHeatingSetpoint')) {
+            if (msg.data.unoccupiedHeatingSetpoint !== undefined) {
                 result[postfixWithEndpointName('unoccupied_heating_setpoint', msg, model, meta)] =
                     precisionRound(msg.data['unoccupiedHeatingSetpoint'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('occupiedCoolingSetpoint')) {
+            if (msg.data.occupiedCoolingSetpoint !== undefined) {
                 result[postfixWithEndpointName('occupied_cooling_setpoint', msg, model, meta)] =
                     precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('unoccupiedCoolingSetpoint')) {
+            if (msg.data.unoccupiedCoolingSetpoint !== undefined) {
                 result[postfixWithEndpointName('unoccupied_cooling_setpoint', msg, model, meta)] =
                     precisionRound(msg.data['unoccupiedCoolingSetpoint'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('setpointChangeAmount')) {
+            if (msg.data.setpointChangeAmount !== undefined) {
                 result[postfixWithEndpointName('setpoint_change_amount', msg, model, meta)] = msg.data['setpointChangeAmount'] / 100;
             }
-            if (msg.data.hasOwnProperty('setpointChangeSource')) {
+            if (msg.data.setpointChangeSource !== undefined) {
                 const lookup: KeyValueAny = {0: 'manual', 1: 'schedule', 2: 'externally'};
                 result[postfixWithEndpointName('setpoint_change_source', msg, model, meta)] = lookup[msg.data['setpointChangeSource']];
             }
-            if (msg.data.hasOwnProperty('setpointChangeSourceTimeStamp')) {
+            if (msg.data.setpointChangeSourceTimeStamp !== undefined) {
                 const date = new Date(2000, 0, 1);
                 date.setSeconds(msg.data['setpointChangeSourceTimeStamp']);
                 const value = toLocalISOString(date);
                 result[postfixWithEndpointName('setpoint_change_source_timestamp', msg, model, meta)] = value;
             }
-            if (msg.data.hasOwnProperty('remoteSensing')) {
+            if (msg.data.remoteSensing !== undefined) {
                 const value = msg.data['remoteSensing'];
                 result[postfixWithEndpointName('remote_sensing', msg, model, meta)] = {
                     local_temperature: (value & 1) > 0 ? 'remotely' : 'internally',
@@ -100,24 +100,24 @@ const converters1 = {
                     occupancy: (value & (1 << 2)) > 0 ? 'remotely' : 'internally',
                 };
             }
-            if (msg.data.hasOwnProperty('ctrlSeqeOfOper')) {
+            if (msg.data.ctrlSeqeOfOper !== undefined) {
                 result[postfixWithEndpointName('control_sequence_of_operation', msg, model, meta)] =
                     constants.thermostatControlSequenceOfOperations[msg.data['ctrlSeqeOfOper']];
             }
-            if (msg.data.hasOwnProperty('programingOperMode')) {
+            if (msg.data.programingOperMode !== undefined) {
                 result[postfixWithEndpointName('programming_operation_mode', msg, model, meta)] =
                     constants.thermostatProgrammingOperationModes[msg.data['programingOperMode']];
             }
-            if (msg.data.hasOwnProperty('systemMode')) {
+            if (msg.data.systemMode !== undefined) {
                 result[postfixWithEndpointName('system_mode', msg, model, meta)] = constants.thermostatSystemModes[msg.data['systemMode']];
             }
-            if (msg.data.hasOwnProperty('runningMode')) {
+            if (msg.data.runningMode !== undefined) {
                 result[postfixWithEndpointName('running_mode', msg, model, meta)] = constants.thermostatRunningMode[msg.data['runningMode']];
             }
-            if (msg.data.hasOwnProperty('runningState')) {
+            if (msg.data.runningState !== undefined) {
                 result[postfixWithEndpointName('running_state', msg, model, meta)] = constants.thermostatRunningStates[msg.data['runningState']];
             }
-            if (msg.data.hasOwnProperty('pIHeatingDemand')) {
+            if (msg.data.pIHeatingDemand !== undefined) {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model, meta)] = mapNumberRange(
                     msg.data['pIHeatingDemand'],
                     0,
@@ -126,7 +126,7 @@ const converters1 = {
                     100,
                 );
             }
-            if (msg.data.hasOwnProperty('pICoolingDemand')) {
+            if (msg.data.pICoolingDemand !== undefined) {
                 // we assume the behavior is consistent for pIHeatingDemand + pICoolingDemand for the same vendor
                 result[postfixWithEndpointName('pi_cooling_demand', msg, model, meta)] = mapNumberRange(
                     msg.data['pICoolingDemand'],
@@ -136,55 +136,55 @@ const converters1 = {
                     100,
                 );
             }
-            if (msg.data.hasOwnProperty('tempSetpointHold')) {
+            if (msg.data.tempSetpointHold !== undefined) {
                 result[postfixWithEndpointName('temperature_setpoint_hold', msg, model, meta)] = msg.data['tempSetpointHold'] == 1;
             }
-            if (msg.data.hasOwnProperty('tempSetpointHoldDuration')) {
+            if (msg.data.tempSetpointHoldDuration !== undefined) {
                 result[postfixWithEndpointName('temperature_setpoint_hold_duration', msg, model, meta)] = msg.data['tempSetpointHoldDuration'];
             }
-            if (msg.data.hasOwnProperty('minHeatSetpointLimit')) {
+            if (msg.data.minHeatSetpointLimit !== undefined) {
                 const value = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('min_heat_setpoint_limit', msg, model, meta)] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('maxHeatSetpointLimit')) {
+            if (msg.data.maxHeatSetpointLimit !== undefined) {
                 const value = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('max_heat_setpoint_limit', msg, model, meta)] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('absMinHeatSetpointLimit')) {
+            if (msg.data.absMinHeatSetpointLimit !== undefined) {
                 const value = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('abs_min_heat_setpoint_limit', msg, model, meta)] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('absMaxHeatSetpointLimit')) {
+            if (msg.data.absMaxHeatSetpointLimit !== undefined) {
                 const value = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('abs_max_heat_setpoint_limit', msg, model, meta)] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('absMinCoolSetpointLimit')) {
+            if (msg.data.absMinCoolSetpointLimit !== undefined) {
                 const value = precisionRound(msg.data['absMinCoolSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('abs_min_cool_setpoint_limit', msg, model, meta)] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('absMaxCoolSetpointLimit')) {
+            if (msg.data.absMaxCoolSetpointLimit !== undefined) {
                 const value = precisionRound(msg.data['absMaxCoolSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('abs_max_cool_setpoint_limit', msg, model, meta)] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('minSetpointDeadBand')) {
+            if (msg.data.minSetpointDeadBand !== undefined) {
                 const value = precisionRound(msg.data['minSetpointDeadBand'], 2) / 100;
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('min_setpoint_dead_band', msg, model, meta)] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('acLouverPosition')) {
+            if (msg.data.acLouverPosition !== undefined) {
                 result[postfixWithEndpointName('ac_louver_position', msg, model, meta)] =
                     constants.thermostatAcLouverPositions[msg.data['acLouverPosition']];
             }
@@ -205,10 +205,10 @@ const converters1 = {
             const transitions = [];
             for (const transition of msg.data.transitions) {
                 const entry: KeyValueAny = {time: transition.transitionTime};
-                if (transition.hasOwnProperty('heatSetpoint')) {
+                if (transition.heatSetpoint !== undefined) {
                     entry['heating_setpoint'] = transition['heatSetpoint'] / 100;
                 }
-                if (transition.hasOwnProperty('coolSetpoint')) {
+                if (transition.coolSetpoint !== undefined) {
                     entry['cooling_setpoint'] = transition['coolSetpoint'] / 100;
                 }
                 transitions.push(entry);
@@ -222,15 +222,17 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('keypadLockout')) {
-                result.keypad_lockout = constants.keypadLockoutMode.hasOwnProperty(msg.data['keypadLockout'])
-                    ? constants.keypadLockoutMode[msg.data['keypadLockout']]
-                    : msg.data['keypadLockout'];
+            if (msg.data.keypadLockout !== undefined) {
+                result.keypad_lockout =
+                    constants.keypadLockoutMode[msg.data['keypadLockout']] !== undefined
+                        ? constants.keypadLockoutMode[msg.data['keypadLockout']]
+                        : msg.data['keypadLockout'];
             }
-            if (msg.data.hasOwnProperty('tempDisplayMode')) {
-                result.temperature_display_mode = constants.temperatureDisplayMode.hasOwnProperty(msg.data['tempDisplayMode'])
-                    ? constants.temperatureDisplayMode[msg.data['tempDisplayMode']]
-                    : msg.data['tempDisplayMode'];
+            if (msg.data.tempDisplayMode !== undefined) {
+                result.temperature_display_mode =
+                    constants.temperatureDisplayMode[msg.data['tempDisplayMode']] !== undefined
+                        ? constants.temperatureDisplayMode[msg.data['tempDisplayMode']]
+                        : msg.data['tempDisplayMode'];
             }
             return result;
         },
@@ -292,21 +294,21 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('lockState')) {
+            if (msg.data.lockState !== undefined) {
                 result.state = msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK';
                 const lookup = ['not_fully_locked', 'locked', 'unlocked'];
                 result.lock_state = lookup[msg.data['lockState']];
             }
 
-            if (msg.data.hasOwnProperty('autoRelockTime')) {
+            if (msg.data.autoRelockTime !== undefined) {
                 result.auto_relock_time = msg.data.autoRelockTime;
             }
 
-            if (msg.data.hasOwnProperty('soundVolume')) {
+            if (msg.data.soundVolume !== undefined) {
                 result.sound_volume = constants.lockSoundVolume[msg.data.soundVolume];
             }
 
-            if (msg.data.hasOwnProperty('doorState')) {
+            if (msg.data.doorState !== undefined) {
                 const lookup: KeyValueAny = {
                     0: 'open',
                     1: 'closed',
@@ -378,7 +380,7 @@ const converters1 = {
             // returned by the device and are instead calculating it ourselves.
             if (
                 model.meta?.battery?.voltageToPercentage == null &&
-                msg.data.hasOwnProperty('batteryPercentageRemaining') &&
+                msg.data.batteryPercentageRemaining !== undefined &&
                 msg.data['batteryPercentageRemaining'] < 255
             ) {
                 // Some devices do not comply to the ZCL and report a
@@ -389,7 +391,7 @@ const converters1 = {
                 payload.battery = precisionRound(percentage, 2);
             }
 
-            if (msg.data.hasOwnProperty('batteryVoltage') && msg.data['batteryVoltage'] < 255) {
+            if (msg.data.batteryVoltage !== undefined && msg.data['batteryVoltage'] < 255) {
                 // Deprecated: voltage is = mV now but should be V
                 payload.voltage = msg.data['batteryVoltage'] * 100;
 
@@ -398,7 +400,7 @@ const converters1 = {
                 }
             }
 
-            if (msg.data.hasOwnProperty('batteryAlarmState')) {
+            if (msg.data.batteryAlarmState !== undefined) {
                 const battery1Low =
                     (msg.data.batteryAlarmState & (1 << 0) ||
                         msg.data.batteryAlarmState & (1 << 1) ||
@@ -424,7 +426,7 @@ const converters1 = {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('measuredValue')) {
+            if (msg.data.measuredValue !== undefined) {
                 const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
                 const property = postfixWithEndpointName('temperature', msg, model, meta);
                 return {[property]: temperature};
@@ -435,7 +437,7 @@ const converters1 = {
         cluster: 'genDeviceTempCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentTemperature')) {
+            if (msg.data.currentTemperature !== undefined) {
                 const value = parseInt(msg.data['currentTemperature']);
                 return {device_temperature: value};
             }
@@ -460,7 +462,7 @@ const converters1 = {
         cluster: 'pm25Measurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('measuredValue')) {
+            if (msg.data.measuredValue !== undefined) {
                 return {pm25: msg.data['measuredValue']};
             }
         },
@@ -471,7 +473,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const flow = parseFloat(msg.data['measuredValue']) / 10.0;
             const property = postfixWithEndpointName('flow', msg, model, meta);
-            if (msg.data.hasOwnProperty('measuredValue')) {
+            if (msg.data.measuredValue !== undefined) {
                 return {[property]: flow};
             }
         },
@@ -499,7 +501,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             let pressure = 0;
-            if (msg.data.hasOwnProperty('scaledValue')) {
+            if (msg.data.scaledValue !== undefined) {
                 const scale = msg.endpoint.getClusterAttributeValue('msPressureMeasurement', 'scale') as number;
                 pressure = msg.data['scaledValue'] / Math.pow(10, scale) / 100.0; // convert to hPa
             } else {
@@ -521,7 +523,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.no_occupancy_since_false()],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('occupancy')) {
+            if (msg.data.occupancy !== undefined) {
                 const payload = {occupancy: msg.data.occupancy % 2 > 0};
                 utils.noOccupancySince(msg.endpoint, options, publish, payload.occupancy ? 'stop' : 'start');
                 return payload;
@@ -544,7 +546,7 @@ const converters1 = {
 
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
-            const timeout = options && options.hasOwnProperty('occupancy_timeout') ? Number(options.occupancy_timeout) : 90;
+            const timeout = options && options.occupancy_timeout !== undefined ? Number(options.occupancy_timeout) : 90;
 
             // Stop existing timers because motion is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, 'occupancy_timer', null));
@@ -566,7 +568,7 @@ const converters1 = {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('pirOToUDelay')) {
+            if (msg.data.pirOToUDelay !== undefined) {
                 return {occupancy_timeout: msg.data.pirOToUDelay};
             }
         },
@@ -575,7 +577,7 @@ const converters1 = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentLevel')) {
+            if (msg.data.currentLevel !== undefined) {
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 return {[property]: msg.data['currentLevel']};
             }
@@ -588,13 +590,13 @@ const converters1 = {
             const result: KeyValueAny = {level_config: {}};
 
             // onOffTransitionTime - range 0x0000 to 0xffff - optional
-            if (msg.data.hasOwnProperty('onOffTransitionTime') && msg.data['onOffTransitionTime'] !== undefined) {
+            if (msg.data.onOffTransitionTime !== undefined && msg.data['onOffTransitionTime'] !== undefined) {
                 result.level_config.on_off_transition_time = Number(msg.data['onOffTransitionTime']);
             }
 
             // onTransitionTime - range 0x0000 to 0xffff - optional
             //                    0xffff = use onOffTransitionTime
-            if (msg.data.hasOwnProperty('onTransitionTime') && msg.data['onTransitionTime'] !== undefined) {
+            if (msg.data.onTransitionTime !== undefined && msg.data['onTransitionTime'] !== undefined) {
                 result.level_config.on_transition_time = Number(msg.data['onTransitionTime']);
                 if (result.level_config.on_transition_time == 65535) {
                     result.level_config.on_transition_time = 'disabled';
@@ -603,7 +605,7 @@ const converters1 = {
 
             // offTransitionTime - range 0x0000 to 0xffff - optional
             //                    0xffff = use onOffTransitionTime
-            if (msg.data.hasOwnProperty('offTransitionTime') && msg.data['offTransitionTime'] !== undefined) {
+            if (msg.data.offTransitionTime !== undefined && msg.data['offTransitionTime'] !== undefined) {
                 result.level_config.off_transition_time = Number(msg.data['offTransitionTime']);
                 if (result.level_config.off_transition_time == 65535) {
                     result.level_config.off_transition_time = 'disabled';
@@ -613,7 +615,7 @@ const converters1 = {
             // startUpCurrentLevel - range 0x00 to 0xff - optional
             //                       0x00 = return to minimum supported level
             //                       0xff - return to previous previous
-            if (msg.data.hasOwnProperty('startUpCurrentLevel') && msg.data['startUpCurrentLevel'] !== undefined) {
+            if (msg.data.startUpCurrentLevel !== undefined && msg.data['startUpCurrentLevel'] !== undefined) {
                 result.level_config.current_level_startup = Number(msg.data['startUpCurrentLevel']);
                 if (result.level_config.current_level_startup == 255) {
                     result.level_config.current_level_startup = 'previous';
@@ -625,7 +627,7 @@ const converters1 = {
 
             // onLevel - range 0x00 to 0xff - optional
             //           Any value outside of MinLevel to MaxLevel, including 0xff and 0x00, is interpreted as "previous".
-            if (msg.data.hasOwnProperty('onLevel') && msg.data['onLevel'] !== undefined) {
+            if (msg.data.onLevel !== undefined && msg.data['onLevel'] !== undefined) {
                 result.level_config.on_level = Number(msg.data['onLevel']);
                 if (result.level_config.on_level === 255) {
                     result.level_config.on_level = 'previous';
@@ -637,7 +639,7 @@ const converters1 = {
             //          when 1, CurrentLevel can be changed while the device is off.
             //   bit 1: CoupleColorTempToLevel - when 1, changes to level also change color temperature.
             //          (What this means is not defined, but it's most likely to be "dim to warm".)
-            if (msg.data.hasOwnProperty('options') && msg.data['options'] !== undefined) {
+            if (msg.data.options !== undefined && msg.data['options'] !== undefined) {
                 result.level_config.execute_if_off = !!(Number(msg.data['options']) & 1);
             }
 
@@ -653,47 +655,48 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
 
-            if (msg.data.hasOwnProperty('colorTemperature')) {
+            if (msg.data.colorTemperature !== undefined) {
                 result.color_temp = msg.data['colorTemperature'];
             }
 
-            if (msg.data.hasOwnProperty('startUpColorTemperature')) {
+            if (msg.data.startUpColorTemperature !== undefined) {
                 result.color_temp_startup = msg.data['startUpColorTemperature'];
             }
 
-            if (msg.data.hasOwnProperty('colorMode')) {
-                result.color_mode = constants.colorModeLookup.hasOwnProperty(msg.data['colorMode'])
-                    ? constants.colorModeLookup[msg.data['colorMode']]
-                    : msg.data['colorMode'];
+            if (msg.data.colorMode !== undefined) {
+                result.color_mode =
+                    constants.colorModeLookup[msg.data['colorMode']] !== undefined
+                        ? constants.colorModeLookup[msg.data['colorMode']]
+                        : msg.data['colorMode'];
             }
 
             if (
-                msg.data.hasOwnProperty('currentX') ||
-                msg.data.hasOwnProperty('currentY') ||
-                msg.data.hasOwnProperty('currentSaturation') ||
-                msg.data.hasOwnProperty('currentHue') ||
-                msg.data.hasOwnProperty('enhancedCurrentHue')
+                msg.data.currentX !== undefined ||
+                msg.data.currentY !== undefined ||
+                msg.data.currentSaturation !== undefined ||
+                msg.data.currentHue !== undefined ||
+                msg.data.enhancedCurrentHue !== undefined
             ) {
                 result.color = {};
 
-                if (msg.data.hasOwnProperty('currentX')) {
+                if (msg.data.currentX !== undefined) {
                     result.color.x = mapNumberRange(msg.data['currentX'], 0, 65535, 0, 1, 4);
                 }
-                if (msg.data.hasOwnProperty('currentY')) {
+                if (msg.data.currentY !== undefined) {
                     result.color.y = mapNumberRange(msg.data['currentY'], 0, 65535, 0, 1, 4);
                 }
-                if (msg.data.hasOwnProperty('currentSaturation')) {
+                if (msg.data.currentSaturation !== undefined) {
                     result.color.saturation = mapNumberRange(msg.data['currentSaturation'], 0, 254, 0, 100);
                 }
-                if (msg.data.hasOwnProperty('currentHue')) {
+                if (msg.data.currentHue !== undefined) {
                     result.color.hue = mapNumberRange(msg.data['currentHue'], 0, 254, 0, 360, 0);
                 }
-                if (msg.data.hasOwnProperty('enhancedCurrentHue')) {
+                if (msg.data.enhancedCurrentHue !== undefined) {
                     result.color.hue = mapNumberRange(msg.data['enhancedCurrentHue'], 0, 65535, 0, 360, 1);
                 }
             }
 
-            if (msg.data.hasOwnProperty('options')) {
+            if (msg.data.options !== undefined) {
                 /*
                  * Bit | Value & Summary
                  * --------------------------
@@ -741,7 +744,7 @@ const converters1 = {
             const divisor = msg.endpoint.getClusterAttributeValue('seMetering', 'divisor') as number;
             const factor = multiplier && divisor ? multiplier / divisor : null;
 
-            if (msg.data.hasOwnProperty('instantaneousDemand')) {
+            if (msg.data.instantaneousDemand !== undefined) {
                 let power = msg.data['instantaneousDemand'];
                 if (factor != null) {
                     power = power * factor * 1000; // kWh to Watt
@@ -750,16 +753,14 @@ const converters1 = {
                 payload[property] = power;
             }
 
-            if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') || msg.data.hasOwnProperty('currentSummReceived'))) {
-                if (msg.data.hasOwnProperty('currentSummDelivered')) {
-                    const data = msg.data['currentSummDelivered'];
-                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+            if (factor != null && (msg.data.currentSummDelivered !== undefined || msg.data.currentSummReceived !== undefined)) {
+                if (msg.data.currentSummDelivered !== undefined) {
+                    const value = msg.data['currentSummDelivered'];
                     const property = postfixWithEndpointName('energy', msg, model, meta);
                     payload[property] = value * factor;
                 }
-                if (msg.data.hasOwnProperty('currentSummReceived')) {
-                    const data = msg.data['currentSummReceived'];
-                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                if (msg.data.currentSummReceived !== undefined) {
+                    const value = msg.data['currentSummReceived'];
                     const property = postfixWithEndpointName('produced_energy', msg, model, meta);
                     payload[property] = value * factor;
                 }
@@ -808,22 +809,22 @@ const converters1 = {
 
             const payload: KeyValueAny = {};
             for (const entry of lookup) {
-                if (msg.data.hasOwnProperty(entry.key)) {
+                if (msg.data[entry.key] !== undefined) {
                     const factor = getFactor(entry.factor);
                     const property = postfixWithEndpointName(entry.name, msg, model, meta);
                     const value = msg.data[entry.key] * factor;
                     payload[property] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('powerFactor')) {
+            if (msg.data.powerFactor !== undefined) {
                 const property = postfixWithEndpointName('power_factor', msg, model, meta);
                 payload[property] = precisionRound(msg.data['powerFactor'] / 100, 2);
             }
-            if (msg.data.hasOwnProperty('powerFactorPhB')) {
+            if (msg.data.powerFactorPhB !== undefined) {
                 const property = postfixWithEndpointName('power_factor_phase_b', msg, model, meta);
                 payload[property] = precisionRound(msg.data['powerFactorPhB'] / 100, 2);
             }
-            if (msg.data.hasOwnProperty('powerFactorPhC')) {
+            if (msg.data.powerFactorPhC !== undefined) {
                 const property = postfixWithEndpointName('power_factor_phase_c', msg, model, meta);
                 payload[property] = precisionRound(msg.data['powerFactorPhC'] / 100, 2);
             }
@@ -835,7 +836,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.state_action()],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 const payload: KeyValueAny = {};
                 const property = postfixWithEndpointName('state', msg, model, meta);
                 const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
@@ -855,9 +856,9 @@ const converters1 = {
             // This converted is need instead of `fz.on_off` when no meta: {multiEndpoint: true} can be defined for this device
             // but it is needed for the `state`. E.g. when a switch has 3 channels (state_l1, state_l2, state_l3) but
             // has combined power measurements (power, energy))
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 const payload: KeyValueAny = {};
-                const endpointName = model.hasOwnProperty('endpoint') ? utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
+                const endpointName = model.endpoint !== undefined ? utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
                 const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
                 payload[`state_${endpointName}`] = state;
                 if (options && options.state_action) {
@@ -875,7 +876,7 @@ const converters1 = {
             // Device sends multiple messages with the same transactionSequenceNumber,
             // prevent that multiple messages get send.
             // https://github.com/Koenkk/zigbee2mqtt/issues/3687
-            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg, model)) {
+            if (msg.data.onOff !== undefined && !hasAlreadyProcessedMessage(msg, model)) {
                 const payload: KeyValueAny = {};
                 const property = postfixWithEndpointName('state', msg, model, meta);
                 const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
@@ -892,7 +893,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const lookup: KeyValueAny = {0: 'off', 1: 'on', 2: 'toggle', 255: 'previous'};
-            if (msg.data.hasOwnProperty('startUpOnOff')) {
+            if (msg.data.startUpOnOff !== undefined) {
                 const property = postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data['startUpOnOff']]};
             }
@@ -968,7 +969,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
 
-            const timeout = options && options.hasOwnProperty('vibration_timeout') ? Number(options.vibration_timeout) : 90;
+            const timeout = options && options.vibration_timeout !== undefined ? Number(options.vibration_timeout) : 90;
 
             // Stop existing timers because vibration is detected and set a new one.
             globalStore.getValue(msg.endpoint, 'timers', []).forEach((t: NodeJS.Timeout) => clearTimeout(t));
@@ -1162,7 +1163,7 @@ const converters1 = {
         options: [exposes.options.occupancy_timeout()],
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-            const timeout = options && options.hasOwnProperty('occupancy_timeout') ? Number(options.occupancy_timeout) : 90;
+            const timeout = options && options.occupancy_timeout !== undefined ? Number(options.occupancy_timeout) : 90;
 
             clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
 
@@ -1330,8 +1331,8 @@ const converters1 = {
 
             if (options.simulated_brightness) {
                 const opts: KeyValueAny = options.simulated_brightness;
-                const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 20;
-                const intervalOpts = typeof opts === 'object' && opts.hasOwnProperty('interval') ? opts.interval : 200;
+                const deltaOpts = typeof opts === 'object' && opts.delta !== undefined ? opts.delta : 20;
+                const intervalOpts = typeof opts === 'object' && opts.interval !== undefined ? opts.interval : 200;
 
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
                 if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
@@ -1421,7 +1422,7 @@ const converters1 = {
                 action_step_size: msg.data.stepsize,
             };
 
-            if (msg.data.hasOwnProperty('transtime')) {
+            if (msg.data.transtime !== undefined) {
                 payload.action_transition_time = msg.data.transtime / 100;
             }
 
@@ -1642,7 +1643,7 @@ const converters1 = {
             const metaInvert = model.meta && model.meta.coverInverted;
             const invert = metaInvert ? !options.invert_cover : options.invert_cover;
             const coverStateFromTilt = model.meta && model.meta.coverStateFromTilt;
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
+            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data['currentPositionLiftPercentage'] <= 100) {
                 const value = msg.data['currentPositionLiftPercentage'];
                 result[postfixWithEndpointName('position', msg, model, meta)] = invert ? value : 100 - value;
                 if (!coverStateFromTilt) {
@@ -1655,7 +1656,7 @@ const converters1 = {
                           : 'OPEN';
                 }
             }
-            if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
+            if (msg.data.currentPositionTiltPercentage !== undefined && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
                 result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? value : 100 - value;
                 if (coverStateFromTilt) {
@@ -1668,7 +1669,7 @@ const converters1 = {
                           : 'CLOSE';
                 }
             }
-            if (msg.data.hasOwnProperty('windowCoveringMode')) {
+            if (msg.data.windowCoveringMode !== undefined) {
                 result[postfixWithEndpointName('cover_mode', msg, model, meta)] = {
                     reversed: (msg.data.windowCoveringMode & (1 << 0)) > 0,
                     calibration: (msg.data.windowCoveringMode & (1 << 1)) > 0,
@@ -1695,7 +1696,7 @@ const converters1 = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 return {state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
             }
         },
@@ -1715,49 +1716,49 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('ballastStatus')) {
+            if (msg.data.ballastStatus !== undefined) {
                 const ballastStatus = msg.data.ballastStatus;
                 result['ballast_status_non_operational'] = ballastStatus & 1 ? true : false;
                 result['ballast_status_lamp_failure'] = ballastStatus & 2 ? true : false;
             }
-            if (msg.data.hasOwnProperty('minLevel')) {
+            if (msg.data.minLevel !== undefined) {
                 result['ballast_minimum_level'] = msg.data.minLevel;
             }
-            if (msg.data.hasOwnProperty('maxLevel')) {
+            if (msg.data.maxLevel !== undefined) {
                 result['ballast_maximum_level'] = msg.data.maxLevel;
             }
-            if (msg.data.hasOwnProperty('powerOnLevel')) {
+            if (msg.data.powerOnLevel !== undefined) {
                 result['ballast_power_on_level'] = msg.data.powerOnLevel;
             }
-            if (msg.data.hasOwnProperty('powerOnFadeTime')) {
+            if (msg.data.powerOnFadeTime !== undefined) {
                 result['ballast_power_on_fade_time'] = msg.data.powerOnFadeTime;
             }
-            if (msg.data.hasOwnProperty('intrinsicBallastFactor')) {
+            if (msg.data.intrinsicBallastFactor !== undefined) {
                 result['ballast_intrinsic_ballast_factor'] = msg.data.intrinsicBallastFactor;
             }
-            if (msg.data.hasOwnProperty('ballastFactorAdjustment')) {
+            if (msg.data.ballastFactorAdjustment !== undefined) {
                 result['ballast_ballast_factor_adjustment'] = msg.data.ballastFactorAdjustment;
             }
-            if (msg.data.hasOwnProperty('lampQuantity')) {
+            if (msg.data.lampQuantity !== undefined) {
                 result['ballast_lamp_quantity'] = msg.data.lampQuantity;
             }
-            if (msg.data.hasOwnProperty('lampType')) {
+            if (msg.data.lampType !== undefined) {
                 result['ballast_lamp_type'] = msg.data.lampType;
             }
-            if (msg.data.hasOwnProperty('lampManufacturer')) {
+            if (msg.data.lampManufacturer !== undefined) {
                 result['ballast_lamp_manufacturer'] = msg.data.lampManufacturer;
             }
-            if (msg.data.hasOwnProperty('lampRatedHours')) {
+            if (msg.data.lampRatedHours !== undefined) {
                 result['ballast_lamp_rated_hours'] = msg.data.lampRatedHours;
             }
-            if (msg.data.hasOwnProperty('lampBurnHours')) {
+            if (msg.data.lampBurnHours !== undefined) {
                 result['ballast_lamp_burn_hours'] = msg.data.lampBurnHours;
             }
-            if (msg.data.hasOwnProperty('lampAlarmMode')) {
+            if (msg.data.lampAlarmMode !== undefined) {
                 const lampAlarmMode = msg.data.lampAlarmMode;
                 result['ballast_lamp_alarm_lamp_burn_hours'] = lampAlarmMode & 1 ? true : false;
             }
-            if (msg.data.hasOwnProperty('lampBurnHoursTripPoint')) {
+            if (msg.data.lampBurnHoursTripPoint !== undefined) {
                 result['ballast_lamp_burn_hours_trip_point'] = msg.data.lampBurnHoursTripPoint;
             }
             return result;
@@ -1768,7 +1769,7 @@ const converters1 = {
         type: ['commandCheckin'],
         options: [exposes.options.presence_timeout()],
         convert: (model, msg, publish, options, meta) => {
-            const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
+            const useOptionsTimeout = options && options.presence_timeout !== undefined;
             const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
 
             // Stop existing timer because presence is detected and set a new one.
@@ -1799,7 +1800,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('maxDuration')) result['max_duration'] = msg.data.maxDuration;
+            if (msg.data.maxDuration !== undefined) result['max_duration'] = msg.data.maxDuration;
             return result;
         },
     } satisfies Fz.Converter,
@@ -1808,7 +1809,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('powerSource')) {
+            if (msg.data.powerSource !== undefined) {
                 const value = msg.data['powerSource'];
                 const lookup: KeyValueAny = {
                     0: 'unknown',
@@ -1840,66 +1841,66 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x1000)) {
+            if (data[0x1000] !== undefined) {
                 // Display brightness
                 const lookup: KeyValueAny = {0: 'low', 1: 'mid', 2: 'high'};
                 result.lcd_brightness = lookup[data[0x1000]];
             }
-            if (data.hasOwnProperty(0x1001)) {
+            if (data[0x1001] !== undefined) {
                 // Button vibration level
                 const lookup: KeyValueAny = {0: 'off', 1: 'low', 2: 'high'};
                 result.button_vibration_level = lookup[data[0x1001]];
             }
-            if (data.hasOwnProperty(0x1002)) {
+            if (data[0x1002] !== undefined) {
                 // Floor sensor type
                 const lookup: KeyValueAny = {1: '10k', 2: '15k', 3: '50k', 4: '100k', 5: '12k'};
                 result.floor_sensor_type = lookup[data[0x1002]];
             }
-            if (data.hasOwnProperty(0x1003)) {
+            if (data[0x1003] !== undefined) {
                 // Sensor
                 const lookup: KeyValueAny = {0: 'air', 1: 'floor', 2: 'both'};
                 result.sensor = lookup[data[0x1003]];
             }
-            if (data.hasOwnProperty(0x1004)) {
+            if (data[0x1004] !== undefined) {
                 // PowerUpStatus
                 const lookup: KeyValueAny = {0: 'default', 1: 'last_status'};
                 result.powerup_status = lookup[data[0x1004]];
             }
-            if (data.hasOwnProperty(0x1005)) {
+            if (data[0x1005] !== undefined) {
                 // FloorSensorCalibration
                 result.floor_sensor_calibration = precisionRound(data[0x1005], 2) / 10;
             }
-            if (data.hasOwnProperty(0x1006)) {
+            if (data[0x1006] !== undefined) {
                 // DryTime
                 result.dry_time = data[0x1006];
             }
-            if (data.hasOwnProperty(0x1007)) {
+            if (data[0x1007] !== undefined) {
                 // ModeAfterDry
                 const lookup: KeyValueAny = {0: 'off', 1: 'manual', 2: 'auto', 3: 'away'};
                 result.mode_after_dry = lookup[data[0x1007]];
             }
-            if (data.hasOwnProperty(0x1008)) {
+            if (data[0x1008] !== undefined) {
                 // TemperatureDisplay
                 const lookup: KeyValueAny = {0: 'room', 1: 'floor'};
                 result.temperature_display = lookup[data[0x1008]];
             }
-            if (data.hasOwnProperty(0x1009)) {
+            if (data[0x1009] !== undefined) {
                 // WindowOpenCheck
                 result.window_open_check = data[0x1009] / 2;
             }
-            if (data.hasOwnProperty(0x100a)) {
+            if (data[0x100a] !== undefined) {
                 // Hysterersis
                 result.hysterersis = precisionRound(data[0x100a], 2) / 10;
             }
-            if (data.hasOwnProperty(0x100b)) {
+            if (data[0x100b] !== undefined) {
                 // DisplayAutoOffEnable
                 result.display_auto_off_enabled = data[0x100b] ? 'enabled' : 'disabled';
             }
-            if (data.hasOwnProperty(0x2001)) {
+            if (data[0x2001] !== undefined) {
                 // AlarmAirTempOverValue
                 result.alarm_airtemp_overvalue = data[0x2001];
             }
-            if (data.hasOwnProperty(0x2002)) {
+            if (data[0x2002] !== undefined) {
                 // Away Mode Set
                 result.away_mode = data[0x2002] ? 'ON' : 'OFF';
             }
@@ -1912,7 +1913,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('keypadLockout')) {
+            if (msg.data.keypadLockout !== undefined) {
                 // Set as child lock instead as keypadlockout
                 result.child_lock = msg.data['keypadLockout'] === 0 ? 'UNLOCK' : 'LOCK';
             }
@@ -1926,73 +1927,27 @@ const converters1 = {
             const result: KeyValueAny = {};
             const data = msg.data;
 
-            if (data.hasOwnProperty('elkoLoad')) {
-                // Load
-                result.load = data['elkoLoad'];
-            }
-
-            if (data.hasOwnProperty('elkoDisplayText')) {
+            if (data.elkoDisplayText !== undefined) {
                 // Display text
                 result.display_text = data['elkoDisplayText'];
             }
 
-            if (data.hasOwnProperty('elkoSensor')) {
-                // Sensor
-                const sensorModeLookup: KeyValueAny = {'0': 'air', '1': 'floor', '3': 'supervisor_floor'};
-                result.sensor = sensorModeLookup[data['elkoSensor']];
-            }
-
-            if (data.hasOwnProperty('elkoRegulatorTime')) {
-                // Regulator time
-                result.regulator_time = data['elkoRegulatorTime'];
-            }
-
-            if (data.hasOwnProperty('elkoRegulatorMode')) {
-                // Regulator mode
-                result.regulator_mode = data['elkoRegulatorMode'] ? 'regulator' : 'thermostat';
-            }
-
-            if (data.hasOwnProperty('elkoPowerStatus')) {
+            if (data.elkoPowerStatus !== undefined) {
                 // Power status
                 result.system_mode = data['elkoPowerStatus'] ? 'heat' : 'off';
             }
 
-            if (data.hasOwnProperty('elkoMeanPower')) {
-                // Mean power
-                result.mean_power = data['elkoMeanPower'];
-            }
-
-            if (data.hasOwnProperty('elkoExternalTemp')) {
+            if (data.elkoExternalTemp !== undefined) {
                 // External temp (floor)
                 result.floor_temp = utils.precisionRound(data['elkoExternalTemp'], 2) / 100;
             }
 
-            if (data.hasOwnProperty('elkoNightSwitching')) {
-                // Night switching
-                result.night_switching = data['elkoNightSwitching'] ? 'on' : 'off';
-            }
-
-            if (data.hasOwnProperty('elkoFrostGuard')) {
-                // Frost guard
-                result.frost_guard = data['elkoFrostGuard'] ? 'on' : 'off';
-            }
-
-            if (data.hasOwnProperty('elkoChildLock')) {
-                // Child lock
-                result.child_lock = data['elkoChildLock'] ? 'lock' : 'unlock';
-            }
-
-            if (data.hasOwnProperty('elkoMaxFloorTemp')) {
-                // Max floor temp
-                result.max_floor_temp = data['elkoMaxFloorTemp'];
-            }
-
-            if (data.hasOwnProperty('elkoRelayState')) {
+            if (data.elkoRelayState !== undefined) {
                 // Relay state
                 result.running_state = data['elkoRelayState'] ? 'heat' : 'idle';
             }
 
-            if (data.hasOwnProperty('elkoCalibration')) {
+            if (data.elkoCalibration !== undefined) {
                 // Calibration
                 result.local_temperature_calibration = precisionRound(data['elkoCalibration'], 2) / 10;
             }
@@ -2019,23 +1974,23 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('alarm_temperature_max')) {
+            if (msg.data.alarm_temperature_max !== undefined) {
                 result.alarm_temperature_max = msg.data['alarm_temperature_max'];
             }
-            if (msg.data.hasOwnProperty('alarm_temperature_min')) {
+            if (msg.data.alarm_temperature_min !== undefined) {
                 result.alarm_temperature_min = msg.data['alarm_temperature_min'];
             }
-            if (msg.data.hasOwnProperty('alarm_humidity_max')) {
+            if (msg.data.alarm_humidity_max !== undefined) {
                 result.alarm_humidity_max = msg.data['alarm_humidity_max'];
             }
-            if (msg.data.hasOwnProperty('alarm_humidity_min')) {
+            if (msg.data.alarm_humidity_min !== undefined) {
                 result.alarm_humidity_min = msg.data['alarm_humidity_min'];
             }
-            if (msg.data.hasOwnProperty('alarm_humidity')) {
+            if (msg.data.alarm_humidity !== undefined) {
                 const sensorAlarmLookup: KeyValueAny = {'0': 'below_min_humdity', '1': 'over_humidity', '2': 'off'};
                 result.alarm_humidity = sensorAlarmLookup[msg.data['alarm_humidity']];
             }
-            if (msg.data.hasOwnProperty('alarm_temperature')) {
+            if (msg.data.alarm_temperature !== undefined) {
                 const sensorAlarmLookup: KeyValueAny = {'0': 'below_min_temperature', '1': 'over_temperature', '2': 'off'};
                 result.alarm_temperature = sensorAlarmLookup[msg.data['alarm_temperature']];
             }
@@ -2049,16 +2004,16 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
 
-            if (msg.data.hasOwnProperty('colorTemperature')) {
+            if (msg.data.colorTemperature !== undefined) {
                 const value = Number(msg.data['colorTemperature']);
                 result.color_temp = mapNumberRange(value, 0, 255, 500, 153);
             }
 
-            if (msg.data.hasOwnProperty('tuyaBrightness')) {
+            if (msg.data.tuyaBrightness !== undefined) {
                 result.brightness = msg.data['tuyaBrightness'];
             }
 
-            if (msg.data.hasOwnProperty('tuyaRgbMode')) {
+            if (msg.data.tuyaRgbMode !== undefined) {
                 if (msg.data['tuyaRgbMode'] === 1) {
                     result.color_mode = constants.colorModeLookup[0];
                 } else {
@@ -2068,12 +2023,12 @@ const converters1 = {
 
             result.color = {};
 
-            if (msg.data.hasOwnProperty('currentHue')) {
+            if (msg.data.currentHue !== undefined) {
                 result.color.hue = mapNumberRange(msg.data['currentHue'], 0, 254, 0, 360);
                 result.color.h = result.color.hue;
             }
 
-            if (msg.data.hasOwnProperty('currentSaturation')) {
+            if (msg.data.currentSaturation !== undefined) {
                 result.color.saturation = mapNumberRange(msg.data['currentSaturation'], 0, 254, 0, 100);
                 result.color.s = result.color.saturation;
             }
@@ -2208,11 +2163,11 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('maxDuration')) result['duration'] = msg.data.maxDuration;
-            if (msg.data.hasOwnProperty('2')) {
+            if (msg.data.maxDuration !== undefined) result['duration'] = msg.data.maxDuration;
+            if (msg.data['2'] !== undefined) {
                 result['volume'] = mapNumberRange(msg.data['2'], 100, 10, 0, 100);
             }
-            if (msg.data.hasOwnProperty('61440')) {
+            if (msg.data['61440'] !== undefined) {
                 result['alarm'] = msg.data['61440'] == 0 ? false : true;
             }
             return result;
@@ -2223,11 +2178,11 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('moesCalibrationTime')) {
+            if (msg.data.moesCalibrationTime !== undefined) {
                 const value = parseFloat(msg.data['moesCalibrationTime']) / 100;
                 result[postfixWithEndpointName('calibration_time', msg, model, meta)] = value;
             }
-            if (msg.data.hasOwnProperty('tuyaMotorReversal')) {
+            if (msg.data.tuyaMotorReversal !== undefined) {
                 const value = msg.data['tuyaMotorReversal'];
                 const reversalLookup: KeyValueAny = {0: 'OFF', 1: 'ON'};
                 result[postfixWithEndpointName('motor_reversal', msg, model, meta)] = reversalLookup[value];
@@ -2240,22 +2195,22 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('tuyaMovingState')) {
+            if (msg.data.tuyaMovingState !== undefined) {
                 const value = msg.data['tuyaMovingState'];
                 const movingLookup: KeyValueAny = {0: 'UP', 1: 'STOP', 2: 'DOWN'};
                 result[postfixWithEndpointName('moving', msg, model, meta)] = movingLookup[value];
             }
-            if (msg.data.hasOwnProperty('tuyaCalibration')) {
+            if (msg.data.tuyaCalibration !== undefined) {
                 const value = msg.data['tuyaCalibration'];
                 const calibrationLookup: KeyValueAny = {0: 'ON', 1: 'OFF'};
                 result[postfixWithEndpointName('calibration', msg, model, meta)] = calibrationLookup[value];
             }
-            if (msg.data.hasOwnProperty('tuyaMotorReversal')) {
+            if (msg.data.tuyaMotorReversal !== undefined) {
                 const value = msg.data['tuyaMotorReversal'];
                 const reversalLookup: KeyValueAny = {0: 'OFF', 1: 'ON'};
                 result[postfixWithEndpointName('motor_reversal', msg, model, meta)] = reversalLookup[value];
             }
-            if (msg.data.hasOwnProperty('moesCalibrationTime')) {
+            if (msg.data.moesCalibrationTime !== undefined) {
                 const value = parseFloat(msg.data['moesCalibrationTime']) / 10.0;
                 result[postfixWithEndpointName('calibration_time', msg, model, meta)] = value;
             }
@@ -2403,8 +2358,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data[10];
             const defaults = {motor_direction: 'FORWARD', motor_speed: 40};
-            // @ts-expect-error
-            if ((msg.data[0] === 0x7a) & (msg.data[1] === 0xd1)) {
+            if (msg.data[0] === 0x7a && msg.data[1] === 0xd1) {
                 const reportType = msg.data[12];
                 switch (dp) {
                     case 0x0c:
@@ -2670,7 +2624,7 @@ const converters1 = {
             const cluster = 'genLevelCtrl';
             if (endpoint && (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster))) {
                 payload['brightness_' + name] = msg.data['presentValue'];
-            } else if (msg.data.hasOwnProperty('description')) {
+            } else if (msg.data.description !== undefined) {
                 const data1 = msg.data['description'];
                 if (data1) {
                     const data2 = data1.split(',');
@@ -2757,7 +2711,7 @@ const converters1 = {
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('mainsVoltage')) {
+            if (msg.data.mainsVoltage !== undefined) {
                 payload.voltage = msg.data['mainsVoltage'];
 
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
@@ -2826,62 +2780,62 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             // typo on property name to stick with zcl definition
-            if (msg.data.hasOwnProperty('inletTempreature')) {
+            if (msg.data.inletTempreature !== undefined) {
                 result.inlet_temperature = precisionRound(msg.data['inletTempreature'], 2);
                 result.inletTemperature = result.inlet_temperature; // deprecated
             }
 
-            if (msg.data.hasOwnProperty('status')) {
+            if (msg.data.status !== undefined) {
                 result.status = precisionRound(msg.data['status'], 2);
             }
 
-            if (msg.data.hasOwnProperty('8192')) {
+            if (msg.data['8192'] !== undefined) {
                 result.line_frequency = precisionRound(parseFloat(msg.data['8192']) / 100.0, 2);
                 result.linefrequency = result.line_frequency; // deprecated
             }
 
-            if (msg.data.hasOwnProperty('8193')) {
+            if (msg.data['8193'] !== undefined) {
                 result.power = precisionRound(msg.data['8193'], 2);
             }
 
-            if (msg.data.hasOwnProperty('8196')) {
+            if (msg.data['8196'] !== undefined) {
                 result.voltage = precisionRound(msg.data['8196'], 2);
             }
 
-            if (msg.data.hasOwnProperty('8213')) {
+            if (msg.data['8213'] !== undefined) {
                 result.voltage = precisionRound(msg.data['8213'], 2);
             }
 
-            if (msg.data.hasOwnProperty('8199')) {
+            if (msg.data['8199'] !== undefined) {
                 result.current = precisionRound(msg.data['8199'], 2);
             }
 
-            if (msg.data.hasOwnProperty('8216')) {
+            if (msg.data['8216'] !== undefined) {
                 result.current = precisionRound(msg.data['8216'], 2);
             }
 
-            if (msg.data.hasOwnProperty('8202')) {
+            if (msg.data['8202'] !== undefined) {
                 result.reactive_power = precisionRound(msg.data['8202'], 2);
                 result.reactivepower = result.reactive_power; // deprecated
             }
 
-            if (msg.data.hasOwnProperty('12288')) {
+            if (msg.data['12288'] !== undefined) {
                 result.energy_consumed = precisionRound(msg.data['12288'], 2); // deprecated
                 result.energyconsumed = result.energy_consumed; // deprecated
                 result.energy = result.energy_consumed;
             }
 
-            if (msg.data.hasOwnProperty('12291')) {
+            if (msg.data['12291'] !== undefined) {
                 result.energy_produced = precisionRound(msg.data['12291'], 2);
                 result.energyproduced = result.energy_produced; // deprecated
             }
 
-            if (msg.data.hasOwnProperty('12294')) {
+            if (msg.data['12294'] !== undefined) {
                 result.reactive_summation = precisionRound(msg.data['12294'], 2);
                 result.reactivesummation = result.reactive_summation; // deprecated
             }
 
-            if (msg.data.hasOwnProperty('16408')) {
+            if (msg.data['16408'] !== undefined) {
                 result.measure_serial = precisionRound(msg.data['16408'], 2);
                 result.measureserial = result.measure_serial; // deprecated
             }
@@ -2894,54 +2848,52 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('danfossWindowOpenFeatureEnable')) {
+            if (msg.data.danfossWindowOpenFeatureEnable !== undefined) {
                 result[postfixWithEndpointName('window_open_feature', msg, model, meta)] = msg.data['danfossWindowOpenFeatureEnable'] === 1;
             }
-            if (msg.data.hasOwnProperty('danfossWindowOpenInternal')) {
-                result[postfixWithEndpointName('window_open_internal', msg, model, meta)] = constants.danfossWindowOpen.hasOwnProperty(
-                    msg.data['danfossWindowOpenInternal'],
-                )
-                    ? constants.danfossWindowOpen[msg.data['danfossWindowOpenInternal']]
-                    : msg.data['danfossWindowOpenInternal'];
+            if (msg.data.danfossWindowOpenInternal !== undefined) {
+                result[postfixWithEndpointName('window_open_internal', msg, model, meta)] =
+                    constants.danfossWindowOpen[msg.data['danfossWindowOpenInternal']] !== undefined
+                        ? constants.danfossWindowOpen[msg.data['danfossWindowOpenInternal']]
+                        : msg.data['danfossWindowOpenInternal'];
             }
-            if (msg.data.hasOwnProperty('danfossWindowOpenExternal')) {
+            if (msg.data.danfossWindowOpenExternal !== undefined) {
                 result[postfixWithEndpointName('window_open_external', msg, model, meta)] = msg.data['danfossWindowOpenExternal'] === 1;
             }
-            if (msg.data.hasOwnProperty('danfossDayOfWeek')) {
-                result[postfixWithEndpointName('day_of_week', msg, model, meta)] = constants.thermostatDayOfWeek.hasOwnProperty(
-                    msg.data['danfossDayOfWeek'],
-                )
-                    ? constants.thermostatDayOfWeek[msg.data['danfossDayOfWeek']]
-                    : msg.data['danfossDayOfWeek'];
+            if (msg.data.danfossDayOfWeek !== undefined) {
+                result[postfixWithEndpointName('day_of_week', msg, model, meta)] =
+                    constants.thermostatDayOfWeek[msg.data['danfossDayOfWeek']] !== undefined
+                        ? constants.thermostatDayOfWeek[msg.data['danfossDayOfWeek']]
+                        : msg.data['danfossDayOfWeek'];
             }
-            if (msg.data.hasOwnProperty('danfossTriggerTime')) {
+            if (msg.data.danfossTriggerTime !== undefined) {
                 result[postfixWithEndpointName('trigger_time', msg, model, meta)] = msg.data['danfossTriggerTime'];
             }
-            if (msg.data.hasOwnProperty('danfossMountedModeActive')) {
+            if (msg.data.danfossMountedModeActive !== undefined) {
                 result[postfixWithEndpointName('mounted_mode_active', msg, model, meta)] = msg.data['danfossMountedModeActive'] === 1;
             }
-            if (msg.data.hasOwnProperty('danfossMountedModeControl')) {
+            if (msg.data.danfossMountedModeControl !== undefined) {
                 result[postfixWithEndpointName('mounted_mode_control', msg, model, meta)] = msg.data['danfossMountedModeControl'] === 1;
             }
-            if (msg.data.hasOwnProperty('danfossThermostatOrientation')) {
+            if (msg.data.danfossThermostatOrientation !== undefined) {
                 result[postfixWithEndpointName('thermostat_vertical_orientation', msg, model, meta)] = msg.data['danfossThermostatOrientation'] === 1;
             }
-            if (msg.data.hasOwnProperty('danfossExternalMeasuredRoomSensor')) {
+            if (msg.data.danfossExternalMeasuredRoomSensor !== undefined) {
                 result[postfixWithEndpointName('external_measured_room_sensor', msg, model, meta)] = msg.data['danfossExternalMeasuredRoomSensor'];
             }
-            if (msg.data.hasOwnProperty('danfossRadiatorCovered')) {
+            if (msg.data.danfossRadiatorCovered !== undefined) {
                 result[postfixWithEndpointName('radiator_covered', msg, model, meta)] = msg.data['danfossRadiatorCovered'] === 1;
             }
-            if (msg.data.hasOwnProperty('danfossViewingDirection')) {
+            if (msg.data.danfossViewingDirection !== undefined) {
                 result[postfixWithEndpointName('viewing_direction', msg, model, meta)] = msg.data['danfossViewingDirection'] === 1;
             }
-            if (msg.data.hasOwnProperty('danfossAlgorithmScaleFactor')) {
+            if (msg.data.danfossAlgorithmScaleFactor !== undefined) {
                 result[postfixWithEndpointName('algorithm_scale_factor', msg, model, meta)] = msg.data['danfossAlgorithmScaleFactor'];
             }
-            if (msg.data.hasOwnProperty('danfossHeatAvailable')) {
+            if (msg.data.danfossHeatAvailable !== undefined) {
                 result[postfixWithEndpointName('heat_available', msg, model, meta)] = msg.data['danfossHeatAvailable'] === 1;
             }
-            if (msg.data.hasOwnProperty('danfossHeatRequired')) {
+            if (msg.data.danfossHeatRequired !== undefined) {
                 if (msg.data['danfossHeatRequired'] === 1) {
                     result[postfixWithEndpointName('heat_required', msg, model, meta)] = true;
                     result[postfixWithEndpointName('running_state', msg, model, meta)] = 'heat';
@@ -2950,41 +2902,40 @@ const converters1 = {
                     result[postfixWithEndpointName('running_state', msg, model, meta)] = 'idle';
                 }
             }
-            if (msg.data.hasOwnProperty('danfossLoadBalancingEnable')) {
+            if (msg.data.danfossLoadBalancingEnable !== undefined) {
                 result[postfixWithEndpointName('load_balancing_enable', msg, model, meta)] = msg.data['danfossLoadBalancingEnable'] === 1;
             }
-            if (msg.data.hasOwnProperty('danfossLoadRoomMean')) {
+            if (msg.data.danfossLoadRoomMean !== undefined) {
                 result[postfixWithEndpointName('load_room_mean', msg, model, meta)] = msg.data['danfossLoadRoomMean'];
             }
-            if (msg.data.hasOwnProperty('danfossLoadEstimate')) {
+            if (msg.data.danfossLoadEstimate !== undefined) {
                 result[postfixWithEndpointName('load_estimate', msg, model, meta)] = msg.data['danfossLoadEstimate'];
             }
-            if (msg.data.hasOwnProperty('danfossPreheatStatus')) {
+            if (msg.data.danfossPreheatStatus !== undefined) {
                 result[postfixWithEndpointName('preheat_status', msg, model, meta)] = msg.data['danfossPreheatStatus'] === 1;
             }
-            if (msg.data.hasOwnProperty('danfossAdaptionRunStatus')) {
+            if (msg.data.danfossAdaptionRunStatus !== undefined) {
                 result[postfixWithEndpointName('adaptation_run_status', msg, model, meta)] =
                     constants.danfossAdaptionRunStatus[msg.data['danfossAdaptionRunStatus']];
             }
-            if (msg.data.hasOwnProperty('danfossAdaptionRunSettings')) {
+            if (msg.data.danfossAdaptionRunSettings !== undefined) {
                 result[postfixWithEndpointName('adaptation_run_settings', msg, model, meta)] = msg.data['danfossAdaptionRunSettings'] === 1;
             }
-            if (msg.data.hasOwnProperty('danfossAdaptionRunControl')) {
+            if (msg.data.danfossAdaptionRunControl !== undefined) {
                 result[postfixWithEndpointName('adaptation_run_control', msg, model, meta)] =
                     constants.danfossAdaptionRunControl[msg.data['danfossAdaptionRunControl']];
             }
-            if (msg.data.hasOwnProperty('danfossRegulationSetpointOffset')) {
+            if (msg.data.danfossRegulationSetpointOffset !== undefined) {
                 result[postfixWithEndpointName('regulation_setpoint_offset', msg, model, meta)] = msg.data['danfossRegulationSetpointOffset'];
             }
             // Danfoss Icon Converters
-            if (msg.data.hasOwnProperty('danfossRoomStatusCode')) {
-                result[postfixWithEndpointName('room_status_code', msg, model, meta)] = constants.danfossRoomStatusCode.hasOwnProperty(
-                    msg.data['danfossRoomStatusCode'],
-                )
-                    ? constants.danfossRoomStatusCode[msg.data['danfossRoomStatusCode']]
-                    : msg.data['danfossRoomStatusCode'];
+            if (msg.data.danfossRoomStatusCode !== undefined) {
+                result[postfixWithEndpointName('room_status_code', msg, model, meta)] =
+                    constants.danfossRoomStatusCode[msg.data['danfossRoomStatusCode']] !== undefined
+                        ? constants.danfossRoomStatusCode[msg.data['danfossRoomStatusCode']]
+                        : msg.data['danfossRoomStatusCode'];
             }
-            if (msg.data.hasOwnProperty('danfossOutputStatus')) {
+            if (msg.data.danfossOutputStatus !== undefined) {
                 if (msg.data['danfossOutputStatus'] === 1) {
                     result[postfixWithEndpointName('output_status', msg, model, meta)] = 'active';
                     result[postfixWithEndpointName('running_state', msg, model, meta)] = 'heat';
@@ -3001,7 +2952,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
+            if (msg.data.occupiedHeatingSetpoint !== undefined) {
                 result[postfixWithEndpointName('occupied_heating_setpoint_scheduled', msg, model, meta)] =
                     precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
             }
@@ -3013,20 +2964,19 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('danfossRoomFloorSensorMode')) {
-                result[postfixWithEndpointName('room_floor_sensor_mode', msg, model, meta)] = constants.danfossRoomFloorSensorMode.hasOwnProperty(
-                    msg.data['danfossRoomFloorSensorMode'],
-                )
-                    ? constants.danfossRoomFloorSensorMode[msg.data['danfossRoomFloorSensorMode']]
-                    : msg.data['danfossRoomFloorSensorMode'];
+            if (msg.data.danfossRoomFloorSensorMode !== undefined) {
+                result[postfixWithEndpointName('room_floor_sensor_mode', msg, model, meta)] =
+                    constants.danfossRoomFloorSensorMode[msg.data['danfossRoomFloorSensorMode']] !== undefined
+                        ? constants.danfossRoomFloorSensorMode[msg.data['danfossRoomFloorSensorMode']]
+                        : msg.data['danfossRoomFloorSensorMode'];
             }
-            if (msg.data.hasOwnProperty('danfossFloorMinSetpoint')) {
+            if (msg.data.danfossFloorMinSetpoint !== undefined) {
                 const value = precisionRound(msg.data['danfossFloorMinSetpoint'], 2) / 100;
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('floor_min_setpoint', msg, model, meta)] = value;
                 }
             }
-            if (msg.data.hasOwnProperty('danfossFloorMaxSetpoint')) {
+            if (msg.data.danfossFloorMaxSetpoint !== undefined) {
                 const value = precisionRound(msg.data['danfossFloorMaxSetpoint'], 2) / 100;
                 if (value >= -273.15) {
                     result[postfixWithEndpointName('floor_max_setpoint', msg, model, meta)] = value;
@@ -3040,7 +2990,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
+            if (msg.data.batteryPercentageRemaining !== undefined) {
                 // Some devices do not comply to the ZCL and report a
                 // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                 const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
@@ -3057,26 +3007,23 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('danfossSystemStatusCode')) {
-                result[postfixWithEndpointName('system_status_code', msg, model, meta)] = constants.danfossSystemStatusCode.hasOwnProperty(
-                    msg.data['danfossSystemStatusCode'],
-                )
-                    ? constants.danfossSystemStatusCode[msg.data['danfossSystemStatusCode']]
-                    : msg.data['danfossSystemStatusCode'];
+            if (msg.data.danfossSystemStatusCode !== undefined) {
+                result[postfixWithEndpointName('system_status_code', msg, model, meta)] =
+                    constants.danfossSystemStatusCode[msg.data['danfossSystemStatusCode']] !== undefined
+                        ? constants.danfossSystemStatusCode[msg.data['danfossSystemStatusCode']]
+                        : msg.data['danfossSystemStatusCode'];
             }
-            if (msg.data.hasOwnProperty('danfossSystemStatusWater')) {
-                result[postfixWithEndpointName('system_status_water', msg, model, meta)] = constants.danfossSystemStatusWater.hasOwnProperty(
-                    msg.data['danfossSystemStatusWater'],
-                )
-                    ? constants.danfossSystemStatusWater[msg.data['danfossSystemStatusWater']]
-                    : msg.data['danfossSystemStatusWater'];
+            if (msg.data.danfossSystemStatusWater !== undefined) {
+                result[postfixWithEndpointName('system_status_water', msg, model, meta)] =
+                    constants.danfossSystemStatusWater[msg.data['danfossSystemStatusWater']] !== undefined
+                        ? constants.danfossSystemStatusWater[msg.data['danfossSystemStatusWater']]
+                        : msg.data['danfossSystemStatusWater'];
             }
-            if (msg.data.hasOwnProperty('danfossMultimasterRole')) {
-                result[postfixWithEndpointName('multimaster_role', msg, model, meta)] = constants.danfossMultimasterRole.hasOwnProperty(
-                    msg.data['danfossMultimasterRole'],
-                )
-                    ? constants.danfossMultimasterRole[msg.data['danfossMultimasterRole']]
-                    : msg.data['danfossMultimasterRole'];
+            if (msg.data.danfossMultimasterRole !== undefined) {
+                result[postfixWithEndpointName('multimaster_role', msg, model, meta)] =
+                    constants.danfossMultimasterRole[msg.data['danfossMultimasterRole']] !== undefined
+                        ? constants.danfossMultimasterRole[msg.data['danfossMultimasterRole']]
+                        : msg.data['danfossMultimasterRole'];
             }
             return result;
         },
@@ -3086,19 +3033,17 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('keypadLockout')) {
-                result[postfixWithEndpointName('keypad_lockout', msg, model, meta)] = constants.keypadLockoutMode.hasOwnProperty(
-                    msg.data['keypadLockout'],
-                )
-                    ? constants.keypadLockoutMode[msg.data['keypadLockout']]
-                    : msg.data['keypadLockout'];
+            if (msg.data.keypadLockout !== undefined) {
+                result[postfixWithEndpointName('keypad_lockout', msg, model, meta)] =
+                    constants.keypadLockoutMode[msg.data['keypadLockout']] !== undefined
+                        ? constants.keypadLockoutMode[msg.data['keypadLockout']]
+                        : msg.data['keypadLockout'];
             }
-            if (msg.data.hasOwnProperty('tempDisplayMode')) {
-                result[postfixWithEndpointName('temperature_display_mode', msg, model, meta)] = constants.temperatureDisplayMode.hasOwnProperty(
-                    msg.data['tempDisplayMode'],
-                )
-                    ? constants.temperatureDisplayMode[msg.data['tempDisplayMode']]
-                    : msg.data['tempDisplayMode'];
+            if (msg.data.tempDisplayMode !== undefined) {
+                result[postfixWithEndpointName('temperature_display_mode', msg, model, meta)] =
+                    constants.temperatureDisplayMode[msg.data['tempDisplayMode']] !== undefined
+                        ? constants.temperatureDisplayMode[msg.data['tempDisplayMode']]
+                        : msg.data['tempDisplayMode'];
             }
             return result;
         },
@@ -3212,7 +3157,7 @@ const converters1 = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentLevel')) {
+            if (msg.data.currentLevel !== undefined) {
                 // Ignore brightness = 0, which only happens when state is OFF
                 if (Number(msg.data['currentLevel']) > 0) {
                     return {brightness: msg.data['currentLevel']};
@@ -3285,7 +3230,7 @@ const converters1 = {
                 0x22: 'press_energy_bar',
             };
 
-            const action = lookup.hasOwnProperty(commandID) ? lookup[commandID] : `unknown_${commandID}`;
+            const action = lookup[commandID] !== undefined ? lookup[commandID] : `unknown_${commandID}`;
             return {action};
         },
     } satisfies Fz.Converter,
@@ -3331,7 +3276,7 @@ const converters1 = {
                 0x53: 'tilt',
             };
 
-            if (!lookup.hasOwnProperty(commandID)) {
+            if (lookup[commandID] === undefined) {
                 logger.error(`PTM 215ZE: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
@@ -3372,7 +3317,7 @@ const converters1 = {
             };
 
             const ID = `${commandID}_${msg.data.commandFrame.raw?.slice(0, 1).join('_') ?? ''}`;
-            if (!lookup.hasOwnProperty(ID)) {
+            if (lookup[ID] === undefined) {
                 logger.error(`PTM 216Z: missing command '${ID}'`, NS);
             } else {
                 return {action: lookup[ID]};
@@ -3427,7 +3372,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('acceleration')) payload.moving = msg.data['acceleration'] === 1;
+            if (msg.data.acceleration !== undefined) payload.moving = msg.data['acceleration'] === 1;
 
             // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy#L222
             /*
@@ -3437,9 +3382,9 @@ const converters1 = {
                 xyzResults.y = y
                 xyzResults.z = -x
             */
-            if (msg.data.hasOwnProperty('z_axis')) payload.x_axis = msg.data['z_axis'];
-            if (msg.data.hasOwnProperty('y_axis')) payload.y_axis = msg.data['y_axis'];
-            if (msg.data.hasOwnProperty('x_axis')) payload.z_axis = -msg.data['x_axis'];
+            if (msg.data.z_axis !== undefined) payload.x_axis = msg.data['z_axis'];
+            if (msg.data.y_axis !== undefined) payload.y_axis = msg.data['y_axis'];
+            if (msg.data.x_axis !== undefined) payload.z_axis = -msg.data['x_axis'];
 
             return payload;
         },
@@ -3569,16 +3514,16 @@ const converters1 = {
 
             // 0xf000 = 61440
             // This attribute returns usually 2 when power is over the defined threshold.
-            if (msg.data.hasOwnProperty('61440')) {
+            if (msg.data['61440'] !== undefined) {
                 payload.power_alarm_active_value = msg.data['61440'];
                 payload.power_alarm_active = payload.power_alarm_active_value > 0;
             }
             // 0xf001 = 61441
-            if (msg.data.hasOwnProperty('61441')) {
+            if (msg.data['61441'] !== undefined) {
                 payload.power_alarm_enabled = msg.data['61441'];
             }
             // 0xf002 = 61442, wh = watt hour
-            if (msg.data.hasOwnProperty('61442')) {
+            if (msg.data['61442'] !== undefined) {
                 payload.power_alarm_wh_threshold = msg.data['61442'];
             }
             return payload;
@@ -3606,7 +3551,7 @@ const converters1 = {
                 0x35: 'up',
                 0x36: 'down', // 600087l
             };
-            if (!lookup.hasOwnProperty(commandID)) {
+            if (lookup[commandID] === undefined) {
                 logger.error(`Legrand GreenPower: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
@@ -3667,7 +3612,7 @@ const converters1 = {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const pressure = msg.data.hasOwnProperty('measuredValue') ? msg.data.measuredValue : parseFloat(msg.data['32']) / 1000.0;
+            const pressure = msg.data.measuredValue !== undefined ? msg.data.measuredValue : parseFloat(msg.data['32']) / 1000.0;
             return {pressure};
         },
     } satisfies Fz.Converter,
@@ -3694,7 +3639,7 @@ const converters1 = {
         },
     } satisfies Fz.Converter,
     heiman_hcho: {
-        cluster: 'heimanSpecificFormaldehydeMeasurement',
+        cluster: 'msFormaldehyde',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['measuredValue']) {
@@ -3804,14 +3749,14 @@ const converters1 = {
 
             // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
             // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
-            if (options.hasOwnProperty('time_close') && options.hasOwnProperty('time_open')) {
+            if (options.time_close !== undefined && options.time_open !== undefined) {
                 if (!globalStore.hasValue(msg.endpoint, 'position')) {
                     globalStore.putValue(msg.endpoint, 'position', {lastPreviousAction: -1, CurrentPosition: -1, since: false});
                 }
 
                 const entry = globalStore.getValue(msg.endpoint, 'position');
                 // ignore if first action is middle and ignore action middle if previous action is middle
-                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] == 50) {
+                if (msg.data.currentPositionLiftPercentage !== undefined && msg.data['currentPositionLiftPercentage'] == 50) {
                     if ((entry.CurrentPosition == -1 && entry.lastPreviousAction == -1) || entry.lastPreviousAction == 50) {
                         logger.warning(`ZMCSW032D ignore action`, NS);
                         return;
@@ -3824,7 +3769,7 @@ const converters1 = {
                 entry.since = Date.now();
                 entry.lastPreviousAction = msg.data['currentPositionLiftPercentage'];
 
-                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] == 50) {
+                if (msg.data.currentPositionLiftPercentage !== undefined && msg.data['currentPositionLiftPercentage'] == 50) {
                     if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
                         if (lastPreviousAction == 100) {
                             // Open
@@ -3841,7 +3786,7 @@ const converters1 = {
                 }
                 entry.CurrentPosition = currentPosition;
 
-                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] !== 50) {
+                if (msg.data.currentPositionLiftPercentage !== undefined && msg.data['currentPositionLiftPercentage'] !== 50) {
                     // position cast float to int
                     result.position = currentPosition | 0;
                 } else {
@@ -3856,7 +3801,7 @@ const converters1 = {
                 result.position = options.invert_cover ? 100 - result.position : result.position;
             } else {
                 // Previous solution without time_close and time_open
-                if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] !== 50) {
+                if (msg.data.currentPositionLiftPercentage !== undefined && msg.data['currentPositionLiftPercentage'] !== 50) {
                     const liftPercentage = msg.data['currentPositionLiftPercentage'];
                     result.position = liftPercentage;
                     result.position = options.invert_cover ? 100 - result.position : result.position;
@@ -3874,7 +3819,7 @@ const converters1 = {
         type: 'commandArrivalSensorNotify',
         options: [exposes.options.presence_timeout()],
         convert: (model, msg, publish, options, meta) => {
-            const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
+            const useOptionsTimeout = options && options.presence_timeout !== undefined;
             const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
 
             // Stop existing timer because motion is detected and set a new one.
@@ -3891,7 +3836,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.presence_timeout()],
         convert: (model, msg, publish, options, meta) => {
-            const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
+            const useOptionsTimeout = options && options.presence_timeout !== undefined;
             const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
 
             // Stop existing timer because motion is detected and set a new one.
@@ -3914,7 +3859,7 @@ const converters1 = {
                 commandGoOut: 'go_out',
                 commandRepast: 'repast',
             };
-            if (lookup.hasOwnProperty(msg.type)) return {action: lookup[msg.type]};
+            if (lookup[msg.type] !== undefined) return {action: lookup[msg.type]};
         },
     } satisfies Fz.Converter,
     javis_lock_report: {
@@ -3983,22 +3928,22 @@ const converters1 = {
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0xf001)) {
+            if (msg.data[0xf001] !== undefined) {
                 result.led_feedback = ['OFF', 'ON'][msg.data[0xf001]];
             }
-            if (msg.data.hasOwnProperty(0xf002)) {
+            if (msg.data[0xf002] !== undefined) {
                 result.buzzer_feedback = ['OFF', 'ON'][msg.data[0xf002]];
             }
-            if (msg.data.hasOwnProperty(0xf000)) {
+            if (msg.data[0xf000] !== undefined) {
                 result.sensitivity = msg.data[0xf000];
             }
-            if (msg.data.hasOwnProperty(0xf003)) {
+            if (msg.data[0xf003] !== undefined) {
                 result.sensors_count = msg.data[0xf003];
             }
-            if (msg.data.hasOwnProperty(0xf004)) {
+            if (msg.data[0xf004] !== undefined) {
                 result.sensors_type = ['СБМ-20/СТС-5/BOI-33', 'СБМ-19/СТС-6', 'Others'][msg.data[0xf004]];
             }
-            if (msg.data.hasOwnProperty(0xf005)) {
+            if (msg.data[0xf005] !== undefined) {
                 result.alert_threshold = msg.data[0xf005];
             }
             return result;
@@ -4009,16 +3954,16 @@ const converters1 = {
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0203)) {
+            if (msg.data[0x0203] !== undefined) {
                 result.led_feedback = ['OFF', 'ON'][msg.data[0x0203]];
             }
-            if (msg.data.hasOwnProperty(0x0202)) {
+            if (msg.data[0x0202] !== undefined) {
                 result.enable_abc = ['OFF', 'ON'][msg.data[0x0202]];
             }
-            if (msg.data.hasOwnProperty(0x0204)) {
+            if (msg.data[0x0204] !== undefined) {
                 result.threshold1 = msg.data[0x0204];
             }
-            if (msg.data.hasOwnProperty(0x0205)) {
+            if (msg.data[0x0205] !== undefined) {
                 result.threshold2 = msg.data[0x0205];
             }
             return result;
@@ -4029,7 +3974,7 @@ const converters1 = {
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0210)) {
+            if (msg.data[0x0210] !== undefined) {
                 result.temperature_offset = msg.data[0x0210];
             }
             return result;
@@ -4040,7 +3985,7 @@ const converters1 = {
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0210)) {
+            if (msg.data[0x0210] !== undefined) {
                 result.pressure_offset = msg.data[0x0210];
             }
             return result;
@@ -4051,7 +3996,7 @@ const converters1 = {
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0210)) {
+            if (msg.data[0x0210] !== undefined) {
                 result.humidity_offset = msg.data[0x0210];
             }
             return result;
@@ -4062,28 +4007,28 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0050)) {
+            if (msg.data[0x0050] !== undefined) {
                 result.state = ['idle', 'ring', 'talk', 'open', 'drop'][msg.data[0x0050]];
             }
-            if (msg.data.hasOwnProperty(0x0051)) {
+            if (msg.data[0x0051] !== undefined) {
                 result.mode = ['never', 'once', 'always', 'drop'][msg.data[0x0051]];
             }
-            if (msg.data.hasOwnProperty(0x0052)) {
+            if (msg.data[0x0052] !== undefined) {
                 result.sound = ['OFF', 'ON'][msg.data[0x0052]];
             }
-            if (msg.data.hasOwnProperty(0x0053)) {
+            if (msg.data[0x0053] !== undefined) {
                 result.time_ring = msg.data[0x0053];
             }
-            if (msg.data.hasOwnProperty(0x0054)) {
+            if (msg.data[0x0054] !== undefined) {
                 result.time_talk = msg.data[0x0054];
             }
-            if (msg.data.hasOwnProperty(0x0055)) {
+            if (msg.data[0x0055] !== undefined) {
                 result.time_open = msg.data[0x0055];
             }
-            if (msg.data.hasOwnProperty(0x0057)) {
+            if (msg.data[0x0057] !== undefined) {
                 result.time_bell = msg.data[0x0057];
             }
-            if (msg.data.hasOwnProperty(0x0056)) {
+            if (msg.data[0x0056] !== undefined) {
                 result.time_report = msg.data[0x0056];
             }
             return result;
@@ -4144,7 +4089,7 @@ const converters1 = {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('48')) {
+            if (msg.data['48'] !== undefined) {
                 const lookup: KeyValueAny = ['low', 'medium', 'high', 'very_high', 'max'];
                 return {motion_sensitivity: lookup[msg.data['48']]};
             }
@@ -4154,7 +4099,7 @@ const converters1 = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('51')) {
+            if (msg.data['51'] !== undefined) {
                 return {led_indication: msg.data['51'] === 1};
             }
         },
@@ -4163,7 +4108,7 @@ const converters1 = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('52')) {
+            if (msg.data['52'] !== undefined) {
                 const values = ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'];
                 return {device_mode: values[msg.data['52']]};
             }
@@ -4357,7 +4302,7 @@ const converters1 = {
             // simulated brightness
             if (options.simulated_brightness && (button === 'down' || button === 'up') && type !== 'release') {
                 const opts: KeyValueAny = options.simulated_brightness;
-                const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 35;
+                const deltaOpts = typeof opts === 'object' && opts.delta !== undefined ? opts.delta : 35;
                 const delta = button === 'up' ? deltaOpts : deltaOpts * -1;
                 const brightness = globalStore.getValue(msg.endpoint, 'brightness', 255) + delta;
                 payload.brightness = numberWithinRange(brightness, 0, 255);
@@ -4387,7 +4332,7 @@ const converters1 = {
                 0x64: 'press_1_and_2',
                 0x65: 'release_1_and_2',
             };
-            if (!lookup.hasOwnProperty(commandID)) {
+            if (lookup[commandID] === undefined) {
                 logger.error(`Hue Tap: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
@@ -4400,11 +4345,11 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const property = 0x8001;
 
-            if (msg.data.hasOwnProperty(property)) {
+            if (msg.data[property] !== undefined) {
                 const dict: KeyValueNumberString = {0x00: 'off', 0x01: 'on_off', 0x02: 'off_on'};
                 const value = msg.data[property];
 
-                if (dict.hasOwnProperty(value)) {
+                if (dict[value] !== undefined) {
                     return {[postfixWithEndpointName('indicator_mode', msg, model, meta)]: dict[value]};
                 }
             }
@@ -4439,11 +4384,11 @@ const converters1 = {
             const data = msg.data;
             const senslookup: KeyValueAny = {'0': 'low', '1': 'medium', '2': 'high'};
             const keeptimelookup: KeyValueAny = {'0': 0, '1': 30, '2': 60, '3': 120, '4': 240, '5': 480};
-            if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
+            if (data && data.currentZoneSensitivityLevel !== undefined) {
                 const value = data.currentZoneSensitivityLevel;
                 return {sensitivity: senslookup[value]};
             }
-            if (data && data.hasOwnProperty('61441')) {
+            if (data && data['61441'] !== undefined) {
                 const value = data['61441'];
                 return {keep_time: keeptimelookup[value]};
             }
@@ -4658,7 +4603,7 @@ const converters1 = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaOperationMode')) {
+            if (msg.data.tuyaOperationMode !== undefined) {
                 const value = msg.data['tuyaOperationMode'];
                 const lookup: KeyValueAny = {0: 'command', 1: 'event'};
                 return {operation_mode: lookup[value]};
@@ -4673,7 +4618,7 @@ const converters1 = {
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
             const lookup: KeyValueAny = {0x21: 'press_on', 0x20: 'press_off', 0x34: 'release', 0x35: 'hold_on', 0x36: 'hold_off'};
-            if (!lookup.hasOwnProperty(commandID)) {
+            if (lookup[commandID] === undefined) {
                 logger.error(`Sunricher: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
@@ -4696,7 +4641,7 @@ const converters1 = {
                 0x36: 'hold_low',
                 0x34: 'release',
             };
-            if (!lookup.hasOwnProperty(commandID)) {
+            if (lookup[commandID] === undefined) {
                 logger.error(`Sunricher: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
@@ -4751,7 +4696,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty('hwVersion')) result['hw_version'] = msg.data.hwVersion;
+            if (msg.data.hwVersion !== undefined) result['hw_version'] = msg.data.hwVersion;
             return result;
         },
     } satisfies Fz.Converter,
@@ -5003,7 +4948,7 @@ const converters2 = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: async (model, msg, publish, options, meta) => {
-            const payload = await converters1.command_arm.convert(model, msg, publish, options, meta);
+            const payload = converters1.command_arm.convert(model, msg, publish, options, meta);
             if (!payload) return;
             payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
             return payload;
@@ -5013,7 +4958,7 @@ const converters2 = {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.metering.convert(model, msg, publish, options, meta);
+            const result = converters1.metering.convert(model, msg, publish, options, meta);
             // Filter incorrect 0 energy values reported by the device:
             // https://github.com/Koenkk/zigbee2mqtt/issues/7852
             if (result && result.energy === 0) {
@@ -5029,8 +4974,8 @@ const converters2 = {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.metering.convert(model, msg, publish, options, meta);
-            if (result && result.hasOwnProperty('power')) {
+            const result = converters1.metering.convert(model, msg, publish, options, meta);
+            if (result && result.power !== undefined) {
                 result.power /= 1000;
             }
             return result;
@@ -5040,8 +4985,8 @@ const converters2 = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: async (model, msg, publish, options, meta) => {
-            const payload1 = await converters1.checkin_presence.convert(model, msg, publish, options, meta);
-            const payload2 = await converters1.command_on.convert(model, msg, publish, options, meta);
+            const payload1 = converters1.checkin_presence.convert(model, msg, publish, options, meta);
+            const payload2 = converters1.command_on.convert(model, msg, publish, options, meta);
             return {...payload1, ...payload2};
         },
     } satisfies Fz.Converter,
@@ -5064,13 +5009,12 @@ const converters2 = {
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/915
 
                 const result: KeyValueAny = {};
-                if (msg.data.hasOwnProperty('instantaneousDemand')) {
+                if (msg.data.instantaneousDemand !== undefined) {
                     result.power = msg.data['instantaneousDemand'];
                 }
                 // Summation is reported in Watthours
-                if (msg.data.hasOwnProperty('currentSummDelivered')) {
-                    const data = msg.data['currentSummDelivered'];
-                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                if (msg.data.currentSummDelivered !== undefined) {
+                    const value = msg.data['currentSummDelivered'];
                     result.energy = value / 1000.0;
                 }
                 return result;
@@ -5083,12 +5027,12 @@ const converters2 = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.thermostat.convert(model, msg, publish, options, meta);
+            const result = converters1.thermostat.convert(model, msg, publish, options, meta);
             if (result && msg.data['StelproSystemMode'] === 5) {
                 // 'Eco' mode is translated into 'auto' here
                 result.system_mode = constants.thermostatSystemModes[1];
             }
-            if (result && msg.data.hasOwnProperty('pIHeatingDemand')) {
+            if (result && msg.data.pIHeatingDemand !== undefined) {
                 result.running_state = msg.data['pIHeatingDemand'] >= 10 ? 'heat' : 'idle';
             }
             return result;
@@ -5098,7 +5042,7 @@ const converters2 = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.thermostat.convert(model, msg, publish, options, meta);
+            const result = converters1.thermostat.convert(model, msg, publish, options, meta);
 
             if (result) {
                 // ViessMann TRVs report piHeatingDemand from 0-5
@@ -5111,19 +5055,19 @@ const converters2 = {
                 // 0-2, 5: unknown
                 // 3: window open (OO on display, no heating)
                 // 4: window open (OO on display, heating)
-                if (msg.data.hasOwnProperty('viessmannWindowOpenInternal')) {
+                if (msg.data.viessmannWindowOpenInternal !== undefined) {
                     result.window_open = msg.data['viessmannWindowOpenInternal'] == 3 || msg.data['viessmannWindowOpenInternal'] == 4;
                 }
 
                 // viessmannWindowOpenForce (rw, bool)
-                if (msg.data.hasOwnProperty('viessmannWindowOpenForce')) {
+                if (msg.data.viessmannWindowOpenForce !== undefined) {
                     result.window_open_force = msg.data['viessmannWindowOpenForce'] == 1;
                 }
 
                 // viessmannAssemblyMode (ro, bool)
                 // 0: TRV installed
                 // 1: TRV ready to install (-- on display)
-                if (msg.data.hasOwnProperty('viessmannAssemblyMode')) {
+                if (msg.data.viessmannAssemblyMode !== undefined) {
                     result.assembly_mode = msg.data['viessmannAssemblyMode'] == 1;
                 }
             }
@@ -5135,7 +5079,7 @@ const converters2 = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.thermostat.convert(model, msg, publish, options, meta);
+            const result = converters1.thermostat.convert(model, msg, publish, options, meta);
             if (result) {
                 if (typeof msg.data[0x4003] == 'number') {
                     result.current_heating_setpoint = precisionRound(msg.data[0x4003], 2) / 100;
@@ -5166,7 +5110,7 @@ const converters2 = {
                 if (typeof msg.data[0x4001] == 'number') {
                     result.valve_position = msg.data[0x4001];
                 }
-                if (msg.data.hasOwnProperty('pIHeatingDemand')) {
+                if (msg.data.pIHeatingDemand !== undefined) {
                     result.running_state = msg.data['pIHeatingDemand'] >= 10 ? 'heat' : 'idle';
                 }
             }
@@ -5208,7 +5152,7 @@ const converters2 = {
                 const sidelookup: KeyValueAny = {5: 'right', 7: 'right', 40: 'left', 56: 'left'};
                 if (sidelookup[value]) {
                     msg.data.occupancy = 1;
-                    const payload = (await converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta)) as KeyValueAny;
+                    const payload = converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
                     if (payload) {
                         payload.action_side = sidelookup[value];
                         payload.side = sidelookup[value]; /* legacy: remove this line (replaced by action_side) */
@@ -5225,15 +5169,15 @@ const converters2 = {
         convert: async (model, msg, publish, options, meta) => {
             let result: KeyValueAny = {};
             const data = msg.data;
-            if (data && data.hasOwnProperty('zoneStatus')) {
-                const result1 = await converters1.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
+            if (data && data.zoneStatus !== undefined) {
+                const result1 = converters1.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
                 result = {...result1};
             }
-            if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
+            if (data && data.currentZoneSensitivityLevel !== undefined) {
                 const senslookup: KeyValueAny = {'0': 'low', '1': 'medium', '2': 'high'};
                 result.sensitivity = senslookup[data.currentZoneSensitivityLevel];
             }
-            if (data && data.hasOwnProperty('61441')) {
+            if (data && data['61441'] !== undefined) {
                 const keeptimelookup: KeyValueAny = {'0': 30, '1': 60, '2': 120};
                 result.keep_time = keeptimelookup[data['61441']];
             }
@@ -5244,9 +5188,9 @@ const converters2 = {
         cluster: 'lightingBallastCfg',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
+            const result = converters1.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
             const lookup: KeyValueAny = {1: 'RC', 2: 'RL'};
-            if (result && msg.data.hasOwnProperty(0xe000)) {
+            if (result && msg.data[0xe000] !== undefined) {
                 result.dimmer_mode = lookup[msg.data[0xe000]];
             }
             return result;
@@ -5256,8 +5200,8 @@ const converters2 = {
         cluster: 'lightingBallastCfg',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
-            if (result && msg.data.hasOwnProperty('wiserControlMode')) {
+            const result = converters1.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
+            if (result && msg.data.wiserControlMode !== undefined) {
                 result.dimmer_mode = constants.wiserDimmerControlMode[msg.data['wiserControlMode']];
             }
             return result;
@@ -5267,29 +5211,29 @@ const converters2 = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.thermostat.convert(model, msg, publish, options, meta);
+            const result = converters1.thermostat.convert(model, msg, publish, options, meta);
 
             if (result) {
-                if (msg.data.hasOwnProperty(0xe010)) {
+                if (msg.data[0xe010] !== undefined) {
                     // wiserSmartZoneMode
                     const lookup: KeyValueAny = {1: 'manual', 2: 'schedule', 3: 'energy_saver', 6: 'holiday'};
                     result['zone_mode'] = lookup[msg.data[0xe010]];
                 }
-                if (msg.data.hasOwnProperty(0xe011)) {
+                if (msg.data[0xe011] !== undefined) {
                     // wiserSmartHactConfig
                     const lookup: KeyValueAny = {0x00: 'unconfigured', 0x80: 'setpoint_switch', 0x82: 'setpoint_fip', 0x83: 'fip_fip'};
                     result['hact_config'] = lookup[msg.data[0xe011]];
                 }
-                if (msg.data.hasOwnProperty(0xe020)) {
+                if (msg.data[0xe020] !== undefined) {
                     // wiserSmartCurrentFilPiloteMode
                     const lookup: KeyValueAny = {0: 'comfort', 1: 'comfort_-1', 2: 'comfort_-2', 3: 'energy_saving', 4: 'frost_protection', 5: 'off'};
                     result['fip_setting'] = lookup[msg.data[0xe020]];
                 }
-                if (msg.data.hasOwnProperty(0xe030)) {
+                if (msg.data[0xe030] !== undefined) {
                     // wiserSmartValvePosition
                     result['pi_heating_demand'] = msg.data[0xe030];
                 }
-                if (msg.data.hasOwnProperty(0xe031)) {
+                if (msg.data[0xe031] !== undefined) {
                     // wiserSmartValveCalibrationStatus
                     const lookup: KeyValueAny = {0: 'ongoing', 1: 'successful', 2: 'uncalibrated', 3: 'failed_e1', 4: 'failed_e2', 5: 'failed_e3'};
                     result['valve_calibration_status'] = lookup[msg.data[0xe031]];
@@ -5298,8 +5242,8 @@ const converters2 = {
                 // force an update of the value if it doesn't match the current existing value
                 if (
                     meta.device.modelID === 'EH-ZB-VACT' &&
-                    msg.data.hasOwnProperty('occupiedHeatingSetpoint') &&
-                    meta.state.hasOwnProperty('occupied_heating_setpoint')
+                    msg.data.occupiedHeatingSetpoint !== undefined &&
+                    meta.state.occupied_heating_setpoint !== undefined
                 ) {
                     if (result.occupied_heating_setpoint != meta.state.occupied_heating_setpoint) {
                         const lookup: KeyValueAny = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
@@ -5353,13 +5297,13 @@ const converters2 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('64515')) {
+            if (msg.data['64515'] !== undefined) {
                 result['min_brightness'] = utils.mapNumberRange(msg.data['64515'], 0, 1000, 1, 255);
             }
-            if (msg.data.hasOwnProperty('64516')) {
+            if (msg.data['64516'] !== undefined) {
                 result['max_brightness'] = utils.mapNumberRange(msg.data['64516'], 0, 1000, 1, 255);
             }
-            if (msg.data.hasOwnProperty('61440')) {
+            if (msg.data['61440'] !== undefined) {
                 const propertyName = utils.postfixWithEndpointName('brightness', msg, model, meta);
                 result[propertyName] = utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255);
             }
@@ -5371,7 +5315,7 @@ const converters2 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('64514')) {
+            if (msg.data['64514'] !== undefined) {
                 const lookup: KeyValue = {0: 'led', 1: 'incandescent', 2: 'halogen'};
                 result['light_type'] = lookup[msg.data['64514']];
             }
@@ -5383,7 +5327,7 @@ const converters2 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('64514')) {
+            if (msg.data['64514'] !== undefined) {
                 const lookup: KeyValue = {0: 'momentary', 1: 'toggle', 2: 'state'};
                 const propertyName = utils.postfixWithEndpointName('switch_type', msg, model, meta);
                 result[propertyName] = lookup[msg.data['64514']];
