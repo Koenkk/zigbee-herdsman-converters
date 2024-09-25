@@ -2731,7 +2731,7 @@ export const fromZigbee = {
                         logger.debug(`Unhandled key ${key} = ${value}`, 'zhc:lumi:trv');
                         break;
                     default:
-                        logger.warning(`Unknown key ${key} = ${value}`, 'zhc:lumi:trv');
+                        logger.debug(`Unknown key ${key} = ${value}`, 'zhc:lumi:trv');
                 }
             });
             return result;
@@ -3997,7 +3997,7 @@ export const toZigbee = {
                     break;
                 }
                 default: // Unknown key
-                    logger.warning(`Unhandled key ${key}`, 'zhc:lumi:trv');
+                    logger.debug(`Unhandled key ${key}`, 'zhc:lumi:trv');
             }
         },
         convertGet: async (entity, key, meta) => {
