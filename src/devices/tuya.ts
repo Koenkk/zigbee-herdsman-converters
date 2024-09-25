@@ -3656,7 +3656,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_gbshwgag'}],
         model: 'TS0001_switch_module_2',
-        vendor: 'TuYa',
+        vendor: 'Tuya',
         description: '1 gang switch with backlight',
         extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, backlightModeOffOn: true, indicatorMode: true})],
         configure: async (device, coordinatorEndpoint) => {
