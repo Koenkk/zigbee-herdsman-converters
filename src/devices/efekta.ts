@@ -777,7 +777,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             pressure({
-                endpointName: 1,
+                endpointNames: ['1'],
                 unit: 'kPa',
                 description: 'pressure in kPa',
                 scale: 10,
@@ -896,7 +896,6 @@ const definitions: DefinitionWithExtend[] = [
                 voltageReportingConfig: sixReporting,
             }),
             numeric({
-                endpointName: 1,
                 name: 'uptime',
                 unit: 'Hours',
                 cluster: 'genTime',
@@ -907,7 +906,6 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
             numeric({
-                endpointName: 1,
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 1,
@@ -917,7 +915,6 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval. Setting the time in seconds, by default 15 seconds',
             }),
             enumLookup({
-                endpointName: 1,
                 name: 'tx_radio_power',
                 lookup: {'0': 0, '4': 4},
                 cluster: 'genPowerCfg',
@@ -925,7 +922,6 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set TX Radio Power, dbm',
             }),
             binary({
-                endpointName: 1,
                 name: 'pool_rate_on',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -934,7 +930,6 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable Smart Sleep, short wakeup every 7 seconds',
             }),
             binary({
-                endpointName: 1,
                 name: 'config_report_enable',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -943,7 +938,6 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable reporting based on reporting configuration',
             }),
             binary({
-                endpointName: 1,
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1085,7 +1079,6 @@ const definitions: DefinitionWithExtend[] = [
                 voltageReportingConfig: sixReporting,
             }),
             numeric({
-                endpointName: 1,
                 name: 'uptime',
                 unit: 'Hours',
                 cluster: 'genTime',
@@ -1096,7 +1089,6 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
             numeric({
-                endpointName: 1,
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 1,
@@ -1106,7 +1098,6 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval. Setting the time in seconds, by default 30 seconds',
             }),
             enumLookup({
-                endpointName: 1,
                 name: 'tx_radio_power',
                 lookup: {'0': 0, '4': 4, '10': 10, '19': 19},
                 cluster: 'genPowerCfg',
@@ -1114,7 +1105,6 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set TX Radio Power, dbm',
             }),
             binary({
-                endpointName: 1,
                 name: 'pool_rate_on',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1123,7 +1113,6 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable Smart Sleep, short wakeup every 7 seconds',
             }),
             binary({
-                endpointName: ['1'],
                 name: 'config_report_enable',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1132,7 +1121,6 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable reporting based on reporting configuration',
             }),
             binary({
-                endpointName: 1,
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
