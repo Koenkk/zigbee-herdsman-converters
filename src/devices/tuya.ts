@@ -6582,6 +6582,64 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_mwomyz5n']),
+        model: 'TGM50-ZB',
+        vendor: 'Tuya',
+        description: 'Beok Wall Thermostat',
+        onEvent: tuya.onEvent({timeStart: '1970'}),
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.child_lock(),
+            e.temperature_sensor_select(['internal', 'external', 'both']),
+            e
+                .climate()
+                .withSystemMode(['off', 'heat'], ea.STATE_SET)
+                .withPreset(['manual', 'auto'])
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET),
+            e.enum('backlight_mode', ea.STATE_SET, ['off', 'always_low', 'always_mid', 'always_high']).withDescription('Intensity of the backlight'),
+            e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('Antifreeze function'),
+            e
+                .max_temperature_limit()
+                .withUnit('°C')
+                .withValueMin(15)
+                .withValueMax(90)
+                .withValueStep(0.5)
+                .withPreset('default', 60, 'Default value')
+                .withDescription('Maximum upper temperature'),
+            e
+                .numeric('temperature_delta', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMax(10)
+                .withValueMin(0.5)
+                .withValueStep(0.5)
+                .withPreset('default', 1, 'Default value')
+                .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
+            e.binary('factory_reset', ea.STATE_SET, 'ON', 'OFF').withDescription('Full factory reset, use with caution!'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [3, 'local_temperature', tuya.valueConverter.divideBy10],
+                [4, 'preset', tuya.valueConverterBasic.lookup({manual: tuya.enum(0), auto: tuya.enum(1)})],
+                [9, 'child_lock', tuya.valueConverter.lockUnlock],
+                [15, 'max_temperature_limit', tuya.valueConverter.divideBy10],
+                [19, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration3],
+                [101, 'running_state', tuya.valueConverterBasic.lookup({heat: tuya.enum(1), idle: tuya.enum(0)})],
+                [102, 'frost_protection', tuya.valueConverter.onOff],
+                [103, 'factory_reset', tuya.valueConverter.onOff],
+                [106, 'sensor', tuya.valueConverterBasic.lookup({internal: tuya.enum(0), external: tuya.enum(1), both: tuya.enum(2)})],
+                [107, 'temperature_delta', tuya.valueConverter.divideBy10],
+                [110, 'backlight_mode', tuya.valueConverterBasic.lookup({off: tuya.enum(0), always_low: tuya.enum(1), always_mid: tuya.enum(2), always_high: tuya.enum(3)})],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay', '_TZE204_myd45weu']),
         model: 'TS0222_temperature_humidity',
         vendor: 'Tuya',
