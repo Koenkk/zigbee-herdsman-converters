@@ -945,7 +945,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0205, type: 0x10},
                 description: 'Enable сontrol of comparison with previous data',
             }),
-    ],
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpointOne = device.getEndpoint(1);
             const overrides0 = {min: 7200, max: 43200, change: 1};
@@ -1128,7 +1128,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0205, type: 0x10},
                 description: 'Enable сontrol of comparison with previous data',
             }),
-    ],
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpointOne = device.getEndpoint(1);
             const overrides0 = {min: 7200, max: 43200, change: 1};
