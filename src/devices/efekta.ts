@@ -773,7 +773,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['EFEKTA_PST_DUO_V1'],
         model: 'EFEKTA_PST_DUO_V1',
         vendor: 'EFEKTA',
-        description: '[EFEKTA PST DUO V1 - Smart water/gas pressure monitor with two sensors.](http://efektalab.com/PST_DUO)',
+        description: 'Smart water/gas pressure monitor with two sensors.',
         extend: [
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             pressure({
@@ -912,7 +912,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 360,
                 cluster: 'genPowerCfg',
                 attribute: {ID: 0x0201, type: 0x21},
-                description: 'Setting the sensor reading interval. Setting the time in seconds, by default 15 seconds',
+                description: 'Setting the sensor reading interval in seconds, by default 15 seconds',
             }),
             enumLookup({
                 name: 'tx_radio_power',
@@ -943,7 +943,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOff: ['OFF', 0],
                 cluster: 'genPowerCfg',
                 attribute: {ID: 0x0205, type: 0x10},
-                description: 'Enable сontrol of comparison with previous data, when in non-report configuration mode',
+                description: 'Enable сontrol of comparison with previous data',
             }),
     ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -956,7 +956,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['EFEKTA_PST_DUO_V1_LR'],
         model: 'EFEKTA_PST_DUO_V1_LR',
         vendor: 'EFEKTA',
-        description: '[EFEKTA PST DUO V1 LR - Smart water/gas pressure monitor with two sensors with and signal amplifier.](http://efektalab.com/PST_DUO)',
+        description: 'Smart water/gas pressure monitor with two sensors with and signal amplifier.',
         extend: [
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             pressure({
@@ -1095,7 +1095,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 360,
                 cluster: 'genPowerCfg',
                 attribute: {ID: 0x0201, type: 0x21},
-                description: 'Setting the sensor reading interval. Setting the time in seconds, by default 30 seconds',
+                description: 'Setting the sensor reading interval in seconds, by default 30 seconds',
             }),
             enumLookup({
                 name: 'tx_radio_power',
@@ -1126,7 +1126,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOff: ['OFF', 0],
                 cluster: 'genPowerCfg',
                 attribute: {ID: 0x0205, type: 0x10},
-                description: 'Enable сontrol of comparison with previous data, when in non-report configuration mode',
+                description: 'Enable сontrol of comparison with previous data',
             }),
     ],
         configure: async (device, coordinatorEndpoint, logger) => {
