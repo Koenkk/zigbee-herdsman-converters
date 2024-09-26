@@ -1,5 +1,4 @@
 import {Zcl} from 'zigbee-herdsman';
-import * as reporting from '../lib/reporting';
 
 import {
     battery,
@@ -14,6 +13,7 @@ import {
     soilMoisture,
     temperature,
 } from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
 const defaultReporting = {min: 0, max: 300, change: 0};
