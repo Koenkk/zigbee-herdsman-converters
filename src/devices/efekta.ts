@@ -807,9 +807,9 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
             temperature({
-                 endpointNames: ['1'],
-                 description: 'Measured value of the first temperature sensor',
-                 reporting: fourReporting,
+                endpointNames: ['1'],
+                description: 'Measured value of the first temperature sensor',
+                reporting: fourReporting,
                 access: 'STATE',
             }),
             numeric({
@@ -837,7 +837,7 @@ const definitions: DefinitionWithExtend[] = [
                 unit: 'kPa',
                 description: 'pressure in kPa',
                 scale: 10,
-                 reporting: threeReporting,
+                reporting: threeReporting,
                 access: 'STATE',
             }),
             numeric({
