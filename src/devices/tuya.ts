@@ -6635,7 +6635,16 @@ const definitions: DefinitionWithExtend[] = [
                 [103, 'factory_reset', tuya.valueConverter.onOff],
                 [106, 'sensor', tuya.valueConverterBasic.lookup({internal: tuya.enum(0), external: tuya.enum(1), both: tuya.enum(2)})],
                 [107, 'temperature_delta', tuya.valueConverter.divideBy10],
-                [110, 'backlight_mode', tuya.valueConverterBasic.lookup({off: tuya.enum(0), always_low: tuya.enum(1), always_mid: tuya.enum(2), always_high: tuya.enum(3)})],
+                [
+                    110,
+                    'backlight_mode',
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        always_low: tuya.enum(1),
+                        always_mid: tuya.enum(2),
+                        always_high: tuya.enum(3),
+                    }),
+                ],
             ],
         },
     },
