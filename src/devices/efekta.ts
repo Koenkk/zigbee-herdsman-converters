@@ -952,7 +952,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.batteryAlarmState(endpointOne, overrides0);
         },
     },
-        {
+    {
         zigbeeModel: ['EFEKTA_PST_DUO_V1_LR'],
         model: 'EFEKTA_PST_DUO_V1_LR',
         vendor: 'EFEKTA',
