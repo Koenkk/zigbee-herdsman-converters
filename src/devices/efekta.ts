@@ -833,7 +833,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first temperature sensor',
             }),
             pressure({
-                 endpointNames: ['2'],
+                endpointNames: ['2'],
                 unit: 'kPa',
                 description: 'pressure in kPa',
                 scale: 10,
@@ -863,9 +863,9 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
             temperature({
-                 endpointNames: ['2'],
-                 description: 'Measured value of the second temperature sensor',
-                 reporting: fourReporting,
+                endpointNames: ['2'],
+                description: 'Measured value of the second temperature sensor',
+                reporting: fourReporting,
                 access: 'STATE',
             }),
             numeric({
@@ -900,7 +900,7 @@ const definitions: DefinitionWithExtend[] = [
                 unit: 'Hours',
                 cluster: 'genTime',
                 attribute: 'localTime',
-                 description: 'Uptime',
+                description: 'Uptime',
                 scale: 3600,
                 precision: 1,
                 access: 'STATE',
@@ -1016,11 +1016,11 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first temperature sensor',
             }),
             pressure({
-                 endpointNames: ['2'],
+                endpointNames: ['2'],
                 unit: 'kPa',
                 description: 'pressure in kPa',
                 scale: 10,
-                 reporting: oneReporting,
+                reporting: oneReporting,
                 access: 'STATE',
             }),
             numeric({
@@ -1046,9 +1046,9 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
             temperature({
-                 endpointNames: ['2'],
-                 description: 'Measured value of the second temperature sensor',
-                 reporting: twoReporting,
+                endpointNames: ['2'],
+                description: 'Measured value of the second temperature sensor',
+                reporting: twoReporting,
                 access: 'STATE',
             }),
             numeric({
