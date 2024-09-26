@@ -9,7 +9,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dmfguuli'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rxypyjkw'}],
         model: 'EZ200',
         vendor: 'Evanell',
         description: 'Thermostatic radiator valve',
