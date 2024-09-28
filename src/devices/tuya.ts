@@ -10088,6 +10088,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('Tuya', 'MTG275-ZB-RL', '2.4G/5.8G MmWave radar human presence motion sensor', ['_TZE204_dtzziy1e']),
             tuya.whitelabel('Tuya', 'MTG035-ZB-RL', 'Human presence sensor with relay', ['_TZE204_pfayrzcw']),
+            tuya.whitelabel('Tuya', 'MTG235-ZB-RL', '24G Human presence sensor with relay', ['_TZE204_clrdrnya']),
             tuya.whitelabel('QA', 'QASZ24R', 'mmWave 24 Ghz sensor with relay', ['_TZE284_4qznlkbu']),
         ],
         configure: tuya.configureMagicPacket,
