@@ -109,7 +109,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '404028/44435',
         vendor: 'Müller Licht',
         description: 'Tint LED Panel, color, opal white',
-        extend: [mullerLichtLight({colorTemp: {range: undefined}, color: true})],
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
         fingerprint: [
