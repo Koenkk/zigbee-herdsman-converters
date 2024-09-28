@@ -157,6 +157,7 @@ const definitions: DefinitionWithExtend[] = [
                 'scene_5',
                 'scene_6',
             ]),
+            e.action_group(),
         ],
         toZigbee: [],
     },
@@ -230,6 +231,7 @@ const definitions: DefinitionWithExtend[] = [
                 'scene_9',
                 'scene_10',
             ]),
+            e.action_group(),
         ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
