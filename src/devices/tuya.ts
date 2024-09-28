@@ -6585,7 +6585,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_mwomyz5n']),
         model: 'TGM50-ZB',
         vendor: 'Tuya',
-        description: 'Beok Wall Thermostat',
+        description: 'Beok wall thermostat',
         onEvent: tuya.onEvent({timeStart: '1970'}),
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
