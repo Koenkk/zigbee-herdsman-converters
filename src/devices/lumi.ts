@@ -3852,11 +3852,24 @@ const definitions: DefinitionWithExtend[] = [
             e
                 .binary('led_indicator', ea.STATE_SET, 'ON', 'OFF')
                 .withLabel('Disable LED at night')
-                .withDescription('LED indicator will be disabled every day from 21:00 to 09:00'),
+                .withDescription('LED indicator will be disabled every day from 21:00 to 09:00')
+                .withCategory('config'),
             e.child_lock(),
             e.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
-            e.numeric('serving_size', ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription('One serving size').withUnit('portion'),
-            e.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight').withUnit('g'),
+            e
+                .numeric('serving_size', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(10)
+                .withDescription('One serving size')
+                .withUnit('portion')
+                .withCategory('config'),
+            e
+                .numeric('portion_weight', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(20)
+                .withDescription('Portion weight')
+                .withUnit('g')
+                .withCategory('config'),
         ],
         extend: [lumiZigbeeOTA()],
         configure: async (device, coordinatorEndpoint) => {
