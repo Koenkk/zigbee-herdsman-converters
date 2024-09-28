@@ -3760,7 +3760,7 @@ export const toZigbee = {
                     break;
                 }
                 case 'led_indicator':
-                    await sendAttr(0x04170055, getFromLookup(value, {ON: 0, OFF: 1}), 1);
+                    await sendAttr(0x04170055, getFromLookup(value, {ON: 1, OFF: 0}), 1);
                     break;
                 case 'child_lock':
                     await sendAttr(0x04160055, getFromLookup(value, {UNLOCK: 0, LOCK: 1}), 1);
