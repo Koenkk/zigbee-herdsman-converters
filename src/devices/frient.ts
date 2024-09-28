@@ -22,7 +22,7 @@ const frient = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: Record<string, unknown> = {};
-                if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
+                if (msg.data?.develcoPulseConfiguration) {
                     result[utils.postfixWithEndpointName('pulse_configuration', msg, model, meta)] = msg.data['develcoPulseConfiguration'];
                 }
 
@@ -34,14 +34,14 @@ const frient = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: Record<string, unknown> = {};
-                if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
-                    result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] = constants.develcoInterfaceMode.hasOwnProperty(
-                        msg.data['develcoInterfaceMode'],
-                    )
+                if (msg.data?.develcoInterfaceMode) {
+                    result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] = constants.develcoInterfaceMode[
+                        msg.data['develcoInterfaceMode']
+                    ]
                         ? constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']]
                         : msg.data['develcoInterfaceMode'];
                 }
-                if (msg.data.hasOwnProperty('status')) {
+                if (msg.data?.status) {
                     result['battery_low'] = (msg.data.status & 2) > 0;
                     result['check_meter'] = (msg.data.status & 1) > 0;
                 }
