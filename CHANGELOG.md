@@ -1,5 +1,23 @@
 # Changelog
 
+## [20.19.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.18.0...v20.19.0) (2024-09-28)
+
+
+### Features
+
+* **add:** 929003823001, 929003823601 ([#8037](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8037)) ([45b3e0d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/45b3e0d8f92807a9765584a7517767fc0e87de7b))
+* **add:** SPM01V2.5, SPM02V2.5, SPM02V3, SDM01V1.5, SDM02V1 ([#8033](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8033)) ([6928928](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6928928f0104dd3e3ba03cac35e67ba926eecd3a))
+* **add:** TGM50-ZB ([#8030](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8030)) ([2085336](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2085336f9e5aeb99da3616cc5b93bc87da510b92))
+* **add:** TRV07 ([#8029](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8029)) ([6ba63c2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6ba63c2c2b6e3750a00ae2b11e67b47080c7270d))
+* Improve multi-endpoint support for lights ([#8031](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8031)) ([2f0567d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2f0567de785ee06e6de67a5b2cad3886fd487e0a))
+* Improvements for tint (Mueller Licht) ([#8040](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8040)) ([c2c0b4f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c2c0b4f79b47cd2bbd555ab2b6b14001ea874c54))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_clrdrnya` as Tuya MTG235-ZB-RL ([#8036](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8036)) ([ab5bc53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab5bc53612cdb5d424c765b1b603468d4f4f450d))
+* **detect:** Detect `TRADFRI bulb E26 CWS globe 800lm` as IKEA LED2109G6 [@pushpinderbal](https://github.com/pushpinderbal) https://github.com/Koenkk/zigbee2mqtt/issues/24123 ([f67d7ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f67d7ff214d452554d1de0dbc6afaa71ce8184c4))
+
 ## [20.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.17.1...v20.18.0) (2024-09-25)
 
 
