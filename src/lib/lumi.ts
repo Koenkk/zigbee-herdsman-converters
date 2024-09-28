@@ -2215,6 +2215,81 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    fp1ePresence: () => {
+        const attribute = {ID: 0x0142, type: 0x20};
+        return modernExtend.binary({
+            name: 'presence',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            access: 'STATE_GET',
+            cluster: 'manuSpecificLumi',
+            attribute: attribute,
+            description: 'Indicates whether the device detected presence',
+        });
+    },
+    fp1eMovement: () =>
+        modernExtend.enumLookup({
+            name: 'movement',
+            lookup: {unknown_0: 0, unknown_1: 1, no_presence: 2, movement: 3, no_movement: 4},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0160, type: 0x20},
+            zigbeeCommandOptions: {disableDefaultResponse: true},
+            description: 'Is movement detected?',
+            access: 'STATE_GET',
+        }),
+    fp1eTargetDistance: () =>
+        modernExtend.numeric({
+            name: 'target_distance',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x015f, type: 0x23},
+            access: 'STATE_GET',
+            description: 'Distance to the detected target',
+            scale: 100,
+            precision: 2,
+            unit: 'm',
+        }),
+    fp1eDetectionRange: () =>
+        modernExtend.numeric({
+            name: 'detection_range',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x015b, type: 0x23},
+            access: 'ALL',
+            description: 'The device will monitor presence within the detection range',
+            scale: 100,
+            precision: 2,
+            unit: 'm',
+            valueMin: 0,
+            valueMax: 6.0,
+            valueStep: 0.3,
+        }),
+    fp1eSpatialLearning: () => {
+        return {
+            isModernExtend: true,
+            exposes: [e.enum('spatial_learning', ea.SET, ['Start Learning']).withDescription('Initiate AI Spatial Learning.')],
+            toZigbee: [
+                {
+                    key: ['spatial_learning'],
+                    convertSet: async (entity, key, value, meta) => {
+                        await entity.write('manuSpecificLumi', {0x0157: {value: 1, type: 0x20}}, manufacturerOptions.lumi);
+                    },
+                },
+            ],
+        } satisfies ModernExtend;
+    },
+    fp1eRestartDevice: () => {
+        return {
+            isModernExtend: true,
+            exposes: [e.enum('restart_device', ea.SET, ['Restart Device']).withDescription('Restarts the device.')],
+            toZigbee: [
+                {
+                    key: ['restart_device'],
+                    convertSet: async (entity, key, value, meta) => {
+                        await entity.write('manuSpecificLumi', {0x00e8: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
+                    },
+                },
+            ],
+        } satisfies ModernExtend;
+    },
 };
 
 export {lumiModernExtend as modernExtend};
