@@ -2095,7 +2095,7 @@ export function numeric(args: NumericArgs): ModernExtend {
                               payloadValue = typeof scale === 'number' ? payloadValue * scale : scale(payloadValue, 'to');
                           }
                           assertNumber(payloadValue);
-                          if (precision != null) payloadValue = precisionRound(value, precision);
+                          if (precision != null) payloadValue = precisionRound(payloadValue, precision);
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
