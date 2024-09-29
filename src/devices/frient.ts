@@ -11,7 +11,7 @@ import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
-// frient/develco specific cosntants
+// frient/develco specific constants
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
 // frient/develco specific convertors
@@ -84,10 +84,10 @@ const frient = {
 
 const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['EMIZB-141'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
-        model: 'EMIZB-141', // Vendor model number, look on the device for a model number
-        vendor: 'Frient A/S', // Vendor of the device (only used for documentation and startup logging)
-        description: 'frient Electricity Meter Interface 2 LED', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+        zigbeeModel: ['EMIZB-141'],
+        model: 'EMIZB-141',
+        vendor: 'Frient A/S',
+        description: 'frient Electricity Meter Interface 2 LED',
         fromZigbee: [fz.metering, fz.battery, frient.fz.pulse_configuration, frient.fz.interface_mode],
         toZigbee: [frient.tz.pulse_configuration, frient.tz.interface_mode, frient.tz.current_summation],
         extend: [ota()],
