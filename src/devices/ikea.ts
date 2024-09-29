@@ -386,7 +386,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LED2005R5/LED2106R3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, white spectrum, 345/380 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
+        extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
+            ikeaLight({
+                colorTemp: true,
+                levelConfig: {disabledFeatures: ['on_off_transition_time', 'on_transition_time', 'off_transition_time', 'on_level']},
+            }),
+            identify(),
+        ],
     },
     // #endregion GU10
     // #region light panels
