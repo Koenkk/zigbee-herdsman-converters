@@ -1255,6 +1255,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ryfmq5rl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_c2fmom5z'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_mja3fuja'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_c2fmom5z'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_yvx5lh6k'},
         ],
         model: 'TS0601_air_quality_sensor',
