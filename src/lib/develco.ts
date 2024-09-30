@@ -2,7 +2,8 @@ import {Zcl} from 'zigbee-herdsman';
 
 import {presets as e, access as ea} from './exposes';
 import {deviceAddCustomCluster, deviceTemperature, numeric, NumericArgs, temperature} from './modernExtend';
-import {Configure, Fz, ModernExtend} from './types';
+import {Configure, Fz, ModernExtend, Tz} from './types';
+import {getOptions, postfixWithEndpointName} from './utils';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
@@ -170,4 +171,61 @@ export const develcoModernExtend = {
             valueIgnore: [0xffff, -0x8000],
             ...args,
         }),
+    current_summation: () =>
+        ({
+            isModernExtend: true,
+            toZigbee: [
+                {
+                    key: ['current_summation'],
+                    convertSet: async (entity, key, value, meta) => {
+                        await entity.write('seMetering', {develcoCurrentSummation: value}, getOptions(meta.mapped, entity));
+                        return {state: {current_summation: value}};
+                    },
+                } satisfies Tz.Converter,
+            ],
+            exposes: [
+                e
+                    .numeric('current_summation', ea.SET)
+                    .withDescription('Current summation value sent to the display. e.g. 570 = 0,570 kWh')
+                    .withValueMin(0)
+                    .withValueMax(268435455),
+            ],
+        }) satisfies ModernExtend,
+    pulse_configuration: () =>
+        ({
+            isModernExtend: true,
+            fromZigbee: [
+                {
+                    cluster: 'seMetering',
+                    type: ['attributeReport', 'readResponse'],
+                    convert: (model, msg, publish, options, meta) => {
+                        const result: Record<string, unknown> = {};
+                        if (msg.data?.develcoPulseConfiguration) {
+                            result[postfixWithEndpointName('pulse_configuration', msg, model, meta)] = msg.data['develcoPulseConfiguration'];
+                        }
+
+                        return result;
+                    },
+                } satisfies Fz.Converter,
+            ],
+            toZigbee: [
+                {
+                    key: ['pulse_configuration'],
+                    convertSet: async (entity, key, value, meta) => {
+                        await entity.write('seMetering', {develcoPulseConfiguration: value}, getOptions(meta.mapped, entity));
+                        return {readAfterWriteTime: 200, state: {pulse_configuration: value}};
+                    },
+                    convertGet: async (entity, key, meta) => {
+                        await entity.read('seMetering', ['develcoPulseConfiguration'], manufacturerOptions);
+                    },
+                } satisfies Tz.Converter,
+            ],
+            exposes: [
+                e
+                    .numeric('pulse_configuration', ea.ALL)
+                    .withValueMin(0)
+                    .withValueMax(65535)
+                    .withDescription('Pulses per kwh. Default 1000 imp/kWh. Range 0 to 65535'),
+            ],
+        }) satisfies ModernExtend,
 };
