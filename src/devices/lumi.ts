@@ -1892,6 +1892,34 @@ const definitions: DefinitionWithExtend[] = [
         extend: [lumiZigbeeOTA()],
     },
     {
+        zigbeeModel: ['lumi.sensor_occupy.agl1'],
+        model: 'FP1E',
+        vendor: 'Aqara',
+        description: 'Presence sensor',
+        fromZigbee: [lumi.fromZigbee.lumi_specific],
+        toZigbee: [lumi.toZigbee.lumi_motion_sensitivity],
+        exposes: [
+            e.device_temperature(),
+            e.power_outage_count(),
+            e.motion_sensitivity_select(['low', 'medium', 'high']).withDescription('Select motion sensitivity to use.'),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            // Retrieve motion sensitivity value
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: manufacturerCode});
+        },
+        extend: [
+            lumiZigbeeOTA(),
+            lumi.lumiModernExtend.fp1ePresence(),
+            lumi.lumiModernExtend.fp1eMovement(),
+            lumi.lumiModernExtend.fp1eTargetDistance(),
+            lumi.lumiModernExtend.fp1eDetectionRange(),
+            lumi.lumiModernExtend.fp1eSpatialLearning(),
+            lumi.lumiModernExtend.fp1eRestartDevice(),
+            identify(),
+        ],
+    },
+    {
         zigbeeModel: ['lumi.sensor_magnet'],
         model: 'MCCGQ01LM',
         vendor: 'Xiaomi',
