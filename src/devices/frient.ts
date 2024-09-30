@@ -9,7 +9,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['EMIZB-141'],
         model: 'EMIZB-141',
-        vendor: 'Frient A/S',
+        vendor: 'Frient',
         description: 'frient Electricity Meter Interface 2 LED',
         extend: [
             ota(),
