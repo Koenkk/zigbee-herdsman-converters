@@ -5306,7 +5306,7 @@ const definitions: DefinitionWithExtend[] = [
                 [14, 'battery_low', tuya.valueConverter.trueFalse0],
             ],
         },
-        whiteLabel: [tuya.whitelabel('Nous', 'E8', 'Smoke sensor', ['_TZE200_0zaf1cr8'])],
+        whiteLabel: [tuya.whitelabel('Nous', 'E8', 'Smoke sensor', ['_TZE200_0zaf1cr8', '_TZE284_0zaf1cr8'])],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ntcy3xu1'}],
