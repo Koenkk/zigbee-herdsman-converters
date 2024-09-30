@@ -484,7 +484,7 @@ export const valueConverterBasic = {
                 const value = Object.entries(m).find((i) => i[1].valueOf() === v);
                 if (!value) {
                     if (fallbackValue !== undefined) return fallbackValue;
-                    throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(m)}`);
+                    throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(m).map((i) => i.valueOf())}`);
                 }
                 return value[0];
             },
