@@ -12130,7 +12130,7 @@ const definitions: DefinitionWithExtend[] = [
                 [101, 'illuminance', tuya.valueConverter.raw],
             ],
         },
-    }
+    },
 ];
 
 export default definitions;
