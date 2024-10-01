@@ -10196,7 +10196,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.enum('state', ea.STATE, ['none', 'presence', 'move']).withDescription('Presence state sensor'),
             e.presence().withDescription('Occupancy'),
-            e.numeric('distance', ea.STATE).withDescription('Target distance'),
+            e.numeric('distance', ea.STATE).withUnit('m').withDescription('Target distance'),
             e.illuminance_lux().withDescription('Illuminance sensor'),
             e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
             e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
@@ -10225,11 +10225,11 @@ const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [104, 'presence', tuya.valueConverter.trueFalse1],
-                [2, 'move_sensitivity', tuya.valueConverter.divideBy10],
-                [102, 'presence_sensitivity', tuya.valueConverter.divideBy10],
+                [2, 'move_sensitivity', tuya.valueConverter.raw],
+                [102, 'presence_sensitivity', tuya.valueConverter.raw],
                 [3, 'detection_distance_min', tuya.valueConverter.divideBy100],
                 [4, 'detection_distance_max', tuya.valueConverter.divideBy100],
-                [9, 'distance', tuya.valueConverter.divideBy100],
+                [9, 'distance', tuya.valueConverter.divideBy10],
                 [105, 'presence_timeout', tuya.valueConverter.raw],
                 [103, 'illuminance_lux', tuya.valueConverter.raw],
                 [1, 'state', tuya.valueConverterBasic.lookup({none: 0, presence: 1, move: 2})],
