@@ -12114,6 +12114,22 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ppuj1vem']),
+        model: 'ZPIR-10',
+        vendor: 'Tuya',
+        description: 'Treatlife human presence sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [e.occupancy(), e.battery(), e.illuminance()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'occupancy', tuya.valueConverter.trueFalse0],
+                [4, 'battery', tuya.valueConverter.raw],
+                [101, 'illuminance', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
 
 export default definitions;
