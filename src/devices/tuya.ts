@@ -12121,7 +12121,6 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Treatlife Human presence sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
         exposes: [e.occupancy(), e.battery(), e.illuminance()],
         meta: {
             tuyaDatapoints: [
