@@ -2,16 +2,8 @@ import {Zcl} from 'zigbee-herdsman';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {
-    power,
-    voltage,
-    current,
-    energy,
-} as exposes from '../lib/exposes';
-import {
-    readEletricalMeasurementMultiplierDivisors,
-    readMeteringMultiplierDivisor,
-} as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
+import * as reporting from '../lib/reporting';
 import {
     addCustomClusterManuSpecificIkeaAirPurifier,
     addCustomClusterManuSpecificIkeaUnknown,
