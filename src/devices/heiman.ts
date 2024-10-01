@@ -116,7 +116,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()]],
+        exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
         zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EM'],
