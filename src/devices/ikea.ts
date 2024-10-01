@@ -1,5 +1,17 @@
 import {Zcl} from 'zigbee-herdsman';
 
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import {
+    power,
+    voltage,
+    current,
+    energy,
+} as exposes from '../lib/exposes';
+import {
+    readEletricalMeasurementMultiplierDivisors,
+    readMeteringMultiplierDivisor,
+} as reporting from '../lib/reporting';
 import {
     addCustomClusterManuSpecificIkeaAirPurifier,
     addCustomClusterManuSpecificIkeaUnknown,
@@ -30,7 +42,6 @@ import {
     commandsWindowCovering,
     deviceAddCustomCluster,
     deviceEndpoints,
-    electricityMeter,
     humidity,
     iasZoneAlarm,
     identify,
@@ -44,6 +55,9 @@ import {
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import {DefinitionWithExtend} from '../lib/types';
+
+const e = exposes.presets;
+const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     // #region light
@@ -602,7 +616,30 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E2206',
         vendor: 'IKEA',
         description: 'INSPELNING smart plug',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta(), electricityMeter()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta()],
+        fromZigbee: [fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.currentsummdelivered],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+            // Enable reporting of powerDivisor, needs to change dynamically with the amount of power 
+            // For details, see: https://github.com/Koenkk/zigbee2mqtt/issues/23961#issuecomment-2366733453
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                { attribute: 'acPowerDivisor', minimumReportInterval: 5, maximumReportInterval: 3600, reportableChange: 1 }
+            ]);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.rmsVoltage(endpoint, { min: 10, change: 10 }); // Report Voltage every 10 seconds - Min change of 1V
+            await reporting.rmsCurrent(endpoint, { min: 10, change: 10 }); // Report Ampere every 10 seconds - Min change of 0,01A
+            await reporting.activePower(endpoint, { min: 10, change: 10 }); // Report Watt every 10 seconds - Min change of 1W
+            await reporting.currentSummDelivered(endpoint, { min: 300 }); // Report kWh every 5min
+        },
+        exposes: [
+            e.power().withAccess(ea.STATE_GET),
+            e.voltage().withAccess(ea.STATE_GET),
+            e.current().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET)
+        ],                
     },
     // #endregion on/off controls
     // #region blinds
