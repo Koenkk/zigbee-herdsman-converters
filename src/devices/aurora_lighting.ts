@@ -57,7 +57,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
         // Battery level is only reported on first endpoint
         await reporting.batteryVoltage(endpoints[0]);
 
-        for await (const endpoint of endpoints) {
+        for (const endpoint of endpoints) {
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
 
             await disableBatteryRotaryDimmerReporting(endpoint);
