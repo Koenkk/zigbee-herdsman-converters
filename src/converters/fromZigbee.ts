@@ -740,8 +740,8 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const payload: KeyValueAny = {};
-            const multiplier = msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier') as number;
-            const divisor = msg.endpoint.getClusterAttributeValue('seMetering', 'divisor') as number;
+            const multiplier = (msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier') ?? 1) as number;
+            const divisor = (msg.endpoint.getClusterAttributeValue('seMetering', 'divisor') ?? 1000) as number;
             const factor = multiplier && divisor ? multiplier / divisor : null;
 
             if (msg.data.instantaneousDemand !== undefined) {
