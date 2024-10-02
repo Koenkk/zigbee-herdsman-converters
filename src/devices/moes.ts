@@ -191,7 +191,7 @@ const definitions: DefinitionWithExtend[] = [
                     .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
             ];
 
-            if (device?.manufacturerName === '_TZE204_aoclfnxz') {
+            if (device?.manufacturerName !== '_TZE204_aoclfnxz') {
                 arr.splice(3, 0, e.min_temperature_limit());
             }
 
