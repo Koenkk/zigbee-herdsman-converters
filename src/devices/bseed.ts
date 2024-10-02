@@ -10,6 +10,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_yenbr4om'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_bdblidq3'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_bdblidq3'},
         ],
         model: 'BSEED_TS0601_cover',
         vendor: 'BSEED',

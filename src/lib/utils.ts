@@ -244,6 +244,10 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message, definiti
     return value;
 }
 
+export function exposeEndpoints<T extends Expose>(expose: T, endpointNames?: string[]): T[] {
+    return endpointNames ? (endpointNames.map((ep) => expose.clone().withEndpoint(ep)) as T[]) : [expose];
+}
+
 export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta) {
     // @ts-expect-error ignore
     const multiEndpointEnforce: {[s: string]: number} = getMetaValue(entity, meta.mapped, 'multiEndpointEnforce', 'allEqual', []);

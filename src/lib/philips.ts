@@ -10,7 +10,7 @@ import * as ota from './ota';
 import * as globalStore from './store';
 import {Fz, KeyValue, KeyValueAny, Tz} from './types';
 import * as utils from './utils';
-import {isObject} from './utils';
+import {exposeEndpoints, isObject} from './utils';
 
 const NS = 'zhc:philips';
 const ea = exposes.access;
@@ -71,12 +71,15 @@ export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolea
             }
             result.exposes.push(
                 // gradient_scene is deprecated, use gradient instead
-                e.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
-                e
-                    .list('gradient', ea.ALL, e.text('hex', ea.ALL).withDescription('Color in RGB HEX format (eg #663399)'))
-                    .withLengthMin(1)
-                    .withLengthMax(9)
-                    .withDescription('List of RGB HEX colors'),
+                ...exposeEndpoints(e.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)), args.endpointNames),
+                ...exposeEndpoints(
+                    e
+                        .list('gradient', ea.ALL, e.text('hex', ea.ALL).withDescription('Color in RGB HEX format (eg #663399)'))
+                        .withLengthMin(1)
+                        .withLengthMax(9)
+                        .withDescription('List of RGB HEX colors'),
+                    args.endpointNames,
+                ),
             );
             result.configure.push(async (device, coordinatorEndpoint, definition) => {
                 for (const ep of device.endpoints.filter((ep) => ep.supportsInputCluster('manuSpecificPhilips2'))) {
@@ -85,7 +88,7 @@ export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolea
             });
         }
         effects.push('finish_effect', 'stop_effect', 'stop_hue_effect');
-        result.exposes.push(e.enum('effect', ea.SET, effects));
+        result.exposes.push(...exposeEndpoints(e.enum('effect', ea.SET, effects), args.endpointNames));
     }
     return result;
 }
