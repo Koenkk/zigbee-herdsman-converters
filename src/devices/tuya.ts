@@ -6553,10 +6553,10 @@ const definitions: DefinitionWithExtend[] = [
                     'working_day',
                     tuya.valueConverterBasic.lookup((_, device) => {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/23979
-                        if (device.manufacturerName === '_TZE204_lzriup1j') {
-                            return {disabled: tuya.enum(0), '6-1': tuya.enum(2), '5-2': tuya.enum(1), '7': tuya.enum(3)};
-                        } else {
+                        if (device.manufacturerName === '_TZE200_viy9ihs7') {
                             return {disabled: tuya.enum(0), '6-1': tuya.enum(1), '5-2': tuya.enum(2), '7': tuya.enum(3)};
+                        } else {
+                            return {disabled: tuya.enum(0), '6-1': tuya.enum(2), '5-2': tuya.enum(1), '7': tuya.enum(3)};
                         }
                     }),
                 ],
