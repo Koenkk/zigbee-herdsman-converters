@@ -1,5 +1,18 @@
 # Changelog
 
+## [20.22.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.21.0...v20.22.0) (2024-10-02)
+
+
+### Features
+
+* Expose test attribute for HEIMAN HS1SA ([#8061](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8061)) ([a4d9c01](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a4d9c0108936b91d64cd5d6a3209400d7706ca0b))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_0zaf1cr8` as Nous E8 https://github.com/Koenkk/zigbee2mqtt/issues/23941 ([101b9cd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/101b9cd48cfca5e8773631a325f5735fc0de3f24))
+* Fixes for `_TZE204_aoclfnxz` integration ([#8063](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8063)) ([6bd9ab9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6bd9ab922e454b6c2075fdca62ce4251682cc35f))
+
 ## [20.21.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.20.0...v20.21.0) (2024-10-01)
 
 
