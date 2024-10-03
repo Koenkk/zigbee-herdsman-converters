@@ -2221,7 +2221,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Hue dimmer switch',
         fromZigbee: [
             fz.ignore_command_on,
-            fz.ignore_command_off,
+            fz.ignore_command_off_with_effect,
             fz.ignore_command_step,
             fz.ignore_command_stop,
             legacy.fz.hue_dimmer_switch,
@@ -2273,7 +2273,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Hue dimmer switch',
         fromZigbee: [
             fz.ignore_command_on,
-            fz.ignore_command_off,
+            fz.ignore_command_off_with_effect,
             fz.ignore_command_step,
             fz.ignore_command_stop,
             fz.hue_dimmer_switch,

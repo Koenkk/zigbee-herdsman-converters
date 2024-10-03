@@ -4894,7 +4894,7 @@ const converters1 = {
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
-    ignore_command_off: {
+    ignore_command_off_with_effect: {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {},
