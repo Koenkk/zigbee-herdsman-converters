@@ -1600,7 +1600,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_iystcadi', '_TZ3210_mja6r5ix', '_TZ3210_it1u8ahz']),
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_iystcadi', '_TZ3210_it1u8ahz']),
         model: 'TS0505B_2',
         vendor: 'Tuya',
         description: 'Zigbee RGB+CCT light',
