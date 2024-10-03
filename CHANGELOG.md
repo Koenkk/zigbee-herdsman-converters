@@ -1,5 +1,55 @@
 # Changelog
 
+## [20.22.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.21.0...v20.22.0) (2024-10-02)
+
+
+### Features
+
+* Expose test attribute for HEIMAN HS1SA ([#8061](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8061)) ([a4d9c01](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a4d9c0108936b91d64cd5d6a3209400d7706ca0b))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_0zaf1cr8` as Nous E8 https://github.com/Koenkk/zigbee2mqtt/issues/23941 ([101b9cd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/101b9cd48cfca5e8773631a325f5735fc0de3f24))
+* Fixes for `_TZE204_aoclfnxz` integration ([#8063](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8063)) ([6bd9ab9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6bd9ab922e454b6c2075fdca62ce4251682cc35f))
+
+## [20.21.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.20.0...v20.21.0) (2024-10-01)
+
+
+### Features
+
+* Add current level startup to all IKEA TRADFRI lights ([#8049](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8049)) ([3f9376f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f9376fbf899d07a950668939a5555f2ad8366d3))
+* **add:** FP1E ([#8043](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8043)) ([047cfc0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/047cfc0c66e36dc77947f5ffb278c4567bd3c730))
+* **add:** ZPIR-10 ([#8055](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8055)) ([6dc2d41](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6dc2d41913522a0bf794ae9c26ba1b7a9e7f95ee))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_bdblidq3` as BSEED BSEED_TS0601_cover ([#8054](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8054)) ([0aa4e12](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0aa4e12e9230744722b720d0b827ff58f783cbd7))
+* **detect:** Detect `_TZE200_rxq4iti9` as EARU TRV06 ([#8056](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8056)) ([3247132](https://github.com/Koenkk/zigbee-herdsman-converters/commit/32471322b8d165c15de2d45cfb96dbfbea9daab7))
+* **detect:** Detect `_TZE204_c2fmom5z` as Tuya TS0601_air_quality_sensor ([#8051](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8051)) ([5628b9c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5628b9c4351dd4e1c746787563191479ecd21b46))
+* **detect:** Detect `_TZE284_0zaf1cr8` as Nous E8 https://github.com/Koenkk/zigbee2mqtt/issues/23941 ([13ca5a0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/13ca5a04abfb6e38a03aee0d3eb4737a18e33071))
+* Fix incorrect logging when value is not in Tuya lookup https://github.com/Koenkk/zigbee2mqtt/issues/24090 ([6b9a567](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6b9a56780a4be37f820ef8542f19aff54533c540))
+* Fix Tuya ZY-M100-24GV2 integration https://github.com/Koenkk/zigbee2mqtt/issues/21738 ([fedd916](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fedd91693c73036842682c96826665b66f5a2426))
+* Fix Tuya ZY-M100-24GV3 move/presenence sentivity range https://github.com/Koenkk/zigbee2mqtt/issues/24049 ([3aeb8ec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3aeb8ecead7fbc97d62b4c9cba8c4e0d6723e6ba))
+* **ignore:** update dependencies ([#8059](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8059)) ([c4bd3b8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c4bd3b8a1a45bc1afa752042cf72b21a93744fa4))
+* Mark GL-C-003P as color temp only (instead of color) https://github.com/Koenkk/zigbee2mqtt/issues/24091 ([ef49933](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ef499333aadd6d80717180a834861f1d10b12956))
+
+## [20.20.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.19.0...v20.20.0) (2024-09-29)
+
+
+### Features
+
+* **add:** ZBEK-32 ([#8050](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8050)) ([98440a0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/98440a0cb2fef62c09ca1ac07a838ee956eaf772))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_rxypyjkw` as Evanell EZ200 ([#8032](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8032)) ([40115c6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/40115c6a4dfd4d0cafaec9b84c0d28809a1c20e1))
+* Fix Lumi pet feeder LED indicator control ([#8041](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8041)) ([e7bd227](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e7bd227ec0814af6bb91bb5c22b7f4e862acada6))
+* Fix scaling ignored when precision is specified in a `modernExtend.numeric` ([#8048](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8048)) ([aed79ed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aed79eda0f47dc26043ec03b44677fe313a1edc2))
+* **ignore:** update dependencies ([#8046](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8046)) ([c251468](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c2514686b79cf13e8d0ccf71e4f19c822d0b125a))
+
 ## [20.19.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.18.0...v20.19.0) (2024-09-28)
 
 

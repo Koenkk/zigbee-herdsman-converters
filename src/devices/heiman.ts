@@ -116,7 +116,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery_low(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
         zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EM'],
@@ -130,7 +130,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery_low(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
         zigbeeModel: ['GASSensor-N', 'GASSensor-N-3.0', 'd90d7c61c44d468a8e906ca0841e0a0c'],

@@ -1892,6 +1892,34 @@ const definitions: DefinitionWithExtend[] = [
         extend: [lumiZigbeeOTA()],
     },
     {
+        zigbeeModel: ['lumi.sensor_occupy.agl1'],
+        model: 'FP1E',
+        vendor: 'Aqara',
+        description: 'Presence sensor',
+        fromZigbee: [lumi.fromZigbee.lumi_specific],
+        toZigbee: [lumi.toZigbee.lumi_motion_sensitivity],
+        exposes: [
+            e.device_temperature(),
+            e.power_outage_count(),
+            e.motion_sensitivity_select(['low', 'medium', 'high']).withDescription('Select motion sensitivity to use.'),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            // Retrieve motion sensitivity value
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: manufacturerCode});
+        },
+        extend: [
+            lumiZigbeeOTA(),
+            lumi.lumiModernExtend.fp1ePresence(),
+            lumi.lumiModernExtend.fp1eMovement(),
+            lumi.lumiModernExtend.fp1eTargetDistance(),
+            lumi.lumiModernExtend.fp1eDetectionRange(),
+            lumi.lumiModernExtend.fp1eSpatialLearning(),
+            lumi.lumiModernExtend.fp1eRestartDevice(),
+            identify(),
+        ],
+    },
+    {
         zigbeeModel: ['lumi.sensor_magnet'],
         model: 'MCCGQ01LM',
         vendor: 'Xiaomi',
@@ -3849,11 +3877,27 @@ const definitions: DefinitionWithExtend[] = [
                         .withFeature(e.numeric('size', exposes.access.STATE_SET)),
                 )
                 .withDescription('Feeding schedule'),
-            e.binary('led_indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('Led indicator'),
+            e
+                .binary('led_indicator', ea.STATE_SET, 'ON', 'OFF')
+                .withLabel('Disable LED at night')
+                .withDescription('LED indicator will be disabled every day from 21:00 to 09:00')
+                .withCategory('config'),
             e.child_lock(),
             e.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
-            e.numeric('serving_size', ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription('One serving size').withUnit('portion'),
-            e.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight').withUnit('g'),
+            e
+                .numeric('serving_size', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(10)
+                .withDescription('One serving size')
+                .withUnit('portion')
+                .withCategory('config'),
+            e
+                .numeric('portion_weight', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(20)
+                .withDescription('Portion weight')
+                .withUnit('g')
+                .withCategory('config'),
         ],
         extend: [lumiZigbeeOTA()],
         configure: async (device, coordinatorEndpoint) => {

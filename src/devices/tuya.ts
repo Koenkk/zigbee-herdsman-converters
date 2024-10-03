@@ -1255,6 +1255,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ryfmq5rl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_c2fmom5z'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_mja3fuja'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_c2fmom5z'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_yvx5lh6k'},
         ],
         model: 'TS0601_air_quality_sensor',
@@ -4628,6 +4629,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_p3dbf6qs' /* model: 'ME168', vendor: 'AVATTO' */,
             '_TZE200_rxntag7i' /* model: 'ME168', vendor: 'AVATTO' */,
             '_TZE200_yqgbrdyo',
+            '_TZE200_rxq4iti9',
         ]),
         model: 'TS0601_thermostat_3',
         vendor: 'Tuya',
@@ -4637,7 +4639,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('AVATTO', 'ME167', 'Thermostatic radiator valve', ['_TZE200_bvu2wnxz', '_TZE200_6rdj8dzm']),
             tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_p3dbf6qs', '_TZE200_rxntag7i']),
-            tuya.whitelabel('EARU', 'TRV06', 'Smart thermostat module', ['_TZE200_yqgbrdyo']),
+            tuya.whitelabel('EARU', 'TRV06', 'Smart thermostat module', ['_TZE200_yqgbrdyo', '_TZE200_rxq4iti9']),
         ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
@@ -5290,7 +5292,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_0zaf1cr8', '_TZE204_ntcy3xu1']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_0zaf1cr8', '_TZE204_ntcy3xu1', '_TZE284_0zaf1cr8']),
         model: 'TS0601_smoke_1',
         vendor: 'Tuya',
         description: 'Smoke sensor',
@@ -5305,7 +5307,7 @@ const definitions: DefinitionWithExtend[] = [
                 [14, 'battery_low', tuya.valueConverter.trueFalse0],
             ],
         },
-        whiteLabel: [tuya.whitelabel('Nous', 'E8', 'Smoke sensor', ['_TZE200_0zaf1cr8'])],
+        whiteLabel: [tuya.whitelabel('Nous', 'E8', 'Smoke sensor', ['_TZE200_0zaf1cr8', '_TZE284_0zaf1cr8'])],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ntcy3xu1'}],
@@ -10194,7 +10196,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.enum('state', ea.STATE, ['none', 'presence', 'move']).withDescription('Presence state sensor'),
             e.presence().withDescription('Occupancy'),
-            e.numeric('distance', ea.STATE).withDescription('Target distance'),
+            e.numeric('distance', ea.STATE).withUnit('m').withDescription('Target distance'),
             e.illuminance_lux().withDescription('Illuminance sensor'),
             e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
             e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
@@ -10223,11 +10225,11 @@ const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [104, 'presence', tuya.valueConverter.trueFalse1],
-                [2, 'move_sensitivity', tuya.valueConverter.divideBy10],
-                [102, 'presence_sensitivity', tuya.valueConverter.divideBy10],
+                [2, 'move_sensitivity', tuya.valueConverter.raw],
+                [102, 'presence_sensitivity', tuya.valueConverter.raw],
                 [3, 'detection_distance_min', tuya.valueConverter.divideBy100],
                 [4, 'detection_distance_max', tuya.valueConverter.divideBy100],
-                [9, 'distance', tuya.valueConverter.divideBy100],
+                [9, 'distance', tuya.valueConverter.divideBy10],
                 [105, 'presence_timeout', tuya.valueConverter.raw],
                 [103, 'illuminance_lux', tuya.valueConverter.raw],
                 [1, 'state', tuya.valueConverterBasic.lookup({none: 0, presence: 1, move: 2})],
@@ -10248,8 +10250,8 @@ const definitions: DefinitionWithExtend[] = [
             e.numeric('distance', ea.STATE).withDescription('Target distance'),
             e.binary('find_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('distance switch'),
             e.illuminance_lux().withDescription('Illuminance sensor'),
-            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
-            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
             e
                 .numeric('detection_distance_min', ea.STATE_SET)
                 .withValueMin(0)
@@ -12110,6 +12112,22 @@ const definitions: DefinitionWithExtend[] = [
                 [110, 'move_minimum_range', tuya.valueConverter.raw],
                 [111, 'breath_maximum_range', tuya.valueConverter.raw],
                 [112, 'breath_minimum_range', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ppuj1vem']),
+        model: 'ZPIR-10',
+        vendor: 'Tuya',
+        description: 'Treatlife human presence sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [e.occupancy(), e.battery(), e.illuminance()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'occupancy', tuya.valueConverter.trueFalse0],
+                [4, 'battery', tuya.valueConverter.raw],
+                [101, 'illuminance', tuya.valueConverter.raw],
             ],
         },
     },

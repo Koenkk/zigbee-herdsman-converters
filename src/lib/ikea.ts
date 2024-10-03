@@ -90,7 +90,10 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
 
 export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: true | {range: Range; viaColor: true}}) {
     const colorTemp: {range: Range} = args?.colorTemp ? (args.colorTemp === true ? {range: [250, 454]} : args.colorTemp) : undefined;
-    const result = lightDontUse({...args, colorTemp});
+    const levelConfig: {disabledFeatures?: string[]} = args?.levelConfig
+        ? args.levelConfig
+        : {disabledFeatures: ['on_off_transition_time', 'on_transition_time', 'off_transition_time', 'on_level']};
+    const result = lightDontUse({...args, colorTemp, levelConfig});
     result.ota = ikea;
     result.onEvent = bulbOnEvent;
     if (isObject(args?.colorTemp) && args.colorTemp.viaColor) {

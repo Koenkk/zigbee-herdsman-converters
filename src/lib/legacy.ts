@@ -3523,6 +3523,8 @@ const fromZigbee1 = {
                 case dataPoints.moesMaxTempLimit:
                     if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                         return {max_temperature_limit: value / 10};
+                    } else if (meta.device.manufacturerName === '_TZE204_aoclfnxz') {
+                        return {max_temperature: value};
                     } else {
                         return {max_temperature_limit: value};
                     }
@@ -3535,6 +3537,8 @@ const fromZigbee1 = {
                 case dataPoints.moesDeadZoneTemp:
                     if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                         return {deadzone_temperature: value / 10};
+                    } else if (meta.device.manufacturerName === '_TZE204_aoclfnxz') {
+                        return {min_temperature_limit: value};
                     } else {
                         return {deadzone_temperature: value};
                     }
