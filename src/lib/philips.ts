@@ -103,17 +103,7 @@ export function philipsOnOff(args?: modernExtend.OnOffArgs) {
 }
 
 export function philipsTwilightOnOff() {
-    const fromZigbee = [
-        fz.ignore_command_on,
-        fz.ignore_command_off,
-        // Contrary to the name, fz.ignore_command_off only ignores commandOffWithEffect.
-        {
-            cluster: 'genOnOff',
-            type: 'commandOff',
-            convert: (model, msg, publish, options, meta) => {},
-        } satisfies Fz.Converter,
-        fz.hue_twilight,
-    ];
+    const fromZigbee = [fz.ignore_command_on, fz.ignore_command_off, fz.hue_twilight];
     const exposes = [
         e.action([
             'dot_press',
