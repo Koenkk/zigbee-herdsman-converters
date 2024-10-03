@@ -4339,6 +4339,25 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
+    hue_twilight: {
+        cluster: 'manuSpecificPhilips',
+        type: 'commandHueNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const buttonLookup: KeyValueAny = {1: 'dot', 2: 'hue'};
+            const button = buttonLookup[msg.data['button']];
+            const typeLookup: KeyValueAny = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
+            const type = typeLookup[msg.data['type']];
+            const payload: KeyValueAny = {action: `${button}_${type}`};
+
+            // duration
+            if (type === 'press') globalStore.putValue(msg.endpoint, 'press_start', Date.now());
+            else if (type === 'hold' || type === 'release') {
+                payload.action_duration = (Date.now() - globalStore.getValue(msg.endpoint, 'press_start')) / 1000;
+            }
+
+            return payload;
+        },
+    } satisfies Fz.Converter,
     tuya_relay_din_led_indicator: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
