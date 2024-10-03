@@ -873,6 +873,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Luminea', 'ZX-5232', 'Smart door and window sensor', ['_TZ3000_4ugnzsli']),
             tuya.whitelabel('QA', 'QASD1', 'Door sensor', ['_TZ3000_udyjylt7']),
             tuya.whitelabel('Nous', 'E3', 'Door sensor', ['_TZ3000_v7chgqso']),
+            tuya.whitelabel('Woox', 'R7047', 'Smart Door & Window Sensor', ['_TZ3000_timx9ivq']),
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [e.contact(), e.battery(), e.battery_voltage()];
@@ -885,11 +886,12 @@ const definitions: DefinitionWithExtend[] = [
                 '_TZ3000_bpkijo14',
                 '_TZ3000_gntwytxo', // Moes ZSS-X-GWM-C
                 '_TZ3000_4ugnzsli', // Luminea ZX-5232
+                '_TZ3000_timx9ivq', //Woox R7047
             ];
             if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
-            const noBatteryLowModels = ['_TZ3000_26fmupbb', '_TZ3000_oxslv1c9', '_TZ3000_osu834un'];
+            const noBatteryLowModels = ['_TZ3000_26fmupbb', '_TZ3000_oxslv1c9', '_TZ3000_osu834un', '_TZ3000_timx9ivq'];
             if (!device || !noBatteryLowModels.includes(device.manufacturerName)) {
                 exps.push(e.battery_low());
             }
