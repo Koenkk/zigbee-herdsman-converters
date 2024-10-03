@@ -1932,7 +1932,7 @@ export interface EnumLookupArgs {
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
-    access?: 'STATE' | 'STATE_GET' | 'ALL';
+    access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     endpointName?: string;
     reporting?: ReportingConfigWithoutAttribute;
     entityCategory?: 'config' | 'diagnostic';
@@ -1995,7 +1995,7 @@ export interface NumericArgs {
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
-    access?: 'STATE' | 'STATE_GET' | 'ALL';
+    access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     unit?: string;
     endpointNames?: string[];
     reporting?: ReportingConfigWithoutAttribute;
@@ -2127,7 +2127,7 @@ export interface BinaryArgs {
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
     reporting?: ReportingConfig;
-    access?: 'STATE' | 'STATE_GET' | 'ALL';
+    access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     entityCategory?: 'config' | 'diagnostic';
 }
 export function binary(args: BinaryArgs): ModernExtend {
