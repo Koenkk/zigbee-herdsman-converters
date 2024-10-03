@@ -3834,6 +3834,13 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Hue White and Color Ambiance Datura Ceiling light small',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
+    {
+        zigbeeModel: ['LWA024'],
+        model: '9290018217A',
+        vendor: 'Philips',
+        description: 'Philips Hue White B22 Bulb 800 with Bluetooth', 
+        extend: philips.extend.light_onoff_brightness(),
+    },
 ];
 
 export default definitions;
