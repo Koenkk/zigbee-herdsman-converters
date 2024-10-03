@@ -2193,11 +2193,9 @@ const definitions: DefinitionWithExtend[] = [
       }),
     ],
     configure: async (device, coordinatorEndpoint) => {
-      device
-        .getEndpoint(1)
-        .saveClusterAttributeKeyValue("lightingColorCtrl", {
-          colorCapabilities: 29,
-        });
+      device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
+        colorCapabilities: 29,
+      });
     },
   },
   {
@@ -2233,11 +2231,9 @@ const definitions: DefinitionWithExtend[] = [
       tuya.exposes.doNotDisturb(),
     ],
     configure: async (device, coordinatorEndpoint) => {
-      device
-        .getEndpoint(1)
-        .saveClusterAttributeKeyValue("lightingColorCtrl", {
-          colorCapabilities: 29,
-        });
+      device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
+        colorCapabilities: 29,
+      });
     },
   },
   {
@@ -2266,11 +2262,9 @@ const definitions: DefinitionWithExtend[] = [
       }),
     ],
     configure: async (device, coordinatorEndpoint) => {
-      device
-        .getEndpoint(1)
-        .saveClusterAttributeKeyValue("lightingColorCtrl", {
-          colorCapabilities: 29,
-        });
+      device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
+        colorCapabilities: 29,
+      });
     },
   },
   {
@@ -4158,11 +4152,9 @@ const definitions: DefinitionWithExtend[] = [
       ]),
     ],
     configure: async (device, coordinatorEndpoint) => {
-      device
-        .getEndpoint(1)
-        .saveClusterAttributeKeyValue("lightingColorCtrl", {
-          colorCapabilities: 16,
-        });
+      device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
+        colorCapabilities: 16,
+      });
     },
   },
   {
@@ -4209,11 +4201,9 @@ const definitions: DefinitionWithExtend[] = [
       }),
     ],
     configure: async (device, coordinatorEndpoint) => {
-      device
-        .getEndpoint(1)
-        .saveClusterAttributeKeyValue("lightingColorCtrl", {
-          colorCapabilities: 16,
-        });
+      device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
+        colorCapabilities: 16,
+      });
       await tuya.configureMagicPacket(device, coordinatorEndpoint);
     },
   },
@@ -4288,11 +4278,9 @@ const definitions: DefinitionWithExtend[] = [
       ),
     ],
     configure: async (device, coordinatorEndpoint) => {
-      device
-        .getEndpoint(1)
-        .saveClusterAttributeKeyValue("lightingColorCtrl", {
-          colorCapabilities: 29,
-        });
+      device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
+        colorCapabilities: 29,
+      });
     },
   },
   {
