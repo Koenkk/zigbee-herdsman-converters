@@ -1885,7 +1885,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 configureReporting: true,
             }),
-            schneiderElectricExtend.addVisaConfigurationCluster(herdsman.Zcl.DataType.UINT8),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
             schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
             schneiderElectricExtend.visaConfigIndicatorColor(),
             schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
