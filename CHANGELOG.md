@@ -1,5 +1,21 @@
 # Changelog
 
+## [20.23.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.22.0...v20.23.0) (2024-10-03)
+
+
+### Features
+
+* **add:** 929003711201, 929003711301 ([#8069](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8069)) ([b2949e2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2949e2f8fad39d252b536f132d0fae3d666205a))
+* **add:** E13-A21 ([#8045](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8045)) ([bef15e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bef15e0278279557d74236d1c7f90996a0d8a95e))
+* **add:** R7047 ([#8067](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8067)) ([f5def68](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f5def68df7961563bc456c6b15a2e5ca7c1d7da8))
+
+
+### Bug Fixes
+
+* Fix `_TZ3210_mja6r5ix` integration https://github.com/Koenkk/zigbee2mqtt/issues/24074 ([6c19808](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6c1980821e0baa37f90043615794d539139c6d52))
+* Fix Avatto ZWT198 _TZE204_xnbkhhdr, fix reversed 6-1 and 5-2 in 'working_day' datapoint ([#8066](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8066)) ([c8b28a1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c8b28a1df084c0195290b8360149c0e1d3c3d437))
+* Fix power source unknown for some Tuya switches ([#8073](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8073)) ([d7880b9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d7880b989d1ca43b896da893e02ab584402f25f5))
+
 ## [20.22.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.21.0...v20.22.0) (2024-10-02)
 
 
