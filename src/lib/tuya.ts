@@ -25,6 +25,7 @@ import {
     Zh,
 } from './types';
 import * as utils from './utils';
+import {configureSetPowerSourceWhenUnknown} from './utils';
 
 // import {Color} from './color';
 
@@ -2175,7 +2176,9 @@ const tuyaModernExtend = {
             toZigbee.push(tuyaTz.inchingSwitch);
         }
 
-        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+        const configure = [configureSetPowerSourceWhenUnknown('Mains (single phase)')];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true, configure};
     },
     dpBacklightMode(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
         const {readOnly} = args;
