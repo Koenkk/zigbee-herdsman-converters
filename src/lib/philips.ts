@@ -1,6 +1,8 @@
 import {Zcl} from 'zigbee-herdsman';
 
+import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
 import {ColorRGB, ColorXY} from './color';
 import * as libColor from './color';
 import * as exposes from './exposes';
@@ -8,7 +10,7 @@ import {logger} from './logger';
 import * as modernExtend from './modernExtend';
 import * as ota from './ota';
 import * as globalStore from './store';
-import {Fz, KeyValue, KeyValueAny, Tz} from './types';
+import {Configure, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from './types';
 import * as utils from './utils';
 import {exposeEndpoints, isObject} from './utils';
 
@@ -97,6 +99,31 @@ export function philipsOnOff(args?: modernExtend.OnOffArgs) {
     args = {powerOnBehavior: false, ota: ota.zigbeeOTA, ...args};
     const result = modernExtend.onOff(args);
     result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+    return result;
+}
+
+export function philipsTwilightOnOff() {
+    const fromZigbee = [fz.ignore_command_on, fz.ignore_command_off, fz.hue_twilight];
+    const exposes = [
+        e.action([
+            'dot_press',
+            'dot_hold',
+            'dot_press_release',
+            'dot_hold_release',
+            'hue_press',
+            'hue_hold',
+            'hue_press_release',
+            'hue_hold_release',
+        ]),
+    ];
+    const toZigbee: Tz.Converter[] = [];
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'manuSpecificPhilips']);
+        },
+    ];
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
     return result;
 }
 
