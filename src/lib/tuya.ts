@@ -25,6 +25,7 @@ import {
     Zh,
 } from './types';
 import * as utils from './utils';
+import {configureSetPowerSourceWhenUnknown} from './utils';
 
 // import {Color} from './color';
 
@@ -484,7 +485,7 @@ export const valueConverterBasic = {
                 const value = Object.entries(m).find((i) => i[1].valueOf() === v);
                 if (!value) {
                     if (fallbackValue !== undefined) return fallbackValue;
-                    throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(m)}`);
+                    throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(m).map((i) => i.valueOf())}`);
                 }
                 return value[0];
             },
@@ -2175,7 +2176,9 @@ const tuyaModernExtend = {
             toZigbee.push(tuyaTz.inchingSwitch);
         }
 
-        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+        const configure = [configureSetPowerSourceWhenUnknown('Mains (single phase)')];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true, configure};
     },
     dpBacklightMode(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
         const {readOnly} = args;

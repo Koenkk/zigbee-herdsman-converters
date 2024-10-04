@@ -314,7 +314,16 @@ describe('ModernExtend', () => {
                 'osram_set_transition',
                 'osram_remember_state',
             ],
-            exposes: ['action', 'effect', 'light_l1(state,brightness)', 'light_l2(state,brightness)', 'light_s1(state,brightness)', 'linkquality'],
+            exposes: [
+                'action',
+                'effect',
+                'effect',
+                'effect',
+                'light_l1(state,brightness)',
+                'light_l2(state,brightness)',
+                'light_s1(state,brightness)',
+                'linkquality',
+            ],
             bind: {
                 10: ['genOnOff', 'genLevelCtrl'],
                 11: ['genOnOff', 'genLevelCtrl'],

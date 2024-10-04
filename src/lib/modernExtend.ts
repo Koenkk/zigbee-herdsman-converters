@@ -33,6 +33,7 @@ import {
     assertNumber,
     batteryVoltageToPercentage,
     configureSetPowerSourceWhenUnknown,
+    exposeEndpoints,
     flatten,
     getEndpointName,
     getFromLookup,
@@ -469,7 +470,7 @@ export interface OnOffArgs {
 export function onOff(args?: OnOffArgs): ModernExtend {
     args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
 
-    const exposes: Expose[] = args.endpointNames ? args.endpointNames.map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
+    const exposes: Expose[] = exposeEndpoints(e.switch(), args.endpointNames);
 
     const fromZigbee: Fz.Converter[] = [args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
     const toZigbee: Tz.Converter[] = [tz.on_off];
@@ -943,9 +944,7 @@ export function light(args?: LightArgs): ModernExtend {
           }
         : false;
 
-    const lightExpose = args.endpointNames
-        ? args.endpointNames.map((ep) => e.light().withBrightness().withEndpoint(ep))
-        : [e.light().withBrightness()];
+    const lightExpose = exposeEndpoints(e.light().withBrightness(), args.endpointNames);
 
     const fromZigbee: Fz.Converter[] = [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
     const toZigbee: Tz.Converter[] = [
@@ -1001,12 +1000,13 @@ export function light(args?: LightArgs): ModernExtend {
         if (args.color) {
             effects.values.push('colorloop', 'stop_colorloop');
         }
-        exposes.push(effects);
+
+        exposes.push(...exposeEndpoints(effects, args.endpointNames));
         toZigbee.push(tz.effect);
     }
 
     if (args.powerOnBehavior) {
-        exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
+        exposes.push(...exposeEndpoints(e.power_on_behavior(['off', 'on', 'toggle', 'previous']), args.endpointNames));
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
     }
@@ -1932,7 +1932,7 @@ export interface EnumLookupArgs {
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
-    access?: 'STATE' | 'STATE_GET' | 'ALL';
+    access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     endpointName?: string;
     reporting?: ReportingConfigWithoutAttribute;
     entityCategory?: 'config' | 'diagnostic';
@@ -1995,7 +1995,7 @@ export interface NumericArgs {
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
-    access?: 'STATE' | 'STATE_GET' | 'ALL';
+    access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     unit?: string;
     endpointNames?: string[];
     reporting?: ReportingConfigWithoutAttribute;
@@ -2095,7 +2095,7 @@ export function numeric(args: NumericArgs): ModernExtend {
                               payloadValue = typeof scale === 'number' ? payloadValue * scale : scale(payloadValue, 'to');
                           }
                           assertNumber(payloadValue);
-                          if (precision != null) payloadValue = precisionRound(value, precision);
+                          if (precision != null) payloadValue = precisionRound(payloadValue, precision);
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
@@ -2127,7 +2127,7 @@ export interface BinaryArgs {
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
     reporting?: ReportingConfig;
-    access?: 'STATE' | 'STATE_GET' | 'ALL';
+    access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     entityCategory?: 'config' | 'diagnostic';
 }
 export function binary(args: BinaryArgs): ModernExtend {

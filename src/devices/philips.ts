@@ -6,7 +6,7 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {deviceEndpoints, identify, quirkCheckinInterval} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {philipsFz, philipsLight, philipsOnOff, philipsTz} from '../lib/philips';
+import {philipsFz, philipsLight, philipsOnOff, philipsTwilightOnOff, philipsTz} from '../lib/philips';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -2221,7 +2221,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Hue dimmer switch',
         fromZigbee: [
             fz.ignore_command_on,
-            fz.ignore_command_off,
+            fz.ignore_command_off_with_effect,
             fz.ignore_command_step,
             fz.ignore_command_stop,
             legacy.fz.hue_dimmer_switch,
@@ -2273,7 +2273,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Hue dimmer switch',
         fromZigbee: [
             fz.ignore_command_on,
-            fz.ignore_command_off,
+            fz.ignore_command_off_with_effect,
             fz.ignore_command_step,
             fz.ignore_command_stop,
             fz.hue_dimmer_switch,
@@ -3807,6 +3807,20 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929003823001'],
+        model: '929003823001',
+        vendor: 'Philips',
+        description: 'Hue Tento white ambiance 29,1cm',
+        extend: [philipsLight({colorTemp: {range: [153, 438]}})],
+    },
+    {
+        zigbeeModel: ['929003823601'],
+        model: '929003823601',
+        vendor: 'Philips',
+        description: 'Hue Tento color 29,1cm',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['929003823701'],
         model: '929003823701',
         vendor: 'Philips',
@@ -3819,6 +3833,34 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance Datura Ceiling light small',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ['LGT001'],
+        model: '929003711201',
+        vendor: 'Philips',
+        description: 'Hue Twilight sleep and wake-up light white',
+        extend: [
+            deviceEndpoints({endpoints: {switch: 1, back: 11, front: 12}}),
+
+            philipsLight({colorTemp: {range: [153, 500]}, color: true, endpointNames: ['front']}),
+            philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true, endpointNames: ['back']}),
+
+            philipsTwilightOnOff(),
+        ],
+    },
+    {
+        zigbeeModel: ['LGT002'],
+        model: '929003711301',
+        vendor: 'Philips',
+        description: 'Hue Twilight sleep and wake-up light black',
+        extend: [
+            deviceEndpoints({endpoints: {switch: 1, back: 11, front: 12}}),
+
+            philipsLight({colorTemp: {range: [153, 500]}, color: true, endpointNames: ['front']}),
+            philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true, endpointNames: ['back']}),
+
+            philipsTwilightOnOff(),
+        ],
     },
 ];
 

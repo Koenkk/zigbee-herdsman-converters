@@ -109,7 +109,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '404028/44435',
         vendor: 'Müller Licht',
         description: 'Tint LED Panel, color, opal white',
-        extend: [mullerLichtLight({colorTemp: {range: undefined}, color: true})],
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
         fingerprint: [
@@ -157,6 +157,7 @@ const definitions: DefinitionWithExtend[] = [
                 'scene_5',
                 'scene_6',
             ]),
+            e.action_group(),
         ],
         toZigbee: [],
     },
@@ -230,6 +231,7 @@ const definitions: DefinitionWithExtend[] = [
                 'scene_9',
                 'scene_10',
             ]),
+            e.action_group(),
         ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
