@@ -2575,7 +2575,6 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MS-108ZR',
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch module',
-        meta: {coverInverted: true},
         whiteLabel: [tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc'])],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
