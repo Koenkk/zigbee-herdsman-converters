@@ -1,5 +1,18 @@
 # Changelog
 
+## [20.23.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.23.0...v20.23.1) (2024-10-05)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_abjodzas` as Nous LZ3 ([#8080](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8080)) ([c24b03d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c24b03d98eb7d26892388eaede35c20dbf125637))
+* **detect:** Detect `_TZE204_loejka0i` as Tuya SDM01 ([#8075](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8075)) ([16ab95a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/16ab95ace855e08b5d166040775d3e600f79dce8))
+* **detect:** Detect `_TZE284_wtikaxzs` as Nous E6 ([#8078](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8078)) ([91ebad2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/91ebad24e1b5fb0709c57becd2ab606e904bef9d))
+* **detect:** Detect `SCM-6-OTA_00.00.03.20TC` as Lupus LS12128 https://github.com/Koenkk/zigbee2mqtt/issues/24208 ([4d01e56](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d01e5639fe09e5ee079145a40d4529bf270970d))
+* Fix `_TZE204_aoclfnxz` integration ([#8076](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8076)) ([1fa471d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1fa471d13f4cc9c64750471911606424c3121d4b))
+* Fix E2206 OTA https://github.com/Koenkk/zigbee2mqtt.io/pull/3067 ([af93115](https://github.com/Koenkk/zigbee-herdsman-converters/commit/af931155781dfb565818eae41a5bcdfe3f773291))
+* Fix Moes MS-108ZR cover inverted https://github.com/Koenkk/zigbee2mqtt/issues/23483 ([675a0f3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/675a0f34cf5a52f6aadc60bbbf66f69976b655cc))
+
 ## [20.23.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.22.0...v20.23.0) (2024-10-03)
 
 
