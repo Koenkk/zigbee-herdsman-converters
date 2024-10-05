@@ -370,11 +370,11 @@ const YokisClustersDefinition: {
             // This attribute defines the value of the high dim limit, used during a dimming loop, on a long press for example. This value is set in %. Default: 0x64, Min-Max: 0x00 - 0x64
             highDimLimit: {ID: 0x0009, type: Zcl.DataType.UINT8},
             // This attribute defines the time before the nightlight begin. This value is set in seconds. Default: 0x00000000, Min-Max: 0x00000000 – 0xFFFFFFFE
-            nightLightStartingDelay: {ID: 0x0009, type: Zcl.DataType.UINT32},
+            nightLightStartingDelay: {ID: 0x000c, type: Zcl.DataType.UINT32},
             // This attribute defines the dimming value at the start of the nightlight. This value is set in %. Default: 0x28, Min-Max: 0x00 - 0x64
-            nightLightStartingBrightness: {ID: 0x000c, type: Zcl.DataType.UINT8},
+            nightLightStartingBrightness: {ID: 0x000d, type: Zcl.DataType.UINT8},
             // This attribute defines the dimming value at the last step of the nightlight. This attribute must be lower than 0x000D :Nightlight starting brightness. This value is set in %. Default: 0x05, Min-Max: 0x00 - 0x64
-            nightLightEndingBrightness: {ID: 0x000d, type: Zcl.DataType.UINT8},
+            nightLightEndingBrightness: {ID: 0x000e, type: Zcl.DataType.UINT8},
             // This attribute defines the ramp duration of the nightlight. The ramp is running after the end of the starting delay and until the ending bright is reached. This value is set in seconds. Default: 0x00000E10, Min-Max: 0x00000000 – 0x05265C00
             nightLightRampTime: {ID: 0x000f, type: Zcl.DataType.UINT32},
             // This attribute defines the total duration of the nightlight. It must not be lower than 0x000F : Nightlight ramp time. This value is set in seconds. Default: 0x00000E10, Min-Max: 0x00000000 – 0x05265C00
@@ -396,7 +396,87 @@ const YokisClustersDefinition: {
             // This attribute defines the value of each step during the ramp down of the nightlight mode. This value is set in %. Default: 0x01, Min-Max: 0x01 - 0x64
             stepNightLigth: {ID: 0x0018, type: Zcl.DataType.UINT8},
         },
-        commands: {},
+        commands: {
+            // Start dimming up, from current position to the upper dim limit. When the limit is reached, stay at this position.
+            dimUp: {
+                ID: 0x00,
+                parameters: [],
+            },
+            // Start dimming down, from current position to the lower dim limit. When the limit is reached, stay at this position.
+            dimDown: {
+                ID: 0x01,
+                parameters: [],
+            },
+            // Start the dimming loop process for the selected duration.
+            dim: {
+                ID: 0x02,
+                parameters: [
+                    // Set the duration of the ramp for the continuous variation, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.
+                    {name: 'ul_RampContinuousDuration', type: Zcl.DataType.UINT32},
+                    // Set the step size, otherwise use 0xFF to use the one configured in the product.. Value is in %.
+                    {name: 'uc_StepContinuous', type: Zcl.DataType.UINT8},
+                ],
+            },
+            // Stop the actual dimming process.
+            dimStop: {
+                ID: 0x04,
+                parameters: [],
+            },
+            // Start dimming to the min value set in the device.
+            dimToMin: {
+                ID: 0x05,
+                parameters: [
+                    // Set the transition time to the selected value, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.
+                    {name: 'ul_TransitionTime', type: Zcl.DataType.UINT32},
+                ],
+            },
+            // Start dimming to the max value set in the device.
+            dimToMax: {
+                ID: 0x06,
+                parameters: [
+                    // Set the transition time to the selected value, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.
+                    {name: 'ul_TransitionTime', type: Zcl.DataType.UINT32},
+                ],
+            },
+            // Start the nightlight mode with the given parameters.
+            startNightLightMode: {
+                ID: 0x07,
+                parameters: [
+                    // Set the starting delay value, used before the start of the nightlight, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.
+                    {name: 'ul_ChildModeStartingDelay', type: Zcl.DataType.UINT32},
+                    // Set the brightness at the beginning of the ramp, otherwise use 0xFF to use the one configured in the product. Value is in %.
+                    {name: 'uc_ChildModeBrightnessStart', type: Zcl.DataType.UINT8},
+                    // Set the brightness at the end of the ramp, otherwise use 0xFF to use the one configured in the product. Value is in %.
+                    {name: 'uc_ChildModeBrightnessEnd', type: Zcl.DataType.UINT8},
+                    // Set the ramp duration, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.
+                    {name: 'ul_ChildModeRampDuration', type: Zcl.DataType.UINT32},
+                    // Set the total duration of the nightlight, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.
+                    {name: 'ul_ChildModeOnDuration', type: Zcl.DataType.UINT32},
+                    // Set the step size between each dim, otherwise use 0xFF to use the one configured in the product. Value is in %.
+                    {name: 'uc_ChildStep', type: Zcl.DataType.UINT8},
+                ],
+            },
+            // Start the nightlight mode from the current dimming value.
+            startNightLightModeCurrent: {
+                ID: 0x08,
+                parameters: [],
+            },
+            // Start dimming to the favorite position 1.
+            moveToFavorite1: {
+                ID: 0x09,
+                parameters: [],
+            },
+            // Start dimming to the favorite position 2.
+            moveToFavorite2: {
+                ID: 0x0a,
+                parameters: [],
+            },
+            // Start dimming to the favorite position 3.
+            moveToFavorite3: {
+                ID: 0x0b,
+                parameters: [],
+            },
+        },
         commandsResponse: {},
     },
     manuSpecificYokisWindowCovering: {
@@ -664,6 +744,102 @@ const yokisExtendChecks = {
                 uc_SequenceAmount: input.tuc_BlinkAmount.length,
                 // [{"undefined":1},{"undefined":1}] > [1,1]
                 tuc_BlinkAmount: input.tuc_BlinkAmount.map((elem) => (typeof elem === 'object' ? Object.values(elem).shift() : elem)),
+            },
+        };
+    },
+    parseDim: (input: KeyValueAny) => {
+        let _ul_RampContinuousDuration, _uc_StepContinuous;
+
+        if (!input || typeof input !== 'object') {
+            return yokisExtendChecks.failure({reason: 'NOT_OBJECT'});
+        }
+
+        if (!('ul_RampContinuousDuration' in input) || !utils.isNumber(input.ul_RampContinuousDuration)) {
+            _ul_RampContinuousDuration = 0xffffffff; // use default value
+        } else _ul_RampContinuousDuration = input.ul_RampContinuousDuration;
+
+        if (!('uc_StepContinuous' in input) || !utils.isNumber(input.uc_StepContinuous)) {
+            _uc_StepContinuous = 0xff; // use default value
+        } else _uc_StepContinuous = input.uc_StepContinuous;
+
+        return {
+            isSuccess: true,
+            payload: {
+                ul_RampContinuousDuration: _ul_RampContinuousDuration,
+                uc_StepContinuous: _uc_StepContinuous,
+            },
+        };
+    },
+    parseDimMinMax: (input: KeyValueAny) => {
+        let _ul_TransitionTime, _action;
+
+        if (!input || typeof input !== 'object') {
+            return yokisExtendChecks.failure({reason: 'NOT_OBJECT'});
+        }
+
+        if (!('ul_TransitionTime' in input) || !utils.isNumber(input.ul_TransitionTime)) {
+            _ul_TransitionTime = 0xffffffff; // use default value
+        } else _ul_TransitionTime = input.ul_TransitionTime;
+
+        if (!('action' in input)) {
+            return yokisExtendChecks.failure({reason: 'MISSING_ACTION'});
+        } else {
+            _action = input.action;
+        }
+
+        return {
+            isSuccess: true,
+            action: _action,
+            payload: {
+                ul_TransitionTime: _ul_TransitionTime,
+            },
+        };
+    },
+    parseStartNightLightMode: (input: KeyValueAny) => {
+        let _ul_ChildModeStartingDelay,
+            _uc_ChildModeBrightnessStart,
+            _uc_ChildModeBrightnessEnd,
+            _ul_ChildModeRampDuration,
+            _ul_ChildModeOnDuration,
+            _uc_ChildStep;
+
+        if (!input || typeof input !== 'object') {
+            return yokisExtendChecks.failure({reason: 'NOT_OBJECT'});
+        }
+
+        if (!('ul_ChildModeStartingDelay' in input) || !utils.isNumber(input.ul_ChildModeStartingDelay)) {
+            _ul_ChildModeStartingDelay = 0xffffffff; // use default value
+        } else _ul_ChildModeStartingDelay = input.ul_ChildModeStartingDelay;
+
+        if (!('uc_ChildModeBrightnessStart' in input) || !utils.isNumber(input.uc_ChildModeBrightnessStart)) {
+            _uc_ChildModeBrightnessStart = 0xff; // use default value
+        } else _uc_ChildModeBrightnessStart = input.uc_ChildModeBrightnessStart;
+
+        if (!('uc_ChildModeBrightnessEnd' in input) || !utils.isNumber(input.uc_ChildModeBrightnessEnd)) {
+            _uc_ChildModeBrightnessEnd = 0xff; // use default value
+        } else _uc_ChildModeBrightnessEnd = input.uc_ChildModeBrightnessEnd;
+
+        if (!('ul_ChildModeRampDuration' in input) || !utils.isNumber(input.ul_ChildModeRampDuration)) {
+            _ul_ChildModeRampDuration = 0xffffffff; // use default value
+        } else _ul_ChildModeRampDuration = input.ul_ChildModeRampDuration;
+
+        if (!('ul_ChildModeOnDuration' in input) || !utils.isNumber(input.ul_ChildModeOnDuration)) {
+            _ul_ChildModeOnDuration = 0xffffffff; // use default value
+        } else _ul_ChildModeOnDuration = input.ul_ChildModeOnDuration;
+
+        if (!('uc_ChildStep' in input) || !utils.isNumber(input.uc_ChildStep)) {
+            _uc_ChildStep = 0xff; // use default value
+        } else _uc_ChildStep = input.uc_ChildStep;
+
+        return {
+            isSuccess: true,
+            payload: {
+                ul_ChildModeStartingDelay: _ul_ChildModeStartingDelay,
+                uc_ChildModeBrightnessStart: _uc_ChildModeBrightnessStart,
+                uc_ChildModeBrightnessEnd: _uc_ChildModeBrightnessEnd,
+                ul_ChildModeRampDuration: _ul_ChildModeRampDuration,
+                ul_ChildModeOnDuration: _ul_ChildModeOnDuration,
+                uc_ChildStep: _uc_ChildStep,
             },
         };
     },
@@ -1121,6 +1297,254 @@ const yokisCommandsExtend = {
             isModernExtend: true,
         };
     },
+    dimmerDim: (): ModernExtend => {
+        const exposes = e
+            .composite('dimmerDim', 'dimProp', ea.SET)
+            .withDescription('Start the dimming loop process for the selected duration.')
+            .withFeature(
+                e
+                    .numeric('ul_RampContinuousDuration', ea.SET)
+                    .withUnit('ms')
+                    .withDescription(
+                        'Set the duration of the ramp for the continuous variation, otherwise use 0xFFFFFFFF to use the one configured in the product.',
+                    ),
+            )
+            .withFeature(
+                e
+                    .numeric('uc_StepContinuous', ea.SET)
+                    .withUnit('s')
+                    .withDescription('Set the step size, otherwise use 0xFF to use the one configured in the product.. Value is in %.'),
+            )
+            .withCategory('config');
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['dimProp'],
+                convertSet: async (entity, key, value, meta) => {
+                    // const options = utils.getOptions(meta.mapped, entity);
+                    // logger.debug('Invoked converter with options:' + JSON.stringify(options));
+
+                    const commandWrapper = yokisExtendChecks.parseDim(value);
+
+                    if (!commandWrapper.isSuccess) {
+                        logger.warning(
+                            // @ts-expect-error  CommandWrapper contains always contains the error attribute only when isSuccess is false
+                            `encountered an error (${commandWrapper.error.reason}) ` +
+                                `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                            NS,
+                        );
+
+                        return;
+                    }
+
+                    yokisExtendChecks.log(key, value, commandWrapper.payload);
+
+                    // NB: we are using the Cluster name defined in ZH over Cluster hexcode (due to conflict on cluster ID)
+                    await entity.command('manuSpecificYokisDimmer', 'dim', commandWrapper.payload);
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposes],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    dimmerDimMinMax: (): ModernExtend => {
+        const exposes = e
+            .composite('dimmerDimMinMax', 'dimMinMaxProp', ea.SET)
+            .withDescription('Start dimming to the min or max value set in the device')
+            .withFeature(
+                e
+                    .numeric('ul_TransitionTime', ea.SET)
+                    .withUnit('ms')
+                    .withDescription(
+                        'Set the transition time to the selected value, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.',
+                    ),
+            )
+            .withFeature(e.enum('action', ea.SET, ['dimToMin', 'dimToMax']))
+            .withCategory('config');
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['dimMinMaxProp'],
+                convertSet: async (entity, key, value, meta) => {
+                    // const options = utils.getOptions(meta.mapped, entity);
+                    // logger.debug('Invoked converter with options:' + JSON.stringify(options));
+
+                    const commandWrapper = yokisExtendChecks.parseDimMinMax(value);
+
+                    if (!commandWrapper.isSuccess) {
+                        logger.warning(
+                            // @ts-expect-error  CommandWrapper contains always contains the error attribute only when isSuccess is false
+                            `encountered an error (${commandWrapper.error.reason}) ` +
+                                `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                            NS,
+                        );
+
+                        return;
+                    }
+
+                    yokisExtendChecks.log(key, value, commandWrapper.payload);
+
+                    // NB: we are using the Cluster name defined in ZH over Cluster hexcode (due to conflict on cluster ID)
+                    await entity.command('manuSpecificYokisDimmer', commandWrapper.action, commandWrapper.payload);
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposes],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    dimmerUpDown: (): ModernExtend => {
+        const exposes = e.enum('DimmerUpDown', ea.SET, ['dimUp', 'dimDown']).withDescription('Dim up or Down').withCategory('config');
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['DimmerUpDown'],
+                convertSet: async (entity, key, value: string, meta) => {
+                    yokisExtendChecks.log(key, value);
+                    await entity.command('manuSpecificYokisDimmer', value, {});
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposes],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    dimmerMoveToFavorite: (): ModernExtend => {
+        const exposes = e
+            .enum('DimmerMoveToFavorite1', ea.SET, ['moveToFavorite1', 'moveToFavorite2', 'moveToFavorite3'])
+            .withDescription('Start dimming to the favorite position 1, 2 or 3')
+            .withCategory('config');
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['DimmerMoveToFavorite1'],
+                convertSet: async (entity, key, value: string, meta) => {
+                    yokisExtendChecks.log(key, value);
+                    await entity.command('manuSpecificYokisDimmer', value, {});
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposes],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    dimmerStartNightLightModeCurrent: (): ModernExtend => {
+        const exposes = e
+            .enum('DimmerStarnightModeCurrent', ea.SET, ['startNightLightModeCurrent'])
+            .withDescription('Trigger Starnight mode from the current diming value')
+            .withCategory('config');
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['DimmerStarnightModeCurrent'],
+                convertSet: async (entity, key, value: string, meta) => {
+                    yokisExtendChecks.log(key, value);
+                    await entity.command('manuSpecificYokisDimmer', value, {});
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposes],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    dimmerStartNightLightMode: (): ModernExtend => {
+        const exposes = e
+            .composite('dimmerStartNightLightMode', 'dimmerStartNightLightModeProp', ea.SET)
+            .withDescription('Start the nightlight mode with the given parameters')
+            .withFeature(
+                e
+                    .numeric('ul_ChildModeStartingDelay', ea.SET)
+                    .withUnit('ms')
+                    .withDescription(
+                        'Set the starting delay value, used before the start of the nightlight, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.',
+                    ),
+            )
+            .withFeature(
+                e
+                    .numeric('uc_ChildModeBrightnessStart', ea.SET)
+                    .withUnit('%')
+                    .withDescription(
+                        'Set the brightness at the beginning of the ramp, otherwise use 0xFF to use the one configured in the product. Value is in %.',
+                    ),
+            )
+            .withFeature(
+                e
+                    .numeric('uc_ChildModeBrightnessEnd', ea.SET)
+                    .withUnit('%')
+                    .withDescription(
+                        'Set the brightness at the end of the ramp, otherwise use 0xFF to use the one configured in the product. Value is in %.',
+                    ),
+            )
+            .withFeature(
+                e
+                    .numeric('ul_ChildModeRampDuration', ea.SET)
+                    .withUnit('ms')
+                    .withDescription('Set the ramp duration, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.'),
+            )
+            .withFeature(
+                e
+                    .numeric('ul_ChildModeOnDuration', ea.SET)
+                    .withUnit('ms')
+                    .withDescription(
+                        'Set the total duration of the nightlight, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.',
+                    ),
+            )
+            .withFeature(
+                e
+                    .numeric('uc_ChildStep', ea.SET)
+                    .withUnit('%')
+                    .withDescription(
+                        'Set the step size between each dim, otherwise use 0xFF to use the one configured in the product. Value is in %.',
+                    ),
+            )
+            .withCategory('config');
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['dimmerStartNightLightModeProp'],
+                convertSet: async (entity, key, value, meta) => {
+                    const commandWrapper = yokisExtendChecks.parseStartNightLightMode(value);
+
+                    if (!commandWrapper.isSuccess) {
+                        logger.warning(
+                            // @ts-expect-error  CommandWrapper contains always contains the error attribute only when isSuccess is false
+                            `encountered an error (${commandWrapper.error.reason}) ` +
+                                `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                            NS,
+                        );
+
+                        return;
+                    }
+
+                    yokisExtendChecks.log(key, value, commandWrapper.payload);
+
+                    await entity.command('manuSpecificYokisDimmer', 'startNightLightMode', commandWrapper.payload);
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposes],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 
 const yokisLightControlExtend: ModernExtend[] = [
@@ -1562,7 +1986,282 @@ const YokisSubSystemExtend: ModernExtend[] = [
 ];
 
 const YokisDimmerExtend: ModernExtend[] = [
-    // TODO: Placeholder - pending documentation
+    // currentPosition
+    numeric({
+        name: 'CurrentPosition',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'currentPosition',
+        description: 'This attribute defines the current position, in %',
+        access: 'STATE_GET',
+        entityCategory: 'diagnostic',
+    }),
+
+    // memoryPosition
+    numeric({
+        name: 'MemoryPosition',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'memoryPosition',
+        description: 'This attribute defines the memory position, in %',
+        access: 'STATE_GET',
+        entityCategory: 'diagnostic',
+    }),
+
+    // RampUp
+    binary({
+        name: 'eRampUp',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'eRampUp',
+        description: 'This attribute defines if a ramp up should be used or not.',
+        valueOn: ['ON', 0x01],
+        valueOff: ['OFF', 0x00],
+        entityCategory: 'config',
+    }),
+    numeric({
+        name: 'RampUp',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'rampUp',
+        description: 'This attribute defines the time taken during the ramp up in ms.',
+        valueMin: 0x00000000,
+        valueMax: 0x05265c00,
+        valueStep: 1000,
+        entityCategory: 'config',
+    }),
+
+    // RampDown
+    binary({
+        name: 'eRampDown',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'eRampDown',
+        description: 'This attribute defines if a ramp down should be used or not.',
+        valueOn: ['ON', 0x01],
+        valueOff: ['OFF', 0x00],
+        entityCategory: 'config',
+    }),
+    numeric({
+        name: 'RampDown',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'rampDown',
+        description: 'This attribute defines the time taken during the ramp down in ms.',
+        valueMin: 0x00000000,
+        valueMax: 0x05265c00,
+        valueStep: 1000,
+        entityCategory: 'config',
+    }),
+
+    // rampContinuousTime
+    numeric({
+        name: 'RampContinuousTime',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'rampContinuousTime',
+        description: 'This attribute defines the time taken during the ramp loop in ms.',
+        valueMin: 0x00000000,
+        valueMax: 0x05265c00,
+        valueStep: 1000,
+        entityCategory: 'config',
+    }),
+
+    // stepUp
+    numeric({
+        name: 'StepUp',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'stepUp',
+        description: 'This attribute defines the value of each step during a dimming up. This value is set in %.',
+        valueMin: 0x00,
+        valueMax: 0x64,
+        valueStep: 1,
+        entityCategory: 'config',
+    }),
+
+    // lowDimLimit
+    numeric({
+        name: 'LowDimLimit',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'lowDimLimit',
+        description:
+            'This attribute defines the value of the low dim limit, used during a dimming loop, on a long press for example. This value is set in %',
+        valueMin: 0x00,
+        valueMax: 0x64,
+        valueStep: 1,
+        entityCategory: 'config',
+    }),
+
+    // highDimLimit
+    numeric({
+        name: 'HighDimLimit',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'highDimLimit',
+        description:
+            'This attribute defines the value of the high dim limit, used during a dimming loop, on a long press for example. This value is set in %',
+        valueMin: 0x00,
+        valueMax: 0x64,
+        valueStep: 1,
+        entityCategory: 'config',
+    }),
+
+    // nightLightStartingDelay
+    numeric({
+        name: 'NightLightStartingDelay',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'nightLightStartingDelay',
+        description: 'This attribute defines the time before the nightlight begin. This value is set in seconds.',
+        valueMin: 0x00000000,
+        valueMax: 0xfffffffe,
+        valueStep: 10,
+        entityCategory: 'config',
+    }),
+
+    // nightLightStartingBrightness
+    numeric({
+        name: 'NightLightStartingBrightness',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'nightLightStartingBrightness',
+        description: 'This attribute defines the dimming value at the start of the nightlight. This value is set in %.',
+        valueMin: 0x00,
+        valueMax: 0x64,
+        valueStep: 1,
+        entityCategory: 'config',
+    }),
+
+    // nightLightEndingBrightness
+    numeric({
+        name: 'NightLightEndingBrightness',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'nightLightEndingBrightness',
+        description:
+            'This attribute defines the dimming value at the last step of the nightlight. This attribute must be lower than 0x000D : Nightlight starting brightness. This value is set in %.',
+        valueMin: 0x00,
+        valueMax: 0x64,
+        valueStep: 1,
+        entityCategory: 'config',
+    }),
+
+    // nightLightRampTime
+    numeric({
+        name: 'NightLightRampTime',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'nightLightRampTime',
+        description:
+            'This attribute defines the ramp duration of the nightlight. The ramp is running after the end of the starting delay and until the ending bright is reached. This value is set in seconds.',
+        valueMin: 0x00000000,
+        valueMax: 0x05265c00,
+        valueStep: 10,
+        entityCategory: 'config',
+    }),
+
+    // nightLightOnTime
+    numeric({
+        name: 'NightLightOnTime',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'nightLightOnTime',
+        description:
+            'This attribute defines the total duration of the nightlight. It must not be lower than 0x000F : Nightlight ramp time. This value is set in seconds.',
+        valueMin: 0x00000000,
+        valueMax: 0x00409980,
+        valueStep: 10,
+        entityCategory: 'config',
+    }),
+
+    // favoritePosition1
+    numeric({
+        name: 'FavoritePosition1',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'favoritePosition1',
+        description: 'This attribute defines the value of the favorite position 1. This value is set in %.',
+        valueMin: 0x00,
+        valueMax: 0x64,
+        valueStep: 1,
+        entityCategory: 'config',
+    }),
+
+    // favoritePosition2
+    numeric({
+        name: 'FavoritePosition2',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'favoritePosition2',
+        description: 'This attribute defines the value of the favorite position 2. This value is set in %.',
+        valueMin: 0x00,
+        valueMax: 0x64,
+        valueStep: 1,
+        entityCategory: 'config',
+    }),
+
+    // favoritePosition3
+    numeric({
+        name: 'FavoritePosition3',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'favoritePosition3',
+        description: 'This attribute defines the value of the favorite position 3. This value is set in %.',
+        valueMin: 0x00,
+        valueMax: 0x64,
+        valueStep: 1,
+        entityCategory: 'config',
+    }),
+
+    // stepControllerMode
+    binary({
+        name: 'StepControllerMode',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'stepControllerMode',
+        description:
+            'This attribute enables or disables the 2-step controller mode. This mode enable product to run without any ramp before and after ON or OFF. It acts like a relay.',
+        valueOn: ['ON', 0x01],
+        valueOff: ['OFF', 0x00],
+        entityCategory: 'config',
+    }),
+
+    // memoryPositionMode
+    binary({
+        name: 'MemoryPositionMode',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'memoryPositionMode',
+        description: 'This attribute enables or disables the memory position mode at first push button release. ',
+        valueOn: ['ON', 0x01],
+        valueOff: ['OFF', 0x00],
+        entityCategory: 'config',
+    }),
+
+    // stepDown
+    numeric({
+        name: 'StepDown',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'stepDown',
+        description: 'This attribute defines the value of each step during a dimming down. This value is set in %.',
+        valueMin: 0x00,
+        valueMax: 0x64,
+        valueStep: 1,
+        entityCategory: 'config',
+    }),
+
+    // stepContinuous
+    numeric({
+        name: 'StepContinuous',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'stepContinuous',
+        description: 'This attribute defines the value of each step during a dimming loop. This value is set in %.',
+        valueMin: 0x00,
+        valueMax: 0x64,
+        valueStep: 1,
+        entityCategory: 'config',
+    }),
+
+    // stepNightLigth
+    numeric({
+        name: 'StepNightLigth',
+        cluster: 'manuSpecificYokisDimmer',
+        attribute: 'stepNightLigth',
+        description: 'This attribute defines the value of each step during the ramp down of the nightlight mode. This value is set in %.',
+        valueMin: 0x00,
+        valueMax: 0x64,
+        valueStep: 1,
+        entityCategory: 'config',
+    }),
+
+    yokisCommandsExtend.dimmerDim(),
+    yokisCommandsExtend.dimmerUpDown(),
+    yokisCommandsExtend.dimmerDimMinMax(),
+    yokisCommandsExtend.dimmerMoveToFavorite(),
+    yokisCommandsExtend.dimmerStartNightLightModeCurrent(),
+    yokisCommandsExtend.dimmerStartNightLightMode(),
 ];
 
 const YokisWindowCoveringExtend: ModernExtend[] = [
@@ -1570,7 +2269,125 @@ const YokisWindowCoveringExtend: ModernExtend[] = [
 ];
 
 const YokisChannelExtend: ModernExtend[] = [
-    // TODO : Placeholder - pending documentation
+    // On/Off cluster mode
+    enumLookup({
+        name: 'On/Off cluster mode',
+        lookup: onOffClusterModeEnum,
+        cluster: 'manuSpecificYokisChannel',
+        attribute: 'onOffClusterMode',
+        description: `Define the command to send to the servers using cluster On/Off. Values are: 
+-	0x00 – TOGGLE (1)
+-	0x01 – ON
+-	0x02 – OFF
+-	0x03 – OFF 
+`,
+        entityCategory: 'config',
+    }),
+
+    // Level control cluster mode
+    enumLookup({
+        name: 'Level control cluster mode',
+        lookup: levelControlClusterModeEnum,
+        cluster: 'manuSpecificYokisChannel',
+        attribute: 'levelControlClusterMode',
+        description: `Define the command to send to the servers using cluster Level control. Values are: 
+-	0x00 – Nothing 
+-	0x01 – Move up
+-	0x02 – Move down
+-	0x03 – Stop
+`,
+        entityCategory: 'config',
+    }),
+
+    // Window covering cluster mode
+    enumLookup({
+        name: 'Window covering cluster mode',
+        lookup: windowCoveringClusterModeEnum,
+        cluster: 'manuSpecificYokisChannel',
+        attribute: 'windowCoveringClusterMode',
+        description: `Define the command to send to the servers using cluster Window Covering. Values are: 
+-	0x00 – TOGGLE (1)
+-	0x01 – UP/OPEN
+-	0x02 – DOWN/CLOSE
+-	0x03 – STOP
+`,
+        entityCategory: 'config',
+    }),
+
+    // Cluster to be used
+    // Supports reporting
+    numeric({
+        name: 'ClusterToBeUsed',
+        cluster: 'manuSpecificYokisChannel',
+        attribute: 'clusterToBeUsed',
+        description: `Defines the cluster that will be used by the channel to create an order. 
+
+If the value is set to 0xFFF0 the device will use a cluster priority list in order to choose the correct cluster and create the order associate depending on the target binded to the channel. The device will check which cluster the target declares and use the highest priority
+
+The priority list is:
+-	Yokis Input cluster (0xFC02)
+-	Window covering (0x0102)
+-	On Off (0x0006)
+-	Level Control (0x0008)
+-	Yokis Pilot Wire (0xFC0A)
+-	Yokis Light Control (0xFC06)
+
+This mode allows the user to “mix” multiple device type on the same channel.
+
+When a cluster is specified, the channel will only “control” the device binded with this specific cluster.
+`,
+        entityCategory: 'config',
+    }),
+
+    // Sending mode
+    enumLookup({
+        name: 'Sending mode ',
+        lookup: sendingModeEnum,
+        cluster: 'manuSpecificYokisChannel',
+        attribute: 'sendingMode',
+        description: `Define the channel sending mode:
+-	0x00 : DIRECT
+-	0x01 : BROADCAST
+-	0x02: GROUP (Will use the Group Id)
+`,
+        entityCategory: 'config',
+    }),
+
+    // Yokis light control mode
+    enumLookup({
+        name: 'Yokis light control mode',
+        lookup: yokisLightControlModeEnum,
+        cluster: 'manuSpecificYokisChannel',
+        attribute: 'yokisLightControlMode',
+        description: `Define the light control mode used between remote and the binded device. Values are: 
+-	0x00 – Mode pulse
+-	0x01 – Mode deaf
+`,
+        entityCategory: 'config',
+    }),
+
+    // Yokis pilot wire cluster mode
+    enumLookup({
+        name: 'Yokis pilot wire cluster mode',
+        lookup: yokisPilotWireClusterModeEnum,
+        cluster: 'manuSpecificYokisChannel',
+        attribute: 'yokisPilotWireClusterMode',
+        description: `Define the command to send to the servers using cluster Yokis Pilot Wire. Values are: 
+-	0x00 – TOGGLE (1) 
+-	0x01 – CONFORT
+-	0x02 – ECO
+`,
+        entityCategory: 'config',
+    }),
+
+    // Group id
+    numeric({
+        name: 'GroupId',
+        cluster: 'manuSpecificYokisChannel',
+        attribute: 'groupId',
+        description: `Indicate the group id who will receive the command from the dedicated endpoint. Only used when the sending mode is set to “GROUP” (0x02)`,
+        entityCategory: 'config',
+    }),
 ];
 
 const YokisPilotWireExtend: ModernExtend[] = [
@@ -1689,7 +2506,7 @@ const definitions: DefinitionWithExtend[] = [
             // ...YokisInputExtend,
             // ...YokisEntryExtend,
             // ...YokisSubSystemExtend,
-            // ...YokisDimmerExtend,
+            ...YokisDimmerExtend,
             // ...YokisStatsExtend,
         ],
     },
