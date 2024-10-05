@@ -1521,7 +1521,6 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genOnOff', ['onOff', 'moesStartUpOnOff']);
         },
-        whiteLabel: [tuya.whitelabel('Nous', 'LZ3', 'Smart water/gas valve', ['_TZ3000_abjodzas'])],
     },
     {
         zigbeeModel: ['CK-BL702-AL-01(7009_Z102LG03-1)', 'CK-BL702-AL-01(7009_Z102LG04-2)'],
@@ -5961,6 +5960,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'TUYATEC', model: 'GDKES-01TZXD'},
             {vendor: 'Lonsonho', model: 'QS-Zigbee-S05-L', description: '1 gang smart switch module without neutral wire'},
             {vendor: 'Mercator Ikuü', model: 'SSW01'},
+            tuya.whitelabel('Nous', 'LZ3', 'Smart water/gas valve', ['_TZ3000_abjodzas']),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
