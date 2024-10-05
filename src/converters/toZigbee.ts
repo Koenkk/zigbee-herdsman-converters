@@ -4526,7 +4526,7 @@ const converters3 = {
     } satisfies Tz.Converter,
 };
 
-const converters = {...converters1, ...converters2, ...converters3};
+const converters: KeyValueAny = {...converters1, ...converters2, ...converters3};
 
 export default converters;
 module.exports = converters;

@@ -115,7 +115,7 @@ export const readInitialBatteryState: OnEvent = async (type, data, device, optio
     }
 };
 
-export const tzLegrand = {
+export const tzLegrand: KeyValueAny = {
     auto_mode: {
         key: ['auto_mode'],
         convertSet: async (entity, key, value, meta) => {

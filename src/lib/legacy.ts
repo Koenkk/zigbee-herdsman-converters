@@ -8,7 +8,7 @@ import * as exposes from './exposes';
 import * as light from './light';
 import {logger} from './logger';
 import * as globalStore from './store';
-import {Definition, Fz, KeyValueNumberString, Publish, Tz, Zh} from './types';
+import {Definition, Fz, KeyValue, KeyValueNumberString, Publish, Tz, Zh} from './types';
 import * as utils from './utils';
 
 const fromZigbeeStore: KeyValueAny = {};
@@ -8428,7 +8428,7 @@ const thermostatSystemModes: {[s: number]: string} = {
 };
 
 const fromZigbee = {...fromZigbee1, ...fromZigbee2};
-const toZigbee = {...toZigbee1, ...toZigbee2};
+const toZigbee: KeyValue = {...toZigbee1, ...toZigbee2};
 
 export {
     fromZigbee as fz,

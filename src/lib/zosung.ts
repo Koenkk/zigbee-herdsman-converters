@@ -1,7 +1,7 @@
 import * as exposes from './exposes';
 import {logger} from './logger';
 import * as globalStore from './store';
-import {Fz, Tz, Zh} from './types';
+import {Fz, KeyValue, Tz, Zh} from './types';
 
 const NS = 'zhc:zosung';
 const ea = exposes.access;
@@ -208,7 +208,7 @@ export const fzZosung = {
     } satisfies Fz.Converter,
 };
 
-export const tzZosung = {
+export const tzZosung: KeyValue = {
     zosung_ir_code_to_send: {
         key: ['ir_code_to_send'],
         convertSet: async (entity, key, value, meta) => {

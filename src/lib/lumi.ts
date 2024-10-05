@@ -3665,7 +3665,7 @@ export const fromZigbee = {
     } satisfies Fz.Converter,
 };
 
-export const toZigbee = {
+export const toZigbee: KeyValueAny = {
     // lumi generic
     lumi_power: {
         key: ['power'],

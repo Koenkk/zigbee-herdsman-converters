@@ -99,7 +99,7 @@ async function isNewImageAvailable(current: Ota.ImageInfo, device: Zh.Device, ge
     return await common.isNewImageAvailable(current, device, getImageMeta);
 }
 
-export async function getFirmwareFile(image: KeyValueAny) {
+export async function getFirmwareFile(image: KeyValueAny): Promise<{data: Buffer}> {
     const urlOrName = image.url;
 
     // First try to download firmware file with the URL provided

@@ -1231,7 +1231,7 @@ export const valueConverter = {
     },
 };
 
-const tuyaTz = {
+const tuyaTz: KeyValue = {
     power_on_behavior_1: {
         key: ['power_on_behavior', 'power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {

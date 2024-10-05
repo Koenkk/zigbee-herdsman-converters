@@ -248,7 +248,7 @@ export function exposeEndpoints<T extends Expose>(expose: T, endpointNames?: str
     return endpointNames ? (endpointNames.map((ep) => expose.clone().withEndpoint(ep)) as T[]) : [expose];
 }
 
-export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta) {
+export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta): Zh.Endpoint {
     // @ts-expect-error ignore
     const multiEndpointEnforce: {[s: string]: number} = getMetaValue(entity, meta.mapped, 'multiEndpointEnforce', 'allEqual', []);
     if (multiEndpointEnforce && isObject(multiEndpointEnforce) && multiEndpointEnforce[key] !== undefined) {
@@ -458,7 +458,7 @@ export function getSceneState(entity: Zh.Group | Zh.Endpoint, sceneID: number, g
     return null;
 }
 
-export function getEntityOrFirstGroupMember(entity: Zh.Group | Zh.Endpoint) {
+export function getEntityOrFirstGroupMember(entity: Zh.Group | Zh.Endpoint): Zh.Endpoint | null {
     if (isGroup(entity)) {
         return entity.members.length > 0 ? entity.members[0] : null;
     } else {

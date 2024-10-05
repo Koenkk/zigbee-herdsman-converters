@@ -26,7 +26,7 @@ export const ledvanceFz = {
     } satisfies Fz.Converter,
 };
 
-export const ledvanceTz = {
+export const ledvanceTz: KeyValue = {
     ledvance_commands: {
         /* deprecated osram_*/
         key: ['set_transition', 'remember_state', 'osram_set_transition', 'osram_remember_state'],

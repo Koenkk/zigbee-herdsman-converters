@@ -127,7 +127,7 @@ export function philipsTwilightOnOff() {
     return result;
 }
 
-export const philipsTz = {
+export const philipsTz: KeyValueAny = {
     gradient_scene: {
         key: ['gradient_scene'],
         convertSet: async (entity, key, value, meta) => {
