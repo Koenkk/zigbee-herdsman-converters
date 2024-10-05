@@ -7374,7 +7374,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_bmdsp6bs',]),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_bmdsp6bs']),
         model: 'Y1_IN',
         vendor: 'Tuya',
         description: 'Smart Human presence sensor 24G',
@@ -7386,18 +7386,8 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.presence(),
             e.illuminance_lux(),
-            e
-                .numeric('keep_sensitivity', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(10)
-                .withValueStep(1)
-                .withDescription('Keep sensitivity'),
-            e
-                .numeric('trigger_sensitivity', ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(20)
-                .withValueStep(1)
-                .withDescription('Trigger sensitivity'),
+            e.numeric('keep_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Keep sensitivity'),
+            e.numeric('trigger_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(20).withValueStep(1).withDescription('Trigger sensitivity'),
             e
                 .numeric('fading_time', ea.STATE_SET)
                 .withValueMin(1)
