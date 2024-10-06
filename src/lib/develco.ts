@@ -170,7 +170,7 @@ export const develcoModernExtend = {
             valueIgnore: [0xffff, -0x8000],
             ...args,
         }),
-    current_summation: (args?: Partial<NumericArgs>) =>
+    currentSummation: (args?: Partial<NumericArgs>) =>
         numeric({
             name: 'current_summation',
             cluster: 'seMetering',
@@ -181,7 +181,7 @@ export const develcoModernExtend = {
             valueMax: 268435455,
             ...args,
         }),
-    pulse_configuration: (args?: Partial<NumericArgs>) =>
+    pulseConfiguration: (args?: Partial<NumericArgs>) =>
         numeric({
             name: 'pulse_configuration',
             cluster: 'seMetering',

@@ -16,8 +16,8 @@ const definitions: DefinitionWithExtend[] = [
             battery(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            develcoModernExtend.pulse_configuration(),
-            develcoModernExtend.current_summation(),
+            develcoModernExtend.pulseConfiguration(),
+            develcoModernExtend.currentSummation(),
         ],
     },
     {
