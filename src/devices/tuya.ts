@@ -6223,7 +6223,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: 'TS0726', manufacturerName: '_TZ3002_sal078g8'}],
         model: 'TS0726_switch_4g_2s',
         vendor: 'Tuya',
-        description: 'COSWALL Smart Switch (4 gang + 2 scene)',
+        description: 'COSWALL smart switch (4 gang + 2 scene)',
         fromZigbee: [fzLocal.TS0726_action],
         exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         extend: [
