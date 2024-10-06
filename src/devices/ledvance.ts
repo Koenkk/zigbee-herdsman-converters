@@ -337,10 +337,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PLUG COMPACT EU EM T',
         vendor: 'LEDVANCE',
         description: 'Automatically generated definition',
-        extend: [onOff({"powerOnBehavior":false}), electricityMeter()],
+        extend: [onOff({powerOnBehavior: false}), electricityMeter()],
     },
 ];
 
 export default definitions;
-
-
