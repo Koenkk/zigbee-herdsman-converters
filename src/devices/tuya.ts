@@ -7377,11 +7377,10 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_bmdsp6bs']),
         model: 'Y1_IN',
         vendor: 'Tuya',
-        description: 'Smart Human presence sensor 24G',
+        description: 'Smart human presence sensor 24G',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        whiteLabel: [tuya.whitelabel('Tuya', 'Y1_IN', 'Human presence sensor', ['_TZE204_bmdsp6bs'])],
-        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.presence(),
