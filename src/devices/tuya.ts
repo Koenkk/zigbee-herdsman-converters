@@ -7374,6 +7374,41 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_bmdsp6bs']),
+        model: 'Y1_IN',
+        vendor: 'Tuya',
+        description: 'Smart human presence sensor 24G',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.presence(),
+            e.illuminance_lux(),
+            e.numeric('keep_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Keep sensitivity'),
+            e.numeric('trigger_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(20).withValueStep(1).withDescription('Trigger sensitivity'),
+            e
+                .numeric('fading_time', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(60)
+                .withValueStep(1)
+                .withDescription('Presence timeout')
+                .withUnit('s'),
+            e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [102, 'fading_time', tuya.valueConverter.raw],
+                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [110, 'keep_sensitivity', tuya.valueConverter.raw],
+                [114, 'trigger_sensitivity', tuya.valueConverter.raw],
+                [182, 'target_distance', tuya.valueConverter.divideBy10],
+                [183, null, null],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sxm7l9xa', '_TZE204_e5m9c5hl']),
         model: 'ZY-M100-S_1',
         vendor: 'Tuya',
