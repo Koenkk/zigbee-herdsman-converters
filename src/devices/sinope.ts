@@ -307,7 +307,7 @@ const tzLocal = {
                 // set timer to 12 sec in order to disable outdoor temperature
                 await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 12}, manuSinope);
             }
-            return {readAfterWriteTime: 250, state: {enable_outdoor_temperature: value}};
+            return {state: {enable_outdoor_temperature: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['outdoorTempToDisplayTimeout'], manuSinope);
@@ -377,7 +377,7 @@ const tzLocal = {
             if (lookup[value] !== undefined) {
                 await entity.write('manuSpecificSinope', {floorControlMode: utils.getFromLookup(value, lookup)});
             }
-            return {readAfterWriteTime: 250, state: {floor_control_mode: value}};
+            return {state: {floor_control_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['floorControlMode']);
@@ -391,7 +391,7 @@ const tzLocal = {
             if ((value >= 5 && value <= 36) || value == 'off') {
                 // @ts-expect-error ignore
                 await entity.write('manuSpecificSinope', {ambiantMaxHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
-                return {readAfterWriteTime: 250, state: {ambiant_max_heat_setpoint: value}};
+                return {state: {ambiant_max_heat_setpoint: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -406,7 +406,7 @@ const tzLocal = {
             if ((value >= 5 && value <= 34) || value == 'off') {
                 // @ts-expect-error ignore
                 await entity.write('manuSpecificSinope', {floorMinHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
-                return {readAfterWriteTime: 250, state: {floor_min_heat_setpoint: value}};
+                return {state: {floor_min_heat_setpoint: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -421,7 +421,7 @@ const tzLocal = {
             if ((value >= 7 && value <= 36) || value == 'off') {
                 // @ts-expect-error ignore
                 await entity.write('manuSpecificSinope', {floorMaxHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
-                return {readAfterWriteTime: 250, state: {floor_max_heat_setpoint: value}};
+                return {state: {floor_max_heat_setpoint: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -441,7 +441,7 @@ const tzLocal = {
             if (lookup[value] !== undefined) {
                 await entity.write('manuSpecificSinope', {temperatureSensor: utils.getFromLookup(value, lookup)});
             }
-            return {readAfterWriteTime: 250, state: {floor_temperature_sensor: value}};
+            return {state: {floor_temperature_sensor: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['temperatureSensor']);
@@ -451,7 +451,7 @@ const tzLocal = {
         key: ['time_format'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('manuSpecificSinope', {timeFormatToDisplay: utils.getFromLookup(value, {'24h': 0, '12h': 1})}, manuSinope);
-            return {readAfterWriteTime: 250, state: {time_format: value}};
+            return {state: {time_format: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['timeFormatToDisplay'], manuSinope);
@@ -473,7 +473,7 @@ const tzLocal = {
         key: ['aux_connected_load'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('manuSpecificSinope', {auxConnectedLoad: value});
-            return {readAfterWriteTime: 250, state: {aux_connected_load: value}};
+            return {state: {aux_connected_load: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['auxConnectedLoad']);
@@ -489,7 +489,7 @@ const tzLocal = {
             } else if (value.toLowerCase() == 'off') {
                 await entity.write('manuSpecificSinope', {pumpProtection: 255});
             }
-            return {readAfterWriteTime: 250, state: {pump_protection: value}};
+            return {state: {pump_protection: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['pumpProtection']);
@@ -555,7 +555,7 @@ const tzLocal = {
             if (number >= 0 && number <= 3000) {
                 await entity.write('manuSpecificSinope', {minimumBrightness: number});
             }
-            return {readAfterWriteTime: 250, state: {minimumBrightness: number}};
+            return {state: {minimumBrightness: number}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['minimumBrightness']);
