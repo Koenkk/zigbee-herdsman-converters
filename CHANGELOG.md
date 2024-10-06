@@ -1,5 +1,21 @@
 # Changelog
 
+## [20.24.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.23.1...v20.24.0) (2024-10-06)
+
+
+### Features
+
+* **add:** S32055 ([#8083](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8083)) ([b355787](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b355787b47ff5c29072fe4788f53e028302ab392))
+* **add:** TS0726_switch_4g_2s ([#8085](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8085)) ([bd38d99](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bd38d9951b13dfe21c4634df05d54a3f273040e3))
+* **add:** Y1_IN ([#8082](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8082)) ([bbbeab6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bbbeab699cf15cf3665c103fc5cc6db4e3ae8d56))
+
+
+### Bug Fixes
+
+* `Failed to apply calibration to ...` when using an empty string ([#8088](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8088)) ([92441ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/92441ff768f2ffaa4b301211e505854df1089bfc))
+* **ignore:** Revert _TZE204_aoclfnxz fixes [#2](https://github.com/Koenkk/zigbee-herdsman-converters/issues/2) ([#8081](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8081)) ([a824298](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a824298bc19628ed01bc4cf7c414813125116c74))
+* **ignore:** update dependencies ([#8084](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8084)) ([b3a6da5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b3a6da5dff36a04c738d91653d8c9fae4734046c))
+
 ## [20.23.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.23.0...v20.23.1) (2024-10-05)
 
 
