@@ -2,8 +2,7 @@ import {Zcl} from 'zigbee-herdsman';
 
 import {presets as e, access as ea} from './exposes';
 import {deviceAddCustomCluster, deviceTemperature, numeric, NumericArgs, temperature} from './modernExtend';
-import {Configure, Fz, ModernExtend, Tz} from './types';
-import {getOptions} from './utils';
+import {Configure, Fz, ModernExtend} from './types';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
@@ -171,26 +170,17 @@ export const develcoModernExtend = {
             valueIgnore: [0xffff, -0x8000],
             ...args,
         }),
-    current_summation: () =>
-        ({
-            isModernExtend: true,
-            toZigbee: [
-                {
-                    key: ['current_summation'],
-                    convertSet: async (entity, key, value, meta) => {
-                        await entity.write('seMetering', {develcoCurrentSummation: value}, getOptions(meta.mapped, entity));
-                        return {state: {current_summation: value}};
-                    },
-                } satisfies Tz.Converter,
-            ],
-            exposes: [
-                e
-                    .numeric('current_summation', ea.SET)
-                    .withDescription('Current summation value sent to the display. e.g. 570 = 0,570 kWh')
-                    .withValueMin(0)
-                    .withValueMax(268435455),
-            ],
-        }) satisfies ModernExtend,
+    current_summation: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'current_summation',
+            cluster: 'seMetering',
+            attribute: 'develcoCurrentSummation',
+            description: 'Current summation value sent to the display. e.g. 570 = 0,570 kWh',
+            access: 'SET',
+            valueMin: 0,
+            valueMax: 268435455,
+            ...args,
+        }),
     pulse_configuration: (args?: Partial<NumericArgs>) =>
         numeric({
             name: 'pulse_configuration',
