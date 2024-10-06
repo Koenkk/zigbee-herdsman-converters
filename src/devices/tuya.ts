@@ -6220,6 +6220,27 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0726', manufacturerName: '_TZ3002_sal078g8'}],
+        model: 'TS0726_switch_4g_2s',
+        vendor: 'Tuya',
+        description: 'COSWALL smart switch (4 gang + 2 scene)',
+        fromZigbee: [fzLocal.TS0726_action],
+        exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
+        extend: [
+            tuya.modernExtend.tuyaOnOff({switchMode: true, powerOnBehavior2: true, backlightModeOffOn: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2, 3, 4, 5, 6]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
+            }
+        },
+    },
+    {
         zigbeeModel: ['TS0006'],
         model: 'TS0006',
         vendor: 'Tuya',
