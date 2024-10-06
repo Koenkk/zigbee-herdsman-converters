@@ -332,6 +332,15 @@ const definitions: DefinitionWithExtend[] = [
         description: 'SMART+ Outdoor Plug EU',
         extend: [ledvanceOnOff({powerOnBehavior: false})],
     },
+    {
+        zigbeeModel: ['PLUG COMPACT EU EM T'],
+        model: 'PLUG COMPACT EU EM T',
+        vendor: 'LEDVANCE',
+        description: 'Automatically generated definition',
+        extend: [onOff({"powerOnBehavior":false}), electricityMeter()],
+    },
 ];
 
 export default definitions;
+
+
