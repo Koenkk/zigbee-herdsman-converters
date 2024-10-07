@@ -8675,7 +8675,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('EARU', 'EAKCB-T-M-Z', 'Smart circuit breaker', ['_TZ3000_lepzuhto']),
             tuya.whitelabel('EARU', 'EAYCB-Z-2P', 'Smart circuit breaker with leakage protection', ['_TZ3000_zrm3oxsh']),
             tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart circuit Breaker', ['_TZ3000_qystbcjg']),
-            tuya.whitelabel('Tomzn', 'TOB9Z-M', 'Smart circuit breaker', ['_TZ3000_303avxxt']),
+            tuya.whitelabel('Tomzn', 'TOB9Z-VAP', 'Smart circuit breaker', ['_TZ3000_303avxxt']),
             tuya.whitelabel('Immax', '07573L', 'Smart circuit breaker', ['_TZ3000_zjchz7pd']),
         ],
     },
