@@ -586,7 +586,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
         description: 'SiHAS energy monitor',
-        extend: [electricityMeter({acFrequency: true, powerFactor: true}), temperature()],
+        extend: [electricityMeter({acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), temperature()],
     },
     {
         zigbeeModel: ['PMM-300Z3'],
@@ -594,7 +594,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
         description: 'SiHAS 3phase energy monitor',
-        extend: [electricityMeter({acFrequency: true, powerFactor: true}), temperature()],
+        extend: [electricityMeter({acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), temperature()],
     },
     {
         zigbeeModel: ['DLM-300Z'],
