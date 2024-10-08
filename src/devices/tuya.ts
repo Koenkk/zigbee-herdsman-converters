@@ -6522,8 +6522,8 @@ const definitions: DefinitionWithExtend[] = [
                 .numeric('deadzone_temperature', ea.STATE_SET)
                 .withUnit('°C')
                 .withValueMax(10)
-                .withValueMin(0.5)
-                .withValueStep(0.5)
+                .withValueMin(0.1)
+                .withValueStep(0.1)
                 .withPreset('default', 1, 'Default value')
                 .withDescription('The delta between local_temperature (5<t<35)and current_heating_setpoint to trigger Heat'),
             e.enum('backlight_mode', ea.STATE_SET, ['off', 'low', 'medium', 'high']).withDescription('Intensity of the backlight'),
