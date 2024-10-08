@@ -2587,6 +2587,36 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_cet6ch1r'}],
+        model: 'SC400ZB-EU',
+        vendor: 'LoraTap',
+        description: 'Curtain/blind switch',
+        fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options, tuya.fz.backlight_mode_off_on],
+        toZigbee: [
+            tz.cover_state,
+            tz.cover_position_tilt,
+            tz.tuya_cover_calibration,
+            tz.tuya_cover_reversal,
+            tuya.tz.backlight_indicator_mode_2,
+            tuya.tz.backlight_indicator_mode_1,
+        ],
+        meta: {coverInverted: true, multiEndpoint: true},
+        endpoint: (device) => {
+            return {up: 1, down: 2};
+        },
+        exposes: [
+            e.cover_position().withEndpoint('up'),
+            e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('up'),
+            e.binary('motor_reversal', ea.ALL, 'ON', 'OFF').withEndpoint('up'),
+            e.binary('calibration', ea.ALL, 'ON', 'OFF').withDescription('Calibration up').withEndpoint('up'),
+            e.binary('calibration', ea.ALL, 'ON', 'OFF').withDescription('Calibration down').withEndpoint('down'),
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time up').withEndpoint('up'),
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time down').withEndpoint('down'),
+            tuya.exposes.backlightModeOffOn(),
+            e.linkquality(),
+        ],
+    },
+    {
         zigbeeModel: ['qnazj70', 'kjintbl'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
