@@ -1107,6 +1107,13 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Hue white and color ambiance LightStrip plus',
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
     },
+	{	 
+        zigbeeModel: ['LCL008'],
+        model: '929003816901',
+        vendor: 'Philips',
+        description: 'Philips Hue Indoor 10 Ft Smart LED Solo lightstrip',
+        extend: [philipsLight({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    },
     {
         zigbeeModel: ['LCL002'],
         model: '9290022890',
