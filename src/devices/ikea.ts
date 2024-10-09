@@ -38,11 +38,11 @@ import {
     linkQuality,
     occupancy,
     onOff,
+    ota,
     pm25,
     temperature,
     windowCovering,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -602,7 +602,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E2206',
         vendor: 'IKEA',
         description: 'INSPELNING smart plug',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta(), electricityMeter()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ota(), electricityMeter()],
     },
     // #endregion on/off controls
     // #region blinds
@@ -883,8 +883,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E2112',
         vendor: 'IKEA',
         description: 'VINDSTYRKA air quality and humidity sensor',
-        ota: ota.zigbeeOTA,
         extend: [
+            ota(),
             addCustomClusterManuSpecificIkeaUnknown(),
             addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
             deviceAddCustomCluster('pm25Measurement', {

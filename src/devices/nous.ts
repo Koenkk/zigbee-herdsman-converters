@@ -80,7 +80,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nnrfa68v'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_wtikaxzs', '_TZE200_nnrfa68v']),
         model: 'E6',
         vendor: 'Nous',
         description: 'Temperature & humidity LCD sensor',
@@ -95,6 +95,7 @@ const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.humidity(),
             e.battery(),
+            e.battery_low(),
             e.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
             e.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm']).withDescription('Temperature alarm status'),
             e.numeric('max_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60).withDescription('Alarm temperature max'),

@@ -20,7 +20,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
     {
-        zigbeeModel: ['SCM-3-OTA_00.00.03.16TC', 'SCM-6-OTA_00.00.03.17TC', 'SCM-6-OTA_00.00.03.18TC'],
+        zigbeeModel: ['SCM-3-OTA_00.00.03.16TC', 'SCM-6-OTA_00.00.03.17TC', 'SCM-6-OTA_00.00.03.18TC', 'SCM-6-OTA_00.00.03.20TC'],
         model: 'LS12128',
         vendor: 'Lupus',
         description: 'Roller shutter',
