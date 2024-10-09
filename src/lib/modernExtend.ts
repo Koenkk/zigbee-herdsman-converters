@@ -1609,12 +1609,13 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
 
 // Uses Electrical Measurement and/or Metering, but for simplicity was put here.
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
+type MultiplierDivisorMin = {multiplier?: number; divisor?: number; min?: number};
 export interface ElectricityMeterArgs {
     cluster?: 'both' | 'metering' | 'electrical';
     current?: false | MultiplierDivisor;
-    power?: false | MultiplierDivisor;
+    power?: false | MultiplierDivisorMin;
     voltage?: false | MultiplierDivisor;
-    energy?: false | MultiplierDivisor;
+    energy?: false | MultiplierDivisorMin;
     producedEnergy?: false | true | MultiplierDivisor;
     acFrequency?: false | true | MultiplierDivisor;
     threePhase?: boolean;
@@ -1663,7 +1664,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     const configureLookup = {
         haElectricalMeasurement: {
             // Report change with every 5W change
-            power: {attribute: 'activePower', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5},
+            power: {attribute: 'activePower', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5, min: 'min'},
             power_phase_b: {attribute: 'activePowerPhB', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5},
             power_phase_c: {attribute: 'activePowerPhC', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5},
             // Report change with every 0.05A change
@@ -1713,9 +1714,9 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         },
         seMetering: {
             // Report change with every 5W change
-            power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 5},
+            power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 5, min: 'min'},
             // Report change with every 0.1kWh change
-            energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1},
+            energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1, min: 'min'},
             produced_energy: {
                 attribute: 'currentSummReceived',
                 divisor: 'divisor',
@@ -1832,6 +1833,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                     for (const endpoint of getEndpointsWithCluster(device, cluster, 'input')) {
                         const items: ReportingConfig[] = [];
                         for (const property of Object.values(properties)) {
+                            logger.debug(`configureReporting: property ${JSON.stringify(property)}.`, 'zhc:electricityMeter');
                             let change = property.change;
                             // Check if this property has a divisor and multiplier, e.g. AC frequency doesn't.
                             if ('divisor' in property) {
@@ -1852,7 +1854,17 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                                 assertNumber(multiplier, property.multiplier);
                                 change = property.change * (divisor / multiplier);
                             }
-                            items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
+                            let minval: ReportingConfigTime = '10_SECONDS';
+                            // In case min was provided, use that instead of default.
+                            if ('min' in property) {
+                                if (property.forced) {
+                                    if (property.forced.min) {
+                                        minval = property.forced.min ?? minval;
+                                        logger.debug(`configureReporting: set minval ${minval}.`, 'zhc:electricityMeter');
+                                    }
+                                }
+                            }
+                            items.push({attribute: property.attribute, min: minval, max: 'MAX', change});
                         }
                         if (items.length) {
                             await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
