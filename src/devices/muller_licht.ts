@@ -17,12 +17,12 @@ function mullerLichtLight(args: LightArgs) {
 
 const definitions: DefinitionWithExtend[] = [
     {
-    zigbeeModel: ['tint-ExtendedColor'],
-    model: '404043/404044/404045/404046/404047/404091/404092/404093',
-    vendor: 'Müller Licht',
-    description: 'frameless tint LED-Panel Aris white+color (1800-6500K+RGB) 6500 K',
-    extend: [mullerLichtLight({"colorTemp":{"range":[153,555]},"color":{"modes":["xy","hs"]}})],
-    };
+        zigbeeModel: ['tint-ExtendedColor'],
+        model: '404043/404044/404045/404046/404047/404091/404092/404093',
+        vendor: 'Müller Licht',
+        description: 'frameless tint LED-Panel Aris white+color (1800-6500K+RGB) 6500 K',
+        extend: [mullerLichtLight({"colorTemp":{"range":[153,555]},"color":{"modes":["xy","hs"]}})],
+    },
     {
         zigbeeModel: ['tint-Spotlights'],
         model: '404051',
