@@ -1875,7 +1875,6 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
-        meta: {},
     },
     {
         zigbeeModel: ['1745930P7'],
