@@ -6494,7 +6494,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZWT198/ZWT100-BH',
         vendor: 'Tuya',
         description: 'Avatto wall thermostat',
-        onEvent: tuya.onEvent({timeStart: '1970'}),
+        onEvent: tuya.onEvent({timeStart: '1970', respondToMcuVersionResponse: false}),
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
