@@ -1,5 +1,22 @@
 # Changelog
 
+## [20.26.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.25.0...v20.26.0) (2024-10-10)
+
+
+### Features
+
+* **add:** 046677584658 https://github.com/Koenkk/zigbee2mqtt/discussions/24269 ([870c47b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/870c47b5b4c555a6bab5d1dd23c69061809440d5))
+* **add:** 1745930V7 ([#8111](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8111)) ([a7a331d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a7a331d17e5fb019fbff40227dac3586ee4842e2))
+* **add:** SLR1d ([#8105](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8105)) ([171aaea](https://github.com/Koenkk/zigbee-herdsman-converters/commit/171aaea6fb200c30556486cd2f9dd86ba03a242b))
+* **add:** TSL-TRV-TV05ZG ([#8109](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8109)) ([784e172](https://github.com/Koenkk/zigbee-herdsman-converters/commit/784e1729833e7a7ca9d4411a1fa3f0b9d960af73))
+* **add:** YMI70A ([#8095](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8095)) ([9c405da](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c405da8330a4a416b86f58debe9da538b764dcf))
+
+
+### Bug Fixes
+
+* **detect:** Detect `LCZ002` as Philips 8719514419278 ([#8110](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8110)) ([6c3ec8a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6c3ec8a5a0a1e33b63056c468b5a2f5f4c1c7000))
+* **detect:** Detect `TRADFRIbulbE17WScandleopal440lm` as IKEA LED1949C5 ([#8112](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8112)) ([e644326](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e64432683aefe2fccfcb0b49b4df87174454b9c8))
+
 ## [20.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.24.0...v20.25.0) (2024-10-10)
 
 
