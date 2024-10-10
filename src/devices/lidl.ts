@@ -353,16 +353,16 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HG06338',
         vendor: 'Lidl',
         description: 'Silvercrest 3 gang switch, with 4 USB (EU, FR, CZ, BS)',
-        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3']})],
+        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3', 'l4']})],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            for (const ID of [1, 2, 3]) {
+            for (const ID of [1, 2, 3, 242]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }
         },
         endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3};
+            return {l1: 1, l2: 2, l3: 3, l4: 242};
         },
     },
     {
