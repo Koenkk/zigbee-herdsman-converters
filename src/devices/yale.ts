@@ -429,7 +429,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'YMI70A',
         vendor: 'Yale',
         description: 'Biometric digital lock',
-        extend: [battery(), lock({pinCodeCount: 1})],
+        extend: [battery(), lock({pinCodeCount: 100})],
     },
     {
         fingerprint: [
