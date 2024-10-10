@@ -753,17 +753,15 @@ const converters1 = {
                 payload[property] = power;
             }
 
-            if (factor != null && (msg.data.currentSummDelivered !== undefined || msg.data.currentSummReceived !== undefined)) {
-                if (msg.data.currentSummDelivered !== undefined) {
-                    const value = msg.data['currentSummDelivered'];
-                    const property = postfixWithEndpointName('energy', msg, model, meta);
-                    payload[property] = value * factor;
-                }
-                if (msg.data.currentSummReceived !== undefined) {
-                    const value = msg.data['currentSummReceived'];
-                    const property = postfixWithEndpointName('produced_energy', msg, model, meta);
-                    payload[property] = value * factor;
-                }
+            if (msg.data.currentSummDelivered !== undefined) {
+                const value = msg.data['currentSummDelivered'];
+                const property = postfixWithEndpointName('energy', msg, model, meta);
+                payload[property] = value * (factor ?? 1);
+            }
+            if (msg.data.currentSummReceived !== undefined) {
+                const value = msg.data['currentSummReceived'];
+                const property = postfixWithEndpointName('produced_energy', msg, model, meta);
+                payload[property] = value * (factor ?? 1);
             }
 
             return payload;
