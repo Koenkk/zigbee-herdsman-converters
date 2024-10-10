@@ -283,7 +283,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             temperature(),
             humidity(),
-            battery({voltage: true}),
+            battery(),
             deviceAddCustomCluster('3rSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
@@ -332,11 +332,42 @@ const definitions: DefinitionWithExtend[] = [
             battery(),
             deviceAddCustomCluster('3rSpecialCluster', {
                 ID: 0xff01,
-                manufacturerCode: 0x1233,
+                manufacturerCode: 0x1407,
                 attributes: {
                     celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16},
                     humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16},
                     fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['3RWK0148Z'],
+        model: '3RWK0148Z',
+        vendor: 'Third Reality',
+        description: 'Smart Watering Kit',
+        fromZigbee: [fz.on_off, fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        exposes: [e.switch(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+            device.powerSource = 'Battery';
+            device.save();
+        },
+        extend: [
+            battery(),
+            deviceAddCustomCluster('3rWateringSpecialCluster', {
+                ID: 0xfff2,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    watering_times: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    interval_day: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                    more_watering_times: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    water_speed_control: {ID: 0x0003, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
