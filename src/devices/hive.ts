@@ -337,8 +337,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['SLR1d'],
         model: 'SLR1d',
         vendor: 'Hive',
-        description: 'Test Hive Receiver',
-        extend: [],
+        description: 'Single channel receiver by Hive',
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
