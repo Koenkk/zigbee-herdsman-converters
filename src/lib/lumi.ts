@@ -3114,16 +3114,11 @@ export const fromZigbee = {
             if (msg.data['1288']) {
                 const data = msg.data['1288'];
 
-                // array interpretation:
-                // 12 bit two's complement sign extended integer
-                // data[1][bit0..bit15] : x
-                // data[1][bit16..bit31]: y
-                // data[0][bit0..bit15] : z
-                // left shift first to preserve sign extension for 'x'
-                let x = (data['1'] << 16) >> 16;
-                let y = data['1'] >> 16;
-                // left shift first to preserve sign extension for 'z'
-                let z = (data['0'] << 16) >> 16;
+                const buffer = Buffer.alloc(6);
+                buffer.writeUIntLE(data, 0, 6);
+                let x = buffer.readIntLE(0, 2);
+                let y = buffer.readIntLE(2, 2);
+                let z = buffer.readIntLE(4, 2);
 
                 // simple offset calibration
                 x = calibrateAndPrecisionRoundOptions(x, options, 'x');
