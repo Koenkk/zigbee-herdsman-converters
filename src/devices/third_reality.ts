@@ -349,7 +349,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RWK0148Z',
         vendor: 'Third Reality',
         description: 'Smart Watering Kit',
-        fromZigbee: [fz.on_off, fz.ias_occupancy_alarm_1, fz.battery],
+        fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
         exposes: [e.switch(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
