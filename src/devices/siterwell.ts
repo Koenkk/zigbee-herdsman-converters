@@ -60,7 +60,6 @@ const definitions: DefinitionWithExtend[] = [
             e.window_detection(),
             e.battery(),
             e.valve_detection(),
-            e.position().withDescription('TRV valve position in %.'),
             e
                 .climate()
                 .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
