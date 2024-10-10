@@ -1,5 +1,30 @@
 # Changelog
 
+## [20.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.24.0...v20.25.0) (2024-10-10)
+
+
+### Features
+
+* **add:** 929003816901 ([#8102](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8102)) ([4b88f21](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b88f212c5871b054f7c47e73f5093d29e88485b))
+* **add:** E22-N1E ([#8107](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8107)) ([5c3c560](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5c3c5605b0c1a8139bc82a2ba1f5ef68ab90a2e5))
+* **add:** GL-SD-001P ([8eea12a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8eea12a411d895315f5a1dc95805f7c16b6251ff))
+
+
+### Bug Fixes
+
+* Change ZWT198/ZWT100-BH minimum deadzone value and step ([#8100](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8100)) ([35822d5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/35822d5f5906fb54780fa148a86ebef183220ef4))
+* **detect:** Detect `_TZ3000_wmlc9p9z` as Tuya TS0207_repeater https://github.com/Koenkk/zigbee2mqtt/issues/7901 ([508ab1d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/508ab1ddefcea5a0204920c8025228c75e13b3cc))
+* **detect:** Detect `_TZE284_nlrfgpny` as Neo NAS-AB06B2 ([#8091](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8091)) ([53f2959](https://github.com/Koenkk/zigbee-herdsman-converters/commit/53f2959a5bf0935fa74b10b126bff52b522c559c))
+* **detect:** Detect `PLUG COMPACT EU EM T` as LEDVANCE 4099854293276 ([#8086](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8086)) ([dbde944](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dbde944ae2a1b601d4fbb25d904798d881c9851c))
+* **detect:** Detect `SPM01X` as SPM01-U01 and SPM02X as SPM02-U01 ([#8101](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8101)) ([96b0cad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/96b0cada2e3e36e38639f0119baa8d737b116cdd))
+* Fix Aqara DJT11LM x/y/` values https://github.com/Koenkk/zigbee2mqtt/discussions/24185 ([6e6921e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e6921ea83a56ea56942292f4e27a9269a15ebcb))
+* Fix Legrand device pairing ([#8093](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8093)) ([ef59340](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ef59340c723f2cf8ea8381997a9de69b431c657e))
+* Fix Lumi ZNCLBL01LM state and position reporting https://github.com/Koenkk/zigbee2mqtt/issues/23557 ([1c92165](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c92165a06fe89337c83cf87ec19f261f3e55454))
+* Fix ShinaSystem PMM-300Z2 and PMM-300Z3 ac frequency ([#8094](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8094)) ([6b36819](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6b368190fc311ae33a7bd768f89050e9462404d4))
+* Fix some Tuya devices not reporting data https://github.com/Koenkk/zigbee2mqtt/issues/24261 ([bdefb31](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bdefb3122faea816593f00955f8d39651f8aa9e5))
+* Fix Tuya ZWT198/ZWT100-BH `manuSpecificTuya.mcuVersionRequest` times out https://github.com/Koenkk/zigbee2mqtt/issues/23874 ([0366d33](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0366d33b3bc3d1ba360b941bce27cfa39b62c26a))
+* Remove position from Siterwell GS361A-H04 ([#8092](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8092)) ([51d99cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/51d99cc42ba5919fd35d16a7a8ad13528a3553c7))
+
 ## [20.24.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.23.1...v20.24.0) (2024-10-06)
 
 
