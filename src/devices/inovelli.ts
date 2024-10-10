@@ -1416,8 +1416,6 @@ const tzLocal = {
                     }
 
                     const result = await inovelliOnOffConvertSet(entity, 'state', state, meta);
-                    // @ts-expect-error ignore
-                    result.readAfterWriteTime = 0;
                     if (result.state && result.state.state === 'ON' && meta.state.brightness === 0) {
                         // @ts-expect-error ignore
                         result.state.brightness = 1;
@@ -1442,18 +1440,11 @@ const tzLocal = {
                     utils.getOptions(meta.mapped, entity),
                 );
 
-                const defaultTransitionTime = await entity.read('manuSpecificInovelli', ['rampRateOnToOffRemote']);
-
                 return {
                     state: {
                         state: brightness === 0 ? 'OFF' : 'ON',
                         brightness: Number(brightness),
                     },
-                    readAfterWriteTime:
-                        transition.time === 0
-                            ? // @ts-expect-error ignore
-                              defaultTransitionTime.rampRateOnToOffRemote * 100
-                            : transition.time * 100, // need on speed
                 };
             }
         },
