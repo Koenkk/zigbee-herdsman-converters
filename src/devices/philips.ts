@@ -139,7 +139,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LCZ002',
         vendor: 'Signify Netherlands B.V.',
         description: 'Hue Ellipse E27 smart bulb',
-        extend: [philipsLight({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
         meta: {},
     },
     {
