@@ -167,7 +167,6 @@ const definitions: DefinitionWithExtend[] = [
                 data.cluster === 'closuresDoorLock' &&
                 data.data &&
                 data.data.userid !== undefined &&
-                // Don't read RF events, we can do this with retrieve_state
                 (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] != 'rf')
             ) {
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});

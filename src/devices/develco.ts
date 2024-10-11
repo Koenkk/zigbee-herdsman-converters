@@ -158,7 +158,7 @@ const develco = {
             key: ['pulse_configuration'],
             convertSet: async (entity, key, value, meta) => {
                 await entity.write('seMetering', {develcoPulseConfiguration: value}, manufacturerOptions);
-                return {readAfterWriteTime: 200, state: {pulse_configuration: value}};
+                return {state: {pulse_configuration: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('seMetering', ['develcoPulseConfiguration'], manufacturerOptions);
@@ -169,7 +169,7 @@ const develco = {
             convertSet: async (entity, key, value, meta) => {
                 const payload = {develcoInterfaceMode: utils.getKey(constants.develcoInterfaceMode, value, undefined, Number)};
                 await entity.write('seMetering', payload, manufacturerOptions);
-                return {readAfterWriteTime: 200, state: {interface_mode: value}};
+                return {state: {interface_mode: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('seMetering', ['develcoInterfaceMode'], manufacturerOptions);
