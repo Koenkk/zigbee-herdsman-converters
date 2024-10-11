@@ -25,6 +25,7 @@ import {
     Zh,
 } from './types';
 import * as utils from './utils';
+import {configureSetPowerSourceWhenUnknown} from './utils';
 
 // import {Color} from './color';
 
@@ -98,6 +99,30 @@ export function onEvent(args?: {
                 await endpoint.command('manuSpecificTuya', 'mcuSyncTime', payload, {});
             } catch {
                 /* handle error to prevent crash */
+            }
+        }
+
+        // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
+        if (args.queryOnDeviceAnnounce && type === 'deviceAnnounce') {
+            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
+        }
+        if (args.queryIntervalSeconds) {
+            if (type === 'stop') {
+                clearTimeout(globalStore.getValue(device, 'query_interval'));
+                globalStore.clearValue(device, 'query_interval');
+            } else if (!globalStore.hasValue(device, 'query_interval')) {
+                const setTimer = () => {
+                    const timer = setTimeout(async () => {
+                        try {
+                            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
+                        } catch {
+                            /* Do nothing*/
+                        }
+                        setTimer();
+                    }, args.queryIntervalSeconds * 1000);
+                    globalStore.putValue(device, 'query_interval', timer);
+                };
+                setTimer();
             }
         }
     };
@@ -2175,7 +2200,9 @@ const tuyaModernExtend = {
             toZigbee.push(tuyaTz.inchingSwitch);
         }
 
-        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+        const configure = [configureSetPowerSourceWhenUnknown('Mains (single phase)')];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true, configure};
     },
     dpBacklightMode(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
         const {readOnly} = args;

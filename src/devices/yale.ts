@@ -425,6 +425,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [lockExtend({battery: {dontDividePercentage: true}})],
     },
     {
+        zigbeeModel: ['06e0152204'],
+        model: 'YMI70A',
+        vendor: 'Yale',
+        description: 'Biometric digital lock',
+        extend: [battery(), lock({pinCodeCount: 100})],
+    },
+    {
         fingerprint: [
             {
                 type: 'EndDevice',

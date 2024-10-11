@@ -38,11 +38,11 @@ import {
     linkQuality,
     occupancy,
     onOff,
+    ota,
     pm25,
     temperature,
     windowCovering,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -315,10 +315,10 @@ const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), identify()],
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm', 'TRADFRIbulbE12WScandleopal450lm'],
+        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm', 'TRADFRIbulbE12WScandleopal450lm', 'TRADFRIbulbE17WScandleopal440lm'],
         model: 'LED1949C5',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E12/E14, white spectrum, candle, opal, 450/470 lm',
+        description: 'TRADFRI bulb E12/E14/E17, white spectrum, candle, opal, 450/470/440 lm',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
@@ -891,8 +891,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E2112',
         vendor: 'IKEA',
         description: 'VINDSTYRKA air quality and humidity sensor',
-        ota: ota.zigbeeOTA,
         extend: [
+            ota(),
             addCustomClusterManuSpecificIkeaUnknown(),
             addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
             deviceAddCustomCluster('pm25Measurement', {

@@ -99,11 +99,11 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_5toc8efa'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_5toc8efa'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_aoclfnxz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_u9bfwha0'},
@@ -113,37 +113,31 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Moes BHT series Thermostat',
         fromZigbee: [legacy.fz.moes_thermostat],
         toZigbee: [
-            legacy.tz.moes_thermostat_child_lock, //40 //child lock
-            legacy.tz.moes_thermostat_current_heating_setpoint, //16 //current set temp
-            legacy.tz.moes_thermostat_mode, //2 (hold/heat) also sets 3 - schedule enabled //hold/program
-            legacy.tz.moes_thermostat_standby, //1 //on/off
-            legacy.tz.moes_thermostat_sensor, //43 //sensor selection
-            legacy.tz.moes_thermostat_calibration, //27 //temperature correction
-            legacy.tz.moes_thermostat_deadzone_temperature, //20 //not used in this model
-            legacy.tz.moes_thermostat_max_temperature_limit, //18/19 for different models
-            legacy.tz.moes_thermostat_min_temperature_limit, //26 //DeadZone temp
-            legacy.tz.moes_thermostat_program_schedule, //101 //week program
+            legacy.tz.moes_thermostat_child_lock,
+            legacy.tz.moes_thermostat_current_heating_setpoint,
+            legacy.tz.moes_thermostat_mode,
+            legacy.tz.moes_thermostat_standby,
+            legacy.tz.moes_thermostat_sensor,
+            legacy.tz.moes_thermostat_calibration,
+            legacy.tz.moes_thermostat_deadzone_temperature,
+            legacy.tz.moes_thermostat_max_temperature_limit,
+            legacy.tz.moes_thermostat_min_temperature_limit,
+            legacy.tz.moes_thermostat_program_schedule,
         ],
         whiteLabel: [tuya.whitelabel('Moes', 'BHT-002/BHT-006', 'Smart heating thermostat', ['_TZE204_aoclfnxz'])],
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === '_TZE204_5toc8efa' ? 0.5 : 1;
-            const calibrationLimit = device?.manufacturerName === '_TZE204_aoclfnxz' ? 9 : 30;
-            const calibrationStep = device?.manufacturerName === '_TZE204_aoclfnxz' ? 1 : 0.1;
-            const arr = [
+            return [
                 e.linkquality(),
                 e.child_lock(),
-
-                device?.manufacturerName === '_TZE204_aoclfnxz' ? e.deadzone_temperature().withValueMin(1) : e.deadzone_temperature(),
-
-                device?.manufacturerName === '_TZE204_aoclfnxz'
-                    ? e.max_temperature_limit().withValueMin(45).withValueMax(70)
-                    : e.max_temperature_limit().withValueMax(45),
-
+                e.deadzone_temperature(),
+                e.max_temperature_limit().withValueMax(45),
+                e.min_temperature_limit(),
                 e
                     .climate()
                     .withSetpoint('current_heating_setpoint', 5, 45, heatingStepSize, ea.STATE_SET)
                     .withLocalTemperature(ea.STATE)
-                    .withLocalTemperatureCalibration(-calibrationLimit, calibrationLimit, calibrationStep, ea.STATE_SET)
+                    .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                     .withSystemMode(['off', 'heat'], ea.STATE_SET)
                     .withRunningState(['idle', 'heat', 'cool'], ea.STATE)
                     .withPreset(['hold', 'program']),
@@ -190,12 +184,6 @@ const definitions: DefinitionWithExtend[] = [
                     .withFeature(exposesLocal.minute('sunday_p4_minute'))
                     .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
             ];
-
-            if (device?.manufacturerName === '_TZE204_aoclfnxz') {
-                arr.splice(3, 0, e.min_temperature_limit());
-            }
-
-            return arr;
         },
         onEvent: tuya.onEventSetLocalTime,
     },

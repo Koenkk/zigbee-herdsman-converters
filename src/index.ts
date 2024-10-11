@@ -304,7 +304,7 @@ export function postProcessConvertedFromZigbeeMessage(definition: Definition, pa
     for (const [key, value] of Object.entries(payload)) {
         const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null);
         const expose = definitionExposes.find((e) => e.property === key);
-        if (expose?.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision && utils.isNumber(value)) {
+        if (expose?.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision && value !== '' && utils.isNumber(value)) {
             try {
                 payload[key] = utils.calibrateAndPrecisionRoundOptions(value, options, expose.name);
             } catch (error) {
@@ -463,7 +463,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
         device.customReadResponse = (frame, endpoint) => {
             if (frame.isCluster('genBasic') && frame.payload.find((i: {attrId: number}) => i.attrId === 61440)) {
                 const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
-                const payload = {0xf00: {value: 23, type: 35}};
+                const payload = {0xf000: {value: 23, type: 35}};
                 endpoint.readResponse('genBasic', frame.header.transactionSequenceNumber, payload, options).catch((e) => {
                     logger.logger.warning(`Legrand security read response failed: ${e}`, NS);
                 });
