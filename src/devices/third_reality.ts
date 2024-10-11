@@ -348,13 +348,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['3RWK0148Z'],
         model: '3RWK0148Z',
         vendor: 'Third Reality',
-        description: 'Smart Watering Kit',
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
-            device.powerSource = 'Battery';
-            device.save();
-        },
+        description: 'Smart watering kit',
         extend: [
             battery(),
             onOff(),
