@@ -359,6 +359,8 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
+            battery(),
+            onOff(),
             deviceAddCustomCluster('3rWateringSpecialCluster', {
                 ID: 0xfff2,
                 manufacturerCode: 0x1407,
