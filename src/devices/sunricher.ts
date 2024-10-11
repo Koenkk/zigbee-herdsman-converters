@@ -362,7 +362,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HK-SL-DIM-AU-R-A',
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
-        extend: [[identify(), electricityMeter(), light({configureReporting: true})],
+        extend: [identify(), electricityMeter(), light({configureReporting: true})],
     },	
     {
         zigbeeModel: ['ZG2835'],
