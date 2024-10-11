@@ -603,8 +603,6 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'IKEA',
         description: 'INSPELNING smart plug',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta(), electricityMeter()],
-        fromZigbee: [fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.currentsummdelivered],
         configure: async (device) => {
             const endpoint = device.getEndpoint(1);
             // Enable reporting of powerDivisor, needs to change dynamically with the amount of power
