@@ -87,6 +87,18 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ['E22-N1E'],
+        model: 'E22-N1E',
+        vendor: 'Sengled',
+        description: 'Smart LED multicolor BR30 bulb',
+        extend: [
+            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            sengledLight({colorTemp: {range: [154, 500]}, color: {modes: ['xy']}}),
+            electricityMeter({cluster: 'metering'}),
+            ota(),
+        ],
+    },
+    {
         zigbeeModel: ['E12-N1E'],
         model: 'E12-N1E',
         vendor: 'Sengled',

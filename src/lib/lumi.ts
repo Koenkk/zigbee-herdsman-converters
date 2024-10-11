@@ -2948,7 +2948,8 @@ export const fromZigbee = {
 
             let position = precisionRound(msg.data['presentValue'], 2);
             position = options.invert_cover ? 100 - position : position;
-            return {position};
+            const closed = options.invert_cover ? position === 100 : position === 0;
+            return {position, state: closed ? 'CLOSE' : 'OPEN'};
         },
     } satisfies Fz.Converter,
     lumi_curtain_position_tilt: {
@@ -3113,16 +3114,11 @@ export const fromZigbee = {
             if (msg.data['1288']) {
                 const data = msg.data['1288'];
 
-                // array interpretation:
-                // 12 bit two's complement sign extended integer
-                // data[1][bit0..bit15] : x
-                // data[1][bit16..bit31]: y
-                // data[0][bit0..bit15] : z
-                // left shift first to preserve sign extension for 'x'
-                let x = (data['1'] << 16) >> 16;
-                let y = data['1'] >> 16;
-                // left shift first to preserve sign extension for 'z'
-                let z = (data['0'] << 16) >> 16;
+                const buffer = Buffer.alloc(6);
+                buffer.writeUIntLE(data, 0, 6);
+                let x = buffer.readIntLE(0, 2);
+                let y = buffer.readIntLE(2, 2);
+                let z = buffer.readIntLE(4, 2);
 
                 // simple offset calibration
                 x = calibrateAndPrecisionRoundOptions(x, options, 'x');
@@ -4783,7 +4779,7 @@ export const toZigbee = {
                     await entity.command('closuresWindowCovering', 'stop', {}, getOptions(meta.mapped, entity));
                 }
 
-                if (!['ZNCLDJ11LM', 'ZNJLBL01LM', 'ZNCLBL01LM'].includes(meta.mapped.model)) {
+                if (!['ZNCLDJ11LM', 'ZNCLBL01LM'].includes(meta.mapped.model)) {
                     // The code below is originally added for ZNCLDJ11LM (Koenkk/zigbee2mqtt#4585).
                     // However, in Koenkk/zigbee-herdsman-converters#4039 it was replaced by reading
                     // directly from currentPositionLiftPercentage, so that device is excluded.
@@ -4796,8 +4792,6 @@ export const toZigbee = {
                     // Lumi curtain does not send position update on stop, request this.
                     await entity.read('genAnalogOutput', [0x0055]);
                 }
-
-                return {state: {state: 'STOP'}};
             } else {
                 const lookup = {open: 100, close: 0, on: 100, off: 0};
 
@@ -4819,6 +4813,8 @@ export const toZigbee = {
                     const payload = {presentValue: value};
                     await entity.write('genAnalogOutput', payload);
                 }
+
+                return {state: {position: value}};
             }
         },
         convertGet: async (entity, key, meta) => {

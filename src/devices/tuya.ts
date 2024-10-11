@@ -1860,6 +1860,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0207', manufacturerName: '_TZ3000_wlquqiiz'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_5k5vh43t'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_kxlmv9ag'},
+            {modelID: 'TS0207', manufacturerName: '_TZ3000_wmlc9p9z'},
         ],
         model: 'TS0207_repeater',
         vendor: 'Tuya',
@@ -4442,6 +4443,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_e9ba97vf' /* model: 'TV01-ZB', vendor: 'Moes' */,
             '_TZE200_husqqvux' /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */,
             '_TZE200_lnbfnyxd' /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */,
+            '_TZE200_fsow0qsk' /* model: 'TSL-TRV-TV05ZG', vendor: 'Tesla Smart' */,
             '_TZE200_lllliz3p' /* model: 'TV02-Zigbee', vendor: 'Tuya' */,
             '_TZE200_mudxchsu' /* model: 'TV05-ZG curve', vendor: 'Tuya' */,
             '_TZE200_7yoranx2' /* model: 'TV01-ZB', vendor: 'Moes' */,
@@ -4455,6 +4457,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Moes', model: 'TV01-ZB'},
             {vendor: 'AVATTO', model: 'TRV06-1'},
             {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
+            {vendor: 'Tesla Smart', model: 'TSL-TRV-TV05ZG'},
             {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
             tuya.whitelabel('Moes', 'ZTRV-ZX-TV01-MS', 'Thermostat radiator valve', ['_TZE200_7yoranx2']),
             tuya.whitelabel('Moes', 'TV01-ZB', 'Thermostat radiator valve', ['_TZE200_e9ba97vf', '_TZE200_kds0pmmv']),
@@ -6493,7 +6496,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZWT198/ZWT100-BH',
         vendor: 'Tuya',
         description: 'Avatto wall thermostat',
-        onEvent: tuya.onEvent({timeStart: '1970'}),
+        onEvent: tuya.onEvent({timeStart: '1970', respondToMcuVersionResponse: false}),
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -6522,8 +6525,8 @@ const definitions: DefinitionWithExtend[] = [
                 .numeric('deadzone_temperature', ea.STATE_SET)
                 .withUnit('°C')
                 .withValueMax(10)
-                .withValueMin(0.5)
-                .withValueStep(0.5)
+                .withValueMin(0.1)
+                .withValueStep(0.1)
                 .withPreset('default', 1, 'Default value')
                 .withDescription('The delta between local_temperature (5<t<35)and current_heating_setpoint to trigger Heat'),
             e.enum('backlight_mode', ea.STATE_SET, ['off', 'low', 'medium', 'high']).withDescription('Intensity of the backlight'),

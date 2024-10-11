@@ -7,7 +7,7 @@ const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['SPM01X001'],
+        zigbeeModel: ['SPM01X001', 'SPM01X'],
         model: 'SPM01-U01',
         vendor: 'BITUO TECHNIK',
         description: 'Smart energy sensor',
@@ -38,7 +38,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['SPM02X001'],
+        zigbeeModel: ['SPM02X001', 'SPM02X'],
         model: 'SPM02-U01',
         vendor: 'BITUO TECHNIK',
         description: 'Smart energy sensor',

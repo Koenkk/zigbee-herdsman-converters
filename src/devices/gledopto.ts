@@ -846,6 +846,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [gledoptoLight({colorTemp: {range: undefined}, color: true})],
     },
     {
+        zigbeeModel: ['GL-SD-001P'],
+        model: 'GL-SD-001P',
+        vendor: 'Gledopto',
+        description: 'Triac-dimmer',
+        extend: [light()],
+    },
+    {
         zigbeeModel: ['GL-FL-005TZS'],
         model: 'GL-FL-005TZS',
         vendor: 'Gledopto',
