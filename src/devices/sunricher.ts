@@ -100,6 +100,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Keypad smart dimmer',
         extend: [light({configureReporting: true}), electricityMeter()],
     },
+    {
         zigbeeModel: ['HK-SL-DIM-AU-R-A'],
         model: 'HK-SL-DIM-AU-R-A',
         vendor: 'Sunricher',
