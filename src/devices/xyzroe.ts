@@ -2,11 +2,21 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {deviceEndpoints, electricityMeter, identify, temperature} from '../lib/modernExtend';
 import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const CONSTANTS = {
+    MIN_REPORT_INTERVAL: 10,
+    MAX_REPORT_INTERVAL: 90,
+    REPORTABLE_CHANGE: 100,
+    TEMP_MIN_REPORT_INTERVAL: 60,
+    TEMP_MAX_REPORT_INTERVAL: 300,
+    TEMP_REPORTABLE_CHANGE: 1000,
+};
 
 const buttonModesList = {
     single_click: 0x01,
@@ -345,6 +355,16 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter,
+    iasZoneAlarm: {
+        cluster: 'ssIasZone',
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+            return {
+                alarm_1: (zoneStatus & 1) > 0,
+            };
+        },
+    } satisfies Fz.Converter,
 };
 
 function zigusbBtnConfigExposes(epName: string) {
@@ -462,6 +482,117 @@ const definitions: DefinitionWithExtend[] = [
                 {attribute: 'onOff', minimumReportInterval: 20, maximumReportInterval: 120, reportableChange: 0.1},
             ]);
         },
+    },
+    {
+        zigbeeModel: ['ZigUSB_C6'],
+        model: 'ZigUSB_C6',
+        vendor: 'xyzroe',
+        description: 'Zigbee USB switch with monitoring',
+        fromZigbee: [fz.power_on_behavior, fz.on_off, fzLocal.iasZoneAlarm],
+        toZigbee: [tz.power_on_behavior, tz.on_off],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+
+            await endpoint.read('haElectricalMeasurement', ['dcPowerMultiplier', 'dcPowerDivisor']);
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {
+                    attribute: 'dcPower',
+                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
+                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
+                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
+                },
+            ]);
+            await endpoint.read('haElectricalMeasurement', ['dcCurrentMultiplier', 'dcCurrentDivisor']);
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {
+                    attribute: 'dcCurrent',
+                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
+                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
+                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
+                },
+            ]);
+            await endpoint.read('haElectricalMeasurement', ['dcVoltageMultiplier', 'dcVoltageDivisor']);
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {
+                    attribute: 'dcVoltage',
+                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
+                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
+                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
+                },
+            ]);
+
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {
+                    attribute: 'activePower',
+                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
+                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
+                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
+                },
+            ]);
+
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {
+                    attribute: 'rmsCurrent',
+                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
+                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
+                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
+                },
+            ]);
+
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {
+                    attribute: 'rmsVoltage',
+                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
+                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
+                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
+                },
+            ]);
+        },
+        exposes: [
+            e.binary('alarm', ea.STATE, true, false).withDescription('🔌 Indicates if overcurrent protection is triggered').withEndpoint('1'),
+            e
+                .power_on_behavior(['off', 'on', 'toggle', 'previous'])
+                .withDescription('🔌 Controls the behavior when the device powers on after a power loss')
+                .withEndpoint('1'),
+            e
+                .binary('state', ea.ALL, 'ON', 'OFF')
+                .withProperty('state')
+                .withValueToggle('TOGGLE')
+                .withDescription('🔌 Controls the USB port switch')
+                .withEndpoint('1'),
+            e
+                .binary('state', ea.ALL, 'ON', 'OFF')
+                .withProperty('state')
+                .withValueToggle('TOGGLE')
+                .withDescription('💡 Indicates the Zigbee status via LED')
+                .withEndpoint('2'),
+            e
+                .binary('state', ea.ALL, 'ON', 'OFF')
+                .withProperty('state')
+                .withValueToggle('TOGGLE')
+                .withDescription('💡 Indicates the USB state via LED')
+                .withEndpoint('3'),
+        ],
+        extend: [
+            deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3}}),
+            identify(),
+            electricityMeter({
+                cluster: 'electrical',
+                configureReporting: false,
+                endpointNames: ['1'],
+            }),
+            temperature({
+                reporting: {
+                    min: CONSTANTS.TEMP_MIN_REPORT_INTERVAL,
+                    max: CONSTANTS.TEMP_MAX_REPORT_INTERVAL,
+                    change: CONSTANTS.TEMP_REPORTABLE_CHANGE,
+                },
+            }),
+        ],
+        meta: {multiEndpoint: true},
     },
 ];
 
