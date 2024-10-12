@@ -10256,8 +10256,8 @@ const definitions: DefinitionWithExtend[] = [
             e.presence().withDescription('Occupancy'),
             e.numeric('distance', ea.STATE).withUnit('m').withDescription('Target distance'),
             e.illuminance_lux().withDescription('Illuminance sensor'),
-            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
-            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
             e
                 .numeric('detection_distance_min', ea.STATE_SET)
                 .withValueMin(0)
