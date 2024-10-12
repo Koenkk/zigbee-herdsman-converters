@@ -35,7 +35,7 @@
         "clean": "rimraf --glob index* devices lib converters tsconfig.tsbuildinfo",
         "build": "tsc",
         "build-watch": "tsc --watch",
-        "prepack": "npm run clean && npm run build",
+        "prepack": "pnpm run clean && pnpm run build",
         "prepare": "husky"
     },
     "author": "Koen Kanters",
