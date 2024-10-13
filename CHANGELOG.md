@@ -1,5 +1,12 @@
 # Changelog
 
+## [20.27.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.27.1...v20.27.2) (2024-10-13)
+
+
+### Bug Fixes
+
+* **ignore:** fix publish ([b72f679](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b72f6795d8657cc2f05c91877dfc05a9e11aa56b))
+
 ## [20.27.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.27.0...v20.27.1) (2024-10-13)
 
 
