@@ -1611,6 +1611,7 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
 export interface ElectricityMeterArgs {
     cluster?: 'both' | 'metering' | 'electrical';
+    attributes?: 'both' | 'ac' | 'dc';
     current?: false | MultiplierDivisor;
     power?: false | MultiplierDivisor;
     voltage?: false | MultiplierDivisor;
@@ -1618,14 +1619,23 @@ export interface ElectricityMeterArgs {
     producedEnergy?: false | true | MultiplierDivisor;
     acFrequency?: false | true | MultiplierDivisor;
     threePhase?: boolean;
-    configureReporting?: boolean;
+    configureReporting?: false | true | ReportingConfigWithoutAttribute;
     powerFactor?: boolean;
     endpointNames?: string[];
     fzMetering?: Fz.Converter;
     fzElectricalMeasurement?: Fz.Converter;
 }
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
-    args = {cluster: 'both', configureReporting: true, threePhase: false, producedEnergy: false, acFrequency: false, powerFactor: false, ...args};
+    args = {
+        cluster: 'both',
+        attributes: 'ac',
+        configureReporting: true,
+        threePhase: false,
+        producedEnergy: false,
+        acFrequency: false,
+        powerFactor: false,
+        ...args,
+    };
     if (args.cluster !== 'electrical') {
         const divisors = new Set([
             args.cluster === 'metering' && isObject(args.power) ? args.power?.divisor : false,
@@ -1654,6 +1664,9 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     }
     if (args.cluster === 'metering' && args.powerFactor) {
         throw new Error(`Power factor is not supported with cluster 'metering', use 'both' or 'electrical'`);
+    }
+    if (args.cluster === 'electrical' && args.attributes === 'dc') {
+        throw new Error(`DC attributes are not supported with cluster 'electrical', use 'both' or 'ac'`);
     }
 
     let exposes: Numeric[] = [];
@@ -1710,6 +1723,12 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                 forced: args.voltage,
                 change: 5,
             },
+            // Report change with every 100mW change
+            dc_power: {attribute: 'dcPower', divisor: 'dcPowerDivisor', multiplier: 'dcPowerMultiplier', forced: args.power, change: 100},
+            // Report change with every 100mV change
+            dc_voltage: {attribute: 'dcVoltage', divisor: 'dcVoltageDivisor', multiplier: 'dcVoltageMultiplier', forced: args.voltage, change: 100},
+            // Report change with every 100mA change
+            dc_current: {attribute: 'dcCurrent', divisor: 'dcCurrentDivisor', multiplier: 'dcCurrentMultiplier', forced: args.current, change: 100},
         },
         seMetering: {
             // Report change with every 5W change
@@ -1731,16 +1750,19 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         delete configureLookup.seMetering.power;
         delete configureLookup.haElectricalMeasurement.power_phase_b;
         delete configureLookup.haElectricalMeasurement.power_phase_c;
+        delete configureLookup.haElectricalMeasurement.dc_power;
     }
     if (args.voltage === false) {
         delete configureLookup.haElectricalMeasurement.voltage;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
+        delete configureLookup.haElectricalMeasurement.dc_voltage;
     }
     if (args.current === false) {
         delete configureLookup.haElectricalMeasurement.current;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         delete configureLookup.haElectricalMeasurement.current_phase_c;
+        delete configureLookup.haElectricalMeasurement.dc_current;
     }
     if (args.energy === false) {
         delete configureLookup.seMetering.energy;
@@ -1761,6 +1783,26 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         delete configureLookup.haElectricalMeasurement.current_phase_c;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
+    }
+
+    if (args.attributes === 'dc') {
+        delete configureLookup.haElectricalMeasurement.power;
+        delete configureLookup.haElectricalMeasurement.voltage;
+        delete configureLookup.haElectricalMeasurement.current;
+        delete configureLookup.haElectricalMeasurement.power_factor;
+        delete configureLookup.haElectricalMeasurement.ac_frequency;
+        delete configureLookup.haElectricalMeasurement.power_phase_b;
+        delete configureLookup.haElectricalMeasurement.power_phase_c;
+        delete configureLookup.haElectricalMeasurement.current_phase_b;
+        delete configureLookup.haElectricalMeasurement.current_phase_c;
+        delete configureLookup.haElectricalMeasurement.voltage_phase_b;
+        delete configureLookup.haElectricalMeasurement.voltage_phase_c;
+    }
+
+    if (args.attributes === 'ac') {
+        delete configureLookup.haElectricalMeasurement.dc_power;
+        delete configureLookup.haElectricalMeasurement.dc_voltage;
+        delete configureLookup.haElectricalMeasurement.dc_current;
     }
 
     if (args.cluster === 'both') {
@@ -1852,7 +1894,19 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                                 assertNumber(multiplier, property.multiplier);
                                 change = property.change * (divisor / multiplier);
                             }
-                            items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
+
+                            if (typeof args.configureReporting === 'object') {
+                                // If configureReporting is an object, use the values from it.
+                                items.push({
+                                    attribute: property.attribute,
+                                    min: args.configureReporting.min,
+                                    max: args.configureReporting.max,
+                                    change: args.configureReporting.change,
+                                });
+                            } else {
+                                // If configureReporting is true, use the change value calculated above.
+                                items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
+                            }
                         }
                         if (items.length) {
                             await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);

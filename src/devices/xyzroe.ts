@@ -490,67 +490,22 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee USB switch with monitoring',
         fromZigbee: [fz.power_on_behavior, fz.on_off, fzLocal.iasZoneAlarm],
         toZigbee: [tz.power_on_behavior, tz.on_off],
-        configure: async (device, coordinatorEndpoint) => {
+        /*configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
             await endpoint.read('haElectricalMeasurement', ['dcPowerMultiplier', 'dcPowerDivisor']);
-            await endpoint.configureReporting('haElectricalMeasurement', [
-                {
-                    attribute: 'dcPower',
-                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
-                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
-                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
-                },
-            ]);
+
             await endpoint.read('haElectricalMeasurement', ['dcCurrentMultiplier', 'dcCurrentDivisor']);
-            await endpoint.configureReporting('haElectricalMeasurement', [
-                {
-                    attribute: 'dcCurrent',
-                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
-                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
-                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
-                },
-            ]);
+
             await endpoint.read('haElectricalMeasurement', ['dcVoltageMultiplier', 'dcVoltageDivisor']);
-            await endpoint.configureReporting('haElectricalMeasurement', [
-                {
-                    attribute: 'dcVoltage',
-                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
-                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
-                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
-                },
-            ]);
 
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await endpoint.configureReporting('haElectricalMeasurement', [
-                {
-                    attribute: 'activePower',
-                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
-                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
-                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
-                },
-            ]);
-
+ 
             await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
-            await endpoint.configureReporting('haElectricalMeasurement', [
-                {
-                    attribute: 'rmsCurrent',
-                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
-                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
-                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
-                },
-            ]);
 
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
-            await endpoint.configureReporting('haElectricalMeasurement', [
-                {
-                    attribute: 'rmsVoltage',
-                    minimumReportInterval: CONSTANTS.MIN_REPORT_INTERVAL,
-                    maximumReportInterval: CONSTANTS.MAX_REPORT_INTERVAL,
-                    reportableChange: CONSTANTS.REPORTABLE_CHANGE,
-                },
-            ]);
-        },
+
+        },*/
         exposes: [
             e.binary('alarm', ea.STATE, true, false).withDescription('🔌 Indicates if overcurrent protection is triggered').withEndpoint('1'),
             e
@@ -581,7 +536,12 @@ const definitions: DefinitionWithExtend[] = [
             identify(),
             electricityMeter({
                 cluster: 'electrical',
-                configureReporting: false,
+                attributes: 'both',
+                configureReporting: {
+                    min: CONSTANTS.MIN_REPORT_INTERVAL,
+                    max: CONSTANTS.MAX_REPORT_INTERVAL,
+                    change: CONSTANTS.REPORTABLE_CHANGE,
+                },
                 endpointNames: ['1'],
             }),
             temperature({
