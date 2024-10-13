@@ -36,7 +36,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'EMIZB-151',
         vendor: 'Frient',
         description: 'HAN P1 power-meter sensor',
-        extend: [electricityMeter(),],
+        extend: [electricityMeter()],
         configure: async (device) => {
             const endpoint = device.getEndpoint(2);
             await endpoint.configureReporting('haElectricalMeasurement', [
