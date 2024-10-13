@@ -1837,7 +1837,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                             // Check if this property has a divisor and multiplier, e.g. AC frequency doesn't.
                             if ('divisor' in property) {
                                 // In case multiplier or divisor was provided, use that instead of reading from device.
-                                if (property.forced) {
+                                if (property.forced && property.forced.divisor) {
                                     endpoint.saveClusterAttributeKeyValue(cluster, {
                                         [property.divisor]: property.forced.divisor ?? 1,
                                         [property.multiplier]: property.forced.multiplier ?? 1,
