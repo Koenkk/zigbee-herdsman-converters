@@ -39,6 +39,9 @@ const definitions: DefinitionWithExtend[] = [
         extend: [electricityMeter(),],
         configure: async (device) => {
             const endpoint = device.getEndpoint(2);
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {attribute: 'acPowerDivisor', minimumReportInterval: 10, maximumReportInterval: 65000, reportableChange: 1},
+            ]);
         },
     },
 ];
