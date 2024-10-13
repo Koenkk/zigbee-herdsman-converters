@@ -36,11 +36,12 @@ See [Zigbee2MQTT how to support new devices](https://www.zigbee2mqtt.io/advanced
 If you'd like to submit a pull request, you should run the following commands to ensure your changes will pass the tests:
 
 ```sh
-npm install
-npm run eslint -- --fix
-npm run pretty:write
-npm run build
-npm test
+npm install -g pnpm
+pnpm install --frozen-lockfile
+pnpm run eslint -- --fix
+pnpm run pretty:write
+pnpm run build
+pnpm test
 ```
 
 If any of those commands finish with an error your PR won't pass the tests and will likely be rejected.
