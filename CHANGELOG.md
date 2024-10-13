@@ -1,5 +1,19 @@
 # Changelog
 
+## [20.27.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.26.0...v20.27.0) (2024-10-13)
+
+
+### Features
+
+* **add:** RB 247 T https://github.com/Koenkk/zigbee2mqtt/issues/24304 ([bc95025](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc950257b64ac18149faa28732ab9b223d8888cd))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_n2egfsli` as Tuya WL-19DWZ https://github.com/Koenkk/zigbee2mqtt/issues/24305 ([a551de6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a551de6956b5e12f35c5183f236505a20808c023))
+* **ignore:** Switch to pnpm ([#8121](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8121)) ([b53aef5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b53aef5c1d93f33f68835ea96d2902c5a93e8979))
+* **ignore:** update dependencies ([#8122](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8122)) ([d3c47df](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d3c47dfb488d500ee1de30bd40462769b12a199a))
+
 ## [20.26.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.25.0...v20.26.0) (2024-10-12)
 
 
