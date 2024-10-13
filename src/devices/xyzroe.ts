@@ -2,21 +2,15 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {deviceEndpoints, electricityMeter, identify, temperature} from '../lib/modernExtend';
+import {deviceEndpoints, electricityMeter, iasZoneAlarm, identify, onOff, temperature} from '../lib/modernExtend';
 import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const CONSTANTS = {
-    MIN_REPORT_INTERVAL: 10,
-    MAX_REPORT_INTERVAL: 90,
-    REPORTABLE_CHANGE: 100,
-    TEMP_MIN_REPORT_INTERVAL: 60,
-    TEMP_MAX_REPORT_INTERVAL: 300,
-    TEMP_REPORTABLE_CHANGE: 1000,
-};
+const electroReporting = {min: 10, max: 90, change: 100};
+const tempReporting = {min: 60, max: 300, change: 1000};
 
 const buttonModesList = {
     single_click: 0x01,
@@ -355,16 +349,6 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter,
-    iasZoneAlarm: {
-        cluster: 'ssIasZone',
-        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
-            return {
-                alarm_1: (zoneStatus & 1) > 0,
-            };
-        },
-    } satisfies Fz.Converter,
 };
 
 function zigusbBtnConfigExposes(epName: string) {
@@ -488,69 +472,22 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZigUSB_C6',
         vendor: 'xyzroe',
         description: 'Zigbee USB switch with monitoring',
-        fromZigbee: [fz.power_on_behavior, fz.on_off, fzLocal.iasZoneAlarm],
-        toZigbee: [tz.power_on_behavior, tz.on_off],
-        /*configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-
-            await endpoint.read('haElectricalMeasurement', ['dcPowerMultiplier', 'dcPowerDivisor']);
-
-            await endpoint.read('haElectricalMeasurement', ['dcCurrentMultiplier', 'dcCurrentDivisor']);
-
-            await endpoint.read('haElectricalMeasurement', ['dcVoltageMultiplier', 'dcVoltageDivisor']);
-
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
- 
-            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
-
-            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
-
-        },*/
-        exposes: [
-            e.binary('alarm', ea.STATE, true, false).withDescription('🔌 Indicates if overcurrent protection is triggered').withEndpoint('1'),
-            e
-                .power_on_behavior(['off', 'on', 'toggle', 'previous'])
-                .withDescription('🔌 Controls the behavior when the device powers on after a power loss')
-                .withEndpoint('1'),
-            e
-                .binary('state', ea.ALL, 'ON', 'OFF')
-                .withProperty('state')
-                .withValueToggle('TOGGLE')
-                .withDescription('🔌 Controls the USB port switch')
-                .withEndpoint('1'),
-            e
-                .binary('state', ea.ALL, 'ON', 'OFF')
-                .withProperty('state')
-                .withValueToggle('TOGGLE')
-                .withDescription('💡 Indicates the Zigbee status via LED')
-                .withEndpoint('2'),
-            e
-                .binary('state', ea.ALL, 'ON', 'OFF')
-                .withProperty('state')
-                .withValueToggle('TOGGLE')
-                .withDescription('💡 Indicates the USB state via LED')
-                .withEndpoint('3'),
-        ],
         extend: [
             deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3}}),
             identify(),
             electricityMeter({
                 cluster: 'electrical',
                 attributes: 'both',
-                configureReporting: {
-                    min: CONSTANTS.MIN_REPORT_INTERVAL,
-                    max: CONSTANTS.MAX_REPORT_INTERVAL,
-                    change: CONSTANTS.REPORTABLE_CHANGE,
-                },
+                configureReporting: electroReporting,
                 endpointNames: ['1'],
             }),
             temperature({
-                reporting: {
-                    min: CONSTANTS.TEMP_MIN_REPORT_INTERVAL,
-                    max: CONSTANTS.TEMP_MAX_REPORT_INTERVAL,
-                    change: CONSTANTS.TEMP_REPORTABLE_CHANGE,
-                },
+                reporting: tempReporting,
             }),
+            onOff({powerOnBehavior: true, endpointNames: ['1'], description: '🔌 Controls the USB port'}),
+            onOff({powerOnBehavior: false, endpointNames: ['2'], description: '💡 Indicates the Zigbee status'}),
+            onOff({powerOnBehavior: false, endpointNames: ['3'], description: '💡 Indicates the USB state'}),
+            iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1'], description: '🚨 Over current alarm'}),
         ],
         meta: {multiEndpoint: true},
     },

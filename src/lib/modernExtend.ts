@@ -466,17 +466,29 @@ export interface OnOffArgs {
     skipDuplicateTransaction?: boolean;
     endpointNames?: string[];
     configureReporting?: boolean;
+    description?: string;
 }
 export function onOff(args?: OnOffArgs): ModernExtend {
     args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
 
-    const exposes: Expose[] = exposeEndpoints(e.switch(), args.endpointNames);
+    const exposes: Expose[] = args.description
+        ? exposeEndpoints(e.switch(args.description), args.endpointNames)
+        : exposeEndpoints(e.switch(), args.endpointNames);
 
     const fromZigbee: Fz.Converter[] = [args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
     const toZigbee: Tz.Converter[] = [tz.on_off];
 
     if (args.powerOnBehavior) {
-        exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
+        const powerOnBehaviorExpose = args.description
+            ? e.power_on_behavior(['off', 'on', 'toggle', 'previous']).withDescription(args.description)
+            : e.power_on_behavior(['off', 'on', 'toggle', 'previous']);
+        if (args.endpointNames) {
+            args.endpointNames.forEach((endpoint) => {
+                exposes.push(powerOnBehaviorExpose.clone().withEndpoint(endpoint));
+            });
+        } else {
+            exposes.push(powerOnBehaviorExpose);
+        }
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
     }
@@ -1394,6 +1406,7 @@ export interface IasArgs {
     zoneType: iasZoneType;
     zoneAttributes: iasZoneAttribute[];
     alarmTimeout?: boolean;
+    description?: string;
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposeList = {
@@ -1448,7 +1461,17 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
     let alarm2Name = 'alarm_2';
 
     if (args.zoneType === 'generic') {
-        args.zoneAttributes.map((attr) => exposes.push(exposeList[attr]));
+        args.zoneAttributes.map((attr) => {
+            if (args.description) {
+                const updatedExpose = e
+                    .binary(exposeList[attr].property, ea.STATE, exposeList[attr].value_on, exposeList[attr].value_off)
+                    .withDescription(args.description)
+                    .withCategory(exposeList[attr].category);
+                exposes.push(updatedExpose);
+            } else {
+                exposes.push(exposeList[attr]);
+            }
+        });
     } else {
         if (bothAlarms) {
             exposes.push(
