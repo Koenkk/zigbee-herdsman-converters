@@ -54,6 +54,18 @@ Release changelogs
 
 https://ww8.ikea.com/ikeahomesmart/releasenotes/releasenotes.html
 
+### IKEA Home Smart
+
+IKEA Home Smart device OTA firmware images are made publicly available by IKEA (first-party) at the following URL:
+
+Download-URL:
+
+https://fw.ota.homesmart.ikea.com/check/update/prod
+
+Release changelogs
+
+https://static.homesmart.ikea.com/releaseNotes/
+
 ### LEDVANCE/Sylvania and OSRAM Lightify
 
 LEDVANCE/Sylvania and OSRAM Lightify Zigbee OTA firmware images are made publicly available by LEDVANCE (first-party) at the following URL:

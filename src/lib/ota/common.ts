@@ -770,10 +770,10 @@ export async function getNewImage(
 
     const download = downloadImage ? await downloadImage(meta) : await getAxios().get(meta.url, {responseType: 'arraybuffer'});
 
-    const checksum = meta.sha512 || meta.sha256;
+    const checksum = meta.sha512 || meta.sha256 || meta.sha3_256;
 
     if (checksum) {
-        const hash = crypto.createHash(meta.sha512 ? 'sha512' : 'sha256');
+        const hash = crypto.createHash(meta.sha512 ? 'sha512' : meta.sha256 ? 'sha256' : meta.sha3_256 ? 'sha3-256' : 'sha256');
         hash.update(download.data);
 
         assert(hash.digest('hex') === checksum, `File checksum validation failed`);

@@ -17,7 +17,7 @@ import {
     setupConfigureForReporting,
     timeLookup,
 } from '../lib/modernExtend';
-import {tradfri as ikea} from '../lib/ota';
+import {tradfri as ikea, homesmart as ikeaHS} from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
@@ -122,6 +122,10 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
 
 export function ikeaOta(): ModernExtend {
     return ota(ikea);
+}
+
+export function homesmartOta(): ModernExtend {
+    return ota(ikeaHS);
 }
 
 export function ikeaBattery(): ModernExtend {
