@@ -1664,7 +1664,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     const configureLookup = {
         haElectricalMeasurement: {
             // Report change with every 5W change
-            power: {attribute: 'activePower', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5, min: 'min'},
+            power: {attribute: 'activePower', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5},
             power_phase_b: {attribute: 'activePowerPhB', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5},
             power_phase_c: {attribute: 'activePowerPhC', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5},
             // Report change with every 0.05A change
@@ -1714,7 +1714,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         },
         seMetering: {
             // Report change with every 5W change
-            power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 5, min: 'min'},
+            power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 0.005, min: 'min'},
             // Report change with every 0.1kWh change
             energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1, min: 'min'},
             produced_energy: {
@@ -1833,19 +1833,20 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                     for (const endpoint of getEndpointsWithCluster(device, cluster, 'input')) {
                         const items: ReportingConfig[] = [];
                         for (const property of Object.values(properties)) {
-                            logger.debug(`configureReporting: property ${JSON.stringify(property)}.`, 'zhc:electricityMeter');
                             let change = property.change;
                             // Check if this property has a divisor and multiplier, e.g. AC frequency doesn't.
                             if ('divisor' in property) {
                                 // In case multiplier or divisor was provided, use that instead of reading from device.
                                 if (property.forced) {
-                                    endpoint.saveClusterAttributeKeyValue(cluster, {
-                                        [property.divisor]: property.forced.divisor ?? 1,
-                                        [property.multiplier]: property.forced.multiplier ?? 1,
-                                    });
-                                    endpoint.save();
-                                } else {
-                                    await endpoint.read(cluster, [property.divisor, property.multiplier]);
+                                    if (property.forced.divisor) {
+                                        endpoint.saveClusterAttributeKeyValue(cluster, {
+                                            [property.divisor]: property.forced.divisor ?? 1,
+                                            [property.multiplier]: property.forced.multiplier ?? 1,
+                                        });
+                                        endpoint.save();
+                                    } else {
+                                        await endpoint.read(cluster, [property.divisor, property.multiplier]);
+                                    }
                                 }
 
                                 const divisor = endpoint.getClusterAttributeValue(cluster, property.divisor);
@@ -1856,13 +1857,8 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                             }
                             let minval: ReportingConfigTime = '10_SECONDS';
                             // In case min was provided, use that instead of default.
-                            if ('min' in property) {
-                                if (property.forced) {
-                                    if (property.forced.min) {
-                                        minval = property.forced.min ?? minval;
-                                        logger.debug(`configureReporting: set minval ${minval}.`, 'zhc:electricityMeter');
-                                    }
-                                }
+                            if ('min' in property && 'forced' in property && property.forced && 'min' in property.forced && property.forced.min) {
+                                minval = property.forced.min ?? minval;
                             }
                             items.push({attribute: property.attribute, min: minval, max: 'MAX', change});
                         }

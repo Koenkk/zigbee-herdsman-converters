@@ -290,7 +290,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             identify(),
             sengledLight({color: false}),
-            electricityMeter({cluster: 'metering', power: {min: 3}, energy: {min: 3}}),
+            electricityMeter({cluster: 'metering', power: {min: 5}, energy: {min: 5}}),
             ota(),
             deviceAddCustomCluster('manuSpecificSengledMotionSensor', {
                 ID: 0xfc01,
