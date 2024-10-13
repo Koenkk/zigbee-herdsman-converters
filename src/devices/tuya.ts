@@ -2556,13 +2556,24 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Nous', 'B4Z', 'Curtain switch', ['_TZ3000_yruungrl']),
         ],
         exposes: (device) => {
-            const exps = [
+            const exps: Expose[] = [
                 e.cover_position(),
                 e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
-                e.binary('calibration', ea.ALL, 'ON', 'OFF'),
                 e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
-                e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time'),
             ];
+            if (device?.manufacturerName !== '_TZ3000_cet6ch1r') {
+                exps.push(
+                    e.binary('calibration', ea.ALL, 'ON', 'OFF'),
+                    e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time'),
+                );
+            } else {
+                exps.push(
+                    e.binary('calibration_up', ea.ALL, 'ON', 'OFF'),
+                    e.numeric('calibration_time_up', ea.STATE).withUnit('s').withDescription('Calibration time up'),
+                    e.binary('calibration_down', ea.ALL, 'ON', 'OFF'),
+                    e.numeric('calibration_time_down', ea.STATE).withUnit('s').withDescription('Calibration time down'),
+                );
+            }
             if (device?.manufacturerName !== '_TZ3210_xbpt8ewc') {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
