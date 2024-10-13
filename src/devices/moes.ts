@@ -482,6 +482,7 @@ const definitions: DefinitionWithExtend[] = [
                 [16, 'silence', tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel('HEIMAN', 'HS-720ES', 'Carbon monoxide alarm', ['_TZE200_hr0tdd47'])],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_vawy74yh'}],
