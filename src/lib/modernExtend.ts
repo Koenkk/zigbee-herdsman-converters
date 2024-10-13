@@ -1838,15 +1838,13 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                             if ('divisor' in property) {
                                 // In case multiplier or divisor was provided, use that instead of reading from device.
                                 if (property.forced) {
-                                    if (property.forced.divisor) {
-                                        endpoint.saveClusterAttributeKeyValue(cluster, {
-                                            [property.divisor]: property.forced.divisor ?? 1,
-                                            [property.multiplier]: property.forced.multiplier ?? 1,
-                                        });
-                                        endpoint.save();
-                                    } else {
-                                        await endpoint.read(cluster, [property.divisor, property.multiplier]);
-                                    }
+                                    endpoint.saveClusterAttributeKeyValue(cluster, {
+                                        [property.divisor]: property.forced.divisor ?? 1,
+                                        [property.multiplier]: property.forced.multiplier ?? 1,
+                                    });
+                                    endpoint.save();
+                                } else {
+                                    await endpoint.read(cluster, [property.divisor, property.multiplier]);
                                 }
 
                                 const divisor = endpoint.getClusterAttributeValue(cluster, property.divisor);
