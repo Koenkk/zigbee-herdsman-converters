@@ -465,7 +465,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rjxqso4a'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hr0tdd47', '_TZE200_rjxqso4a']),
         model: 'ZC-HM',
         vendor: 'Moes',
         description: 'Carbon monoxide alarm',
@@ -482,6 +482,7 @@ const definitions: DefinitionWithExtend[] = [
                 [16, 'silence', tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel('HEIMAN', 'HS-720ES', 'Carbon monoxide alarm', ['_TZE200_hr0tdd47'])],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_vawy74yh'}],
