@@ -24,7 +24,7 @@ import {
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Expose, } from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const {ewelinkAction} = ewelinkModernExtend;
@@ -554,105 +554,101 @@ const sonoffExtend = {
         const clusterName = 'customClusterEwelink';
         const attributeName = 'detachRelayMode2';
         const exposes = e.composite('detach_relay_mode', 'detach_relay_mode', ea.ALL);
-        if (1 == relayCount)
-        {
-            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
-                'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
-                'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
-            .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE')
-                .withDescription('Enable/disable detach relay.'))
-        }
-        else if (2 == relayCount)
-        {
-            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
-                'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
-                'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
-            .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE')
-                .withDescription('Enable/disable detach relay.'))
-            .withFeature(e.binary('detach_relay_outlet2', ea.SET, 'ENABLE', 'DISABLE')
-                .withDescription('Enable/disable detach relay.'))
-        }
-        else if (3 == relayCount)
-        {
-            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
-                'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
-                'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
-            .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE')
-                .withDescription('Enable/disable detach relay.'))
-            .withFeature(e.binary('detach_relay_outlet2', ea.SET, 'ENABLE', 'DISABLE')
-                .withDescription('Enable/disable detach relay.'))
-            .withFeature(e.binary('detach_relay_outlet3', ea.SET, 'ENABLE', 'DISABLE')
-                .withDescription('Enable/disable detach relay.'))
+        if (1 == relayCount) {
+            exposes
+                .withDescription(
+                    'Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
+                        'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
+                        'a scene command to control the smart light on or off, then we can enable the relay separation mode.',
+                )
+                .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'));
+        } else if (2 == relayCount) {
+            exposes
+                .withDescription(
+                    'Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
+                        'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
+                        'a scene command to control the smart light on or off, then we can enable the relay separation mode.',
+                )
+                .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'))
+                .withFeature(e.binary('detach_relay_outlet2', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'));
+        } else if (3 == relayCount) {
+            exposes
+                .withDescription(
+                    'Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
+                        'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
+                        'a scene command to control the smart light on or off, then we can enable the relay separation mode.',
+                )
+                .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'))
+                .withFeature(e.binary('detach_relay_outlet2', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'))
+                .withFeature(e.binary('detach_relay_outlet3', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'));
         }
 
-        const fromZigbee: Fz.Converter[] = [{
-            cluster: clusterName,
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('detachRelayMode2')) {
-                    let detachMode = msg.data['detachRelayMode2'];
-                    logger.debug(`form zigbee detachRelayMode2 ${detachMode}`, NS);
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: clusterName,
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.hasOwnProperty('detachRelayMode2')) {
+                        let detachMode = msg.data['detachRelayMode2'];
+                        logger.debug(`form zigbee detachRelayMode2 ${detachMode}`, NS);
 
-                    const datachRelayStatus = {
-                        "detach_relay_outlet1": "DISABLE",
-                        "detach_relay_outlet2": "DISABLE",
-                        "detach_relay_outlet3": "DISABLE",
-                    };
+                        const datachRelayStatus = {
+                            detach_relay_outlet1: 'DISABLE',
+                            detach_relay_outlet2: 'DISABLE',
+                            detach_relay_outlet3: 'DISABLE',
+                        };
 
-                    if ((detachMode & 0x01) !== 0) {
-                        datachRelayStatus["detach_relay_outlet1"] = "ENABLE";
+                        if ((detachMode & 0x01) !== 0) {
+                            datachRelayStatus['detach_relay_outlet1'] = 'ENABLE';
+                        }
+                        if ((detachMode & 0x02) !== 0) {
+                            datachRelayStatus['detach_relay_outlet2'] = 'ENABLE';
+                        }
+                        if ((detachMode & 0x04) !== 0) {
+                            datachRelayStatus['detach_relay_outlet3'] = 'ENABLE';
+                        }
+                        return {detach_relay_mode: datachRelayStatus};
                     }
-                    if ((detachMode & 0x02) !== 0) {
-                        datachRelayStatus["detach_relay_outlet2"] = "ENABLE";
-                    }
-                    if ((detachMode & 0x04) !== 0) {
-                        datachRelayStatus["detach_relay_outlet3"] = "ENABLE";
-                    }
-                    return {"detach_relay_mode":datachRelayStatus};
-                }
+                },
             },
-        }];
-        const toZigbee: Tz.Converter[] = [{
-            key: ['detach_relay_mode'],
-            convertSet: async (entity, key, value, meta) => {
-                // logger.debug(`from zigbee 'key' ${key}`, NS);
-                const detachRelay1 = 'detach_relay_outlet1';
-                // logger.debug(`from zigbee detachRelay1: ${value[detachRelay1 as keyof typeof value]}`, NS);
-                const detachRelay2 = 'detach_relay_outlet2';
-                // logger.debug(`from zigbee detachRelay2: ${value[detachRelay2 as keyof typeof value]}`, NS);
-                const detachRelay3 = 'detach_relay_outlet3';
-                // logger.debug(`from zigbee detachRelay3: ${value[detachRelay3 as keyof typeof value]}`, NS);
-                let detachRelayMask: number  = 0;
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['detach_relay_mode'],
+                convertSet: async (entity, key, value, meta) => {
+                    // logger.debug(`from zigbee 'key' ${key}`, NS);
+                    const detachRelay1 = 'detach_relay_outlet1';
+                    // logger.debug(`from zigbee detachRelay1: ${value[detachRelay1 as keyof typeof value]}`, NS);
+                    const detachRelay2 = 'detach_relay_outlet2';
+                    // logger.debug(`from zigbee detachRelay2: ${value[detachRelay2 as keyof typeof value]}`, NS);
+                    const detachRelay3 = 'detach_relay_outlet3';
+                    // logger.debug(`from zigbee detachRelay3: ${value[detachRelay3 as keyof typeof value]}`, NS);
+                    let detachRelayMask: number = 0;
 
-                if (value[detachRelay1 as keyof typeof value] == 'ENABLE') {
-                    detachRelayMask |= 0x01;
-                }
-                else {
-                    detachRelayMask &= ~0x01;
-                }
-                if (value[detachRelay2 as keyof typeof value] == 'ENABLE') {
-                    detachRelayMask |= 0x02;
-                }
-                else {
-                    detachRelayMask &= ~0x02;
-                }
-                if (value[detachRelay3 as keyof typeof value] == 'ENABLE') {
-                    detachRelayMask |= 0x04;
-                }
-                else {
-                    detachRelayMask &= ~0x04;
-                }
-                // logger.info(`from zigbee detachRelayMask: ${detachRelayMask}`, NS);
-                await entity.write(
-                    clusterName,
-                    {[attributeName]: detachRelayMask},
-                    defaultResponseOptions);
-                return {state: {[key]: value}};
+                    if (value[detachRelay1 as keyof typeof value] == 'ENABLE') {
+                        detachRelayMask |= 0x01;
+                    } else {
+                        detachRelayMask &= ~0x01;
+                    }
+                    if (value[detachRelay2 as keyof typeof value] == 'ENABLE') {
+                        detachRelayMask |= 0x02;
+                    } else {
+                        detachRelayMask &= ~0x02;
+                    }
+                    if (value[detachRelay3 as keyof typeof value] == 'ENABLE') {
+                        detachRelayMask |= 0x04;
+                    } else {
+                        detachRelayMask &= ~0x04;
+                    }
+                    // logger.info(`from zigbee detachRelayMask: ${detachRelayMask}`, NS);
+                    await entity.write(clusterName, {[attributeName]: detachRelayMask}, defaultResponseOptions);
+                    return {state: {[key]: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read(clusterName, [attributeName], defaultResponseOptions);
+                },
             },
-            convertGet: async (entity, key, meta) => {
-                await entity.read(clusterName, [attributeName], defaultResponseOptions);
-            },
-        }];
+        ];
         return {
             exposes: [exposes],
             fromZigbee,
@@ -660,10 +656,10 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    sonoffOnOff(args: {powerOnBehavior?: boolean, skipDuplicateTransaction?: boolean, endpointNames?: string[]}): ModernExtend {
+    sonoffOnOff(args: {powerOnBehavior?: boolean; skipDuplicateTransaction?: boolean; endpointNames?: string[]}): ModernExtend {
         args = {powerOnBehavior: true, skipDuplicateTransaction: false, ...args};
         const exposes: Expose[] = args.endpointNames ? args.endpointNames.map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
-        const fromZigbee: Fz.Converter[] = [(args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off)];
+        const fromZigbee: Fz.Converter[] = [args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
         const toZigbee: Tz.Converter[] = [tz.on_off];
 
         if (args.powerOnBehavior) {
@@ -1380,7 +1376,9 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZBM5-1C-120',
         vendor: 'SONOFF',
         description: 'Zigbee Smart one-channel wall switch (type 120).',
-        endpoint: (device) => {return {first: 1};},
+        endpoint: (device) => {
+            return {first: 1};
+        },
         exposes: [],
         extend: [
             ota(),
@@ -1402,7 +1400,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOn: [true, 1],
             }),
             sonoffExtend.detachRelayModeControl(1),
-            sonoffExtend.sonoffOnOff({endpointNames:['first']}),
+            sonoffExtend.sonoffOnOff({endpointNames: ['first']}),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -1417,7 +1415,9 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZBM5-2C-120',
         vendor: 'SONOFF',
         description: 'Zigbee Smart two-channel wall switch (type 120).',
-        endpoint: (device) => {return {first: 1, second: 2};},
+        endpoint: (device) => {
+            return {first: 1, second: 2};
+        },
         exposes: [],
         extend: [
             ota(),
@@ -1439,7 +1439,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOn: [true, 1],
             }),
             sonoffExtend.detachRelayModeControl(2),
-            sonoffExtend.sonoffOnOff({endpointNames:['first', 'second']}),
+            sonoffExtend.sonoffOnOff({endpointNames: ['first', 'second']}),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -1458,7 +1458,9 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZBM5-3C-120',
         vendor: 'SONOFF',
         description: 'Zigbee Smart three-channel wall switch (type 120).',
-        endpoint: (device) => {return {first: 1, second: 2, third: 3};},
+        endpoint: (device) => {
+            return {first: 1, second: 2, third: 3};
+        },
         meta: {multiEndpoint: true},
         exposes: [],
         extend: [
@@ -1481,7 +1483,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOn: [true, 1],
             }),
             sonoffExtend.detachRelayModeControl(3),
-            sonoffExtend.sonoffOnOff({endpointNames:['first', 'second', 'third']}),
+            sonoffExtend.sonoffOnOff({endpointNames: ['first', 'second', 'third']}),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
