@@ -465,7 +465,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rjxqso4a'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hr0tdd47', '_TZE200_rjxqso4a']),
         model: 'ZC-HM',
         vendor: 'Moes',
         description: 'Carbon monoxide alarm',
