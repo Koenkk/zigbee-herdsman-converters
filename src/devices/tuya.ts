@@ -6831,7 +6831,10 @@ const definitions: DefinitionWithExtend[] = [
             fz.tuya_relay_din_led_indicator,
         ],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
-        whiteLabel: [tuya.whitelabel('Tongou', 'TO-Q-SY1-JZT', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_qeuvnohg'])],
+        whiteLabel: [
+            tuya.whitelabel('Tongou', 'TO-Q-SY1-JZT', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_qeuvnohg']),
+            tuya.whitelabel('TOMZN', 'TOB9Z-63M', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_6l1pjfqe']),
+        ],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -8692,7 +8695,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('EARU', 'EAKCB-T-M-Z', 'Smart circuit breaker', ['_TZ3000_lepzuhto']),
             tuya.whitelabel('EARU', 'EAYCB-Z-2P', 'Smart circuit breaker with leakage protection', ['_TZ3000_zrm3oxsh']),
             tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart circuit Breaker', ['_TZ3000_qystbcjg']),
-            tuya.whitelabel('Tomzn', 'TOB9Z-M', 'Smart circuit breaker', ['_TZ3000_303avxxt']),
+            tuya.whitelabel('Tomzn', 'TOB9Z-VAP', 'Smart circuit breaker', ['_TZ3000_303avxxt']),
             tuya.whitelabel('Immax', '07573L', 'Smart circuit breaker', ['_TZ3000_zjchz7pd']),
         ],
     },
