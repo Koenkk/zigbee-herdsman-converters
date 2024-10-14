@@ -553,20 +553,20 @@ const sonoffExtend = {
     detachRelayModeControl: (relayCount: number): ModernExtend => {
         const clusterName = 'customClusterEwelink';
         const attributeName = 'detachRelayMode2';
-        const exposes = e.composite('detach_relay_mode', 'detach_relay_mode', ea.ALL);  
+        const exposes = e.composite('detach_relay_mode', 'detach_relay_mode', ea.ALL);
         if (1 == relayCount)
         {
-            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), '
-                + 'when we control the wall switch, do not want to turn off the power of the smart light, but through '
-                + 'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
+            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
+                'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
+                'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
             .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE')
                 .withDescription('Enable/disable detach relay.'))
         }
         else if (2 == relayCount)
         {
-            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), '
-                + 'when we control the wall switch, do not want to turn off the power of the smart light, but through '
-                + 'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
+            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
+                'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
+                'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
             .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE')
                 .withDescription('Enable/disable detach relay.'))
             .withFeature(e.binary('detach_relay_outlet2', ea.SET, 'ENABLE', 'DISABLE')
@@ -574,9 +574,9 @@ const sonoffExtend = {
         }
         else if (3 == relayCount)
         {
-            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), '
-                + 'when we control the wall switch, do not want to turn off the power of the smart light, but through '
-                + 'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
+            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
+                'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
+                'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
             .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE')
                 .withDescription('Enable/disable detach relay.'))
             .withFeature(e.binary('detach_relay_outlet2', ea.SET, 'ENABLE', 'DISABLE')
@@ -584,13 +584,13 @@ const sonoffExtend = {
             .withFeature(e.binary('detach_relay_outlet3', ea.SET, 'ENABLE', 'DISABLE')
                 .withDescription('Enable/disable detach relay.'))
         }
-            
+
         const fromZigbee: Fz.Converter[] = [{
             cluster: clusterName,
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('detachRelayMode2')) {    
-                    let detachMode = msg.data['detachRelayMode2'];  
+                if (msg.data.hasOwnProperty('detachRelayMode2')) {
+                    let detachMode = msg.data['detachRelayMode2'];
                     logger.debug(`form zigbee detachRelayMode2 ${detachMode}`, NS);
 
                     const datachRelayStatus = {
@@ -598,7 +598,7 @@ const sonoffExtend = {
                         "detach_relay_outlet2": "DISABLE",
                         "detach_relay_outlet3": "DISABLE",
                     };
-         
+
                     if ((detachMode & 0x01) !== 0) {
                         datachRelayStatus["detach_relay_outlet1"] = "ENABLE";
                     }
@@ -661,11 +661,11 @@ const sonoffExtend = {
         };
     },
     sonoffOnOff(args: {powerOnBehavior?: boolean, skipDuplicateTransaction?: boolean, endpointNames?: string[]}): ModernExtend {
-        args = {powerOnBehavior: true, skipDuplicateTransaction: false, ...args};   
+        args = {powerOnBehavior: true, skipDuplicateTransaction: false, ...args};
         const exposes: Expose[] = args.endpointNames ? args.endpointNames.map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
         const fromZigbee: Fz.Converter[] = [(args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off)];
         const toZigbee: Tz.Converter[] = [tz.on_off];
-    
+
         if (args.powerOnBehavior) {
             const behavior_string = ['off', 'on', 'toggle', 'previous'];
             fromZigbee.push(fz.power_on_behavior);
@@ -676,7 +676,7 @@ const sonoffExtend = {
                 exposes.push(e.power_on_behavior(behavior_string));
             }
         }
-    
+
         const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
         return result;
     },
