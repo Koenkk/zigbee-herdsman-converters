@@ -588,8 +588,8 @@ const sonoffExtend = {
                 cluster: clusterName,
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty('detachRelayMode2')) {
-                        let detachMode = msg.data['detachRelayMode2'];
+                    if (msg.data.detachRelayMode2 !== undefined) {
+                        const detachMode = msg.data['detachRelayMode2'];
                         logger.debug(`form zigbee detachRelayMode2 ${detachMode}`, NS);
 
                         const datachRelayStatus = {
