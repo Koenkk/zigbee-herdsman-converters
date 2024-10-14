@@ -556,7 +556,7 @@ const sonoffExtend = {
         const exposes = e.composite('detach_relay_mode', 'detach_relay_mode', ea.ALL);  
         if (1 == relayCount)
         {
-            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), ' 
+            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), '
                 + 'when we control the wall switch, do not want to turn off the power of the smart light, but through '
                 + 'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
             .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE')
@@ -564,7 +564,7 @@ const sonoffExtend = {
         }
         else if (2 == relayCount)
         {
-            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), ' 
+            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), '
                 + 'when we control the wall switch, do not want to turn off the power of the smart light, but through '
                 + 'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
             .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE')
@@ -574,7 +574,7 @@ const sonoffExtend = {
         }
         else if (3 == relayCount)
         {
-            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), ' 
+            exposes.withDescription('Relay separation mode. Can be used when the load is a smart device (such as smart light), '
                 + 'when we control the wall switch, do not want to turn off the power of the smart light, but through '
                 + 'a scene command to control the smart light on or off, then we can enable the relay separation mode.')
             .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE')
