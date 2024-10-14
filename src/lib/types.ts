@@ -417,6 +417,7 @@ export namespace Ota {
         sha256?: string;
         force?: boolean;
         sha512?: string;
+        sha3_256?: string;
         hardwareVersionMin?: number;
         hardwareVersionMax?: number;
     }

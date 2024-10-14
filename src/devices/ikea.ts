@@ -4,6 +4,7 @@ import {
     addCustomClusterManuSpecificIkeaAirPurifier,
     addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
+    homesmartOta,
     ikeaAirPurifier,
     ikeaArrowClick,
     ikeaBattery,
@@ -602,7 +603,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E2206',
         vendor: 'IKEA',
         description: 'INSPELNING smart plug',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta(), electricityMeter()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), homesmartOta(), electricityMeter()],
         configure: async (device) => {
             const endpoint = device.getEndpoint(1);
             // Enable reporting of powerDivisor, needs to change dynamically with the amount of power

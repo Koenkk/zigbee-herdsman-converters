@@ -1,6 +1,7 @@
 import {Ota} from '../types';
 import * as common from './common';
 import * as gmmts from './gmmts';
+import * as homesmart from './homesmart';
 import * as inovelli from './inovelli';
 import * as jethome from './jethome';
 import * as ledvance from './ledvance';
@@ -13,6 +14,6 @@ import * as zigbeeOTA from './zigbeeOTA';
 
 const {setDataDir} = common;
 
-export {inovelli, ledvance, salus, lixee, securifi, tradfri, ubisys, zigbeeOTA, jethome, gmmts, setDataDir};
+export {inovelli, ledvance, salus, lixee, securifi, tradfri, homesmart, ubisys, zigbeeOTA, jethome, gmmts, setDataDir};
 
 export type ImageInfo = Ota.ImageInfo;
