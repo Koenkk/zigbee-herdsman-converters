@@ -6531,6 +6531,52 @@ const toZigbee2 = {
             await sendDataPointRaw(entity, dataPoints.moesSchedule, payload);
         },
     } satisfies Tz.Converter,
+    moes_thermostat_program_schedule_v2: {
+        key: ['program_v2'],
+        convertSet: async (entity, key, value: any, meta) => {
+            if (!meta.state.program) {
+                logger.warning(`Existing program state not set.`, 'zhc:legacy:tz:moes_bht_002');
+                return;
+            }
+
+            /* Merge modified value into existing state and send all over in one go */
+            const newProgram = {
+                // @ts-expect-error ignore
+                ...meta.state.program,
+                ...value,
+            };
+
+            const getNumbers = (input: exposes.Text): number[] => {
+                input.checkPatternMatch();
+
+                const hourTemperature = input.property.split('/');
+                const hourMinute = hourTemperature[0].split(':', 2);
+                const clamp = (value: number, min: number, max: number): number => {
+                    return Math.max(min, Math.min(max, value));
+                };
+
+                return [clamp(parseInt(hourMinute[0]), 0, 23), clamp(parseInt(hourMinute[1]), 0, 59), clamp(parseInt(hourTemperature[1]) * 2, 5, 35)];
+            };
+
+            const payload = getNumbers(newProgram.weekdays_p1)
+                .concat(getNumbers(newProgram.weekdays_p2))
+                .concat(getNumbers(newProgram.weekdays_p2))
+                .concat(getNumbers(newProgram.weekdays_p3))
+
+                .concat(getNumbers(newProgram.weekdays_p4))
+                .concat(getNumbers(newProgram.saturday_p1))
+                .concat(getNumbers(newProgram.saturday_p2))
+                .concat(getNumbers(newProgram.saturday_p3))
+                .concat(getNumbers(newProgram.saturday_p4))
+
+                .concat(getNumbers(newProgram.sunday_p1))
+                .concat(getNumbers(newProgram.sunday_p2))
+                .concat(getNumbers(newProgram.sunday_p3))
+                .concat(getNumbers(newProgram.sunday_p4));
+
+            await sendDataPointRaw(entity, dataPoints.moesSchedule, payload);
+        },
+    } satisfies Tz.Converter,
     moesS_thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {

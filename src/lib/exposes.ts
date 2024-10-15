@@ -4,6 +4,7 @@ import {Access, Range} from './types';
 import {getLabelFromName} from './utils';
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
+export type FeatureList = Numeric | Binary | Composite | Text;
 
 export class Base {
     name: string;
@@ -196,11 +197,11 @@ export class Binary extends Base {
 
 export class List extends Base {
     property: string = '';
-    item_type: Numeric | Binary | Composite | Text;
+    item_type: FeatureList;
     length_min?: number;
     length_max?: number;
 
-    constructor(name: string, access: number, itemType: Numeric | Binary | Composite | Text) {
+    constructor(name: string, access: number, itemType: FeatureList) {
         super();
         this.type = 'list';
         this.name = name;
@@ -310,6 +311,8 @@ export class Enum extends Base {
 
 export class Text extends Base {
     property: string = '';
+    pattern?: RegExp;
+    patternComment?: string;
 
     constructor(name: string, access: number) {
         super();
@@ -318,6 +321,18 @@ export class Text extends Base {
         this.label = getLabelFromName(name);
         this.property = name;
         this.access = access;
+    }
+
+    withPattern(pattern: RegExp, comment: string): Text {
+        this.pattern = pattern;
+        this.patternComment = comment;
+        return this;
+    }
+
+    checkPatternMatch() {
+        if (!this.pattern.test(this.property)) {
+            throw new Error('String format pattern check failed:' + this.label + '\n' + this.patternComment);
+        }
     }
 
     clone(): Text {
@@ -887,7 +902,7 @@ export const presets = {
     light: () => new Light(),
     numeric: (name: string, access: number) => new Numeric(name, access),
     text: (name: string, access: number) => new Text(name, access),
-    list: (name: string, access: number, itemType: Feature) => new List(name, access, itemType),
+    list: (name: string, access: number, itemType: FeatureList) => new List(name, access, itemType),
     switch_: () => new Switch(),
     // Specific
     ac_frequency: () =>
@@ -1362,5 +1377,5 @@ exports.light = () => new Light();
 exports.numeric = (name: string, access: number) => new Numeric(name, access);
 exports.switch = () => new Switch();
 exports.text = (name: string, access: number) => new Text(name, access);
-exports.list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
+exports.list = (name: string, access: number, itemType: FeatureList) => new List(name, access, itemType);
 exports.lock = () => new Lock();
