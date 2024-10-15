@@ -461,7 +461,7 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
 }
 
 export interface OnOffArgs {
-    powerOnBehavior?: boolean;
+    powerOnBehavior?: boolean | {description: string};
     ota?: DefinitionOta;
     skipDuplicateTransaction?: boolean;
     endpointNames?: string[];
@@ -479,16 +479,14 @@ export function onOff(args?: OnOffArgs): ModernExtend {
     const toZigbee: Tz.Converter[] = [tz.on_off];
 
     if (args.powerOnBehavior) {
-        const powerOnBehaviorExpose = args.description
-            ? e.power_on_behavior(['off', 'on', 'toggle', 'previous']).withDescription(args.description)
-            : e.power_on_behavior(['off', 'on', 'toggle', 'previous']);
-        if (args.endpointNames) {
-            args.endpointNames.forEach((endpoint) => {
-                exposes.push(powerOnBehaviorExpose.clone().withEndpoint(endpoint));
-            });
-        } else {
-            exposes.push(powerOnBehaviorExpose);
-        }
+        const powerOnBehaviorExposes: Expose[] =
+            typeof args.powerOnBehavior === 'object' && args.powerOnBehavior.description
+                ? exposeEndpoints(
+                      e.power_on_behavior(['off', 'on', 'toggle', 'previous']).withDescription(args.powerOnBehavior.description),
+                      args.endpointNames,
+                  )
+                : exposeEndpoints(e.power_on_behavior(['off', 'on', 'toggle', 'previous']), args.endpointNames);
+        exposes.push(...powerOnBehaviorExposes);
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
     }
@@ -1462,15 +1460,11 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 
     if (args.zoneType === 'generic') {
         args.zoneAttributes.map((attr) => {
+            let expose = exposeList[attr];
             if (args.description) {
-                const updatedExpose = e
-                    .binary(exposeList[attr].property, ea.STATE, exposeList[attr].value_on, exposeList[attr].value_off)
-                    .withDescription(args.description)
-                    .withCategory(exposeList[attr].category);
-                exposes.push(updatedExpose);
-            } else {
-                exposes.push(exposeList[attr]);
+                expose = expose.clone().withDescription(args.description);
             }
+            exposes.push(expose);
         });
     } else {
         if (bothAlarms) {
@@ -1634,7 +1628,7 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
 export interface ElectricityMeterArgs {
     cluster?: 'both' | 'metering' | 'electrical';
-    attributes?: 'both' | 'ac' | 'dc';
+    electricalMeasurementType?: 'both' | 'ac' | 'dc';
     current?: false | MultiplierDivisor;
     power?: false | MultiplierDivisor;
     voltage?: false | MultiplierDivisor;
@@ -1651,7 +1645,7 @@ export interface ElectricityMeterArgs {
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     args = {
         cluster: 'both',
-        attributes: 'ac',
+        electricalMeasurementType: 'ac',
         configureReporting: true,
         threePhase: false,
         producedEnergy: false,
@@ -1688,8 +1682,8 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     if (args.cluster === 'metering' && args.powerFactor) {
         throw new Error(`Power factor is not supported with cluster 'metering', use 'both' or 'electrical'`);
     }
-    if (args.cluster === 'electrical' && args.attributes === 'dc') {
-        throw new Error(`DC attributes are not supported with cluster 'electrical', use 'both' or 'ac'`);
+    if (args.cluster === 'metering' && args.electricalMeasurementType === 'dc') {
+        throw new Error(`DC attributes are not supported with cluster 'metering', use 'both' or 'ac'`);
     }
 
     let exposes: Numeric[] = [];
@@ -1808,7 +1802,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
 
-    if (args.attributes === 'dc') {
+    if (args.electricalMeasurementType === 'dc') {
         delete configureLookup.haElectricalMeasurement.power;
         delete configureLookup.haElectricalMeasurement.voltage;
         delete configureLookup.haElectricalMeasurement.current;
@@ -1822,7 +1816,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
 
-    if (args.attributes === 'ac') {
+    if (args.electricalMeasurementType === 'ac') {
         delete configureLookup.haElectricalMeasurement.dc_power;
         delete configureLookup.haElectricalMeasurement.dc_voltage;
         delete configureLookup.haElectricalMeasurement.dc_current;

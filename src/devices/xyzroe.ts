@@ -477,14 +477,18 @@ const definitions: DefinitionWithExtend[] = [
             identify(),
             electricityMeter({
                 cluster: 'electrical',
-                attributes: 'both',
+                electricalMeasurementType: 'both',
                 configureReporting: electroReporting,
                 endpointNames: ['1'],
             }),
             temperature({
                 reporting: tempReporting,
             }),
-            onOff({powerOnBehavior: true, endpointNames: ['1'], description: '🔌 Controls the USB port'}),
+            onOff({
+                powerOnBehavior: {description: '🔌 Controls the power on behavior'},
+                endpointNames: ['1'],
+                description: '🔌 Controls the USB port',
+            }),
             onOff({powerOnBehavior: false, endpointNames: ['2'], description: '💡 Indicates the Zigbee status'}),
             onOff({powerOnBehavior: false, endpointNames: ['3'], description: '💡 Indicates the USB state'}),
             iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1'], description: '🚨 Over current alarm'}),
