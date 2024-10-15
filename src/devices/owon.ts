@@ -5,7 +5,6 @@ import * as legacy from '../lib/legacy';
 import {battery, electricityMeter, forcePowerSource, iasZoneAlarm, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
-import {battery, iasZoneAlarm} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
