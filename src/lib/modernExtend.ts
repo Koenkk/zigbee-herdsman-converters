@@ -1609,13 +1609,12 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
 
 // Uses Electrical Measurement and/or Metering, but for simplicity was put here.
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
-type MultiplierDivisorMin = {multiplier?: number; divisor?: number; min?: number};
 export interface ElectricityMeterArgs {
     cluster?: 'both' | 'metering' | 'electrical';
     current?: false | MultiplierDivisor;
-    power?: false | MultiplierDivisorMin;
+    power?: false | (MultiplierDivisor & {min?: ReportingConfigTime});
     voltage?: false | MultiplierDivisor;
-    energy?: false | MultiplierDivisorMin;
+    energy?: false | (MultiplierDivisor & {min?: ReportingConfigTime});
     producedEnergy?: false | true | MultiplierDivisor;
     acFrequency?: false | true | MultiplierDivisor;
     threePhase?: boolean;
@@ -1837,7 +1836,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                             // Check if this property has a divisor and multiplier, e.g. AC frequency doesn't.
                             if ('divisor' in property) {
                                 // In case multiplier or divisor was provided, use that instead of reading from device.
-                                if (property.forced && property.forced.divisor) {
+                                if (property.forced && (property.forced.divisor || property.forced.multiplier)) {
                                     endpoint.saveClusterAttributeKeyValue(cluster, {
                                         [property.divisor]: property.forced.divisor ?? 1,
                                         [property.multiplier]: property.forced.multiplier ?? 1,
@@ -1855,8 +1854,8 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                             }
                             let minval: ReportingConfigTime = '10_SECONDS';
                             // In case min was provided, use that instead of default.
-                            if ('min' in property && 'forced' in property && property.forced && 'min' in property.forced && property.forced.min) {
-                                minval = property.forced.min ?? minval;
+                            if ('min' in property && 'forced' in property && property.forced && 'min' in property.forced) {
+                                minval = property.forced?.min ?? minval;
                             }
                             items.push({attribute: property.attribute, min: minval, max: 'MAX', change});
                         }
