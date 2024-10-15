@@ -3915,17 +3915,33 @@ const converters2 = {
         },
     } satisfies Tz.Converter,
     tuya_cover_calibration: {
-        key: ['calibration'],
+        key: ['calibration', 'calibration_up', 'calibration_down'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
             const lookup = {ON: 0, OFF: 1};
             value = value.toUpperCase();
             const calibration = utils.getFromLookup(value, lookup);
-            await entity.write('closuresWindowCovering', {tuyaCalibration: calibration});
-            return {state: {calibration: value}};
+            switch (key) {
+                case 'calibration':
+                case 'calibration_up':
+                    await entity.write('closuresWindowCovering', {tuyaCalibration: calibration});
+                    break;
+                case 'calibration_down':
+                    await meta.device.getEndpoint(2).write('closuresWindowCovering', {tuyaCalibration: calibration});
+                    break;
+            }
+            return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('closuresWindowCovering', ['tuyaCalibration']);
+            switch (key) {
+                case 'calibration':
+                case 'calibration_up':
+                    await entity.read('closuresWindowCovering', ['tuyaCalibration']);
+                    break;
+                case 'calibration_down':
+                    await meta.device.getEndpoint(2).read('closuresWindowCovering', ['tuyaCalibration']);
+                    break;
+            }
         },
     } satisfies Tz.Converter,
     tuya_cover_reversal: {
