@@ -23,6 +23,7 @@ import {
     temperature,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
@@ -636,7 +637,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['DS01', 'SNZB-04'],
         model: 'SNZB-04',
         vendor: 'SONOFF',
-        whiteLabel: [{vendor: 'eWeLink', model: 'RHK06'}],
+        whiteLabel: [{vendor: 'eWeLink', model: 'RHK06'}, tuya.whitelabel('Tuya', 'WL-19DWZ', 'Contact sensor', ['_TZ3000_n2egfsli'])],
         description: 'Contact sensor',
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
