@@ -386,7 +386,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: [' Micromodule switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
-        model: '064888',
+        model: '064888 / 199142',
         vendor: 'Legrand',
         description: 'Wired micromodule switch',
         whiteLabel: [{vendor: 'BTicino', model: '3584C'}],
