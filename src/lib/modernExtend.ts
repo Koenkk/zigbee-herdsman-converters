@@ -1857,7 +1857,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                             if ('min' in property && 'forced' in property && property.forced && 'min' in property.forced) {
                                 minval = property.forced?.min ?? minval;
                             }
-                            items.push({attribute: property.attribute, min: minval, max: 'MAX', change});
+                            items.push({attribute: property.attribute, min, max: 'MAX', change});
                         }
                         if (items.length) {
                             await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
