@@ -1852,7 +1852,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                                 assertNumber(multiplier, property.multiplier);
                                 change = property.change * (divisor / multiplier);
                             }
-                            let minval: ReportingConfigTime = '10_SECONDS';
+                            let min: ReportingConfigTime = '10_SECONDS';
                             // In case min was provided, use that instead of default.
                             if ('min' in property && 'forced' in property && property.forced && 'min' in property.forced) {
                                 minval = property.forced?.min ?? minval;
