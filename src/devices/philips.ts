@@ -128,7 +128,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['LCZ001'],
+        zigbeeModel: ['LCZ001', 'LCZ002'],
         model: '8719514419278',
         vendor: 'Philips',
         description: 'Hue Ellipse E27 smart bulb',
@@ -1108,6 +1108,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
     },
     {
+        zigbeeModel: ['LCL008'],
+        model: '929003816901',
+        vendor: 'Philips',
+        description: 'Philips Hue indoor 10 Ft smart LED solo lightstrip',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['LCL002'],
         model: '9290022890',
         vendor: 'Philips',
@@ -1861,6 +1868,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
+    },
+    {
+        zigbeeModel: ['1745930V7'],
+        model: '1745930V7',
+        vendor: 'Philips',
+        description: 'Hue outdoor Impress wall lamp',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
     {
         zigbeeModel: ['1745930P7'],
@@ -3029,6 +3043,13 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['LCG006'],
         model: '929003666501',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance GU10 spot LED with Bluetooth',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ['LCG007'],
+        model: '046677584658',
         vendor: 'Philips',
         description: 'Hue White and color ambiance GU10 spot LED with Bluetooth',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],

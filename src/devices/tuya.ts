@@ -1585,6 +1585,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Moes', 'ZB-TD5-RCW-GU10', 'RGB+CCT 4.7W GU10 LED bulb', ['_TZ3210_rcggc0ys']),
             tuya.whitelabel('Moes', 'ZB-TDA9-RCW-E27-MS', 'RGB+CCT 9W E27 LED bulb', ['_TZ3210_wxa85bwk']),
             tuya.whitelabel('Moes', 'ZB-LZD10-RCW', '10W RGB+CCT Smart Downlight', ['_TZ3210_s9lumfhn', '_TZ3210_jjqdqxfq']),
+            tuya.whitelabel('Moes', 'ZB-TDC6-RCW-E14', 'RGB+CCT 5W E14 LED bulb', ['_TZ3210_ifga63rg']),
             tuya.whitelabel('MiBoxer', 'FUT106ZR', 'GU10 bulb', ['_TZB210_rwy5hexp']),
             tuya.whitelabel('Tuya', 'TS0505B_1_1', 'Zigbee 3.0 18W led light bulb E27 RGBCW', [
                 '_TZ3210_jd3z4yig',
@@ -1860,6 +1861,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0207', manufacturerName: '_TZ3000_wlquqiiz'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_5k5vh43t'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_kxlmv9ag'},
+            {modelID: 'TS0207', manufacturerName: '_TZ3000_wmlc9p9z'},
         ],
         model: 'TS0207_repeater',
         vendor: 'Tuya',
@@ -2556,13 +2558,24 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Nous', 'B4Z', 'Curtain switch', ['_TZ3000_yruungrl']),
         ],
         exposes: (device) => {
-            const exps = [
+            const exps: Expose[] = [
                 e.cover_position(),
                 e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
-                e.binary('calibration', ea.ALL, 'ON', 'OFF'),
                 e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
-                e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time'),
             ];
+            if (device?.manufacturerName !== '_TZ3000_cet6ch1r') {
+                exps.push(
+                    e.binary('calibration', ea.ALL, 'ON', 'OFF'),
+                    e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time'),
+                );
+            } else {
+                exps.push(
+                    e.binary('calibration_up', ea.ALL, 'ON', 'OFF'),
+                    e.numeric('calibration_time_up', ea.STATE).withUnit('s').withDescription('Calibration time up'),
+                    e.binary('calibration_down', ea.ALL, 'ON', 'OFF'),
+                    e.numeric('calibration_time_down', ea.STATE).withUnit('s').withDescription('Calibration time down'),
+                );
+            }
             if (device?.manufacturerName !== '_TZ3210_xbpt8ewc') {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
@@ -3931,6 +3944,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_3i3exuay'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_tvrvdj6o'},
             {modelID: 'zo2pocs\u0000', manufacturerName: '_TYST11_fzo2pocs'},
+            {modelID: 'dank5zs\u0000', manufacturerName: '_TYST11_udank5zs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_b2u1drdv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ol5jlkkr'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_guvc7pdy'},
@@ -3963,6 +3977,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE204_xu4a5rhj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_2odrmqwq'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_lh3arisb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE284_udank5zs'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'Tuya',
@@ -4442,6 +4457,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_e9ba97vf' /* model: 'TV01-ZB', vendor: 'Moes' */,
             '_TZE200_husqqvux' /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */,
             '_TZE200_lnbfnyxd' /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */,
+            '_TZE200_fsow0qsk' /* model: 'TSL-TRV-TV05ZG', vendor: 'Tesla Smart' */,
             '_TZE200_lllliz3p' /* model: 'TV02-Zigbee', vendor: 'Tuya' */,
             '_TZE200_mudxchsu' /* model: 'TV05-ZG curve', vendor: 'Tuya' */,
             '_TZE200_7yoranx2' /* model: 'TV01-ZB', vendor: 'Moes' */,
@@ -4455,6 +4471,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Moes', model: 'TV01-ZB'},
             {vendor: 'AVATTO', model: 'TRV06-1'},
             {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
+            {vendor: 'Tesla Smart', model: 'TSL-TRV-TV05ZG'},
             {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
             tuya.whitelabel('Moes', 'ZTRV-ZX-TV01-MS', 'Thermostat radiator valve', ['_TZE200_7yoranx2']),
             tuya.whitelabel('Moes', 'TV01-ZB', 'Thermostat radiator valve', ['_TZE200_e9ba97vf', '_TZE200_kds0pmmv']),
@@ -6493,7 +6510,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZWT198/ZWT100-BH',
         vendor: 'Tuya',
         description: 'Avatto wall thermostat',
-        onEvent: tuya.onEvent({timeStart: '1970'}),
+        onEvent: tuya.onEvent({timeStart: '1970', respondToMcuVersionResponse: false}),
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -6522,8 +6539,8 @@ const definitions: DefinitionWithExtend[] = [
                 .numeric('deadzone_temperature', ea.STATE_SET)
                 .withUnit('°C')
                 .withValueMax(10)
-                .withValueMin(0.5)
-                .withValueStep(0.5)
+                .withValueMin(0.1)
+                .withValueStep(0.1)
                 .withPreset('default', 1, 'Default value')
                 .withDescription('The delta between local_temperature (5<t<35)and current_heating_setpoint to trigger Heat'),
             e.enum('backlight_mode', ea.STATE_SET, ['off', 'low', 'medium', 'high']).withDescription('Intensity of the backlight'),
@@ -6814,7 +6831,10 @@ const definitions: DefinitionWithExtend[] = [
             fz.tuya_relay_din_led_indicator,
         ],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
-        whiteLabel: [tuya.whitelabel('Tongou', 'TO-Q-SY1-JZT', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_qeuvnohg'])],
+        whiteLabel: [
+            tuya.whitelabel('Tongou', 'TO-Q-SY1-JZT', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_qeuvnohg']),
+            tuya.whitelabel('TOMZN', 'TOB9Z-63M', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_6l1pjfqe']),
+        ],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -8589,6 +8609,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZ3000_qystbcjg',
             '_TZ3000_zrm3oxsh',
             '_TZ3000_303avxxt',
+            '_TZ3000_6l1pjfqe',
             '_TZ3000_zjchz7pd',
         ]),
         model: 'TS011F_with_threshold',
@@ -8607,7 +8628,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.TS011F_threshold],
         exposes: (device, options) => {
             const exposes: Expose[] = [e.linkquality()];
-            if (device?.manufacturerName !== '_TZ3000_303avxxt' && device?.manufacturerName !== '_TZ3000_zjchz7pd') {
+            if (!['_TZ3000_303avxxt', '_TZ3000_zjchz7pd', '_TZ3000_6l1pjfqe'].includes(device?.manufacturerName)) {
                 exposes.push(
                     e.temperature(),
                     e
@@ -8675,7 +8696,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('EARU', 'EAKCB-T-M-Z', 'Smart circuit breaker', ['_TZ3000_lepzuhto']),
             tuya.whitelabel('EARU', 'EAYCB-Z-2P', 'Smart circuit breaker with leakage protection', ['_TZ3000_zrm3oxsh']),
             tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart circuit Breaker', ['_TZ3000_qystbcjg']),
-            tuya.whitelabel('Tomzn', 'TOB9Z-M', 'Smart circuit breaker', ['_TZ3000_303avxxt']),
+            tuya.whitelabel('Tomzn', 'TOB9Z-VAP', 'Smart circuit breaker', ['_TZ3000_303avxxt', '_TZ3000_6l1pjfqe']),
             tuya.whitelabel('Immax', '07573L', 'Smart circuit breaker', ['_TZ3000_zjchz7pd']),
         ],
     },
@@ -10252,8 +10273,8 @@ const definitions: DefinitionWithExtend[] = [
             e.presence().withDescription('Occupancy'),
             e.numeric('distance', ea.STATE).withUnit('m').withDescription('Target distance'),
             e.illuminance_lux().withDescription('Illuminance sensor'),
-            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
-            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
             e
                 .numeric('detection_distance_min', ea.STATE_SET)
                 .withValueMin(0)
