@@ -1855,7 +1855,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                             let min: ReportingConfigTime = '10_SECONDS';
                             // In case min was provided, use that instead of default.
                             if ('min' in property && 'forced' in property && property.forced && 'min' in property.forced) {
-                                minval = property.forced?.min ?? minval;
+                                min = property.forced?.min ?? min;
                             }
                             items.push({attribute: property.attribute, min, max: 'MAX', change});
                         }
