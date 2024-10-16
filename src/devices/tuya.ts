@@ -2919,6 +2919,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0215A', manufacturerName: '_TZ3000_fsiepnrh'},
             {modelID: 'TS0215A', manufacturerName: '_TZ3000_ug1vtuzn'},
             {modelID: 'TS0215A', manufacturerName: '_TZ3000_eo3dttwe'},
+            {modelID: 'TS0215A', manufacturerName: '_TZ3000_jwcixnrz'},
         ],
         model: 'TS0215A_remote',
         vendor: 'Tuya',
