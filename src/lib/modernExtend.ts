@@ -1636,7 +1636,7 @@ export interface ElectricityMeterArgs {
     producedEnergy?: false | true | MultiplierDivisor;
     acFrequency?: false | true | MultiplierDivisor;
     threePhase?: boolean;
-    configureReporting?: false | true | ReportingConfigWithoutAttribute;
+    configureReporting?: boolean | ReportingConfigWithoutAttribute;
     powerFactor?: boolean;
     endpointNames?: string[];
     fzMetering?: Fz.Converter;
