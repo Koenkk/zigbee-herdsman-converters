@@ -2558,13 +2558,24 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Nous', 'B4Z', 'Curtain switch', ['_TZ3000_yruungrl']),
         ],
         exposes: (device) => {
-            const exps = [
+            const exps: Expose[] = [
                 e.cover_position(),
                 e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
-                e.binary('calibration', ea.ALL, 'ON', 'OFF'),
                 e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
-                e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time'),
             ];
+            if (device?.manufacturerName !== '_TZ3000_cet6ch1r') {
+                exps.push(
+                    e.binary('calibration', ea.ALL, 'ON', 'OFF'),
+                    e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time'),
+                );
+            } else {
+                exps.push(
+                    e.binary('calibration_up', ea.ALL, 'ON', 'OFF'),
+                    e.numeric('calibration_time_up', ea.STATE).withUnit('s').withDescription('Calibration time up'),
+                    e.binary('calibration_down', ea.ALL, 'ON', 'OFF'),
+                    e.numeric('calibration_time_down', ea.STATE).withUnit('s').withDescription('Calibration time down'),
+                );
+            }
             if (device?.manufacturerName !== '_TZ3210_xbpt8ewc') {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
@@ -3933,6 +3944,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_3i3exuay'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_tvrvdj6o'},
             {modelID: 'zo2pocs\u0000', manufacturerName: '_TYST11_fzo2pocs'},
+            {modelID: 'dank5zs\u0000', manufacturerName: '_TYST11_udank5zs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_b2u1drdv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ol5jlkkr'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_guvc7pdy'},
@@ -3965,6 +3977,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE204_xu4a5rhj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_2odrmqwq'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_lh3arisb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE284_udank5zs'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'Tuya',
@@ -6818,7 +6831,10 @@ const definitions: DefinitionWithExtend[] = [
             fz.tuya_relay_din_led_indicator,
         ],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
-        whiteLabel: [tuya.whitelabel('Tongou', 'TO-Q-SY1-JZT', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_qeuvnohg'])],
+        whiteLabel: [
+            tuya.whitelabel('Tongou', 'TO-Q-SY1-JZT', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_qeuvnohg']),
+            tuya.whitelabel('TOMZN', 'TOB9Z-63M', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_6l1pjfqe']),
+        ],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -8593,6 +8609,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZ3000_qystbcjg',
             '_TZ3000_zrm3oxsh',
             '_TZ3000_303avxxt',
+            '_TZ3000_6l1pjfqe',
             '_TZ3000_zjchz7pd',
         ]),
         model: 'TS011F_with_threshold',
@@ -8611,7 +8628,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.TS011F_threshold],
         exposes: (device, options) => {
             const exposes: Expose[] = [e.linkquality()];
-            if (device?.manufacturerName !== '_TZ3000_303avxxt' && device?.manufacturerName !== '_TZ3000_zjchz7pd') {
+            if (!['_TZ3000_303avxxt', '_TZ3000_zjchz7pd', '_TZ3000_6l1pjfqe'].includes(device?.manufacturerName)) {
                 exposes.push(
                     e.temperature(),
                     e
@@ -8679,7 +8696,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('EARU', 'EAKCB-T-M-Z', 'Smart circuit breaker', ['_TZ3000_lepzuhto']),
             tuya.whitelabel('EARU', 'EAYCB-Z-2P', 'Smart circuit breaker with leakage protection', ['_TZ3000_zrm3oxsh']),
             tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart circuit Breaker', ['_TZ3000_qystbcjg']),
-            tuya.whitelabel('Tomzn', 'TOB9Z-M', 'Smart circuit breaker', ['_TZ3000_303avxxt']),
+            tuya.whitelabel('Tomzn', 'TOB9Z-VAP', 'Smart circuit breaker', ['_TZ3000_303avxxt', '_TZ3000_6l1pjfqe']),
             tuya.whitelabel('Immax', '07573L', 'Smart circuit breaker', ['_TZ3000_zjchz7pd']),
         ],
     },
@@ -10256,8 +10273,8 @@ const definitions: DefinitionWithExtend[] = [
             e.presence().withDescription('Occupancy'),
             e.numeric('distance', ea.STATE).withUnit('m').withDescription('Target distance'),
             e.illuminance_lux().withDescription('Illuminance sensor'),
-            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
-            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
             e
                 .numeric('detection_distance_min', ea.STATE_SET)
                 .withValueMin(0)

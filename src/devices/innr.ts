@@ -474,6 +474,14 @@ const definitions: DefinitionWithExtend[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['RB 247 T'],
+        model: 'RB 247 T',
+        vendor: 'Innr',
+        description: 'E14 candle, dimmable with, color temp',
+        extend: [light({colorTemp: {range: [200, 454]}, turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['RB 249 T'],
         model: 'RB 249 T',
         vendor: 'Innr',
