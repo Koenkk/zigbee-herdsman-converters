@@ -8750,6 +8750,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: 'TS0003', manufacturerName: '_TZ3000_pv4puuxi'},
             {modelID: 'TS0003', manufacturerName: '_TZ3000_avky2mvc'},
+            {modelID: 'TS0003', manufacturerName: '_TZ3000_785olaiq'},
         ],
         model: 'TS0003_switch_3_gang',
         vendor: 'Tuya',
@@ -8768,6 +8769,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('Homeetec', '37022474_1', '3 Gang switch with backlight', ['_TZ3000_pv4puuxi']),
             tuya.whitelabel('RoomsAI', '37022474_2', '3 Gang switch with backlight', ['_TZ3000_avky2mvc']),
+            tuya.whitelabel('NovaDigital', 'WS-US-ZB', '3 Gang switch with backlight', ['_TZ3000_785olaiq']),
         ],
     },
     {
