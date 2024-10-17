@@ -482,7 +482,7 @@ const definitions: DefinitionWithExtend[] = [
                 endpointNames: ['1'],
             }),
             temperature(),
-            onOff({endpointNames: ['1'], description: '🔌 Controls the USB port'}),
+            onOff({endpointNames: ['1'], description: 'Controls the USB port'}),
             onOff({powerOnBehavior: false, endpointNames: ['2'], description: 'Indicates the Zigbee status'}),
             onOff({powerOnBehavior: false, endpointNames: ['3'], description: 'Indicates the USB state'}),
             iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1'], description: 'Over current alarm'}),

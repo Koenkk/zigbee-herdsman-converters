@@ -1198,9 +1198,7 @@ export const presets = {
     power_on_behavior: (values = ['off', 'previous', 'on']) =>
         new Enum('power_on_behavior', access.ALL, values)
             .withLabel('Power-on behavior')
-            .withDescription(
-                'Controls the behavior when the device is powered on after power loss. If you get an `UNSUPPORTED_ATTRIBUTE` error, the device does not support it.',
-            )
+            .withDescription('Controls the behavior when the device is powered on after power loss')
             .withCategory('config'),
     power_outage_count: (resetsWhenPairing = true) =>
         new Numeric('power_outage_count', access.STATE)
