@@ -1195,10 +1195,13 @@ export const presets = {
         new Numeric('power_apparent_phase_b', access.STATE).withUnit('VA').withDescription('Instantaneous measured apparent power on phase B'),
     power_apparent_phase_c: () =>
         new Numeric('power_apparent_phase_c', access.STATE).withUnit('VA').withDescription('Instantaneous measured apparent power on phase C'),
-    power_on_behavior: (
-        values = ['off', 'previous', 'on'],
-        description: string = 'Controls the behavior when the device is powered on after power loss. If you get an `UNSUPPORTED_ATTRIBUTE` error, the device does not support it.',
-    ) => new Enum('power_on_behavior', access.ALL, values).withLabel('Power-on behavior').withDescription(description).withCategory('config'),
+    power_on_behavior: (values = ['off', 'previous', 'on']) =>
+        new Enum('power_on_behavior', access.ALL, values)
+            .withLabel('Power-on behavior')
+            .withDescription(
+                'Controls the behavior when the device is powered on after power loss. If you get an `UNSUPPORTED_ATTRIBUTE` error, the device does not support it.',
+            )
+            .withCategory('config'),
     power_outage_count: (resetsWhenPairing = true) =>
         new Numeric('power_outage_count', access.STATE)
             .withDescription('Number of power outages' + (resetsWhenPairing ? ' (since last pairing)' : ''))

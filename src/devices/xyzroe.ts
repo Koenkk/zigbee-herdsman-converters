@@ -9,8 +9,6 @@ import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const electroReporting = {min: 10, max: 90, change: 100};
-
 const buttonModesList = {
     single_click: 0x01,
     multi_click: 0x02,
@@ -477,20 +475,17 @@ const definitions: DefinitionWithExtend[] = [
             electricityMeter({
                 cluster: 'electrical',
                 electricalMeasurementType: 'both',
-                current: electroReporting,
-                power: electroReporting,
-                voltage: electroReporting,
+                // Since this device measures lower voltage devices, lower the change value.
+                current: {change: 100},
+                power: {change: 100},
+                voltage: {change: 100},
                 endpointNames: ['1'],
             }),
             temperature(),
-            onOff({
-                powerOnBehavior: {description: '🔌 Controls the power on behavior'},
-                endpointNames: ['1'],
-                description: '🔌 Controls the USB port',
-            }),
-            onOff({powerOnBehavior: false, endpointNames: ['2'], description: '💡 Indicates the Zigbee status'}),
-            onOff({powerOnBehavior: false, endpointNames: ['3'], description: '💡 Indicates the USB state'}),
-            iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1'], description: '🚨 Over current alarm'}),
+            onOff({endpointNames: ['1'], description: '🔌 Controls the USB port'}),
+            onOff({powerOnBehavior: false, endpointNames: ['2'], description: 'Indicates the Zigbee status'}),
+            onOff({powerOnBehavior: false, endpointNames: ['3'], description: 'Indicates the USB state'}),
+            iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1'], description: 'Over current alarm'}),
         ],
         meta: {multiEndpoint: true},
     },
