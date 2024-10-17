@@ -170,4 +170,26 @@ export const develcoModernExtend = {
             valueIgnore: [0xffff, -0x8000],
             ...args,
         }),
+    currentSummation: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'current_summation',
+            cluster: 'seMetering',
+            attribute: 'develcoCurrentSummation',
+            description: 'Current summation value sent to the display. e.g. 570 = 0,570 kWh',
+            access: 'SET',
+            valueMin: 0,
+            valueMax: 268435455,
+            ...args,
+        }),
+    pulseConfiguration: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'pulse_configuration',
+            cluster: 'seMetering',
+            attribute: 'develcoPulseConfiguration',
+            description: 'Pulses per kwh. Default 1000 imp/kWh. Range 0 to 65535',
+            access: 'ALL',
+            valueMin: 0,
+            valueMax: 65535,
+            ...args,
+        }),
 };
