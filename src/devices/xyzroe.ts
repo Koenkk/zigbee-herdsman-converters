@@ -10,7 +10,6 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const electroReporting = {min: 10, max: 90, change: 100};
-const tempReporting = {min: 60, max: 300, change: 1000};
 
 const buttonModesList = {
     single_click: 0x01,
@@ -478,12 +477,12 @@ const definitions: DefinitionWithExtend[] = [
             electricityMeter({
                 cluster: 'electrical',
                 electricalMeasurementType: 'both',
-                configureReporting: electroReporting,
+                current: electroReporting,
+                power: electroReporting,
+                voltage: electroReporting,
                 endpointNames: ['1'],
             }),
-            temperature({
-                reporting: tempReporting,
-            }),
+            temperature(),
             onOff({
                 powerOnBehavior: {description: '🔌 Controls the power on behavior'},
                 endpointNames: ['1'],

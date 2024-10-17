@@ -290,7 +290,9 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             identify(),
             sengledLight({color: false}),
-            electricityMeter({cluster: 'metering'}),
+            // The Sengled E13-A21 smart bulb will not report instantaneous demand unless the reporting min is set to 5 seconds or lower.
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8123
+            electricityMeter({cluster: 'metering', power: {min: 5}, energy: {min: 5}}),
             ota(),
             deviceAddCustomCluster('manuSpecificSengledMotionSensor', {
                 ID: 0xfc01,

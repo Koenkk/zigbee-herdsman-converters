@@ -1629,14 +1629,14 @@ type MultiplierDivisor = {multiplier?: number; divisor?: number};
 export interface ElectricityMeterArgs {
     cluster?: 'both' | 'metering' | 'electrical';
     electricalMeasurementType?: 'both' | 'ac' | 'dc';
-    current?: false | MultiplierDivisor;
-    power?: false | MultiplierDivisor;
-    voltage?: false | MultiplierDivisor;
-    energy?: false | MultiplierDivisor;
-    producedEnergy?: false | true | MultiplierDivisor;
-    acFrequency?: false | true | MultiplierDivisor;
+    current?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    voltage?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    energy?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     threePhase?: boolean;
-    configureReporting?: boolean | ReportingConfigWithoutAttribute;
+    configureReporting?: boolean;
     powerFactor?: boolean;
     endpointNames?: string[];
     fzMetering?: Fz.Converter;
@@ -1749,7 +1749,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         },
         seMetering: {
             // Report change with every 5W change
-            power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 5},
+            power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 0.005},
             // Report change with every 0.1kWh change
             energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1},
             produced_energy: {
@@ -1892,10 +1892,13 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                         const items: ReportingConfig[] = [];
                         for (const property of Object.values(properties)) {
                             let change = property.change;
+                            let min: ReportingConfigTime = '10_SECONDS';
+                            let max: ReportingConfigTime = 'MAX';
+
                             // Check if this property has a divisor and multiplier, e.g. AC frequency doesn't.
                             if ('divisor' in property) {
                                 // In case multiplier or divisor was provided, use that instead of reading from device.
-                                if (property.forced) {
+                                if (property.forced && (property.forced.divisor || property.forced.multiplier)) {
                                     endpoint.saveClusterAttributeKeyValue(cluster, {
                                         [property.divisor]: property.forced.divisor ?? 1,
                                         [property.multiplier]: property.forced.multiplier ?? 1,
@@ -1912,18 +1915,19 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                                 change = property.change * (divisor / multiplier);
                             }
 
-                            if (typeof args.configureReporting === 'object') {
-                                // If configureReporting is an object, use the values from it.
-                                items.push({
-                                    attribute: property.attribute,
-                                    min: args.configureReporting.min,
-                                    max: args.configureReporting.max,
-                                    change: args.configureReporting.change,
-                                });
-                            } else {
-                                // If configureReporting is true, use the change value calculated above.
-                                items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
+                            if ('forced' in property && property.forced) {
+                                if ('min' in property.forced) {
+                                    min = property.forced.min;
+                                }
+                                if ('max' in property.forced) {
+                                    max = property.forced.max;
+                                }
+                                if ('change' in property.forced) {
+                                    change = property.forced.change;
+                                }
                             }
+
+                            items.push({attribute: property.attribute, min, max, change});
                         }
                         if (items.length) {
                             await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
