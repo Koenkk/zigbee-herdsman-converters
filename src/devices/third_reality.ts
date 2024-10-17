@@ -465,6 +465,14 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ['3RCB01057Z'],
+        model: '3RCB01057Z',
+        vendor: 'Third Reality',
+        description: 'Zigbee color lights',
+        ota: ota.zigbeeOTA,
+        extend: [light({colorTemp: {range: [154, 500]}, color: {modes: ['xy', 'hs']}})],
+    },
+    {
         zigbeeModel: ['3RSPE01044BZ'],
         model: '3RSPE01044BZ',
         vendor: 'Third Reality',
