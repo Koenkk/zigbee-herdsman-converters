@@ -8751,7 +8751,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0003', manufacturerName: '_TZ3000_pv4puuxi'},
             {modelID: 'TS0003', manufacturerName: '_TZ3000_avky2mvc'},
             {modelID: 'TS0003', manufacturerName: '_TZ3000_785olaiq'},
-            {modelID: 'TS0003', manufacturerName: '_TZ3000_qxcnwv26'},            
+            {modelID: 'TS0003', manufacturerName: '_TZ3000_qxcnwv26'},
         ],
         model: 'TS0003_switch_3_gang',
         vendor: 'Tuya',
