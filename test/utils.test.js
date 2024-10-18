@@ -120,8 +120,12 @@ describe('lib/utils.js', () => {
         });
 
         it('gets non-linear', () => {
-            expect(utils.batteryVoltageToPercentage(2300, '3V_2100')).toStrictEqual(4);
-            expect(utils.batteryVoltageToPercentage(3000, '3V_2100')).toStrictEqual(100);
+            expect(utils.batteryVoltageToPercentage(2600, '3V_2100')).toStrictEqual(0);
+            expect(utils.batteryVoltageToPercentage(2700, '3V_2100')).toStrictEqual(10);
+            expect(utils.batteryVoltageToPercentage(2800, '3V_2100')).toStrictEqual(40);
+            expect(utils.batteryVoltageToPercentage(2900, '3V_2100')).toStrictEqual(70);
+            expect(utils.batteryVoltageToPercentage(3000, '3V_2100')).toStrictEqual(90);
+            expect(utils.batteryVoltageToPercentage(3200, '3V_2100')).toStrictEqual(100);
             expect(utils.batteryVoltageToPercentage(2000, '3V_2100')).toStrictEqual(0);
 
             expect(utils.batteryVoltageToPercentage(2300, '3V_1500_2800')).toStrictEqual(74);
