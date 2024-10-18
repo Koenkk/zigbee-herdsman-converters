@@ -31,7 +31,7 @@ import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} fro
 import * as zosung from '../lib/zosung';
 
 const NS = 'zhc:tuya';
-const {tuyaLight} = tuya.modernExtend;
+const {tuyaLight, tuyaBase} = tuya.modernExtend;
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -7414,6 +7414,27 @@ const definitions: DefinitionWithExtend[] = [
                 .enum('self_test', ea.STATE, Object.values(legacy.tuyaHPSCheckingResult))
                 .withDescription('Self_test, possible results: checking, check_success, check_failure, others, comm_fault, radar_fault.'),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE284_atuj3i0w'}],
+        model: 'M8Pro',
+        vendor: 'Tuya',
+        description: '4 gang switch with LCD',
+        extend: [tuyaBase({dp: true}), deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}})],
+        exposes: [
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            tuya.exposes.switch().withEndpoint('l3'),
+            tuya.exposes.switch().withEndpoint('l4'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [24, 'state_l1', tuya.valueConverter.onOff],
+                [25, 'state_l2', tuya.valueConverter.onOff],
+                [26, 'state_l3', tuya.valueConverter.onOff],
+                [27, 'state_l4', tuya.valueConverter.onOff],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_bmdsp6bs']),

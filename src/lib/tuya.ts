@@ -63,12 +63,14 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-export function onEvent(args?: {
+interface OnEventArgs {
     queryOnDeviceAnnounce?: boolean;
     timeStart?: '1970' | '2000';
     respondToMcuVersionResponse?: boolean;
     queryIntervalSeconds?: number;
-}): OnEvent {
+}
+
+export function onEvent(args?: OnEventArgs): OnEvent {
     return async (type, data, device, settings, state) => {
         args = {queryOnDeviceAnnounce: false, timeStart: '1970', respondToMcuVersionResponse: true, ...args};
 
@@ -1801,6 +1803,19 @@ export interface TuyaDPLightArgs {
 }
 
 const tuyaModernExtend = {
+    tuyaBase(args?: {onEvent?: OnEventArgs; dp: true}): ModernExtend {
+        const result: ModernExtend = {
+            configure: [configureMagicPacket],
+            onEvent: onEvent(args.onEvent),
+            isModernExtend: true,
+        };
+
+        if (args?.dp) {
+            result.fromZigbee = [tuyaFz.datapoints];
+            result.toZigbee = [tuyaTz.datapoints];
+        }
+        return result;
+    },
     dpEnumLookup(args: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
         const {name, dp, type, lookup, description, readOnly, endpoint, expose, skip} = args;
         let exp: Expose;
