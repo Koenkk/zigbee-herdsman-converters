@@ -3654,6 +3654,20 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ['TS0001'],
+        model: 'X701A',
+        vendor: 'Lonsonho',
+        description: '1 gang switch with backlight',
+        extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
+        whiteLabel: [
+            tuya.whitelabel('Lonsonho', 'X701A', '1 gang switch with backlight', ['_TZ3000_t3s9qmmg']),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_myaaknbq', '_TZ3000_cpozgbrx']),
         model: 'TS0001_switch_module_1',
         vendor: 'Tuya',
