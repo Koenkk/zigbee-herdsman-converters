@@ -1,5 +1,20 @@
 # Changelog
 
+## [20.31.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.30.0...v20.31.0) (2024-10-19)
+
+
+### Features
+
+* **add:** TRV06_1 ([#8151](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8151)) ([8c5bf29](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8c5bf2928146e966e46ec970573fa1d4b74b7d2b))
+* Tuya BAC-003 & BAC-002-ALZB: Add support for current_cooling_setpoint ([#8157](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8157)) ([de18b34](https://github.com/Koenkk/zigbee-herdsman-converters/commit/de18b34c6f6d4728affc4be229890aa4cedfae31))
+
+
+### Bug Fixes
+
+* **detect:** Detect `lumi.light.acn025` as Aqara SSWQD03LM ([#8158](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8158)) ([d28465b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d28465babfe86b3dcce559e48ed7fe855f2da820))
+* Fix configure failing when configuring too many attributes at once https://github.com/Koenkk/zigbee-herdsman-converters/pull/8129 ([5c1f2d5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5c1f2d561b4cc7c4f032ec85df2979905d95877f))
+* **ignore:** ZigUSB_C6: add OTA and ability to restart USB with one command ([#8155](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8155)) ([79d7e71](https://github.com/Koenkk/zigbee-herdsman-converters/commit/79d7e71db34995e38a10c9d7a031ec897499dcae))
+
 ## [20.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.29.0...v20.30.0) (2024-10-18)
 
 
