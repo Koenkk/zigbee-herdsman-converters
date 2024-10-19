@@ -48,6 +48,7 @@ import {
     noOccupancySince,
     postfixWithEndpointName,
     precisionRound,
+    splitArrayIntoChunks,
 } from './utils';
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: 'input' | 'output') {
@@ -107,28 +108,37 @@ export async function setupAttributes(
             `Configure reporting: ${configureReporting}, read: ${read} for ${ieeeAddr}/${endpoint.ID} ${cluster} ${JSON.stringify(config)}`,
             'zhc:setupattribute',
         );
+
+        // Split into chunks of 4 to prevent to message becoming too big.
+        const chunks = splitArrayIntoChunks(config, 4);
+
         if (configureReporting) {
             await endpoint.bind(cluster, coordinatorEndpoint);
-            await endpoint.configureReporting(
-                cluster,
-                config.map((a) => ({
-                    minimumReportInterval: convertReportingConfigTime(a.min),
-                    maximumReportInterval: convertReportingConfigTime(a.max),
-                    reportableChange: a.change,
-                    attribute: a.attribute,
-                })),
-            );
-        }
-        if (read) {
-            try {
-                // Don't fail configuration if reading this attribute fails
-                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
-                await endpoint.read(
+            for (const chunk of chunks) {
+                await endpoint.configureReporting(
                     cluster,
-                    config.map((a) => (isString(a) ? a : isObject(a.attribute) ? a.attribute.ID : a.attribute)),
+                    chunk.map((a) => ({
+                        minimumReportInterval: convertReportingConfigTime(a.min),
+                        maximumReportInterval: convertReportingConfigTime(a.max),
+                        reportableChange: a.change,
+                        attribute: a.attribute,
+                    })),
                 );
-            } catch (e) {
-                logger.debug(`Reading attribute failed: ${e}`, 'zhc:setupattribute');
+            }
+        }
+
+        if (read) {
+            for (const chunk of chunks) {
+                try {
+                    // Don't fail configuration if reading this attribute fails
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
+                    await endpoint.read(
+                        cluster,
+                        chunk.map((a) => (isString(a) ? a : isObject(a.attribute) ? a.attribute.ID : a.attribute)),
+                    );
+                } catch (e) {
+                    logger.debug(`Reading attribute failed: ${e}`, 'zhc:setupattribute');
+                }
             }
         }
     }
