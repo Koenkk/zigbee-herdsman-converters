@@ -3463,7 +3463,17 @@ const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [4, 'preset', tuya.valueConverterBasic.lookup({manual: true, auto: false})],
+                [16, 'current_cooling_setpoint', tuya.valueConverter.raw],
                 [16, 'current_heating_setpoint', tuya.valueConverter.raw],
+                [
+                    16,
+                    null,
+                    {
+                        from: (v, meta) => {
+                            return {current_cooling_setpoint: v, current_heating_setpoint: v};
+                        },
+                    },
+                ],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [26, 'deadzone_temperature', tuya.valueConverter.raw],
                 [27, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration],
