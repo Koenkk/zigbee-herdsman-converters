@@ -405,7 +405,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '8720169264151',
         vendor: 'Philips',
         description: 'Hue Slim recessed light S 90mm black',
-        extend: [philipsLight({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        extend: [philipsLight({colorTemp: {range:[153,500]}, color: {modes: ["xy","hs"], enhancedHue:true}})],
     },
     {
         zigbeeModel: ['LWO003'],
