@@ -3883,6 +3883,13 @@ const definitions: DefinitionWithExtend[] = [
             philipsTwilightOnOff(),
         ],
     },
+    {
+        zigbeeModel: ['LWA024'],
+        model: '9290018217A',
+        vendor: 'Philips',
+        description: 'Philips Hue White B22 Bulb 800 with Bluetooth', 
+        extend: philips.extend.light_onoff_brightness(),
+    },
 ];
 
 export default definitions;
