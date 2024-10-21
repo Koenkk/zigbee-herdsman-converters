@@ -1862,6 +1862,34 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ['E8331DST300ZB'],
+        model: 'E8331DST300ZB',
+        vendor: 'Schneider Electric',
+        description: 'Wiser AvatarOn 1G dimmer switch',
+        extend: [
+            light({
+                effect: false,
+                color: false,
+                powerOnBehavior: false,
+                levelConfig: {
+                    disabledFeatures: [
+                        'on_off_transition_time',
+                        'on_transition_time',
+                        'off_transition_time',
+                        'execute_if_off',
+                        'on_level',
+                        'current_level_startup',
+                    ],
+                },
+                configureReporting: true,
+            }),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
+        ],
+    },
+    {
         zigbeeModel: ['E8332DST350ZB'],
         model: 'E8332DST350ZB',
         vendor: 'Schneider Electric',
