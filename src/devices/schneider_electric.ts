@@ -1867,9 +1867,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 1G dimmer switch',
         extend: [
-            deviceEndpoints({endpoints: {l1: 10}}),
             light({
-                endpointNames: ['l1'],
                 effect: false,
                 color: false,
                 powerOnBehavior: false,
