@@ -1,5 +1,22 @@
 # Changelog
 
+## [20.32.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.31.0...v20.32.0) (2024-10-21)
+
+
+### Features
+
+* **add:** 8720169264151 ([#8160](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8160)) ([8cd4a4f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8cd4a4fb3f2132bc3ae42a349cc0e3cd30b9cfb2))
+* **add:** E8331DST300ZB ([#8068](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8068)) ([a84184c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a84184c3f246238778a44300b00b06b882587fba))
+* **add:** E8331SRY800ZB_NEW ([#8165](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8165)) ([34629bf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/34629bf84dee89f68683b67658b8150065a8a94f))
+* **add:** EMIZB-151 ([#8129](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8129)) ([f066285](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f066285e0508a6b3e961299232f372e252edee09))
+* **add:** NT-S2 ([#8161](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8161)) ([08bda4f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/08bda4fca4f903300bfcc26336ca504cdae23209))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZB210_lnnkh3f9` as MiBoxer FUT106ZR ([#8163](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8163)) ([b9c99bf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b9c99bff84a0ace848350e36b7ccc2a31691c306))
+* **ignore:** update dependencies ([#8162](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8162)) ([6b846a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6b846a2f6aa1f20201fd73646689f57326cd5a5b))
+
 ## [20.31.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.30.0...v20.31.0) (2024-10-19)
 
 
