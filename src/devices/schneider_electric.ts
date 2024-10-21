@@ -1906,6 +1906,18 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ['A3N31SR800ZB_xx_C1'],
+        model: 'E8331SRY800ZB_NEW',
+        vendor: 'Schneider Electric',
+        description: 'Wiser AvatarOn 1G onoff switch',
+        extend: [
+            deviceEndpoints({endpoints: {l1: 10}}),
+            onOff({endpointNames: ['l1'], powerOnBehavior: false}),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
+        ],
+    },
+    {
         zigbeeModel: ['E8332SRY800ZB'],
         model: 'E8332SRY800ZB',
         vendor: 'Schneider Electric',
