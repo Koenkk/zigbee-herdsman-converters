@@ -1,28 +1,33 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as globalStore from '../lib/store';
-import {Definition} from '../lib/types';
-import {light, onOff} from '../lib/modernExtend';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZB-KeypadGeneric-D0002'],
         model: 'ZS130000078',
         vendor: 'Linkind',
         description: 'Security keypad battery',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.command_arm_with_transaction, fz.battery, fz.ias_ace_occupancy_with_timeout,
-            fz.ias_smoke_alarm_1, fz.command_panic],
-        exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.occupancy(), e.tamper(),
+        fromZigbee: [fz.command_arm_with_transaction, fz.battery, fz.ias_ace_occupancy_with_timeout, fz.ias_smoke_alarm_1, fz.command_panic],
+        exposes: [
+            e.battery(),
+            e.battery_voltage(),
+            e.battery_low(),
+            e.occupancy(),
+            e.tamper(),
             e.numeric('action_code', ea.STATE).withDescription('Pin code introduced.'),
             e.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
             e.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 23'),
-            e.action([
-                'panic', 'disarm', 'arm_day_zones', 'arm_all_zones', 'exit_delay', 'entry_delay'])],
+            e.action(['panic', 'disarm', 'arm_day_zones', 'arm_all_zones', 'exit_delay', 'entry_delay']),
+        ],
         toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -31,15 +36,19 @@ const definitions: Definition[] = [
             await reporting.batteryVoltage(endpoint);
         },
         onEvent: async (type, data, device) => {
-            if (type === 'message' && data.type === 'commandGetPanelStatus' && data.cluster === 'ssIasAce' &&
-                globalStore.hasValue(device.getEndpoint(1), 'panelStatus')) {
+            if (
+                type === 'message' &&
+                data.type === 'commandGetPanelStatus' &&
+                data.cluster === 'ssIasAce' &&
+                globalStore.hasValue(device.getEndpoint(1), 'panelStatus')
+            ) {
                 const payload = {
                     panelstatus: globalStore.getValue(device.getEndpoint(1), 'panelStatus'),
-                    secondsremain: 0x00, audiblenotif: 0x00, alarmstatus: 0x00,
+                    secondsremain: 0x00,
+                    audiblenotif: 0x00,
+                    alarmstatus: 0x00,
                 };
-                await device.getEndpoint(1).commandResponse(
-                    'ssIasAce', 'getPanelStatusRsp', payload, {}, data.meta.zclTransactionSequenceNumber,
-                );
+                await device.getEndpoint(1).commandResponse('ssIasAce', 'getPanelStatusRsp', payload, {}, data.meta.zclTransactionSequenceNumber);
             }
         },
     },
@@ -48,14 +57,38 @@ const definitions: Definition[] = [
         model: 'ZS230002',
         vendor: 'Linkind',
         description: '5-key smart bulb dimmer switch light remote control',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move,
-            fz.command_stop, fz.command_move_to_color_temp, fz.command_move_to_color,
-            fz.command_move_to_level, fz.command_move_color_temperature, fz.battery],
-        exposes: [e.battery(), e.battery_low(), e.action(['on', 'off', 'brightness_step_up',
-            'brightness_step_down', 'color_temperature_move', 'color_move', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
-            'brightness_move_to_level', 'color_temperature_move_up', 'color_temperature_move_down'])],
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_move_to_color_temp,
+            fz.command_move_to_color,
+            fz.command_move_to_level,
+            fz.command_move_color_temperature,
+            fz.battery,
+        ],
+        exposes: [
+            e.battery(),
+            e.battery_low(),
+            e.action([
+                'on',
+                'off',
+                'brightness_step_up',
+                'brightness_step_down',
+                'color_temperature_move',
+                'color_move',
+                'brightness_move_up',
+                'brightness_move_down',
+                'brightness_stop',
+                'brightness_move_to_level',
+                'color_temperature_move_up',
+                'color_temperature_move_down',
+            ]),
+        ],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -125,7 +158,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -139,7 +172,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -153,7 +186,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']), e.battery(), e.battery_low()],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -189,10 +222,15 @@ const definitions: Definition[] = [
         description: 'Water leak sensor',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [tz.LS21001_alert_behaviour],
-        exposes: [e.water_leak(), e.battery_low(), e.battery(),
-            e.enum('alert_behaviour', ea.STATE_SET, ['siren_led', 'siren', 'led', 'nothing'])
-                .withDescription('Controls behaviour of led/siren on alarm')],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        exposes: [
+            e.water_leak(),
+            e.battery_low(),
+            e.battery(),
+            e
+                .enum('alert_behaviour', ea.STATE_SET, ['siren_led', 'siren', 'led', 'nothing'])
+                .withDescription('Controls behaviour of led/siren on alarm'),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);

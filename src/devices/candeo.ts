@@ -156,6 +156,7 @@ const definitions: DefinitionWithExtend[] = [
             identify(),
         ],
     },
+
     {
         fingerprint: [{modelID: 'C-ZB-SM205-2G', manufacturerName: 'Candeo'}],
         model: 'C-ZB-SM205-2G',
@@ -204,6 +205,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint11.read('seMetering', ['currentSummDelivered']);
         },
     }
+
 ];
 
 export default definitions;

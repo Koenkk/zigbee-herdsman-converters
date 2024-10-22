@@ -1,7 +1,7 @@
-import {Definition} from '../lib/types';
 import {forcePowerSource, onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Bouffalolab'],
         model: 'RMC002',

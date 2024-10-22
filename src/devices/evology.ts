@@ -1,11 +1,12 @@
-import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
 import * as exposes from '../lib/exposes';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PSE03-V1.1.0'],
         model: 'PSE03-V1.1.0',
@@ -14,7 +15,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ignore_basic_report, fz.ias_wd, fz.ias_enroll, fz.ias_siren],
         toZigbee: [tz.warning],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await endpoint.read('ssIasZone', ['zoneState', 'iasCieAddr', 'zoneId', 'zoneStatus']);

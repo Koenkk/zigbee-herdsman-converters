@@ -1,11 +1,11 @@
-import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PROLIGHT E27 WHITE AND COLOUR'],
         model: '5412748727371',
@@ -47,11 +47,32 @@ const definitions: Definition[] = [
         vendor: 'Prolight',
         description: 'Remote control',
         toZigbee: [],
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move, fz.command_stop,
-            fz.command_move_to_color_temp, fz.command_move_to_color, fz.command_move_color_temperature, fz.battery],
-        exposes: [e.battery(), e.action(['on', 'off', 'color_temperature_move', 'color_temperature_move_up',
-            'color_temperature_move_down', 'color_move', 'brightness_move_up', 'brightness_move_down',
-            'brightness_stop', 'brightness_move_to_level'])],
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_move_to_level,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_move_to_color_temp,
+            fz.command_move_to_color,
+            fz.command_move_color_temperature,
+            fz.battery,
+        ],
+        exposes: [
+            e.battery(),
+            e.action([
+                'on',
+                'off',
+                'color_temperature_move',
+                'color_temperature_move_up',
+                'color_temperature_move_down',
+                'color_move',
+                'brightness_move_up',
+                'brightness_move_down',
+                'brightness_stop',
+                'brightness_move_to_level',
+            ]),
+        ],
     },
 ];
 

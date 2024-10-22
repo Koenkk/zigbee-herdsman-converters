@@ -1,12 +1,13 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as reporting from '../lib/reporting';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Rollershade QdR'],
         model: 'QZR-ZIG2400',
@@ -24,7 +25,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.identify, fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position(), e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);

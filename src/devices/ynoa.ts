@@ -1,13 +1,13 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZBT-CCTfilament-D0001'],
         model: '8718801528204',
@@ -30,7 +30,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']), e.battery()],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -48,12 +48,10 @@ const definitions: Definition[] = [
         model: 'LA-5KEY-RGBW',
         vendor: 'Ynoa',
         description: '5 key control for RGBW light',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_color_temp,
-            fz.command_move_to_color, fz.command_move_to_level, fz.battery],
-        exposes: [e.battery(), e.battery_low(), e.action(['on', 'off', 'brightness_move_to_level',
-            'color_temperature_move', 'color_move'])],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_color_temp, fz.command_move_to_color, fz.command_move_to_level, fz.battery],
+        exposes: [e.battery(), e.battery_low(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move', 'color_move'])],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -67,7 +65,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);

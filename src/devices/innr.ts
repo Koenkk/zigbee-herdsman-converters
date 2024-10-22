@@ -1,23 +1,32 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
-const e = exposes.presets;
+import * as exposes from '../lib/exposes';
+import {electricityMeter, light, onOff, reconfigureReportingsOnDeviceAnnounce} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {light, onOff, electricityMeter, reconfigureReportingsOnDeviceAnnounce} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RC 210'],
         model: 'RC 210',
         vendor: 'Innr',
         description: 'Remote control',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_level,
-            fz.command_move_to_color_temp],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_level, fz.command_move_to_color_temp],
         toZigbee: [],
-        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level',
-            'color_temperature_move'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        exposes: [
+            e.action([
+                'on',
+                'off',
+                'brightness_move_up',
+                'brightness_move_down',
+                'brightness_stop',
+                'brightness_move_to_level',
+                'color_temperature_move',
+            ]),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
         },
@@ -29,13 +38,18 @@ const definitions: Definition[] = [
         description: 'Remote control',
         fromZigbee: [fz.command_step, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
         toZigbee: [],
-        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down',
-            'brightness_move_to_level', 'color_temperature_move'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_to_level', 'color_temperature_move'])],
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genGroups', 'genScenes',
-                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genGroups', 'genScenes', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
         },
+    },
+    {
+        zigbeeModel: ['AE 262'],
+        model: 'AE 262',
+        vendor: 'Innr',
+        description: 'Smart E26 LED bulb',
+        extend: [light({turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RCL 240 T'],
@@ -64,24 +78,42 @@ const definitions: Definition[] = [
         model: 'FL 130 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: [light({
-            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, powerOnBehavior: false, turnsOffAtBrightness1: true,
-        })],
+        extend: [
+            light({
+                colorTemp: {range: [153, 555]},
+                color: {modes: ['xy', 'hs'], applyRedFix: true},
+                powerOnBehavior: false,
+                turnsOffAtBrightness1: true,
+            }),
+        ],
     },
     {
         zigbeeModel: ['FL 120 C'],
         model: 'FL 120 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: [light({
-            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, powerOnBehavior: false, turnsOffAtBrightness1: true,
-        })],
+        extend: [
+            light({
+                colorTemp: {range: [153, 555]},
+                color: {modes: ['xy', 'hs'], applyRedFix: true},
+                powerOnBehavior: false,
+                turnsOffAtBrightness1: true,
+            }),
+        ],
     },
     {
         zigbeeModel: ['BF 263'],
         model: 'BF 263',
         vendor: 'Innr',
         description: 'B22 filament bulb dimmable',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['OLS 210'],
+        model: 'OLS 210',
+        vendor: 'Innr',
+        description: 'Smart outdoor light string',
         extend: [light({turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
     },
@@ -97,9 +129,13 @@ const definitions: Definition[] = [
         model: 'OPL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart pedestal light colour',
-        extend: [light({
-            colorTemp: {range: [153, 555], startup: false}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true,
-        })],
+        extend: [
+            light({
+                colorTemp: {range: [153, 555], startup: false},
+                color: {modes: ['xy', 'hs'], applyRedFix: true},
+                turnsOffAtBrightness1: true,
+            }),
+        ],
     },
     {
         zigbeeModel: ['RB 185 C'],
@@ -120,19 +156,34 @@ const definitions: Definition[] = [
         model: 'RB 250 C',
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
-        extend: [light({
-            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
-        })],
+        extend: [
+            light({
+                colorTemp: {range: [153, 555]},
+                color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true},
+                turnsOffAtBrightness1: true,
+            }),
+        ],
     },
     {
         zigbeeModel: ['RB 251 C'],
         model: 'RB 251 C',
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
-        extend: [light({
-            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
-        })],
+        extend: [
+            light({
+                colorTemp: {range: [153, 555]},
+                color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true},
+                turnsOffAtBrightness1: true,
+            }),
+        ],
         ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['RB 262'],
+        model: 'RB 262',
+        vendor: 'Innr',
+        description: 'E27 bulb',
+        extend: [light({turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RB 265'],
@@ -164,6 +215,25 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['RB 267'],
+        model: 'RB 267',
+        vendor: 'Innr',
+        description: 'E27 smart bulb white 1100',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+        endpoint: (device) => {
+            return {default: 1};
+        },
+    },
+    {
+        zigbeeModel: ['RF 262'],
+        model: 'RF 262',
+        vendor: 'Innr',
+        description: 'E27 smart filament LED light bulb',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['RF 265'],
         model: 'RF 265',
         vendor: 'Innr',
@@ -178,6 +248,13 @@ const definitions: Definition[] = [
         description: 'B22 bulb filament clear',
         extend: [light({turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['RB 272 T'],
+        model: 'RB 272 T',
+        vendor: 'Innr',
+        description: 'Smart bulb tunable white E27',
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RB 278 T'],
@@ -202,9 +279,13 @@ const definitions: Definition[] = [
         model: 'RB 285 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: [light({
-            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
-        })],
+        extend: [
+            light({
+                colorTemp: {range: [153, 555]},
+                color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true},
+                turnsOffAtBrightness1: true,
+            }),
+        ],
     },
     {
         zigbeeModel: ['RB 286 C'],
@@ -262,7 +343,7 @@ const definitions: Definition[] = [
         model: 'RB 178 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['BY 178 T'],
@@ -316,7 +397,7 @@ const definitions: Definition[] = [
         model: 'RS 128 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RS 228 T'],
@@ -338,9 +419,13 @@ const definitions: Definition[] = [
         model: 'RS 230 C',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, RGBW',
-        extend: [light({
-            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
-        })],
+        extend: [
+            light({
+                colorTemp: {range: [153, 555]},
+                color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true},
+                turnsOffAtBrightness1: true,
+            }),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
@@ -348,9 +433,13 @@ const definitions: Definition[] = [
         model: 'RS 232 C',
         vendor: 'Innr',
         description: 'GU10 spot, dimmable, RGBW',
-        extend: [light({
-            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
-        })],
+        extend: [
+            light({
+                colorTemp: {range: [153, 555]},
+                color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true},
+                turnsOffAtBrightness1: true,
+            }),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
@@ -369,11 +458,27 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['RB 243'],
+        model: 'RB 243',
+        vendor: 'Innr',
+        description: 'E14 candle',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['RB 248 T'],
         model: 'RB 248 T',
         vendor: 'Innr',
         description: 'E14 candle with white spectrum',
         extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['RB 247 T'],
+        model: 'RB 247 T',
+        vendor: 'Innr',
+        description: 'E14 candle, dimmable with, color temp',
+        extend: [light({colorTemp: {range: [200, 454]}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -514,6 +619,13 @@ const definitions: Definition[] = [
         extend: [light({turnsOffAtBrightness1: true})],
     },
     {
+        zigbeeModel: ['AE 270 T'],
+        model: 'AE 270 T',
+        vendor: 'Innr',
+        description: 'E26/24 bulb 1100lm, dimmable, white spectrum',
+        extend: [light({colorTemp: {range: [154, 500]}, turnsOffAtBrightness1: true})],
+    },
+    {
         zigbeeModel: ['AE 280 C'],
         model: 'AE 280 C',
         vendor: 'Innr',
@@ -566,10 +678,7 @@ const definitions: Definition[] = [
         model: 'SP 234',
         vendor: 'Innr',
         description: 'Smart plug',
-        extend: [
-            onOff(),
-            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
-        ],
+        extend: [onOff(), electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -605,9 +714,13 @@ const definitions: Definition[] = [
         model: 'RB 255 C',
         vendor: 'Innr',
         description: 'E14 mini bulb RGBW',
-        extend: [light({
-            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
-        })],
+        extend: [
+            light({
+                colorTemp: {range: [153, 555]},
+                color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true},
+                turnsOffAtBrightness1: true,
+            }),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
@@ -654,12 +767,11 @@ const definitions: Definition[] = [
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {'all': 1, 'l1': 3, 'l2': 4, 'l3': 5, 'l4': 6, 'l5': 7, 'l6': 8};
+            return {all: 1, l1: 3, l2: 4, l3: 5, l4: 6, l5: 7, l6: 8};
         },
         exposes: [e.action(['on_*', 'off_*', 'brightness_*', 'scene_*'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint,
-                ['genBasic', 'genGroups', 'genScenes', 'genOnOff', 'genLevelCtrl']);
+        configure: async (device, coordinatorEndpoint) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genBasic', 'genGroups', 'genScenes', 'genOnOff', 'genLevelCtrl']);
             for (const ep of [3, 4, 5, 6, 7, 8]) {
                 const endpoint = device.getEndpoint(ep);
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -671,10 +783,8 @@ const definitions: Definition[] = [
         model: 'SP 240',
         vendor: 'Innr',
         description: 'Smart plug',
-        extend: [
-            onOff(),
-            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
-        ],
+        extend: [onOff(), electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}})],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SP 242'],
@@ -688,16 +798,15 @@ const definitions: Definition[] = [
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/6747
             reconfigureReportingsOnDeviceAnnounce(),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SP 244'],
         model: 'SP 244',
         vendor: 'Innr',
         description: 'Smart plug',
-        extend: [
-            onOff(),
-            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
-        ],
+        extend: [onOff(), electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}})],
+        ota: ota.zigbeeOTA,
     },
 ];
 

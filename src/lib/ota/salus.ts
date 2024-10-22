@@ -1,15 +1,20 @@
-const url = 'https://eu.salusconnect.io/demo/default/status/firmware?timestamp=0';
-import * as common from './common';
 import tar from 'tar-stream';
-import {Zh, Logger, Ota, KeyValue, KeyValueAny} from '../types';
+
+import {logger} from '../logger';
+import {KeyValue, KeyValueAny, Ota, Zh} from '../types';
+import * as common from './common';
+
+const url = 'https://eu.salusconnect.io/demo/default/status/firmware?timestamp=0';
+
+const NS = 'zhc:ota:salus';
 const axios = common.getAxios();
 
 /**
  * Helper functions
  */
 
-export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`SalusOTA: call getImageMeta for ${device.modelID}`);
+export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): Promise<Ota.ImageMeta> {
+    logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
     const {data} = await axios.get(url);
 
     if (!data?.versions?.length) {
@@ -29,7 +34,7 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
 }
 
 async function untar(tarStream: NodeJS.ReadStream) {
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
         const extract = tar.extract();
 
         const result: KeyValue[] = [];
@@ -39,11 +44,11 @@ async function untar(tarStream: NodeJS.ReadStream) {
         extract.on('entry', (headers, stream, next) => {
             const buffers: Buffer[] = [];
 
-            stream.on('data', function(data) {
+            stream.on('data', function (data) {
                 buffers.push(data);
             });
 
-            stream.on('end', function() {
+            stream.on('end', function () {
                 result.push({
                     headers,
                     data: Buffer.concat(buffers),
@@ -63,12 +68,12 @@ async function untar(tarStream: NodeJS.ReadStream) {
     });
 }
 
-async function downloadImage(meta: KeyValueAny, logger: Logger) {
+async function downloadImage(meta: KeyValueAny) {
     const download = await axios.get(meta.url, {responseType: 'stream'});
 
     const files = await untar(download.data);
 
-    // @ts-expect-error
+    // @ts-expect-error ignore
     const imageFile = files.find((file) => file.headers.name.endsWith('.ota'));
 
     return imageFile;
@@ -78,12 +83,12 @@ async function downloadImage(meta: KeyValueAny, logger: Logger) {
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
-    return common.isUpdateAvailable(device, logger, requestPayload, common.isNewImageAvailable, getImageMeta);
+export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
+    return await common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 
-export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, downloadImage);
+export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
+    return await common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, downloadImage);
 }
 
 exports.isUpdateAvailable = isUpdateAvailable;

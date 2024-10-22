@@ -1,16 +1,23 @@
-import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {logger} from '../lib/logger';
 import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
+
+const NS = 'zhc:profalux';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['MAI-ZTS'],
-        fingerprint: [{manufacturerID: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 513, inputClusters: [0, 3, 21],
-            outputClusters: [3, 4, 5, 6, 8, 256, 64544, 64545]}]}],
+        fingerprint: [
+            {
+                manufacturerID: 4368,
+                endpoints: [{ID: 1, profileID: 260, deviceID: 513, inputClusters: [0, 3, 21], outputClusters: [3, 4, 5, 6, 8, 256, 64544, 64545]}],
+            },
+        ],
         model: 'NB102',
         vendor: 'Profalux',
         description: 'Cover remote',
@@ -54,14 +61,13 @@ const definitions: Definition[] = [
                 return [e.cover_position(), e.linkquality()];
             }
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
-            await endpoint.read('manuSpecificProfalux1', ['motorCoverType'])
-                .catch((e) => {
-                    console.warn(`Failed to read zigbee attributes: ${e}`);
-                });
+            await endpoint.read('manuSpecificProfalux1', ['motorCoverType']).catch((e) => {
+                logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
+            });
             const coverType = endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType');
-            // logger.debug(`Profalux '${device.ieeeAddr}' setup as cover type '${coverType)}'`);
+            // logger.debug(`Profalux '${device.ieeeAddr}' setup as cover type '${coverType)}'`, NS);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
             if (coverType == 1) {
@@ -77,15 +83,21 @@ const definitions: Definition[] = [
         // expose closuresWindowCovering and need to use genLevelCtrl
         // instead. Sniffing a remote would be welcome to confirm that this
         // is the right thing to do.
-        fingerprint: [{manufacturerID: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 512,
-            inputClusters: [0, 3, 4, 5, 6, 8, 10, 21, 256, 64544, 64545], outputClusters: [3, 64544]}]}],
+        fingerprint: [
+            {
+                manufacturerID: 4368,
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 512, inputClusters: [0, 3, 4, 5, 6, 8, 10, 21, 256, 64544, 64545], outputClusters: [3, 64544]},
+                ],
+            },
+        ],
         model: 'NSAV061',
         vendor: 'Profalux',
         description: 'Cover',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_via_brightness],
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
             await reporting.brightness(endpoint);
@@ -108,11 +120,28 @@ const definitions: Definition[] = [
         // the cover and don't seem to communicate with the coordinator, so
         // nothing is likely to be doable in Z2M.
         fingerprint: [
-            {type: 'EndDevice', manufacturerName: 'Profalux', modelID: 'MAI-ZTS', manufacturerID: 4368, endpoints: [
-                {ID: 1, profileID: 260, deviceID: 513, inputClusters: [0, 3, 21, 64514, 64544], outputClusters: [3, 4, 5, 6, 8, 256, 64544, 64545]},
-                {ID: 2, profileID: 260, deviceID: 515, inputClusters: [0, 1, 3, 9, 21, 32, 64514, 64544],
-                    outputClusters: [3, 4, 5, 25, 258, 64544, 64545]},
-            ]},
+            {
+                type: 'EndDevice',
+                manufacturerName: 'Profalux',
+                modelID: 'MAI-ZTS',
+                manufacturerID: 4368,
+                endpoints: [
+                    {
+                        ID: 1,
+                        profileID: 260,
+                        deviceID: 513,
+                        inputClusters: [0, 3, 21, 64514, 64544],
+                        outputClusters: [3, 4, 5, 6, 8, 256, 64544, 64545],
+                    },
+                    {
+                        ID: 2,
+                        profileID: 260,
+                        deviceID: 515,
+                        inputClusters: [0, 1, 3, 9, 21, 32, 64514, 64544],
+                        outputClusters: [3, 4, 5, 25, 258, 64544, 64545],
+                    },
+                ],
+            },
         ],
         model: 'MAI-ZTM20C',
         vendor: 'Profalux',

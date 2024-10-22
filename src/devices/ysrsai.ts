@@ -1,22 +1,22 @@
-import {Definition} from '../lib/types';
 import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'YSRSAI'}],
         zigbeeModel: ['ZB-CL03', 'FB56-ZCW20FB1.2'],
         model: 'YSR-MINI-01_rgbcct',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (RGB+CCT)',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [160, 370]}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [160, 370]}, color: true})],
     },
     {
         zigbeeModel: ['ZB-CT01'],
         model: 'YSR-MINI-01_wwcw',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (WW/CW)',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true, exposes: []}),
-        configure: async (device, coordinatorEndpoint, logger) => {
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}})],
+        configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 0x10});
         },
     },

@@ -1,9 +1,10 @@
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
 import {deviceEndpoints, forcePowerSource, onOff} from '../lib/modernExtend';
-import {Definition, Fz, Tz} from '../lib/types';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -15,12 +16,11 @@ const fzLocal = {
             const zoneStatus = msg.data.zonestatus;
             return {
                 card: (zoneStatus & 1) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
             };
         },
     } satisfies Fz.Converter,
 };
-
 
 const tzLocal = {
     dawon_card_holder: {
@@ -31,7 +31,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PM-C140-ZB'],
         model: 'PM-C140-ZB',
@@ -39,7 +39,7 @@ const definitions: Definition[] = [
         description: 'IOT remote control smart buried-type outlet',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -56,7 +56,7 @@ const definitions: Definition[] = [
         description: 'IOT smart plug 16A',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -73,7 +73,7 @@ const definitions: Definition[] = [
         description: 'IOT smart plug 16A',
         fromZigbee: [fz.device_temperature, fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
@@ -96,7 +96,7 @@ const definitions: Definition[] = [
         description: 'IOT smart plug 10A',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -117,10 +117,7 @@ const definitions: Definition[] = [
         model: 'PM-S240-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
-        extend: [
-            deviceEndpoints({endpoints: {'top': 1, 'bottom': 2}}),
-            onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false}),
-        ],
+        extend: [deviceEndpoints({endpoints: {top: 1, bottom: 2}}), onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S340-ZB'],
@@ -128,7 +125,7 @@ const definitions: Definition[] = [
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
         extend: [
-            deviceEndpoints({endpoints: {'top': 1, 'center': 2, 'bottom': 3}}),
+            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
             onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
         ],
     },
@@ -144,10 +141,7 @@ const definitions: Definition[] = [
         model: 'PM-S240R-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
-        extend: [
-            deviceEndpoints({endpoints: {'top': 1, 'bottom': 2}}),
-            onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false}),
-        ],
+        extend: [deviceEndpoints({endpoints: {top: 1, bottom: 2}}), onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S340R-ZB'],
@@ -155,7 +149,7 @@ const definitions: Definition[] = [
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
         extend: [
-            deviceEndpoints({endpoints: {'top': 1, 'center': 2, 'bottom': 3}}),
+            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
             onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
         ],
     },
@@ -172,7 +166,7 @@ const definitions: Definition[] = [
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
         extend: [
-            deviceEndpoints({endpoints: {'top': 1, 'bottom': 2}}),
+            deviceEndpoints({endpoints: {top: 1, bottom: 2}}),
             onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false}),
             forcePowerSource({powerSource: 'Mains (single phase)'}),
         ],
@@ -183,7 +177,7 @@ const definitions: Definition[] = [
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
         extend: [
-            deviceEndpoints({endpoints: {'top': 1, 'center': 2, 'bottom': 3}}),
+            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
             onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
             forcePowerSource({powerSource: 'Mains (single phase)'}),
         ],
@@ -195,7 +189,7 @@ const definitions: Definition[] = [
         description: 'IOT remote control smart buried-type 16A outlet',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -212,7 +206,7 @@ const definitions: Definition[] = [
         description: 'IOT remote control smart gas lock',
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.dawondns_only_off], // Only support 'Off' command
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.onOff(endpoint);
@@ -227,15 +221,26 @@ const definitions: Definition[] = [
         description: 'IOT Card holder',
         fromZigbee: [fzLocal.dawon_card_holder],
         toZigbee: [tzLocal.dawon_card_holder],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone']);
-            const payload = [{
-                attribute: 'zoneState', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            const payload = [
+                {
+                    attribute: 'zoneState',
+                    minimumReportInterval: 0,
+                    maximumReportInterval: 3600,
+                    reportableChange: 0,
+                },
+            ];
             await endpoint.configureReporting('ssIasZone', payload);
         },
-        exposes: [e.binary('card', ea.STATE, true, false).withAccess(ea.STATE_GET)
-            .withDescription('Indicates if the card is inserted (= true) or not (= false)'), e.battery_low()],
+        exposes: [
+            e
+                .binary('card', ea.STATE, true, false)
+                .withAccess(ea.STATE_GET)
+                .withDescription('Indicates if the card is inserted (= true) or not (= false)'),
+            e.battery_low(),
+        ],
     },
     {
         zigbeeModel: ['KB-B540R-ZB'],
@@ -244,7 +249,7 @@ const definitions: Definition[] = [
         description: 'IOT smart plug 16A',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -262,7 +267,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.humidity, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
             await reporting.temperature(endpoint);

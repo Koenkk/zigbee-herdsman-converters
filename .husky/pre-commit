@@ -1,0 +1,4 @@
+pnpm run pretty:check
+pnpm run eslint
+pnpm run test
+pnpm run build

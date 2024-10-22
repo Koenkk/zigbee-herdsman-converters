@@ -1,13 +1,12 @@
-import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
-/* eslint-disable linebreak-style */
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
-
 
 const zigfredEndpoint = 5;
 
@@ -50,13 +49,13 @@ const coverAndLightToZigbee: Tz.Converter = {
         const isCover = entity.ID === 0x0b || entity.ID === 0x0c;
         if (isCover) {
             if (key === 'state') {
-                return tz.cover_state.convertSet(entity, key, value, meta);
+                return await tz.cover_state.convertSet(entity, key, value, meta);
             } else if (key === 'position' || key === 'tilt') {
-                return tz.cover_position_tilt.convertSet(entity, key, value, meta);
+                return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
             }
         } else {
             if (key === 'state' || key === 'brightness' || key === 'brightness_percent' || key === 'on_time') {
-                return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+                return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
             }
         }
     },
@@ -73,14 +72,26 @@ const coverAndLightToZigbee: Tz.Converter = {
 };
 
 const buttonEventExposes = e.action([
-    'button_1_single', 'button_1_double', 'button_1_hold', 'button_1_release',
-    'button_2_single', 'button_2_double', 'button_2_hold', 'button_2_release',
-    'button_3_single', 'button_3_double', 'button_3_hold', 'button_3_release',
-    'button_4_single', 'button_4_double', 'button_4_hold', 'button_4_release',
+    'button_1_single',
+    'button_1_double',
+    'button_1_hold',
+    'button_1_release',
+    'button_2_single',
+    'button_2_double',
+    'button_2_hold',
+    'button_2_release',
+    'button_3_single',
+    'button_3_double',
+    'button_3_hold',
+    'button_3_release',
+    'button_4_single',
+    'button_4_double',
+    'button_4_hold',
+    'button_4_release',
 ]);
 
 function checkOption(device: Zh.Device, options: KeyValue, key: string) {
-    if (options != null && options.hasOwnProperty(key)) {
+    if (options != null && options[key] !== undefined) {
         if (options[key] === 'true') {
             return true;
         } else if (options[key] === 'false') {
@@ -110,21 +121,17 @@ function setMetaOption(device: Zh.Device, key: string, enabled: boolean) {
     }
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['zigfred uno'],
         model: 'ZFU-1D-CH',
         vendor: 'Siglis',
         description: 'zigfred uno smart in-wall switch',
         options: [
-            e.enum(`front_surface_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Front Surface LED enabled'),
-            e.enum(`relay_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Relay enabled'),
-            e.enum(`dimmer_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Dimmer enabled'),
-            e.enum(`dimmer_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Dimmer dimmable'),
+            e.enum(`front_surface_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Front Surface LED enabled'),
+            e.enum(`relay_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Relay enabled'),
+            e.enum(`dimmer_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Dimmer enabled'),
+            e.enum(`dimmer_dimming_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Dimmer dimmable'),
         ],
         exposes: (device, options) => {
             const expose = [];
@@ -176,12 +183,12 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {
-                'l1': zigfredEndpoint,
-                'l2': 6,
-                'l3': 7,
+                l1: zigfredEndpoint,
+                l2: 6,
+                l3: 7,
             };
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             if (device != null) {
                 const controlEp = device.getEndpoint(zigfredEndpoint);
                 const relayEp = device.getEndpoint(6);
@@ -221,32 +228,19 @@ const definitions: Definition[] = [
         vendor: 'Siglis',
         description: 'zigfred plus smart in-wall switch',
         options: [
-            e.enum(`front_surface_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Front Surface LED enabled'),
-            e.enum(`dimmer_1_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Dimmer 1 enabled'),
-            e.enum(`dimmer_1_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Dimmer 1 dimmable'),
-            e.enum(`dimmer_2_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Dimmer 2 enabled'),
-            e.enum(`dimmer_2_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Dimmer 2 dimmable'),
-            e.enum(`dimmer_3_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Dimmer 3 enabled'),
-            e.enum(`dimmer_3_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Dimmer 3 dimmable'),
-            e.enum(`dimmer_4_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Dimmer 4 enabled'),
-            e.enum(`dimmer_4_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Dimmer 4 dimmable'),
-            e.enum(`cover_1_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Cover 1 enabled'),
-            e.enum(`cover_1_tilt_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Cover 1 tiltable'),
-            e.enum(`cover_2_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Cover 2 enabled'),
-            e.enum(`cover_2_tilt_enabled`, ea.SET, ['auto', 'true', 'false'])
-                .withDescription('Cover 2 tiltable'),
+            e.enum(`front_surface_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Front Surface LED enabled'),
+            e.enum(`dimmer_1_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Dimmer 1 enabled'),
+            e.enum(`dimmer_1_dimming_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Dimmer 1 dimmable'),
+            e.enum(`dimmer_2_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Dimmer 2 enabled'),
+            e.enum(`dimmer_2_dimming_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Dimmer 2 dimmable'),
+            e.enum(`dimmer_3_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Dimmer 3 enabled'),
+            e.enum(`dimmer_3_dimming_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Dimmer 3 dimmable'),
+            e.enum(`dimmer_4_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Dimmer 4 enabled'),
+            e.enum(`dimmer_4_dimming_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Dimmer 4 dimmable'),
+            e.enum(`cover_1_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Cover 1 enabled'),
+            e.enum(`cover_1_tilt_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Cover 1 tiltable'),
+            e.enum(`cover_2_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Cover 2 enabled'),
+            e.enum(`cover_2_tilt_enabled`, ea.SET, ['auto', 'true', 'false']).withDescription('Cover 2 tiltable'),
         ],
         exposes: (device, options) => {
             const expose = [];
@@ -292,25 +286,43 @@ const definitions: Definition[] = [
 
             if (checkOption(device, options, 'cover_1_enabled')) {
                 if (checkOption(device, options, 'cover_1_tilt_enabled')) {
-                    expose.push(e.cover()
-                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                        .withPosition().withTilt().withEndpoint('l6'));
+                    expose.push(
+                        e
+                            .cover()
+                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                            .withPosition()
+                            .withTilt()
+                            .withEndpoint('l6'),
+                    );
                 } else {
-                    expose.push(e.cover()
-                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                        .withPosition().withEndpoint('l6'));
+                    expose.push(
+                        e
+                            .cover()
+                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                            .withPosition()
+                            .withEndpoint('l6'),
+                    );
                 }
             }
 
             if (checkOption(device, options, 'cover_2_enabled')) {
                 if (checkOption(device, options, 'cover_2_tilt_enabled')) {
-                    expose.push(e.cover()
-                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                        .withPosition().withTilt().withEndpoint('l7'));
+                    expose.push(
+                        e
+                            .cover()
+                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                            .withPosition()
+                            .withTilt()
+                            .withEndpoint('l7'),
+                    );
                 } else {
-                    expose.push(e.cover()
-                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                        .withPosition().withEndpoint('l7'));
+                    expose.push(
+                        e
+                            .cover()
+                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                            .withPosition()
+                            .withEndpoint('l7'),
+                    );
                 }
             }
 
@@ -343,16 +355,16 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {
-                'l1': zigfredEndpoint,
-                'l2': 7,
-                'l3': 8,
-                'l4': 9,
-                'l5': 10,
-                'l6': 11,
-                'l7': 12,
+                l1: zigfredEndpoint,
+                l2: 7,
+                l3: 8,
+                l4: 9,
+                l5: 10,
+                l6: 11,
+                l7: 12,
             };
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             if (device != null) {
                 // Bind Control EP (LED)
                 const controlEp = device.getEndpoint(zigfredEndpoint);
@@ -412,7 +424,8 @@ const definitions: Definition[] = [
                     setMetaOption(
                         device,
                         'cover_1_tilt_enabled',
-                        (await cover1Ep.read('closuresWindowCovering', ['windowCoveringType'])).windowCoveringType === 0x08);
+                        (await cover1Ep.read('closuresWindowCovering', ['windowCoveringType'])).windowCoveringType === 0x08,
+                    );
                     if (checkMetaOption(device, 'cover_1_tilt_enabled')) {
                         await reporting.currentPositionTiltPercentage(cover1Ep);
                     }
@@ -429,7 +442,8 @@ const definitions: Definition[] = [
                     setMetaOption(
                         device,
                         'cover_2_tilt_enabled',
-                        (await cover2Ep.read('closuresWindowCovering', ['windowCoveringType'])).windowCoveringType === 0x08);
+                        (await cover2Ep.read('closuresWindowCovering', ['windowCoveringType'])).windowCoveringType === 0x08,
+                    );
                     if (checkMetaOption(device, 'cover_2_tilt_enabled')) {
                         await reporting.currentPositionTiltPercentage(cover2Ep);
                     }

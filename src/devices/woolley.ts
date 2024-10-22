@@ -1,9 +1,10 @@
-import * as exposes from '../lib/exposes';
-import * as utils from '../lib/utils';
-import * as reporting from '../lib/reporting';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {Definition, Fz, KeyValue} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
+import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 
 const fzLocal = {
@@ -19,7 +20,7 @@ const fzLocal = {
             ];
             const payload: KeyValue = {};
             for (const entry of lookup) {
-                if (msg.data.hasOwnProperty(entry.key)) {
+                if (msg.data[entry.key] !== undefined) {
                     const value = msg.data[entry.key] / 1000;
                     payload[entry.name] = value;
                 }
@@ -29,7 +30,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['CK-BL702-SWP-01(7020)'],
         model: 'BSD29/BSD59',
@@ -37,7 +38,7 @@ const definitions: Definition[] = [
         description: 'Zigbee 3.0 smart plug',
         fromZigbee: [fz.on_off_skip_duplicate_transaction, fzLocal.BSD29],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);

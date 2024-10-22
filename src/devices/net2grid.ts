@@ -1,12 +1,13 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SP31           ', 'SP31'],
         model: 'N2G-SP',
@@ -15,7 +16,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff, fz.on_off, fz.metering],
         exposes: [e.switch(), e.power(), e.energy()],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);

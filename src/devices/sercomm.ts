@@ -1,11 +1,12 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SZ-ESW01'],
         model: 'SZ-ESW01',
@@ -14,7 +15,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering],
         exposes: [e.switch(), e.power()],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -30,7 +31,7 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power(), e.energy(), e.current(), e.voltage()],
         fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -50,7 +51,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering],
         exposes: [e.switch(), e.power()],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -66,7 +67,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -82,7 +83,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -98,7 +99,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -114,7 +115,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -128,8 +129,8 @@ const definitions: Definition[] = [
         description: 'PIR motion & temperature sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance, fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement', 'msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.illuminance(endpoint);

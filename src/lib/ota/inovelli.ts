@@ -1,3 +1,7 @@
+import {logger} from '../logger';
+import {KeyValueAny, Ota, Zh} from '../types';
+import * as common from './common';
+
 /**
  * Helper functions
  *
@@ -5,12 +9,12 @@
  */
 
 const url = 'https://files.inovelli.com/firmware/firmware.json';
-import * as common from './common';
-import {Zh, Logger, Ota, KeyValueAny} from '../types';
+
+const NS = 'zhc:ota:inovelli';
 const axios = common.getAxios();
 
-export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`InovelliOTA: call getImageMeta for ${device.modelID}`);
+export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): Promise<Ota.ImageMeta> {
+    logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
     const {data: images} = await axios.get(url);
 
     if (!images) {
@@ -28,9 +32,9 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
         .sort((a: KeyValueAny, b: KeyValueAny) => {
             const aRadix = a.version.match(/[A-F]/) ? 16 : 10;
             const bRadix = b.version.match(/[A-F]/) ? 16 : 10;
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const aVersion = parseFloat(a.version, aRadix);
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const bVersion = parseFloat(b.version, bRadix);
             // doesn't matter which order they are in
             if (aVersion < bVersion) {
@@ -44,14 +48,14 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
         .pop();
 
     if (!image) {
-        logger.warn(`OTA: No image found in the ${useBetaChannel ? 'beta' : 'production'} channel for device '${device.modelID}'`);
+        logger.warning(`No image found in the ${useBetaChannel ? 'beta' : 'production'} channel for device '${device.modelID}'`, NS);
 
         return null;
     }
 
     // version in the firmware removes the zero padding and support hex versioning
     return {
-        // @ts-expect-error
+        // @ts-expect-error ignore
         fileVersion: parseFloat(image.version, image.version.match(/[A-F]/) ? 16 : 10),
         url: image.firmware,
     };
@@ -61,24 +65,12 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
-    return common.isUpdateAvailable(
-        device,
-        logger,
-        requestPayload,
-        common.isNewImageAvailable,
-        getImageMeta,
-    );
+export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
+    return await common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 
-export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(
-        device,
-        logger,
-        onProgress,
-        common.getNewImage,
-        getImageMeta,
-    );
+export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
+    return await common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta);
 }
 
 exports.isUpdateAvailable = isUpdateAvailable;

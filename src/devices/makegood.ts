@@ -1,21 +1,21 @@
-import {Definition} from '../lib/types';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_dd8wwzcy']),
         model: 'MG-AUZG01',
         vendor: 'MakeGood',
         description: 'Double Zigbee power point',
-        extend: tuya.extend.switch({powerOutageMemory: true, indicatorMode: true, endpoints: ['l1', 'l2'], electricalMeasurements: true}),
+        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, endpoints: ['l1', 'l2'], electricalMeasurements: true})],
         meta: {multiEndpointSkip: ['power', 'current', 'voltage', 'energy'], multiEndpoint: true},
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
+            return {l1: 1, l2: 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.rmsVoltage(endpoint, {change: 5});

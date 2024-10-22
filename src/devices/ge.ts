@@ -1,14 +1,13 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import * as exposes from '../lib/exposes';
 import {electricityMeter, light, onOff} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SoftWhite'],
         model: 'PSB19-SW27',
@@ -44,7 +43,7 @@ const definitions: Definition[] = [
         description: 'Plug-in smart switch',
         fromZigbee: [fz.on_off, fz.metering, fz.ignore_basic_report],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -61,7 +60,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.energy(), e.power()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -82,14 +81,9 @@ const definitions: Definition[] = [
         model: 'PTAPT-WH02',
         vendor: 'GE',
         description: 'Quirky smart switch',
-        extend: extend.switch(),
+        extend: [onOff()],
         endpoint: (device) => {
-            return {'default': 2};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
+            return {default: 2};
         },
     },
     {

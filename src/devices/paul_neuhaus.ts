@@ -1,22 +1,49 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 import {light, onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['NLG-remote', 'Neuhaus remote'],
         model: '100.462.31',
         vendor: 'Paul Neuhaus',
         description: 'Q-REMOTE',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.command_step, fz.command_move_to_color_temp, fz.command_stop,
-            fz.command_move_to_color, fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation,
-            fz.tint_scene, fz.command_recall],
-        exposes: [e.action(['on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move',
-            'brightness_stop', 'brightness_move_up', 'brightness_move_down', 'color_loop_set', 'enhanced_move_to_hue_and_saturation',
-            'recall_*', 'scene_*']), e.action_group()],
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_toggle,
+            fz.command_step,
+            fz.command_move_to_color_temp,
+            fz.command_stop,
+            fz.command_move_to_color,
+            fz.command_move,
+            fz.command_color_loop_set,
+            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.tint_scene,
+            fz.command_recall,
+        ],
+        exposes: [
+            e.action([
+                'on',
+                'off',
+                'toggle',
+                'brightness_step_up',
+                'brightness_step_down',
+                'color_temperature_move',
+                'color_move',
+                'brightness_stop',
+                'brightness_move_up',
+                'brightness_move_down',
+                'color_loop_set',
+                'enhanced_move_to_hue_and_saturation',
+                'recall_*',
+                'scene_*',
+            ]),
+            e.action_group(),
+        ],
         toZigbee: [],
     },
     {
@@ -40,7 +67,7 @@ const definitions: Definition[] = [
         description: 'Various RGBW lights (e.g. 100.110.39)',
         extend: [light({colorTemp: {range: undefined}, color: true})],
         endpoint: (device) => {
-            return {'default': 2};
+            return {default: 2};
         },
     },
     {
@@ -76,12 +103,31 @@ const definitions: Definition[] = [
         model: 'E0040006',
         vendor: 'Paul Neuhaus',
         description: 'Q RGBW remote controller',
-        fromZigbee: [fz.command_step, fz.command_ehanced_move_to_hue_and_saturation, fz.command_move_to_color_temp,
-            fz.command_on, fz.command_off, fz.command_color_loop_set],
+        fromZigbee: [
+            fz.command_step,
+            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.command_move_to_color_temp,
+            fz.command_on,
+            fz.command_off,
+            fz.command_color_loop_set,
+        ],
         toZigbee: [],
-        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_move',
-            'color_temperature_move', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
-            'color_loop_set', 'enhanced_move_to_hue_and_saturation']), e.action_group()],
+        exposes: [
+            e.action([
+                'on',
+                'off',
+                'brightness_step_up',
+                'brightness_step_down',
+                'color_move',
+                'color_temperature_move',
+                'brightness_stop',
+                'brightness_move_up',
+                'brightness_move_down',
+                'color_loop_set',
+                'enhanced_move_to_hue_and_saturation',
+            ]),
+            e.action_group(),
+        ],
     },
     {
         zigbeeModel: ['JZ-RGBW-Z01'],
@@ -89,7 +135,7 @@ const definitions: Definition[] = [
         vendor: 'Paul Neuhaus',
         description: 'Q-VIDAL RGBW ceiling lamp, 6032-55',
         endpoint: (device) => {
-            return {'default': 2};
+            return {default: 2};
         },
         extend: [light({colorTemp: {range: undefined}, color: true})],
     },

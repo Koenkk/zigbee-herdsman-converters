@@ -1,18 +1,17 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import extend from '../lib/extend';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['tdtqgwv'],
         model: 'ZSTY-SM-11ZG-US-W',
         vendor: 'Somgoms',
         description: '1 gang switch',
-        extend: extend.switch(),
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
         fromZigbee: [legacy.fz.tuya_switch, fz.ignore_time_read, fz.ignore_basic_report],
         toZigbee: [legacy.tz.tuya_switch_state],

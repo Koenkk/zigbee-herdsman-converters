@@ -1,16 +1,17 @@
-import {Definition, Zh, Reporting} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
+import {battery, iasZoneAlarm, light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend, Reporting, Zh} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as tuya from '../lib/tuya';
-import {light, battery, iasZoneAlarm} from '../lib/modernExtend';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PIRILLSensor-EF-3.0'],
         model: 'HS1MIS-3.0',
@@ -19,7 +20,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery(), e.illuminance()],
-        configure: async (device, cordinatorEndpoint, logger)=>{
+        configure: async (device, cordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, cordinatorEndpoint, ['msOccupancySensing', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint1);
@@ -36,7 +37,7 @@ const definitions: Definition[] = [
         vendor: 'HEIMAN',
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -61,7 +62,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         whiteLabel: [{vendor: 'Schneider Electric', model: 'CCTFR6500'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -82,7 +83,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         options: [exposes.options.measurement_poll_interval()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -92,20 +93,30 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
-        zigbeeModel: ['SMOK_V16', 'SMOK_V15', 'b5db59bfd81e4f1f95dc57fdbba17931', '98293058552c49f38ad0748541ee96ba', 'SMOK_YDLV10',
-            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626', 'c3442b4ac59b4ba1a83119d938f283ab',
-            'SmokeSensor-EF-3.0', 'SMOK_HV14'],
+        zigbeeModel: [
+            'SMOK_V16',
+            'SMOK_V15',
+            'b5db59bfd81e4f1f95dc57fdbba17931',
+            '98293058552c49f38ad0748541ee96ba',
+            'SMOK_YDLV10',
+            'FB56-SMF02HM1.4',
+            'SmokeSensor-N-3.0',
+            '319fa36e7384414a9ea62cba8f6e7626',
+            'c3442b4ac59b4ba1a83119d938f283ab',
+            'SmokeSensor-EF-3.0',
+            'SMOK_HV14',
+        ],
         model: 'HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery_low(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
         zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EM'],
@@ -114,15 +125,15 @@ const definitions: Definition[] = [
         description: 'Smoke detector',
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery_low(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
-        zigbeeModel: ['GASSensor-N', 'GASSensor-N-3.0'],
+        zigbeeModel: ['GASSensor-N', 'GASSensor-N-3.0', 'd90d7c61c44d468a8e906ca0841e0a0c'],
         model: 'HS3CG',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
@@ -164,7 +175,7 @@ const definitions: Definition[] = [
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -179,7 +190,7 @@ const definitions: Definition[] = [
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -203,7 +214,7 @@ const definitions: Definition[] = [
         description: 'Water leakage sensor',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -219,7 +230,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, legacy.fz.heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -234,7 +245,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_day_zones', 'arm_all_zones'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -256,7 +267,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, legacy.fz.heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -270,7 +281,7 @@ const definitions: Definition[] = [
         description: 'Smart carbon monoxide sensor',
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -278,8 +289,10 @@ const definitions: Definition[] = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'},
-            {modelID: 'TS0216', manufacturerName: '_TYZB01_4obovpbi'}],
+        fingerprint: [
+            {modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'},
+            {modelID: 'TS0216', manufacturerName: '_TYZB01_4obovpbi'},
+        ],
         zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0'],
         model: 'HS2WD-E',
         vendor: 'HEIMAN',
@@ -287,7 +300,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.ignore_basic_report],
         toZigbee: [tz.warning],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -302,9 +315,9 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         whiteLabel: [{vendor: 'Ferguson', model: 'TH-T_V14'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
             const endpoint2 = device.getEndpoint(2);
@@ -322,7 +335,7 @@ const definitions: Definition[] = [
         description: 'Smart temperature & humidity Sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint1);
@@ -342,7 +355,7 @@ const definitions: Definition[] = [
         description: 'Smart in wall plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -354,14 +367,17 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
-        fingerprint: [{modelID: 'SOS-EM', manufacturerName: 'HEIMAN'}, {modelID: 'SOS-EF-3.0', manufacturerName: 'HEIMAN'}],
+        fingerprint: [
+            {modelID: 'SOS-EM', manufacturerName: 'HEIMAN'},
+            {modelID: 'SOS-EF-3.0', manufacturerName: 'HEIMAN'},
+        ],
         model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
         fromZigbee: [fz.command_status_change_notification_action, legacy.fz.st_button_state, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['off', 'single', 'double', 'hold'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -376,7 +392,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.heiman_scenes],
         exposes: [e.battery(), e.action(['cinema', 'at_home', 'sleep', 'go_out', 'repast'])],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificScenes']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -387,11 +403,18 @@ const definitions: Definition[] = [
         model: 'HS2WDSC-E',
         vendor: 'HEIMAN',
         description: 'Remote dimmer and temperature control',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_color,
-            fz.command_move_to_color_temp],
+        fromZigbee: [
+            fz.battery,
+            fz.command_on,
+            fz.command_off,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_move_to_color,
+            fz.command_move_to_color_temp,
+        ],
         exposes: [e.battery(), e.action(['on', 'off', 'move', 'stop', 'color_move', 'color_temperature_move'])],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
             await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
@@ -405,7 +428,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_color],
         exposes: [e.battery(), e.action(['on', 'off', 'move', 'stop', 'color_move'])],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
             await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
@@ -418,7 +441,7 @@ const definitions: Definition[] = [
         description: 'Temperature & humidity sensor with display',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint1);
@@ -456,7 +479,7 @@ const definitions: Definition[] = [
         description: 'Vibration sensor',
         fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -465,13 +488,16 @@ const definitions: Definition[] = [
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'Vibration-EF_3.0', manufacturerName: 'HEIMAN'}, {modelID: 'Vibration-EF-3.0', manufacturerName: 'HEIMAN'}],
+        fingerprint: [
+            {modelID: 'Vibration-EF_3.0', manufacturerName: 'HEIMAN'},
+            {modelID: 'Vibration-EF-3.0', manufacturerName: 'HEIMAN'},
+        ],
         model: 'HS1VS-EF',
         vendor: 'HEIMAN',
         description: 'Vibration sensor',
         fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -486,7 +512,7 @@ const definitions: Definition[] = [
         description: 'Air quality monitor',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const heiman = {
                 configureReporting: {
                     pm25MeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
@@ -495,7 +521,7 @@ const definitions: Definition[] = [
                     },
                     formAldehydeMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
-                        await endpoint.configureReporting('heimanSpecificFormaldehydeMeasurement', payload);
+                        await endpoint.configureReporting('msFormaldehyde', payload);
                     },
                     batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('batteryState', 0, constants.repInterval.HOUR, 1, overrides);
@@ -518,8 +544,14 @@ const definitions: Definition[] = [
 
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'genTime', 'msTemperatureMeasurement', 'msRelativeHumidity', 'pm25Measurement',
-                'heimanSpecificFormaldehydeMeasurement', 'heimanSpecificAirQuality']);
+                'genPowerCfg',
+                'genTime',
+                'msTemperatureMeasurement',
+                'msRelativeHumidity',
+                'pm25Measurement',
+                'msFormaldehyde',
+                'heimanSpecificAirQuality',
+            ]);
 
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.temperature(endpoint);
@@ -536,13 +568,22 @@ const definitions: Definition[] = [
 
             // Seems that it is bug in HEIMAN, device does not asks for the time with binding
             // So, we need to write time during configure
-            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000);
+            const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
             // Time-master + synchronised
-            const values = {timeStatus: 3, time: time, timeZone: ((new Date()).getTimezoneOffset() * -1) * 60};
-            endpoint.write('genTime', values);
+            const values = {timeStatus: 3, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
+            await endpoint.write('genTime', values);
         },
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pm25(), e.hcho(), e.voc(), e.aqi(), e.pm10(),
-            e.enum('battery_state', ea.STATE, ['not_charging', 'charging', 'charged'])],
+        exposes: [
+            e.battery(),
+            e.temperature(),
+            e.humidity(),
+            e.pm25(),
+            e.hcho(),
+            e.voc(),
+            e.aqi(),
+            e.pm10(),
+            e.enum('battery_state', ea.STATE, ['not_charging', 'charging', 'charged']),
+        ],
     },
     {
         fingerprint: [{modelID: 'IRControl-EM', manufacturerName: 'HEIMAN'}],
@@ -552,7 +593,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.heiman_ir_remote],
         toZigbee: [tz.heiman_ir_remote],
         exposes: [e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificInfraRedRemote']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -569,7 +610,7 @@ const definitions: Definition[] = [
         description: 'Smart switch - 1 gang with neutral wire',
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
@@ -592,7 +633,7 @@ const definitions: Definition[] = [
             return {left: 1, right: 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.deviceTemperature(device.getEndpoint(1));
@@ -614,14 +655,13 @@ const definitions: Definition[] = [
             return {left: 1, center: 2, right: 3};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await reporting.deviceTemperature(device.getEndpoint(1));
         },
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            e.device_temperature()],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'), e.device_temperature()],
     },
     {
         zigbeeModel: ['TemperLight'],
@@ -637,7 +677,7 @@ const definitions: Definition[] = [
         description: 'Gear window shade motor',
         fromZigbee: [fz.cover_position_via_brightness],
         toZigbee: [tz.cover_via_brightness],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
             await reporting.brightness(endpoint);
@@ -669,7 +709,7 @@ const definitions: Definition[] = [
         description: 'Smart doorbell button',
         fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -683,7 +723,7 @@ const definitions: Definition[] = [
         description: 'Smart doorbell button',
         fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -697,7 +737,7 @@ const definitions: Definition[] = [
         description: 'Smart air quality monitor',
         fromZigbee: [fz.co2, fz.humidity, fz.battery, fz.temperature],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg', 'msTemperatureMeasurement', 'msCO2']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -714,7 +754,7 @@ const definitions: Definition[] = [
         description: 'Smart repeater & night light',
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint); // switch the night light on/off
@@ -728,7 +768,7 @@ const definitions: Definition[] = [
         vendor: 'HEIMAN',
         description: 'Motion sensor',
         extend: [
-            battery({voltageToPercentage: '3V_2500', voltage: true}),
+            battery({voltageToPercentage: {min: 2500, max: 3000}, voltage: true}),
             iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
         ],
     },

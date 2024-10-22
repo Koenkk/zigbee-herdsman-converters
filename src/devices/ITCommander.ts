@@ -1,10 +1,11 @@
-import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-const e = exposes.presets;
 import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ITCMDR_Contact'],
         model: 'ITCMDR_Contact',

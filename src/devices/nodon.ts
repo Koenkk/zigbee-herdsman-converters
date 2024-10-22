@@ -1,14 +1,83 @@
-import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import * as ota from '../lib/ota';
-import {battery, deviceEndpoints, humidity, numeric, onOff, temperature} from '../lib/modernExtend';
-const e = exposes.presets;
-import tz from '../converters/toZigbee';
-import fz from '../converters/fromZigbee';
+import {Zcl} from 'zigbee-herdsman';
 
-const definitions: Definition[] = [
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import {battery, deviceEndpoints, humidity, numeric, NumericArgs, onOff, temperature, windowCovering} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
+
+const e = exposes.presets;
+
+const nodonModernExtend = {
+    calibrationVerticalRunTimeUp: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'calibration_vertical_run_time_up',
+            unit: '10 ms',
+            cluster: 'closuresWindowCovering',
+            attribute: {ID: 0x0001, type: Zcl.DataType.UINT16},
+            valueMin: 0,
+            valueMax: 65535,
+            scale: 1,
+            access: 'ALL',
+            description:
+                'Manuel calibration: Set vertical run time up of the roller shutter. ' +
+                'Do not change it if your roller shutter is already calibrated.',
+            zigbeeCommandOptions: {manufacturerCode: 0x128b},
+            ...args,
+        }),
+    calibrationVerticalRunTimeDowm: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'calibration_vertical_run_time_down',
+            unit: '10 ms',
+            cluster: 'closuresWindowCovering',
+            attribute: {ID: 0x0002, type: Zcl.DataType.UINT16},
+            valueMin: 0,
+            valueMax: 65535,
+            scale: 1,
+            access: 'ALL',
+            description:
+                'Manuel calibration: Set vertical run time down of the roller shutter. ' +
+                'Do not change it if your roller shutter is already calibrated.',
+            zigbeeCommandOptions: {manufacturerCode: 0x128b},
+            ...args,
+        }),
+    calibrationRotationRunTimeUp: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'calibration_rotation_run_time_up',
+            unit: 'ms',
+            cluster: 'closuresWindowCovering',
+            attribute: {ID: 0x0003, type: Zcl.DataType.UINT16},
+            valueMin: 0,
+            valueMax: 65535,
+            scale: 1,
+            access: 'ALL',
+            description:
+                'Manuel calibration: Set rotation run time up of the roller shutter. ' +
+                'Do not change it if your roller shutter is already calibrated.',
+            zigbeeCommandOptions: {manufacturerCode: 0x128b},
+            ...args,
+        }),
+    calibrationRotationRunTimeDown: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'calibration_rotation_run_time_down',
+            unit: 'ms',
+            cluster: 'closuresWindowCovering',
+            attribute: {ID: 0x0004, type: Zcl.DataType.UINT16},
+            valueMin: 0,
+            valueMax: 65535,
+            scale: 1,
+            access: 'ALL',
+            description:
+                'Manuel calibration: Set rotation run time down of the roller shutter. ' +
+                'Do not change it if your roller shutter is already calibrated.',
+            zigbeeCommandOptions: {manufacturerCode: 0x128b},
+            ...args,
+        }),
+};
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SDO-4-1-00'],
         model: 'SDO-4-1-20',
@@ -18,7 +87,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.battery()],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -29,15 +98,13 @@ const definitions: Definition[] = [
         model: 'SIN-4-RS-20',
         vendor: 'NodOn',
         description: 'Roller shutter relay switch',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-            await reporting.currentPositionTiltPercentage(endpoint);
-        },
-        exposes: [e.cover_position_tilt()],
+        extend: [
+            windowCovering({controls: ['tilt', 'lift'], coverMode: true}),
+            nodonModernExtend.calibrationVerticalRunTimeUp(),
+            nodonModernExtend.calibrationVerticalRunTimeDowm(),
+            nodonModernExtend.calibrationRotationRunTimeUp(),
+            nodonModernExtend.calibrationRotationRunTimeDown(),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
@@ -45,15 +112,13 @@ const definitions: Definition[] = [
         model: 'SIN-4-RS-20_PRO',
         vendor: 'NodOn',
         description: 'Roller shutter relay switch',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-            await reporting.currentPositionTiltPercentage(endpoint);
-        },
-        exposes: [e.cover_position_tilt()],
+        extend: [
+            windowCovering({controls: ['tilt', 'lift'], coverMode: true}),
+            nodonModernExtend.calibrationVerticalRunTimeUp(),
+            nodonModernExtend.calibrationVerticalRunTimeDowm(),
+            nodonModernExtend.calibrationRotationRunTimeUp(),
+            nodonModernExtend.calibrationRotationRunTimeDown(),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
@@ -67,12 +132,12 @@ const definitions: Definition[] = [
                 name: 'impulse_mode_configuration',
                 unit: 'ms',
                 cluster: 'genOnOff',
-                attribute: {ID: 0x0001, type: dataType.uint16},
+                attribute: {ID: 0x0001, type: Zcl.DataType.UINT16},
                 valueMin: 0,
                 valueMax: 10000,
                 scale: 1,
                 description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
-                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
             }),
         ],
         endpoint: (device) => {
@@ -90,12 +155,12 @@ const definitions: Definition[] = [
                 name: 'impulse_mode_configuration',
                 unit: 'ms',
                 cluster: 'genOnOff',
-                attribute: {ID: 0x0001, type: dataType.uint16},
+                attribute: {ID: 0x0001, type: Zcl.DataType.UINT16},
                 valueMin: 0,
                 valueMax: 10000,
                 scale: 1,
                 description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
-                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
             }),
         ],
         endpoint: (device) => {
@@ -107,10 +172,7 @@ const definitions: Definition[] = [
         model: 'SIN-4-2-20',
         vendor: 'NodOn',
         description: 'Lighting relay switch',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -118,10 +180,7 @@ const definitions: Definition[] = [
         model: 'SIN-4-2-20_PRO',
         vendor: 'NodOn',
         description: 'Lighting relay switch',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -133,7 +192,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
         toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [e.power(), e.energy(), e.pilot_wire_mode()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
@@ -152,7 +211,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
         toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [e.power(), e.energy(), e.pilot_wire_mode()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
@@ -176,15 +235,15 @@ const definitions: Definition[] = [
                 name: 'impulse_mode_configuration',
                 unit: 'ms',
                 cluster: 'genOnOff',
-                attribute: {ID: 0x0001, type: dataType.uint16},
+                attribute: {ID: 0x0001, type: Zcl.DataType.UINT16},
                 valueMin: 0,
                 valueMax: 10000,
                 scale: 1,
                 description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
-                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
             }),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
