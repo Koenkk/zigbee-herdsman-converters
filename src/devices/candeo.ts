@@ -1,4 +1,4 @@
-import {electricityMeter, identify, light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, electricityMeter, identify, light, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -148,6 +148,17 @@ const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: true,
             }),
             identify(),
+        ],
+    },
+    {
+        fingerprint: [{modelID: 'C-ZB-SM205-2G', manufacturerName: 'Candeo'}],
+        model: 'C-ZB-SM205-2G',
+        vendor: 'Candeo',
+        description: 'Smart 2 gang switch module',
+        extend: [
+            deviceEndpoints({endpoints: {l1: 1, l2: 2}, multiEndpointSkip: ['power', 'current', 'voltage', 'energy']}),
+            onOff({endpointNames: ['l1', 'l2']}),
+            electricityMeter(),
         ],
     },
 ];
