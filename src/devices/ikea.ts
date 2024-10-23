@@ -1,5 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
+import {repInterval} from '../lib/constants';
 import {
     addCustomClusterManuSpecificIkeaAirPurifier,
     addCustomClusterManuSpecificIkeaUnknown,
@@ -608,7 +609,7 @@ const definitions: DefinitionWithExtend[] = [
             // Enable reporting of powerDivisor, needs to change dynamically with the amount of power
             // For details, see: https://github.com/Koenkk/zigbee2mqtt/issues/23961#issuecomment-2366733453
             await endpoint.configureReporting('haElectricalMeasurement', [
-                {attribute: 'acPowerDivisor', minimumReportInterval: 10, maximumReportInterval: 65000, reportableChange: 1},
+                {attribute: 'acPowerDivisor', minimumReportInterval: 10, maximumReportInterval: repInterval.MAX, reportableChange: 1},
             ]);
         },
     },
@@ -935,7 +936,7 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(2);
             // This is required to prevent the device's reported state being stuck after it quickly changed back and forth
             await endpoint.configureReporting('ssIasZone', [
-                {attribute: 'zoneStatus', minimumReportInterval: 0, maximumReportInterval: 65000, reportableChange: 0},
+                {attribute: 'zoneStatus', minimumReportInterval: 0, maximumReportInterval: repInterval.MAX, reportableChange: 0},
             ]);
         },
     },
@@ -956,7 +957,7 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             // This is required to prevent the device's reported state being stuck after it quickly changed back and forth
             await endpoint.configureReporting('ssIasZone', [
-                {attribute: 'zoneStatus', minimumReportInterval: 0, maximumReportInterval: 65000, reportableChange: 0},
+                {attribute: 'zoneStatus', minimumReportInterval: 0, maximumReportInterval: repInterval.MAX, reportableChange: 0},
             ]);
         },
     },
