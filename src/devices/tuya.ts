@@ -12246,6 +12246,122 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ha0vwoew']),
+        model: 'TS0601_thermostat_thermosphere',
+        vendor: 'TuYa',
+        description: 'ThermoSphere thermostat',
+        extend: [tuyaBase({dp: true})],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(['off', 'auto'], ea.STATE_SET, 'Whether the thermostat is turned on or off')
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE),
+            e
+                .enum('sensor_mode', ea.STATE_SET, ['room_temperature', 'floor_temperature', 'room_with_floor_limit'])
+                .withDescription('What type of sensor are you using to meausure the temperature of the floor?'),
+            e
+                .binary('adaptive_start', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Preheat the room to the desired tempature before the scheduled start time.'),
+            e.max_temperature_limit().withDescription('Maximum temperature (default: 35 ºC)').withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e
+                .min_temperature_limit()
+                .withDescription(
+                    'Minimum temperature limit for frost protection. Turns the thermostat on regardless of setpoint if the temperature drops below this.',
+                )
+                .withValueMin(1)
+                .withValueMax(5),
+            e
+                .enum('boost', ea.STATE_SET, ['ON', 'OFF'])
+                .withDescription('Override the schedule and boost at the current temperature until turned off'),
+            e
+                .numeric('display_brightness', ea.STATE_SET)
+                .withDescription('Brightness of the display when in use')
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
+            e
+                .numeric('holiday_start_stop', ea.STATE_SET)
+                .withDescription('Set the number of days of holiday, this will start immediately.')
+                .withValueMax(99)
+                .withValueMin(0),
+            e.holiday_temperature().withValueMin(5).withValueMax(35),
+            e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('Turning on will keep heating at the minimum temperature limit'),
+            e
+                .numeric('switch_delay', ea.STATE_SET)
+                .withDescription('How long to wait between making a change and it taking effect')
+                .withValueMin(10)
+                .withValueMax(90)
+                .withValueStep(10)
+                .withUnit('s'),
+            e
+                .numeric('power_rating', ea.STATE_SET)
+                .withDescription(
+                    'How much power is the underfloor heating rated to. Entering a value will allow the Thermostat to record a value of power usage that can be checked under settings on the physical Thermostat',
+                )
+                .withUnit('W')
+                .withValueMin(0)
+                .withValueMax(4500)
+                .withValueStep(100),
+            e
+                .binary('open_window_active', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('When active the heating will cut off if an Open Window is detected'),
+            e
+                .numeric('open_window_sensing_time', ea.STATE_SET)
+                .withDescription('The duration that the drop in temperature needs to occur over')
+                .withUnit('minutes')
+                .withValueMin(1)
+                .withValueMax(30)
+                .withValueStep(1),
+            e
+                .numeric('open_window_drop_limit', ea.STATE_SET)
+                .withDescription('The drop in ambient room temperature that will trigger an open window warning')
+                .withUnit('C')
+                .withValueMin(2)
+                .withValueMax(4)
+                .withValueStep(1),
+            e
+                .numeric('open_window_off_time', ea.STATE_SET)
+                .withDescription('The length of time the drop in temperature must be consistent for to turn the heating off')
+                .withUnit('minutes')
+                .withValueMin(10)
+                .withValueMax(60)
+                .withValueStep(5),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({off: false, auto: true})],
+                [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [4, 'boost', tuya.valueConverterBasic.lookup({OFF: tuya.enum(1), ON: tuya.enum(2)})],
+                [18, 'open_window_active', tuya.valueConverterBasic.lookup({OFF: false, ON: true})],
+                [40, 'open_window_sensing_time', tuya.valueConverterBasic.divideBy(1)],
+                [45, 'open_window_drop_limit', tuya.valueConverter.divideBy10],
+                [47, 'open_window_off_time', tuya.valueConverterBasic.divideBy(1)],
+                [37, 'adaptive_start', tuya.valueConverterBasic.lookup({OFF: false, ON: true})],
+                [38, 'local_temperature', tuya.valueConverter.divideBy10],
+                [39, 'max_temperature_limit', tuya.valueConverter.divideBy10],
+                [41, 'holiday_start_stop', tuya.valueConverterBasic.divideBy(1)], //divideBy1 required to force the format. Raw does not work
+                [42, 'holiday_temperature', tuya.valueConverter.divideBy10],
+                [
+                    43,
+                    'sensor_mode',
+                    tuya.valueConverterBasic.lookup({
+                        room_temperature: tuya.enum(0),
+                        floor_temperature: tuya.enum(1),
+                        room_with_floor_limit: tuya.enum(2),
+                    }),
+                ],
+                //[48, 'temp_tolerance', tuya.valueConverter.raw],
+                [50, 'power_rating', tuya.valueConverterBasic.divideBy(1)],
+                [52, 'frost_protection', tuya.valueConverterBasic.lookup({OFF: false, ON: true})],
+                [53, 'min_temperature_limit', tuya.valueConverter.divideBy10],
+                [54, 'switch_delay', tuya.valueConverterBasic.divideBy(1)],
+                [55, 'display_brightness', tuya.valueConverterBasic.divideBy(1)], //divideBy1 required to force the format. Raw does not work
+                //[16, 'schedule', tuya.valueConverter.Raw],
+            ],
+        },
+    },
 ];
 
 export default definitions;
