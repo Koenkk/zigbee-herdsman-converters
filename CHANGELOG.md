@@ -1,5 +1,23 @@
 # Changelog
 
+## [20.33.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.32.0...v20.33.0) (2024-10-23)
+
+
+### Features
+
+* **add:** 929003047801 ([#8166](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8166)) ([511a622](https://github.com/Koenkk/zigbee-herdsman-converters/commit/511a62278d756a04aa50adea5c48e00ff8d29520))
+* **add:** C-ZB-SM205-2G ([#8168](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8168)) ([91ffaed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/91ffaedc29a93cd861e298fea9b14bdc635fb0d0))
+* **add:** TRV602Z ([#8170](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8170)) ([af278d3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/af278d3a520a3fb37e7417f41e613cc39c485ea9))
+* **add:** TS0222_light ([#8169](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8169)) ([33e6328](https://github.com/Koenkk/zigbee-herdsman-converters/commit/33e63289ef3448414b8744a8a87c1b355d7489e7))
+* **add:** TS0601_thermostat_thermosphere ([#8176](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8176)) ([8e3be61](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8e3be6114defda2550f2fb6d9f9840b2b24ee2a0))
+
+
+### Bug Fixes
+
+* Add missing off_wait_time to light_onoff_brightness converter ([#8175](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8175)) ([daaa6ba](https://github.com/Koenkk/zigbee-herdsman-converters/commit/daaa6ba58b4c2a1b5c3e5741826ce97a796dbf65))
+* Fix power source uknown for various SONOFF devices https://github.com/Koenkk/zigbee2mqtt/issues/24025 ([7e8a807](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7e8a807a334c4f21a59ef8770ceee935a9fa4c3a))
+* Update 3r cluster id ([#8171](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8171)) ([19f84f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/19f84f2e2dd6462f7207d6dc3a9972711355fdbf))
+
 ## [20.32.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.31.0...v20.32.0) (2024-10-21)
 
 
