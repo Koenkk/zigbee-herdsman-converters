@@ -1046,20 +1046,21 @@ export const valueConverter = {
       from: (v: string) => {
         const schedule = [];
         for (let index = 1; index < 24; index = index + 4) {
-          let firstByte = (v[index + 0] - 192) << 8;
-          let secondByte = v[index + 1];
+          const firstByte = (parseInt(v[index + 0]) - 192) << 8;
+          const secondByte = parseInt(v[index + 1]);
     
-          let minutesSinceMidnight = firstByte | secondByte;
+          const minutesSinceMidnight = firstByte | secondByte;
     
-          let hour = Math.floor(minutesSinceMidnight / 60);
-          let minutes = minutesSinceMidnight % 60;
+          const hour = Math.floor(minutesSinceMidnight / 60);
+          const minutes = minutesSinceMidnight % 60;
     
           schedule.push(
             String(hour).padStart(2, '0') +
               ':' +
               String(minutes).padStart(2, '0') +
               '/' +
-              parseFloat(v[index + 3] / 10.0).toFixed(1)
+              // @ts-expect-error ignore
+              (parseFloat(v[index + 3]) / 10.0).toFixed(1)
           );
         }
         return schedule.join(" ");
@@ -1090,20 +1091,20 @@ export const valueConverter = {
             throw new Error('Invalid hour, minute or temperature of: ' + transition);
           }
     
-          let minutesSinceMidnight = hour * 60 + min;
+          const minutesSinceMidnight = hour * 60 + min;
     
-          let firstByte = ((minutesSinceMidnight & 3840) >> 8) + 192;
-          let secondByte = minutesSinceMidnight & 255;
+          const firstByte = ((minutesSinceMidnight & 3840) >> 8) + 192;
+          const secondByte = minutesSinceMidnight & 255;
               
           payload.push(firstByte, secondByte, 64, temperature);
         }
-        console.log(payload);
+        return payload;
       },
     },
     thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber: (dayNum: number) => {
       return {
-        from: (v) => valueConverter.thermostatScheduleDayMultiDP_TRV602Z.from(v),
-        to: (v) => {
+        from: (v: string) => valueConverter.thermostatScheduleDayMultiDP_TRV602Z.from(v),
+        to: (v: string) => {
           const data = valueConverter.thermostatScheduleDayMultiDP_TRV602Z.to(v);
           data.unshift(dayNum);
           return data;
