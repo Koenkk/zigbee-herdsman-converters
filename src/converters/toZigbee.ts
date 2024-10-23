@@ -298,7 +298,14 @@ const converters2 = {
             utils.assertString(value, key);
             value = value.toLowerCase();
             const lookup = {off: 0, on: 1, toggle: 2, previous: 255};
-            await entity.write('genOnOff', {startUpOnOff: utils.getFromLookup(value, lookup)}, utils.getOptions(meta.mapped, entity));
+            try {
+                await entity.write('genOnOff', {startUpOnOff: utils.getFromLookup(value, lookup)}, utils.getOptions(meta.mapped, entity));
+            } catch (e) {
+                if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
+                    throw new Error('Got `UNSUPPORTED_ATTRIBUTE` error, device does not support power on behaviour');
+                }
+                throw e;
+            }
             return {state: {power_on_behavior: value}};
         },
         convertGet: async (entity, key, meta) => {

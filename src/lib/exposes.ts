@@ -1198,9 +1198,7 @@ export const presets = {
     power_on_behavior: (values = ['off', 'previous', 'on']) =>
         new Enum('power_on_behavior', access.ALL, values)
             .withLabel('Power-on behavior')
-            .withDescription(
-                'Controls the behavior when the device is powered on after power loss. If you get an `UNSUPPORTED_ATTRIBUTE` error, the device does not support it.',
-            )
+            .withDescription('Controls the behavior when the device is powered on after power loss')
             .withCategory('config'),
     power_outage_count: (resetsWhenPairing = true) =>
         new Numeric('power_outage_count', access.STATE)
@@ -1240,7 +1238,7 @@ export const presets = {
     sos: () => new Binary('sos', access.STATE, true, false).withLabel('SOS').withDescription('SOS alarm'),
     sound_volume: () =>
         new Enum('sound_volume', access.ALL, ['silent_mode', 'low_volume', 'high_volume']).withDescription('Sound volume of the lock'),
-    switch: () => new Switch().withState('state', true, 'On/off state of the switch'),
+    switch: (description: string = 'On/off state of the switch') => new Switch().withState('state', true, description),
     switch_type: () => new Enum('switch_type', access.ALL, ['toggle', 'momentary']).withDescription('Wall switch type'),
     door_state: () =>
         new Enum('door_state', access.STATE, [

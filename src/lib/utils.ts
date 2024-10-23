@@ -726,6 +726,17 @@ export function isLightExpose(expose: Expose): expose is Light {
     return expose?.type === 'light';
 }
 
+export function splitArrayIntoChunks<T>(arr: T[], chunkSize: number): T[][] {
+    const result = [];
+
+    for (let i = 0; i < arr.length; i += chunkSize) {
+        const chunk = arr.slice(i, i + chunkSize);
+        result.push(chunk);
+    }
+
+    return result;
+}
+
 exports.noOccupancySince = noOccupancySince;
 exports.getOptions = getOptions;
 exports.isLegacyEnabled = isLegacyEnabled;

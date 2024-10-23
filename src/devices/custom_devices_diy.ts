@@ -268,14 +268,17 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['SLZB-06p7', 'SLZB-07'],
+        zigbeeModel: ['SLZB-06p7', 'SLZB-07', 'SLZB-0xp7'],
         model: 'SLZB-06p7',
         vendor: 'SMLIGHT',
         description: 'Router',
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
-        whiteLabel: [{vendor: 'SMLIGHT', model: 'SLZB-07', description: 'Router', fingerprint: [{modelID: 'SLZB-07'}]}],
+        whiteLabel: [
+            {vendor: 'SMLIGHT', model: 'SLZB-07', description: 'Router', fingerprint: [{modelID: 'SLZB-07'}]},
+            {vendor: 'SMLIGHT', model: 'SLZB-0xp7', description: 'Router', fingerprint: [{modelID: 'SLZB-0xp7'}]},
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.endpoints[0];
             const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];

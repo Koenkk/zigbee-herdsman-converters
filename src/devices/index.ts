@@ -209,6 +209,7 @@ import paul_neuhaus from './paul_neuhaus';
 import paulmann from './paulmann';
 import peq from './peq';
 import perenio from './perenio';
+import philio from './philio';
 import philips from './philips';
 import plaid from './plaid';
 import plugwise from './plugwise';
@@ -517,6 +518,7 @@ export default [
     ...paulmann,
     ...peq,
     ...perenio,
+    ...philio,
     ...philips,
     ...plaid,
     ...plugwise,

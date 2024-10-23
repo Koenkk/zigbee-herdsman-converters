@@ -31,7 +31,7 @@ import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} fro
 import * as zosung from '../lib/zosung';
 
 const NS = 'zhc:tuya';
-const {tuyaLight} = tuya.modernExtend;
+const {tuyaLight, tuyaBase} = tuya.modernExtend;
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -1482,6 +1482,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZ3000_8nyaanzb',
             '_TZ3000_iy2c3n6p',
             '_TZ3000_qlmnxmac',
+            '_TZ3000_sgb0xhwn',
         ]),
         model: 'TS011F_2_gang_wall',
         vendor: 'Tuya',
@@ -1491,6 +1492,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('ClickSmart+', 'CMA30036', '2 gang socket outlet', ['_TYZB01_hlla45kx']),
             tuya.whitelabel('Rylike', 'RY-WS02Z', '2 gang socket outlet AU', ['_TZ3000_rgpqqmbj', '_TZ3000_8nyaanzb', '_TZ3000_iy2c3n6p']),
+            tuya.whitelabel('Novadigital', 'NT-S2', '2 gang socket outlet BR', ['_TZ3000_sgb0xhwn']),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -1586,7 +1588,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Moes', 'ZB-TDA9-RCW-E27-MS', 'RGB+CCT 9W E27 LED bulb', ['_TZ3210_wxa85bwk']),
             tuya.whitelabel('Moes', 'ZB-LZD10-RCW', '10W RGB+CCT Smart Downlight', ['_TZ3210_s9lumfhn', '_TZ3210_jjqdqxfq']),
             tuya.whitelabel('Moes', 'ZB-TDC6-RCW-E14', 'RGB+CCT 5W E14 LED bulb', ['_TZ3210_ifga63rg']),
-            tuya.whitelabel('MiBoxer', 'FUT106ZR', 'GU10 bulb', ['_TZB210_rwy5hexp']),
+            tuya.whitelabel('MiBoxer', 'FUT106ZR', 'GU10 bulb', ['_TZB210_rwy5hexp', '_TZB210_lnnkh3f9']),
             tuya.whitelabel('Tuya', 'TS0505B_1_1', 'Zigbee 3.0 18W led light bulb E27 RGBCW', [
                 '_TZ3210_jd3z4yig',
                 '_TZ3210_r5afgmkl',
@@ -3463,7 +3465,17 @@ const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [4, 'preset', tuya.valueConverterBasic.lookup({manual: true, auto: false})],
+                [16, 'current_cooling_setpoint', tuya.valueConverter.raw],
                 [16, 'current_heating_setpoint', tuya.valueConverter.raw],
+                [
+                    16,
+                    null,
+                    {
+                        from: (v, meta) => {
+                            return {current_cooling_setpoint: v, current_heating_setpoint: v};
+                        },
+                    },
+                ],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [26, 'deadzone_temperature', tuya.valueConverter.raw],
                 [27, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration],
@@ -4648,6 +4660,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_rxntag7i' /* model: 'ME168', vendor: 'AVATTO' */,
             '_TZE200_yqgbrdyo',
             '_TZE200_rxq4iti9',
+            '_TZE200_hvaxb2tc' /* model: 'TRV06', vendor: 'AVATTO' */,
         ]),
         model: 'TS0601_thermostat_3',
         vendor: 'Tuya',
@@ -4657,6 +4670,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('AVATTO', 'ME167', 'Thermostatic radiator valve', ['_TZE200_bvu2wnxz', '_TZE200_6rdj8dzm']),
             tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_p3dbf6qs', '_TZE200_rxntag7i']),
+            tuya.whitelabel('AVATTO', 'TRV06_1', 'Thermostatic radiator valve', ['_TZE200_hvaxb2tc']),
             tuya.whitelabel('EARU', 'TRV06', 'Smart thermostat module', ['_TZE200_yqgbrdyo', '_TZE200_rxq4iti9']),
         ],
         onEvent: tuya.onEventSetTime,
@@ -7416,6 +7430,27 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE284_atuj3i0w'}],
+        model: 'M8Pro',
+        vendor: 'Tuya',
+        description: '4 gang switch with LCD',
+        extend: [tuyaBase({dp: true}), deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}})],
+        exposes: [
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            tuya.exposes.switch().withEndpoint('l3'),
+            tuya.exposes.switch().withEndpoint('l4'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [24, 'state_l1', tuya.valueConverter.onOff],
+                [25, 'state_l2', tuya.valueConverter.onOff],
+                [26, 'state_l3', tuya.valueConverter.onOff],
+                [27, 'state_l4', tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_bmdsp6bs']),
         model: 'Y1_IN',
         vendor: 'Tuya',
@@ -8750,6 +8785,8 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: 'TS0003', manufacturerName: '_TZ3000_pv4puuxi'},
             {modelID: 'TS0003', manufacturerName: '_TZ3000_avky2mvc'},
+            {modelID: 'TS0003', manufacturerName: '_TZ3000_785olaiq'},
+            {modelID: 'TS0003', manufacturerName: '_TZ3000_qxcnwv26'},
         ],
         model: 'TS0003_switch_3_gang',
         vendor: 'Tuya',
@@ -8768,6 +8805,8 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('Homeetec', '37022474_1', '3 Gang switch with backlight', ['_TZ3000_pv4puuxi']),
             tuya.whitelabel('RoomsAI', '37022474_2', '3 Gang switch with backlight', ['_TZ3000_avky2mvc']),
+            tuya.whitelabel('NovaDigital', 'WS-US-ZB', '3 Gang switch with backlight', ['_TZ3000_785olaiq']),
+            tuya.whitelabel('NovaDigital', 'FZB-3', '3 Gang physical switch with backlight', ['_TZ3000_qxcnwv26']),
         ],
     },
     {

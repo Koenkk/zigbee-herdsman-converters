@@ -401,6 +401,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: undefined}})],
     },
     {
+        zigbeeModel: ['LCD009'],
+        model: '8720169264151',
+        vendor: 'Philips',
+        description: 'Hue Slim recessed light S 90mm black',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['LWO003'],
         model: '8719514279131',
         vendor: 'Philips',
@@ -3513,10 +3520,17 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
+        zigbeeModel: ['929003047801_01', '929003047801_02'],
+        model: '929003047801',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Buckram double spotlight with Bluetooth (white)',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ['929003047901_01', '929003047901_02'],
         model: '871951433908',
         vendor: 'Philips',
-        description: 'Hue white ambiance Buckram double spotlight with Bluetooth',
+        description: 'Hue white ambiance Buckram double spotlight with Bluetooth (black)',
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
