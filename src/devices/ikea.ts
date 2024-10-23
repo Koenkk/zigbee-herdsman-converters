@@ -931,6 +931,13 @@ const definitions: DefinitionWithExtend[] = [
             battery(),
             ikeaOta(),
         ],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(2);
+            // This is required to prevent the device's reported state being stuck after it quickly changed back and forth
+            await endpoint.configureReporting('ssIasZone', [
+                {attribute: 'zoneStatus', minimumReportInterval: 0, maximumReportInterval: 65000, reportableChange: 0},
+            ]);
+        },
     },
     {
         zigbeeModel: ['BADRING Water Leakage Sensor'],
@@ -945,6 +952,13 @@ const definitions: DefinitionWithExtend[] = [
             battery(),
             ikeaOta(),
         ],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            // This is required to prevent the device's reported state being stuck after it quickly changed back and forth
+            await endpoint.configureReporting('ssIasZone', [
+                {attribute: 'zoneStatus', minimumReportInterval: 0, maximumReportInterval: 65000, reportableChange: 0},
+            ]);
+        },
     },
     // #endregion sensors
 ];
