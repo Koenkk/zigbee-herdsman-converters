@@ -1,34 +1,35 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Fz, Tz, OnEvent, KeyValueString, KeyValueAny} from '../lib/types';
-import * as exposes from './exposes';
+
+import {Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
+import * as exposes from './exposes';
 import {logger} from './logger';
 
 const NS = 'zhc:legrand';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const shutterCalibrationModes: {[k: number]: {description: string, onlyNLLV: boolean}} = {
-    0: {description: 'classic_nllv', onlyNLLV: true},
-    1: {description: 'specific_nllv', onlyNLLV: true},
-    2: {description: 'up_down_stop', onlyNLLV: false},
-    3: {description: 'temporal', onlyNLLV: false},
-    4: {description: 'venetian_bso', onlyNLLV: false},
+const shutterCalibrationModes: {[k: number]: {description: string; onlyNLLV: boolean; supportsTilt: boolean}} = {
+    0: {description: 'classic_nllv', onlyNLLV: true, supportsTilt: false},
+    1: {description: 'specific_nllv', onlyNLLV: true, supportsTilt: false},
+    2: {description: 'up_down_stop', onlyNLLV: false, supportsTilt: false},
+    3: {description: 'temporal', onlyNLLV: false, supportsTilt: false},
+    4: {description: 'venetian_bso', onlyNLLV: false, supportsTilt: true},
 };
 
-const ledModes:{[k: number]: string} = {
+const ledModes: {[k: number]: string} = {
     1: 'led_in_dark',
     2: 'led_if_on',
 };
 
-const ledEffects:{[k: number]: string} = {
+const ledEffects: {[k: number]: string} = {
     0: 'blink 3',
     1: 'fixed',
     2: 'blink green',
     3: 'blink blue',
 };
 
-const ledColors:{[k: number]: string} = {
+const ledColors: {[k: number]: string} = {
     0: 'default',
     1: 'red',
     2: 'green',
@@ -41,60 +42,68 @@ const ledColors:{[k: number]: string} = {
 
 const optsLegrand = {
     identityEffect: () => {
-        return e.composite('Identity effect', 'identity_effect', ea.SET)
-            .withDescription('Defines the identification effect to simplify the device identification')
+        return e
+            .composite('Identity effect', 'identity_effect', ea.SET)
+            .withDescription('Defines the identification effect to simplify the device identification.')
             .withFeature(e.enum('effect', ea.SET, Object.values(ledEffects)).withLabel('Effect'))
             .withFeature(e.enum('color', ea.SET, Object.values(ledColors)).withLabel('Color'));
     },
 };
 
 const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString => {
-    return Object.fromEntries(Object.entries(shutterCalibrationModes)
-        .filter((e) => isNLLVSwitch ? true : e[1].onlyNLLV === false)
-        .map((e) => [e[0], e[1].description]));
+    return Object.fromEntries(
+        Object.entries(shutterCalibrationModes)
+            .filter((e) => (isNLLVSwitch ? true : e[1].onlyNLLV === false))
+            .map((e) => [e[0], e[1].description]),
+    );
 };
 
 export const legrandOptions = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
 
-export const _067776 = {
-    getCover: () => {
+export const eLegrand = {
+    identify: () => {
+        return e
+            .enum('identify', ea.SET, ['identify'])
+            .withDescription('Blinks the built-in LED to make it easier to identify the device')
+            .withCategory('config');
+    },
+    ledInDark: () => {
+        return e
+            .binary('led_in_dark', ea.ALL, 'ON', 'OFF')
+            .withDescription('Enables the built-in LED allowing to see the switch in the dark')
+            .withCategory('config');
+    },
+    ledIfOn: () => {
+        return e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED on activity').withCategory('config');
+    },
+    getCover: (device: Zh.Device) => {
         const c = e.cover_position();
-        if (c.hasOwnProperty('features')) {
-            c.features.push(new exposes.Numeric('tilt', ea.ALL)
-                .withValueMin(0).withValueMax(100)
-                .withValueStep(25)
-                .withPreset('Closed', 0, 'Vertical')
-                .withPreset('25 %', 25, '25%')
-                .withPreset('50 %', 50, '50%')
-                .withPreset('75 %', 75, '75%')
-                .withPreset('Open', 100, 'Horizontal')
-                .withUnit('%')
-                .withDescription('Tilt percentage of that cover'));
+
+        const calMode = Number(device?.getEndpoint(1)?.clusters?.closuresWindowCovering?.attributes?.calibrationMode);
+        const showTilt = calMode ? shutterCalibrationModes[calMode]?.supportsTilt === true : false;
+
+        if (showTilt) {
+            c.addFeature(
+                new exposes.Numeric('tilt', ea.ALL)
+                    .withValueMin(0)
+                    .withValueMax(100)
+                    .withValueStep(25)
+                    .withPreset('Closed', 0, 'Vertical')
+                    .withPreset('25 %', 25, '25%')
+                    .withPreset('50 %', 50, '50%')
+                    .withPreset('75 %', 75, '75%')
+                    .withPreset('Open', 100, 'Horizontal')
+                    .withUnit('%')
+                    .withDescription('Tilt percentage of that cover'),
+            );
         }
         return c;
     },
     getCalibrationModes: (isNLLVSwitch: boolean) => {
         const modes = getApplicableCalibrationModes(isNLLVSwitch);
-        return e.enum('calibration_mode', ea.ALL, Object.values(modes))
+        return e
+            .enum('calibration_mode', ea.ALL, Object.values(modes))
             .withDescription('Defines the calibration mode of the switch. (Caution: Changing modes requires a recalibration of the shutter switch!)')
-            .withCategory('config');
-    },
-};
-
-export const eLegrand = {
-    identify: () => {
-        return e.enum('identify', ea.SET, ['identify'])
-            .withDescription('Blinks the built-in LED to make it easier to identify the device')
-            .withCategory('config');
-    },
-    ledInDark: () => {
-        return e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-            .withDescription('Enables the built-in LED allowing to see the switch in the dark')
-            .withCategory('config');
-    },
-    ledIfOn: () => {
-        return e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-            .withDescription('Enables the LED on activity')
             .withCategory('config');
     },
 };
@@ -110,10 +119,10 @@ export const tzLegrand = {
     auto_mode: {
         key: ['auto_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const mode = utils.getFromLookup(value, {'off': 0x00, 'auto': 0x02, 'on_override': 0x03});
+            const mode = utils.getFromLookup(value, {off: 0x00, auto: 0x02, on_override: 0x03});
             const payload = {data: Buffer.from([mode])};
             await entity.command('manuSpecificLegrandDevices3', 'command0', payload);
-            return {state: {'auto_mode': value}};
+            return {state: {auto_mode: value}};
         },
     } satisfies Tz.Converter,
     calibration_mode: (isNLLVSwitch: boolean) => {
@@ -123,7 +132,7 @@ export const tzLegrand = {
                 const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
                 utils.validateValue(value, Object.values(applicableModes));
                 const idx = utils.getKey(applicableModes, value);
-                await entity.write('closuresWindowCovering', {'calibrationMode': idx}, legrandOptions);
+                await entity.write('closuresWindowCovering', {calibrationMode: idx}, legrandOptions);
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('closuresWindowCovering', ['calibrationMode'], legrandOptions);
@@ -150,7 +159,7 @@ export const tzLegrand = {
         key: ['identify'],
         options: [optsLegrand.identityEffect()],
         convertSet: async (entity, key, value, meta) => {
-            const identityEffect = (meta.options.identity_effect as KeyValueAny);
+            const identityEffect = meta.options.identity_effect as KeyValueAny;
             const selEffect = identityEffect?.effect ?? ledEffects[0];
             const selColor = identityEffect?.color ?? ledColors[0];
 
@@ -173,7 +182,7 @@ export const fzLegrand = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const attr = 'calibrationMode';
-                if (msg.data.hasOwnProperty(attr)) {
+                if (msg.data[attr] !== undefined) {
                     const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
                     const idx = msg.data[attr];
                     utils.validateValue(String(idx), Object.keys(applicableModes));
@@ -189,7 +198,7 @@ export const fzLegrand = {
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
 
-            if (msg.data.hasOwnProperty('0')) {
+            if (msg.data['0'] !== undefined) {
                 const option0 = msg.data['0'];
 
                 if (option0 === 0x0001) payload.device_mode = 'pilot_off';
@@ -203,9 +212,48 @@ export const fzLegrand = {
                     payload.device_mode = 'unknown';
                 }
             }
-            if (msg.data.hasOwnProperty('1')) payload.led_in_dark = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
-            if (msg.data.hasOwnProperty('2')) payload.led_if_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
+            if (msg.data['1'] !== undefined) payload.led_in_dark = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
+            if (msg.data['2'] !== undefined) payload.led_if_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
             return payload;
+        },
+    } satisfies Fz.Converter,
+    command_cover: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            if (msg.data.tuyaMovingState !== undefined) {
+                if ((0, utils.hasAlreadyProcessedMessage)(msg, model)) return;
+                if (msg.data['tuyaMovingState'] === 0) {
+                    // return {
+                    // action: 'open',
+                    // };
+                    payload['action'] = (0, utils.postfixWithEndpointName)('OPEN', msg, model, meta);
+                    (0, utils.addActionGroup)(payload, msg, model);
+                }
+                if (msg.data['tuyaMovingState'] === 100) {
+                    // return {
+                    // action: 'closed',
+                    // };
+                    payload['action'] = (0, utils.postfixWithEndpointName)('CLOSE', msg, model, meta);
+                    (0, utils.addActionGroup)(payload, msg, model);
+                }
+                if (msg.data['tuyaMovingState'] >= 1 && msg.data['tuyaMovingState'] < 100) {
+                    // return {
+                    // action: 'stop',
+                    // };
+                    payload['action'] = (0, utils.postfixWithEndpointName)('STOP', msg, model, meta);
+                    (0, utils.addActionGroup)(payload, msg, model);
+                }
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter,
+    identify: {
+        cluster: 'genIdentify',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {};
         },
     } satisfies Fz.Converter,
 };

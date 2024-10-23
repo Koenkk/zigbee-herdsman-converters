@@ -1,7 +1,7 @@
-import {Definition} from '../lib/types';
 import {light} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['5991711', '5991713'],
         model: 'C5850000',

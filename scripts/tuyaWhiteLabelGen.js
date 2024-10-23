@@ -10,9 +10,7 @@ for (const def of file) {
             models[fingerprint.modelID] = [];
         }
         const manfus = def.fingerprint.map((f) => `'${f.manufacturerName}'`);
-        models[fingerprint.modelID].push(
-            `tuya.whitelabel('${def.vendor}', '${def.model}', '${def.description}', [${manfus.join(', ')}]),`,
-        );
+        models[fingerprint.modelID].push(`tuya.whitelabel('${def.vendor}', '${def.model}', '${def.description}', [${manfus.join(', ')}]),`);
     }
 }
 

@@ -1,7 +1,7 @@
-import {Definition} from '../lib/types';
 import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SM308'],
         model: 'SM308',
@@ -22,6 +22,7 @@ const definitions: Definition[] = [
         vendor: 'Samotech',
         description: 'Zigbee 2 channel in wall switch',
         extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']}), electricityMeter()],
+        meta: {multiEndpointSkip: ['power', 'energy', 'voltage', 'current']},
     },
     {
         zigbeeModel: ['SM309-S'],

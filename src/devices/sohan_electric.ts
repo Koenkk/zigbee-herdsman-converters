@@ -1,8 +1,8 @@
-import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import {onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_bezfthwc'}],
         model: 'RDCBC/Z',

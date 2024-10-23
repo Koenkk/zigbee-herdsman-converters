@@ -1,14 +1,14 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import * as reporting from '../lib/reporting';
 import {light, onOff} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ADUROLIGHT_CSC'],
         model: '15090054',
@@ -43,7 +43,7 @@ const definitions: Definition[] = [
         description: 'ERIA colors and white shades smart light bulb A19/BR30',
         extend: [light({colorTemp: {range: undefined}, color: {applyRedFix: true}})],
         endpoint: (device) => {
-            return {'default': 2};
+            return {default: 2};
         },
     },
     {
@@ -114,6 +114,13 @@ const definitions: Definition[] = [
         vendor: 'AduroSmart',
         description: 'Eria tunable white A19/BR30 smart bulb',
         extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs']}})],
+    },
+    {
+        zigbeeModel: ['ONOFFRELAY'],
+        model: '81898',
+        vendor: 'AduroSmart',
+        description: 'AduroSmart on/off relay',
+        extend: [onOff({powerOnBehavior: false})],
     },
 ];
 

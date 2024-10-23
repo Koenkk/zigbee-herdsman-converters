@@ -1,14 +1,45 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import {
+    battery,
+    commandsColorCtrl,
+    commandsLevelCtrl,
+    commandsOnOff,
+    commandsScenes,
+    deviceEndpoints,
+    identify,
+    light,
+    onOff,
+} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {light, onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['ZGRC-KEY-005'],
+        model: '5144.01',
+        vendor: 'Iluminize',
+        description: 'RGB CCT 3 in 1 Remote Controller',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl(), commandsColorCtrl()],
+    },
+    {
+        zigbeeModel: ['ZGRC-KEY-001'],
+        model: '5144.11',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 wall dimmer with switches',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl()],
+    },
+    {
+        zigbeeModel: ['ZGRC-KEY-002'],
+        model: '5144.21',
+        vendor: 'Iluminize',
+        description: 'Single color wall mounted push button remote',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl(), commandsColorCtrl()],
+    },
     {
         zigbeeModel: ['5121.10'],
         model: '5121.10',
@@ -24,10 +55,7 @@ const definitions: Definition[] = [
         extend: [onOff()],
     },
     {
-        fingerprint: [
-            {modelID: '511.050'},
-            {modelID: 'RGBWW Lighting', manufacturerName: 'Iluminize'},
-        ],
+        fingerprint: [{modelID: '511.050'}, {modelID: 'RGBWW Lighting', manufacturerName: 'Iluminize'}],
         model: '511.050',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 LED controller for 5in1 RGB+CCT LEDs',
@@ -36,6 +64,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'DIM Lighting', manufacturerName: 'Iluminize'},
+            {modelID: 'DIM Lighting', manufacturerName: 'Sunricher'},
         ],
         model: '511.10',
         vendor: 'Iluminize',
@@ -132,10 +161,7 @@ const definitions: Definition[] = [
         exposes: [e.action(['off', 'on', 'color_temperature_move', 'color_move'])],
     },
     {
-        fingerprint: [
-            {modelID: '511.040'},
-            {modelID: 'RGBW-CCT', manufacturerName: 'Iluminize'},
-        ],
+        fingerprint: [{modelID: '511.040'}, {modelID: 'RGBW-CCT', manufacturerName: 'Iluminize'}],
         model: '511.040',
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 LED-controller, 4 channel 5A, RGBW LED',
@@ -161,45 +187,61 @@ const definitions: Definition[] = [
         model: '511.344',
         vendor: 'Iluminize',
         description: 'Zigbee handheld remote RGBW 4 channels',
-        fromZigbee: [fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
-            fz.command_step, fz.command_recall, fz.command_on, fz.command_off],
-        exposes: [e.battery(), e.action([
-            'color_move', 'color_temperature_move', 'hue_move', 'hue_stop', 'brightness_step_up', 'brightness_step_down',
-            'recall_*', 'on', 'off']),
-        e.composite('action_color', 'action_color', ea.STATE)
-            .withFeature(e.numeric('x', ea.STATE))
-            .withFeature(e.numeric('y', ea.STATE))
-            .withDescription('Only shows the transmitted color in X7Y-Mode. Noch changes possible.'),
-        e.numeric('action_color_temperature', ea.STATE).withUnit('mired')
-            .withDescription('color temperature value. Fixed values for each key press: 145, 175, 222, 304, 480 mired'),
-        e.numeric('action_group', ea.STATE)
-            .withDescription('Shows the zigbee2mqtt group bound to the active data point EP(1-4).'),
-        e.numeric('action_transition_time', ea.STATE),
-        e.numeric('action_step_size', ea.STATE),
-        e.numeric('action_rate', ea.STATE)],
-        toZigbee: [],
+        extend: [
+            deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
+            battery(),
+            identify(),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            commandsColorCtrl(),
+            commandsScenes(),
+        ],
         meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
-        },
     },
     {
         zigbeeModel: ['511.324'],
         model: '511.324',
         vendor: 'Iluminize',
         description: 'Zigbee handheld remote CCT 4 channels',
-        fromZigbee: [fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
-            fz.command_step, fz.command_recall, fz.command_on, fz.command_off, fz.command_toggle, fz.command_stop,
-            fz.command_move, fz.command_color_loop_set, fz.command_ehanced_move_to_hue_and_saturation],
-        exposes: [e.battery(), e.action([
-            'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down',
-            'recall_*', 'on', 'off', 'toggle', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
-            'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'hue_stop']),
-        e.numeric('action_group', ea.STATE)
-            .withDescription('Shows the zigbee2mqtt group bound to the active data point EP(1-4).'),
-        e.numeric('action_transition_time', ea.STATE),
-        e.numeric('action_step_size', ea.STATE),
-        e.numeric('action_rate', ea.STATE)],
+        fromZigbee: [
+            fz.battery,
+            fz.command_move_to_color,
+            fz.command_move_to_color_temp,
+            fz.command_move_hue,
+            fz.command_step,
+            fz.command_recall,
+            fz.command_on,
+            fz.command_off,
+            fz.command_toggle,
+            fz.command_stop,
+            fz.command_move,
+            fz.command_color_loop_set,
+            fz.command_ehanced_move_to_hue_and_saturation,
+        ],
+        exposes: [
+            e.battery(),
+            e.action([
+                'color_move',
+                'color_temperature_move',
+                'hue_move',
+                'brightness_step_up',
+                'brightness_step_down',
+                'recall_*',
+                'on',
+                'off',
+                'toggle',
+                'brightness_stop',
+                'brightness_move_up',
+                'brightness_move_down',
+                'color_loop_set',
+                'enhanced_move_to_hue_and_saturation',
+                'hue_stop',
+            ]),
+            e.numeric('action_group', ea.STATE).withDescription('Shows the zigbee2mqtt group bound to the active data point EP(1-4).'),
+            e.numeric('action_transition_time', ea.STATE),
+            e.numeric('action_step_size', ea.STATE),
+            e.numeric('action_rate', ea.STATE),
+        ],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -211,11 +253,33 @@ const definitions: Definition[] = [
         model: '511.541',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 wall dimmer RGBW 1 zone',
-        fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move_to_color, fz.command_move_to_color_temp,
-            fz.command_move_hue, fz.command_step, fz.command_move, fz.command_stop],
+        fromZigbee: [
+            fz.command_recall,
+            fz.command_on,
+            fz.command_off,
+            fz.command_move_to_color,
+            fz.command_move_to_color_temp,
+            fz.command_move_hue,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+        ],
         toZigbee: [],
-        exposes: [e.action(['recall_*', 'on', 'off', 'color_move', 'color_temperature_move',
-            'hue_move', 'brightness_step_down', 'brightness_step_up', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
+        exposes: [
+            e.action([
+                'recall_*',
+                'on',
+                'off',
+                'color_move',
+                'color_temperature_move',
+                'hue_move',
+                'brightness_step_down',
+                'brightness_step_up',
+                'brightness_move_down',
+                'brightness_move_up',
+                'brightness_stop',
+            ]),
+        ],
     },
     {
         zigbeeModel: ['5112.80'],
@@ -231,24 +295,56 @@ const definitions: Definition[] = [
         description: 'Zigbee 3.0 wall dimmer RGBW 4 zones',
         fromZigbee: [fz.command_move_to_color, fz.command_move_hue, fz.command_on, fz.command_off, fz.command_move],
         toZigbee: [],
-        exposes: [e.action(['recall_*', 'on', 'off', 'color_move', 'color_temperature_move',
-            'hue_move', 'brightness_step_down', 'brightness_step_up', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
+        exposes: [
+            e.action([
+                'recall_*',
+                'on',
+                'off',
+                'color_move',
+                'color_temperature_move',
+                'hue_move',
+                'brightness_step_down',
+                'brightness_step_up',
+                'brightness_move_down',
+                'brightness_move_up',
+                'brightness_stop',
+            ]),
+        ],
     },
     {
         zigbeeModel: ['ZGRC-TEUR-003'],
         model: '511.524',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 wall dimmer CCT 4 zones',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_recall,
-            fz.command_move_to_color_temp, fz.command_step, fz.command_move, fz.command_stop],
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_recall,
+            fz.command_move_to_color_temp,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+        ],
         toZigbee: [],
         meta: {multiEndpoint: true},
-        exposes: [e.action([
-            'recall_*', 'on', 'off',
-            'brightness_step_down', 'brightness_step_up',
-            'brightness_move_down', 'brightness_move_up', 'brightness_stop',
-            'color_move', 'color_temperature_move', 'hue_move',
-            'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'hue_stop'])],
+        exposes: [
+            e.action([
+                'recall_*',
+                'on',
+                'off',
+                'brightness_step_down',
+                'brightness_step_up',
+                'brightness_move_down',
+                'brightness_move_up',
+                'brightness_stop',
+                'color_move',
+                'color_temperature_move',
+                'hue_move',
+                'color_loop_set',
+                'enhanced_move_to_hue_and_saturation',
+                'hue_stop',
+            ]),
+        ],
     },
 ];
 

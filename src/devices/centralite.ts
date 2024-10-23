@@ -1,21 +1,23 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Fz} from '../lib/types';
-import * as exposes from '../lib/exposes';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as globalStore from '../lib/store';
+import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
+import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import {DefinitionWithExtend, Fz} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as constants from '../lib/constants';
-import {light, onOff} from '../lib/modernExtend';
 
 const fzLocal = {
     thermostat_3156105: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('runningState')) {
+            if (msg.data.runningState !== undefined) {
                 if (msg.data['runningState'] == 1) {
                     msg.data['runningState'] = 0;
                 } else if (msg.data['runningState'] == 5) {
@@ -26,7 +28,7 @@ const fzLocal = {
                     msg.data['runningState'] = 9;
                 }
             }
-            if (msg.data.hasOwnProperty('ctrlSeqeOfOper')) {
+            if (msg.data.ctrlSeqeOfOper !== undefined) {
                 if (msg.data['ctrlSeqeOfOper'] == 6) {
                     msg.data['ctrlSeqeOfOper'] = 4;
                 }
@@ -36,7 +38,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['4256251-RZHAC'],
         model: '4256251-RZHAC',
@@ -127,11 +129,15 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint);
             try {
                 await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            } catch (exception) {
+            } catch {
                 // For some this fails so set manually
                 // https://github.com/Koenkk/zigbee2mqtt/issues/3575
                 endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                    acCurrentDivisor: 1000, acCurrentMultiplier: 1, acPowerMultiplier: 1, acPowerDivisor: 10});
+                    acCurrentDivisor: 1000,
+                    acCurrentMultiplier: 1,
+                    acPowerMultiplier: 1,
+                    acPowerDivisor: 10,
+                });
             }
             await reporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
             await reporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
@@ -175,12 +181,15 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery, fz.ias_ace_occupancy_with_timeout],
         toZigbee: [tz.arm_mode],
-        exposes: [e.battery(), e.temperature(), e.occupancy(),
+        exposes: [
+            e.battery(),
+            e.temperature(),
+            e.occupancy(),
             e.numeric('action_code', ea.STATE).withDescription('Pin code introduced.'),
             e.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
             e.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 0'),
-            e.action([
-                'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
+            e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency']),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'genPowerCfg', 'ssIasZone', 'ssIasAce'];
@@ -189,15 +198,19 @@ const definitions: Definition[] = [
             await reporting.batteryVoltage(endpoint);
         },
         onEvent: async (type, data, device) => {
-            if (type === 'message' && data.type === 'commandGetPanelStatus' && data.cluster === 'ssIasAce' &&
-                globalStore.hasValue(device.getEndpoint(1), 'panelStatus')) {
+            if (
+                type === 'message' &&
+                data.type === 'commandGetPanelStatus' &&
+                data.cluster === 'ssIasAce' &&
+                globalStore.hasValue(device.getEndpoint(1), 'panelStatus')
+            ) {
                 const payload = {
                     panelstatus: globalStore.getValue(device.getEndpoint(1), 'panelStatus'),
-                    secondsremain: 0x00, audiblenotif: 0x00, alarmstatus: 0x00,
+                    secondsremain: 0x00,
+                    audiblenotif: 0x00,
+                    alarmstatus: 0x00,
                 };
-                await device.getEndpoint(1).commandResponse(
-                    'ssIasAce', 'getPanelStatusRsp', payload, {}, data.meta.zclTransactionSequenceNumber,
-                );
+                await device.getEndpoint(1).commandResponse('ssIasAce', 'getPanelStatusRsp', payload, {}, data.meta.zclTransactionSequenceNumber);
             }
         },
     },
@@ -209,24 +222,43 @@ const definitions: Definition[] = [
         extend: [light()],
     },
     {
-        fingerprint: [{modelID: '3157100', manufacturerName: 'Centralite'}, {modelID: '3157100-E', manufacturerName: 'Centralite'}],
+        fingerprint: [
+            {modelID: '3157100', manufacturerName: 'Centralite'},
+            {modelID: '3157100-E', manufacturerName: 'Centralite'},
+        ],
         model: '3157100',
         vendor: 'Centralite',
         description: '3-Series pearl touch thermostat',
         fromZigbee: [fz.battery, fz.thermostat, fz.fan, fz.ignore_time_read],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
-            tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state, tz.thermostat_temperature_setpoint_hold],
-        exposes: [e.battery(),
-            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_remote_sensing,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_system_mode,
+            tz.thermostat_relay_status_log,
+            tz.fan_mode,
+            tz.thermostat_running_state,
+            tz.thermostat_temperature_setpoint_hold,
+        ],
+        exposes: [
+            e.battery(),
+            e
+                .binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.'),
-            e.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 1)
+                .withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
-                .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
+                .withRunningState(['idle', 'heat', 'cool', 'fan_only'])
+                .withFanMode(['auto', 'on'])
                 .withSetpoint('occupied_cooling_setpoint', 7, 30, 1)
-                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)],
+                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1),
+        ],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -244,18 +276,33 @@ const definitions: Definition[] = [
         vendor: 'Centralite',
         description: 'HA thermostat',
         fromZigbee: [fz.battery, fzLocal.thermostat_3156105, fz.fan, fz.ignore_time_read],
-        toZigbee: [tz.thermostat_local_temperature,
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
-            tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state, tz.thermostat_temperature_setpoint_hold],
-        exposes: [e.battery(),
-            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_remote_sensing,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_system_mode,
+            tz.thermostat_relay_status_log,
+            tz.fan_mode,
+            tz.thermostat_running_state,
+            tz.thermostat_temperature_setpoint_hold,
+        ],
+        exposes: [
+            e.battery(),
+            e
+                .binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.'),
-            e.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 1)
+                .withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
-                .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
-                .withSetpoint('occupied_cooling_setpoint', 7, 30, 1)],
+                .withRunningState(['idle', 'heat', 'cool', 'fan_only'])
+                .withFanMode(['auto', 'on'])
+                .withSetpoint('occupied_cooling_setpoint', 7, 30, 1),
+        ],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -282,24 +329,24 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz._3310_humidity, fz.battery],
         exposes: [e.temperature(), e.humidity(), e.battery()],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'manuSpecificCentraliteHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.temperature(endpoint);
 
-            const payload = [{
-                attribute: 'measuredValue',
-                minimumReportInterval: 10,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 10,
-            }];
-            await endpoint.configureReporting(
-                'manuSpecificCentraliteHumidity',
-                payload,
-                {manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC},
-            );
+            const payload = [
+                {
+                    attribute: 'measuredValue',
+                    minimumReportInterval: 10,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 10,
+                },
+            ];
+            await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, {
+                manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
+            });
 
             await reporting.batteryVoltage(endpoint);
         },
@@ -350,7 +397,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
         exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);

@@ -1,13 +1,15 @@
-import * as exposes from '../lib/exposes';
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
+import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {Zcl} from 'zigbee-herdsman';
-import {onOff, light} from '../lib/modernExtend';
-import {KeyValueAny, Fz, Tz, Definition} from '../lib/types';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ASTREL_GROUP_SRL};
 
@@ -19,13 +21,13 @@ const bitron = {
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValueAny = {};
 
-                if (msg.data.hasOwnProperty('fourNoksHysteresisHigh')) {
-                    if (!result.hasOwnProperty('hysteresis')) result.hysteresis = {};
+                if (msg.data.fourNoksHysteresisHigh !== undefined) {
+                    if (result.hysteresis === undefined) result.hysteresis = {};
                     result.hysteresis.high = msg.data.fourNoksHysteresisHigh;
                 }
 
-                if (msg.data.hasOwnProperty('fourNoksHysteresisLow')) {
-                    if (!result.hasOwnProperty('hysteresis')) result.hysteresis = {};
+                if (msg.data.fourNoksHysteresisLow !== undefined) {
+                    if (result.hysteresis === undefined) result.hysteresis = {};
                     result.hysteresis.low = msg.data.fourNoksHysteresisLow;
                 }
 
@@ -38,13 +40,13 @@ const bitron = {
             key: ['hysteresis', 'hysteresis'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const result: KeyValueAny = {state: {hysteresis: {}}};
-                if (value.hasOwnProperty('high')) {
-                    await entity.write('hvacThermostat', {'fourNoksHysteresisHigh': value.high}, manufacturerOptions);
+                if (value.high !== undefined) {
+                    await entity.write('hvacThermostat', {fourNoksHysteresisHigh: value.high}, manufacturerOptions);
                     result.state.hysteresis.high = value.high;
                 }
 
-                if (value.hasOwnProperty('low')) {
-                    await entity.write('hvacThermostat', {'fourNoksHysteresisLow': value.low}, manufacturerOptions);
+                if (value.low !== undefined) {
+                    await entity.write('hvacThermostat', {fourNoksHysteresisLow: value.low}, manufacturerOptions);
                     result.state.hysteresis.low = value.low;
                 }
 
@@ -57,7 +59,7 @@ const bitron = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['AV2010/14', '902010/14'],
         model: 'AV2010/14',
@@ -182,7 +184,7 @@ const definitions: Definition[] = [
             await reporting.currentSummDelivered(endpoint);
             try {
                 await reporting.currentSummReceived(endpoint);
-            } catch (error) {
+            } catch {
                 /* fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/13258 */
             }
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 10000, multiplier: 1});
@@ -227,14 +229,21 @@ const definitions: Definition[] = [
         description: 'Wireless wall thermostat with relay',
         fromZigbee: [legacy.fz.thermostat_att_report, fz.battery, fz.hvac_user_interface, bitron.fz.thermostat_hysteresis],
         toZigbee: [
-            tz.thermostat_control_sequence_of_operation, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature, tz.thermostat_running_state, tz.thermostat_temperature_display_mode,
-            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.battery_voltage, bitron.tz.thermostat_hysteresis,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
+            tz.thermostat_running_state,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.battery_voltage,
+            bitron.tz.thermostat_hysteresis,
         ],
         exposes: (device, options) => {
             const dynExposes = [];
-            let ctrlSeqeOfOper = (device?.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') ?? null);
+            let ctrlSeqeOfOper = device?.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') ?? null;
             const modes = [];
 
             if (typeof ctrlSeqeOfOper === 'string') ctrlSeqeOfOper = parseInt(ctrlSeqeOfOper) ?? null;
@@ -251,18 +260,22 @@ const definitions: Definition[] = [
                 modes.push('cool');
             }
 
-            const hysteresisExposes = e.composite('hysteresis', 'hysteresis', ea.ALL)
+            const hysteresisExposes = e
+                .composite('hysteresis', 'hysteresis', ea.ALL)
                 .withFeature(e.numeric('low', ea.SET))
                 .withFeature(e.numeric('high', ea.SET))
                 .withDescription('Set thermostat hysteresis low and high trigger values. (1 = 0.01ºC)');
 
-            dynExposes.push(e.climate()
-                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
-                .withLocalTemperature()
-                .withSystemMode(['off'].concat(modes))
-                .withRunningState(['idle'].concat(modes))
-                .withLocalTemperatureCalibration()
-                .withControlSequenceOfOperation(['heating_only', 'cooling_only'], ea.ALL));
+            dynExposes.push(
+                e
+                    .climate()
+                    .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                    .withLocalTemperature()
+                    .withSystemMode(['off'].concat(modes))
+                    .withRunningState(['idle'].concat(modes))
+                    .withLocalTemperatureCalibration()
+                    .withControlSequenceOfOperation(['heating_only', 'cooling_only'], ea.ALL),
+            );
             dynExposes.push(e.keypad_lockout());
             dynExposes.push(hysteresisExposes);
             dynExposes.push(e.battery().withAccess(ea.STATE_GET));
@@ -271,12 +284,10 @@ const definitions: Definition[] = [
 
             return dynExposes;
         },
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = [
-                'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
-            ];
+            const binds = ['genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);

@@ -1,8 +1,9 @@
+import {logger} from '../logger';
+import {KeyValueAny, Ota, Zh} from '../types';
+import * as common from './common';
+
 const url = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.json';
 const caBundleUrl = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/cacerts.pem';
-import * as common from './common';
-import {Zh, Ota, KeyValueAny} from '../types';
-import {logger} from '../logger';
 
 const NS = 'zhc:ota';
 const axios = common.getAxios();
@@ -20,21 +21,19 @@ function fillImageInfo(meta: KeyValueAny) {
     }
 
     // Nothing to do if needed fields were filled already
-    if (meta.hasOwnProperty('imageType') &&
-        meta.hasOwnProperty('manufacturerCode') &&
-        meta.hasOwnProperty('fileVersion')) {
+    if (meta.imageType !== undefined && meta.manufacturerCode !== undefined && meta.fileVersion !== undefined) {
         return meta;
     }
 
     // If no fields provided - get them from the image file
     const buffer = common.readLocalFile(meta.url);
-    const start = buffer.indexOf(common.upgradeFileIdentifier);
-    const image = common.parseImage(buffer.slice(start));
+    const start = buffer.indexOf(common.UPGRADE_FILE_IDENTIFIER);
+    const image = common.parseImage(buffer.subarray(start));
 
     // Will fill only those fields that were absent
-    if (!meta.hasOwnProperty('imageType')) meta.imageType = image.header.imageType;
-    if (!meta.hasOwnProperty('manufacturerCode')) meta.manufacturerCode = image.header.manufacturerCode;
-    if (!meta.hasOwnProperty('fileVersion')) meta.fileVersion = image.header.fileVersion;
+    if (meta.imageType === undefined) meta.imageType = image.header.imageType;
+    if (meta.manufacturerCode === undefined) meta.manufacturerCode = image.header.manufacturerCode;
+    if (meta.fileVersion === undefined) meta.fileVersion = image.header.fileVersion;
     return meta;
 }
 
@@ -51,7 +50,7 @@ async function getIndex() {
         const localIndex = await common.getOverrideIndexFile(overrideIndexFileName);
 
         // Resulting index will have overridden items first
-        return localIndex.concat(mainIndex).map((item: KeyValueAny) => common.isValidUrl(item.url) ? item : fillImageInfo(item));
+        return localIndex.concat(mainIndex).map((item: KeyValueAny) => (common.isValidUrl(item.url) ? item : fillImageInfo(item)));
     }
     return mainIndex;
 }
@@ -63,9 +62,15 @@ export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): P
     // However Gledopto pro products use the same imageType (0) for every device while the image is different.
     // For this case additional identification through the modelId is done.
     // In the case of Tuya and Moes, additional identification is carried out through the manufacturerName.
-    const image = images.find((i: KeyValueAny) => i.imageType === current.imageType && i.manufacturerCode === current.manufacturerCode &&
-        (!i.minFileVersion || current.fileVersion >= i.minFileVersion) && (!i.maxFileVersion || current.fileVersion <= i.maxFileVersion) &&
-        (!i.modelId || i.modelId === device.modelID) && (!i.manufacturerName || i.manufacturerName.includes(device.manufacturerName)));
+    const image = images.find(
+        (i: KeyValueAny) =>
+            i.imageType === current.imageType &&
+            i.manufacturerCode === current.manufacturerCode &&
+            (!i.minFileVersion || current.fileVersion >= i.minFileVersion) &&
+            (!i.maxFileVersion || current.fileVersion <= i.maxFileVersion) &&
+            (!i.modelId || i.modelId === device.modelID) &&
+            (!i.manufacturerName || i.manufacturerName.includes(device.manufacturerName)),
+    );
 
     if (!image) {
         return null;
@@ -91,7 +96,7 @@ async function isNewImageAvailable(current: Ota.ImageInfo, device: Zh.Device, ge
             current = {...current, fileVersion: device.meta.lumiFileVersion};
         }
     }
-    return common.isNewImageAvailable(current, device, getImageMeta);
+    return await common.isNewImageAvailable(current, device, getImageMeta);
 }
 
 export async function getFirmwareFile(image: KeyValueAny) {
@@ -113,12 +118,12 @@ export async function getFirmwareFile(image: KeyValueAny) {
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, requestPayload:Ota.ImageInfo=null) {
-    return common.isUpdateAvailable(device, requestPayload, isNewImageAvailable, getImageMeta);
+export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
+    return await common.isUpdateAvailable(device, requestPayload, isNewImageAvailable, getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
+    return await common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
 }
 
 export const useIndexOverride = (indexFileName: string) => {

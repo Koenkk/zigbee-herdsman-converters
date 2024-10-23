@@ -1,11 +1,12 @@
-import {Definition} from '../lib/types';
+import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import tz from '../converters/toZigbee';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['5j6ifxj', '5j6ifxj\u0000'],
         model: 'BW-IS3',
@@ -16,7 +17,6 @@ const definitions: Definition[] = [
         exposes: [e.occupancy()],
     },
     {
-
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_aneiicmq'}],
         model: 'BW-SS7_1gang',
         vendor: 'BlitzWolf',

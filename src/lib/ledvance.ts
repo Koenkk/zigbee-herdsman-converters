@@ -1,9 +1,10 @@
+import {Zcl} from 'zigbee-herdsman';
+
+import * as ota from '../lib/ota';
+import {Fz, KeyValue, Tz} from '../lib/types';
+import * as utils from '../lib/utils';
 import * as modernExtend from './modernExtend';
 import {isObject} from './utils';
-import {Tz, Fz, KeyValue} from '../lib/types';
-import * as utils from '../lib/utils';
-import {Zcl} from 'zigbee-herdsman';
-import * as ota from '../lib/ota';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
 
@@ -14,8 +15,11 @@ export const ledvanceFz = {
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const lookup: KeyValue = {
-                commandMoveWithOnOff: 'hold', commandMove: 'hold', commandStopWithOnOff: 'release',
-                commandStop: 'release', commandMoveToLevelWithOnOff: 'toggle',
+                commandMoveWithOnOff: 'hold',
+                commandMove: 'hold',
+                commandStopWithOnOff: 'release',
+                commandStop: 'release',
+                commandMoveToLevelWithOnOff: 'toggle',
             };
             return {[utils.postfixWithEndpointName('action', msg, model, meta)]: lookup[msg.type]};
         },
@@ -30,7 +34,7 @@ export const ledvanceTz = {
             if (key === 'osram_set_transition' || key === 'set_transition') {
                 if (value) {
                     utils.assertNumber(value, key);
-                    const transition = (value > 1) ? Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 10 : 1;
+                    const transition = value > 1 ? Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 10 : 1;
                     const payload = {0x0012: {value: transition, type: 0x21}, 0x0013: {value: transition, type: 0x21}};
                     await entity.write('genLevelCtrl', payload);
                 }

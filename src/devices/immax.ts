@@ -1,23 +1,30 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import * as tuya from '../lib/tuya';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
 import {light} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_jak16dll']),
         model: '07752L',
         description: 'NEO smart internal double socket',
         vendor: 'Immax',
-        extend: [tuya.modernExtend.tuyaOnOff({
-            electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ['l1', 'l2']})],
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                electricalMeasurements: true,
+                powerOutageMemory: true,
+                indicatorMode: true,
+                childLock: true,
+                endpoints: ['l1', 'l2'],
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
@@ -31,12 +38,11 @@ const definitions: Definition[] = [
             device.save();
         },
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
+            return {l1: 1, l2: 2};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'current', 'voltage', 'energy']},
     },
     {
-
         zigbeeModel: ['Motion-Sensor-ZB3.0'],
         model: '07043M',
         vendor: 'Immax',
@@ -88,6 +94,13 @@ const definitions: Definition[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        fingerprint: [{modelID: 'TS0502C', manufacturerName: '_TZ3210_6pwpez2j'}],
+        model: 'TS0502C',
+        vendor: 'Immax',
+        description: 'Neo FINO Smart pendant light black 80cm CCT 60W, Zigbee 3.0',
+        extend: [light({colorTemp: {range: [153, 500]}})],
+    },
+    {
         zigbeeModel: ['Keyfob-ZB3.0'],
         model: '07046L',
         vendor: 'Immax',
@@ -130,8 +143,13 @@ const definitions: Definition[] = [
         vendor: 'Immax',
         description: 'Radiator valve',
         fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_1, legacy.fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
-        toZigbee: [legacy.tz.etop_thermostat_system_mode, legacy.tz.etop_thermostat_away_mode, legacy.tz.tuya_thermostat_child_lock,
-            legacy.tz.tuya_thermostat_current_heating_setpoint, legacy.tz.tuya_thermostat_weekly_schedule],
+        toZigbee: [
+            legacy.tz.etop_thermostat_system_mode,
+            legacy.tz.etop_thermostat_away_mode,
+            legacy.tz.tuya_thermostat_child_lock,
+            legacy.tz.tuya_thermostat_current_heating_setpoint,
+            legacy.tz.tuya_thermostat_weekly_schedule,
+        ],
         onEvent: tuya.onEventSetTime,
         meta: {
             timeout: 20000, // TRV wakes up every 10sec
@@ -141,10 +159,17 @@ const definitions: Definition[] = [
                 weeklyScheduleFirstDayDpId: 101,
             },
         },
-        exposes: [e.battery_low(), e.child_lock(), e.away_mode(), e.climate()
-            .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-            .withLocalTemperature(ea.STATE).withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
-            .withRunningState(['idle', 'heat'], ea.STATE)],
+        exposes: [
+            e.battery_low(),
+            e.child_lock(),
+            e.away_mode(),
+            e
+                .climate()
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
+                .withRunningState(['idle', 'heat'], ea.STATE),
+        ],
     },
     {
         zigbeeModel: ['Bulb-RGB+CCT-ZB3.0'],
@@ -168,8 +193,7 @@ const definitions: Definition[] = [
             await reporting.humidity(endpoint);
             await reporting.illuminance(endpoint);
         },
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.temperature(), e.illuminance(), e.illuminance_lux(),
-            e.humidity()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity()],
     },
     {
         zigbeeModel: ['ColorTemperature'],
@@ -193,24 +217,27 @@ const definitions: Definition[] = [
         description: '4 in 1 multi sensor',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
-        exposes: [e.occupancy(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.temperature(),
-            e.humidity(), e.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes')
-                .withValueMin(0).withValueMax(1440),
-            e.numeric('temperature_calibration', ea.STATE_SET).withDescription('Temperature calibration')
-                .withValueMin(-20).withValueMax(20),
-            e.numeric('humidity_calibration', ea.STATE_SET).withDescription('Humidity calibration')
-                .withValueMin(-50).withValueMax(50),
-            e.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration')
-                .withValueMin(-10000).withValueMax(10000),
+        exposes: [
+            e.occupancy(),
+            e.tamper(),
+            e.battery(),
+            e.illuminance(),
+            e.illuminance_lux().withUnit('lx'),
+            e.temperature(),
+            e.humidity(),
+            e.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes').withValueMin(0).withValueMax(1440),
+            e.numeric('temperature_calibration', ea.STATE_SET).withDescription('Temperature calibration').withValueMin(-20).withValueMax(20),
+            e.numeric('humidity_calibration', ea.STATE_SET).withDescription('Humidity calibration').withValueMin(-50).withValueMax(50),
+            e.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration').withValueMin(-10000).withValueMax(10000),
             e.binary('pir_enable', ea.STATE_SET, true, false).withDescription('Enable PIR sensor'),
             e.binary('led_enable', ea.STATE_SET, true, false).withDescription('Enabled LED'),
             e.binary('reporting_enable', ea.STATE_SET, true, false).withDescription('Enabled reporting'),
             e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
-            // eslint-disable-next-line
-            e.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds')],
+            e.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds'),
+        ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n9clpsht', '_TZE200_nyvavzbj']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n9clpsht', '_TZE200_nyvavzbj', '_TZE200_moycceze']),
         model: '07505L',
         vendor: 'Immax',
         description: 'Neo smart keypad',

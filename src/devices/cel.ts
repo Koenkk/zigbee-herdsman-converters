@@ -1,7 +1,7 @@
-import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Z10'],
         model: 'CGW-Z-0010',

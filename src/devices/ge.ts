@@ -1,13 +1,13 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
+import * as exposes from '../lib/exposes';
 import {electricityMeter, light, onOff} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SoftWhite'],
         model: 'PSB19-SW27',
@@ -83,7 +83,7 @@ const definitions: Definition[] = [
         description: 'Quirky smart switch',
         extend: [onOff()],
         endpoint: (device) => {
-            return {'default': 2};
+            return {default: 2};
         },
     },
     {

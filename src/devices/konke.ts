@@ -1,10 +1,10 @@
-import {Definition, Fz} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import * as utils from '../lib/utils';
-import * as reporting from '../lib/reporting';
 import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend, Fz} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 
@@ -24,7 +24,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['3AFE170100510001', '3AFE280100510001'],
         model: '2AJZ4KPKEY',
@@ -33,7 +33,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.konke_action, fz.battery, legacy.fz.konke_click],
         toZigbee: [],
         exposes: [e.battery_low(), e.battery(), e.action(['single', 'double', 'hold'])],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -50,7 +50,7 @@ const definitions: Definition[] = [
         description: 'Motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
@@ -60,7 +60,7 @@ const definitions: Definition[] = [
         description: 'Temperature and humidity sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
@@ -70,7 +70,7 @@ const definitions: Definition[] = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        zigbeeModel: ['3AFE010104020028'],
+        zigbeeModel: ['3AFE010104020028', 'LH05121'],
         model: 'TW-S1',
         description: 'Photoelectric smoke detector',
         vendor: 'Konke',
@@ -85,7 +85,7 @@ const definitions: Definition[] = [
         description: 'Contact sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
@@ -113,7 +113,7 @@ const definitions: Definition[] = [
         description: 'Smart 4 key scene switch',
         fromZigbee: [fzLocal.command_recall_konke, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.action(['hexagon', 'square', 'triangle', 'circle'])],
     },
     {
@@ -155,20 +155,14 @@ const definitions: Definition[] = [
         model: 'KK-LP-Q02D',
         vendor: 'Konke',
         description: 'Light years switch 2 gangs',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         zigbeeModel: ['3AFE292000068623'],
         model: 'KK-LP-Q03D',
         vendor: 'Konke',
         description: 'Light years switch 3 gangs',
-        extend: [
-            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3']}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}), onOff({endpointNames: ['l1', 'l2', 'l3']})],
     },
     {
         zigbeeModel: ['3AFE2610010C0021'],
