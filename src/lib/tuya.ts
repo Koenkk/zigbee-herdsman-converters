@@ -1059,7 +1059,6 @@ export const valueConverter = {
               ':' +
               String(minutes).padStart(2, '0') +
               '/' +
-              // @ts-expect-error ignore
               (parseFloat(v[index + 3]) / 10.0).toFixed(1)
           );
         }
