@@ -5114,6 +5114,132 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ltwbm23f'}],
+        model: 'TRV602Z',
+        vendor: 'Tuya',
+        description: 'Thermostatic radiator valve.',
+        extend: [tuyaBase({dp: true})],
+        exposes: [
+            e.battery(),
+            e.child_lock(),
+            e.max_temperature(),
+            e.min_temperature(),
+            e.position(),
+            e.window_detection(),
+            e.binary('window', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status closed or open '),
+            e.enum('mode', ea.STATE_SET, ['standby', 'antifrost', 'eco', 'comfort', 'auto', 'on']).withDescription('Mode'),
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            e.comfort_temperature().withValueMin(5).withValueMax(30).withDescription('Comfort mode temperature'),
+            e.eco_temperature().withValueMin(5).withValueMax(30).withDescription('Eco mode temperature'),
+            e.enum('display_brightness', ea.STATE_SET, ['high', 'medium', 'low']).withDescription('Display brightness'),
+            e.enum('screen_orientation', ea.STATE_SET, ['up', 'right', 'down', 'left']).withDescription('Screen orientation'),
+            e
+                .enum('system_mode', ea.STATE_SET, ['comfort', 'eco'])
+                .withDescription(
+                    'Hysteresis - comfort > switches off/on exactly at reached ' +
+                        'temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%',
+                ),
+            e.enum('motor_thrust', ea.STATE_SET, ['strong', 'middle', 'weak']),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    'mode',
+                    tuya.valueConverterBasic.lookup({
+                        standby: tuya.enum(0),
+                        antifrost: tuya.enum(1),
+                        eco: tuya.enum(2),
+                        comfort: tuya.enum(3),
+                        auto: tuya.enum(4),
+                        on: tuya.enum(5),
+                    }),
+                ],
+                [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [5, 'local_temperature', tuya.valueConverter.divideBy10],
+                [6, 'battery', tuya.valueConverter.raw],
+                [
+                    7,
+                    'child_lock',
+                    tuya.valueConverterBasic.lookup({
+                        LOCK: true,
+                        UNLOCK: false,
+                    }),
+                ],
+                [9, 'max_temperature', tuya.valueConverter.divideBy10],
+                [10, 'min_temperature', tuya.valueConverter.divideBy10],
+                [
+                    14,
+                    'window_detection',
+                    tuya.valueConverterBasic.lookup({
+                        ON: true,
+                        OFF: false,
+                    }),
+                ],
+                [
+                    15,
+                    'window',
+                    tuya.valueConverterBasic.lookup({
+                        CLOSE: tuya.enum(0),
+                        OPEN: tuya.enum(1),
+                    }),
+                ],
+                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [102, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(1)],
+                [103, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(2)],
+                [104, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(3)],
+                [105, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(4)],
+                [106, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(5)],
+                [107, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(6)],
+                [108, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(7)],
+                [
+                    110,
+                    'motor_thrust',
+                    tuya.valueConverterBasic.lookup({
+                        strong: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        weak: tuya.enum(2),
+                    }),
+                ],
+                [
+                    111,
+                    'display_brightness',
+                    tuya.valueConverterBasic.lookup({
+                        high: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        low: tuya.enum(2),
+                    }),
+                ],
+                [
+                    113,
+                    'screen_orientation',
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        right: tuya.enum(1),
+                        down: tuya.enum(2),
+                        left: tuya.enum(3),
+                    }),
+                ],
+                [114, 'position', tuya.valueConverter.divideBy10],
+                [119, 'comfort_temperature', tuya.valueConverter.divideBy10],
+                [120, 'eco_temperature', tuya.valueConverter.divideBy10],
+                [
+                    127,
+                    'system_mode',
+                    tuya.valueConverterBasic.lookup({
+                        comfort: tuya.enum(0),
+                        eco: tuya.enum(1),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
         zigbeeModel: ['TS0121'],
         model: 'TS0121_plug',
         description: '10A UK or 16A EU smart plug',
