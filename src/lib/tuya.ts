@@ -1105,7 +1105,8 @@ export const valueConverter = {
         from: (v) => valueConverter.thermostatScheduleDayMultiDP_TRV602Z.from(v),
         to: (v) => {
           const data = valueConverter.thermostatScheduleDayMultiDP_TRV602Z.to(v);
-          return [dayNum].concat(data);
+          data.unshift(dayNum);
+          return data;
         },
       };
     },
