@@ -12248,9 +12248,9 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint:tuya.fingerprint ('TS0601', ['_TZE200_ha0vwoew']),
-        model: 'TS0601_Thermosphere',
+        model: 'TS0601_thermostat_thermosphere',
         vendor: 'TuYa',
-        description: 'ThermoSphere UFH Thermostat',
+        description: 'ThermoSphere Thermostat',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
