@@ -9850,7 +9850,7 @@ const definitions: DefinitionWithExtend[] = [
             e.numeric('upper', ea.STATE_SET).withValueMin(0).withValueMax(50).withValueStep(1).withUnit('%').withDescription('Up movement limit'),
             e.numeric('delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('s').withDescription('Sustain time'),
             e.binary('reverse', ea.STATE_SET, 'ON', 'OFF').withDescription('Reverse'),
-            e.binary('touch', ea.STATE_SET, 'ON', 'OFF').withDescription('Touch controll'),
+            e.binary('touch', ea.STATE_SET, 'ON', 'OFF').withDescription('Touch control'),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
