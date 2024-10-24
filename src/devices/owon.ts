@@ -134,7 +134,18 @@ const definitions: DefinitionWithExtend[] = [
         model: 'WSP402',
         vendor: 'OWON',
         description: 'Smart plug',
-        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        fromZigbee: [fz.metering, fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        meta: {publishDuplicateTransaction: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: 3600, change: 5}); // divider 1000: 5W
+            await reporting.currentSummDelivered(endpoint, {min: 5, max: 3600, change: 100}); // divider 1000: 0,1kWh
+        },
     },
     {
         zigbeeModel: ['WSP403-E'],
@@ -142,21 +153,59 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'OWON',
         whiteLabel: [{vendor: 'Oz Smart Things', model: 'WSP403'}],
         description: 'Smart plug',
-        extend: [onOff(), electricityMeter({cluster: 'metering'}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        fromZigbee: [fz.metering, fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        meta: {publishDuplicateTransaction: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: 3600, change: 5}); // divider 1000: 5W
+            await reporting.currentSummDelivered(endpoint, {min: 5, max: 3600, change: 100}); // divider 1000: 0,1kWh
+			
+            // At least some white label devices, like the Oz Smart Things device, don't report a power source so we need to force it
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['WSP404'],
         model: 'WSP404',
         vendor: 'OWON',
         description: 'Smart plug',
-        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        fromZigbee: [fz.metering, fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        meta: {publishDuplicateTransaction: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: 3600, change: 5}); // divider 1000: 5W
+            await reporting.currentSummDelivered(endpoint, {min: 5, max: 3600, change: 100}); // divider 1000: 0,1kWh
+        },
     },
     {
         zigbeeModel: ['CB432'],
         model: 'CB432',
         vendor: 'OWON',
         description: '32A/63A power circuit breaker',
-        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        fromZigbee: [fz.metering, fz.on_off,fz.power_on_behavior],
+        toZigbee: [tz.on_off,tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
+        meta: {publishDuplicateTransaction: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff',  'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: 3600, change: 5}); // divider 1000: 5W
+            await reporting.currentSummDelivered(endpoint, {min: 5, max: 3600, change: 100}); // divider 1000: 0,1kWh
+            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
+        },
     },
     {
         zigbeeModel: ['PIR313-E', 'PIR313'],
