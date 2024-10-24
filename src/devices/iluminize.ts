@@ -199,6 +199,22 @@ const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
     },
     {
+        zigbeeModel: ['5130.54'],
+        model: '5130.54',
+        vendor: 'Iluminize',
+        description: 'Zigbee handheld remote RGBW 4 channels',
+        extend: [
+            deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
+            battery(),
+            identify(),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            commandsColorCtrl(),
+            commandsScenes(),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
         zigbeeModel: ['511.324'],
         model: '511.324',
         vendor: 'Iluminize',
