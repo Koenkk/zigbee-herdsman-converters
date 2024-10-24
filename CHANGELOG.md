@@ -1,5 +1,18 @@
 # Changelog
 
+## [20.34.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.33.0...v20.34.0) (2024-10-24)
+
+
+### Features
+
+* **add:** AE 264 ([#8177](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8177)) ([8e988c0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8e988c0504316b08f1e80fc38644cf11fa49528c))
+* **add:** TRV-4-1-00, SDC-4-1-00 ([#8180](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8180)) ([854080d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/854080d81c3fd622d2a6a15b5435193ecad8af68))
+
+
+### Bug Fixes
+
+* **ignore:** fix typo https://github.com/Koenkk/zigbee2mqtt.io/pull/3132 ([e578aed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e578aed52e31cf205aa33ff7ca6ad0d3f17873c2))
+
 ## [20.33.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.32.0...v20.33.0) (2024-10-23)
 
 
