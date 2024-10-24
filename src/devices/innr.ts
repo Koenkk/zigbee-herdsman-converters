@@ -808,6 +808,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [onOff(), electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}})],
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['AE 264'],
+        model: 'AE 264',
+        vendor: 'Innr',
+        description: 'Smart E26 LED bulb',
+        extend: [light({turnsOffAtBrightness1: true})],
+    },
 ];
 
 export default definitions;
