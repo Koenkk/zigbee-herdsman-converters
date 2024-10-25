@@ -8781,7 +8781,6 @@ const definitions: DefinitionWithExtend[] = [
             '_TZ3000_qystbcjg',
             '_TZ3000_zrm3oxsh',
             '_TZ3000_303avxxt',
-            '_TZ3000_6l1pjfqe',
             '_TZ3000_zjchz7pd',
         ]),
         model: 'TS011F_with_threshold',
@@ -8800,7 +8799,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.TS011F_threshold],
         exposes: (device, options) => {
             const exposes: Expose[] = [e.linkquality()];
-            if (!['_TZ3000_303avxxt', '_TZ3000_zjchz7pd', '_TZ3000_6l1pjfqe'].includes(device?.manufacturerName)) {
+            if (!['_TZ3000_303avxxt', '_TZ3000_zjchz7pd'].includes(device?.manufacturerName)) {
                 exposes.push(
                     e.temperature(),
                     e
@@ -8868,7 +8867,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('EARU', 'EAKCB-T-M-Z', 'Smart circuit breaker', ['_TZ3000_lepzuhto']),
             tuya.whitelabel('EARU', 'EAYCB-Z-2P', 'Smart circuit breaker with leakage protection', ['_TZ3000_zrm3oxsh']),
             tuya.whitelabel('UNSH', 'SMKG-1KNL-EU-Z', 'Smart circuit Breaker', ['_TZ3000_qystbcjg']),
-            tuya.whitelabel('Tomzn', 'TOB9Z-VAP', 'Smart circuit breaker', ['_TZ3000_303avxxt', '_TZ3000_6l1pjfqe']),
+            tuya.whitelabel('Tomzn', 'TOB9Z-VAP', 'Smart circuit breaker', ['_TZ3000_303avxxt']),
             tuya.whitelabel('Immax', '07573L', 'Smart circuit breaker', ['_TZ3000_zjchz7pd']),
         ],
     },
