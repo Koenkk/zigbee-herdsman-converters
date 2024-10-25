@@ -975,7 +975,7 @@ const definitions: DefinitionWithExtend[] = [
 	vendor: 'Gledopto',
 	description: 'Zigbee triac AC dimmer',
 	extend: [gledoptoLight({})],
-    },
+    }
 ];
 
 export default definitions;
