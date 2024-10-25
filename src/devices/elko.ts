@@ -197,6 +197,48 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
     },
+    {
+        zigbeeModel: ['NHMOTION/UNIDIM/1'],
+        model: 'EKO06984',
+        vendor: 'ELKO',
+        description: 'SmartPir with push dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.illuminance, fz.level_config, fz.schneider_lighting_ballast_configuration, fz.occupancy],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.schneider_dimmer_mode],
+        exposes: [
+            e.light_brightness().withLevelConfig(),
+            e.occupancy(),
+            e.illuminance_lux(),
+            e.illuminance(),
+            e
+                .numeric('ballast_minimum_level', ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            e
+                .numeric('ballast_maximum_level', ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
+            e.enum('dimmer_mode', ea.ALL, ['RC', 'RL']).withDescription('Controls capacitive or inductive dimming mode'),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(3);
+            const binds = ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+
+            const endpoint37 = device.getEndpoint(37);
+            const binds37 = ['msIlluminanceMeasurement', 'msOccupancySensing'];
+            await reporting.bind(endpoint37, coordinatorEndpoint, binds37);
+            await reporting.occupancy(endpoint37);
+            await reporting.illuminance(endpoint37);
+        },
+        whiteLabel: [
+            {vendor: 'ELKO', model: 'EKO06985'},
+            {vendor: 'ELKO', model: 'EKO06986'},
+        ],
+    },
 ];
 
 export default definitions;
