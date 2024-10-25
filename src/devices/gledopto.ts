@@ -969,6 +969,13 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Filament LED light bulb E27 G95 7W pro',
         extend: [gledoptoLight({colorTemp: {range: [158, 495]}})],
     },
+    {
+	zigbeeModel: ['GL-SD-301P'],
+	model: 'GL-SD-301P',
+	vendor: 'Gledopto',
+	description: 'Zigbee triac AC dimmer',
+	extend: [gledoptoLight({})],
+    }
 ];
 
 export default definitions;
