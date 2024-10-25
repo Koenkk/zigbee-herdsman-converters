@@ -397,7 +397,13 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd']); //, 'genBasic', 'genBinaryInput']);
+            // Device supports only 4 binds (otherwise you get TABLE_FULL error)
+            // https://github.com/Koenkk/zigbee2mqtt/issues/23684
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            }
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd']);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -468,7 +474,14 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd']); //, 'genBasic', 'genBinaryInput']);
+            // Device supports only 4 binds (otherwise you get TABLE_FULL error)
+            // https://github.com/Koenkk/zigbee2mqtt/issues/23684
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            }
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd']);
+
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
