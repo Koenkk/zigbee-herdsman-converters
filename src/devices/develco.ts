@@ -397,7 +397,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd']); //, 'genBasic', 'genBinaryInput']);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -468,16 +468,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
-            // Device returns `ZDP_TABLE_FULL` on bind even though it succeeds
-            // https://github.com/Koenkk/zigbee2mqtt/issues/22492
-            for (const cluster of ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']) {
-                try {
-                    await endpoint.bind(cluster, coordinatorEndpoint);
-                } catch {
-                    logger.debug(`Failed to bind '${cluster}'`, NS);
-                }
-            }
-
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd']); //, 'genBasic', 'genBinaryInput']);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
