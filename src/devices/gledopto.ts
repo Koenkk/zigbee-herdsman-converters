@@ -973,9 +973,8 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['GL-SD-301P'],
         model: 'GL-SD-301P',
         vendor: 'Gledopto',
-        description: 'Zigbee triac AC dimmer',
+        description: 'Zigbee phase cut dimmer',
         extend: [gledoptoLight({})],
-        meta: {disableDefaultResponse: true},
     },
 ];
 
