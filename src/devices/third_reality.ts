@@ -330,7 +330,7 @@ const definitions: DefinitionWithExtend[] = [
             humidity(),
             battery(),
             deviceAddCustomCluster('3rSpecialCluster', {
-                ID: 0xfc00,
+                ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
                     celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16},

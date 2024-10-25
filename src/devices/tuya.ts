@@ -5114,6 +5114,132 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ltwbm23f'}],
+        model: 'TRV602Z',
+        vendor: 'Tuya',
+        description: 'Thermostatic radiator valve.',
+        extend: [tuyaBase({dp: true})],
+        exposes: [
+            e.battery(),
+            e.child_lock(),
+            e.max_temperature(),
+            e.min_temperature(),
+            e.position(),
+            e.window_detection(),
+            e.binary('window', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status closed or open '),
+            e.enum('mode', ea.STATE_SET, ['standby', 'antifrost', 'eco', 'comfort', 'auto', 'on']).withDescription('Mode'),
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            e.comfort_temperature().withValueMin(5).withValueMax(30).withDescription('Comfort mode temperature'),
+            e.eco_temperature().withValueMin(5).withValueMax(30).withDescription('Eco mode temperature'),
+            e.enum('display_brightness', ea.STATE_SET, ['high', 'medium', 'low']).withDescription('Display brightness'),
+            e.enum('screen_orientation', ea.STATE_SET, ['up', 'right', 'down', 'left']).withDescription('Screen orientation'),
+            e
+                .enum('system_mode', ea.STATE_SET, ['comfort', 'eco'])
+                .withDescription(
+                    'Hysteresis - comfort > switches off/on exactly at reached ' +
+                        'temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%',
+                ),
+            e.enum('motor_thrust', ea.STATE_SET, ['strong', 'middle', 'weak']),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    'mode',
+                    tuya.valueConverterBasic.lookup({
+                        standby: tuya.enum(0),
+                        antifrost: tuya.enum(1),
+                        eco: tuya.enum(2),
+                        comfort: tuya.enum(3),
+                        auto: tuya.enum(4),
+                        on: tuya.enum(5),
+                    }),
+                ],
+                [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [5, 'local_temperature', tuya.valueConverter.divideBy10],
+                [6, 'battery', tuya.valueConverter.raw],
+                [
+                    7,
+                    'child_lock',
+                    tuya.valueConverterBasic.lookup({
+                        LOCK: true,
+                        UNLOCK: false,
+                    }),
+                ],
+                [9, 'max_temperature', tuya.valueConverter.divideBy10],
+                [10, 'min_temperature', tuya.valueConverter.divideBy10],
+                [
+                    14,
+                    'window_detection',
+                    tuya.valueConverterBasic.lookup({
+                        ON: true,
+                        OFF: false,
+                    }),
+                ],
+                [
+                    15,
+                    'window',
+                    tuya.valueConverterBasic.lookup({
+                        CLOSE: tuya.enum(0),
+                        OPEN: tuya.enum(1),
+                    }),
+                ],
+                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [102, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(1)],
+                [103, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(2)],
+                [104, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(3)],
+                [105, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(4)],
+                [106, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(5)],
+                [107, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(6)],
+                [108, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(7)],
+                [
+                    110,
+                    'motor_thrust',
+                    tuya.valueConverterBasic.lookup({
+                        strong: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        weak: tuya.enum(2),
+                    }),
+                ],
+                [
+                    111,
+                    'display_brightness',
+                    tuya.valueConverterBasic.lookup({
+                        high: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        low: tuya.enum(2),
+                    }),
+                ],
+                [
+                    113,
+                    'screen_orientation',
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        right: tuya.enum(1),
+                        down: tuya.enum(2),
+                        left: tuya.enum(3),
+                    }),
+                ],
+                [114, 'position', tuya.valueConverter.divideBy10],
+                [119, 'comfort_temperature', tuya.valueConverter.divideBy10],
+                [120, 'eco_temperature', tuya.valueConverter.divideBy10],
+                [
+                    127,
+                    'system_mode',
+                    tuya.valueConverterBasic.lookup({
+                        comfort: tuya.enum(0),
+                        eco: tuya.enum(1),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
         zigbeeModel: ['TS0121'],
         model: 'TS0121_plug',
         description: '10A UK or 16A EU smart plug',
@@ -6718,6 +6844,16 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
         whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_8uxxzz4b']),
+        model: 'TS0222_light',
+        vendor: 'Tuya',
+        description: 'Light sensor',
+        fromZigbee: [fz.battery, fz.temperature],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.illuminance()],
     },
     {
         fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_t9qqxn70']),
@@ -9714,7 +9850,7 @@ const definitions: DefinitionWithExtend[] = [
             e.numeric('upper', ea.STATE_SET).withValueMin(0).withValueMax(50).withValueStep(1).withUnit('%').withDescription('Up movement limit'),
             e.numeric('delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('s').withDescription('Sustain time'),
             e.binary('reverse', ea.STATE_SET, 'ON', 'OFF').withDescription('Reverse'),
-            e.binary('touch', ea.STATE_SET, 'ON', 'OFF').withDescription('Touch controll'),
+            e.binary('touch', ea.STATE_SET, 'ON', 'OFF').withDescription('Touch control'),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -12243,6 +12379,122 @@ const definitions: DefinitionWithExtend[] = [
                 [1, 'occupancy', tuya.valueConverter.trueFalse0],
                 [4, 'battery', tuya.valueConverter.raw],
                 [101, 'illuminance', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ha0vwoew']),
+        model: 'TS0601_thermostat_thermosphere',
+        vendor: 'TuYa',
+        description: 'ThermoSphere thermostat',
+        extend: [tuyaBase({dp: true})],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(['off', 'auto'], ea.STATE_SET, 'Whether the thermostat is turned on or off')
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE),
+            e
+                .enum('sensor_mode', ea.STATE_SET, ['room_temperature', 'floor_temperature', 'room_with_floor_limit'])
+                .withDescription('What type of sensor are you using to meausure the temperature of the floor?'),
+            e
+                .binary('adaptive_start', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Preheat the room to the desired tempature before the scheduled start time.'),
+            e.max_temperature_limit().withDescription('Maximum temperature (default: 35 ºC)').withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e
+                .min_temperature_limit()
+                .withDescription(
+                    'Minimum temperature limit for frost protection. Turns the thermostat on regardless of setpoint if the temperature drops below this.',
+                )
+                .withValueMin(1)
+                .withValueMax(5),
+            e
+                .enum('boost', ea.STATE_SET, ['ON', 'OFF'])
+                .withDescription('Override the schedule and boost at the current temperature until turned off'),
+            e
+                .numeric('display_brightness', ea.STATE_SET)
+                .withDescription('Brightness of the display when in use')
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
+            e
+                .numeric('holiday_start_stop', ea.STATE_SET)
+                .withDescription('Set the number of days of holiday, this will start immediately.')
+                .withValueMax(99)
+                .withValueMin(0),
+            e.holiday_temperature().withValueMin(5).withValueMax(35),
+            e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('Turning on will keep heating at the minimum temperature limit'),
+            e
+                .numeric('switch_delay', ea.STATE_SET)
+                .withDescription('How long to wait between making a change and it taking effect')
+                .withValueMin(10)
+                .withValueMax(90)
+                .withValueStep(10)
+                .withUnit('s'),
+            e
+                .numeric('power_rating', ea.STATE_SET)
+                .withDescription(
+                    'How much power is the underfloor heating rated to. Entering a value will allow the Thermostat to record a value of power usage that can be checked under settings on the physical Thermostat',
+                )
+                .withUnit('W')
+                .withValueMin(0)
+                .withValueMax(4500)
+                .withValueStep(100),
+            e
+                .binary('open_window_active', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('When active the heating will cut off if an Open Window is detected'),
+            e
+                .numeric('open_window_sensing_time', ea.STATE_SET)
+                .withDescription('The duration that the drop in temperature needs to occur over')
+                .withUnit('minutes')
+                .withValueMin(1)
+                .withValueMax(30)
+                .withValueStep(1),
+            e
+                .numeric('open_window_drop_limit', ea.STATE_SET)
+                .withDescription('The drop in ambient room temperature that will trigger an open window warning')
+                .withUnit('C')
+                .withValueMin(2)
+                .withValueMax(4)
+                .withValueStep(1),
+            e
+                .numeric('open_window_off_time', ea.STATE_SET)
+                .withDescription('The length of time the drop in temperature must be consistent for to turn the heating off')
+                .withUnit('minutes')
+                .withValueMin(10)
+                .withValueMax(60)
+                .withValueStep(5),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({off: false, auto: true})],
+                [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [4, 'boost', tuya.valueConverterBasic.lookup({OFF: tuya.enum(1), ON: tuya.enum(2)})],
+                [18, 'open_window_active', tuya.valueConverterBasic.lookup({OFF: false, ON: true})],
+                [40, 'open_window_sensing_time', tuya.valueConverterBasic.divideBy(1)],
+                [45, 'open_window_drop_limit', tuya.valueConverter.divideBy10],
+                [47, 'open_window_off_time', tuya.valueConverterBasic.divideBy(1)],
+                [37, 'adaptive_start', tuya.valueConverterBasic.lookup({OFF: false, ON: true})],
+                [38, 'local_temperature', tuya.valueConverter.divideBy10],
+                [39, 'max_temperature_limit', tuya.valueConverter.divideBy10],
+                [41, 'holiday_start_stop', tuya.valueConverterBasic.divideBy(1)], //divideBy1 required to force the format. Raw does not work
+                [42, 'holiday_temperature', tuya.valueConverter.divideBy10],
+                [
+                    43,
+                    'sensor_mode',
+                    tuya.valueConverterBasic.lookup({
+                        room_temperature: tuya.enum(0),
+                        floor_temperature: tuya.enum(1),
+                        room_with_floor_limit: tuya.enum(2),
+                    }),
+                ],
+                //[48, 'temp_tolerance', tuya.valueConverter.raw],
+                [50, 'power_rating', tuya.valueConverterBasic.divideBy(1)],
+                [52, 'frost_protection', tuya.valueConverterBasic.lookup({OFF: false, ON: true})],
+                [53, 'min_temperature_limit', tuya.valueConverter.divideBy10],
+                [54, 'switch_delay', tuya.valueConverterBasic.divideBy(1)],
+                [55, 'display_brightness', tuya.valueConverterBasic.divideBy(1)], //divideBy1 required to force the format. Raw does not work
+                //[16, 'schedule', tuya.valueConverter.Raw],
             ],
         },
     },
