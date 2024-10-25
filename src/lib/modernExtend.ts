@@ -7,6 +7,7 @@ import * as globalLegacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {zigbeeOTA} from '../lib/ota';
 import * as globalStore from '../lib/store';
+import {repInterval} from './constants';
 import {Cover, presets as e, access as ea, Numeric, options as opt} from './exposes';
 import {configure as lightConfigure} from './light';
 import {
@@ -1407,6 +1408,7 @@ export interface IasArgs {
     zoneType: iasZoneType;
     zoneAttributes: iasZoneAttribute[];
     alarmTimeout?: boolean;
+    configureZoneStatusReportingEndpoint?: number;
     description?: string;
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
@@ -1561,7 +1563,20 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         },
     ];
 
-    return {fromZigbee, exposes, isModernExtend: true};
+    let configure: Configure[];
+
+    if (args.configureZoneStatusReportingEndpoint !== undefined) {
+        configure = [
+            async (device) => {
+                const endpoint = device.getEndpoint(args.configureZoneStatusReportingEndpoint);
+                await endpoint.configureReporting('ssIasZone', [
+                    {attribute: 'zoneStatus', minimumReportInterval: 0, maximumReportInterval: repInterval.MAX, reportableChange: 0},
+                ]);
+            },
+        ];
+    }
+
+    return {fromZigbee, exposes, isModernExtend: true, ...(configure && {configure})};
 }
 
 export interface IasWarningArgs {

@@ -927,18 +927,16 @@ const definitions: DefinitionWithExtend[] = [
             addCustomClusterManuSpecificIkeaUnknown(),
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             bindCluster({cluster: 'ssIasZone', clusterType: 'input', endpointNames: ['2']}),
-            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
+            iasZoneAlarm({
+                zoneType: 'contact',
+                zoneAttributes: ['alarm_1'],
+                // This is required to prevent the device's reported state being stuck after it quickly changed back and forth:
+                configureZoneStatusReportingEndpoint: 2,
+            }),
             identify({isSleepy: true}),
             battery(),
             ikeaOta(),
         ],
-        configure: async (device) => {
-            const endpoint = device.getEndpoint(2);
-            // This is required to prevent the device's reported state being stuck after it quickly changed back and forth
-            await endpoint.configureReporting('ssIasZone', [
-                {attribute: 'zoneStatus', minimumReportInterval: 0, maximumReportInterval: repInterval.MAX, reportableChange: 0},
-            ]);
-        },
     },
     {
         zigbeeModel: ['BADRING Water Leakage Sensor'],
@@ -948,18 +946,16 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             bindCluster({cluster: 'ssIasZone', clusterType: 'input'}),
-            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
+            iasZoneAlarm({
+                zoneType: 'water_leak',
+                zoneAttributes: ['alarm_1'],
+                // This is required to prevent the device's reported state being stuck after it quickly changed back and forth:
+                configureZoneStatusReportingEndpoint: 1,
+            }),
             identify({isSleepy: true}),
             battery(),
             ikeaOta(),
         ],
-        configure: async (device) => {
-            const endpoint = device.getEndpoint(1);
-            // This is required to prevent the device's reported state being stuck after it quickly changed back and forth
-            await endpoint.configureReporting('ssIasZone', [
-                {attribute: 'zoneStatus', minimumReportInterval: 0, maximumReportInterval: repInterval.MAX, reportableChange: 0},
-            ]);
-        },
     },
     // #endregion sensors
 ];
