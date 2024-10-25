@@ -931,7 +931,7 @@ const definitions: DefinitionWithExtend[] = [
                 zoneType: 'contact',
                 zoneAttributes: ['alarm_1'],
                 // This is required to prevent the device's reported state being stuck after it quickly changed back and forth:
-                configureZoneStatusReportingEndpoint: 2,
+                zoneStatusReporting: true,
             }),
             identify({isSleepy: true}),
             battery(),
@@ -950,7 +950,7 @@ const definitions: DefinitionWithExtend[] = [
                 zoneType: 'water_leak',
                 zoneAttributes: ['alarm_1'],
                 // This is required to prevent the device's reported state being stuck after it quickly changed back and forth:
-                configureZoneStatusReportingEndpoint: 1,
+                zoneStatusReporting: true,
             }),
             identify({isSleepy: true}),
             battery(),
