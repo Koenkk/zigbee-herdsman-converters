@@ -4,6 +4,7 @@ import {
     enumLookup,
     EnumLookupArgs,
     humidity,
+    iasZoneAlarm,
     identify,
     illuminance,
     numeric,
@@ -282,6 +283,31 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'PushOk Hardware',
         description: 'Illuminance sensor',
         extend: [illuminance({reporting: null}), battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}), ota()],
+    },
+    {
+        zigbeeModel: ['POK012'],
+        model: 'POK012',
+        vendor: 'PushOk Hardware',
+        description: 'Versatile 20 dBm Zigbee router with battery backup, suitable for indoor and outdoor use',
+        extend: [
+            enumLookup({
+                name: 'battery_state',
+                lookup: {MISSING: 0, CHARGING: 1, FULL: 2, DISCHARGING: 3},
+                cluster: 'genMultistateInput',
+                attribute: 'presentValue',
+                zigbeeCommandOptions: {},
+                description: 'Battery state',
+                access: 'STATE_GET',
+                reporting: null,
+            }),
+            iasZoneAlarm({
+                zoneType: 'generic',
+                zoneAttributes: ['ac_status', 'battery_defect'],
+                alarmTimeout: false,
+            }),
+            battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
+            ota(),
+        ],
     },
 ];
 
