@@ -560,11 +560,27 @@ export class Fan extends Base {
     constructor() {
         super();
         this.type = 'fan';
-        this.addFeature(new Binary('state', access.ALL, 'ON', 'OFF').withDescription('On/off state of this fan').withProperty('fan_state'));
+    }
+
+    // For historical reasons (the first fan added also had a light on the same
+    // endpoint) the fan state property was called `fan_state` instead of state
+    // like most other devices. For compatibility reasons existing fans kept
+    // that property name, add new ones without an argument to this function,
+    // which defaults to the new property name.
+    withState(name = 'state', access = a.ALL) {
+        this.addFeature(new Binary('state', access, 'ON', 'OFF').withDescription('On/off state of this fan').withProperty(name));
+        return this;
     }
 
     withModes(modes: string[], access = a.ALL) {
+        assert(this.features.findIndex(f => f.name === 'speed') === -1, 'Fan can only be either mode or speed-controlled, not both');
         this.addFeature(new Enum('mode', access, modes).withProperty('fan_mode').withDescription('Mode of this fan'));
+        return this;
+    }
+
+    withSpeed(minSpeed = 1, maxSpeed = 254, access = a.ALL) {
+        assert(this.features.findIndex(f => f.name === 'mode') === -1, 'Fan can only be either mode or speed-controlled, not both');
+        this.addFeature(new Numeric('speed', access).withProperty('speed').withValueMin(minSpeed).withValueMax(maxSpeed).withDescription('Speed of this fan'));
         return this;
     }
 

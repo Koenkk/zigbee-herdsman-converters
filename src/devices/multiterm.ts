@@ -70,7 +70,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.fan, fzLocal.binary_output],
         toZigbee: [tzLocal.fan_mode, tzLocal.binary_output],
         exposes: [
-            e.fan().withModes(['off', 'low', 'medium', 'high', 'on']).withLabel('Fan Control'),
+            e.fan().withState('fan_state').withModes(['off', 'low', 'medium', 'high', 'on']).withLabel('Fan Control'),
             e.enum('silent_mode', ea.ALL, states.silent_mode).withLabel('Silent mode').withCategory('config'),
             e.enum('heating_cooling', ea.ALL, states.heating_cooling).withLabel('Heating/Cooling').withCategory('config'),
             e.enum('electric_valve', ea.ALL, states.electric_valve).withLabel('Electric Valve').withCategory('config'),

@@ -1908,9 +1908,9 @@ const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), ex
 
 const exposesListVZM31: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
 
-const exposesListVZM35: Expose[] = [e.fan().withModes(Object.keys(fanModes)), exposeLedEffects(), exposeIndividualLedEffects(), exposeBreezeMode()];
+const exposesListVZM35: Expose[] = [e.fan().withState('fan_state').withModes(Object.keys(fanModes)), exposeLedEffects(), exposeIndividualLedEffects(), exposeBreezeMode()];
 
-const exposesListVZM36: Expose[] = [e.light_brightness(), e.fan().withModes(Object.keys(fanModes)), exposeBreezeMode()];
+const exposesListVZM36: Expose[] = [e.light_brightness(), e.fan().withState('fan_state').withModes(Object.keys(fanModes)), exposeBreezeMode()];
 
 // Populate exposes list from the attributes description
 attributesToExposeList(VZM30_ATTRIBUTES, exposesListVZM30);
