@@ -2145,6 +2145,53 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Exxact', model: 'WDE003962'},
         ],
     },
+    {
+        zigbeeModel: ['NHMOTION/UNIDIM/1'],
+        model: 'WDE002962',
+        vendor: 'Schneider Electric',
+        description: 'Motion detector with dimmer and zero',
+        extend: [
+            deviceEndpoints({endpoints: {button: 3, sensor: 37}}),
+            light({
+                effect: false,
+                powerOnBehavior: false,
+                color: false,
+                configureReporting: true,
+                endpointNames: ['button'],
+                levelConfig: {},
+            }),
+        ],
+        fromZigbee: [fz.illuminance, fz.schneider_lighting_ballast_configuration, fz.occupancy],
+        toZigbee: [tz.ballast_config, tz.schneider_dimmer_mode],
+        exposes: [
+            e.occupancy(),
+            e.illuminance_lux(),
+            e.illuminance(),
+            e
+                .numeric('ballast_minimum_level', ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            e
+                .numeric('ballast_maximum_level', ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
+            e.enum('dimmer_mode', ea.ALL, ['RC', 'RL']).withDescription('Controls capacitive or inductive dimming mode'),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint37 = device.getEndpoint(37);
+            const binds37 = ['msIlluminanceMeasurement', 'msOccupancySensing'];
+            await reporting.bind(endpoint37, coordinatorEndpoint, binds37);
+            await reporting.occupancy(endpoint37);
+            await reporting.illuminance(endpoint37);
+        },
+        whiteLabel: [
+            {vendor: 'ELKO', model: 'EKO06984', description: 'SmartPir with push dimmer'},
+            {vendor: 'ELKO', model: 'EKO06985', description: 'SmartPir with push dimmer'},
+            {vendor: 'ELKO', model: 'EKO06986', description: 'SmartPir with push dimmer'},
+        ],
+    },
 ];
 
 export default definitions;
