@@ -1407,6 +1407,7 @@ export interface IasArgs {
     zoneType: iasZoneType;
     zoneAttributes: iasZoneAttribute[];
     alarmTimeout?: boolean;
+    zoneStatusReporting?: boolean;
     description?: string;
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
@@ -1561,7 +1562,16 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         },
     ];
 
-    return {fromZigbee, exposes, isModernExtend: true};
+    let configure: Configure[];
+    if (args.zoneStatusReporting) {
+        configure = [
+            async (device, coordinatorEndpoint) => {
+                await setupAttributes(device, coordinatorEndpoint, 'ssIasZone', [{attribute: 'zoneStatus', min: 'MIN', max: 'MAX', change: 0}]);
+            },
+        ];
+    }
+
+    return {fromZigbee, exposes, isModernExtend: true, ...(configure && {configure})};
 }
 
 export interface IasWarningArgs {
