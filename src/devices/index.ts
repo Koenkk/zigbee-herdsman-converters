@@ -10,6 +10,7 @@ import akuvox from './akuvox';
 import alchemy from './alchemy';
 import aldi from './aldi';
 import alecto from './alecto';
+import amina from './amina';
 import anchor from './anchor';
 import atlantic from './atlantic';
 import atsmart from './atsmart';
@@ -320,6 +321,7 @@ export default [
     ...alchemy,
     ...aldi,
     ...alecto,
+    ...amina,
     ...anchor,
     ...atlantic,
     ...atsmart,
