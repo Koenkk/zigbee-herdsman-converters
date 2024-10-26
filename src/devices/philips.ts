@@ -2024,6 +2024,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929003808901_01', '929003808901_02', '929003808901_03', '929003808901_04', '929003808901_05'],
+        model: '929003808901',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris ceiling light (4 spots)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ['929003621301_01', '929003621301_02', '929003621301_03', '929003621301_04', '929003621301_05'],
         model: '929003621301',
         vendor: 'Philips',
