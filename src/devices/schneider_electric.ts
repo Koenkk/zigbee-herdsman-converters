@@ -2162,7 +2162,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
         ],
         fromZigbee: [fz.illuminance, fz.schneider_lighting_ballast_configuration, fz.occupancy],
-        toZigbee: [tz.ballast_config, tz.schneider_dimmer_mode],
+        toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
         exposes: [
             e.occupancy(),
             e.illuminance_lux(),
@@ -2177,7 +2177,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMin(1)
                 .withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast'),
-            e.enum('dimmer_mode', ea.ALL, ['RC', 'RL']).withDescription('Controls capacitive or inductive dimming mode'),
+            e.enum('dimmer_mode', ea.ALL, ['auto', 'rl_led']).withDescription('Controls dimming mode (Auto or RL-LED'),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint37 = device.getEndpoint(37);
