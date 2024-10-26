@@ -1249,7 +1249,13 @@ export function lock(args?: LockArgs): ModernExtend {
     args = {...args};
 
     const fromZigbee = [fz.lock, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response, fz.lock_user_status_response];
-    const toZigbee = [{...tz.lock, endpoint: args?.endpointNames} , tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume];
+    const toZigbee = [
+        {...tz.lock, endpoint: args?.endpointNames},
+        tz.pincode_lock,
+        tz.lock_userstatus,
+        tz.lock_auto_relock_time,
+        tz.lock_sound_volume,
+    ];
     const exposes = [
         e.lock(),
         e.pincode(),
