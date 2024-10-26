@@ -2160,13 +2160,16 @@ const definitions: DefinitionWithExtend[] = [
                 endpointNames: ['button'],
                 levelConfig: {},
             }),
+            illuminance({
+                endpointNames: ['sensor'],
+            }),
+            occupancy({
+                endpointNames: ['sensor'],
+            }),
         ],
-        fromZigbee: [fz.illuminance, fz.schneider_lighting_ballast_configuration, fz.occupancy],
+        fromZigbee: [fz.schneider_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
         exposes: [
-            e.occupancy(),
-            e.illuminance_lux(),
-            e.illuminance(),
             e
                 .numeric('ballast_minimum_level', ea.ALL)
                 .withValueMin(1)
@@ -2177,14 +2180,11 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMin(1)
                 .withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast'),
-            e.enum('dimmer_mode', ea.ALL, ['auto', 'rl_led']).withDescription('Controls dimming mode (Auto or RL-LED'),
+            e.enum('dimmer_mode', ea.ALL, ['auto', 'rl_led']).withDescription('Controls capacitive or inductive dimming mode'),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint37 = device.getEndpoint(37);
-            const binds37 = ['msIlluminanceMeasurement', 'msOccupancySensing'];
-            await reporting.bind(endpoint37, coordinatorEndpoint, binds37);
-            await reporting.occupancy(endpoint37);
-            await reporting.illuminance(endpoint37);
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['lightingBallastCfg']);
         },
         whiteLabel: [
             {vendor: 'ELKO', model: 'EKO06984', description: 'SmartPir with push dimmer'},
