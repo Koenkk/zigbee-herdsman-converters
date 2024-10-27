@@ -6,7 +6,7 @@ import * as constants from '../lib/constants';
 import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {battery, electricityMeter, humidity, illuminance, onOff} from '../lib/modernExtend';
+import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -615,7 +615,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MOSZB-140',
         vendor: 'Develco',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, develco.fz.led_control, develco.fz.ias_occupancy_timeout],
+        extend: [develcoModernExtend.temperature(), illuminance(), battery(), iasZoneAlarm({zoneType: 'occupancy', alarmTimeout: true, zoneAttributes: ['alarm_1']})],
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
         exposes: (device, options) => {
             const dynExposes = [];
