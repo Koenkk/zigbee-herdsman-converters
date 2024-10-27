@@ -3909,7 +3909,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '915005821901',
         vendor: 'Philips',
         description: 'Philips Hue Go White and Color',
-        extend: [philipsLight({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
 
