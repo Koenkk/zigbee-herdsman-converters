@@ -674,6 +674,38 @@ const definitions: DefinitionWithExtend[] = [
         extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
     },
     {
+        whiteLabel: [{vendor: 'Frient', model: 'MOSZB-153', description: 'Motion Sensor 2 Pet', fingerprint: [{modelID: 'MOSZB-153'}]}],
+        zigbeeModel: ['MOSZB-153'],
+        model: 'MOSZB-153',
+        vendor: 'Develco',
+        description: 'Motion Sensor 2 Pet',
+        fromZigbee: [fz.occupancy_with_timeout, fz.temperature, fz.illuminance, fz.battery, fz.ias_occupancy_alarm_1_with_timeout],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery(), e.temperature(), e.illuminance_lux()],
+        endpoint: (device) => {
+            return {
+                occupancy: 40,
+                temperature: 38,
+                illuminance: 39,
+                battery: 35,
+            };
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const occupancyEndpoint = device.getEndpoint(40);
+            await reporting.bind(occupancyEndpoint, coordinatorEndpoint, ['msOccupancySensing']);
+            await reporting.occupancy(occupancyEndpoint, {min: 10, max: 3600, change: 1});
+            const temperatureEndpoint = device.getEndpoint(38);
+            await reporting.bind(temperatureEndpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(temperatureEndpoint, {min: 10, max: 3600, change: 50});
+            const illuminanceEndpoint = device.getEndpoint(39);
+            await reporting.bind(illuminanceEndpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.illuminance(illuminanceEndpoint, {min: 10, max: 3600, change: 50});
+            const batteryEndpoint = device.getEndpoint(35);
+            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(batteryEndpoint, {min: 600, max: 21600, change: 1});
+        },
+    },
+    {
         whiteLabel: [{vendor: 'Frient', model: 'HMSZB-120', description: 'Temperature & humidity sensor', fingerprint: [{modelID: 'HMSZB-120'}]}],
         zigbeeModel: ['HMSZB-110', 'HMSZB-120'],
         model: 'HMSZB-110',
