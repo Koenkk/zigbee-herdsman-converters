@@ -1,5 +1,21 @@
 # Changelog
 
+## [20.35.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.34.0...v20.35.0) (2024-10-27)
+
+
+### Features
+
+* **add:** 915005821901 ([#8194](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8194)) ([538861e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/538861e5568a973cdc40701a5f19c72a25693b20))
+* **add:** 929003817002 ([#8197](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8197)) ([75337b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/75337b7ae9c847149a3c3183847c58515aef203b))
+* **add:** ZB-ERSM-01 ([#8196](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8196)) ([e545ca4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e545ca4226b33f12f6f7bb0b82ee2812621e2875))
+
+
+### Bug Fixes
+
+* Fix Lidl HG06335/HG07310 not reporting status https://github.com/Koenkk/zigbee2mqtt/issues/24169 ([bfc4ca3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bfc4ca35cb9adc70d61bca7a71e0abed4c6168f0))
+* Fix state attribute incorrect for Tuya TS0601_dimmer_2 https://github.com/Koenkk/zigbee2mqtt/discussions/24471 ([a9d9f5a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a9d9f5a26f6f4e629718847a23de492921685508))
+* Remove unsupported color from Innr RB 279 T  ([#8199](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8199)) ([158bf4c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/158bf4cbc94202825399f26c435f12895cd00bea))
+
 ## [20.34.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.33.0...v20.34.0) (2024-10-26)
 
 
