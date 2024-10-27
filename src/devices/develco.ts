@@ -679,7 +679,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MOSZB-153',
         vendor: 'Develco',
         description: 'Motion Sensor 2 Pet',
-        fromZigbee: [fz.occupancy_with_timeout, fz.temperature, fz.illuminance, fz.battery, fz.ias_occupancy_alarm_1_with_timeout],
+        extend: [temperature(), illuminance(), battery(), iasZoneAlarm({zoneType: 'occupancy', alarmTimeout: true, zoneAttributes: ['alarm_1']})],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery(), e.temperature(), e.illuminance_lux()],
         endpoint: (device) => {
