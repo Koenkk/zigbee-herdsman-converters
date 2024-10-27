@@ -655,6 +655,18 @@ function encodeGradientColors(value: string[], opts: KeyValueAny) {
     return scene;
 }
 
+const {philipsLight} = require('zigbee-herdsman-converters/lib/philips');
+
+const definition = {
+    zigbeeModel: ['929003817002'],
+    model: '929003817002',
+    vendor: 'Philips',
+    description: 'Philips Hue solo lightstrip (5 mtr.)',
+    extend: [philipsLight({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    meta: {},
+};
+
+module.exports = definition;
 exports.tz = philipsTz;
 exports.fz = philipsFz;
 exports.decodeGradientColors = decodeGradientColors;
