@@ -2017,6 +2017,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929003817002'],
+        model: '929003817002',
+        vendor: 'Philips',
+        description: 'Philips Hue solo lightstrip (5 mtr.)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['929003621101_01', '929003621101_02', '929003621101_03', '929003621101_04', '929003621101_05'],
         model: '929003621101',
         vendor: 'Philips',
@@ -3903,6 +3910,13 @@ const definitions: DefinitionWithExtend[] = [
 
             philipsTwilightOnOff(),
         ],
+    },
+    {
+        zigbeeModel: ['915005821901'],
+        model: '915005821901',
+        vendor: 'Philips',
+        description: 'Philips Hue Go White and Color',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
 
