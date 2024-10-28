@@ -1,6 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import fz from '../converters/fromZigbee';
+import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {binary, deviceAddCustomCluster, electricityMeter, numeric, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
@@ -42,20 +42,6 @@ const aminaAlarms = [
 ];
 
 const fzLocal = {
-    charge_limit: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-
-            if (msg.data.currentLevel !== undefined) {
-                result.charge_limit = msg.data['currentLevel'];
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter,
-
     ev_status: {
         cluster: 'aminaControlCluster',
         type: ['attributeReport', 'readResponse'],
@@ -67,7 +53,7 @@ const fzLocal = {
                 const evStatus = msg.data['evStatus'];
 
                 result.ev_connected = (evStatus & (1 << 0)) !== 0;
-                if (result.ev_connected) {
+                if (result.ev_connected === true) {
                     statusText = 'EV Connected';
                 } else {
                     statusText = 'Not Connected';
@@ -144,13 +130,6 @@ const tzLocal = {
             await entity.read('aminaControlCluster', ['alarms'], manufacturerOptions);
         },
     } satisfies Tz.Converter,
-
-    total_active_power: {
-        key: ['total_active_power'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['totalActivePower'], manufacturerOptions);
-        },
-    } satisfies Tz.Converter,
 };
 
 const definitions: DefinitionWithExtend[] = [
@@ -160,30 +139,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Amina Distribution AS',
         description: 'Amina S EV Charger',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fzLocal.charge_limit, fzLocal.ev_status, fzLocal.alarms, fz.electrical_measurement],
-        toZigbee: [tzLocal.charge_limit, tzLocal.ev_status, tzLocal.alarms, tzLocal.total_active_power],
+        fromZigbee: [fzLocal.ev_status, fzLocal.alarms],
+        toZigbee: [tzLocal.ev_status, tzLocal.alarms, tzLocal.charge_limit],
         exposes: [
-            e
-                .numeric('charge_limit', ea.ALL)
-                .withUnit('A')
-                .withValueMin(6)
-                .withValueMax(32)
-                .withValueStep(1)
-                .withDescription('Maximum allowed amperage draw'),
             e.text('ev_status', ea.STATE_GET).withDescription('Current charging status'),
-            e.binary('ev_connected', ea.STATE, 'true', 'false').withDescription('An EV is connected to the charger'),
-            e.binary('derated', ea.STATE, 'true', 'false').withDescription('Charging derated due to high temperature'),
             e.text('alarms', ea.STATE_GET).withDescription('Alarms reported by EV Charger'),
-            e.binary('alarm_active', ea.STATE, 'true', 'false').withDescription('An active alarm is present'),
         ],
-
         extend: [
-            electricityMeter({
-                cluster: 'electrical',
-                acFrequency: true,
-                threePhase: true,
-            }),
-
             deviceAddCustomCluster('aminaControlCluster', {
                 ID: aminaControlAttributes.cluster,
                 manufacturerCode: manufacturerOptions.manufacturerCode,
@@ -208,11 +170,24 @@ const definitions: DefinitionWithExtend[] = [
             }),
 
             numeric({
+                name: 'charge_limit',
+                cluster: 'genLevelCtrl',
+                attribute: 'currentLevel',
+                description: 'Maximum allowed amperage draw',
+                reporting: {min: 0, max: 'MAX', change: 1},
+                unit: 'A',
+                valueMin: 6,
+                valueMax: 32,
+                valueStep: 1,
+                access: 'ALL',
+            }),
+
+            numeric({
                 name: 'total_active_power',
                 cluster: 'haElectricalMeasurement',
                 attribute: 'totalActivePower',
                 description: 'Instantaneous measured total active power',
-                reporting: {min: '10_SECONDS', max: 'MAX', change: 5},
+                reporting: {min: '10_SECONDS', max: 'MAX', change: 10},
                 unit: 'kW',
                 scale: 1000,
                 precision: 2,
@@ -241,6 +216,42 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 1000,
                 precision: 2,
                 access: 'STATE_GET',
+            }),
+
+            binary({
+                name: 'ev_connected',
+                cluster: 'aminaControlCluster',
+                attribute: 'evConnected',
+                description: 'An EV is connected to the charger',
+                valueOn: ['True', 1],
+                valueOff: ['False', 0],
+                access: 'STATE',
+            }),
+
+            binary({
+                name: 'derated',
+                cluster: 'aminaControlCluster',
+                attribute: 'derated',
+                description: 'Charging derated due to high temperature',
+                valueOn: ['True', 1],
+                valueOff: ['False', 0],
+                access: 'STATE',
+            }),
+
+            binary({
+                name: 'alarm_active',
+                cluster: 'aminaControlCluster',
+                attribute: 'alarmActive',
+                description: 'An active alarm is present',
+                valueOn: ['True', 1],
+                valueOff: ['False', 0],
+                access: 'STATE',
+            }),
+
+            electricityMeter({
+                cluster: 'electrical',
+                acFrequency: true,
+                threePhase: true,
             }),
 
             binary({
@@ -308,20 +319,11 @@ const definitions: DefinitionWithExtend[] = [
             const binds = ['genBasic', 'genOnOff', 'haElectricalMeasurement', 'genLevelCtrl', 'aminaControlCluster'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
-            await endpoint.configureReporting('genLevelCtrl', [
-                {
-                    attribute: 'currentLevel',
-                    minimumReportInterval: 10,
-                    maximumReportInterval: 65000,
-                    reportableChange: 1,
-                },
-            ]);
-
             await endpoint.configureReporting('aminaControlCluster', [
                 {
                     attribute: 'evStatus',
-                    minimumReportInterval: 10,
-                    maximumReportInterval: 65000,
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
                     reportableChange: 1,
                 },
             ]);
@@ -329,8 +331,8 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.configureReporting('aminaControlCluster', [
                 {
                     attribute: 'alarms',
-                    minimumReportInterval: 10,
-                    maximumReportInterval: 65000,
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
                     reportableChange: 1,
                 },
             ]);
