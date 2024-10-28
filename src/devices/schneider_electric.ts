@@ -2147,9 +2147,9 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['NHMOTION/UNIDIM/1'],
-        model: 'WDE002962',
+        model: 'NHMOTION/UNIDIM/1',
         vendor: 'Schneider Electric',
-        description: 'Motion detector with dimmer and zero',
+        description: 'Motion detector with dimmer',
         extend: [
             deviceEndpoints({endpoints: {button: 3, sensor: 37}}),
             light({
