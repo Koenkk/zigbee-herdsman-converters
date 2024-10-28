@@ -78,10 +78,6 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
 
-            msg.data = msg.data || {};
-            msg.data.alarms = 0b1010;  // Binary pattern to simulate alarm states (bits 1 and 3 set)
-
-
             if (msg.data.alarms !== undefined) {
                 result.alarms = [];
                 result.alarm_active = false;
