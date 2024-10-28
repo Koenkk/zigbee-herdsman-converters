@@ -316,7 +316,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
 
-            const binds = ['genBasic', 'genOnOff', 'haElectricalMeasurement', 'genLevelCtrl', 'aminaControlCluster'];
+            const binds = ['genBasic', 'genLevelCtrl', 'aminaControlCluster'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
             await endpoint.configureReporting('aminaControlCluster', [
