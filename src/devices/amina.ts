@@ -78,6 +78,10 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
 
+            msg.data = msg.data || {};
+            msg.data.alarms = 0b1010;  // Binary pattern to simulate alarm states (bits 1 and 3 set)
+
+
             if (msg.data.alarms !== undefined) {
                 result.alarms = [];
                 result.alarm_active = false;
@@ -223,8 +227,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'evConnected',
                 description: 'An EV is connected to the charger',
-                valueOn: ['True', 1],
-                valueOff: ['False', 0],
+                valueOn: ['true', 1],
+                valueOff: ['false', 0],
                 access: 'STATE',
             }),
 
@@ -233,8 +237,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'derated',
                 description: 'Charging derated due to high temperature',
-                valueOn: ['True', 1],
-                valueOff: ['False', 0],
+                valueOn: ['true', 1],
+                valueOff: ['false', 0],
                 access: 'STATE',
             }),
 
@@ -243,8 +247,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'alarmActive',
                 description: 'An active alarm is present',
-                valueOn: ['True', 1],
-                valueOff: ['False', 0],
+                valueOn: ['true', 1],
+                valueOff: ['false', 0],
                 access: 'STATE',
             }),
 
@@ -259,8 +263,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'singlePhase',
                 description: 'Enable single phase charging. A restart of charging is required for the change to take effect.',
-                valueOn: ['Enable', 1],
-                valueOff: ['Disable', 0],
+                valueOn: ['enable', 1],
+                valueOff: ['disable', 0],
                 entityCategory: 'config',
             }),
 
@@ -269,8 +273,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'enableOffline',
                 description: 'Enable offline mode when connection to the network is lost',
-                valueOn: ['Enable', 1],
-                valueOff: ['Disable', 0],
+                valueOn: ['enable', 1],
+                valueOff: ['disable', 0],
                 entityCategory: 'config',
             }),
 
@@ -303,8 +307,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'offlineSinglePhase',
                 description: 'Use single phase charging when device is offline',
-                valueOn: ['Enable', 1],
-                valueOff: ['Disable', 0],
+                valueOn: ['enable', 1],
+                valueOff: ['disable', 0],
                 entityCategory: 'config',
             }),
         ],
