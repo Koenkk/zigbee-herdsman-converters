@@ -2151,13 +2151,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Motion detector with dimmer',
         extend: [
-            deviceEndpoints({endpoints: {button: 3, sensor: 37}}),
+            deviceEndpoints({endpoints: {light: 3, sensor: 37}}),
             light({
                 effect: false,
                 powerOnBehavior: false,
                 color: false,
                 configureReporting: true,
-                endpointNames: ['button'],
+                endpointNames: ['light'],
                 levelConfig: {},
             }),
             illuminance({
