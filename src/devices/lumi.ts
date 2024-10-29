@@ -3805,7 +3805,7 @@ const definitions: DefinitionWithExtend[] = [
             e.external_temperature_input().withDescription('Input for remote temperature sensor (when sensor is set to external)'),
             e.calibrated().withDescription('Indicates if this valve is calibrated, use the calibrate option to calibrate'),
             e.enum('calibrate', ea.ALL, ['calibrate']).withDescription('Calibrates the valve').withCategory('config'),
-            e.child_lock_bool(),
+            e.child_lock().withAccess(ea.ALL),
             e.window_detection_bool(),
             e.window_open(),
             e.valve_detection_bool(),
