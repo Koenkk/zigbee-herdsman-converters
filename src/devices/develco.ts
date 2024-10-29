@@ -6,7 +6,7 @@ import * as constants from '../lib/constants';
 import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {battery, electricityMeter, humidity, illuminance, onOff} from '../lib/modernExtend';
+import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -620,12 +620,12 @@ const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             const dynExposes = [];
             dynExposes.push(e.occupancy());
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
                 dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(5).withValueMax(65535));
             }
             dynExposes.push(e.tamper());
             dynExposes.push(e.battery_low());
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
                 dynExposes.push(
                     e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
                 );
@@ -655,10 +655,10 @@ const definitions: DefinitionWithExtend[] = [
             // zigbee2mqtt#14277 some features are not available on older firmwares
             // modernExtend's readGenBasicPrimaryVersions is called before this one, should be fine
             const endpoint35 = device.getEndpoint(35);
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
                 await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
             }
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
                 await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
             }
         },
@@ -668,10 +668,11 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MOSZB-141',
         vendor: 'Develco',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low()],
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}),
+        ],
     },
     {
         whiteLabel: [{vendor: 'Frient', model: 'MOSZB-153', description: 'Motion Sensor 2 Pet'}],
@@ -679,17 +680,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MOSZB-153',
         vendor: 'Develco',
         description: 'Motion sensor 2 pet',
-        fromZigbee: [fz.ias_occupancy_alarm_1, develco.fz.led_control, develco.fz.ias_occupancy_timeout],
+        fromZigbee: [develco.fz.led_control, develco.fz.ias_occupancy_timeout],
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
         exposes: (device, options) => {
             const dynExposes = [];
-            dynExposes.push(e.occupancy());
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
                 dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(5).withValueMax(65535));
             }
-            dynExposes.push(e.tamper());
-            dynExposes.push(e.battery_low());
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
                 dynExposes.push(
                     e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
                 );
@@ -707,13 +705,14 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.temperature(),
             illuminance(),
             battery(),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']}),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint35 = device.getEndpoint(35);
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
                 await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
             }
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
                 await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
             }
         },
