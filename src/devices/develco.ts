@@ -6,7 +6,7 @@ import * as constants from '../lib/constants';
 import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {battery, electricityMeter, humidity, illuminance, onOff} from '../lib/modernExtend';
+import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -397,7 +397,13 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
+            // Device supports only 4 binds (otherwise you get TABLE_FULL error)
+            // https://github.com/Koenkk/zigbee2mqtt/issues/23684
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            }
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBinaryInput']);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -468,15 +474,13 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
-            // Device returns `ZDP_TABLE_FULL` on bind even though it succeeds
-            // https://github.com/Koenkk/zigbee2mqtt/issues/22492
-            for (const cluster of ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']) {
-                try {
-                    await endpoint.bind(cluster, coordinatorEndpoint);
-                } catch {
-                    logger.debug(`Failed to bind '${cluster}'`, NS);
-                }
+            // Device supports only 4 binds (otherwise you get TABLE_FULL error)
+            // https://github.com/Koenkk/zigbee2mqtt/issues/23684
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
             }
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBinaryInput']);
 
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
@@ -616,12 +620,12 @@ const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             const dynExposes = [];
             dynExposes.push(e.occupancy());
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
                 dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(5).withValueMax(65535));
             }
             dynExposes.push(e.tamper());
             dynExposes.push(e.battery_low());
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
                 dynExposes.push(
                     e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
                 );
@@ -651,10 +655,10 @@ const definitions: DefinitionWithExtend[] = [
             // zigbee2mqtt#14277 some features are not available on older firmwares
             // modernExtend's readGenBasicPrimaryVersions is called before this one, should be fine
             const endpoint35 = device.getEndpoint(35);
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
                 await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
             }
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
                 await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
             }
         },
@@ -664,10 +668,54 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MOSZB-141',
         vendor: 'Develco',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low()],
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}),
+        ],
+    },
+    {
+        whiteLabel: [{vendor: 'Frient', model: 'MOSZB-153', description: 'Motion Sensor 2 Pet'}],
+        zigbeeModel: ['MOSZB-153'],
+        model: 'MOSZB-153',
+        vendor: 'Develco',
+        description: 'Motion sensor 2 pet',
+        fromZigbee: [develco.fz.led_control, develco.fz.ias_occupancy_timeout],
+        toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
+        exposes: (device, options) => {
+            const dynExposes = [];
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
+                dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(5).withValueMax(65535));
+            }
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
+                dynExposes.push(
+                    e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
+                );
+            }
+            dynExposes.push(e.linkquality());
+            return dynExposes;
+        },
+        ota: ota.zigbeeOTA,
+        endpoint: (device) => {
+            return {default: 35};
+        },
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            develcoModernExtend.temperature(),
+            illuminance(),
+            battery(),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']}),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint35 = device.getEndpoint(35);
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
+                await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+            }
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
+                await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
+            }
+        },
     },
     {
         whiteLabel: [{vendor: 'Frient', model: 'HMSZB-120', description: 'Temperature & humidity sensor', fingerprint: [{modelID: 'HMSZB-120'}]}],

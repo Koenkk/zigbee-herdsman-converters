@@ -38,6 +38,7 @@ import candeo from './candeo';
 import casaia from './casaia';
 import cel from './cel';
 import centralite from './centralite';
+import chacon from './chacon';
 import cleode from './cleode';
 import cleverio from './cleverio';
 import climax from './climax';
@@ -348,6 +349,7 @@ export default [
     ...casaia,
     ...cel,
     ...centralite,
+    ...chacon,
     ...cleode,
     ...cleverio,
     ...climax,
