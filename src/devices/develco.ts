@@ -403,7 +403,7 @@ const definitions: DefinitionWithExtend[] = [
                 await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
             }
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBinaryInput']);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -480,7 +480,7 @@ const definitions: DefinitionWithExtend[] = [
                 await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
             }
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBinaryInput']);
 
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);

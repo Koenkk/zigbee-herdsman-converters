@@ -15,7 +15,7 @@ import {
     ReportingConfigWithoutAttribute,
     setupConfigureForBinding,
     setupConfigureForReporting,
-    timeLookup,
+    TIME_LOOKUP,
 } from '../lib/modernExtend';
 import {tradfri as ikea} from '../lib/ota';
 import * as reporting from '../lib/reporting';
@@ -425,8 +425,8 @@ export function ikeaAirPurifier(): ModernExtend {
                 [
                     {
                         attribute: 'particulateMatter25Measurement',
-                        minimumReportInterval: timeLookup['1_MINUTE'],
-                        maximumReportInterval: timeLookup['1_HOUR'],
+                        minimumReportInterval: TIME_LOOKUP['1_MINUTE'],
+                        maximumReportInterval: TIME_LOOKUP['1_HOUR'],
                         reportableChange: 1,
                     },
                 ],
@@ -437,8 +437,8 @@ export function ikeaAirPurifier(): ModernExtend {
                 [
                     {
                         attribute: 'filterRunTime',
-                        minimumReportInterval: timeLookup['1_HOUR'],
-                        maximumReportInterval: timeLookup['1_HOUR'],
+                        minimumReportInterval: TIME_LOOKUP['1_HOUR'],
+                        maximumReportInterval: TIME_LOOKUP['1_HOUR'],
                         reportableChange: 0,
                     },
                 ],
@@ -446,12 +446,12 @@ export function ikeaAirPurifier(): ModernExtend {
             );
             await endpoint.configureReporting(
                 'manuSpecificIkeaAirPurifier',
-                [{attribute: 'fanMode', minimumReportInterval: 0, maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 1}],
+                [{attribute: 'fanMode', minimumReportInterval: 0, maximumReportInterval: TIME_LOOKUP['1_HOUR'], reportableChange: 1}],
                 manufacturerOptions,
             );
             await endpoint.configureReporting(
                 'manuSpecificIkeaAirPurifier',
-                [{attribute: 'fanSpeed', minimumReportInterval: 0, maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 1}],
+                [{attribute: 'fanSpeed', minimumReportInterval: 0, maximumReportInterval: TIME_LOOKUP['1_HOUR'], reportableChange: 1}],
                 manufacturerOptions,
             );
 
