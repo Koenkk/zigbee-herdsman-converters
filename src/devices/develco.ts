@@ -6,7 +6,7 @@ import * as constants from '../lib/constants';
 import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, onOff} from '../lib/modernExtend';
+import {battery, electricityMeter, humidity, illuminance, onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
