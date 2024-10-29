@@ -1,5 +1,22 @@
 # Changelog
 
+## [20.36.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.35.0...v20.36.0) (2024-10-29)
+
+
+### Features
+
+* Add two private attributes for SR-ZG9040A/ZG9041A-D. ([#8210](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8210)) ([7310253](https://github.com/Koenkk/zigbee-herdsman-converters/commit/73102533c618401a67683cd063ada6ccaaba6da1))
+* **add:** MOSZB-153 ([#8195](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8195)) ([a3cde02](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3cde0224e82b7d9bc640a82c56335864cde9c82))
+* **add:** POK012 ([#8213](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8213)) ([2cb90e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2cb90e5dc3bfd6d7021366d438d74b7e6eb195f4))
+* **add:** SP-PS3-02, SP-WS-02 ([#8208](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8208)) ([d42ffbd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d42ffbd235102c7f9a6c8f4291a09f8cad38a681))
+
+
+### Bug Fixes
+
+* Correct local temperature calibration min and max value on SONOFF TRVZB ([#8214](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8214)) ([db1a214](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db1a2143e7c23104706741f62fc3f807bba739d4))
+* **ignore:** Develco: Bind genBinaryInput cluster instead of genpolllctrl  ([#8209](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8209)) ([7923565](https://github.com/Koenkk/zigbee-herdsman-converters/commit/792356515c7a3aa5d58a1d0f72709baa575d994b))
+* Improve OSRAM AC01353010G batter % calculation ([#8212](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8212)) ([a188512](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a188512dbdf5148fbc94dadb07d9fe29a2bb40b2))
+
 ## [20.35.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.34.0...v20.35.0) (2024-10-27)
 
 
