@@ -197,7 +197,7 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'totalActiveEnergy',
                 description: 'Sum of consumed energy',
-                //reporting: {min: '10_SECONDS', max: 'MAX', change: 5}, // Not Reportable atm
+                //reporting: {min: '10_SECONDS', max: 'MAX', change: 5}, // Not Reportable atm, updated using onEvent
                 unit: 'kWh',
                 scale: 1000,
                 precision: 2,
@@ -209,7 +209,7 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'lastSessionEnergy',
                 description: 'Sum of consumed energy last session',
-                //reporting: {min: '10_SECONDS', max: 'MAX', change: 5}, // Not Reportable atm
+                //reporting: {min: '10_SECONDS', max: 'MAX', change: 5}, // Not Reportable atm, updated using onEvent
                 unit: 'kWh',
                 scale: 1000,
                 precision: 2,
@@ -230,7 +230,7 @@ const definitions: DefinitionWithExtend[] = [
                 name: 'charging',
                 cluster: 'aminaControlCluster',
                 attribute: 'charging',
-                description: 'Power is being deliverd to the EV',
+                description: 'Power is being delivered to the EV',
                 valueOn: ['true', 1],
                 valueOff: ['false', 0],
                 access: 'STATE',
