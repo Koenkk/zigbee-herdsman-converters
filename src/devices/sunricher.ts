@@ -25,7 +25,7 @@ import {
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Expose, Fz, ModernExtend, OnEvent, OnEventData, OnEventType, Tz, Zh} from '../lib/types';
+import {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const NS = 'zhc:sunricher';
@@ -34,34 +34,18 @@ const ea = exposes.access;
 
 const sunricherManufacturerCode = 0x1224;
 
-async function readAttributeIfOnline(type: OnEventType, data: OnEventData, device: Zh.Device, attribute: number) {
-    let isReading = false;
-    if (type === 'deviceInterview') {
-        const interviewData = data as {status: string};
-        if (interviewData.status === 'successful') {
-            isReading = true;
-        }
-    } else if (type === 'deviceAnnounce') {
-        isReading = true;
-    }
-    if (isReading) {
-        const endpoint = device.getEndpoint(1);
-        await endpoint.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
-    }
-}
-
 function sunricherExternalSwitchType(): ModernExtend {
     const attribute = 0x8803;
-    const dataType = 0x20;
-    const valueMap: {[key: number]: string} = {
-        0: 'Push button',
-        1: 'Normal on/off',
-        2: 'Three way',
+    const data_type = 0x20;
+    const value_map: {[key: number]: string} = {
+        0: 'push_button',
+        1: 'normal_on_off',
+        2: 'three_way',
     };
-    const valueLookup: {[key: string]: number} = {
-        'Push button': 0,
-        'Normal on/off': 1,
-        'Three way': 2,
+    const value_lookup: {[key: string]: number} = {
+        push_button: 0,
+        normal_on_off: 1,
+        three_way: 2,
     };
 
     const fromZigbee: Fz.Converter[] = [
@@ -72,8 +56,8 @@ function sunricherExternalSwitchType(): ModernExtend {
                 if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
                     const value = msg.data[attribute];
                     return {
-                        externalSwitchType: valueMap[value] || 'unknown',
-                        externalSwitchTypeNumeric: value,
+                        external_switch_type: value_map[value] || 'unknown',
+                        external_switch_type_numeric: value,
                     };
                 }
                 return undefined;
@@ -83,11 +67,11 @@ function sunricherExternalSwitchType(): ModernExtend {
 
     const toZigbee: Tz.Converter[] = [
         {
-            key: ['externalSwitchType'],
+            key: ['external_switch_type'],
             convertSet: async (entity, key, value: string, meta) => {
-                const numericValue = valueLookup[value] ?? parseInt(value, 10);
-                await entity.write('genBasic', {[attribute]: {value: numericValue, type: dataType}}, {manufacturerCode: sunricherManufacturerCode});
-                return {state: {externalSwitchType: value}};
+                const numericValue = value_lookup[value] ?? parseInt(value, 10);
+                await entity.write('genBasic', {[attribute]: {value: numericValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
+                return {state: {external_switch_type: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
@@ -95,22 +79,33 @@ function sunricherExternalSwitchType(): ModernExtend {
         } satisfies Tz.Converter,
     ];
 
-    const exposes: Expose[] = [e.enum('externalSwitchType', ea.ALL, ['Push button', 'Normal on/off', 'Three way']).withLabel('External Switch Type')];
-    const onEvent: OnEvent = async (type, data, device) => {
-        await readAttributeIfOnline(type, data, device, attribute);
-    };
+    const exposes: Expose[] = [
+        e.enum('external_switch_type', ea.ALL, ['push_button', 'normal_on_off', 'three_way']).withLabel('External switch type'),
+    ];
+
+    const configure: [Configure] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(1);
+            try {
+                await endpoint.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
+            } catch (error) {
+                console.warn(`Failed to read external switch type attribute: ${error}`);
+            }
+        },
+    ];
+
     return {
         fromZigbee,
         toZigbee,
         exposes,
-        onEvent,
+        configure,
         isModernExtend: true,
     };
 }
 
 function sunricherMinimumPWM(): ModernExtend {
     const attribute = 0x7809;
-    const dataType = 0x20;
+    const data_type = 0x20;
 
     const fromZigbee: Fz.Converter[] = [
         {
@@ -121,7 +116,7 @@ function sunricherMinimumPWM(): ModernExtend {
                     console.log(`from `, msg.data[attribute]);
                     const value = Math.round(msg.data[attribute] / 5.1);
                     return {
-                        minimumPWM: value,
+                        minimum_pwm: value,
                     };
                 }
                 return undefined;
@@ -131,13 +126,13 @@ function sunricherMinimumPWM(): ModernExtend {
 
     const toZigbee: Tz.Converter[] = [
         {
-            key: ['minimumPWM'],
+            key: ['minimum_pwm'],
             convertSet: async (entity: Zh.Endpoint, key: string, value: number | string, meta) => {
                 console.log(`to `, value);
                 const numValue = typeof value === 'string' ? parseInt(value) : value;
                 const zgValue = Math.round(numValue * 5.1);
-                await entity.write('genBasic', {[attribute]: {value: zgValue, type: dataType}}, {manufacturerCode: sunricherManufacturerCode});
-                return {state: {minimumPWM: numValue}};
+                await entity.write('genBasic', {[attribute]: {value: zgValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
+                return {state: {minimum_pwm: numValue}};
             },
             convertGet: async (entity: Zh.Endpoint, key: string, meta) => {
                 await entity.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
@@ -147,7 +142,7 @@ function sunricherMinimumPWM(): ModernExtend {
 
     const exposes: Expose[] = [
         e
-            .numeric('minimumPWM', ea.ALL)
+            .numeric('minimum_pwm', ea.ALL)
             .withLabel('Minimum PWM')
             .withDescription('Power off the device and wait for 3 seconds before reconnecting to apply the settings.')
             .withValueMin(0)
@@ -156,15 +151,22 @@ function sunricherMinimumPWM(): ModernExtend {
             .withValueStep(1),
     ];
 
-    const onEvent: OnEvent = async (type, data, device) => {
-        await readAttributeIfOnline(type, data, device, attribute);
-    };
+    const configure: [Configure] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(1);
+            try {
+                await endpoint.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
+            } catch (error) {
+                console.warn(`Failed to read external switch type attribute: ${error}`);
+            }
+        },
+    ];
 
     return {
         fromZigbee,
         toZigbee,
         exposes,
-        onEvent,
+        configure,
         isModernExtend: true,
     };
 }
