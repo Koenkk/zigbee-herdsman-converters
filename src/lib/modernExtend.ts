@@ -65,7 +65,51 @@ function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, ty
     return endpoints;
 }
 
-export const timeLookup = {
+const IAS_EXPOSE_LOOKUP = {
+    occupancy: e.binary('occupancy', ea.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
+    contact: e.binary('contact', ea.STATE, false, true).withDescription('Indicates whether the device is opened or closed'),
+    smoke: e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
+    water_leak: e.binary('water_leak', ea.STATE, true, false).withDescription('Indicates whether the device detected a water leak'),
+    carbon_monoxide: e.binary('carbon_monoxide', ea.STATE, true, false).withDescription('Indicates whether the device detected carbon monoxide'),
+    sos: e.binary('sos', ea.STATE, true, false).withLabel('SOS').withDescription('Indicates whether the SOS alarm is triggered'),
+    vibration: e.binary('vibration', ea.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
+    alarm: e.binary('alarm', ea.STATE, true, false).withDescription('Indicates whether the alarm is triggered'),
+    gas: e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
+    alarm_1: e.binary('alarm_1', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 1 is active'),
+    alarm_2: e.binary('alarm_2', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 2 is active'),
+    tamper: e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered').withCategory('diagnostic'),
+    rain: e.binary('rain', ea.STATE, true, false).withDescription('Indicates whether the device detected rainfall'),
+    battery_low: e
+        .binary('battery_low', ea.STATE, true, false)
+        .withDescription('Indicates whether the battery of the device is almost empty')
+        .withCategory('diagnostic'),
+    supervision_reports: e
+        .binary('supervision_reports', ea.STATE, true, false)
+        .withDescription('Indicates whether the device issues reports on zone operational status')
+        .withCategory('diagnostic'),
+    restore_reports: e
+        .binary('restore_reports', ea.STATE, true, false)
+        .withDescription('Indicates whether the device issues reports on alarm no longer being present')
+        .withCategory('diagnostic'),
+    ac_status: e
+        .binary('ac_status', ea.STATE, true, false)
+        .withDescription('Indicates whether the device mains voltage supply is at fault')
+        .withCategory('diagnostic'),
+    test: e
+        .binary('test', ea.STATE, true, false)
+        .withDescription('Indicates whether the device is currently performing a test')
+        .withCategory('diagnostic'),
+    trouble: e
+        .binary('trouble', ea.STATE, true, false)
+        .withDescription('Indicates whether the device is currently havin trouble')
+        .withCategory('diagnostic'),
+    battery_defect: e
+        .binary('battery_defect', ea.STATE, true, false)
+        .withDescription('Indicates whether the device battery is defective')
+        .withCategory('diagnostic'),
+};
+
+export const TIME_LOOKUP = {
     MAX: 65000,
     '4_HOURS': 14400,
     '1_HOUR': 3600,
@@ -79,15 +123,15 @@ export const timeLookup = {
     MIN: 0,
 };
 
-type ReportingConfigTime = number | keyof typeof timeLookup;
+type ReportingConfigTime = number | keyof typeof TIME_LOOKUP;
 type ReportingConfigAttribute = string | number | {ID: number; type: number};
 type ReportingConfig = {min: ReportingConfigTime; max: ReportingConfigTime; change: number; attribute: ReportingConfigAttribute};
 export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, 'attribute'>;
 
 function convertReportingConfigTime(time: ReportingConfigTime): number {
     if (isString(time)) {
-        if (!(time in timeLookup)) throw new Error(`Reporting time '${time}' is unknown`);
-        return timeLookup[time];
+        if (!(time in TIME_LOOKUP)) throw new Error(`Reporting time '${time}' is unknown`);
+        return TIME_LOOKUP[time];
     } else {
         return time;
     }
@@ -1407,53 +1451,10 @@ export interface IasArgs {
     zoneType: iasZoneType;
     zoneAttributes: iasZoneAttribute[];
     alarmTimeout?: boolean;
+    zoneStatusReporting?: boolean;
     description?: string;
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
-    const exposeList = {
-        occupancy: e.binary('occupancy', ea.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
-        contact: e.binary('contact', ea.STATE, false, true).withDescription('Indicates whether the device is opened or closed'),
-        smoke: e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
-        water_leak: e.binary('water_leak', ea.STATE, true, false).withDescription('Indicates whether the device detected a water leak'),
-        carbon_monoxide: e.binary('carbon_monoxide', ea.STATE, true, false).withDescription('Indicates whether the device detected carbon monoxide'),
-        sos: e.binary('sos', ea.STATE, true, false).withLabel('SOS').withDescription('Indicates whether the SOS alarm is triggered'),
-        vibration: e.binary('vibration', ea.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
-        alarm: e.binary('alarm', ea.STATE, true, false).withDescription('Indicates whether the alarm is triggered'),
-        gas: e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
-        alarm_1: e.binary('alarm_1', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 1 is active'),
-        alarm_2: e.binary('alarm_2', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 2 is active'),
-        tamper: e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered').withCategory('diagnostic'),
-        rain: e.binary('rain', ea.STATE, true, false).withDescription('Indicates whether the device detected rainfall'),
-        battery_low: e
-            .binary('battery_low', ea.STATE, true, false)
-            .withDescription('Indicates whether the battery of the device is almost empty')
-            .withCategory('diagnostic'),
-        supervision_reports: e
-            .binary('supervision_reports', ea.STATE, true, false)
-            .withDescription('Indicates whether the device issues reports on zone operational status')
-            .withCategory('diagnostic'),
-        restore_reports: e
-            .binary('restore_reports', ea.STATE, true, false)
-            .withDescription('Indicates whether the device issues reports on alarm no longer being present')
-            .withCategory('diagnostic'),
-        ac_status: e
-            .binary('ac_status', ea.STATE, true, false)
-            .withDescription('Indicates whether the device mains voltage supply is at fault')
-            .withCategory('diagnostic'),
-        test: e
-            .binary('test', ea.STATE, true, false)
-            .withDescription('Indicates whether the device is currently performing a test')
-            .withCategory('diagnostic'),
-        trouble: e
-            .binary('trouble', ea.STATE, true, false)
-            .withDescription('Indicates whether the device is currently havin trouble')
-            .withCategory('diagnostic'),
-        battery_defect: e
-            .binary('battery_defect', ea.STATE, true, false)
-            .withDescription('Indicates whether the device battery is defective')
-            .withCategory('diagnostic'),
-    };
-
     const exposes: Expose[] = [];
     const invertAlarmPayload = args.zoneType === 'contact';
     const bothAlarms = args.zoneAttributes.includes('alarm_1') && args.zoneAttributes.includes('alarm_2');
@@ -1463,7 +1464,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 
     if (args.zoneType === 'generic') {
         args.zoneAttributes.map((attr) => {
-            let expose = exposeList[attr];
+            let expose = IAS_EXPOSE_LOOKUP[attr];
             if (args.description) {
                 expose = expose.clone().withDescription(args.description);
             }
@@ -1472,20 +1473,24 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
     } else {
         if (bothAlarms) {
             exposes.push(
-                e.binary(args.zoneType + '_alarm_1', ea.STATE, true, false).withDescription(exposeList[args.zoneType].description + ' (alarm_1)'),
+                e
+                    .binary(args.zoneType + '_alarm_1', ea.STATE, true, false)
+                    .withDescription(IAS_EXPOSE_LOOKUP[args.zoneType].description + ' (alarm_1)'),
             );
             alarm1Name = args.zoneType + '_alarm_1';
             exposes.push(
-                e.binary(args.zoneType + '_alarm_2', ea.STATE, true, false).withDescription(exposeList[args.zoneType].description + ' (alarm_2)'),
+                e
+                    .binary(args.zoneType + '_alarm_2', ea.STATE, true, false)
+                    .withDescription(IAS_EXPOSE_LOOKUP[args.zoneType].description + ' (alarm_2)'),
             );
             alarm2Name = args.zoneType + '_alarm_2';
         } else {
-            exposes.push(exposeList[args.zoneType]);
+            exposes.push(IAS_EXPOSE_LOOKUP[args.zoneType]);
             alarm1Name = args.zoneType;
             alarm2Name = args.zoneType;
         }
         args.zoneAttributes.map((attr) => {
-            if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(exposeList[attr]);
+            if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(IAS_EXPOSE_LOOKUP[attr]);
         });
     }
 
@@ -1561,7 +1566,16 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         },
     ];
 
-    return {fromZigbee, exposes, isModernExtend: true};
+    let configure: Configure[];
+    if (args.zoneStatusReporting) {
+        configure = [
+            async (device, coordinatorEndpoint) => {
+                await setupAttributes(device, coordinatorEndpoint, 'ssIasZone', [{attribute: 'zoneStatus', min: 'MIN', max: 'MAX', change: 0}]);
+            },
+        ];
+    }
+
+    return {fromZigbee, exposes, isModernExtend: true, ...(configure && {configure})};
 }
 
 export interface IasWarningArgs {
@@ -2347,10 +2361,10 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
     return {configure, isModernExtend: true};
 }
 
-export function quirkCheckinInterval(timeout: number | keyof typeof timeLookup): ModernExtend {
+export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP): ModernExtend {
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
-            device.checkinInterval = typeof timeout == 'number' ? timeout : timeLookup[timeout];
+            device.checkinInterval = typeof timeout == 'number' ? timeout : TIME_LOOKUP[timeout];
             device.save();
         },
     ];

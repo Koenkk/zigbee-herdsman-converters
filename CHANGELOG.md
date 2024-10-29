@@ -1,5 +1,40 @@
 # Changelog
 
+## [20.35.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.34.0...v20.35.0) (2024-10-27)
+
+
+### Features
+
+* **add:** 915005821901 ([#8194](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8194)) ([538861e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/538861e5568a973cdc40701a5f19c72a25693b20))
+* **add:** 929003817002 ([#8197](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8197)) ([75337b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/75337b7ae9c847149a3c3183847c58515aef203b))
+* **add:** ZB-ERSM-01 ([#8196](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8196)) ([e545ca4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e545ca4226b33f12f6f7bb0b82ee2812621e2875))
+
+
+### Bug Fixes
+
+* Fix Lidl HG06335/HG07310 not reporting status https://github.com/Koenkk/zigbee2mqtt/issues/24169 ([bfc4ca3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bfc4ca35cb9adc70d61bca7a71e0abed4c6168f0))
+* Fix state attribute incorrect for Tuya TS0601_dimmer_2 https://github.com/Koenkk/zigbee2mqtt/discussions/24471 ([a9d9f5a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a9d9f5a26f6f4e629718847a23de492921685508))
+* Remove unsupported color from Innr RB 279 T  ([#8199](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8199)) ([158bf4c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/158bf4cbc94202825399f26c435f12895cd00bea))
+
+## [20.34.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.33.0...v20.34.0) (2024-10-26)
+
+
+### Features
+
+* **add:** 929003808901 https://github.com/Koenkk/zigbee2mqtt/issues/24485 ([724b188](https://github.com/Koenkk/zigbee-herdsman-converters/commit/724b1883a02636c6896abd1d27c11ca668c2a2d8))
+* **add:** AE 264 ([#8177](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8177)) ([8e988c0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8e988c0504316b08f1e80fc38644cf11fa49528c))
+* **add:** GL-SD-301P ([#8183](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8183)) ([a59bd1e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a59bd1e5437d6557ce5f1faf6539878cf4f9e506))
+* **add:** SQ510A https://github.com/Koenkk/zigbee2mqtt/issues/24141 ([5ff3e9f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5ff3e9f569011610c80eda9943b61c6d2e717fb5))
+* **add:** TRV-4-1-00, SDC-4-1-00 ([#8180](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8180)) ([854080d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/854080d81c3fd622d2a6a15b5435193ecad8af68))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_6l1pjfqe` as TOMZN TOB9Z-63M ([#8185](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8185)) ([b5dfc25](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b5dfc2533819c59d8db00939c781094cc02930be))
+* Fix configure failing with `TABLE_FULL` for Develco SMSZB-120 and HESZB-120 ([#8189](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8189)) ([b27a810](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b27a8100414336744f667111304df1687796ec79))
+* **ignore:** fix typo https://github.com/Koenkk/zigbee2mqtt.io/pull/3132 ([e578aed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e578aed52e31cf205aa33ff7ca6ad0d3f17873c2))
+* Prevent IKEA PARASOLL and BADRING being stuck on a previously reported state after it rapidly changes back and forth. ([#8174](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8174)) ([94e554b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94e554bc5c1d7b54bd094a3d1c6866d228a02aa3))
+
 ## [20.33.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.32.0...v20.33.0) (2024-10-23)
 
 

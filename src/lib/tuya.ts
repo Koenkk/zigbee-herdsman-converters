@@ -1799,7 +1799,7 @@ export function getHandlersForDP(
                               throw new Error(`Don't know how to send type '${typeof convertedValue}'`);
                           }
 
-                          state[convertedKey] = value;
+                          state[key] = value;
                       }
                       return {state};
                   },
