@@ -674,7 +674,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
     },
     {
-        whiteLabel: [{vendor: 'Frient', model: 'MOSZB-153', description: 'Motion Sensor 2 Pet', fingerprint: [{modelID: 'MOSZB-153'}]}],
+        whiteLabel: [{vendor: 'Frient', model: 'MOSZB-153', description: 'Motion Sensor 2 Pet']}],
         zigbeeModel: ['MOSZB-153'],
         model: 'MOSZB-153',
         vendor: 'Develco',
