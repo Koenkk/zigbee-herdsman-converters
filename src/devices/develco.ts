@@ -678,7 +678,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['MOSZB-153'],
         model: 'MOSZB-153',
         vendor: 'Develco',
-        description: 'Motion Sensor 2 Pet',
+        description: 'Motion sensor 2 pet',
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
