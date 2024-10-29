@@ -2579,7 +2579,7 @@ const definitions: DefinitionWithExtend[] = [
                     e.numeric('calibration_time_down', ea.STATE).withUnit('s').withDescription('Calibration time down'),
                 );
             }
-            if (device?.manufacturerName !== '_TZ3210_xbpt8ewc') {
+            if (device?.manufacturerName !== '_TZ3210_xbpt8ewc' && device?.manufacturerName !== '_TZ3000_e3vhyirx') {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
             exps.push(e.linkquality());
