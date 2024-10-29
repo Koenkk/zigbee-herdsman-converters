@@ -292,7 +292,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             enumLookup({
                 name: 'battery_state',
-                lookup: {MISSING: 0, CHARGING: 1, FULL: 2, DISCHARGING: 3},
+                lookup: {missing: 0, charging: 1, full: 2, discharging: 3},
                 cluster: 'genMultistateInput',
                 attribute: 'presentValue',
                 zigbeeCommandOptions: {},
