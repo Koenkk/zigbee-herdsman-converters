@@ -6850,10 +6850,10 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0222_light',
         vendor: 'Tuya',
         description: 'Light sensor',
-        fromZigbee: [fz.battery, fz.temperature],
+        fromZigbee: [fz.battery, fz.illuminance],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-        exposes: [e.battery(), e.illuminance()],
+        exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
     },
     {
         fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_t9qqxn70']),
