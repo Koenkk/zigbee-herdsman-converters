@@ -2553,12 +2553,12 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {coverInverted: true},
         whiteLabel: [
-            {vendor: 'LoraTap', model: 'SC400'},
-            tuya.whitelabel('Zemismart', 'ZN-LC1E', 'Smart curtain/shutter switch', ['_TZ3000_74hsp7qy']),
-            tuya.whitelabel('Nous', 'L12Z', 'Smart ZigBee Curtain Module L12Z', ['_TZ3000_jwv3cwak']),
             tuya.whitelabel('Danor', 'SK-Z802C-US', 'Smart curtain/shutter switch', ['_TZ3000_8h7wgocw']),
-            tuya.whitelabel('Nous', 'B4Z', 'Curtain switch', ['_TZ3000_yruungrl']),
+            {vendor: 'LoraTap', model: 'SC400'},
             tuya.whitelabel('LoraTap', 'SC500ZB', 'Roller Shutter Blind Module', ['_TZ3000_e3vhyirx']),
+            tuya.whitelabel('Nous', 'B4Z', 'Curtain switch', ['_TZ3000_yruungrl']),
+            tuya.whitelabel('Nous', 'L12Z', 'Smart ZigBee Curtain Module L12Z', ['_TZ3000_jwv3cwak']),
+            tuya.whitelabel('Zemismart', 'ZN-LC1E', 'Smart curtain/shutter switch', ['_TZ3000_74hsp7qy']),
         ],
         exposes: (device) => {
             const exps: Expose[] = [
