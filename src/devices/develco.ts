@@ -679,14 +679,44 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MOSZB-153',
         vendor: 'Develco',
         description: 'Motion sensor 2 pet',
+        fromZigbee: [fz.ias_occupancy_alarm_1, develco.fz.led_control, develco.fz.ias_occupancy_timeout],
+        toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
+        exposes: (device, options) => {
+            const dynExposes = [];
+            dynExposes.push(e.occupancy());
+            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
+                dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(5).withValueMax(65535));
+            }
+            dynExposes.push(e.tamper());
+            dynExposes.push(e.battery_low());
+            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
+                dynExposes.push(
+                    e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
+                );
+            }
+            dynExposes.push(e.linkquality());
+            return dynExposes;
+        },
+        ota: ota.zigbeeOTA,
+        endpoint: (device) => {
+            return {default: 35};
+        },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
             illuminance(),
             battery(),
-            iasZoneAlarm({zoneType: 'occupancy', alarmTimeout: true, zoneAttributes: ['alarm_1']}),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint35 = device.getEndpoint(35);
+            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
+                await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+            }
+            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
+                await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
+            }
+        }
     },
     {
         whiteLabel: [{vendor: 'Frient', model: 'HMSZB-120', description: 'Temperature & humidity sensor', fingerprint: [{modelID: 'HMSZB-120'}]}],
