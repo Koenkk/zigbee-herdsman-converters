@@ -716,7 +716,7 @@ const definitions: DefinitionWithExtend[] = [
             if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
                 await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
             }
-        }
+        },
     },
     {
         whiteLabel: [{vendor: 'Frient', model: 'HMSZB-120', description: 'Temperature & humidity sensor', fingerprint: [{modelID: 'HMSZB-120'}]}],
