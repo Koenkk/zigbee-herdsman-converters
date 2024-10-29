@@ -288,7 +288,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['POK012'],
         model: 'POK012',
         vendor: 'PushOk Hardware',
-        description: 'Versatile 20 dBm Zigbee router with battery backup, suitable for indoor and outdoor use',
+        description: '20 dBm Zigbee router with battery backup for indoor/outdoor use',
         extend: [
             enumLookup({
                 name: 'battery_state',
