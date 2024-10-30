@@ -2,7 +2,7 @@ import * as iconv from 'iconv-lite';
 
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {electricityMeter, onOff} from '../lib/modernExtend';
+import {commandsWindowCovering, electricityMeter, onOff, windowCovering} from '../lib/modernExtend';
 import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 
 const NS = 'zhc:easyiot';
@@ -212,6 +212,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'easyiot',
         description: 'Smart circuit breaker with Metering',
         extend: [onOff({powerOnBehavior: false}), electricityMeter()],
+    },
+    {
+        zigbeeModel: ['ZB-WC01'],
+        model: 'ZB-WC01',
+        vendor: 'easyiot',
+        description: 'Curtain motor',
+        extend: [windowCovering({controls: ['lift']}), commandsWindowCovering()],
     },
 ];
 
