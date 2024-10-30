@@ -1751,6 +1751,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: undefined}})],
     },
     {
+        zigbeeModel: ['929003736101_01', '929003736101_02'],
+        model: '929003736101',
+        vendor: 'Philips',
+        description: 'Hue Datura',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['929003054401'],
         model: '929003054401',
         vendor: 'Philips',
@@ -2587,7 +2594,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['LOM002', 'LOM004', 'LOM010'],
-        model: '046677552343',
+        model: '9290022407',
         vendor: 'Philips',
         description: 'Hue smart plug bluetooth',
         extend: [philipsOnOff()],
