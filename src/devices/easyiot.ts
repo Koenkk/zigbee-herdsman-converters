@@ -2,6 +2,7 @@ import * as iconv from 'iconv-lite';
 
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
+import {electricityMeter, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 
 const NS = 'zhc:easyiot';
@@ -204,6 +205,13 @@ const definitions: DefinitionWithExtend[] = [
             e.text('last_received_command', ea.STATE).withDescription('Received data'),
             e.text('send_command', ea.SET).withDescription('Send data'),
         ],
+    },
+    {
+        zigbeeModel: ['ZB-PM01'],
+        model: 'ZB-PM01',
+        vendor: 'easyiot',
+        description: 'Smart circuit breaker with Metering',
+        extend: [onOff({powerOnBehavior: false}), electricityMeter()],
     },
 ];
 
