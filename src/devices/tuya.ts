@@ -8501,7 +8501,6 @@ const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'TS110E', manufacturerName: '_TZ3210_wdexaypg'},
-            {modelID: 'TS110E', manufacturerName: '_TZ3210_3mpwqzuu'},
         ],
         model: 'TS110E_2gang_1',
         vendor: 'Tuya',
@@ -8524,7 +8523,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_pagajpog', '_TZ3210_4ubylghk', '_TZ3210_vfwhhldz']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_pagajpog', '_TZ3210_4ubylghk', '_TZ3210_vfwhhldz', '_TZ3210_3mpwqzuu']),
         model: 'TS110E_2gang_2',
         vendor: 'Tuya',
         description: '2 channel dimmer',
