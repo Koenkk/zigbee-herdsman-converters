@@ -30,6 +30,7 @@ const fzLocal = {
             return {last_received_status: hexString};
         },
     } satisfies Fz.Converter,
+
     easyiot_sp1000_recv_status: {
         cluster: 'tunneling',
         type: ['commandTransferDataResp'],
@@ -190,6 +191,18 @@ const definitions: DefinitionWithExtend[] = [
             e.numeric('play_voice', ea.SET).withDescription('Please enter ID(1-999)').withValueMin(1).withValueMax(999).withValueStep(1),
             e.numeric('set_volume', ea.SET).withDescription('Please enter volume(1-30)').withValueMin(1).withValueMax(30).withValueStep(1),
             e.text('last_received_status', ea.STATE).withDescription('status'),
+        ],
+    },
+    {
+        fingerprint: [{modelID: 'ZB-RS485', manufacturerName: 'easyiot'}],
+        model: 'RS485',
+        vendor: 'easyiot',
+        description: 'Zigbee to RS485 controller',
+        fromZigbee: [fzLocal.easyiot_ir_recv_command],
+        toZigbee: [tzLocal.easyiot_ir_send_command],
+        exposes: [
+            e.text('last_received_command', ea.STATE).withDescription('Received data'),
+            e.text('send_command', ea.SET).withDescription('Send data'),
         ],
     },
 ];
