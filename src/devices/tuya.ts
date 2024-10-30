@@ -10403,26 +10403,30 @@ const definitions: DefinitionWithExtend[] = [
             e.occupancy(),
             e.numeric('distance', ea.STATE).withUnit('m').withDescription('Target distance'),
             e.illuminance_lux(),
-            e.numeric('motion_sensitivity', ea.STATE_SET)
+            e
+                .numeric('motion_sensitivity', ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(10)
                 .withValueStep(1)
                 .withCategory('config')
                 .withDescription('Motion sensitivity'),
-            e.numeric('occupancy_sensitivity', ea.STATE_SET)
+            e
+                .numeric('occupancy_sensitivity', ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(10)
                 .withValueStep(1)
                 .withCategory('config')
                 .withDescription('Occupancy sensitivity'),
-            e.numeric('max_range', ea.STATE_SET)
+            e
+                .numeric('max_range', ea.STATE_SET)
                 .withValueMin(1.5)
                 .withValueMax(5.5)
                 .withValueStep(1)
                 .withUnit('m')
                 .withCategory('config')
                 .withDescription('Maximum range'),
-            e.numeric('occupancy_timeout', ea.STATE_SET)
+            e
+                .numeric('occupancy_timeout', ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(1500)
                 .withValueStep(1)
