@@ -2,7 +2,7 @@ import * as iconv from 'iconv-lite';
 
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {electricityMeter, onOff, windowCovering} from '../lib/modernExtend';
+import {deviceEndpoints, electricityMeter, onOff, windowCovering} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
 
@@ -335,6 +335,26 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(7), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(8), coordinatorEndpoint, ['genOnOff']);
         },
+    },
+    {
+        fingerprint: [{modelID: 'ZB-PSW04', manufacturerName: 'easyiot'}],
+        model: 'ZB-PSW04',
+        vendor: 'easyiot',
+        description: 'Zigbee 4-channel relay',
+        extend: [
+            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4'], configureReporting: false, powerOnBehavior: false}),
+        ],
+    },
+    {
+        fingerprint: [{modelID: 'ZB-SW08', manufacturerName: 'easyiot'}],
+        model: 'ZB-SW08',
+        vendor: 'easyiot',
+        description: 'Zigbee 8-channel relay',
+        extend: [
+            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8'], configureReporting: false, powerOnBehavior: false}),
+        ],
     },
 ];
 
