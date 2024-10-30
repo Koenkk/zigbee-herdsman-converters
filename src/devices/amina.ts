@@ -84,17 +84,13 @@ const fzLocal = {
             const result: KeyValue = {};
 
             if (msg.data.alarms !== undefined) {
-                const activeAlarms = [];
                 result.alarm_active = false;
 
-                for (let i = 0; i < 16; i++) {
-                    if ((msg.data['alarms'] >> i) & 0x01) {
-                        activeAlarms.push(aminaAlarmsEnum.values[i]);
-                        result.alarm_active = true;
-                    }
+                if (msg.data['alarms'] !== 0) {
+                    result.alarms = aminaAlarmsEnum.values.filter((_, i) => (msg.data['alarms'] & (1 << i)) !== 0);
+                    result.alarm_active = true;
                 }
 
-                result.alarms = activeAlarms;
                 return result;
             }
         },
