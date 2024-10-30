@@ -28,18 +28,26 @@ const aminaControlAttributes = {
 };
 
 const aminaAlarms = [
-    'Welded relay',
-    'Wrong voltage balance',
-    'RDC-DD DC leakage',
-    'RDC-DD AC leakage',
-    'High temperature',
-    'Overvoltage',
-    'Overcurrent',
-    'Car communication error',
-    'Charger processing error',
-    'Critical overcurrent',
-    'Critical powerloss',
+    'no_alarm',
+    'welded_relay', // Bit 0 starts here
+    'wrong_voltage_balance',
+    'rdc_dd_dc_leakage',
+    'rdc_dd_ac_leakage',
+    'high_temperature',
+    'overvoltage',
+    'undervoltage',
+    'overcurrent',
+    'car_communication_error',
+    'charger_processing_error',
+    'critical_overcurrent',
+    'critical_powerloss',
+    'unknown_alarm_bit_12',
+    'unknown_alarm_bit_13',
+    'unknown_alarm_bit_14',
+    'unknown_alarm_bit_15',
 ];
+
+const aminaAlarmsEnum = e.enum('alarm', ea.STATE_GET, aminaAlarms);
 
 const fzLocal = {
     ev_status: {
@@ -77,25 +85,21 @@ const fzLocal = {
             const result: KeyValue = {};
 
             if (msg.data.alarms !== undefined) {
-                result.alarms = [];
+                const activeAlarms = [];
                 result.alarm_active = false;
 
                 for (let i = 0; i < 16; i++) {
                     if ((msg.data['alarms'] >> i) & 0x01) {
-                        let alarm = aminaAlarms[i];
-                        if (alarm === undefined) {
-                            alarm = `Unknown Alarm bit #${i}`;
-                        }
-
-                        (result.alarms as string[]).push(alarm);
+                        activeAlarms.push(aminaAlarmsEnum.values[i + 1]);
                         result.alarm_active = true;
                     }
                 }
 
                 if (result.alarm_active === false) {
-                    result.alarms = 'No Alarm';
+                    activeAlarms.push(aminaAlarmsEnum.values[0]);
                 }
 
+                result.alarms = activeAlarms;
                 return result;
             }
         },
@@ -141,7 +145,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.ev_status, tzLocal.alarms, tzLocal.charge_limit],
         exposes: [
             e.text('ev_status', ea.STATE_GET).withDescription('Current charging status'),
-            e.text('alarms', ea.STATE_GET).withDescription('Alarms reported by EV Charger'),
+            e.list('alarms', ea.STATE_GET, aminaAlarmsEnum).withDescription('List of active alarms'),
         ],
         extend: [
             deviceAddCustomCluster('aminaControlCluster', {
