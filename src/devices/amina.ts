@@ -28,8 +28,7 @@ const aminaControlAttributes = {
 };
 
 const aminaAlarms = [
-    'no_alarm',
-    'welded_relay', // Bit 0 starts here
+    'welded_relay',
     'wrong_voltage_balance',
     'rdc_dd_dc_leakage',
     'rdc_dd_ac_leakage',
@@ -90,13 +89,9 @@ const fzLocal = {
 
                 for (let i = 0; i < 16; i++) {
                     if ((msg.data['alarms'] >> i) & 0x01) {
-                        activeAlarms.push(aminaAlarmsEnum.values[i + 1]);
+                        activeAlarms.push(aminaAlarmsEnum.values[i]);
                         result.alarm_active = true;
                     }
-                }
-
-                if (result.alarm_active === false) {
-                    activeAlarms.push(aminaAlarmsEnum.values[0]);
                 }
 
                 result.alarms = activeAlarms;
