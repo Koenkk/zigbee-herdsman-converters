@@ -702,7 +702,14 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
             illuminance({reporting: {min: 60, max: 3600, change: 500}}),
-            battery(),
+            battery({
+                voltageToPercentage: {min: 2500, max: 3000},
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
             iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1']}),
         ],
         configure: async (device, coordinatorEndpoint) => {
