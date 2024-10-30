@@ -684,10 +684,8 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
         exposes: (device, options) => {
             const dynExposes = [];
-            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
+            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 2) {
                 dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(5).withValueMax(65535));
-            }
-            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
                 dynExposes.push(
                     e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
                 );
@@ -703,16 +701,14 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
-            illuminance(),
+            illuminance({reporting: {min: 60, max: 3600, change: 500}}),
             battery(),
-            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']}),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1']}),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint35 = device.getEndpoint(35);
-            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
+            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 2) {
+                const endpoint35 = device.getEndpoint(35);
                 await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
-            }
-            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
                 await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
             }
         },
