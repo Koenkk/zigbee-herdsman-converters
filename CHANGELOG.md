@@ -1,5 +1,21 @@
 # Changelog
 
+## [20.37.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.36.0...v20.37.0) (2024-10-30)
+
+
+### Features
+
+* **add:** 929003736101 [@markuswebert](https://github.com/markuswebert) https://github.com/Koenkk/zigbee2mqtt/issues/24540 ([ed54796](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ed547960c959ba9e617e62a167946542d6ea9d59))
+* **add:** SC500ZB ([#8218](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8218)) ([53fb204](https://github.com/Koenkk/zigbee-herdsman-converters/commit/53fb204325eb0b61063ce5cd644c13cb7bf9eea1))
+* Linptech ES1ZZ: add led indicator and fix the illuminance calculation ([#8226](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8226)) ([820bdeb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/820bdeb71319fbb64d97432a4529d8321231ab31))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_ydrdfkim` as Nous SZ-T04 ([#8225](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8225)) ([2a97d06](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a97d061efe5b7c95d33a6d98b2ec2ed4aed8e57))
+* Fix TS0222_light not exposing illuminance ([#8220](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8220)) ([255c180](https://github.com/Koenkk/zigbee-herdsman-converters/commit/255c180bd7afe81d08e508e80f338841feda8a98))
+* **ignore:** update dependencies ([#8192](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8192)) ([5d0ca39](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5d0ca39277af13557d9fc7211162504dd2f461a2))
+
 ## [20.36.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.35.0...v20.36.0) (2024-10-29)
 
 
