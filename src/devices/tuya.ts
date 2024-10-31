@@ -7097,7 +7097,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_qeuvnohg'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_qeuvnohg', '_TZ3000_6l1pjfqe']),
         model: 'TS011F_din_smart_relay_polling',
         description: 'Din smart relay (with power monitoring via polling)',
         vendor: 'Tuya',
