@@ -684,7 +684,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
         exposes: (device, options) => {
             const dynExposes = [];
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 2) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 2) {
                 dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(5).withValueMax(65535));
                 dynExposes.push(
                     e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
