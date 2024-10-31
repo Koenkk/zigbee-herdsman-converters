@@ -1,5 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
+import {repInterval} from '../lib/constants';
 import {
     addCustomClusterManuSpecificIkeaAirPurifier,
     addCustomClusterManuSpecificIkeaUnknown,
@@ -322,7 +323,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm'],
+        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm', 'TRADFRI bulb E12 CWS globe 800lm'],
         model: 'LED2111G6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14, color/white spectrum, globe, opal, 806 lm',
@@ -602,7 +603,15 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E2206',
         vendor: 'IKEA',
         description: 'INSPELNING smart plug',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ota(), electricityMeter()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta(), electricityMeter()],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            // Enable reporting of powerDivisor, needs to change dynamically with the amount of power
+            // For details, see: https://github.com/Koenkk/zigbee2mqtt/issues/23961#issuecomment-2366733453
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {attribute: 'acPowerDivisor', minimumReportInterval: 10, maximumReportInterval: repInterval.MAX, reportableChange: 1},
+            ]);
+        },
     },
     // #endregion on/off controls
     // #region blinds
@@ -918,7 +927,12 @@ const definitions: DefinitionWithExtend[] = [
             addCustomClusterManuSpecificIkeaUnknown(),
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             bindCluster({cluster: 'ssIasZone', clusterType: 'input', endpointNames: ['2']}),
-            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
+            iasZoneAlarm({
+                zoneType: 'contact',
+                zoneAttributes: ['alarm_1'],
+                // This is required to prevent the device's reported state being stuck after it quickly changed back and forth:
+                zoneStatusReporting: true,
+            }),
             identify({isSleepy: true}),
             battery(),
             ikeaOta(),
@@ -932,7 +946,12 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             bindCluster({cluster: 'ssIasZone', clusterType: 'input'}),
-            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
+            iasZoneAlarm({
+                zoneType: 'water_leak',
+                zoneAttributes: ['alarm_1'],
+                // This is required to prevent the device's reported state being stuck after it quickly changed back and forth:
+                zoneStatusReporting: true,
+            }),
             identify({isSleepy: true}),
             battery(),
             ikeaOta(),

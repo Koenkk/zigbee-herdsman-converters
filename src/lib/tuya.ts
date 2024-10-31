@@ -63,12 +63,14 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-export function onEvent(args?: {
+interface OnEventArgs {
     queryOnDeviceAnnounce?: boolean;
     timeStart?: '1970' | '2000';
     respondToMcuVersionResponse?: boolean;
     queryIntervalSeconds?: number;
-}): OnEvent {
+}
+
+export function onEvent(args?: OnEventArgs): OnEvent {
     return async (type, data, device, settings, state) => {
         args = {queryOnDeviceAnnounce: false, timeStart: '1970', respondToMcuVersionResponse: true, ...args};
 
@@ -1040,6 +1042,63 @@ export const valueConverter = {
             },
         };
     },
+    thermostatScheduleDayMultiDP_TRV602Z: {
+        from: (v: string) => {
+            const schedule = [];
+            for (let index = 1; index < 24; index = index + 4) {
+                const firstByte = (parseInt(v[index + 0]) - 192) << 8;
+                const secondByte = parseInt(v[index + 1]);
+
+                const minutesSinceMidnight = firstByte | secondByte;
+
+                const hour = Math.floor(minutesSinceMidnight / 60);
+                const minutes = minutesSinceMidnight % 60;
+
+                schedule.push(
+                    String(hour).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + '/' + (parseFloat(v[index + 3]) / 10.0).toFixed(1),
+                );
+            }
+            return schedule.join(' ');
+        },
+        to: (v: string) => {
+            const payload = [];
+            const transitions = v.split(' ');
+            if (transitions.length != 6) {
+                throw new Error('Invalid schedule: there should be 4 transitions');
+            }
+            for (const transition of transitions) {
+                const timeTemp = transition.split('/');
+                if (timeTemp.length != 2) {
+                    throw new Error('Invalid schedule: wrong transition format: ' + transition);
+                }
+                const hourMin = timeTemp[0].split(':');
+                const hour = parseInt(hourMin[0]);
+                const min = parseInt(hourMin[1]);
+                const temperature = Math.floor(parseFloat(timeTemp[1]) * 10);
+                if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
+                    throw new Error('Invalid hour, minute or temperature of: ' + transition);
+                }
+
+                const minutesSinceMidnight = hour * 60 + min;
+
+                const firstByte = ((minutesSinceMidnight & 3840) >> 8) + 192;
+                const secondByte = minutesSinceMidnight & 255;
+
+                payload.push(firstByte, secondByte, 64, temperature);
+            }
+            return payload;
+        },
+    },
+    thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber: (dayNum: number) => {
+        return {
+            from: (v: string) => valueConverter.thermostatScheduleDayMultiDP_TRV602Z.from(v),
+            to: (v: string) => {
+                const data = valueConverter.thermostatScheduleDayMultiDP_TRV602Z.to(v);
+                data.unshift(dayNum);
+                return data;
+            },
+        };
+    },
     tv02Preset: () => {
         return {
             from: (v: number) => {
@@ -1070,6 +1129,44 @@ export const valueConverter = {
                 const presetLookup: KeyValueStringEnum = {auto: new Enum(0), manual: new Enum(1), off: new Enum(2), on: new Enum(3)};
                 const systemModeLookup: KeyValueStringEnum = {auto: new Enum(1), off: new Enum(2), heat: new Enum(3)};
                 const lookup: KeyValueStringEnum = toKey === 'preset' ? presetLookup : systemModeLookup;
+                return utils.getFromLookup(v, lookup);
+            },
+        };
+    },
+    thermostatGtz10SystemModeAndPreset: (toKey: string) => {
+        return {
+            from: (v: string) => {
+                utils.assertNumber(v, 'system_mode');
+                const presetLookup = {
+                    0: 'manual',
+                    1: 'auto',
+                    2: 'holiday',
+                    3: 'comfort',
+                    4: 'eco',
+                    5: 'off',
+                };
+                const systemModeLookup = {
+                    0: 'heat',
+                    1: 'auto',
+                    5: 'off',
+                };
+                return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
+            },
+            to: (v: string) => {
+                const presetLookup = {
+                    manual: new Enum(0),
+                    auto: new Enum(1),
+                    holiday: new Enum(2),
+                    comfort: new Enum(3),
+                    eco: new Enum(4),
+                    off: new Enum(5),
+                };
+                const systemModeLookup = {
+                    heat: new Enum(0),
+                    auto: new Enum(1),
+                    off: new Enum(5),
+                };
+                const lookup = toKey === 'preset' ? presetLookup : systemModeLookup;
                 return utils.getFromLookup(v, lookup);
             },
         };
@@ -1740,7 +1837,7 @@ export function getHandlersForDP(
                               throw new Error(`Don't know how to send type '${typeof convertedValue}'`);
                           }
 
-                          state[convertedKey] = value;
+                          state[key] = value;
                       }
                       return {state};
                   },
@@ -1801,6 +1898,19 @@ export interface TuyaDPLightArgs {
 }
 
 const tuyaModernExtend = {
+    tuyaBase(args?: {onEvent?: OnEventArgs; dp: true}): ModernExtend {
+        const result: ModernExtend = {
+            configure: [configureMagicPacket],
+            onEvent: onEvent(args.onEvent),
+            isModernExtend: true,
+        };
+
+        if (args?.dp) {
+            result.fromZigbee = [tuyaFz.datapoints];
+            result.toZigbee = [tuyaTz.datapoints];
+        }
+        return result;
+    },
     dpEnumLookup(args: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
         const {name, dp, type, lookup, description, readOnly, endpoint, expose, skip} = args;
         let exp: Expose;
@@ -2078,6 +2188,8 @@ const tuyaModernExtend = {
             result.toZigbee.push(tuyaTz.color_power_on_behavior);
             result.exposes.push(tuyaExposes.colorPowerOnBehavior());
         }
+
+        result.configure = [configureSetPowerSourceWhenUnknown('Mains (single phase)')];
 
         return result;
     },

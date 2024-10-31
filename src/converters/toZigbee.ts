@@ -297,7 +297,14 @@ const converters2 = {
             utils.assertString(value, key);
             value = value.toLowerCase();
             const lookup = {off: 0, on: 1, toggle: 2, previous: 255};
-            await entity.write('genOnOff', {startUpOnOff: utils.getFromLookup(value, lookup)}, utils.getOptions(meta.mapped, entity));
+            try {
+                await entity.write('genOnOff', {startUpOnOff: utils.getFromLookup(value, lookup)}, utils.getOptions(meta.mapped, entity));
+            } catch (e) {
+                if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
+                    throw new Error('Got `UNSUPPORTED_ATTRIBUTE` error, device does not support power on behaviour');
+                }
+                throw e;
+            }
             return {state: {power_on_behavior: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -1036,7 +1043,7 @@ const converters2 = {
         },
     } satisfies Tz.Converter,
     light_onoff_brightness: {
-        key: ['state', 'brightness', 'brightness_percent', 'on_time'],
+        key: ['state', 'brightness', 'brightness_percent', 'on_time', 'off_wait_time'],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             const {message} = meta;
@@ -3906,17 +3913,33 @@ const converters2 = {
         },
     } satisfies Tz.Converter,
     tuya_cover_calibration: {
-        key: ['calibration'],
+        key: ['calibration', 'calibration_up', 'calibration_down'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
             const lookup = {ON: 0, OFF: 1};
             value = value.toUpperCase();
             const calibration = utils.getFromLookup(value, lookup);
-            await entity.write('closuresWindowCovering', {tuyaCalibration: calibration});
-            return {state: {calibration: value}};
+            switch (key) {
+                case 'calibration':
+                case 'calibration_up':
+                    await entity.write('closuresWindowCovering', {tuyaCalibration: calibration});
+                    break;
+                case 'calibration_down':
+                    await meta.device.getEndpoint(2).write('closuresWindowCovering', {tuyaCalibration: calibration});
+                    break;
+            }
+            return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('closuresWindowCovering', ['tuyaCalibration']);
+            switch (key) {
+                case 'calibration':
+                case 'calibration_up':
+                    await entity.read('closuresWindowCovering', ['tuyaCalibration']);
+                    break;
+                case 'calibration_down':
+                    await meta.device.getEndpoint(2).read('closuresWindowCovering', ['tuyaCalibration']);
+                    break;
+            }
         },
     } satisfies Tz.Converter,
     tuya_cover_reversal: {

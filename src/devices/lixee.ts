@@ -1860,7 +1860,7 @@ const definitions: DefinitionWithExtend[] = [
                     throw e.reason;
                 });
         },
-        ota: ota.lixee,
+        ota: ota.zigbeeOTA,
         onEvent: async (type, data, device, options) => {
             const endpoint = device.getEndpoint(1);
             if (type === 'start') {

@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {battery, deviceEndpoints, iasZoneAlarm, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 
 const e = exposes.presets;
@@ -155,6 +155,20 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.WS01_rain],
         toZigbee: [],
         exposes: [e.rain()],
+    },
+    {
+        fingerprint: [
+            {
+                type: 'EndDevice',
+                manufacturerName: 'eWeLink',
+                modelID: 'SNZB-03',
+                endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1, 1280, 32], outputClusters: [25]}],
+            },
+        ],
+        model: 'SQ510A',
+        vendor: 'eWeLink',
+        description: 'Water leak sensor',
+        extend: [iasZoneAlarm({zoneAttributes: ['alarm_1', 'battery_low', 'tamper'], zoneType: 'water_leak'}), battery()],
     },
 ];
 

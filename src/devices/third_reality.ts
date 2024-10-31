@@ -41,7 +41,6 @@ const definitions: DefinitionWithExtend[] = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.switch(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -350,16 +349,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Third Reality',
         description: 'Smart watering kit',
         extend: [
-            battery(),
+            battery({percentage: true, voltage: true, lowStatus: true, percentageReporting: true}),
             onOff(),
             deviceAddCustomCluster('3rWateringSpecialCluster', {
                 ID: 0xfff2,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    watering_times: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    interval_day: {ID: 0x0001, type: Zcl.DataType.UINT8},
-                    more_watering_times: {ID: 0x0002, type: Zcl.DataType.UINT16},
-                    water_speed_control: {ID: 0x0003, type: Zcl.DataType.UINT8},
+                    wateringTimes: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    intervalDay: {ID: 0x0001, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -466,6 +463,14 @@ const definitions: DefinitionWithExtend[] = [
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
+    },
+    {
+        zigbeeModel: ['3RCB01057Z'],
+        model: '3RCB01057Z',
+        vendor: 'Third Reality',
+        description: 'Zigbee color lights',
+        ota: ota.zigbeeOTA,
+        extend: [light({colorTemp: {range: [154, 500]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['3RSPE01044BZ'],

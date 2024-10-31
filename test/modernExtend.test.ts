@@ -1,6 +1,7 @@
 import fz from '../src/converters/fromZigbee';
 import {repInterval} from '../src/lib/constants';
 import {fromZigbee as lumiFz} from '../src/lib/lumi';
+import {setupAttributes} from '../src/lib/modernExtend';
 import {philipsFz} from '../src/lib/philips';
 import {assertDefintion, mockDevice, reportingItem} from './utils';
 
@@ -15,6 +16,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -44,6 +46,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -86,6 +89,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -132,6 +136,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -233,6 +238,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -299,6 +305,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -428,5 +435,42 @@ describe('ModernExtend', () => {
                 ],
             },
         });
+    });
+
+    test('Setup attributes', async () => {
+        const device = mockDevice({modelID: '', endpoints: [{inputClusters: ['haElectricalMeasurement']}]});
+        const deviceEp = device.endpoints[0];
+        const coordinator = mockDevice({modelID: '', endpoints: [{}]});
+        const coordinatorEp = coordinator.endpoints[0];
+        const config = {min: 0, max: 10, change: 1};
+        const expectedConfig = {maximumReportInterval: 10, minimumReportInterval: 0, reportableChange: 1};
+
+        await setupAttributes(deviceEp, coordinator.endpoints[0], 'haElectricalMeasurement', [
+            {attribute: '1', ...config},
+            {attribute: '2', ...config},
+            {attribute: '3', ...config},
+            {attribute: '4', ...config},
+            {attribute: '5', ...config},
+            {attribute: '6', ...config},
+        ]);
+
+        expect(deviceEp.bind).toHaveBeenCalledTimes(1);
+        expect(deviceEp.bind).toHaveBeenCalledWith('haElectricalMeasurement', coordinatorEp);
+
+        expect(deviceEp.configureReporting).toHaveBeenCalledTimes(2);
+        expect(deviceEp.configureReporting).toHaveBeenNthCalledWith(1, 'haElectricalMeasurement', [
+            {attribute: '1', ...expectedConfig},
+            {attribute: '2', ...expectedConfig},
+            {attribute: '3', ...expectedConfig},
+            {attribute: '4', ...expectedConfig},
+        ]);
+        expect(deviceEp.configureReporting).toHaveBeenNthCalledWith(2, 'haElectricalMeasurement', [
+            {attribute: '5', ...expectedConfig},
+            {attribute: '6', ...expectedConfig},
+        ]);
+
+        expect(deviceEp.read).toHaveBeenCalledTimes(2);
+        expect(deviceEp.read).toHaveBeenNthCalledWith(1, 'haElectricalMeasurement', ['1', '2', '3', '4']);
+        expect(deviceEp.read).toHaveBeenNthCalledWith(2, 'haElectricalMeasurement', ['5', '6']);
     });
 });

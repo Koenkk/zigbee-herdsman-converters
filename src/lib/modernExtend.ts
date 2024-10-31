@@ -48,6 +48,7 @@ import {
     noOccupancySince,
     postfixWithEndpointName,
     precisionRound,
+    splitArrayIntoChunks,
 } from './utils';
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: 'input' | 'output') {
@@ -64,7 +65,51 @@ function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, ty
     return endpoints;
 }
 
-export const timeLookup = {
+const IAS_EXPOSE_LOOKUP = {
+    occupancy: e.binary('occupancy', ea.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
+    contact: e.binary('contact', ea.STATE, false, true).withDescription('Indicates whether the device is opened or closed'),
+    smoke: e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
+    water_leak: e.binary('water_leak', ea.STATE, true, false).withDescription('Indicates whether the device detected a water leak'),
+    carbon_monoxide: e.binary('carbon_monoxide', ea.STATE, true, false).withDescription('Indicates whether the device detected carbon monoxide'),
+    sos: e.binary('sos', ea.STATE, true, false).withLabel('SOS').withDescription('Indicates whether the SOS alarm is triggered'),
+    vibration: e.binary('vibration', ea.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
+    alarm: e.binary('alarm', ea.STATE, true, false).withDescription('Indicates whether the alarm is triggered'),
+    gas: e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
+    alarm_1: e.binary('alarm_1', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 1 is active'),
+    alarm_2: e.binary('alarm_2', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 2 is active'),
+    tamper: e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered').withCategory('diagnostic'),
+    rain: e.binary('rain', ea.STATE, true, false).withDescription('Indicates whether the device detected rainfall'),
+    battery_low: e
+        .binary('battery_low', ea.STATE, true, false)
+        .withDescription('Indicates whether the battery of the device is almost empty')
+        .withCategory('diagnostic'),
+    supervision_reports: e
+        .binary('supervision_reports', ea.STATE, true, false)
+        .withDescription('Indicates whether the device issues reports on zone operational status')
+        .withCategory('diagnostic'),
+    restore_reports: e
+        .binary('restore_reports', ea.STATE, true, false)
+        .withDescription('Indicates whether the device issues reports on alarm no longer being present')
+        .withCategory('diagnostic'),
+    ac_status: e
+        .binary('ac_status', ea.STATE, true, false)
+        .withDescription('Indicates whether the device mains voltage supply is at fault')
+        .withCategory('diagnostic'),
+    test: e
+        .binary('test', ea.STATE, true, false)
+        .withDescription('Indicates whether the device is currently performing a test')
+        .withCategory('diagnostic'),
+    trouble: e
+        .binary('trouble', ea.STATE, true, false)
+        .withDescription('Indicates whether the device is currently havin trouble')
+        .withCategory('diagnostic'),
+    battery_defect: e
+        .binary('battery_defect', ea.STATE, true, false)
+        .withDescription('Indicates whether the device battery is defective')
+        .withCategory('diagnostic'),
+};
+
+export const TIME_LOOKUP = {
     MAX: 65000,
     '4_HOURS': 14400,
     '1_HOUR': 3600,
@@ -78,15 +123,15 @@ export const timeLookup = {
     MIN: 0,
 };
 
-type ReportingConfigTime = number | keyof typeof timeLookup;
+type ReportingConfigTime = number | keyof typeof TIME_LOOKUP;
 type ReportingConfigAttribute = string | number | {ID: number; type: number};
 type ReportingConfig = {min: ReportingConfigTime; max: ReportingConfigTime; change: number; attribute: ReportingConfigAttribute};
 export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, 'attribute'>;
 
 function convertReportingConfigTime(time: ReportingConfigTime): number {
     if (isString(time)) {
-        if (!(time in timeLookup)) throw new Error(`Reporting time '${time}' is unknown`);
-        return timeLookup[time];
+        if (!(time in TIME_LOOKUP)) throw new Error(`Reporting time '${time}' is unknown`);
+        return TIME_LOOKUP[time];
     } else {
         return time;
     }
@@ -107,28 +152,37 @@ export async function setupAttributes(
             `Configure reporting: ${configureReporting}, read: ${read} for ${ieeeAddr}/${endpoint.ID} ${cluster} ${JSON.stringify(config)}`,
             'zhc:setupattribute',
         );
+
+        // Split into chunks of 4 to prevent to message becoming too big.
+        const chunks = splitArrayIntoChunks(config, 4);
+
         if (configureReporting) {
             await endpoint.bind(cluster, coordinatorEndpoint);
-            await endpoint.configureReporting(
-                cluster,
-                config.map((a) => ({
-                    minimumReportInterval: convertReportingConfigTime(a.min),
-                    maximumReportInterval: convertReportingConfigTime(a.max),
-                    reportableChange: a.change,
-                    attribute: a.attribute,
-                })),
-            );
-        }
-        if (read) {
-            try {
-                // Don't fail configuration if reading this attribute fails
-                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
-                await endpoint.read(
+            for (const chunk of chunks) {
+                await endpoint.configureReporting(
                     cluster,
-                    config.map((a) => (isString(a) ? a : isObject(a.attribute) ? a.attribute.ID : a.attribute)),
+                    chunk.map((a) => ({
+                        minimumReportInterval: convertReportingConfigTime(a.min),
+                        maximumReportInterval: convertReportingConfigTime(a.max),
+                        reportableChange: a.change,
+                        attribute: a.attribute,
+                    })),
                 );
-            } catch (e) {
-                logger.debug(`Reading attribute failed: ${e}`, 'zhc:setupattribute');
+            }
+        }
+
+        if (read) {
+            for (const chunk of chunks) {
+                try {
+                    // Don't fail configuration if reading this attribute fails
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
+                    await endpoint.read(
+                        cluster,
+                        chunk.map((a) => (isString(a) ? a : isObject(a.attribute) ? a.attribute.ID : a.attribute)),
+                    );
+                } catch (e) {
+                    logger.debug(`Reading attribute failed: ${e}`, 'zhc:setupattribute');
+                }
             }
         }
     }
@@ -466,17 +520,20 @@ export interface OnOffArgs {
     skipDuplicateTransaction?: boolean;
     endpointNames?: string[];
     configureReporting?: boolean;
+    description?: string;
 }
 export function onOff(args?: OnOffArgs): ModernExtend {
     args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
 
-    const exposes: Expose[] = exposeEndpoints(e.switch(), args.endpointNames);
+    const exposes: Expose[] = args.description
+        ? exposeEndpoints(e.switch(args.description), args.endpointNames)
+        : exposeEndpoints(e.switch(), args.endpointNames);
 
     const fromZigbee: Fz.Converter[] = [args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
     const toZigbee: Tz.Converter[] = [tz.on_off];
 
     if (args.powerOnBehavior) {
-        exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
+        exposes.push(...exposeEndpoints(e.power_on_behavior(['off', 'on', 'toggle', 'previous']), args.endpointNames));
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
     }
@@ -1394,52 +1451,10 @@ export interface IasArgs {
     zoneType: iasZoneType;
     zoneAttributes: iasZoneAttribute[];
     alarmTimeout?: boolean;
+    zoneStatusReporting?: boolean;
+    description?: string;
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
-    const exposeList = {
-        occupancy: e.binary('occupancy', ea.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
-        contact: e.binary('contact', ea.STATE, false, true).withDescription('Indicates whether the device is opened or closed'),
-        smoke: e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
-        water_leak: e.binary('water_leak', ea.STATE, true, false).withDescription('Indicates whether the device detected a water leak'),
-        carbon_monoxide: e.binary('carbon_monoxide', ea.STATE, true, false).withDescription('Indicates whether the device detected carbon monoxide'),
-        sos: e.binary('sos', ea.STATE, true, false).withLabel('SOS').withDescription('Indicates whether the SOS alarm is triggered'),
-        vibration: e.binary('vibration', ea.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
-        alarm: e.binary('alarm', ea.STATE, true, false).withDescription('Indicates whether the alarm is triggered'),
-        gas: e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
-        alarm_1: e.binary('alarm_1', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 1 is active'),
-        alarm_2: e.binary('alarm_2', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 2 is active'),
-        tamper: e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered').withCategory('diagnostic'),
-        rain: e.binary('rain', ea.STATE, true, false).withDescription('Indicates whether the device detected rainfall'),
-        battery_low: e
-            .binary('battery_low', ea.STATE, true, false)
-            .withDescription('Indicates whether the battery of the device is almost empty')
-            .withCategory('diagnostic'),
-        supervision_reports: e
-            .binary('supervision_reports', ea.STATE, true, false)
-            .withDescription('Indicates whether the device issues reports on zone operational status')
-            .withCategory('diagnostic'),
-        restore_reports: e
-            .binary('restore_reports', ea.STATE, true, false)
-            .withDescription('Indicates whether the device issues reports on alarm no longer being present')
-            .withCategory('diagnostic'),
-        ac_status: e
-            .binary('ac_status', ea.STATE, true, false)
-            .withDescription('Indicates whether the device mains voltage supply is at fault')
-            .withCategory('diagnostic'),
-        test: e
-            .binary('test', ea.STATE, true, false)
-            .withDescription('Indicates whether the device is currently performing a test')
-            .withCategory('diagnostic'),
-        trouble: e
-            .binary('trouble', ea.STATE, true, false)
-            .withDescription('Indicates whether the device is currently havin trouble')
-            .withCategory('diagnostic'),
-        battery_defect: e
-            .binary('battery_defect', ea.STATE, true, false)
-            .withDescription('Indicates whether the device battery is defective')
-            .withCategory('diagnostic'),
-    };
-
     const exposes: Expose[] = [];
     const invertAlarmPayload = args.zoneType === 'contact';
     const bothAlarms = args.zoneAttributes.includes('alarm_1') && args.zoneAttributes.includes('alarm_2');
@@ -1448,24 +1463,34 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
     let alarm2Name = 'alarm_2';
 
     if (args.zoneType === 'generic') {
-        args.zoneAttributes.map((attr) => exposes.push(exposeList[attr]));
+        args.zoneAttributes.map((attr) => {
+            let expose = IAS_EXPOSE_LOOKUP[attr];
+            if (args.description) {
+                expose = expose.clone().withDescription(args.description);
+            }
+            exposes.push(expose);
+        });
     } else {
         if (bothAlarms) {
             exposes.push(
-                e.binary(args.zoneType + '_alarm_1', ea.STATE, true, false).withDescription(exposeList[args.zoneType].description + ' (alarm_1)'),
+                e
+                    .binary(args.zoneType + '_alarm_1', ea.STATE, true, false)
+                    .withDescription(IAS_EXPOSE_LOOKUP[args.zoneType].description + ' (alarm_1)'),
             );
             alarm1Name = args.zoneType + '_alarm_1';
             exposes.push(
-                e.binary(args.zoneType + '_alarm_2', ea.STATE, true, false).withDescription(exposeList[args.zoneType].description + ' (alarm_2)'),
+                e
+                    .binary(args.zoneType + '_alarm_2', ea.STATE, true, false)
+                    .withDescription(IAS_EXPOSE_LOOKUP[args.zoneType].description + ' (alarm_2)'),
             );
             alarm2Name = args.zoneType + '_alarm_2';
         } else {
-            exposes.push(exposeList[args.zoneType]);
+            exposes.push(IAS_EXPOSE_LOOKUP[args.zoneType]);
             alarm1Name = args.zoneType;
             alarm2Name = args.zoneType;
         }
         args.zoneAttributes.map((attr) => {
-            if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(exposeList[attr]);
+            if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(IAS_EXPOSE_LOOKUP[attr]);
         });
     }
 
@@ -1541,7 +1566,16 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         },
     ];
 
-    return {fromZigbee, exposes, isModernExtend: true};
+    let configure: Configure[];
+    if (args.zoneStatusReporting) {
+        configure = [
+            async (device, coordinatorEndpoint) => {
+                await setupAttributes(device, coordinatorEndpoint, 'ssIasZone', [{attribute: 'zoneStatus', min: 'MIN', max: 'MAX', change: 0}]);
+            },
+        ];
+    }
+
+    return {fromZigbee, exposes, isModernExtend: true, ...(configure && {configure})};
 }
 
 export interface IasWarningArgs {
@@ -1611,12 +1645,13 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
 export interface ElectricityMeterArgs {
     cluster?: 'both' | 'metering' | 'electrical';
-    current?: false | MultiplierDivisor;
-    power?: false | MultiplierDivisor;
-    voltage?: false | MultiplierDivisor;
-    energy?: false | MultiplierDivisor;
-    producedEnergy?: false | true | MultiplierDivisor;
-    acFrequency?: false | true | MultiplierDivisor;
+    electricalMeasurementType?: 'both' | 'ac' | 'dc';
+    current?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    voltage?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    energy?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     threePhase?: boolean;
     configureReporting?: boolean;
     powerFactor?: boolean;
@@ -1625,7 +1660,16 @@ export interface ElectricityMeterArgs {
     fzElectricalMeasurement?: Fz.Converter;
 }
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
-    args = {cluster: 'both', configureReporting: true, threePhase: false, producedEnergy: false, acFrequency: false, powerFactor: false, ...args};
+    args = {
+        cluster: 'both',
+        electricalMeasurementType: 'ac',
+        configureReporting: true,
+        threePhase: false,
+        producedEnergy: false,
+        acFrequency: false,
+        powerFactor: false,
+        ...args,
+    };
     if (args.cluster !== 'electrical') {
         const divisors = new Set([
             args.cluster === 'metering' && isObject(args.power) ? args.power?.divisor : false,
@@ -1654,6 +1698,9 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     }
     if (args.cluster === 'metering' && args.powerFactor) {
         throw new Error(`Power factor is not supported with cluster 'metering', use 'both' or 'electrical'`);
+    }
+    if (args.cluster === 'metering' && args.electricalMeasurementType === 'dc') {
+        throw new Error(`DC attributes are not supported with cluster 'metering', use 'both' or 'ac'`);
     }
 
     let exposes: Numeric[] = [];
@@ -1710,10 +1757,16 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                 forced: args.voltage,
                 change: 5,
             },
+            // Report change with every 100mW change
+            dc_power: {attribute: 'dcPower', divisor: 'dcPowerDivisor', multiplier: 'dcPowerMultiplier', forced: args.power, change: 100},
+            // Report change with every 100mV change
+            dc_voltage: {attribute: 'dcVoltage', divisor: 'dcVoltageDivisor', multiplier: 'dcVoltageMultiplier', forced: args.voltage, change: 100},
+            // Report change with every 100mA change
+            dc_current: {attribute: 'dcCurrent', divisor: 'dcCurrentDivisor', multiplier: 'dcCurrentMultiplier', forced: args.current, change: 100},
         },
         seMetering: {
             // Report change with every 5W change
-            power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 5},
+            power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 0.005},
             // Report change with every 0.1kWh change
             energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1},
             produced_energy: {
@@ -1731,16 +1784,19 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         delete configureLookup.seMetering.power;
         delete configureLookup.haElectricalMeasurement.power_phase_b;
         delete configureLookup.haElectricalMeasurement.power_phase_c;
+        delete configureLookup.haElectricalMeasurement.dc_power;
     }
     if (args.voltage === false) {
         delete configureLookup.haElectricalMeasurement.voltage;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
+        delete configureLookup.haElectricalMeasurement.dc_voltage;
     }
     if (args.current === false) {
         delete configureLookup.haElectricalMeasurement.current;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         delete configureLookup.haElectricalMeasurement.current_phase_c;
+        delete configureLookup.haElectricalMeasurement.dc_current;
     }
     if (args.energy === false) {
         delete configureLookup.seMetering.energy;
@@ -1761,6 +1817,26 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         delete configureLookup.haElectricalMeasurement.current_phase_c;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
+    }
+
+    if (args.electricalMeasurementType === 'dc') {
+        delete configureLookup.haElectricalMeasurement.power;
+        delete configureLookup.haElectricalMeasurement.voltage;
+        delete configureLookup.haElectricalMeasurement.current;
+        delete configureLookup.haElectricalMeasurement.power_factor;
+        delete configureLookup.haElectricalMeasurement.ac_frequency;
+        delete configureLookup.haElectricalMeasurement.power_phase_b;
+        delete configureLookup.haElectricalMeasurement.power_phase_c;
+        delete configureLookup.haElectricalMeasurement.current_phase_b;
+        delete configureLookup.haElectricalMeasurement.current_phase_c;
+        delete configureLookup.haElectricalMeasurement.voltage_phase_b;
+        delete configureLookup.haElectricalMeasurement.voltage_phase_c;
+    }
+
+    if (args.electricalMeasurementType === 'ac') {
+        delete configureLookup.haElectricalMeasurement.dc_power;
+        delete configureLookup.haElectricalMeasurement.dc_voltage;
+        delete configureLookup.haElectricalMeasurement.dc_current;
     }
 
     if (args.cluster === 'both') {
@@ -1833,10 +1909,13 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                         const items: ReportingConfig[] = [];
                         for (const property of Object.values(properties)) {
                             let change = property.change;
+                            let min: ReportingConfigTime = '10_SECONDS';
+                            let max: ReportingConfigTime = 'MAX';
+
                             // Check if this property has a divisor and multiplier, e.g. AC frequency doesn't.
                             if ('divisor' in property) {
                                 // In case multiplier or divisor was provided, use that instead of reading from device.
-                                if (property.forced) {
+                                if (property.forced && (property.forced.divisor || property.forced.multiplier)) {
                                     endpoint.saveClusterAttributeKeyValue(cluster, {
                                         [property.divisor]: property.forced.divisor ?? 1,
                                         [property.multiplier]: property.forced.multiplier ?? 1,
@@ -1852,7 +1931,20 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                                 assertNumber(multiplier, property.multiplier);
                                 change = property.change * (divisor / multiplier);
                             }
-                            items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
+
+                            if ('forced' in property && property.forced) {
+                                if ('min' in property.forced) {
+                                    min = property.forced.min;
+                                }
+                                if ('max' in property.forced) {
+                                    max = property.forced.max;
+                                }
+                                if ('change' in property.forced) {
+                                    change = property.forced.change;
+                                }
+                            }
+
+                            items.push({attribute: property.attribute, min, max, change});
                         }
                         if (items.length) {
                             await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
@@ -2269,10 +2361,10 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
     return {configure, isModernExtend: true};
 }
 
-export function quirkCheckinInterval(timeout: number | keyof typeof timeLookup): ModernExtend {
+export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP): ModernExtend {
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
-            device.checkinInterval = typeof timeout == 'number' ? timeout : timeLookup[timeout];
+            device.checkinInterval = typeof timeout == 'number' ? timeout : TIME_LOOKUP[timeout];
             device.save();
         },
     ];

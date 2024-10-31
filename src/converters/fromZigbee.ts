@@ -753,17 +753,15 @@ const converters1 = {
                 payload[property] = power;
             }
 
-            if (factor != null && (msg.data.currentSummDelivered !== undefined || msg.data.currentSummReceived !== undefined)) {
-                if (msg.data.currentSummDelivered !== undefined) {
-                    const value = msg.data['currentSummDelivered'];
-                    const property = postfixWithEndpointName('energy', msg, model, meta);
-                    payload[property] = value * factor;
-                }
-                if (msg.data.currentSummReceived !== undefined) {
-                    const value = msg.data['currentSummReceived'];
-                    const property = postfixWithEndpointName('produced_energy', msg, model, meta);
-                    payload[property] = value * factor;
-                }
+            if (msg.data.currentSummDelivered !== undefined) {
+                const value = msg.data['currentSummDelivered'];
+                const property = postfixWithEndpointName('energy', msg, model, meta);
+                payload[property] = value * (factor ?? 1);
+            }
+            if (msg.data.currentSummReceived !== undefined) {
+                const value = msg.data['currentSummReceived'];
+                const property = postfixWithEndpointName('produced_energy', msg, model, meta);
+                payload[property] = value * (factor ?? 1);
             }
 
             return payload;
@@ -2212,7 +2210,13 @@ const converters1 = {
             }
             if (msg.data.moesCalibrationTime !== undefined) {
                 const value = parseFloat(msg.data['moesCalibrationTime']) / 10.0;
-                result[postfixWithEndpointName('calibration_time', msg, model, meta)] = value;
+                if (meta.device.manufacturerName === '_TZ3000_cet6ch1r') {
+                    const endpoint = msg.endpoint.ID;
+                    const calibrationLookup: KeyValueAny = {1: 'up', 2: 'down'};
+                    result[postfixWithEndpointName(`calibration_time_'${calibrationLookup[endpoint]}'`, msg, model, meta)] = value;
+                } else {
+                    result[postfixWithEndpointName('calibration_time', msg, model, meta)] = value;
+                }
             }
             return result;
         },

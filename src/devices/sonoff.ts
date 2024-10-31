@@ -18,15 +18,17 @@ import {
     humidity,
     iasZoneAlarm,
     numeric,
+    occupancy,
     onOff,
     ota,
     temperature,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
-const {ewelinkAction} = ewelinkModernExtend;
+const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
 
 const NS = 'zhc:sonoff';
 const manufacturerOptions = {
@@ -636,17 +638,9 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['DS01', 'SNZB-04'],
         model: 'SNZB-04',
         vendor: 'SONOFF',
-        whiteLabel: [{vendor: 'eWeLink', model: 'RHK06'}],
+        whiteLabel: [{vendor: 'eWeLink', model: 'RHK06'}, tuya.whitelabel('Tuya', 'WL-19DWZ', 'Contact sensor', ['_TZ3000_n2egfsli'])],
         description: 'Contact sensor',
-        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
-        },
+        extend: [ewelinkBattery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
     {
         zigbeeModel: ['WB01', 'WB-01'],
@@ -654,14 +648,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK07'}],
         description: 'Wireless button',
-        exposes: [e.battery(), e.action(['single', 'double', 'long']), e.battery_voltage()],
-        fromZigbee: [fz.ewelink_action, fz.battery],
+        extend: [ewelinkBattery()],
+        exposes: [e.action(['single', 'double', 'long'])],
+        fromZigbee: [fz.ewelink_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -669,14 +662,13 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SNZB-01-KF',
         vendor: 'SONOFF',
         description: 'Wireless button',
-        exposes: [e.battery(), e.action(['off', 'single']), e.battery_voltage()],
-        fromZigbee: [fz.command_status_change_notification_action, fz.battery],
+        extend: [ewelinkBattery()],
+        exposes: [e.action(['off', 'single'])],
+        fromZigbee: [fz.command_status_change_notification_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'genPowerCfg']);
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone']);
         },
     },
     {
@@ -711,6 +703,8 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.SNZB02_temperature, fz.humidity, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
+            device.powerSource = 'Battery';
+            device.save();
             try {
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
@@ -730,7 +724,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SNZB-02D',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor with screen',
-        extend: [battery({percentage: true}), temperature(), humidity(), bindCluster({cluster: 'genPollCtrl', clusterType: 'input'})],
+        extend: [battery(), temperature(), humidity(), bindCluster({cluster: 'genPollCtrl', clusterType: 'input'})],
     },
     {
         fingerprint: [
@@ -753,18 +747,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK09'}],
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const bindClusters = ['genPowerCfg'];
-            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            // 3600/7200 prevents disconnect
-            // https://github.com/Koenkk/zigbee2mqtt/issues/13600#issuecomment-1283827935
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
-        },
-        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
+        extend: [ewelinkBattery(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
     {
         zigbeeModel: ['S26R2ZB'],
@@ -838,9 +821,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SNZB-04P',
         vendor: 'SONOFF',
         description: 'Contact sensor',
-        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         extend: [
+            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']}),
             binary({
                 name: 'tamper',
                 cluster: 0xfc11,
@@ -852,22 +834,16 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE_GET',
             }),
             ota(),
+            ewelinkBattery(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
-        },
     },
     {
         zigbeeModel: ['SNZB-03P'],
         model: 'SNZB-03P',
         vendor: 'SONOFF',
         description: 'Zigbee PIR sensor',
-        fromZigbee: [fz.occupancy, fz.battery],
-        exposes: [e.occupancy(), e.battery()],
         extend: [
+            occupancy(),
             numeric({
                 name: 'motion_timeout',
                 cluster: 0x0406,
@@ -886,13 +862,8 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
             ota(),
+            ewelinkBattery(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
-        },
     },
     {
         zigbeeModel: ['SNZB-05P'],
@@ -906,9 +877,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SNZB-06P',
         vendor: 'SONOFF',
         description: 'Zigbee occupancy sensor',
-        fromZigbee: [fz.occupancy],
-        exposes: [e.occupancy()],
         extend: [
+            occupancy(),
             numeric({
                 name: 'occupancy_timeout',
                 cluster: 0x0406,
@@ -946,7 +916,7 @@ const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withSetpoint('occupied_heating_setpoint', 4, 35, 0.5)
                 .withLocalTemperature()
-                .withLocalTemperatureCalibration(-7.0, 7.0, 0.2)
+                .withLocalTemperatureCalibration(-12.8, 12.7, 0.2)
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.battery(),
