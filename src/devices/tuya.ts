@@ -4489,7 +4489,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
             tuya.whitelabel('Moes', 'ZTRV-ZX-TV01-MS', 'Thermostat radiator valve', ['_TZE200_7yoranx2']),
             tuya.whitelabel('Moes', 'TV01-ZB', 'Thermostat radiator valve', ['_TZE200_e9ba97vf']),
-            {vendor: 'AlecoAir', model: 'HA-08 THERMO'},
+            tuya.whitelabel('AlecoAir', 'HA-08_THERMO', 'Thermostat radiator valve', ['_TZE200_wsbfwodu']),
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [tuya.fz.datapoints],
