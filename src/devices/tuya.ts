@@ -815,10 +815,10 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {
                 modelID: 'TS0601',
-                manufacturerName: '_TZE204_wktrysab',
+                manufacturerName: 'Melery',
             },
         ],
-        model: 'TS0601_8_way_switch',
+        model: 'WLS098-ZIGBEE',
         vendor: 'Tuya',
         description: '8 gang wall touch switch board',
         fromZigbee: [tuya.fz.datapoints],
