@@ -2740,7 +2740,7 @@ export const fromZigbee = {
                         result['valve_detection'] = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x0277:
-                        result['child_lock'] = getFromLookup(value, {1: true, 0: false});
+                        result['child_lock'] = getFromLookup(value, {1: 'LOCK', 0: 'UNLOCK'});
                         break;
                     case 0x0279:
                         assertNumber(value);

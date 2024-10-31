@@ -940,12 +940,7 @@ export const presets = {
     calibrated: () =>
         new Binary('calibrated', access.STATE, true, false).withDescription('Indicates if this device is calibrated').withCategory('diagnostic'),
     carbon_monoxide: () => new Binary('carbon_monoxide', access.STATE, true, false).withDescription('Indicates if CO (carbon monoxide) is detected'),
-    child_lock: () =>
-        new Lock()
-            .withLabel('Child lock')
-            .withState('child_lock', 'LOCK', 'UNLOCK', 'Enables/disables physical input on the device', access.STATE_SET),
-    child_lock_bool: () =>
-        new Binary('child_lock', access.ALL, true, false).withDescription('Unlocks/locks physical input on the device').withCategory('config'),
+    child_lock: () => new Binary('child_lock', access.STATE_SET, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
     co2: () => new Numeric('co2', access.STATE).withLabel('CO2').withUnit('ppm').withDescription('The measured CO2 (carbon dioxide) value'),
     co: () => new Numeric('co', access.STATE).withLabel('CO').withUnit('ppm').withDescription('The measured CO (carbon monoxide) value'),
     comfort_temperature: () =>
