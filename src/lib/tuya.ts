@@ -1762,7 +1762,7 @@ export function getHandlersForDP(
         : [
               {
                   key: [name],
-                  endpoint: endpoint,
+                  endpoints: [endpoint],
                   convertSet: async (entity, key, value, meta) => {
                       // A set converter is only called once; therefore we need to loop
                       const state: KeyValue = {};

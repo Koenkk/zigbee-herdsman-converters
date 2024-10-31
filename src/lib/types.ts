@@ -331,7 +331,7 @@ export namespace Tz {
     export interface Converter {
         key?: string[];
         options?: Option[] | ((definition: Definition) => Option[]);
-        endpoint?: string | string[];
+        endpoints?: string[];
         convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult>;
         convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>;
     }
