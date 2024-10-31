@@ -5702,6 +5702,131 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_m64smti7']),
+        model: 'RMDZB-1PNL63',
+        vendor: 'TNCE',
+        description: 'Zigbee DIN single phase RCBO energy meter',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.switch(),
+            e.energy(),
+            e
+                .enum('fault', ea.STATE, [
+                    'clear',
+                    'short_circuit_alarm',
+                    'surge_alarm',
+                    'overload_alarm',
+                    'leakagecurr_alarm',
+                    'temp_dif_fault',
+                    'fire_alarm',
+                    'high_power_alarm',
+                    'self_test_alarm',
+                    'ov_cr',
+                    'unbalance_alarm',
+                    'ov_vol',
+                    'undervoltage_alarm',
+                    'miss_phase_alarm',
+                    'outage_alarm',
+                    'magnetism_alarm',
+                    'credit_alarm',
+                    'no_balance_alarm',
+                ])
+                .withDescription('Fault status of the device (clear = nothing)'),
+            tuya.exposes.voltageWithPhase('a'),
+            tuya.exposes.powerWithPhase('a'),
+            tuya.exposes.currentWithPhase('a'),
+            e.temperature(),
+            e
+                .binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will turn off when threshold reached'),
+            e
+                .numeric('over_current_threshold', ea.STATE_SET)
+                .withUnit('A')
+                .withDescription('Setup the value on the device')
+                .withValueMin(1)
+                .withValueMax(63),
+            e
+                .binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will turn off when threshold reached'),
+            e
+                .numeric('over_voltage_threshold', ea.STATE_SET)
+                .withUnit('V')
+                .withDescription('Setup value on the device')
+                .withValueMin(250)
+                .withValueMax(300),
+            e
+                .binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will turn off when threshold reached'),
+            e
+                .numeric('under_voltage_threshold', ea.STATE_SET)
+                .withUnit('V')
+                .withDescription('Setup value on the device')
+                .withValueMin(150)
+                .withValueMax(200),
+            e
+                .binary('high_temperature_breaker', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will turn off when threshold reached'),
+            e
+                .numeric('high_temperature_threshold', ea.STATE_SET)
+                .withUnit('°C')
+                .withDescription('Setup value on the device')
+                .withValueMin(40)
+                .withValueMax(100),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'energy', tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2WithPhase('a')],
+                [
+                    9,
+                    'fault',
+                    tuya.valueConverterBasic.lookup({
+                        clear: 0,
+                        short_circuit_alarm: 1,
+                        surge_alarm: 2,
+                        overload_alarm: 4,
+                        leakagecurr_alarm: 8,
+                        temp_dif_fault: 16,
+                        fire_alarm: 32,
+                        high_power_alarm: 64,
+                        self_test_alarm: 128,
+                        ov_cr: 256,
+                        unbalance_alarm: 512,
+                        ov_vol: 1024,
+                        undervoltage_alarm: 2048,
+                        miss_phase_alarm: 4096,
+                        outage_alarm: 8192,
+                        magnetism_alarm: 16384,
+                        credit_alarm: 32768,
+                        no_balance_alarm: 65536,
+                    }),
+                ],
+                [16, 'state', tuya.valueConverter.onOff],
+                [17, null, tuya.valueConverter.threshold_2],
+                [17, 'high_temperature_threshold', tuya.valueConverter.threshold_2],
+                [17, 'high_temperature_breaker', tuya.valueConverter.threshold_2],
+                [18, null, tuya.valueConverter.threshold_3],
+                [18, 'over_current_threshold', tuya.valueConverter.threshold_3],
+                [18, 'over_current_breaker', tuya.valueConverter.threshold_3],
+                [18, 'over_voltage_threshold', tuya.valueConverter.threshold_3],
+                [18, 'over_voltage_breaker', tuya.valueConverter.threshold_3],
+                [18, 'under_voltage_threshold', tuya.valueConverter.threshold_3],
+                [18, 'under_voltage_breaker', tuya.valueConverter.threshold_3],
+                [103, 'temperature', tuya.valueConverter.divideBy10],
+                // Ignored for now; we don't know what the values mean
+                [11, null, null], // Switch prepayment
+                [12, null, null], // Energy reset
+                [13, null, null], // Balance enertgy
+                [14, null, null], // Charge energy
+                [105, null, null], // Countdown
+                [106, null, null], // Cycle time
+            ],
+        },
+        whiteLabel: [{vendor: 'TNCE', model: 'RMDZB-1PNL63'}],
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_wbhaespm']),
         model: 'STB3L-125-ZJ',
         vendor: 'SUTON',
