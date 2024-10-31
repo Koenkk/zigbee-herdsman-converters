@@ -12635,6 +12635,129 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_pbo8cj0z']),
+        model: 'TS0601_GTZ10',
+        vendor: 'Tuya',
+        description: 'Thermostat radiator valve',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
+        ota: ota.zigbeeOTA,
+        exposes: [
+            e.battery(),
+            e.child_lock(),
+            e.window_detection(),
+            e.window_open(),
+            e.open_window_temperature().withValueMin(5).withValueMax(30),
+            e.max_temperature().withValueMin(15).withValueMax(45),
+            e.min_temperature().withValueMin(5).withValueMax(15),
+            e
+                .climate()
+                .withPreset(['manual', 'auto', 'holiday', 'comfort', 'eco', 'off'])
+                .withSetpoint('current_heating_setpoint', 5, 40, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET)
+                .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET, 'Only for Homeassistant')
+                .withRunningState(['idle', 'heat'], ea.STATE),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            tuya.exposes
+                .errorStatus()
+                .withDescription(
+                    'Error status. Possible codes: E1 - builtin sensor error, E2 - external sensor error, E3 - valve not installed, E4 - motor error.',
+                ),
+            e
+                .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
+                ),
+            e.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: the device will enter the boost heating mode.'),
+            e
+                .numeric('boost_timeset_countdown', ea.STATE_SET)
+                .withUnit('m')
+                .withDescription(
+                    'Setting ' +
+                        'minimum 0 - maximum 90 minutes boost time. The boost function is activated. The remaining ' +
+                        'time for the function will be counted down in minutes ( 90 to 0 ).',
+                )
+                .withValueMin(0)
+                .withValueMax(90),
+            e.binary('switch_type', ea.STATE_SET, 'ON', 'OFF').withDescription('Enables/disables valve switch'),
+            e.numeric('position', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Position'), // set actually not working
+            e.enum('screen_orientation', ea.STATE_SET, ['up', 'right', 'down', 'left']).withDescription('Screen orientation'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [2, null, tuya.valueConverter.thermostatGtz10SystemModeAndPreset(null)],
+                [2, 'preset', tuya.valueConverter.thermostatGtz10SystemModeAndPreset('preset')],
+                [2, 'system_mode', tuya.valueConverter.thermostatGtz10SystemModeAndPreset('system_mode')],
+                [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [5, 'local_temperature', tuya.valueConverter.divideBy10],
+                [6, 'battery', tuya.valueConverter.raw],
+                [7, 'child_lock', tuya.valueConverter.lockUnlock],
+                [9, 'max_temperature', tuya.valueConverter.divideBy10],
+                [10, 'min_temperature', tuya.valueConverter.divideBy10],
+                [14, 'window_detection', tuya.valueConverter.onOff],
+                [15, 'window_open', tuya.valueConverter.onOff],
+                [16, 'open_window_temperature', tuya.valueConverter.divideBy10],
+                [28, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [29, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [30, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [31, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [35, 'error_status', tuya.valueConverter.raw],
+                [36, 'frost_protection', tuya.valueConverter.onOff],
+                [37, 'boost_heating', tuya.valueConverter.onOff],
+                [38, 'boost_timeset_countdown', tuya.valueConverter.raw],
+                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [
+                    49, //valve_state
+                    'running_state',
+                    tuya.valueConverterBasic.lookup({
+                        idle: tuya.enum(0),
+                        heat: tuya.enum(1),
+                        closing: tuya.enum(2),
+                        opening: tuya.enum(3),
+                    }),
+                ],
+                [113, 'switch_type', tuya.valueConverter.onOff], // valve_switch
+                [115, 'position', tuya.valueConverter.raw], // valve_opening
+                [
+                    119,
+                    'screen_orientation',
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        left: tuya.enum(2),
+                        right: tuya.enum(3),
+                    }),
+                ],
+                // Exposed but not used DPs
+                [1, 'preheat', tuya.valueConverter.raw],
+                [3, 'working_status', tuya.valueConverter.raw],
+                [8, 'temperature_scale', tuya.valueConverter.raw],
+                [11, 'max_temperature_f', tuya.valueConverter.divideBy10],
+                [12, 'min_temperature_f', tuya.valueConverter.divideBy10],
+                [17, 'open_window_time', tuya.valueConverter.raw],
+                [18, 'backlight', tuya.valueConverter.raw],
+                [39, 'switch_scale', tuya.valueConverter.raw],
+                [40, 'local_temperature_f', tuya.valueConverter.divideBy10],
+                [41, 'current_heating_setpoint_f', tuya.valueConverter.divideBy10],
+                [46, 'open_window_temperature_f', tuya.valueConverter.divideBy10],
+                [48, 'valve_testing', tuya.valueConverter.raw],
+                [112, 'local_temperature_calibration_f', tuya.valueConverter.localTempCalibration1],
+                [114, 'valve_control_type', tuya.valueConverterBasic.lookup({PID: 0, ONOFF: 1})],
+                [116, 'frost_temperature', tuya.valueConverter.raw],
+                [117, 'frost_temperature_f', tuya.valueConverter.raw],
+                [118, 'auto_time', tuya.valueConverter.raw],
+                [120, 'multi_control_link', tuya.valueConverter.raw],
+                [121, 'holiday_time', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
 
 export default definitions;
