@@ -8,7 +8,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Chacon',
         description: 'Roller shutter module',
         extend: [
-            windowCovering({controls: ['lift'], coverMode: true}),
+            windowCovering({controls: ['lift'], coverInverted: true, coverMode: true}),
             commandsWindowCovering({commands: ['open', 'close', 'stop'], legacyAction: false}),
         ],
     },
