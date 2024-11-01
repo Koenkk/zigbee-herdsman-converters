@@ -815,7 +815,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {
                 modelID: 'TS0601',
-                manufacturerName: 'TZE204_wktrysab',
+                manufacturerName: '_TZE204_wktrysab',
             },
         ],
         model: 'WLS098-ZIGBEE',
