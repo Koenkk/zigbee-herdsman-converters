@@ -1497,7 +1497,7 @@ const tuyaTz = {
 
                 if (dpEntry[3] && dpEntry[3].optimistic === false) continue;
 
-                state[key] = value;
+                state[attr] = value;
             }
             return {state};
         },
