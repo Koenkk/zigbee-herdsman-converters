@@ -530,7 +530,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
         : exposeEndpoints(e.switch(), args.endpointNames);
 
     const fromZigbee: Fz.Converter[] = [args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
-    const toZigbee: Tz.Converter[] = [tz.on_off];
+    const toZigbee: Tz.Converter[] = [{...tz.on_off, endpoints: args?.endpointNames}];
 
     if (args.powerOnBehavior) {
         exposes.push(...exposeEndpoints(e.power_on_behavior(['off', 'on', 'toggle', 'previous']), args.endpointNames));
@@ -1005,7 +1005,7 @@ export function light(args?: LightArgs): ModernExtend {
 
     const fromZigbee: Fz.Converter[] = [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
     const toZigbee: Tz.Converter[] = [
-        tz.light_onoff_brightness,
+        {...tz.light_onoff_brightness, endpoints: args?.endpointNames},
         tz.ignore_transition,
         tz.level_config,
         tz.ignore_rate,
@@ -1287,12 +1287,19 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
 
 export interface LockArgs {
     pinCodeCount: number;
+    endpointNames?: string[];
 }
 export function lock(args?: LockArgs): ModernExtend {
     args = {...args};
 
     const fromZigbee = [fz.lock, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response, fz.lock_user_status_response];
-    const toZigbee = [tz.lock, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume];
+    const toZigbee = [
+        {...tz.lock, endpoints: args?.endpointNames},
+        tz.pincode_lock,
+        tz.lock_userstatus,
+        tz.lock_auto_relock_time,
+        tz.lock_sound_volume,
+    ];
     const exposes = [
         e.lock(),
         e.pincode(),
@@ -1326,7 +1333,7 @@ export function windowCovering(args: WindowCoveringArgs): ModernExtend {
     const exposes: Expose[] = [coverExpose];
 
     const fromZigbee: Fz.Converter[] = [fz.cover_position_tilt];
-    const toZigbee: Tz.Converter[] = [tz.cover_state, tz.cover_position_tilt];
+    const toZigbee: Tz.Converter[] = [{...tz.cover_state, endpoints: args?.endpointNames}, tz.cover_position_tilt];
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
 
