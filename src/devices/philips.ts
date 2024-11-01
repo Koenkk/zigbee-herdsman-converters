@@ -1751,6 +1751,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: undefined}})],
     },
     {
+        zigbeeModel: ['929003736101_01', '929003736101_02'],
+        model: '929003736101',
+        vendor: 'Philips',
+        description: 'Hue Datura',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['929003054401'],
         model: '929003054401',
         vendor: 'Philips',
@@ -2017,6 +2024,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929003817002'],
+        model: '929003817002',
+        vendor: 'Philips',
+        description: 'Philips Hue solo lightstrip (5 mtr.)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['929003621101_01', '929003621101_02', '929003621101_03', '929003621101_04', '929003621101_05'],
         model: '929003621101',
         vendor: 'Philips',
@@ -2035,6 +2049,13 @@ const definitions: DefinitionWithExtend[] = [
         model: '929003621301',
         vendor: 'Philips',
         description: 'Hue White & Color ambience Centris ceiling light (4 spots) (black)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ['929003809101_01', '929003809101_02', '929003809101_03', '929003809101_04'],
+        model: '929003809101',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris V2 ceiling light (3 spots)',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
@@ -2580,7 +2601,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['LOM002', 'LOM004', 'LOM010'],
-        model: '046677552343',
+        model: '9290022407',
         vendor: 'Philips',
         description: 'Hue smart plug bluetooth',
         extend: [philipsOnOff()],
@@ -3903,6 +3924,13 @@ const definitions: DefinitionWithExtend[] = [
 
             philipsTwilightOnOff(),
         ],
+    },
+    {
+        zigbeeModel: ['915005821901'],
+        model: '915005821901',
+        vendor: 'Philips',
+        description: 'Philips Hue Go White and Color',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
 

@@ -323,7 +323,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm'],
+        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm', 'TRADFRI bulb E12 CWS globe 800lm'],
         model: 'LED2111G6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14, color/white spectrum, globe, opal, 806 lm',

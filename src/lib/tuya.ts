@@ -1133,6 +1133,44 @@ export const valueConverter = {
             },
         };
     },
+    thermostatGtz10SystemModeAndPreset: (toKey: string) => {
+        return {
+            from: (v: string) => {
+                utils.assertNumber(v, 'system_mode');
+                const presetLookup = {
+                    0: 'manual',
+                    1: 'auto',
+                    2: 'holiday',
+                    3: 'comfort',
+                    4: 'eco',
+                    5: 'off',
+                };
+                const systemModeLookup = {
+                    0: 'heat',
+                    1: 'auto',
+                    5: 'off',
+                };
+                return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
+            },
+            to: (v: string) => {
+                const presetLookup = {
+                    manual: new Enum(0),
+                    auto: new Enum(1),
+                    holiday: new Enum(2),
+                    comfort: new Enum(3),
+                    eco: new Enum(4),
+                    off: new Enum(5),
+                };
+                const systemModeLookup = {
+                    heat: new Enum(0),
+                    auto: new Enum(1),
+                    off: new Enum(5),
+                };
+                const lookup = toKey === 'preset' ? presetLookup : systemModeLookup;
+                return utils.getFromLookup(v, lookup);
+            },
+        };
+    },
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
             const programmingMode = [];
@@ -1459,7 +1497,7 @@ const tuyaTz = {
 
                 if (dpEntry[3] && dpEntry[3].optimistic === false) continue;
 
-                state[key] = value;
+                state[attr] = value;
             }
             return {state};
         },
@@ -1762,7 +1800,7 @@ export function getHandlersForDP(
         : [
               {
                   key: [name],
-                  endpoint: endpoint,
+                  endpoints: [endpoint],
                   convertSet: async (entity, key, value, meta) => {
                       // A set converter is only called once; therefore we need to loop
                       const state: KeyValue = {};
@@ -1799,7 +1837,7 @@ export function getHandlersForDP(
                               throw new Error(`Don't know how to send type '${typeof convertedValue}'`);
                           }
 
-                          state[convertedKey] = value;
+                          state[key] = value;
                       }
                       return {state};
                   },
