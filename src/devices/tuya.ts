@@ -569,7 +569,13 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/11470
-            if (msg.data.batteryPercentageRemaining == 200 && msg.data.batteryVoltage < 30) return;
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8246
+            if (
+                msg.data.batteryPercentageRemaining == 200 &&
+                msg.data.batteryVoltage < 30 &&
+                !['_TZ3000_lqmvrwa2'].includes(meta.device.manufacturerName)
+            )
+                return;
             return fz.battery.convert(model, msg, publish, options, meta);
         },
     } satisfies Fz.Converter,
