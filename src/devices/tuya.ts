@@ -5705,7 +5705,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_m64smti7']),
         model: 'RMDZB-1PNL63',
         vendor: 'TNCE',
-        description: 'Zigbee DIN single phase RCBO energy meter',
+        description: 'Zigbee DIN single phase energy meter',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -5814,7 +5814,7 @@ const definitions: DefinitionWithExtend[] = [
                 [18, 'over_voltage_breaker', tuya.valueConverter.threshold_3],
                 [18, 'under_voltage_threshold', tuya.valueConverter.threshold_3],
                 [18, 'under_voltage_breaker', tuya.valueConverter.threshold_3],
-                [103, 'temperature', tuya.valueConverter.divideBy10],
+                [103, 'temperature', tuya.valueConverter.raw],
                 // Ignored for now; we don't know what the values mean
                 [11, null, null], // Switch prepayment
                 [12, null, null], // Energy reset
