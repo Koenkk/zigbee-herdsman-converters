@@ -530,7 +530,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
         : exposeEndpoints(e.switch(), args.endpointNames);
 
     const fromZigbee: Fz.Converter[] = [args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
-    const toZigbee: Tz.Converter[] = [{...tz.on_off, endpoints: args?.endpointNames}];
+    const toZigbee: Tz.Converter[] = [args?.endpointNames ? {...tz.on_off, endpoints: args?.endpointNames} : tz.on_off];
 
     if (args.powerOnBehavior) {
         exposes.push(...exposeEndpoints(e.power_on_behavior(['off', 'on', 'toggle', 'previous']), args.endpointNames));
@@ -1005,7 +1005,7 @@ export function light(args?: LightArgs): ModernExtend {
 
     const fromZigbee: Fz.Converter[] = [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
     const toZigbee: Tz.Converter[] = [
-        {...tz.light_onoff_brightness, endpoints: args?.endpointNames},
+        args?.endpointNames ? {...tz.light_onoff_brightness, endpoints: args?.endpointNames} : tz.light_onoff_brightness,
         tz.ignore_transition,
         tz.level_config,
         tz.ignore_rate,
