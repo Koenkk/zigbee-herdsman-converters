@@ -2901,7 +2901,16 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: undefined}})],
     },
     {
-        zigbeeModel: ['929003047101', '929003045101_03', '929003045101_01', '929003045101_02'],
+        zigbeeModel: [
+            '929003047101',
+            '929003045101_03',
+            '929003045101_01',
+            '929003045101_02',
+            '929003811101_01',
+            '929003811101_02',
+            '929003811101_03',
+            '929003811001',
+        ],
         model: '929003047101',
         vendor: 'Philips',
         description: 'Hue White ambiance Milliskin (round)',
