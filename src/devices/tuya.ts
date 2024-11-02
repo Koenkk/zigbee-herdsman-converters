@@ -12767,7 +12767,6 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
-        ota: ota.zigbeeOTA,
         exposes: [
             e
                 .numeric('liquid_level_percent', ea.STATE)
@@ -12816,8 +12815,8 @@ const definitions: DefinitionWithExtend[] = [
                     'liquid_state', tuya.valueConverterBasic.lookup({
                         low: tuya.enum(1), 
                         normal: tuya.enum(0), 
-                        high: tuya.enum(2),
-                    }),
+                        high: tuya.enum(2)
+                    })
                 ],
     			[2, 'liquid_depth', tuya.valueConverter.divideBy1000],
     			[22, 'liquid_level_percent', tuya.valueConverter.raw],
