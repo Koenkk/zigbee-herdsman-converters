@@ -296,6 +296,14 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
+        zigbeeModel: ['929003054201'],
+        model: '929003054201',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance Cher Pendant',
+        extend: [philipsLight({"colorTemp":{"range":[153,454]}})],
+        meta: {},
+    },
+    {
         zigbeeModel: ['5063131P7'],
         model: '5063131P7',
         vendor: 'Philips',
