@@ -11,13 +11,11 @@ import {
     light as lightDontUse,
     numeric,
     NumericArgs,
-    ota,
     ReportingConfigWithoutAttribute,
     setupConfigureForBinding,
     setupConfigureForReporting,
     TIME_LOOKUP,
 } from '../lib/modernExtend';
-import {tradfri as ikea} from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
@@ -94,7 +92,6 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
         ? args.levelConfig
         : {disabledFeatures: ['on_off_transition_time', 'on_transition_time', 'off_transition_time', 'on_level']};
     const result = lightDontUse({...args, colorTemp, levelConfig});
-    result.ota = ikea;
     result.onEvent = bulbOnEvent;
     if (isObject(args?.colorTemp) && args.colorTemp.viaColor) {
         result.toZigbee = replaceInArray(result.toZigbee, [tz.light_color_colortemp], [tz.light_color_and_colortemp_via_color]);
@@ -118,10 +115,6 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
     };
 
     return result;
-}
-
-export function ikeaOta(): ModernExtend {
-    return ota(ikea);
 }
 
 export function ikeaBattery(): ModernExtend {
