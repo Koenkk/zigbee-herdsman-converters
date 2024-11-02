@@ -7495,6 +7495,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS004F', manufacturerName: '_TZ3000_ixla93vd'},
             {modelID: 'TS004F', manufacturerName: '_TZ3000_qja6nq5z'},
             {modelID: 'TS004F', manufacturerName: '_TZ3000_abrsvsou'},
+			{modelID: 'TS004F', manufacturerName: '_TZ3000_402vrq2i'},
         ],
         model: 'ERS-10TZBVK-AA',
         vendor: 'Tuya',
