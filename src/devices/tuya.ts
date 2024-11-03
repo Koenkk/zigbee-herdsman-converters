@@ -2640,6 +2640,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee + RF curtain switch module',
         whiteLabel: [tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc'])],
         ota: ota.zigbeeOTA,
+        meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [
