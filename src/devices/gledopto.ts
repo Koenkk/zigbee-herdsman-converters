@@ -117,7 +117,7 @@ function gledoptoLight(args?: LightArgs) {
     args = {powerOnBehavior: false, ...args};
     if (args.color) args.color = {modes: ['xy', 'hs'], ...(utils.isObject(args.color) ? args.color : {})};
     const result = light(args);
-    result.toZigbee = utils.replaceInArray(
+    result.toZigbee = utils.replaceToZigbeeConvertersInArray(
         result.toZigbee,
         [tz.light_onoff_brightness, tz.light_colortemp, tz.light_color, tz.light_color_colortemp],
         [

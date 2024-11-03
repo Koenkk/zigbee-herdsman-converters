@@ -603,7 +603,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E2206',
         vendor: 'IKEA',
         description: 'INSPELNING smart plug',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta(), electricityMeter()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ota(), electricityMeter()],
         configure: async (device) => {
             const endpoint = device.getEndpoint(1);
             // Enable reporting of powerDivisor, needs to change dynamically with the amount of power
