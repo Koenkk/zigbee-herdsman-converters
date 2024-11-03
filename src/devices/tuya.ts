@@ -569,7 +569,13 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/11470
-            if (msg.data.batteryPercentageRemaining == 200 && msg.data.batteryVoltage < 30) return;
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8246
+            if (
+                msg.data.batteryPercentageRemaining == 200 &&
+                msg.data.batteryVoltage < 30 &&
+                !['_TZ3000_lqmvrwa2'].includes(meta.device.manufacturerName)
+            )
+                return;
             return fz.battery.convert(model, msg, publish, options, meta);
         },
     } satisfies Fz.Converter,
@@ -810,6 +816,47 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_gas_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [e.gas(), e.tamper()],
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_wktrysab',
+            },
+        ],
+        model: 'WLS098-ZIGBEE',
+        vendor: 'Tuya',
+        description: '8 gang wall touch switch board',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [...Array.from({length: 8}, (_, i) => tuya.exposes.switch().withEndpoint(`l${i + 1}`))],
+        endpoint: (device) => {
+            return {
+                l1: 1,
+                l2: 1,
+                l3: 1,
+                l4: 1,
+                l5: 1,
+                l6: 1,
+                l7: 1,
+                l8: 1,
+            };
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+                [5, 'state_l5', tuya.valueConverter.onOff],
+                [6, 'state_l6', tuya.valueConverter.onOff],
+                [0x65, 'state_l7', tuya.valueConverter.onOff],
+                [0x66, 'state_l8', tuya.valueConverter.onOff],
+            ],
+        },
     },
     {
         zigbeeModel: ['TS0205'],
@@ -3046,6 +3093,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'BlitzWolf', model: 'BW-IS4'},
             tuya.whitelabel('Tuya', 'TS0201_1', 'Zigbee 3.0 temperature humidity sensor with display', ['_TZ3210_alxkwn0h']),
             tuya.whitelabel('Tuya', 'ZTH01/ZTH02', 'Temperature and humidity sensor', ['_TZ3000_0s1izerx']),
+            tuya.whitelabel('SEDEA', 'eTH730', 'Temperature and humidity sensor', ['_TZ3000_lqmvrwa2']),
         ],
     },
     {
@@ -5705,7 +5753,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_m64smti7']),
         model: 'RMDZB-1PNL63',
         vendor: 'TNCE',
-        description: 'Zigbee DIN single phase RCBO energy meter',
+        description: 'Zigbee DIN single phase energy meter',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -5814,7 +5862,7 @@ const definitions: DefinitionWithExtend[] = [
                 [18, 'over_voltage_breaker', tuya.valueConverter.threshold_3],
                 [18, 'under_voltage_threshold', tuya.valueConverter.threshold_3],
                 [18, 'under_voltage_breaker', tuya.valueConverter.threshold_3],
-                [103, 'temperature', tuya.valueConverter.divideBy10],
+                [103, 'temperature', tuya.valueConverter.raw],
                 // Ignored for now; we don't know what the values mean
                 [11, null, null], // Switch prepayment
                 [12, null, null], // Energy reset
@@ -6974,7 +7022,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
     },
     {
-        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_8uxxzz4b']),
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_8uxxzz4b', '_TZ3000_hy6ncvmw']),
         model: 'TS0222_light',
         vendor: 'Tuya',
         description: 'Light sensor',
