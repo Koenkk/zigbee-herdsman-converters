@@ -1,6 +1,6 @@
 {
     "name": "zigbee-herdsman-converters",
-    "version": "20.39.2",
+    "version": "21.0.0-pre.0",
     "description": "Collection of device converters to be used with zigbee-herdsman",
     "main": "index.js",
     "types": "index.d.ts",
@@ -52,7 +52,7 @@
         "semver": "^7.6.3",
         "tar-stream": "^3.1.7",
         "uri-js": "^4.4.1",
-        "zigbee-herdsman": "^2.1.7"
+        "zigbee-herdsman": "^3.0.0-pre.0"
     },
     "devDependencies": {
         "@eslint/core": "^0.8.0",
