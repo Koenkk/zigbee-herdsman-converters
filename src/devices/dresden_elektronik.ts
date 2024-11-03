@@ -1,8 +1,8 @@
 import {battery, deviceEndpoints, light} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['FLS-PP3'],
         model: 'Mega23M12',

@@ -2,21 +2,22 @@ import {Zcl} from 'zigbee-herdsman';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as constants from '../lib/constants';
-import {light, onOff} from '../lib/modernExtend';
 
 const fzLocal = {
     thermostat_3156105: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('runningState')) {
+            if (msg.data.runningState !== undefined) {
                 if (msg.data['runningState'] == 1) {
                     msg.data['runningState'] = 0;
                 } else if (msg.data['runningState'] == 5) {
@@ -27,7 +28,7 @@ const fzLocal = {
                     msg.data['runningState'] = 9;
                 }
             }
-            if (msg.data.hasOwnProperty('ctrlSeqeOfOper')) {
+            if (msg.data.ctrlSeqeOfOper !== undefined) {
                 if (msg.data['ctrlSeqeOfOper'] == 6) {
                     msg.data['ctrlSeqeOfOper'] = 4;
                 }
@@ -37,7 +38,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['4256251-RZHAC'],
         model: '4256251-RZHAC',
@@ -128,7 +129,7 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint);
             try {
                 await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            } catch (exception) {
+            } catch {
                 // For some this fails so set manually
                 // https://github.com/Koenkk/zigbee2mqtt/issues/3575
                 endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {

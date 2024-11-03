@@ -1,8 +1,9 @@
+import {logger} from '../logger';
+import {KeyValueAny, Ota, Zh} from '../types';
+import * as common from './common';
+
 const url = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.json';
 const caBundleUrl = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/cacerts.pem';
-import {logger} from '../logger';
-import {Zh, Ota, KeyValueAny} from '../types';
-import * as common from './common';
 
 const NS = 'zhc:ota';
 const axios = common.getAxios();
@@ -20,7 +21,7 @@ function fillImageInfo(meta: KeyValueAny) {
     }
 
     // Nothing to do if needed fields were filled already
-    if (meta.hasOwnProperty('imageType') && meta.hasOwnProperty('manufacturerCode') && meta.hasOwnProperty('fileVersion')) {
+    if (meta.imageType !== undefined && meta.manufacturerCode !== undefined && meta.fileVersion !== undefined) {
         return meta;
     }
 
@@ -30,9 +31,9 @@ function fillImageInfo(meta: KeyValueAny) {
     const image = common.parseImage(buffer.subarray(start));
 
     // Will fill only those fields that were absent
-    if (!meta.hasOwnProperty('imageType')) meta.imageType = image.header.imageType;
-    if (!meta.hasOwnProperty('manufacturerCode')) meta.manufacturerCode = image.header.manufacturerCode;
-    if (!meta.hasOwnProperty('fileVersion')) meta.fileVersion = image.header.fileVersion;
+    if (meta.imageType === undefined) meta.imageType = image.header.imageType;
+    if (meta.manufacturerCode === undefined) meta.manufacturerCode = image.header.manufacturerCode;
+    if (meta.fileVersion === undefined) meta.fileVersion = image.header.fileVersion;
     return meta;
 }
 
@@ -95,7 +96,7 @@ async function isNewImageAvailable(current: Ota.ImageInfo, device: Zh.Device, ge
             current = {...current, fileVersion: device.meta.lumiFileVersion};
         }
     }
-    return common.isNewImageAvailable(current, device, getImageMeta);
+    return await common.isNewImageAvailable(current, device, getImageMeta);
 }
 
 export async function getFirmwareFile(image: KeyValueAny) {
@@ -118,11 +119,11 @@ export async function getFirmwareFile(image: KeyValueAny) {
  */
 
 export async function isUpdateAvailable(device: Zh.Device, requestPayload: Ota.ImageInfo = null) {
-    return common.isUpdateAvailable(device, requestPayload, isNewImageAvailable, getImageMeta);
+    return await common.isUpdateAvailable(device, requestPayload, isNewImageAvailable, getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
+    return await common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
 }
 
 export const useIndexOverride = (indexFileName: string) => {

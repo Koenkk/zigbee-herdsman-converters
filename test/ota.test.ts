@@ -1,11 +1,13 @@
-import {join} from 'path';
 import {readFileSync} from 'fs';
+import {join} from 'path';
 import {EventEmitter} from 'stream';
-import {updateToLatest, parseImage, UPGRADE_FILE_IDENTIFIER, getNewImage} from '../src/lib/ota/common';
-import {KeyValueAny, Ota} from '../src/lib/types';
+
 import {Zcl} from 'zigbee-herdsman';
-import Waitress from 'zigbee-herdsman/dist/utils/waitress';
 import ZclTransactionSequenceNumber from 'zigbee-herdsman/dist/controller/helpers/zclTransactionSequenceNumber';
+import Waitress from 'zigbee-herdsman/dist/utils/waitress';
+
+import {getNewImage, parseImage, updateToLatest, UPGRADE_FILE_IDENTIFIER} from '../src/lib/ota/common';
+import {KeyValueAny, Ota} from '../src/lib/types';
 
 interface WaitressMatcher {
     clusterID: number;

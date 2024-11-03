@@ -96,13 +96,28 @@ export class Base {
         f.validateCategory();
         return this;
     }
+
+    copy(target: Base) {
+        target.name = this.name;
+        target.label = this.label;
+        target.access = this.access;
+        target.type = this.type;
+        target.endpoint = this.endpoint;
+        target.property = this.property;
+        target.description = this.description;
+        if (target.features) {
+            target.features = this.features.map((f) => f.clone());
+        }
+        target.category = this.category;
+    }
 }
 
 export class Switch extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'switch';
-        this.features = [];
     }
 
     withState(property: string, toggle: string | boolean, description: string, access = a.ALL, value_on = 'ON', value_off = 'OFF') {
@@ -114,13 +129,20 @@ export class Switch extends Base {
         this.addFeature(feature);
         return this;
     }
+
+    clone(): Switch {
+        const clone = new Switch();
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Lock extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'lock';
-        this.features = [];
     }
 
     withState(property: string, valueOn: string, valueOff: string, description: string, access = a.ALL) {
@@ -134,9 +156,16 @@ export class Lock extends Base {
         );
         return this;
     }
+
+    clone(): Lock {
+        const clone = new Lock();
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Binary extends Base {
+    property: string = '';
     value_on: string | boolean;
     value_off: string | boolean;
     value_toggle?: string;
@@ -152,6 +181,13 @@ export class Binary extends Base {
         this.value_off = valueOff;
     }
 
+    clone(): Binary {
+        const clone = new Binary(this.name, this.access, this.value_on, this.value_off);
+        clone.value_toggle = this.value_toggle;
+        this.copy(clone);
+        return clone;
+    }
+
     withValueToggle(value: string) {
         this.value_toggle = value;
         return this;
@@ -159,6 +195,7 @@ export class Binary extends Base {
 }
 
 export class List extends Base {
+    property: string = '';
     item_type: Numeric | Binary | Composite | Text;
     length_min?: number;
     length_max?: number;
@@ -183,9 +220,18 @@ export class List extends Base {
         this.length_max = value;
         return this;
     }
+
+    clone(): List {
+        const clone = new List(this.name, this.access, this.item_type.clone());
+        clone.length_min = this.length_min;
+        clone.length_max = this.length_max;
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Numeric extends Base {
+    property: string = '';
     unit?: string;
     value_max?: number;
     value_min?: number;
@@ -226,9 +272,23 @@ export class Numeric extends Base {
         this.presets.push({name, value, description});
         return this;
     }
+
+    clone(): Numeric {
+        const clone = new Numeric(this.name, this.access);
+        this.copy(clone);
+        clone.unit = this.unit;
+        clone.value_max = this.value_max;
+        clone.value_min = this.value_min;
+        clone.value_step = this.value_step;
+        if (this.presets) {
+            clone.presets = {...this.presets};
+        }
+        return clone;
+    }
 }
 
 export class Enum extends Base {
+    property: string = '';
     values: (string | number)[];
 
     constructor(name: string, access: number, values: (string | number)[]) {
@@ -240,9 +300,17 @@ export class Enum extends Base {
         this.access = access;
         this.values = values;
     }
+
+    clone(): Enum {
+        const clone = new Enum(this.name, this.access, [...this.values]);
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Text extends Base {
+    property: string = '';
+
     constructor(name: string, access: number) {
         super();
         this.type = 'text';
@@ -251,16 +319,24 @@ export class Text extends Base {
         this.property = name;
         this.access = access;
     }
+
+    clone(): Text {
+        const clone = new Text(this.name, this.access);
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Composite extends Base {
+    property: string = '';
+    features: Feature[] = [];
+
     constructor(name: string, property: string, access: number) {
         super();
         this.type = 'composite';
         this.property = property;
         this.name = name;
         this.label = getLabelFromName(name);
-        this.features = [];
         this.access = access;
     }
 
@@ -268,13 +344,20 @@ export class Composite extends Base {
         this.addFeature(feature);
         return this;
     }
+
+    clone(): Composite {
+        const clone = new Composite(this.name, this.property, this.access);
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Light extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'light';
-        this.features = [];
         this.addFeature(new Binary('state', access.ALL, 'ON', 'OFF').withValueToggle('TOGGLE').withDescription('On/off state of this light'));
     }
 
@@ -367,8 +450,8 @@ export class Light extends Base {
             .withValueMax(range[1])
             .withDescription('Color temperature of this light');
 
-        if (process.env.JEST_WORKER_ID) {
-            // @ts-ignore
+        if (process.env.ZHC_TEST) {
+            // @ts-expect-error ignore
             feature._colorTempRangeProvided = rangeProvided;
         }
 
@@ -435,13 +518,20 @@ export class Light extends Base {
 
         return this;
     }
+
+    clone(): Light {
+        const clone = new Light();
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Cover extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'cover';
-        this.features = [];
         this.addFeature(new Enum('state', a.STATE_SET, ['OPEN', 'CLOSE', 'STOP']));
     }
 
@@ -456,13 +546,20 @@ export class Cover extends Base {
         this.addFeature(new Numeric('tilt', access.ALL).withValueMin(0).withValueMax(100).withDescription('Tilt of this cover').withUnit('%'));
         return this;
     }
+
+    clone(): Cover {
+        const clone = new Cover();
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Fan extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'fan';
-        this.features = [];
         this.addFeature(new Binary('state', access.ALL, 'ON', 'OFF').withDescription('On/off state of this fan').withProperty('fan_state'));
     }
 
@@ -470,13 +567,20 @@ export class Fan extends Base {
         this.addFeature(new Enum('mode', access, modes).withProperty('fan_mode').withDescription('Mode of this fan'));
         return this;
     }
+
+    clone(): Fan {
+        const clone = new Fan();
+        this.copy(clone);
+        return clone;
+    }
 }
 
 export class Climate extends Base {
+    features: Feature[] = [];
+
     constructor() {
         super();
         this.type = 'climate';
-        this.features = [];
     }
 
     withSetpoint(property: string, min: number, max: number, step: number, access = a.ALL) {
@@ -622,6 +726,12 @@ export class Climate extends Base {
 
         this.addFeature(schedule);
         return this;
+    }
+
+    clone(): Climate {
+        const clone = new Climate();
+        this.copy(clone);
+        return clone;
     }
 }
 /**
@@ -1088,9 +1198,7 @@ export const presets = {
     power_on_behavior: (values = ['off', 'previous', 'on']) =>
         new Enum('power_on_behavior', access.ALL, values)
             .withLabel('Power-on behavior')
-            .withDescription(
-                'Controls the behavior when the device is powered on after power loss. If you get an `UNSUPPORTED_ATTRIBUTE` error, the device does not support it.',
-            )
+            .withDescription('Controls the behavior when the device is powered on after power loss')
             .withCategory('config'),
     power_outage_count: (resetsWhenPairing = true) =>
         new Numeric('power_outage_count', access.STATE)
@@ -1130,7 +1238,7 @@ export const presets = {
     sos: () => new Binary('sos', access.STATE, true, false).withLabel('SOS').withDescription('SOS alarm'),
     sound_volume: () =>
         new Enum('sound_volume', access.ALL, ['silent_mode', 'low_volume', 'high_volume']).withDescription('Sound volume of the lock'),
-    switch: () => new Switch().withState('state', true, 'On/off state of the switch'),
+    switch: (description: string = 'On/off state of the switch') => new Switch().withState('state', true, description),
     switch_type: () => new Enum('switch_type', access.ALL, ['toggle', 'momentary']).withDescription('Wall switch type'),
     door_state: () =>
         new Enum('door_state', access.STATE, [
@@ -1147,7 +1255,7 @@ export const presets = {
         new Enum('sensor', access.STATE_SET, sensor_names).withDescription('Select temperature sensor to use').withCategory('config'),
     test: () => new Binary('test', access.STATE, true, false).withDescription('Indicates whether the device is being tested'),
     trigger_count: (sinceScheduledReport = true) =>
-        new Numeric('trigger_count', exports.access.STATE)
+        new Numeric('trigger_count', access.STATE)
             .withDescription('Indicates how many times the sensor was triggered' + (sinceScheduledReport ? ' (since last scheduled report)' : ''))
             .withCategory('diagnostic'),
     trigger_indicator: () =>
@@ -1163,6 +1271,7 @@ export const presets = {
             .withDescription('Determines if temperature control abnormalities should be detected')
             .withCategory('config'),
     vibration: () => new Binary('vibration', access.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
+    tilt: () => new Binary('tilt', access.STATE, true, false).withDescription('Indicates whether the device detected tilt'),
     voc: () => new Numeric('voc', access.STATE).withLabel('VOC').withUnit('µg/m³').withDescription('Measured VOC value'),
     voc_index: () => new Numeric('voc_index', access.STATE).withLabel('VOC index').withDescription('VOC index'),
     voltage: () =>

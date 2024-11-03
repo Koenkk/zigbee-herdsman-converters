@@ -5,13 +5,15 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import {electricityMeter, onOff, temperature} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PoP'],
         model: 'HLU2909K',
@@ -39,65 +41,18 @@ const definitions: Definition[] = [
         model: 'HSE2905E',
         vendor: 'Datek',
         description: 'Datek Eva AMS HAN power-meter sensor',
-        fromZigbee: [fz.metering_datek, fz.electrical_measurement, fz.temperature, fz.hw_version],
-        toZigbee: [],
+        fromZigbee: [fz.hw_version],
+        extend: [onOff(), electricityMeter({threePhase: true, fzMetering: fz.metering_datek, producedEnergy: true}), temperature()],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
             try {
                 // hwVersion < 2 do not support hwVersion attribute, so we are testing if this is hwVersion 1 or 2
                 await endpoint.read('genBasic', ['hwVersion']);
-            } catch (e) {
-                e;
+            } catch {
+                /* empty */
             }
-            const payload = [
-                {
-                    attribute: 'rmsVoltagePhB',
-                    minimumReportInterval: 60,
-                    maximumReportInterval: 3600,
-                    reportableChange: 0,
-                },
-                {
-                    attribute: 'rmsVoltagePhC',
-                    minimumReportInterval: 60,
-                    maximumReportInterval: 3600,
-                    reportableChange: 0,
-                },
-                {
-                    attribute: 'rmsCurrentPhB',
-                    minimumReportInterval: 60,
-                    maximumReportInterval: 3600,
-                    reportableChange: 0,
-                },
-                {
-                    attribute: 'rmsCurrentPhC',
-                    minimumReportInterval: 60,
-                    maximumReportInterval: 3600,
-                    reportableChange: 0,
-                },
-            ];
-            await endpoint.configureReporting('haElectricalMeasurement', payload);
-            await reporting.rmsVoltage(endpoint, {min: 60, max: 3600, change: 0});
-            await reporting.rmsCurrent(endpoint, {min: 60, max: 3600, change: 0});
-            await reporting.instantaneousDemand(endpoint, {min: 60, max: 3600, change: 0});
-            await reporting.currentSummDelivered(endpoint, {min: 60, max: 3600, change: [1, 1]});
-            await reporting.currentSummReceived(endpoint);
-            await reporting.temperature(endpoint, {min: 60, max: 3600, change: 0});
         },
-        exposes: [
-            e.power(),
-            e.energy(),
-            e.current(),
-            e.voltage(),
-            e.current_phase_b(),
-            e.voltage_phase_b(),
-            e.current_phase_c(),
-            e.voltage_phase_c(),
-            e.temperature(),
-        ],
     },
     {
         zigbeeModel: ['Motion Sensor'],
@@ -129,7 +84,7 @@ const definitions: Definition[] = [
                     attribute: {ID: 0x4000, type: 0x10},
                 },
             ];
-            // @ts-expect-error
+            // @ts-expect-error ignore
             await endpoint.configureReporting('ssIasZone', payload, options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);

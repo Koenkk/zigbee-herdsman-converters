@@ -2,8 +2,8 @@ import {Zcl} from 'zigbee-herdsman';
 
 import {presets as e, access as ea} from './exposes';
 import {logger} from './logger';
-import {numeric, NumericArgs, binary, BinaryArgs, deviceAddCustomCluster, setupConfigureForReporting} from './modernExtend';
-import {Fz, Tz, ModernExtend, Configure} from './types';
+import {binary, BinaryArgs, deviceAddCustomCluster, numeric, NumericArgs, setupConfigureForReporting} from './modernExtend';
+import {Configure, Fz, ModernExtend, Tz} from './types';
 
 const NS = 'zhc:ubisys';
 
@@ -146,7 +146,7 @@ export const ubisysModernExtend = {
         }),
     addCustomClusterManuSpecificUbisysDimmerSetup: () =>
         deviceAddCustomCluster('manuSpecificUbisysDimmerSetup', {
-            ID: 0xfc00,
+            ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
             attributes: {
                 capabilities: {ID: 0x0000, type: Zcl.DataType.BITMAP8},
@@ -214,7 +214,7 @@ export const ubisysModernExtend = {
                 cluster: clusterName,
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(readableAttributeName)) {
+                    if (msg.data[readableAttributeName] !== undefined) {
                         return {[propertyName]: msg.data.occupancy === 0};
                     }
                 },

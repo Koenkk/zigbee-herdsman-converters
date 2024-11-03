@@ -3,11 +3,11 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {identify} from '../lib/modernExtend';
+import {deviceAddCustomCluster, identify} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Expose, Fz, Tz, Zh} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -66,6 +66,125 @@ const individualLedEffects: {[key: string]: number} = {
     rising: 7,
     aurora: 8,
     clear_effect: 255,
+};
+
+const inovelliExtend = {
+    addCustomClusterInovelli: () =>
+        deviceAddCustomCluster('manuSpecificInovelli', {
+            ID: 64561,
+            manufacturerCode: 0x122f,
+            attributes: {
+                dimmingSpeedUpRemote: {ID: 0x001, type: Zcl.DataType.UINT8},
+                dimmingSpeedUpLocal: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                rampRateOffToOnRemote: {ID: 0x0003, type: Zcl.DataType.UINT8},
+                rampRateOffToOnLocal: {ID: 0x0004, type: Zcl.DataType.UINT8},
+                dimmingSpeedDownRemote: {ID: 0x0005, type: Zcl.DataType.UINT8},
+                dimmingSpeedDownLocal: {ID: 0x0006, type: Zcl.DataType.UINT8},
+                rampRateOnToOffRemote: {ID: 0x0007, type: Zcl.DataType.UINT8},
+                rampRateOnToOffLocal: {ID: 0x0008, type: Zcl.DataType.UINT8},
+                minimumLevel: {ID: 0x0009, type: Zcl.DataType.UINT8},
+                maximumLevel: {ID: 0x000a, type: Zcl.DataType.UINT8},
+                invertSwitch: {ID: 0x000b, type: Zcl.DataType.BOOLEAN},
+                autoTimerOff: {ID: 0x000c, type: Zcl.DataType.UINT16},
+                defaultLevelLocal: {ID: 0x000d, type: Zcl.DataType.UINT8},
+                defaultLevelRemote: {ID: 0x000e, type: Zcl.DataType.UINT8},
+                stateAfterPowerRestored: {ID: 0x000f, type: Zcl.DataType.UINT8},
+                loadLevelIndicatorTimeout: {ID: 0x0011, type: Zcl.DataType.UINT8},
+                activePowerReports: {ID: 0x0012, type: Zcl.DataType.UINT8},
+                periodicPowerAndEnergyReports: {ID: 0x0013, type: Zcl.DataType.UINT16},
+                activeEnergyReports: {ID: 0x0014, type: Zcl.DataType.UINT16},
+                powerType: {ID: 0x0015, type: Zcl.DataType.BOOLEAN},
+                switchType: {ID: 0x0016, type: Zcl.DataType.UINT8},
+                quickStartTime: {ID: 0x0017, type: Zcl.DataType.UINT8},
+                quickStartLevel: {ID: 0x0018, type: Zcl.DataType.UINT8},
+                higherOutputInNonNeutral: {ID: 0x0019, type: Zcl.DataType.BOOLEAN},
+                leadingTrailingEdge: {ID: 0x001a, type: Zcl.DataType.UINT8},
+                nonNeutralAuxMediumGear: {ID: 0x001e, type: Zcl.DataType.UINT8},
+                nonNeutralAuxLowGear: {ID: 0x001f, type: Zcl.DataType.UINT8},
+                internalTemperature: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                overheat: {ID: 0x0021, type: Zcl.DataType.BOOLEAN},
+                buttonDelay: {ID: 0x0032, type: Zcl.DataType.UINT8},
+                deviceBindNumber: {ID: 0x0033, type: Zcl.DataType.UINT8},
+                smartBulbMode: {ID: 0x0034, type: Zcl.DataType.BOOLEAN},
+                doubleTapUpToParam55: {ID: 0x0035, type: Zcl.DataType.BOOLEAN},
+                doubleTapDownToParam56: {ID: 0x0036, type: Zcl.DataType.BOOLEAN},
+                brightnessLevelForDoubleTapUp: {ID: 0x0037, type: Zcl.DataType.UINT8},
+                brightnessLevelForDoubleTapDown: {ID: 0x0038, type: Zcl.DataType.UINT8},
+                defaultLed1ColorWhenOn: {ID: 0x003c, type: Zcl.DataType.UINT8},
+                defaultLed1ColorWhenOff: {ID: 0x003d, type: Zcl.DataType.UINT8},
+                defaultLed1IntensityWhenOn: {ID: 0x003e, type: Zcl.DataType.UINT8},
+                defaultLed1IntensityWhenOff: {ID: 0x003f, type: Zcl.DataType.UINT8},
+                defaultLed2ColorWhenOn: {ID: 0x0041, type: Zcl.DataType.UINT8},
+                defaultLed2ColorWhenOff: {ID: 0x0042, type: Zcl.DataType.UINT8},
+                defaultLed2IntensityWhenOn: {ID: 0x0043, type: Zcl.DataType.UINT8},
+                defaultLed2IntensityWhenOff: {ID: 0x0044, type: Zcl.DataType.UINT8},
+                defaultLed3ColorWhenOn: {ID: 0x0046, type: Zcl.DataType.UINT8},
+                defaultLed3ColorWhenOff: {ID: 0x0047, type: Zcl.DataType.UINT8},
+                defaultLed3IntensityWhenOn: {ID: 0x0048, type: Zcl.DataType.UINT8},
+                defaultLed3IntensityWhenOff: {ID: 0x0049, type: Zcl.DataType.UINT8},
+                defaultLed4ColorWhenOn: {ID: 0x004b, type: Zcl.DataType.UINT8},
+                defaultLed4ColorWhenOff: {ID: 0x004c, type: Zcl.DataType.UINT8},
+                defaultLed4IntensityWhenOn: {ID: 0x004d, type: Zcl.DataType.UINT8},
+                defaultLed4IntensityWhenOff: {ID: 0x004e, type: Zcl.DataType.UINT8},
+                defaultLed5ColorWhenOn: {ID: 0x0050, type: Zcl.DataType.UINT8},
+                defaultLed5ColorWhenOff: {ID: 0x0051, type: Zcl.DataType.UINT8},
+                defaultLed5IntensityWhenOn: {ID: 0x0052, type: Zcl.DataType.UINT8},
+                defaultLed5IntensityWhenOff: {ID: 0x0053, type: Zcl.DataType.UINT8},
+                defaultLed6ColorWhenOn: {ID: 0x0055, type: Zcl.DataType.UINT8},
+                defaultLed6ColorWhenOff: {ID: 0x0056, type: Zcl.DataType.UINT8},
+                defaultLed6IntensityWhenOn: {ID: 0x0057, type: Zcl.DataType.UINT8},
+                defaultLed6IntensityWhenOff: {ID: 0x0058, type: Zcl.DataType.UINT8},
+                defaultLed7ColorWhenOn: {ID: 0x005a, type: Zcl.DataType.UINT8},
+                defaultLed7ColorWhenOff: {ID: 0x005b, type: Zcl.DataType.UINT8},
+                defaultLed7IntensityWhenOn: {ID: 0x005c, type: Zcl.DataType.UINT8},
+                defaultLed7IntensityWhenOff: {ID: 0x005d, type: Zcl.DataType.UINT8},
+                ledColorWhenOn: {ID: 0x005f, type: Zcl.DataType.UINT8},
+                ledColorWhenOff: {ID: 0x060, type: Zcl.DataType.UINT8},
+                ledIntensityWhenOn: {ID: 0x0061, type: Zcl.DataType.UINT8},
+                ledIntensityWhenOff: {ID: 0x0062, type: Zcl.DataType.UINT8},
+                ledBarScaling: {ID: 0x0064, type: Zcl.DataType.BOOLEAN},
+                singleTapBehavior: {ID: 0x0078, type: Zcl.DataType.UINT8},
+                fanTimerMode: {ID: 0x0079, type: Zcl.DataType.UINT8},
+                auxSwitchUniqueScenes: {ID: 0x007b, type: Zcl.DataType.BOOLEAN},
+                bindingOffToOnSyncLevel: {ID: 0x007d, type: Zcl.DataType.BOOLEAN},
+                breezeMode: {ID: 0x0081, type: Zcl.DataType.UINT32},
+                fanControlMode: {ID: 0x0082, type: Zcl.DataType.UINT8},
+                lowLevelForFanControlMode: {ID: 0x0083, type: Zcl.DataType.UINT8},
+                mediumLevelForFanControlMode: {ID: 0x0084, type: Zcl.DataType.UINT8},
+                highLevelForFanControlMode: {ID: 0x0085, type: Zcl.DataType.UINT8},
+                ledColorForFanControlMode: {ID: 0x0086, type: Zcl.DataType.UINT8},
+                localProtection: {ID: 0x0100, type: Zcl.DataType.BOOLEAN},
+                remoteProtection: {ID: 0x0101, type: Zcl.DataType.BOOLEAN},
+                outputMode: {ID: 0x0102, type: Zcl.DataType.BOOLEAN},
+                onOffLedMode: {ID: 0x0103, type: Zcl.DataType.BOOLEAN},
+                firmwareUpdateInProgressIndicator: {ID: 0x0104, type: Zcl.DataType.BOOLEAN},
+                relayClick: {ID: 0x105, type: Zcl.DataType.BOOLEAN},
+                doubleTapClearNotifications: {ID: 0x106, type: Zcl.DataType.BOOLEAN},
+                fanLedLevelType: {ID: 0x0107, type: Zcl.DataType.UINT8},
+            },
+            commands: {
+                ledEffect: {
+                    ID: 1,
+                    parameters: [
+                        {name: 'effect', type: Zcl.DataType.UINT8},
+                        {name: 'color', type: Zcl.DataType.UINT8},
+                        {name: 'level', type: Zcl.DataType.UINT8},
+                        {name: 'duration', type: Zcl.DataType.UINT8},
+                    ],
+                },
+                individualLedEffect: {
+                    ID: 3,
+                    parameters: [
+                        {name: 'led', type: Zcl.DataType.UINT8},
+                        {name: 'effect', type: Zcl.DataType.UINT8},
+                        {name: 'color', type: Zcl.DataType.UINT8},
+                        {name: 'level', type: Zcl.DataType.UINT8},
+                        {name: 'duration', type: Zcl.DataType.UINT8},
+                    ],
+                },
+            },
+            commandsResponse: {},
+        }),
 };
 
 const fanModes: {[key: string]: number} = {off: 0, low: 2, smart: 4, medium: 86, high: 170, on: 255};
@@ -154,7 +273,7 @@ const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesLis
                 .binary(
                     key,
                     ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     ATTRIBUTES[key].values.Enabled,
                     ATTRIBUTES[key].values.Disabled,
                 )
@@ -277,7 +396,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 9,
         dataType: Zcl.DataType.UINT8,
         min: 1,
-        max: 253,
+        max: 254,
         description:
             'The minimum level that the dimmer allows the bulb to be dimmed to. ' +
             'Useful when the user has an LED bulb that does not turn on or flickers at a lower level.',
@@ -286,7 +405,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 10,
         dataType: Zcl.DataType.UINT8,
         min: 2,
-        max: 254,
+        max: 255,
         description:
             'The maximum level that the dimmer allows the bulb to be dimmed to.' +
             'Useful when the user has an LED bulb that reaches its maximum level before the ' +
@@ -1137,7 +1256,7 @@ const tzLocal = {
                     [ATTRIBUTES[key].ID]: {
                         value:
                             ATTRIBUTES[key].displayType === 'enum'
-                                ? // @ts-expect-error
+                                ? // @ts-expect-error ignore
                                   ATTRIBUTES[key].values[value]
                                 : value,
                         type: ATTRIBUTES[key].dataType,
@@ -1192,13 +1311,13 @@ const tzLocal = {
                 'manuSpecificInovelli',
                 'ledEffect',
                 {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     effect: ledEffects[values.effect],
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     color: Math.min(Math.max(0, values.color), 255),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     level: Math.min(Math.max(0, values.level), 100),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     duration: Math.min(Math.max(0, values.duration), 255),
                 },
                 {disableResponse: true, disableDefaultResponse: true},
@@ -1213,15 +1332,15 @@ const tzLocal = {
                 'manuSpecificInovelli',
                 'individualLedEffect',
                 {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     led: Math.min(Math.max(0, parseInt(values.led)), 7),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     effect: individualLedEffects[values.effect],
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     color: Math.min(Math.max(0, values.color), 255),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     level: Math.min(Math.max(0, values.level), 100),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     duration: Math.min(Math.max(0, values.duration), 255),
                 },
                 {disableResponse: true, disableDefaultResponse: true},
@@ -1239,14 +1358,15 @@ const tzLocal = {
             const {message} = meta;
             const transition = utils.getTransition(entity, 'brightness', meta);
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1', 'allEqual', false);
-            let state = message.hasOwnProperty('state')
-                ? // @ts-expect-error
-                  message.state.toLowerCase()
-                : undefined;
+            let state =
+                message.state !== undefined
+                    ? // @ts-expect-error ignore
+                      message.state.toLowerCase()
+                    : undefined;
             let brightness = undefined;
-            if (message.hasOwnProperty('brightness')) {
+            if (message.brightness !== undefined) {
                 brightness = Number(message.brightness);
-            } else if (message.hasOwnProperty('brightness_percent')) {
+            } else if (message.brightness_percent !== undefined) {
                 brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
             }
 
@@ -1284,22 +1404,22 @@ const tzLocal = {
                     const payload = {level, transtime: transition.time};
                     await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, utils.getOptions(meta.mapped, entity));
                     const result = {state: {state: state.toUpperCase()}};
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     if (state === 'on') result.state.brightness = level;
                     return result;
                 } else {
                     // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
                     // with transition.
-                    if (meta.state.hasOwnProperty('brightness') && state === 'off') {
+                    if (meta.state.brightness !== undefined && state === 'off') {
                         globalStore.putValue(entity, 'brightness', meta.state.brightness);
                         globalStore.putValue(entity, 'turnedOffWithTransition', true);
                     }
 
                     const result = await inovelliOnOffConvertSet(entity, 'state', state, meta);
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     result.readAfterWriteTime = 0;
                     if (result.state && result.state.state === 'ON' && meta.state.brightness === 0) {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         result.state.brightness = 1;
                     }
 
@@ -1331,7 +1451,7 @@ const tzLocal = {
                     },
                     readAfterWriteTime:
                         transition.time === 0
-                            ? // @ts-expect-error
+                            ? // @ts-expect-error ignore
                               defaultTransitionTime.rampRateOnToOffRemote * 100
                             : transition.time * 100, // need on speed
                 };
@@ -1371,7 +1491,7 @@ const tzLocal = {
     fan_state: {
         key: ['fan_state'],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.hasOwnProperty('fan_state') ? meta.message.fan_state.toString().toLowerCase() : null;
+            const state = meta.message.fan_state !== undefined ? meta.message.fan_state.toString().toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
 
             await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
@@ -1429,9 +1549,9 @@ const tzLocal = {
             const state = typeof meta.message.fan_state === 'string' ? meta.message.fan_state.toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
 
-            if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
-                const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
+            if (state === 'on' && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
+                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== 'number') {
                     throw Error('The on_time value must be a number!');
@@ -1574,13 +1694,13 @@ const tzLocal = {
  * fallback to if a transition is not specified by passing 0xffff
  */
 const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
-    // @ts-expect-error
-    const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
+    // @ts-expect-error ignore
+    const state = meta.message.state !== undefined ? meta.message.state.toLowerCase() : null;
     utils.validateValue(state, ['toggle', 'off', 'on']);
 
-    if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
-        const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
-        const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
+    if (state === 'on' && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
+        const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
+        const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
 
         if (typeof onTime !== 'number') {
             throw Error('The on_time value must be a number!');
@@ -1591,8 +1711,8 @@ const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: stri
 
         const payload = {
             ctrlbits: 0,
-            ontime: meta.message.hasOwnProperty('on_time') ? Math.round(onTime * 10) : 0xffff,
-            offwaittime: meta.message.hasOwnProperty('off_wait_time') ? Math.round(offWaitTime * 10) : 0xffff,
+            ontime: meta.message.on_time !== undefined ? Math.round(onTime * 10) : 0xffff,
+            offwaittime: meta.message.off_wait_time !== undefined ? Math.round(offWaitTime * 10) : 0xffff,
         };
         await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
     } else {
@@ -1650,7 +1770,7 @@ const fzLocal = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentLevel')) {
+            if (msg.data.currentLevel !== undefined) {
                 const mode = intToFanMode(msg.data['currentLevel'] || 1);
                 return {
                     fan_mode: mode,
@@ -1664,7 +1784,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 2) {
-                if (msg.data.hasOwnProperty('currentLevel')) {
+                if (msg.data.currentLevel !== undefined) {
                     const mode = intToFanMode(msg.data['currentLevel'] || 1);
                     return {
                         fan_mode: mode,
@@ -1678,7 +1798,7 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 return {fan_state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
             return msg.data;
@@ -1689,7 +1809,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 1) {
-                if (msg.data.hasOwnProperty('currentLevel')) {
+                if (msg.data.currentLevel !== undefined) {
                     return {brightness: msg.data['currentLevel']};
                 }
             }
@@ -1712,7 +1832,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 2) {
-                if (msg.data.hasOwnProperty('breeze_mode')) {
+                if (msg.data.breeze_mode !== undefined) {
                     const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
                     const raw = msg.data['breeze_mode'];
                     const s1 = breezemodes[raw & bitmasks[0]];
@@ -1750,11 +1870,11 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID === 1) {
-                if (msg.data.hasOwnProperty('onOff')) {
+                if (msg.data.onOff !== undefined) {
                     return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
                 }
             } else if (msg.endpoint.ID === 2) {
-                if (msg.data.hasOwnProperty('onOff')) {
+                if (msg.data.onOff !== undefined) {
                     return {fan_state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
                 }
             } else {
@@ -2040,13 +2160,14 @@ exposesListVZM35.push(
     ]),
 );
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['VZM31-SN'],
         model: 'VZM31-SN',
         vendor: 'Inovelli',
         description: '2-in-1 switch + dimmer',
         exposes: exposesListVZM31.concat(identify().exposes as Expose[]),
+        extend: [inovelliExtend.addCustomClusterInovelli()],
         toZigbee: [
             tzLocal.light_onoff_brightness_inovelli,
             tz.power_on_behavior,
@@ -2104,6 +2225,7 @@ const definitions: Definition[] = [
             tzLocal.breezeMode,
         ],
         exposes: exposesListVZM35.concat(identify().exposes as Expose[]),
+        extend: [inovelliExtend.addCustomClusterInovelli()],
         ota: ota.inovelli,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -2135,6 +2257,7 @@ const definitions: Definition[] = [
             tzLocal.vzm36_breezeMode,
         ],
         exposes: exposesListVZM36.concat(identify().exposes as Expose[]),
+        extend: [inovelliExtend.addCustomClusterInovelli()],
         ota: ota.inovelli,
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.

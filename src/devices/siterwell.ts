@@ -1,11 +1,12 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000', 'fvq6avy\u0000', 'fvq6avy', 'zk78ptr\u0000', '4yfvweb\u0000'],
         fingerprint: [
@@ -59,7 +60,6 @@ const definitions: Definition[] = [
             e.window_detection(),
             e.battery(),
             e.valve_detection(),
-            e.position().withDescription('TRV valve position in %.'),
             e
                 .climate()
                 .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)

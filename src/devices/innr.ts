@@ -1,12 +1,13 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
-const e = exposes.presets;
-import {light, onOff, electricityMeter, reconfigureReportingsOnDeviceAnnounce} from '../lib/modernExtend';
+import {electricityMeter, light, onOff, reconfigureReportingsOnDeviceAnnounce} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RC 210'],
         model: 'RC 210',
@@ -225,6 +226,14 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['RF 262'],
+        model: 'RF 262',
+        vendor: 'Innr',
+        description: 'E27 smart filament LED light bulb',
+        extend: [light({turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['RF 265'],
         model: 'RF 265',
         vendor: 'Innr',
@@ -259,7 +268,7 @@ const definitions: Definition[] = [
         model: 'RB 279 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {default: 1};
@@ -334,7 +343,7 @@ const definitions: Definition[] = [
         model: 'RB 178 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['BY 178 T'],
@@ -462,6 +471,14 @@ const definitions: Definition[] = [
         vendor: 'Innr',
         description: 'E14 candle with white spectrum',
         extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['RB 247 T'],
+        model: 'RB 247 T',
+        vendor: 'Innr',
+        description: 'E14 candle, dimmable with, color temp',
+        extend: [light({colorTemp: {range: [200, 454]}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -790,6 +807,13 @@ const definitions: Definition[] = [
         description: 'Smart plug',
         extend: [onOff(), electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}})],
         ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['AE 264'],
+        model: 'AE 264',
+        vendor: 'Innr',
+        description: 'Smart E26 LED bulb',
+        extend: [light({turnsOffAtBrightness1: true})],
     },
 ];
 

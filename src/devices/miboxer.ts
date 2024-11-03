@@ -1,10 +1,11 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {Definition} from '../lib/types';
-const e = exposes.presets;
 import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3210_ttkgurpb'}],
         model: 'FUT038Z',

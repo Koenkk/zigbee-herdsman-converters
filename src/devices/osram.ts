@@ -1,15 +1,15 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {ledvanceLight, ledvanceFz, ledvanceOnOff} from '../lib/ledvance';
+import {ledvanceFz, ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import * as legacy from '../lib/legacy';
 import {deviceEndpoints} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Gardenspot RGB'],
         model: '73699',
@@ -255,13 +255,20 @@ const definitions: Definition[] = [
         extend: [ledvanceLight({})],
     },
     {
+        zigbeeModel: ['Control box TW'],
+        model: 'AB390020055',
+        vendor: 'OSRAM',
+        description: 'Lightify tunable white controller',
+        extend: [ledvanceLight({colorTemp: {range: [150, 370]}})],
+    },
+    {
         zigbeeModel: ['Motion Sensor-A'],
         model: 'AC01353010G',
         vendor: 'OSRAM',
         description: 'SMART+ Motion Sensor',
         fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: {min: 1900, max: 3000}}},
+        meta: {battery: {voltageToPercentage: {min: 2100, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);

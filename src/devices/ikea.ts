@@ -1,51 +1,52 @@
 import {Zcl} from 'zigbee-herdsman';
 
+import {repInterval} from '../lib/constants';
 import {
-    ikeaConfigureRemote,
-    ikeaLight,
-    ikeaOta,
-    ikeaConfigureStyrbar,
-    ikeaBattery,
+    addCustomClusterManuSpecificIkeaAirPurifier,
+    addCustomClusterManuSpecificIkeaUnknown,
+    addCustomClusterManuSpecificIkeaVocIndexMeasurement,
     ikeaAirPurifier,
-    legacy as ikeaLegacy,
-    ikeaVoc,
+    ikeaArrowClick,
+    ikeaBattery,
     ikeaConfigureGenPollCtrl,
+    ikeaConfigureRemote,
+    ikeaConfigureStyrbar,
+    ikeaDotsClick,
+    legacy as ikeaLegacy,
+    ikeaLight,
+    ikeaMediaCommands,
+    ikeaOta,
+    ikeaVoc,
+    styrbarCommandOn,
+    tradfriCommandsLevelCtrl,
+    tradfriCommandsOnOff,
     tradfriOccupancy,
     tradfriRequestedBrightness,
-    tradfriCommandsOnOff,
-    tradfriCommandsLevelCtrl,
-    styrbarCommandOn,
-    ikeaDotsClick,
-    ikeaArrowClick,
-    ikeaMediaCommands,
-    addCustomClusterManuSpecificIkeaUnknown,
-    addCustomClusterManuSpecificIkeaAirPurifier,
-    addCustomClusterManuSpecificIkeaVocIndexMeasurement,
 } from '../lib/ikea';
 import {
-    onOff,
     battery,
+    bindCluster,
+    commandsLevelCtrl,
+    commandsOnOff,
+    commandsWindowCovering,
+    deviceAddCustomCluster,
+    deviceEndpoints,
+    electricityMeter,
+    humidity,
     iasZoneAlarm,
     identify,
-    forcePowerSource,
-    temperature,
-    humidity,
-    occupancy,
     illuminance,
-    windowCovering,
-    commandsOnOff,
-    commandsLevelCtrl,
-    commandsWindowCovering,
-    pm25,
     linkQuality,
-    deviceEndpoints,
-    deviceAddCustomCluster,
-    bindCluster,
+    occupancy,
+    onOff,
+    ota,
+    pm25,
+    temperature,
+    windowCovering,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     // #region light
     // lights naming convention: type, light capabilities, form, diffuser type, brightness
     // #region E26/E27/B22
@@ -57,7 +58,7 @@ const definitions: Definition[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 CWS globe 806lm', 'TRADFRI bulb E26 CWS globe 806lm'],
+        zigbeeModel: ['TRADFRI bulb E27 CWS globe 806lm', 'TRADFRI bulb E26 CWS globe 806lm', 'TRADFRI bulb E26 CWS globe 800lm'],
         model: 'LED2109G6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, color/white spectrum, globe, opal, 806 lm',
@@ -247,7 +248,7 @@ const definitions: Definition[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 WS 470lm', 'TRADFRI bulb E12 WS 450lm', 'TRADFRI bulb E17 WS 440lm'],
+        zigbeeModel: ['TRADFRI bulb E14 WS 470lm', 'TRADFRI bulb E12 WS 450lm', 'TRADFRI bulb E17 WS 440lm', 'TRADFRI bulb E17 WS candle 440lm'],
         model: 'LED1835C6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E17, white spectrum, candle, opal, 450/470/440 lm',
@@ -315,14 +316,14 @@ const definitions: Definition[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), identify()],
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm', 'TRADFRIbulbE12WScandleopal450lm'],
+        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm', 'TRADFRIbulbE12WScandleopal450lm', 'TRADFRIbulbE17WScandleopal440lm'],
         model: 'LED1949C5',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E12/E14, white spectrum, candle, opal, 450/470 lm',
+        description: 'TRADFRI bulb E12/E14/E17, white spectrum, candle, opal, 450/470/440 lm',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm'],
+        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm', 'TRADFRI bulb E12 CWS globe 800lm'],
         model: 'LED2111G6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14, color/white spectrum, globe, opal, 806 lm',
@@ -597,6 +598,21 @@ const definitions: Definition[] = [
         description: 'TRETAKT smart plug',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta()],
     },
+    {
+        zigbeeModel: ['INSPELNING Smart plug'],
+        model: 'E2206',
+        vendor: 'IKEA',
+        description: 'INSPELNING smart plug',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ota(), electricityMeter()],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            // Enable reporting of powerDivisor, needs to change dynamically with the amount of power
+            // For details, see: https://github.com/Koenkk/zigbee2mqtt/issues/23961#issuecomment-2366733453
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {attribute: 'acPowerDivisor', minimumReportInterval: 10, maximumReportInterval: repInterval.MAX, reportableChange: 1},
+            ]);
+        },
+    },
     // #endregion on/off controls
     // #region blinds
     {
@@ -864,7 +880,6 @@ const definitions: Definition[] = [
         description: 'TRADFRI motion sensor',
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
-            forcePowerSource({powerSource: 'Battery'}),
             tradfriOccupancy(),
             tradfriRequestedBrightness(),
             identify({isSleepy: true}),
@@ -877,8 +892,8 @@ const definitions: Definition[] = [
         model: 'E2112',
         vendor: 'IKEA',
         description: 'VINDSTYRKA air quality and humidity sensor',
-        ota: ota.zigbeeOTA,
         extend: [
+            ota(),
             addCustomClusterManuSpecificIkeaUnknown(),
             addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
             deviceAddCustomCluster('pm25Measurement', {
@@ -910,8 +925,14 @@ const definitions: Definition[] = [
         description: 'PARASOLL door/window sensor',
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
-            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
-            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
+            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            bindCluster({cluster: 'ssIasZone', clusterType: 'input', endpointNames: ['2']}),
+            iasZoneAlarm({
+                zoneType: 'contact',
+                zoneAttributes: ['alarm_1'],
+                // This is required to prevent the device's reported state being stuck after it quickly changed back and forth:
+                zoneStatusReporting: true,
+            }),
             identify({isSleepy: true}),
             battery(),
             ikeaOta(),
@@ -924,7 +945,13 @@ const definitions: Definition[] = [
         description: 'BADRING water leakage sensor',
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
-            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
+            bindCluster({cluster: 'ssIasZone', clusterType: 'input'}),
+            iasZoneAlarm({
+                zoneType: 'water_leak',
+                zoneAttributes: ['alarm_1'],
+                // This is required to prevent the device's reported state being stuck after it quickly changed back and forth:
+                zoneStatusReporting: true,
+            }),
             identify({isSleepy: true}),
             battery(),
             ikeaOta(),

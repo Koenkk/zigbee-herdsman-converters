@@ -2,8 +2,9 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, light, onOff, quirkCheckinInterval, temperature} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -34,7 +35,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['LDSENK08'],
         model: 'LDSENK08',
@@ -204,6 +205,20 @@ const definitions: Definition[] = [
         model: 'PEZ1-042-1020-C1D1',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN Gdansk',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ['ZBEK-31'],
+        model: '84870054',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN Extraflat 85',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ['ZBEK-32'],
+        model: 'ZBEK-32',
+        vendor: 'ADEO',
+        description: 'ENKI Inspire Extraflat D12',
         extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
@@ -382,6 +397,7 @@ const definitions: Definition[] = [
         model: 'SIN-4-FP-21_EQU',
         vendor: 'ADEO',
         description: 'Equation pilot wire heating module',
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
         toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [e.switch(), e.power(), e.energy(), e.pilot_wire_mode()],

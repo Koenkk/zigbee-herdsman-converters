@@ -1,6 +1,22 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import {presets} from '../lib/exposes';
-import {onOff, LightArgs, light as lightDontUse, electricityMeter, forcePowerSource, ota, iasZoneAlarm, battery} from '../lib/modernExtend';
-import {Definition, Expose, ModernExtend, Fz, KeyValueAny} from '../lib/types';
+import {
+    battery,
+    binary,
+    deviceAddCustomCluster,
+    electricityMeter,
+    enumLookup,
+    forcePowerSource,
+    iasZoneAlarm,
+    identify,
+    LightArgs,
+    light as lightDontUse,
+    numeric,
+    onOff,
+    ota,
+} from '../lib/modernExtend';
+import {DefinitionWithExtend, Expose, Fz, KeyValueAny, ModernExtend} from '../lib/types';
 
 export function sengledLight(args?: LightArgs) {
     return lightDontUse({effect: false, powerOnBehavior: false, ...args});
@@ -43,7 +59,7 @@ export function sengledSwitchAction(): ModernExtend {
     return {exposes, fromZigbee, isModernExtend: true};
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['E13-N11'],
         model: 'E13-N11',
@@ -63,6 +79,18 @@ const definitions: Definition[] = [
         model: 'E21-N1EA',
         vendor: 'Sengled',
         description: 'Smart LED multicolor A19 bulb',
+        extend: [
+            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            sengledLight({colorTemp: {range: [154, 500]}, color: {modes: ['xy']}}),
+            electricityMeter({cluster: 'metering'}),
+            ota(),
+        ],
+    },
+    {
+        zigbeeModel: ['E22-N1E'],
+        model: 'E22-N1E',
+        vendor: 'Sengled',
+        description: 'Smart LED multicolor BR30 bulb',
         extend: [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             sengledLight({colorTemp: {range: [154, 500]}, color: {modes: ['xy']}}),
@@ -129,7 +157,7 @@ const definitions: Definition[] = [
         model: 'Z01-A19NAE26',
         vendor: 'Sengled',
         description: 'Element plus (A19)',
-        extend: [sengledLight({colorTemp: {range: [154, 500]}, color: {modes: ['xy']}}), electricityMeter({cluster: 'metering'}), ota()],
+        extend: [sengledLight({colorTemp: {range: [154, 500]}}), electricityMeter({cluster: 'metering'}), ota()],
     },
     {
         zigbeeModel: ['Z01-A60EAE27'],
@@ -253,6 +281,74 @@ const definitions: Definition[] = [
         vendor: 'Sengled',
         description: 'Smart light bulb, dimmable 5000K, E26/A19',
         extend: [sengledLight(), electricityMeter({cluster: 'metering'}), ota()],
+    },
+    {
+        zigbeeModel: ['E13-A21'],
+        model: 'E13-A21',
+        vendor: 'Sengled',
+        description: 'Flood light with motion sensor light outdoor',
+        extend: [
+            identify(),
+            sengledLight({color: false}),
+            // The Sengled E13-A21 smart bulb will not report instantaneous demand unless the reporting min is set to 5 seconds or lower.
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8123
+            electricityMeter({cluster: 'metering', power: {min: 5}, energy: {min: 5}}),
+            ota(),
+            deviceAddCustomCluster('manuSpecificSengledMotionSensor', {
+                ID: 0xfc01,
+                manufacturerCode: Zcl.ManufacturerCode.SENGLED_CO_LTD,
+                attributes: {
+                    triggerCondition: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    enableAutoOnOff: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+                    motionStatus: {ID: 0x0003, type: Zcl.DataType.UINT8},
+                    offDelay: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            enumLookup({
+                name: 'trigger_condition',
+                lookup: {dark: 0, weak_light: 1},
+                cluster: 'manuSpecificSengledMotionSensor',
+                attribute: 'triggerCondition',
+                description: 'Choose whether the PAR38 bulb comes on when motion is detected under weak light conditions or dark conditions',
+                zigbeeCommandOptions: {manufacturerCode: 0x1160},
+                access: 'STATE_SET',
+            }),
+            binary({
+                name: 'enable_auto_on_off',
+                cluster: 'manuSpecificSengledMotionSensor',
+                attribute: 'enableAutoOnOff',
+                description: 'Enable the PAR38 bulb to turn on automatically when motion is detected',
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+                zigbeeCommandOptions: {manufacturerCode: 0x1160},
+                access: 'STATE_SET',
+            }),
+            binary({
+                name: 'motion_status',
+                cluster: 'manuSpecificSengledMotionSensor',
+                attribute: 'motionStatus',
+                reporting: {attribute: 'motionStatus', min: '1_SECOND', max: 'MAX', change: 1},
+                description: 'Whether the PAR38 bulb has detected motion',
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+                zigbeeCommandOptions: {manufacturerCode: 0x1160},
+                access: 'STATE_GET',
+            }),
+            numeric({
+                name: 'off_delay',
+                cluster: 'manuSpecificSengledMotionSensor',
+                attribute: 'offDelay',
+                description: 'How long the light stays on once the motion sensor is triggered',
+                valueMin: 30,
+                valueMax: 14400,
+                valueStep: 1,
+                unit: 'seconds',
+                zigbeeCommandOptions: {manufacturerCode: 0x1160},
+                access: 'STATE_SET',
+            }),
+        ],
     },
 ];
 

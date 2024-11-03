@@ -3,11 +3,12 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_lbtpiody'}],
         model: 'E5',
@@ -25,6 +26,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_qrztc3ev'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_snloy4rw'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_eanjj2pa'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ydrdfkim'},
         ],
         model: 'SZ-T04',
         vendor: 'Nous',
@@ -79,7 +81,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nnrfa68v'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_wtikaxzs', '_TZE200_nnrfa68v']),
         model: 'E6',
         vendor: 'Nous',
         description: 'Temperature & humidity LCD sensor',
@@ -94,6 +96,7 @@ const definitions: Definition[] = [
             e.temperature(),
             e.humidity(),
             e.battery(),
+            e.battery_low(),
             e.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
             e.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm']).withDescription('Temperature alarm status'),
             e.numeric('max_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60).withDescription('Alarm temperature max'),

@@ -1,10 +1,10 @@
-/* eslint-disable linebreak-style */
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -49,13 +49,13 @@ const coverAndLightToZigbee: Tz.Converter = {
         const isCover = entity.ID === 0x0b || entity.ID === 0x0c;
         if (isCover) {
             if (key === 'state') {
-                return tz.cover_state.convertSet(entity, key, value, meta);
+                return await tz.cover_state.convertSet(entity, key, value, meta);
             } else if (key === 'position' || key === 'tilt') {
-                return tz.cover_position_tilt.convertSet(entity, key, value, meta);
+                return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
             }
         } else {
             if (key === 'state' || key === 'brightness' || key === 'brightness_percent' || key === 'on_time') {
-                return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+                return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
             }
         }
     },
@@ -91,7 +91,7 @@ const buttonEventExposes = e.action([
 ]);
 
 function checkOption(device: Zh.Device, options: KeyValue, key: string) {
-    if (options != null && options.hasOwnProperty(key)) {
+    if (options != null && options[key] !== undefined) {
         if (options[key] === 'true') {
             return true;
         } else if (options[key] === 'false') {
@@ -121,7 +121,7 @@ function setMetaOption(device: Zh.Device, key: string, enabled: boolean) {
     }
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['zigfred uno'],
         model: 'ZFU-1D-CH',

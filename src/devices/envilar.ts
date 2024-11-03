@@ -1,10 +1,11 @@
-import * as exposes from '../lib/exposes';
-import {Definition} from '../lib/types';
-const e = exposes.presets;
 import fz from '../converters/fromZigbee';
-import {deviceEndpoints, light, onOff, identify, electricityMeter} from '../lib/modernExtend';
+import * as exposes from '../lib/exposes';
+import {deviceEndpoints, electricityMeter, identify, light, onOff} from '../lib/modernExtend';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const e = exposes.presets;
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZG_LED_DRIVER42CC'],
         model: 'ZG_LED_DRIVER42CC',

@@ -1,12 +1,11 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {battery, iasZoneAlarm} from '../lib/modernExtend';
+import {battery, electricityMeter, forcePowerSource, iasZoneAlarm, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import * as tuya from '../lib/tuya';
-import {Definition, Fz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -26,99 +25,92 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const factor = 0.001;
             const payload: KeyValue = {};
-            if (msg.data.hasOwnProperty('owonL1Energy')) {
-                const data = msg.data['owonL1Energy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+            if (msg.data.owonL1Energy !== undefined) {
+                const value = msg.data['owonL1Energy'];
                 payload.energy_l1 = value * factor;
             }
-            if (msg.data.hasOwnProperty('owonL2Energy')) {
-                const data = msg.data['owonL2Energy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+            if (msg.data.owonL2Energy !== undefined) {
+                const value = msg.data['owonL2Energy'];
                 payload.energy_l2 = value * factor;
             }
-            if (msg.data.hasOwnProperty('owonL3Energy')) {
-                const data = msg.data['owonL3Energy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+            if (msg.data.owonL3Energy !== undefined) {
+                const value = msg.data['owonL3Energy'];
                 payload.energy_l3 = value * factor;
             }
-            if (msg.data.hasOwnProperty('owonL1ReactiveEnergy')) {
-                const data = msg.data['owonL1ReactiveEnergy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+            if (msg.data.owonL1ReactiveEnergy !== undefined) {
+                const value = msg.data['owonL1ReactiveEnergy'];
                 payload.reactive_energy_l1 = value * factor;
             }
-            if (msg.data.hasOwnProperty('owonL2ReactiveEnergy')) {
-                const data = msg.data['owonL2ReactiveEnergy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+            if (msg.data.owonL2ReactiveEnergy !== undefined) {
+                const value = msg.data['owonL2ReactiveEnergy'];
                 payload.reactive_energy_l2 = value * factor;
             }
-            if (msg.data.hasOwnProperty('owonL3ReactiveEnergy')) {
-                const data = msg.data['owonL3ReactiveEnergy'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+            if (msg.data.owonL3ReactiveEnergy !== undefined) {
+                const value = msg.data['owonL3ReactiveEnergy'];
                 payload.reactive_energy_l3 = value / 1000;
             }
-            if (msg.data.hasOwnProperty('owonL1PhasePower')) {
+            if (msg.data.owonL1PhasePower !== undefined) {
                 payload.power_l1 = msg.data['owonL1PhasePower'];
             }
-            if (msg.data.hasOwnProperty('owonL2PhasePower')) {
+            if (msg.data.owonL2PhasePower !== undefined) {
                 payload.power_l2 = msg.data['owonL2PhasePower'];
             }
-            if (msg.data.hasOwnProperty('owonL3PhasePower')) {
+            if (msg.data.owonL3PhasePower !== undefined) {
                 payload.power_l3 = msg.data['owonL3PhasePower'];
             }
-            if (msg.data.hasOwnProperty('owonL1PhaseReactivePower')) {
+            if (msg.data.owonL1PhaseReactivePower !== undefined) {
                 payload.reactive_power_l1 = msg.data['owonL1PhaseReactivePower'];
             }
-            if (msg.data.hasOwnProperty('owonL2PhaseReactivePower')) {
+            if (msg.data.owonL2PhaseReactivePower !== undefined) {
                 payload.reactive_power_l2 = msg.data['owonL2PhaseReactivePower'];
             }
-            if (msg.data.hasOwnProperty('owonL3PhaseReactivePower')) {
+            if (msg.data.owonL3PhaseReactivePower !== undefined) {
                 payload.reactive_power_l3 = msg.data['owonL3PhaseReactivePower'];
             }
-            if (msg.data.hasOwnProperty('owonL1PhaseVoltage')) {
+            if (msg.data.owonL1PhaseVoltage !== undefined) {
                 payload.voltage_l1 = msg.data['owonL1PhaseVoltage'] / 10.0;
             }
-            if (msg.data.hasOwnProperty('owonL2PhaseVoltage')) {
+            if (msg.data.owonL2PhaseVoltage !== undefined) {
                 payload.voltage_l2 = msg.data['owonL2PhaseVoltage'] / 10.0;
             }
-            if (msg.data.hasOwnProperty('owonL3PhaseVoltage')) {
+            if (msg.data.owonL3PhaseVoltage !== undefined) {
                 payload.voltage_l3 = msg.data['owonL3PhaseVoltage'] / 10.0;
             }
-            if (msg.data.hasOwnProperty('owonL1PhaseCurrent')) {
+            if (msg.data.owonL1PhaseCurrent !== undefined) {
                 payload.current_l1 = msg.data['owonL1PhaseCurrent'] * factor;
             }
-            if (msg.data.hasOwnProperty('owonL2PhaseCurrent')) {
+            if (msg.data.owonL2PhaseCurrent !== undefined) {
                 payload.current_l2 = msg.data['owonL2PhaseCurrent'] * factor;
             }
-            if (msg.data.hasOwnProperty('owonL3PhaseCurrent')) {
+            if (msg.data.owonL3PhaseCurrent !== undefined) {
                 payload.current_l3 = msg.data['owonL3PhaseCurrent'] * factor;
             }
-            if (msg.data.hasOwnProperty('owonFrequency')) {
+            if (msg.data.owonFrequency !== undefined) {
                 payload.frequency = msg.data['owonFrequency'];
             }
             // Issue #20719 summation manufacturer attributes are not well parsed
-            if (msg.data.hasOwnProperty('owonReactivePowerSum') || msg.data.hasOwnProperty('8451')) {
+            if (msg.data.owonReactivePowerSum !== undefined || msg.data['8451'] !== undefined) {
                 // 0x2103 -> 8451
                 const value = msg.data['owonReactiveEnergySum'] || msg.data['8451'];
                 payload.power_reactive = value;
             }
-            if (msg.data.hasOwnProperty('owonCurrentSum') || msg.data.hasOwnProperty('12547')) {
+            if (msg.data.owonCurrentSum !== undefined || msg.data['12547'] !== undefined) {
                 // 0x3103 -> 12547
                 const data = msg.data['owonCurrentSum'] || msg.data['12547'] * factor;
                 payload.current = data;
             }
-            if (msg.data.hasOwnProperty('owonReactiveEnergySum') || msg.data.hasOwnProperty('16643')) {
+            if (msg.data.owonReactiveEnergySum !== undefined || msg.data['16643'] !== undefined) {
                 // 0x4103 -> 16643
-                const data = msg.data['owonReactiveEnergySum'] || msg.data['16643'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                const value = msg.data['owonReactiveEnergySum'] || msg.data['16643'];
                 payload.reactive_energy = value * factor;
             }
-            if (msg.data.hasOwnProperty('owonL1PowerFactor')) {
+            if (msg.data.owonL1PowerFactor !== undefined) {
                 payload.power_factor_l1 = msg.data['owonL1PowerFactor'] / 100;
             }
-            if (msg.data.hasOwnProperty('owonL2PowerFactor')) {
+            if (msg.data.owonL2PowerFactor !== undefined) {
                 payload.power_factor_l2 = msg.data['owonL2PowerFactor'] / 100;
             }
-            if (msg.data.hasOwnProperty('owonL3PowerFactor')) {
+            if (msg.data.owonL3PowerFactor !== undefined) {
                 payload.power_factor_l3 = msg.data['owonL3PowerFactor'] / 100;
             }
 
@@ -127,23 +119,22 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const tzLocal = {
+    PC321_clearMetering: {
+        key: ['clear_metering'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command(0xffe0, 0x00, {}, {disableDefaultResponse: true});
+        },
+    } satisfies Tz.Converter,
+};
+
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['WSP402'],
         model: 'WSP402',
         vendor: 'OWON',
         description: 'Smart plug',
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2}); // divider 1000: 2W
-            await reporting.currentSummDelivered(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: [10, 10]}); // divider 1000: 0,01kWh
-        },
+        extend: [onOff(), electricityMeter({cluster: 'metering'})],
     },
     {
         zigbeeModel: ['WSP403-E'],
@@ -151,55 +142,21 @@ const definitions: Definition[] = [
         vendor: 'OWON',
         whiteLabel: [{vendor: 'Oz Smart Things', model: 'WSP403'}],
         description: 'Smart plug',
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2}); // divider 1000: 2W
-            await reporting.currentSummDelivered(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: [10, 10]}); // divider 1000: 0,01kWh
-
-            // At least some white label devices, like the Oz Smart Things device, don't report a power source so we need to force it
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [onOff(), electricityMeter({cluster: 'metering'}), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['WSP404'],
         model: 'WSP404',
         vendor: 'OWON',
         description: 'Smart plug',
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2}); // divider 1000: 2W
-            await reporting.currentSummDelivered(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: [10, 10]}); // divider 1000: 0,01kWh
-        },
+        extend: [onOff(), electricityMeter({cluster: 'metering'})],
     },
     {
         zigbeeModel: ['CB432'],
         model: 'CB432',
         vendor: 'OWON',
         description: '32A/63A power circuit breaker',
-        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
+        extend: [onOff(), electricityMeter({cluster: 'metering'})],
     },
     {
         zigbeeModel: ['PIR313-E', 'PIR313'],
@@ -279,22 +236,6 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0201', ['_TZE200_01fvxamo']),
-        model: 'THS317-ET-EY',
-        vendor: 'OWON',
-        description: 'Temperature sensor with probe',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [e.temperature(), e.battery()],
-        meta: {
-            tuyaDatapoints: [
-                [1, 'temperature', tuya.valueConverter.divideBy10],
-                [4, 'battery', tuya.valueConverter.raw],
-            ],
-        },
-    },
-    {
         zigbeeModel: ['THS317-ET'],
         model: 'THS317-ET',
         vendor: 'OWON',
@@ -318,7 +259,7 @@ const definitions: Definition[] = [
         vendor: 'OWON',
         description: '3-Phase clamp power meter',
         fromZigbee: [fz.metering, fzLocal.PC321_metering],
-        toZigbee: [],
+        toZigbee: [tzLocal.PC321_clearMetering],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -353,9 +294,10 @@ const definitions: Definition[] = [
             e.numeric('reactive_power_l1', ea.STATE).withUnit('VAr').withDescription('Phase 1 reactive power'),
             e.numeric('reactive_power_l2', ea.STATE).withUnit('VAr').withDescription('Phase 2 reactive power'),
             e.numeric('reactive_power_l3', ea.STATE).withUnit('VAr').withDescription('Phase 3 reactive power'),
-            e.numeric('power_factor_l1', ea.STATE).withDescription('Phase 1 power factor'),
-            e.numeric('power_factor_l2', ea.STATE).withDescription('Phase 2 power factor'),
-            e.numeric('power_factor_l3', ea.STATE).withDescription('Phase 3 power factor'),
+            e.numeric('power_factor_l1', ea.STATE).withUnit('%').withDescription('Phase 1 power factor'),
+            e.numeric('power_factor_l2', ea.STATE).withUnit('%').withDescription('Phase 2 power factor'),
+            e.numeric('power_factor_l3', ea.STATE).withUnit('%').withDescription('Phase 3 power factor'),
+            e.enum('clear_metering', ea.SET, ['clear']).withDescription('Clear measurement data'),
         ],
     },
     {

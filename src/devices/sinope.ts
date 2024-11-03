@@ -5,13 +5,14 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+import {precisionRound} from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {onOff, electricityMeter, light} from '../lib/modernExtend';
-import {precisionRound} from '../lib/utils';
 
 const manuSinope = {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES};
 
@@ -33,78 +34,78 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             delete msg['running_state'];
             const result: KeyValue = {};
             const occupancyLookup = {0: 'unoccupied', 1: 'occupied'};
             const cycleOutputLookup = {15: '15_sec', 300: '5_min', 600: '10_min', 900: '15_min', 1200: '20_min', 1800: '30_min', 65535: 'off'};
 
-            if (msg.data.hasOwnProperty('1024')) {
+            if (msg.data['1024'] !== undefined) {
                 result.thermostat_occupancy = utils.getFromLookup(msg.data['1024'], occupancyLookup);
             }
-            if (msg.data.hasOwnProperty('SinopeOccupancy')) {
+            if (msg.data.SinopeOccupancy !== undefined) {
                 result.thermostat_occupancy = utils.getFromLookup(msg.data['SinopeOccupancy'], occupancyLookup);
             }
-            if (msg.data.hasOwnProperty('1025')) {
+            if (msg.data['1025'] !== undefined) {
                 result.main_cycle_output = utils.getFromLookup(msg.data['1025'], cycleOutputLookup);
             }
-            if (msg.data.hasOwnProperty('SinopeMainCycleOutput')) {
+            if (msg.data.SinopeMainCycleOutput !== undefined) {
                 result.main_cycle_output = utils.getFromLookup(msg.data['SinopeMainCycleOutput'], cycleOutputLookup);
             }
-            if (msg.data.hasOwnProperty('1026')) {
+            if (msg.data['1026'] !== undefined) {
                 const lookup = {0: 'on_demand', 1: 'sensing'};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data['1026'], lookup);
             }
-            if (msg.data.hasOwnProperty('SinopeBacklight')) {
+            if (msg.data.SinopeBacklight !== undefined) {
                 const lookup = {0: 'on_demand', 1: 'sensing'};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data['SinopeBacklight'], lookup);
             }
-            if (msg.data.hasOwnProperty('1028')) {
+            if (msg.data['1028'] !== undefined) {
                 result.aux_cycle_output = utils.getFromLookup(msg.data['1028'], cycleOutputLookup);
             }
-            if (msg.data.hasOwnProperty('localTemp')) {
+            if (msg.data.localTemp !== undefined) {
                 result.local_temperature = precisionRound(msg.data['localTemp'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('localTemperatureCalibration')) {
+            if (msg.data.localTemperatureCalibration !== undefined) {
                 result.local_temperature_calibration = precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
-            if (msg.data.hasOwnProperty('outdoorTemp')) {
+            if (msg.data.outdoorTemp !== undefined) {
                 result.outdoor_temperature = precisionRound(msg.data['outdoorTemp'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
+            if (msg.data.occupiedHeatingSetpoint !== undefined) {
                 result.occupied_heating_setpoint = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('unoccupiedHeatingSetpoint')) {
+            if (msg.data.unoccupiedHeatingSetpoint !== undefined) {
                 result.unoccupied_heating_setpoint = precisionRound(msg.data['unoccupiedHeatingSetpoint'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('occupiedCoolingSetpoint')) {
+            if (msg.data.occupiedCoolingSetpoint !== undefined) {
                 result.occupied_cooling_setpoint = precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('unoccupiedCoolingSetpoint')) {
+            if (msg.data.unoccupiedCoolingSetpoint !== undefined) {
                 result.unoccupied_cooling_setpoint = precisionRound(msg.data['unoccupiedCoolingSetpoint'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('ctrlSeqeOfOper')) {
+            if (msg.data.ctrlSeqeOfOper !== undefined) {
                 result.control_sequence_of_operation = constants.thermostatControlSequenceOfOperations[msg.data['ctrlSeqeOfOper']];
             }
-            if (msg.data.hasOwnProperty('systemMode')) {
+            if (msg.data.systemMode !== undefined) {
                 result.system_mode = constants.thermostatSystemModes[msg.data['systemMode']];
             }
-            if (msg.data.hasOwnProperty('pIHeatingDemand')) {
+            if (msg.data.pIHeatingDemand !== undefined) {
                 result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
             }
-            if (msg.data.hasOwnProperty('minHeatSetpointLimit')) {
+            if (msg.data.minHeatSetpointLimit !== undefined) {
                 result.min_heat_setpoint_limit = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('maxHeatSetpointLimit')) {
+            if (msg.data.maxHeatSetpointLimit !== undefined) {
                 result.max_heat_setpoint_limit = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('absMinHeatSetpointLimit')) {
+            if (msg.data.absMinHeatSetpointLimit !== undefined) {
                 result.abs_min_heat_setpoint_limit = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('absMaxHeatSetpointLimit')) {
+            if (msg.data.absMaxHeatSetpointLimit !== undefined) {
                 result.abs_max_heat_setpoint_limit = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('pIHeatingDemand')) {
+            if (msg.data.pIHeatingDemand !== undefined) {
                 result.running_state = msg.data['pIHeatingDemand'] >= 10 ? 'heat' : 'idle';
             }
             return result;
@@ -115,7 +116,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('presentValue')) {
+            if (msg.data.presentValue !== undefined) {
                 let x = msg.data['presentValue'];
                 if (x == -1) {
                     result.tank_level = 0;
@@ -146,84 +147,84 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('GFCiStatus')) {
+            if (msg.data.GFCiStatus !== undefined) {
                 const lookup = {0: 'off', 1: 'on'};
                 result.gfci_status = utils.getFromLookup(msg.data['GFCiStatus'], lookup);
             }
-            if (msg.data.hasOwnProperty('floorLimitStatus')) {
+            if (msg.data.floorLimitStatus !== undefined) {
                 const lookup = {0: 'off', 1: 'on'};
                 result.floor_limit_status = utils.getFromLookup(msg.data['floorLimitStatus'], lookup);
             }
-            if (msg.data.hasOwnProperty('secondScreenBehavior')) {
+            if (msg.data.secondScreenBehavior !== undefined) {
                 const lookup = {0: 'auto', 1: 'setpoint', 2: 'outdoor temp'};
                 result.second_display_mode = utils.getFromLookup(msg.data['secondScreenBehavior'], lookup);
             }
-            if (msg.data.hasOwnProperty('outdoorTempToDisplayTimeout')) {
+            if (msg.data.outdoorTempToDisplayTimeout !== undefined) {
                 result.outdoor_temperature_timeout = msg.data['outdoorTempToDisplayTimeout'];
                 // DEPRECATED: Use Second Display Mode or control via set outdoorTempToDisplayTimeout
                 result.enable_outdoor_temperature = msg.data['outdoorTempToDisplayTimeout'] === 12 ? 'OFF' : 'ON';
             }
-            if (msg.data.hasOwnProperty('outdoorTempToDisplay')) {
+            if (msg.data.outdoorTempToDisplay !== undefined) {
                 result.thermostat_outdoor_temperature = precisionRound(msg.data['outdoorTempToDisplay'], 2) / 100;
             }
-            if (msg.data.hasOwnProperty('currentTimeToDisplay')) {
+            if (msg.data.currentTimeToDisplay !== undefined) {
                 result.current_time_to_display = msg.data['currentTimeToDisplay'];
             }
-            if (msg.data.hasOwnProperty('floorControlMode')) {
+            if (msg.data.floorControlMode !== undefined) {
                 const lookup = {1: 'ambiant', 2: 'floor'};
                 result.floor_control_mode = utils.getFromLookup(msg.data['floorControlMode'], lookup);
             }
-            if (msg.data.hasOwnProperty('ambiantMaxHeatSetpointLimit')) {
+            if (msg.data.ambiantMaxHeatSetpointLimit !== undefined) {
                 result.ambiant_max_heat_setpoint = msg.data['ambiantMaxHeatSetpointLimit'] / 100.0;
                 if (result.ambiant_max_heat_setpoint === -327.68) {
                     result.ambiant_max_heat_setpoint = 'off';
                 }
             }
-            if (msg.data.hasOwnProperty('floorMinHeatSetpointLimit')) {
+            if (msg.data.floorMinHeatSetpointLimit !== undefined) {
                 result.floor_min_heat_setpoint = msg.data['floorMinHeatSetpointLimit'] / 100.0;
                 if (result.floor_min_heat_setpoint === -327.68) {
                     result.floor_min_heat_setpoint = 'off';
                 }
             }
-            if (msg.data.hasOwnProperty('floorMaxHeatSetpointLimit')) {
+            if (msg.data.floorMaxHeatSetpointLimit !== undefined) {
                 result.floor_max_heat_setpoint = msg.data['floorMaxHeatSetpointLimit'] / 100.0;
                 if (result.floor_max_heat_setpoint === -327.68) {
                     result.floor_max_heat_setpoint = 'off';
                 }
             }
-            if (msg.data.hasOwnProperty('temperatureSensor')) {
+            if (msg.data.temperatureSensor !== undefined) {
                 const lookup = {0: '10k', 1: '12k'};
                 result.floor_temperature_sensor = utils.getFromLookup(msg.data['temperatureSensor'], lookup);
             }
-            if (msg.data.hasOwnProperty('timeFormatToDisplay')) {
+            if (msg.data.timeFormatToDisplay !== undefined) {
                 const lookup = {0: '24h', 1: '12h'};
                 result.time_format = utils.getFromLookup(msg.data['timeFormatToDisplay'], lookup);
             }
-            if (msg.data.hasOwnProperty('connectedLoad')) {
+            if (msg.data.connectedLoad !== undefined) {
                 result.connected_load = msg.data['connectedLoad'];
             }
-            if (msg.data.hasOwnProperty('auxConnectedLoad')) {
+            if (msg.data.auxConnectedLoad !== undefined) {
                 result.aux_connected_load = msg.data['auxConnectedLoad'];
                 if (result.aux_connected_load == 65535) {
                     result.aux_connected_load = 'disabled';
                 }
             }
-            if (msg.data.hasOwnProperty('pumpProtection')) {
+            if (msg.data.pumpProtection !== undefined) {
                 result.pump_protection = msg.data['pumpProtection'] == 1 ? 'ON' : 'OFF';
             }
-            if (msg.data.hasOwnProperty('dimmerTimmer')) {
+            if (msg.data.dimmerTimmer !== undefined) {
                 result.timer_seconds = msg.data['dimmerTimmer'];
             }
-            if (msg.data.hasOwnProperty('ledIntensityOn')) {
+            if (msg.data.ledIntensityOn !== undefined) {
                 result.led_intensity_on = msg.data['ledIntensityOn'];
             }
-            if (msg.data.hasOwnProperty('ledIntensityOff')) {
+            if (msg.data.ledIntensityOff !== undefined) {
                 result.led_intensity_off = msg.data['ledIntensityOff'];
             }
-            if (msg.data.hasOwnProperty('minimumBrightness')) {
+            if (msg.data.minimumBrightness !== undefined) {
                 result.minimum_brightness = msg.data['minimumBrightness'];
             }
-            if (msg.data.hasOwnProperty('actionReport')) {
+            if (msg.data.actionReport !== undefined) {
                 const lookup = {
                     1: 'up_clickdown',
                     2: 'up_single',
@@ -236,11 +237,11 @@ const fzLocal = {
                 };
                 result.action = utils.getFromLookup(msg.data['actionReport'], lookup);
             }
-            if (msg.data.hasOwnProperty('keypadLockout')) {
+            if (msg.data.keypadLockout !== undefined) {
                 const lookup = {0: 'unlock', 1: 'lock'};
                 result.keypad_lockout = utils.getFromLookup(msg.data['keypadLockout'], lookup);
             }
-            if (msg.data.hasOwnProperty('drConfigWaterTempMin')) {
+            if (msg.data.drConfigWaterTempMin !== undefined) {
                 result.low_water_temp_protection = msg.data['drConfigWaterTempMin'];
             }
             return result;
@@ -372,8 +373,8 @@ const tzLocal = {
             }
             const lookup = {ambiant: 1, floor: 2};
             value = value.toLowerCase();
-            // @ts-expect-error
-            if (lookup.hasOwnProperty(value)) {
+            // @ts-expect-error ignore
+            if (lookup[value] !== undefined) {
                 await entity.write('manuSpecificSinope', {floorControlMode: utils.getFromLookup(value, lookup)});
             }
             return {readAfterWriteTime: 250, state: {floor_control_mode: value}};
@@ -386,9 +387,9 @@ const tzLocal = {
         // TH1300ZB and TH1400ZB specific
         key: ['ambiant_max_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             if ((value >= 5 && value <= 36) || value == 'off') {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await entity.write('manuSpecificSinope', {ambiantMaxHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
                 return {readAfterWriteTime: 250, state: {ambiant_max_heat_setpoint: value}};
             }
@@ -401,9 +402,9 @@ const tzLocal = {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_min_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             if ((value >= 5 && value <= 34) || value == 'off') {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await entity.write('manuSpecificSinope', {floorMinHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
                 return {readAfterWriteTime: 250, state: {floor_min_heat_setpoint: value}};
             }
@@ -416,9 +417,9 @@ const tzLocal = {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_max_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            // @ts-expect-error
+            // @ts-expect-error ignore
             if ((value >= 7 && value <= 36) || value == 'off') {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await entity.write('manuSpecificSinope', {floorMaxHeatSetpointLimit: value == 'off' ? -32768 : value * 100});
                 return {readAfterWriteTime: 250, state: {floor_max_heat_setpoint: value}};
             }
@@ -436,8 +437,8 @@ const tzLocal = {
             }
             const lookup = {'10k': 0, '12k': 1};
             value = value.toLowerCase();
-            // @ts-expect-error
-            if (lookup.hasOwnProperty(value)) {
+            // @ts-expect-error ignore
+            if (lookup[value] !== undefined) {
                 await entity.write('manuSpecificSinope', {temperatureSensor: utils.getFromLookup(value, lookup)});
             }
             return {readAfterWriteTime: 250, state: {floor_temperature_sensor: value}};
@@ -449,16 +450,8 @@ const tzLocal = {
     time_format: {
         key: ['time_format'],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== 'string') {
-                return;
-            }
-            const lookup = {'24h': 0, '12h': 1};
-            value = value.toLowerCase();
-            utils.assertString(value);
-            if (lookup.hasOwnProperty(value)) {
-                await entity.write('manuSpecificSinope', {timeFormatToDisplay: utils.getFromLookup(value, lookup)}, manuSinope);
-                return {readAfterWriteTime: 250, state: {time_format: value}};
-            }
+            await entity.write('manuSpecificSinope', {timeFormatToDisplay: utils.getFromLookup(value, {'24h': 0, '12h': 1})}, manuSinope);
+            return {readAfterWriteTime: 250, state: {time_format: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['timeFormatToDisplay'], manuSinope);
@@ -606,20 +599,14 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 };
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TH1123ZB'],
         model: 'TH1123ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [
-            fzLocal.thermostat,
-            fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
-            fz.electrical_measurement,
-            fz.metering,
-            fz.ignore_temperature_report,
-        ],
+        extend: [electricityMeter()],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -636,7 +623,6 @@ const definitions: Definition[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
-            tz.electrical_measurement_power,
         ],
         exposes: [
             e
@@ -680,10 +666,6 @@ const definitions: Definition[] = [
             e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
             e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current(),
-            e.voltage(),
-            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -695,8 +677,6 @@ const definitions: Definition[] = [
                 'hvacThermostat',
                 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement',
-                'haElectricalMeasurement',
-                'seMetering',
                 'manuSpecificSinope',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -715,21 +695,9 @@ const definitions: Definition[] = [
             ]);
             try {
                 await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {
+            } catch {
                 /* Not all support this */
             }
-
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            try {
-                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            } catch (error) {
-                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
-            }
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
         },
     },
     {
@@ -737,14 +705,8 @@ const definitions: Definition[] = [
         model: 'TH1124ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [
-            fzLocal.thermostat,
-            fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
-            fz.electrical_measurement,
-            fz.metering,
-            fz.ignore_temperature_report,
-        ],
+        extend: [electricityMeter()],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -761,7 +723,6 @@ const definitions: Definition[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
-            tz.electrical_measurement_power,
         ],
         exposes: [
             e
@@ -805,10 +766,6 @@ const definitions: Definition[] = [
             e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
             e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current(),
-            e.voltage(),
-            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -820,8 +777,6 @@ const definitions: Definition[] = [
                 'hvacThermostat',
                 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement',
-                'haElectricalMeasurement',
-                'seMetering',
                 'manuSpecificSinope',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -840,21 +795,9 @@ const definitions: Definition[] = [
             ]);
             try {
                 await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {
+            } catch {
                 /* Not all support this */
             }
-
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            try {
-                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            } catch (error) {
-                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
-            }
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
         },
     },
     {
@@ -862,14 +805,8 @@ const definitions: Definition[] = [
         model: 'TH1123ZB-G2',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [
-            fzLocal.thermostat,
-            fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
-            fz.electrical_measurement,
-            fz.metering,
-            fz.ignore_temperature_report,
-        ],
+        extend: [electricityMeter()],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -886,7 +823,6 @@ const definitions: Definition[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
-            tz.electrical_measurement_power,
         ],
         exposes: [
             e
@@ -930,10 +866,6 @@ const definitions: Definition[] = [
             e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
             e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current(),
-            e.voltage(),
-            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -945,8 +877,6 @@ const definitions: Definition[] = [
                 'hvacThermostat',
                 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement',
-                'haElectricalMeasurement',
-                'seMetering',
                 'manuSpecificSinope',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds); // This G2 version has limited memory space
@@ -972,18 +902,11 @@ const definitions: Definition[] = [
                 },
             ]);
 
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-
             // Disable default reporting (not used by Sinope)
             await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
-            } catch (error) {
+            } catch {
                 /* Do nothing */
             }
         },
@@ -993,14 +916,8 @@ const definitions: Definition[] = [
         model: 'TH1124ZB-G2',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        fromZigbee: [
-            fzLocal.thermostat,
-            fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
-            fz.electrical_measurement,
-            fz.metering,
-            fz.ignore_temperature_report,
-        ],
+        extend: [electricityMeter()],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -1017,7 +934,6 @@ const definitions: Definition[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
-            tz.electrical_measurement_power,
         ],
         exposes: [
             e
@@ -1061,10 +977,6 @@ const definitions: Definition[] = [
             e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
             e.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min']).withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current(),
-            e.voltage(),
-            e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -1076,8 +988,6 @@ const definitions: Definition[] = [
                 'hvacThermostat',
                 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement',
-                'haElectricalMeasurement',
-                'seMetering',
                 'manuSpecificSinope',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds); // This G2 version has limited memory space
@@ -1103,18 +1013,11 @@ const definitions: Definition[] = [
                 },
             ]);
 
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-
             // Disable default reporting (not used by Sinope)
             await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
-            } catch (error) {
+            } catch {
                 /* Do nothing */
             }
         },
@@ -1127,14 +1030,8 @@ const definitions: Definition[] = [
         whiteLabel: [
             {model: 'TH1320ZB-04', vendor: 'Sinopé', description: 'Zigbee smart floor heating thermostat', fingerprint: [{modelID: 'TH1320ZB-04'}]},
         ],
-        fromZigbee: [
-            fzLocal.thermostat,
-            fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
-            fz.electrical_measurement,
-            fz.metering,
-            fz.ignore_temperature_report,
-        ],
+        extend: [electricityMeter()],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -1155,7 +1052,6 @@ const definitions: Definition[] = [
             tzLocal.floor_min_heat_setpoint,
             tzLocal.floor_max_heat_setpoint,
             tzLocal.temperature_sensor,
-            tz.electrical_measurement_power,
         ],
         exposes: [
             e
@@ -1198,10 +1094,6 @@ const definitions: Definition[] = [
             e.enum('time_format', ea.ALL, ['24h', '12h']).withDescription('The time format featured on the thermostat display'),
             e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing']).withDescription('Control backlight dimming behavior'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables or disables the device’s buttons'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current(),
-            e.voltage(),
-            e.energy(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1211,47 +1103,17 @@ const definitions: Definition[] = [
                 'genGroups',
                 'hvacThermostat',
                 'hvacUserInterfaceCfg',
-                'haElectricalMeasurement',
                 'msTemperatureMeasurement',
-                'seMetering',
                 'manuSpecificSinope',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            try {
-                await reporting.readMeteringMultiplierDivisor(endpoint);
-            } catch (error) {
-                /* Do nothing*/
-            }
-            try {
-                await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            } catch (error) {
-                /* Do nothing*/
-            }
-            try {
-                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            } catch (error) {
-                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acPowerMultiplier: 1, acPowerDivisor: 1});
-            }
-            try {
-                await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
-                await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            } catch (error) {
-                /* Do nothing*/
-            }
-            try {
-                await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
-                await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-            } catch (error) {
-                /* Do nothing*/
-            }
 
             try {
                 await reporting.thermostatKeypadLockMode(endpoint);
-            } catch (error) {
+            } catch {
                 // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
             }
 
@@ -1413,7 +1275,7 @@ const definitions: Definition[] = [
 
             try {
                 await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {
+            } catch {
                 /* Not all support this */
             }
 
@@ -1531,9 +1393,9 @@ const definitions: Definition[] = [
         model: 'SW2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
-        fromZigbee: [fz.on_off, fzLocal.sinope, fz.metering],
+        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        fromZigbee: [fzLocal.sinope],
         toZigbee: [
-            tz.on_off,
             tzLocal.timer_seconds,
             tzLocal.led_intensity_on,
             tzLocal.led_intensity_off,
@@ -1543,7 +1405,6 @@ const definitions: Definition[] = [
             tzLocal.connected_load,
         ],
         exposes: [
-            e.switch(),
             e.action(['up_single', 'up_double', 'up_hold', 'down_single', 'down_double', 'down_hold']),
             e
                 .numeric('timer_seconds', ea.ALL)
@@ -1578,19 +1439,11 @@ const definitions: Definition[] = [
                 .withDescription('Control status LED color when load OFF'),
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock']).withDescription('Enables or disables the device’s buttons'),
             e.numeric('connected_load', ea.ALL).withUnit('W').withValueMin(0).withValueMax(1800).withDescription('Load connected in watt'),
-            e.energy(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'manuSpecificSinope', 'seMetering'];
+            const binds = ['manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.onOff(endpoint);
-            try {
-                await reporting.readMeteringMultiplierDivisor(endpoint);
-                await reporting.currentSummDelivered(endpoint, {min: 10, max: 300, change: [0, 10]});
-            } catch (error) {
-                /* Do nothing*/
-            }
             const payload = [
                 {
                     attribute: 'actionReport',
@@ -1707,63 +1560,21 @@ const definitions: Definition[] = [
         model: 'SP2600ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart plug',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.frequency],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [0, 1]}); // divider 1
-        },
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['SP2610ZB'],
         model: 'SP2610ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart plug',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.frequency],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [0, 1]}); // divider 1
-        },
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['RM3250ZB'],
         model: 'RM3250ZB',
         vendor: 'Sinopé',
         description: '50A Smart electrical load controller',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'haElectricalMeasurement', 'seMetering'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['WL4200'],
@@ -1868,12 +1679,12 @@ const definitions: Definition[] = [
             await reporting.brightness(endpoint); // valve position
             try {
                 await reporting.batteryVoltage(endpoint);
-            } catch (error) {
+            } catch {
                 /* Do Nothing */
             }
             try {
                 await reporting.batteryAlarmState(endpoint);
-            } catch (error) {
+            } catch {
                 /* Do Nothing */
             }
         },

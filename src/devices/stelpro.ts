@@ -1,18 +1,19 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz} from '../lib/types';
+
 const e = exposes.presets;
-import * as constants from '../lib/constants';
 
 const fzLocal = {
     power: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('16392')) {
+            if (msg.data['16392'] !== undefined) {
                 return {power: msg.data['16392']};
             }
         },
@@ -21,14 +22,14 @@ const fzLocal = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('16393')) {
+            if (msg.data['16393'] !== undefined) {
                 return {energy: parseFloat(msg.data['16393']) / 1000};
             }
         },
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['HT402'],
         model: 'HT402',

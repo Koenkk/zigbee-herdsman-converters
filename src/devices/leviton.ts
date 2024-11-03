@@ -4,8 +4,9 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -14,7 +15,7 @@ const fzLocal = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentLevel')) {
+            if (msg.data.currentLevel !== undefined) {
                 const currentLevel = Number(msg.data['currentLevel']);
                 const property = utils.postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: currentLevel > 0 ? 'ON' : 'OFF'};
@@ -23,7 +24,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['DL15S'],
         model: 'DL15S-1BZ',

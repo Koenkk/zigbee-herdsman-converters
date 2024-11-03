@@ -1,26 +1,26 @@
 import {Zcl} from 'zigbee-herdsman';
 
 import {
-    deviceEndpoints,
-    temperature,
-    humidity,
-    enumLookup,
-    binary,
-    numeric,
-    co2,
-    illuminance,
-    soilMoisture,
     battery,
+    binary,
+    co2,
+    deviceEndpoints,
+    enumLookup,
+    humidity,
+    illuminance,
+    numeric,
     pressure,
+    soilMoisture,
+    temperature,
 } from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const defaultReporting = {min: 0, max: 300, change: 0};
 const normalReporting = {min: 0, max: 3600, change: 0};
 const rareReporting = {min: 0, max: 21600, change: 0};
 const rarestReporting = {min: 0, max: 64800, change: 0};
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['EFEKTA_iAQ3'],
         model: 'EFEKTA_iAQ3',
