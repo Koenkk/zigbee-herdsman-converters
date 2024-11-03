@@ -2640,6 +2640,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee + RF curtain switch module',
         whiteLabel: [tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc'])],
         ota: ota.zigbeeOTA,
+        meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [
@@ -7543,6 +7544,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS004F', manufacturerName: '_TZ3000_ixla93vd'},
             {modelID: 'TS004F', manufacturerName: '_TZ3000_qja6nq5z'},
             {modelID: 'TS004F', manufacturerName: '_TZ3000_abrsvsou'},
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_402vrq2i'},
         ],
         model: 'ERS-10TZBVK-AA',
         vendor: 'Tuya',

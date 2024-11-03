@@ -1,5 +1,16 @@
 # Changelog
 
+## [20.39.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.39.1...v20.39.2) (2024-11-03)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_402vrq2i` as Tuya ERS-10TZBVK-AA ([#8257](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8257)) ([fe67b32](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fe67b327bdfb65315c3a2601d8af33d3ebc920b3))
+* Fix force power source not working when `Unknown` https://github.com/Koenkk/zigbee2mqtt/issues/24340 ([5902888](https://github.com/Koenkk/zigbee-herdsman-converters/commit/59028880c89a210c9b54780a19c00ffade8e2c81))
+* Fix Moes MS-108ZR cover state inverted https://github.com/Koenkk/zigbee2mqtt/issues/24597 ([5ff65c0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5ff65c07b1edb5399c723346982c36317ba9e261))
+* **ignore:** fix f54366e8ad8aaf820a36de7b47720fcd906eab61 ([9e776ee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e776ee5f2df6abe14ae2bff167d14e46dd084fe))
+* **ignore:** update dependencies ([#8258](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8258)) ([8cd25aa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8cd25aae2490e53dda31af595a578503029c3819))
+
 ## [20.39.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.39.0...v20.39.1) (2024-11-02)
 
 

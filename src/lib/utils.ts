@@ -356,10 +356,15 @@ export function isInRange(min: number, max: number, value: number) {
     return value >= min && value <= max;
 }
 
-export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[], errorIfNotInArray = true) {
+export function replaceToZigbeeConvertersInArray(
+    arr: Tz.Converter[],
+    oldElements: Tz.Converter[],
+    newElements: Tz.Converter[],
+    errorIfNotInArray = true,
+) {
     const clone = [...arr];
     for (let i = 0; i < oldElements.length; i++) {
-        const index = clone.indexOf(oldElements[i]);
+        const index = clone.findIndex((t) => t.key === oldElements[i].key);
 
         if (index !== -1) {
             clone[index] = newElements[i];
@@ -690,7 +695,7 @@ export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unkno
 
 export function configureSetPowerSourceWhenUnknown(powerSource: 'Battery' | 'Mains (single phase)'): Configure {
     return async (device: Zh.Device): Promise<void> => {
-        if (!device.powerSource) {
+        if (!device.powerSource || device.powerSource === 'Unknown') {
             logger.debug(`Device has no power source, forcing to '${powerSource}'`, NS);
             device.powerSource = powerSource;
             device.save();
@@ -761,7 +766,6 @@ exports.getMetaValue = getMetaValue;
 exports.validateValue = validateValue;
 exports.hasEndpoints = hasEndpoints;
 exports.isInRange = isInRange;
-exports.replaceInArray = replaceInArray;
 exports.filterObject = filterObject;
 exports.saveSceneState = saveSceneState;
 exports.sleep = sleep;
