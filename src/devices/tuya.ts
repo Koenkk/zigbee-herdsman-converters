@@ -3849,7 +3849,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'},
             {vendor: 'Lonsonho', model: 'X702'},
             {vendor: 'AVATTO', model: 'ZTS02'},
-            {vendor: 'PSMART', moedl: 'T462'},
+            {vendor: 'PSMART', model: 'T462'},
         ],
     },
 
