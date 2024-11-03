@@ -12837,18 +12837,18 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1),
             e
                 .numeric('installation_height', ea.STATE_SET)
-                .withUnit('mm')
+                .withUnit('m')
                 .withDescription('Height from sensor to tank bottom')
-                .withValueMin(100)
-                .withValueMax(4000)
-                .withValueStep(1),
+                .withValueMin(0.1)
+                .withValueMax(4)
+                .withValueStep(0.01),
             e
                 .numeric('liquid_depth_max', ea.STATE_SET)
-                .withUnit('mm')
+                .withUnit('m')
                 .withDescription('Height from sensor to liquid level')
-                .withValueMin(100)
-                .withValueMax(2000)
-                .withValueStep(1),
+                .withValueMin(0.1)
+                .withValueMax(4)
+                .withValueStep(0.01),
         ],
         meta: {
             tuyaDatapoints: [
@@ -12861,12 +12861,12 @@ const definitions: DefinitionWithExtend[] = [
                         high: tuya.enum(2),
                     }),
                 ],
-                [2, 'liquid_depth', tuya.valueConverter.divideBy1000],
+                [2, 'liquid_depth', tuya.valueConverter.divideBy100],
                 [22, 'liquid_level_percent', tuya.valueConverter.raw],
                 [7, 'max_set', tuya.valueConverter.raw],
                 [8, 'mini_set', tuya.valueConverter.raw],
-                [19, 'installation_height', tuya.valueConverter.raw],
-                [21, 'liquid_depth_max', tuya.valueConverter.raw],
+                [19, 'installation_height', tuya.valueConverter.divideBy100],
+                [21, 'liquid_depth_max', tuya.valueConverter.divideBy100],
             ],
         },
     },
