@@ -400,7 +400,7 @@ const definitions: DefinitionWithExtend[] = [
             // Device supports only 4 binds (otherwise you get TABLE_FULL error)
             // https://github.com/Koenkk/zigbee2mqtt/issues/23684
             if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
-                await device.getEndpoint(35).unbind('genPollCtrl', coordinatorEndpoint);
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
             }
 
             await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBinaryInput']);
