@@ -296,6 +296,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
+        zigbeeModel: ['929003054201'],
+        model: '929003054201',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance Cher Pendant',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ['5063131P7'],
         model: '5063131P7',
         vendor: 'Philips',
@@ -2052,6 +2059,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929003809101_01', '929003809101_02', '929003809101_03', '929003809101_04'],
+        model: '929003809101',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris V2 ceiling light (3 spots)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ['5060830P7_01', '5060830P7_02', '5060830P7_03', '5060830P7_04'],
         model: '5060830P7',
         vendor: 'Philips',
@@ -2887,7 +2901,16 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: undefined}})],
     },
     {
-        zigbeeModel: ['929003047101', '929003045101_03', '929003045101_01', '929003045101_02'],
+        zigbeeModel: [
+            '929003047101',
+            '929003045101_03',
+            '929003045101_01',
+            '929003045101_02',
+            '929003811101_01',
+            '929003811101_02',
+            '929003811101_03',
+            '929003811001',
+        ],
         model: '929003047101',
         vendor: 'Philips',
         description: 'Hue White ambiance Milliskin (round)',
@@ -3872,6 +3895,20 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['929003823601'],
         model: '929003823601',
+        vendor: 'Philips',
+        description: 'Hue Tento color 29,1cm',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ['929003823901'],
+        model: '929003823901',
+        vendor: 'Philips',
+        description: 'Hue Tento color 54,2cm',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ['929003823501'],
+        model: '929003823501',
         vendor: 'Philips',
         description: 'Hue Tento color 29,1cm',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],

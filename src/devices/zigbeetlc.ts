@@ -1,6 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {battery, binary, enumLookup, humidity, numeric, ota, quirkAddEndpointCluster, temperature} from '../lib/modernExtend';
+import {battery, binary, enumLookup, humidity, numeric, ota, temperature} from '../lib/modernExtend';
 
 const extend = {
     comfortDisplay: binary({
@@ -60,11 +60,6 @@ const extend = {
         cluster: 'hvacUserInterfaceCfg',
         attribute: {ID: 0x0106, type: Zcl.DataType.ENUM8},
         description: 'Whether to enable the device display.',
-    }),
-    endpointQuirk: quirkAddEndpointCluster({
-        endpointID: 1,
-        outputClusters: ['genOta'],
-        inputClusters: ['genBasic', 'genPowerCfg', 'genIdentify', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement', 'msRelativeHumidity'],
     }),
     humidityCalibration: numeric({
         name: 'humidity_calibration',
@@ -141,7 +136,6 @@ const definitions = [
             extend.humidityCalibration,
             extend.measurementInterval,
             battery(),
-            extend.endpointQuirk,
             ota(),
         ],
     },
@@ -169,7 +163,6 @@ const definitions = [
             extend.humidityCalibration,
             extend.measurementInterval,
             battery(),
-            extend.endpointQuirk,
             ota(),
         ],
     },
@@ -200,7 +193,6 @@ const definitions = [
             extend.humidityCalibration,
             extend.measurementInterval,
             battery(),
-            extend.endpointQuirk,
             ota(),
         ],
     },
