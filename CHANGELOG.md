@@ -1,5 +1,21 @@
 # Changelog
 
+## [20.40.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.39.2...v20.40.0) (2024-11-04)
+
+
+### Features
+
+* **add:** T440 ([#8267](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8267)) ([11ab760](https://github.com/Koenkk/zigbee-herdsman-converters/commit/11ab760120ede189bfaafed57a71a2a092a8299c))
+* **add:** T462 ([#8264](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8264)) ([2868504](https://github.com/Koenkk/zigbee-herdsman-converters/commit/28685042a3d7e94fcacb850d5dd1e384b1969f21))
+
+
+### Bug Fixes
+
+* changed device vendor name from Namron AS to Namron to match with other devices ([#8269](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8269)) ([e4dca4d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e4dca4dea4d92b6932f1adf4daa11f6b76a56f51))
+* Fix `motion_sensitivity` and `occupancy_sensitivity` for Tuya ZY-M100-24G ([#8272](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8272)) ([f9aa47b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f9aa47bef30bb26e648c76ccce77e2942743d3bc))
+* Fix Develco SMSZB-120 and HESZB-120 configure ([#8261](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8261)) ([d57705b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d57705b968e641340f4b191bef884d31023f986a))
+* Fixed unit errors for water level sensor ME201WZ ([#8265](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8265)) ([f0c6a78](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f0c6a7884c067e5235443b18fc641d4803dc4c85))
+
 ## [20.39.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.39.1...v20.39.2) (2024-11-03)
 
 
