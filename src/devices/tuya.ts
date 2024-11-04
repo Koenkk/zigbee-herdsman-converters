@@ -5373,6 +5373,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Moes', 'ZK-EU', 'Smart wallsocket (with power monitoring)', ['_TZ3000_ss98ec5d']),
             tuya.whitelabel('Nous', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_ksw8qtmt']),
             tuya.whitelabel('Elivco', 'LSPA9', 'Smart plug (with power monitoring)', ['_TZ3000_okaz9tjs']),
+            tuya.whitelabel('PSMART', 'T440', 'Smart wallsocket (with power monitoring)', ['_TZ3000_y4ona9me']),
         ],
         ota: ota.zigbeeOTA,
         extend: [
