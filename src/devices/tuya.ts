@@ -568,7 +568,13 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/11470
-            if (msg.data.batteryPercentageRemaining == 200 && msg.data.batteryVoltage < 30) return;
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8246
+            if (
+                msg.data.batteryPercentageRemaining == 200 &&
+                msg.data.batteryVoltage < 30 &&
+                !['_TZ3000_lqmvrwa2'].includes(meta.device.manufacturerName)
+            )
+                return;
             return fz.battery.convert(model, msg, publish, options, meta);
         },
     } satisfies Fz.Converter,
@@ -809,6 +815,47 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_gas_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [e.gas(), e.tamper()],
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_wktrysab',
+            },
+        ],
+        model: 'WLS098-ZIGBEE',
+        vendor: 'Tuya',
+        description: '8 gang wall touch switch board',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [...Array.from({length: 8}, (_, i) => tuya.exposes.switch().withEndpoint(`l${i + 1}`))],
+        endpoint: (device) => {
+            return {
+                l1: 1,
+                l2: 1,
+                l3: 1,
+                l4: 1,
+                l5: 1,
+                l6: 1,
+                l7: 1,
+                l8: 1,
+            };
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+                [5, 'state_l5', tuya.valueConverter.onOff],
+                [6, 'state_l6', tuya.valueConverter.onOff],
+                [0x65, 'state_l7', tuya.valueConverter.onOff],
+                [0x66, 'state_l8', tuya.valueConverter.onOff],
+            ],
+        },
     },
     {
         zigbeeModel: ['TS0205'],
@@ -2592,6 +2639,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee + RF curtain switch module',
         whiteLabel: [tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc'])],
         ota: true,
+        meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [
@@ -3045,6 +3093,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'BlitzWolf', model: 'BW-IS4'},
             tuya.whitelabel('Tuya', 'TS0201_1', 'Zigbee 3.0 temperature humidity sensor with display', ['_TZ3210_alxkwn0h']),
             tuya.whitelabel('Tuya', 'ZTH01/ZTH02', 'Temperature and humidity sensor', ['_TZ3000_0s1izerx']),
+            tuya.whitelabel('SEDEA', 'eTH730', 'Temperature and humidity sensor', ['_TZ3000_lqmvrwa2']),
         ],
     },
     {
@@ -3799,6 +3848,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'},
             {vendor: 'Lonsonho', model: 'X702'},
             {vendor: 'AVATTO', model: 'ZTS02'},
+            tuya.whitelabel('PSMART', 'T462', '2 Gang switch with backlight, countdown, inching', ['_TZ3000_wnzoyohq']),
         ],
     },
 
@@ -5704,7 +5754,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_m64smti7']),
         model: 'RMDZB-1PNL63',
         vendor: 'TNCE',
-        description: 'Zigbee DIN single phase RCBO energy meter',
+        description: 'Zigbee DIN single phase energy meter',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -5813,7 +5863,7 @@ const definitions: DefinitionWithExtend[] = [
                 [18, 'over_voltage_breaker', tuya.valueConverter.threshold_3],
                 [18, 'under_voltage_threshold', tuya.valueConverter.threshold_3],
                 [18, 'under_voltage_breaker', tuya.valueConverter.threshold_3],
-                [103, 'temperature', tuya.valueConverter.divideBy10],
+                [103, 'temperature', tuya.valueConverter.raw],
                 // Ignored for now; we don't know what the values mean
                 [11, null, null], // Switch prepayment
                 [12, null, null], // Energy reset
@@ -6973,7 +7023,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
     },
     {
-        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_8uxxzz4b']),
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_8uxxzz4b', '_TZ3000_hy6ncvmw']),
         model: 'TS0222_light',
         vendor: 'Tuya',
         description: 'Light sensor',
@@ -7494,6 +7544,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS004F', manufacturerName: '_TZ3000_ixla93vd'},
             {modelID: 'TS004F', manufacturerName: '_TZ3000_qja6nq5z'},
             {modelID: 'TS004F', manufacturerName: '_TZ3000_abrsvsou'},
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_402vrq2i'},
         ],
         model: 'ERS-10TZBVK-AA',
         vendor: 'Tuya',
@@ -12754,6 +12805,68 @@ const definitions: DefinitionWithExtend[] = [
                 [118, 'auto_time', tuya.valueConverter.raw],
                 [120, 'multi_control_link', tuya.valueConverter.raw],
                 [121, 'holiday_time', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_kyyu8rbj']),
+        model: 'ME201WZ',
+        vendor: 'Tuya',
+        description: 'Water level sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.numeric('liquid_level_percent', ea.STATE).withUnit('%').withDescription('Liquid level ratio'),
+            e.numeric('liquid_depth', ea.STATE).withUnit('m').withDescription('Liquid Depth'),
+            e.enum('liquid_state', ea.STATE, ['low', 'normal', 'high']).withDescription('Liquid level status'),
+            e
+                .numeric('max_set', ea.STATE_SET)
+                .withUnit('%')
+                .withDescription('Liquid max percentage')
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
+            e
+                .numeric('mini_set', ea.STATE_SET)
+                .withUnit('%')
+                .withDescription('Liquid minimal percentage')
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
+            e
+                .numeric('installation_height', ea.STATE_SET)
+                .withUnit('m')
+                .withDescription('Height from sensor to tank bottom')
+                .withValueMin(0.1)
+                .withValueMax(4)
+                .withValueStep(0.01),
+            e
+                .numeric('liquid_depth_max', ea.STATE_SET)
+                .withUnit('m')
+                .withDescription('Height from sensor to liquid level')
+                .withValueMin(0.1)
+                .withValueMax(4)
+                .withValueStep(0.01),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    'liquid_state',
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(1),
+                        normal: tuya.enum(0),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [2, 'liquid_depth', tuya.valueConverter.divideBy100],
+                [22, 'liquid_level_percent', tuya.valueConverter.raw],
+                [7, 'max_set', tuya.valueConverter.raw],
+                [8, 'mini_set', tuya.valueConverter.raw],
+                [19, 'installation_height', tuya.valueConverter.divideBy100],
+                [21, 'liquid_depth_max', tuya.valueConverter.divideBy100],
             ],
         },
     },

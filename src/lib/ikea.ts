@@ -30,7 +30,7 @@ import {
     mapNumberRange,
     postfixWithEndpointName,
     precisionRound,
-    replaceInArray,
+    replaceToZigbeeConvertersInArray,
 } from '../lib/utils';
 
 export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
@@ -95,7 +95,7 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
     result.ota = true;
     result.onEvent = bulbOnEvent;
     if (isObject(args?.colorTemp) && args.colorTemp.viaColor) {
-        result.toZigbee = replaceInArray(result.toZigbee, [tz.light_color_colortemp], [tz.light_color_and_colortemp_via_color]);
+        result.toZigbee = replaceToZigbeeConvertersInArray(result.toZigbee, [tz.light_color_colortemp], [tz.light_color_and_colortemp_via_color]);
     }
     if (args?.colorTemp || args?.color) {
         result.exposes.push(presets.light_color_options());

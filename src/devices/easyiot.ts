@@ -53,7 +53,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const lookup: KeyValueAny = {commandToggle: 'single', commandOn: 'double', commandOff: 'long'};
             let buttonMapping: KeyValueAny = null;
-            if (model.model === 'ZB-SW01') {
+            if (model.model === 'ZB-WB01') {
                 buttonMapping = {1: '1'};
             } else if (model.model === 'ZB-WB02') {
                 buttonMapping = {1: '1', 2: '2'};
@@ -218,7 +218,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: 'ZB-RS485', manufacturerName: 'easyiot'}],
-        model: 'RS485',
+        model: 'ZB-RS485',
         vendor: 'easyiot',
         description: 'Zigbee to RS485 controller',
         fromZigbee: [fzLocal.easyiot_ir_recv_command],
