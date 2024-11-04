@@ -17,7 +17,6 @@ import {
     quirkAddEndpointCluster,
     temperature,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from '../lib/types';
 import {getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from '../lib/utils';
@@ -862,7 +861,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Comfort parameters/Humidity maximum, in 0.01% steps.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
@@ -973,7 +972,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Comfort parameters/Humidity maximum, in 1% steps. Requires v0.1.1.7 or newer.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['MHO-C401N-z'],
@@ -1076,7 +1075,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Measurement interval, default 10 seconds.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];

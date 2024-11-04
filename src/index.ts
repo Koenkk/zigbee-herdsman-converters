@@ -12,7 +12,6 @@ import * as exposesLib from './lib/exposes';
 import {Enum as EnumClass} from './lib/exposes';
 import {generateDefinition} from './lib/generateDefinition';
 import * as logger from './lib/logger';
-import * as ota from './lib/ota';
 import {
     Configure,
     Definition,
@@ -26,7 +25,6 @@ import {
     OnEventData,
     OnEventType,
     Option,
-    OtaUpdateAvailableResult,
     Tz,
     Zh,
 } from './lib/types';
@@ -34,6 +32,7 @@ import * as utils from './lib/utils';
 
 const NS = 'zhc';
 
+export type {Ota} from './lib/types';
 export {
     Definition as Definition,
     OnEventType as OnEventType,
@@ -55,9 +54,8 @@ export {
     toZigbee as toZigbee,
     fromZigbee as fromZigbee,
     Tz as Tz,
-    OtaUpdateAvailableResult as OtaUpdateAvailableResult,
-    ota as ota,
 };
+export * as ota from './lib/ota';
 
 export const getConfigureKey = configureKey.getConfigureKey;
 
@@ -161,6 +159,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             if (!ext.isModernExtend) {
                 assert.fail(`'${definition.model}' has legacy extend in modern extend`);
             }
+            // TODO: concat instead of spread push?
             if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
             if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
             if (ext.exposes) allExposes.push(...ext.exposes);
@@ -169,9 +168,6 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             if (ext.configure) configures.push(...ext.configure.filter((c) => c));
             if (ext.onEvent) onEvents.push(ext.onEvent);
             if (ext.ota) {
-                if (ota && ext.ota !== ota) {
-                    assert.fail(`'${definition.model}' has multiple 'ota', this is not allowed`);
-                }
                 ota = ext.ota;
             }
             if (ext.endpoint) {
@@ -333,7 +329,7 @@ export function addDefinition(definition: DefinitionWithExtend) {
 }
 
 for (const definition of allDefinitions) {
-    addDefinition(definition);
+    addDefinition(definition as DefinitionWithExtend);
 }
 
 export async function findByDevice(device: Zh.Device, generateForUnknown: boolean = false) {

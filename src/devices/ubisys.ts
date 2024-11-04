@@ -9,7 +9,6 @@ import * as exposes from '../lib/exposes';
 //import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {commandsColorCtrl, commandsLevelCtrl, commandsOnOff, deviceEndpoints, electricityMeter, identify, onOff} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, OnEventData, OnEventType, Tz, Zh} from '../lib/types';
 import {ubisysModernExtend} from '../lib/ubisys';
@@ -677,7 +676,7 @@ const definitions: DefinitionWithExtend[] = [
                 await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
-        ota: ota.ubisys,
+        ota: true,
     },
     {
         zigbeeModel: ['S1-R (5601)'],
@@ -734,7 +733,7 @@ const definitions: DefinitionWithExtend[] = [
                 await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
-        ota: ota.ubisys,
+        ota: true,
     },
     {
         // S1-R Series 2 uses the same modelId as the regular S1-R, but the energy clusters are located in endpoint 1 (instead of 4, like the regular S1-R).
@@ -870,7 +869,7 @@ const definitions: DefinitionWithExtend[] = [
                 await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
-        ota: ota.ubisys,
+        ota: true,
     },
     {
         zigbeeModel: ['D1 (5503)', 'D1-R (5603)'],
@@ -1042,7 +1041,7 @@ const definitions: DefinitionWithExtend[] = [
                 await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
-        ota: ota.ubisys,
+        ota: true,
     },
     {
         zigbeeModel: ['J1 (5502)', 'J1-R (5602)'],
@@ -1113,7 +1112,7 @@ const definitions: DefinitionWithExtend[] = [
                 await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
-        ota: ota.ubisys,
+        ota: true,
     },
     {
         zigbeeModel: ['C4 (5504)'],
@@ -1189,7 +1188,7 @@ const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {s1: 1, s2: 2, s3: 3, s4: 4, s5: 5, s6: 6};
         },
-        ota: ota.ubisys,
+        ota: true,
     },
     {
         zigbeeModel: ['H1'],
@@ -1263,7 +1262,7 @@ const definitions: DefinitionWithExtend[] = [
             //       update this to every 15 minutes. (value is in 1/4th of a second)
             await endpoint.write('genPollCtrl', {checkinInterval: 4 * 60 * 15});
         },
-        ota: ota.ubisys,
+        ota: true,
     },
     {
         zigbeeModel: ['H10'],
@@ -1329,7 +1328,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
-        ota: ota.ubisys,
+        ota: true,
     },
 ];
 

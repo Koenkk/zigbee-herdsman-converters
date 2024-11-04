@@ -3,7 +3,6 @@ import * as exposes from '../lib/exposes';
 import {ledvanceFz, ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import * as legacy from '../lib/legacy';
 import {deviceEndpoints} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -319,7 +318,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        ota: ota.ledvance,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -365,7 +364,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        ota: ota.ledvance,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -409,7 +408,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one device and pushbutton)',
         fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [e.action(['toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
-        extend: [ledvanceLight({configureReporting: true, ota: ota.zigbeeOTA})],
+        extend: [ledvanceLight({configureReporting: true, ota: true})],
         onEvent: async (type, data, device) => {
             if (type === 'deviceInterview') {
                 device.getEndpoint(25).addBinding('genOnOff', device.getEndpoint(10));
@@ -425,10 +424,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4062172044776_3',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices)',
-        extend: [
-            deviceEndpoints({endpoints: {l1: 10, l2: 11}}),
-            ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2'], ota: ota.zigbeeOTA}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 10, l2: 11}}), ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2'], ota: true})],
     },
     {
         fingerprint: [
@@ -440,7 +436,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
         extend: [
             deviceEndpoints({endpoints: {l1: 10, l2: 11, s1: 25}}),
-            ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2', 's1'], ota: ota.zigbeeOTA}),
+            ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2', 's1'], ota: true}),
         ],
         fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [e.action(['toggle_s1', 'brightness_move_up_s1', 'brightness_move_down_s1', 'brightness_stop_s1'])],

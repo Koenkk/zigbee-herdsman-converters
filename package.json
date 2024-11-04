@@ -30,8 +30,9 @@
         "eslint": "eslint --max-warnings=0",
         "pretty:write": "prettier --write .",
         "pretty:check": "prettier --check .",
-        "test": "jest test --silent --maxWorkers=50%",
-        "test-watch": "jest test --silent --watch --maxWorkers=25%",
+        "test": "jest test --silent --runInBand",
+        "test:coverage": "jest test --silent --coverage --runInBand",
+        "test-watch": "jest test --silent --watch --runInBand",
         "clean": "rimraf --glob index* devices lib converters tsconfig.tsbuildinfo",
         "build": "tsc",
         "build-watch": "tsc --watch",
@@ -79,9 +80,27 @@
     "jest": {
         "preset": "ts-jest",
         "testEnvironment": "node",
+        "clearMocks": true,
+        "collectCoverage": false,
+        "coverageProvider": "babel",
+        "coverageDirectory": "coverage",
+        "cacheDirectory": ".jest-tmp",
+        "collectCoverageFrom": [
+            "src/lib/ota.ts"
+        ],
         "roots": [
             "test/",
             "src/"
+        ],
+        "moduleFileExtensions": [
+            "ts",
+            "json",
+            "js",
+            "mjs",
+            "cjs",
+            "jsx",
+            "tsx",
+            "node"
         ]
     }
 }

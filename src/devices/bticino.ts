@@ -3,7 +3,6 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {eLegrand, fzLegrand, tzLegrand} from '../lib/legrand';
 import {electricityMeter, light, onOff} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -16,7 +15,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'K4003C/L4003C/N4003C/NT4003C',
         vendor: 'BTicino',
         description: 'Light switch with neutral',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify],
         exposes: [e.switch(), e.action(['identify', 'on', 'off']), eLegrand.identify(), eLegrand.ledInDark(), eLegrand.ledIfOn()],
@@ -30,7 +29,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4411C/L4411C/N4411C/NT4411C',
         vendor: 'BTicino',
         description: 'Dimmer switch with neutral',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
         toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
         exposes: [

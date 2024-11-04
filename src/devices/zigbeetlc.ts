@@ -1,6 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {battery, binary, enumLookup, humidity, numeric, ota, quirkAddEndpointCluster, temperature} from '../lib/modernExtend';
+import {battery, binary, enumLookup, humidity, numeric, quirkAddEndpointCluster, temperature} from '../lib/modernExtend';
 
 const extend = {
     comfortDisplay: binary({
@@ -142,8 +142,8 @@ const definitions = [
             extend.measurementInterval,
             battery(),
             extend.endpointQuirk,
-            ota(),
         ],
+        ota: true,
     },
     /*
         ZigbeeTLc devices supporting:
@@ -170,8 +170,8 @@ const definitions = [
             extend.measurementInterval,
             battery(),
             extend.endpointQuirk,
-            ota(),
         ],
+        ota: true,
     },
     /*
         ZigbeeTLc devices supporting:
@@ -201,8 +201,8 @@ const definitions = [
             extend.measurementInterval,
             battery(),
             extend.endpointQuirk,
-            ota(),
         ],
+        ota: true,
     },
 ];
 

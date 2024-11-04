@@ -5,7 +5,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as globalLegacy from '../lib/legacy';
 import {logger} from '../lib/logger';
-import {zigbeeOTA} from '../lib/ota';
 import * as globalStore from '../lib/store';
 import {Cover, presets as e, access as ea, Numeric, options as opt} from './exposes';
 import {configure as lightConfigure} from './light';
@@ -16,7 +15,6 @@ import {
     Configure,
     DefinitionExposesFunction,
     DefinitionMeta,
-    DefinitionOta,
     Expose,
     Fz,
     KeyValue,
@@ -516,7 +514,7 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
 
 export interface OnOffArgs {
     powerOnBehavior?: boolean;
-    ota?: DefinitionOta;
+    ota?: ModernExtend['ota'];
     skipDuplicateTransaction?: boolean;
     endpointNames?: string[];
     configureReporting?: boolean;
@@ -984,7 +982,7 @@ export interface LightArgs {
     turnsOffAtBrightness1?: boolean;
     configureReporting?: boolean;
     endpointNames?: string[];
-    ota?: DefinitionOta;
+    ota?: ModernExtend['ota'];
     levelConfig?: {disabledFeatures?: string[]};
 }
 export function light(args?: LightArgs): ModernExtend {
@@ -1956,14 +1954,6 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     }
 
     return result;
-}
-
-// #endregion
-
-// #region OTA
-
-export function ota(definition?: DefinitionOta): ModernExtend {
-    return {ota: definition !== undefined ? definition : zigbeeOTA, isModernExtend: true};
 }
 
 // #endregion

@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -33,7 +32,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [e.action(['select_0', 'select_1', 'select_2', 'select_3', 'select_4', 'select_5', 'on', 'off', 'down', 'up', 'stop'])],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['NEXENTRO Blinds Actuator', 'Generic UP Device'],
@@ -57,7 +56,7 @@ const definitions: DefinitionWithExtend[] = [
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         fingerprint: [
