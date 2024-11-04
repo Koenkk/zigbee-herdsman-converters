@@ -10612,8 +10612,8 @@ const definitions: DefinitionWithExtend[] = [
             multiEndpoint: true,
             tuyaDatapoints: [
                 [112, 'occupancy', tuya.valueConverter.trueFalse1],
-                [106, 'motion_sensitivity', tuya.valueConverter.raw],
-                [111, 'occupancy_sensitivity', tuya.valueConverter.raw],
+                [106, 'motion_sensitivity', tuya.valueConverter.divideBy10FromOnly],
+                [111, 'occupancy_sensitivity', tuya.valueConverter.divideBy10FromOnly],
                 [107, 'max_range', tuya.valueConverter.divideBy100],
                 [109, 'distance', tuya.valueConverter.divideBy100],
                 [110, 'occupancy_timeout', tuya.valueConverter.raw],
