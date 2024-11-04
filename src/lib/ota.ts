@@ -562,11 +562,11 @@ async function getImageMeta(
                 i.manufacturerName.includes(extraMetas.manufacturerName!)) &&
             (!extraMetas.otaHeaderString || i.otaHeaderString === extraMetas.otaHeaderString) &&
             (i.hardwareVersionMin == undefined ||
-                device.hardwareVersion >= i.hardwareVersionMin ||
-                extraMetas.hardwareVersionMin >= i.hardwareVersionMin) &&
+                (device.hardwareVersion != undefined && device.hardwareVersion >= i.hardwareVersionMin) ||
+                (extraMetas.hardwareVersionMin != undefined && extraMetas.hardwareVersionMin >= i.hardwareVersionMin)) &&
             (i.hardwareVersionMax == undefined ||
-                device.hardwareVersion <= i.hardwareVersionMax ||
-                extraMetas.hardwareVersionMax <= i.hardwareVersionMax),
+                (device.hardwareVersion != undefined && device.hardwareVersion <= i.hardwareVersionMax) ||
+                (extraMetas.hardwareVersionMax != undefined && extraMetas.hardwareVersionMax <= i.hardwareVersionMax)),
     );
 }
 
@@ -608,7 +608,7 @@ async function isImageAvailable(
 
     /* istanbul ignore next */
     if (meta.releaseNotes) {
-        logger.info(() => `${deviceLogString} Firmware release notes: ${meta.releaseNotes.replace(/[\r\n]/g, '')}`, NS);
+        logger.info(() => `${deviceLogString} Firmware release notes: ${meta.releaseNotes!.replace(/[\r\n]/g, '')}`, NS);
     }
 
     // Negative number means the firmware is 'newer' than current one
