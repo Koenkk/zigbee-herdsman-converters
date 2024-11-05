@@ -350,7 +350,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart watering kit',
         extend: [
             battery({percentage: true, voltage: true, lowStatus: true, percentageReporting: true}),
-            onOff(),
+            onOff({powerOnBehavior: false}),
             deviceAddCustomCluster('3rWateringSpecialCluster', {
                 ID: 0xfff2,
                 manufacturerCode: 0x1407,
