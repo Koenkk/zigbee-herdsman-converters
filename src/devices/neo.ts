@@ -515,7 +515,7 @@ const definitions: DefinitionWithExtend[] = [
                 [19, 'dis_current', tuya.valueConverter.raw],
                 [12, 'presence_time', tuya.valueConverter.raw],
                 [13, 'motion_far_detection', tuya.valueConverter.raw],
-                [15, 'motion_sensitivity_value', tuya.valueConverter.raw],
+                [15, 'motion_sensitivity', tuya.valueConverter.raw],
                 [16, 'motionless_sensitivity', tuya.valueConverter.raw],
                 [101, 'work_mode', tuya.valueConverterBasic.lookup({manual: 0, auto: 1})],
                 [104, 'output_switch', tuya.valueConverter.onOff],
