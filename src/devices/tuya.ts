@@ -2634,11 +2634,11 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
+        fingerprint: tuya.fingerprint('TS130F', ['_TZ3210_dwytrmda', '_TZ3000_1dd0d5yi']),
         model: 'MS-108ZR',
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch module',
-        whiteLabel: [tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc'])],
+        whiteLabel: [tuya.whitelabel('Girier', 'TS130F_GIRIER', 'Smart curtain switch', ['_TZ3210_dwytrmda'])],
         ota: ota.zigbeeOTA,
         meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
