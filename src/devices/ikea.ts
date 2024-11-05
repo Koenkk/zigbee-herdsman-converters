@@ -15,7 +15,6 @@ import {
     legacy as ikeaLegacy,
     ikeaLight,
     ikeaMediaCommands,
-    ikeaOta,
     ikeaVoc,
     styrbarCommandOn,
     tradfriCommandsLevelCtrl,
@@ -39,7 +38,6 @@ import {
     linkQuality,
     occupancy,
     onOff,
-    ota,
     pm25,
     temperature,
     windowCovering,
@@ -569,41 +567,40 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E1603/E1702/E1708',
         vendor: 'IKEA',
         description: 'TRADFRI control outlet',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify()],
+        ota: true,
     },
     {
         zigbeeModel: ['ASKVADER on/off switch'],
         model: 'E1836',
         vendor: 'IKEA',
         description: 'ASKVADER on/off switch',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify()],
+        ota: true,
     },
     {
         zigbeeModel: ['KNYCKLAN receiver'],
         model: 'E1842',
         vendor: 'IKEA',
         description: 'KNYCKLAN electronic dishwasher shut-off unit',
-        extend: [
-            addCustomClusterManuSpecificIkeaUnknown(),
-            onOff(),
-            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
-            identify(),
-            ikeaOta(),
-        ],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}), identify()],
+        ota: true,
     },
     {
         zigbeeModel: ['TRETAKT Smart plug'],
         model: 'E2204',
         vendor: 'IKEA',
         description: 'TRETAKT smart plug',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify()],
+        ota: true,
     },
     {
         zigbeeModel: ['INSPELNING Smart plug'],
         model: 'E2206',
         vendor: 'IKEA',
         description: 'INSPELNING smart plug',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ota(), electricityMeter()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), electricityMeter()],
+        ota: true,
         configure: async (device) => {
             const endpoint = device.getEndpoint(1);
             // Enable reporting of powerDivisor, needs to change dynamically with the amount of power
@@ -626,8 +623,8 @@ const definitions: DefinitionWithExtend[] = [
             windowCovering({controls: ['lift']}),
             identify(),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['KADRILJ roller blind'],
@@ -640,8 +637,8 @@ const definitions: DefinitionWithExtend[] = [
             windowCovering({controls: ['lift']}),
             identify(),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['PRAKTLYSING cellular blind'],
@@ -654,8 +651,8 @@ const definitions: DefinitionWithExtend[] = [
             windowCovering({controls: ['lift']}),
             identify(),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['TREDANSEN block-out cellul blind'],
@@ -668,8 +665,8 @@ const definitions: DefinitionWithExtend[] = [
             windowCovering({controls: ['lift']}),
             identify(),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     // #endregion blinds
     // #region appliances
@@ -681,14 +678,16 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: 'IKEA', model: 'E2006', description: 'STARKVIND air purifier table', fingerprint: [{modelID: 'STARKVIND Air purifier table'}]},
         ],
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), addCustomClusterManuSpecificIkeaAirPurifier(), ikeaAirPurifier(), identify(), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), addCustomClusterManuSpecificIkeaAirPurifier(), ikeaAirPurifier(), identify()],
+        ota: true,
     },
     {
         zigbeeModel: ['TRADFRI signal repeater'],
         model: 'E1746',
         vendor: 'IKEA',
         description: 'TRADFRI signal repeater',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), identify(), linkQuality({reporting: true}), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), identify(), linkQuality({reporting: true})],
+        ota: true,
     },
     // #endregion appliances
     // #region remotes
@@ -705,8 +704,8 @@ const definitions: DefinitionWithExtend[] = [
                 legacyAction: true,
             }),
             battery({dontDividePercentage: true}),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['TRADFRI remote control'],
@@ -721,8 +720,8 @@ const definitions: DefinitionWithExtend[] = [
             tradfriCommandsLevelCtrl(),
             ikeaArrowClick(),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['Remote Control N2'],
@@ -738,8 +737,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop'], bind: false}),
             ikeaArrowClick({styrbar: true, bind: false}),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['TRADFRI on/off switch'],
@@ -760,8 +759,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsOnOff({commands: ['on', 'off'], legacyAction: true}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['KNYCKLAN Open/Close remote'],
@@ -775,8 +774,8 @@ const definitions: DefinitionWithExtend[] = [
             identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off']}),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['TRADFRI SHORTCUT Button'],
@@ -790,8 +789,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_stop']}),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['SYMFONISK Sound Controller'],
@@ -811,15 +810,16 @@ const definitions: DefinitionWithExtend[] = [
                 legacyAction: true,
             }),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['TRADFRI open/close remote'],
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        extend: [ikeaConfigureRemote(), identify({isSleepy: true}), commandsWindowCovering({legacyAction: true}), ikeaBattery(), ikeaOta()],
+        extend: [ikeaConfigureRemote(), identify({isSleepy: true}), commandsWindowCovering({legacyAction: true}), ikeaBattery()],
+        ota: true,
     },
     {
         zigbeeModel: ['SYMFONISK sound remote gen2'],
@@ -838,8 +838,8 @@ const definitions: DefinitionWithExtend[] = [
             ikeaMediaCommands(),
             ikeaDotsClick({endpointNames: ['1', '2'], dotsPrefix: true}),
             battery({voltage: true}),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['RODRET Dimmer'],
@@ -853,8 +853,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             battery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['SOMRIG shortcut button'],
@@ -868,8 +868,8 @@ const definitions: DefinitionWithExtend[] = [
             identify({isSleepy: true}),
             ikeaDotsClick({endpointNames: ['1', '2']}),
             battery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     // #endregion remotes
     // #region sensors
@@ -884,8 +884,8 @@ const definitions: DefinitionWithExtend[] = [
             tradfriRequestedBrightness(),
             identify({isSleepy: true}),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['VINDSTYRKA'],
@@ -893,7 +893,6 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'IKEA',
         description: 'VINDSTYRKA air quality and humidity sensor',
         extend: [
-            ota(),
             addCustomClusterManuSpecificIkeaUnknown(),
             addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
             deviceAddCustomCluster('pm25Measurement', {
@@ -910,13 +909,15 @@ const definitions: DefinitionWithExtend[] = [
             ikeaVoc(),
             identify(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['VALLHORN Wireless Motion Sensor'],
         model: 'E2134',
         vendor: 'IKEA',
         description: 'VALLHORN wireless motion sensor',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), occupancy(), illuminance(), identify({isSleepy: true}), battery(), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), occupancy(), illuminance(), identify({isSleepy: true}), battery()],
+        ota: true,
     },
     {
         zigbeeModel: ['PARASOLL Door/Window Sensor'],
@@ -935,8 +936,8 @@ const definitions: DefinitionWithExtend[] = [
             }),
             identify({isSleepy: true}),
             battery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['BADRING Water Leakage Sensor'],
@@ -954,8 +955,8 @@ const definitions: DefinitionWithExtend[] = [
             }),
             identify({isSleepy: true}),
             battery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     // #endregion sensors
 ];

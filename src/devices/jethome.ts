@@ -1,6 +1,5 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -51,7 +50,7 @@ const definitions: DefinitionWithExtend[] = [
         description: '3-ch battery discrete input module',
         fromZigbee: [fz.battery, jetHome.fz.multiStateAction],
         toZigbee: [],
-        ota: ota.jethome,
+        ota: true,
         exposes: [
             e.battery(),
             e.battery_voltage(),

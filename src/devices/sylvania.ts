@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import * as legacy from '../lib/legacy';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -41,7 +40,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(['up', 'up_hold', 'down', 'down_hold', 'up_release', 'down_release'])],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        ota: ota.ledvance,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);

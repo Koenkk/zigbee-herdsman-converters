@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {battery, deviceAddCustomCluster, humidity, iasZoneAlarm, light, onOff, temperature} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
 
@@ -38,7 +37,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RSS009Z',
         vendor: 'Third Reality',
         description: 'Smart switch Gen3',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
         exposes: [e.switch(), e.battery(), e.battery_voltage()],
@@ -100,7 +99,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Water sensor',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             deviceAddCustomCluster('r3Specialcluster', {
                 ID: 0xff01,
@@ -128,7 +127,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Wireless motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -155,7 +154,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -194,7 +193,7 @@ const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['3RSP019BZ'],
@@ -214,7 +213,7 @@ const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['3RSB015BZ'],
@@ -224,7 +223,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {battery: {dontDividePercentage: false}},
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
@@ -265,7 +264,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart button',
         fromZigbee: [fz.battery, fz.itcmdr_clicks],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.battery(), e.battery_low(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -295,7 +294,7 @@ const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['3RSM0147Z'],
@@ -318,7 +317,7 @@ const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['3RTHS0224Z'],
@@ -341,7 +340,7 @@ const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['3RWK0148Z'],
@@ -362,7 +361,7 @@ const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['3RSP02028BZ'],
@@ -371,7 +370,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee / BLE smart plug with power',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.switch(), e.power_on_behavior(), e.ac_frequency(), e.power(), e.power_factor(), e.energy(), e.current(), e.voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -414,7 +413,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee vibration sensor',
         fromZigbee: [fz.ias_vibration_alarm_1, fz.battery, fzLocal.thirdreality_acceleration],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.vibration(), e.battery_low(), e.battery(), e.battery_voltage(), e.x_axis(), e.y_axis(), e.z_axis()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -442,7 +441,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RSNL02043Z',
         vendor: 'Third Reality',
         description: 'Zigbee multi-function night light',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             light({color: true}),
             deviceAddCustomCluster('r3Specialcluster', {
@@ -469,7 +468,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RCB01057Z',
         vendor: 'Third Reality',
         description: 'Zigbee color lights',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [light({colorTemp: {range: [154, 500]}, color: {modes: ['xy', 'hs']}})],
     },
     {
@@ -479,7 +478,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee / BLE smart plug with power',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.switch(), e.power_on_behavior(), e.ac_frequency(), e.power(), e.power_factor(), e.energy(), e.current(), e.voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

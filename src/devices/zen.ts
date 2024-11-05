@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -33,7 +32,7 @@ const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.fan_mode,
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [
             e
                 .climate()

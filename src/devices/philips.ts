@@ -5,7 +5,6 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {deviceEndpoints, identify, quirkCheckinInterval} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import {philipsFz, philipsLight, philipsOnOff, philipsTwilightOnOff, philipsTz} from '../lib/philips';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -2320,7 +2319,7 @@ const definitions: DefinitionWithExtend[] = [
             return {ep1: 1, ep2: 2};
         },
         extend: [quirkCheckinInterval('1_HOUR')],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['RWL022'],
@@ -2367,7 +2366,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.write('genBasic', {0x0031: {value: 0x000b, type: 0x19}}, options);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['ROM001', 'RDM003'],
@@ -2386,7 +2385,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['manuSpecificPhilips', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['SML001'],
@@ -2428,7 +2427,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['SML002'],
@@ -2470,7 +2469,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['929003128401'],
@@ -2597,7 +2596,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
         // Temporary disable until OTA is available: https://github.com/Koenkk/zigbee2mqtt/issues/14923
-        // ota: ota.zigbeeOTA,
+        // ota: true,
     },
     {
         zigbeeModel: ['LOM001'],
@@ -3181,7 +3180,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.write('genBasic', {0x0031: {value: 0x000b, type: 0x19}}, options);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000004.....$/}],

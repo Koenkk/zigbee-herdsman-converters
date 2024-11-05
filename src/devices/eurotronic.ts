@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -66,7 +65,7 @@ const definitions: DefinitionWithExtend[] = [
                 .binary('mirror_display', ea.ALL, 'ON', 'OFF')
                 .withDescription('Mirror display of the thermostat. Useful when it is mounted in a way where the display is presented upside down.'),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS};

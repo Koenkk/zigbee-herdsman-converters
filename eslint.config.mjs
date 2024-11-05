@@ -27,7 +27,7 @@ export default tseslint.config(
         },
     },
     {
-        ignores: ['test/', 'index.*', 'converters/', 'devices/', 'lib/', 'scripts/', '**/*.mjs'],
+        ignores: ['test/', 'index.*', 'converters/', 'devices/', 'lib/', 'scripts/', '**/*.mjs', 'coverage/'],
     },
     eslintConfigPrettier,
 );

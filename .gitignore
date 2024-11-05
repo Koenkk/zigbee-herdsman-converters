@@ -15,3 +15,5 @@ tmp
 /devices/
 /lib/
 tsconfig.tsbuildinfo
+coverage/
+.jest-tmp/
