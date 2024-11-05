@@ -633,7 +633,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['LWA030'],
-        model: 'LWA030',
+        model: '9290023351B',
         vendor: 'Philips',
         description: 'Hue white A21 bulb E26 with Bluetooth (1600 Lumen)',
         extend: [philipsLight()],
