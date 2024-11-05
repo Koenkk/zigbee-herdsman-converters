@@ -21,7 +21,6 @@ import {
     temperature,
     windowCovering,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
@@ -1544,7 +1543,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS011F_2_gang_wall',
         vendor: 'Tuya',
         description: '2 gang wall outlet',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [tuya.modernExtend.tuyaOnOff({backlightModeLowMediumHigh: true, childLock: true, endpoints: ['l1', 'l2']})],
         whiteLabel: [
             tuya.whitelabel('ClickSmart+', 'CMA30036', '2 gang socket outlet', ['_TYZB01_hlla45kx']),
@@ -2670,7 +2669,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch module',
         whiteLabel: [tuya.whitelabel('Girier', 'TS130F_GIRIER', 'Smart curtain switch', ['_TZ3210_dwytrmda'])],
-        ota: ota.zigbeeOTA,
+        ota: true,
         meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
@@ -4315,7 +4314,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Emos', 'P5630S', 'Radiator valve with thermostat', ['_TZE200_rk1wojce']),
         ],
         meta: {tuyaThermostatPreset: legacy.thermostatPresets, tuyaThermostatSystemMode: legacy.thermostatSystemModes3},
-        ota: ota.zigbeeOTA,
+        ota: true,
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [legacy.fromZigbee.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [
@@ -4601,7 +4600,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Moes', 'TV01-ZB', 'Thermostat radiator valve', ['_TZE200_e9ba97vf']),
             tuya.whitelabel('AlecoAir', 'HA-08_THERMO', 'Thermostat radiator valve', ['_TZE200_wsbfwodu']),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
@@ -5440,7 +5439,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Elivco', 'LSPA9', 'Smart plug (with power monitoring)', ['_TZ3000_okaz9tjs']),
             tuya.whitelabel('PSMART', 'T440', 'Smart wallsocket (with power monitoring)', ['_TZ3000_y4ona9me']),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
@@ -5510,7 +5509,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Neo', model: 'PLUG-001SPB2'},
             tuya.whitelabel('Tuya', 'BSD29_1', 'Smart plug (with power monitoring by polling)', ['_TZ3000_okaz9tjs']),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true})],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -7191,7 +7190,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
         whiteLabel: [{vendor: 'MatSee Plus', model: 'ATMS1602Z'}],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -7231,7 +7230,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Tongou', 'TO-Q-SY1-JZT', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_qeuvnohg']),
             tuya.whitelabel('TOMZN', 'TOB9Z-63M', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_6l1pjfqe']),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -8713,7 +8712,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Lonsonho', 'QS-Zigbee-D02-TRIAC-L_1', '1 channel dimmer', ['_TZ3210_weaqkhab']),
             tuya.whitelabel('Lonsonho', 'QS-Zigbee-D02-TRIAC-LN_1', '1 channel dimmer', ['_TZ3210_ngqk6jia']),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.TS110E, fz.TS110E_light_type, tuya.fz.power_on_behavior_1, fz.on_off],
         toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         exposes: [
@@ -9032,7 +9031,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS011F_with_threshold',
         description: 'Din rail switch with power monitoring and threshold settings',
         vendor: 'Tuya',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
@@ -10015,7 +10014,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS011F_4',
         description: '2 gang plug',
         vendor: 'Tuya',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
@@ -12932,7 +12931,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [
             e.battery(),
             e.child_lock(),

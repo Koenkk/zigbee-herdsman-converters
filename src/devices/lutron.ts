@@ -1,6 +1,5 @@
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -29,7 +28,7 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
 ];
 

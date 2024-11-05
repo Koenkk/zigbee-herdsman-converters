@@ -3,7 +3,6 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {battery, iasZoneAlarm} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
@@ -230,7 +229,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HG08673',
         vendor: 'Lidl',
         description: 'Silvercrest smart plug with power monitoring (EU, FR)',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

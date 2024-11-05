@@ -71,11 +71,6 @@ export interface Fingerprint {
 export type WhiteLabel =
     | {vendor: string; model: string; description: string; fingerprint: Fingerprint[]}
     | {vendor: string; model: string; description?: string};
-export interface OtaUpdateAvailableResult {
-    available: boolean;
-    currentFileVersion: number;
-    otaFileVersion: number;
-}
 
 export interface MockProperty {
     property: string;
@@ -241,14 +236,14 @@ export type OnEvent = (
 ) => Promise<void>;
 
 export interface ModernExtend {
-    fromZigbee?: Fz.Converter[];
-    toZigbee?: Tz.Converter[];
+    fromZigbee?: Definition['fromZigbee'];
+    toZigbee?: Definition['toZigbee'];
     exposes?: (Expose | DefinitionExposesFunction)[];
-    configure?: Configure[];
-    meta?: DefinitionMeta;
-    ota?: DefinitionOta;
-    onEvent?: OnEvent;
-    endpoint?: (device: Zh.Device) => {[s: string]: number};
+    configure?: Definition['configure'][];
+    meta?: Definition['meta'];
+    ota?: Definition['ota'];
+    onEvent?: Definition['onEvent'];
+    endpoint?: Definition['endpoint'];
     isModernExtend: true;
 }
 
@@ -259,11 +254,6 @@ export interface OnEventData {
     type?: string;
     data?: KeyValueAny;
 }
-
-export type DefinitionOta = {
-    isUpdateAvailable: (device: Zh.Device, requestPayload: Ota.ImageInfo | undefined) => Promise<OtaUpdateAvailableResult>;
-    updateToLatest: (device: Zh.Device, onProgress: Ota.OnProgress) => Promise<number>;
-};
 
 export type DefinitionExposesFunction = (device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[];
 
@@ -279,7 +269,7 @@ type DefinitionBase = {
     options?: Option[];
     meta?: DefinitionMeta;
     onEvent?: OnEvent;
-    ota?: DefinitionOta;
+    ota?: true | Ota.ExtraMetas;
     generated?: boolean;
 } & ({zigbeeModel: string[]; fingerprint?: Fingerprint[]} | {zigbeeModel?: string[]; fingerprint: Fingerprint[]});
 
@@ -385,7 +375,20 @@ export namespace Tuya {
 }
 
 export namespace Ota {
-    export type OnProgress = (progress: number, remaining: number) => void;
+    export type OnProgress = (progress: number, remaining?: number) => void;
+
+    export interface Settings {
+        dataDir: string;
+        overrideIndexLocation?: string;
+        imageBlockResponseDelay?: number;
+        defaultMaximumDataSize?: number;
+    }
+
+    export interface UpdateAvailableResult {
+        available: boolean;
+        currentFileVersion: number;
+        otaFileVersion: number;
+    }
     export interface Version {
         imageType: number;
         manufacturerCode: number;
@@ -418,21 +421,33 @@ export namespace Ota {
         raw: Buffer;
     }
     export interface ImageInfo {
-        imageType: number;
-        fileVersion: number;
-        manufacturerCode: number;
+        imageType: ImageHeader['imageType'];
+        fileVersion: ImageHeader['fileVersion'];
+        manufacturerCode: ImageHeader['manufacturerCode'];
     }
     export interface ImageMeta {
-        fileVersion: number;
-        fileSize?: number;
+        fileVersion: ImageHeader['fileVersion'];
+        fileSize?: ImageHeader['totalImageSize'];
         url: string;
-        sha256?: string;
         force?: boolean;
         sha512?: string;
-        hardwareVersionMin?: number;
-        hardwareVersionMax?: number;
+        otaHeaderString?: ImageHeader['otaHeaderString'];
+        hardwareVersionMin?: ImageHeader['minimumHardwareVersion'];
+        hardwareVersionMax?: ImageHeader['maximumHardwareVersion'];
     }
-    export type GetImageMeta = (current: ImageInfo, device: Zh.Device) => Promise<ImageMeta>;
+    export interface ZigbeeOTAImageMeta extends ImageInfo, ImageMeta {
+        fileName: string;
+        modelId?: string;
+        manufacturerName?: string[];
+        minFileVersion?: ImageHeader['fileVersion'];
+        maxFileVersion?: ImageHeader['fileVersion'];
+        originalUrl?: string;
+        releaseNotes?: string;
+    }
+    export type ExtraMetas = Pick<ZigbeeOTAImageMeta, 'modelId' | 'otaHeaderString' | 'hardwareVersionMin' | 'hardwareVersionMax'> & {
+        manufacturerName?: string;
+        suppressElementImageParseFailure?: boolean;
+    };
 }
 export namespace Reporting {
     export interface Override {

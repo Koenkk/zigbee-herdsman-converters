@@ -23,7 +23,6 @@ import {
     ScaleFunction,
     setupConfigureForReading,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -663,7 +662,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CCT5010-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [light({configureReporting: true, levelConfig: {}})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
@@ -689,7 +688,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CCT5011-0001/CCT5011-0002/MEG5011-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [onOff({powerOnBehavior: false})],
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
     },
@@ -698,7 +697,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CCT5010-0003',
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer with neutral lead',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [light({configureReporting: true, levelConfig: {}})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
@@ -879,7 +878,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast'),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -897,7 +896,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '41E2PBSWMZ/356PB2MBTZ',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 2AX',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [onOff({powerOnBehavior: false}), indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -914,7 +913,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '41E10PBSWMZ-VW',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 10AX with ControlLink',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [onOff({powerOnBehavior: false}), indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -934,7 +933,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.fan],
         toZigbee: [tzLocal.fan_mode],
         exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [fanIndicatorMode(), fanIndicatorOrientation()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(7);
@@ -1680,7 +1679,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '3025CSGZ',
         vendor: 'Schneider Electric',
         description: 'Dual connected smart socket',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
     },
     {
@@ -1729,7 +1728,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Wiser smoke alarm',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_smoke_alarm_1],
         toZigbee: [],
-        ota: ota.zigbeeOTA, // local OTA updates are untested
+        ota: true, // local OTA updates are untested
         exposes: [
             e.smoke(),
             e.test(),

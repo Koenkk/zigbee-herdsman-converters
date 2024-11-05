@@ -12,7 +12,6 @@ import * as exposesLib from './lib/exposes';
 import {Enum as EnumClass} from './lib/exposes';
 import {generateDefinition} from './lib/generateDefinition';
 import * as logger from './lib/logger';
-import * as ota from './lib/ota';
 import {
     Configure,
     Definition,
@@ -27,7 +26,6 @@ import {
     OnEventMeta,
     OnEventType,
     Option,
-    OtaUpdateAvailableResult,
     Tz,
     Zh,
 } from './lib/types';
@@ -35,6 +33,7 @@ import * as utils from './lib/utils';
 
 const NS = 'zhc';
 
+export type {Ota} from './lib/types';
 export {
     Definition as Definition,
     OnEventType as OnEventType,
@@ -56,9 +55,8 @@ export {
     toZigbee as toZigbee,
     fromZigbee as fromZigbee,
     Tz as Tz,
-    OtaUpdateAvailableResult as OtaUpdateAvailableResult,
-    ota as ota,
 };
+export * as ota from './lib/ota';
 
 export const getConfigureKey = configureKey.getConfigureKey;
 
@@ -120,6 +118,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
         if (!Array.isArray(definition.extend)) {
             assert.fail(`'${definition.model}' has legacy extend which is not supported anymore`);
         }
+
         // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
         let {
             // eslint-disable-next-line prefer-const
@@ -145,6 +144,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             return !allExposes.find((e) => typeof e === 'function');
         };
         let allExposes: (Expose | DefinitionExposesFunction)[] = [];
+
         if (definitionExposes) {
             if (typeof definitionExposes === 'function') {
                 allExposes.push(definitionExposes);
@@ -152,6 +152,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
                 allExposes.push(...definitionExposes);
             }
         }
+
         toZigbee = [...(toZigbee ?? [])];
         fromZigbee = [...(fromZigbee ?? [])];
 
@@ -162,23 +163,41 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             if (!ext.isModernExtend) {
                 assert.fail(`'${definition.model}' has legacy extend in modern extend`);
             }
-            if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
-            if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
-            if (ext.exposes) allExposes.push(...ext.exposes);
-            if (ext.meta) meta = {...ext.meta, ...meta};
+
+            if (ext.toZigbee) {
+                toZigbee.push(...ext.toZigbee);
+            }
+
+            if (ext.fromZigbee) {
+                fromZigbee.push(...ext.fromZigbee);
+            }
+
+            if (ext.exposes) {
+                allExposes.push(...ext.exposes);
+            }
+
+            if (ext.meta) {
+                meta = Object.assign({}, ext.meta, meta);
+            }
+
             // Filter `undefined` configures, e.g. returned by setupConfigureForReporting.
-            if (ext.configure) configures.push(...ext.configure.filter((c) => c));
-            if (ext.onEvent) onEvents.push(ext.onEvent);
+            if (ext.configure) {
+                configures.push(...ext.configure.filter((c) => c != undefined));
+            }
+
+            if (ext.onEvent) {
+                onEvents.push(ext.onEvent);
+            }
+
             if (ext.ota) {
-                if (ota && ext.ota !== ota) {
-                    assert.fail(`'${definition.model}' has multiple 'ota', this is not allowed`);
-                }
                 ota = ext.ota;
             }
+
             if (ext.endpoint) {
                 if (endpoint) {
                     assert.fail(`'${definition.model}' has multiple 'endpoint', this is not allowed`);
                 }
+
                 endpoint = ext.endpoint;
             }
         }
@@ -186,6 +205,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
         // Filtering out action exposes to combine them one
         const actionExposes = allExposes.filter((e) => typeof e !== 'function' && e.name === 'action');
         allExposes = allExposes.filter((e) => e.name !== 'action');
+
         if (actionExposes.length > 0) {
             const actions: string[] = [];
             for (const expose of actionExposes) {
@@ -200,6 +220,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
         }
 
         let configure: Configure = null;
+
         if (configures.length !== 0) {
             configure = async (device, coordinatorEndpoint, configureDefinition) => {
                 for (const func of configures) {
@@ -207,7 +228,9 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
                 }
             };
         }
+
         let onEvent: OnEvent = null;
+
         if (onEvents.length !== 0) {
             onEvent = async (type, data, device, settings, state) => {
                 for (const func of onEvents) {
@@ -218,11 +241,13 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
         // In case there is a function in allExposes, return a function, otherwise just an array.
         let exposes: DefinitionExposes;
+
         if (allExposesIsExposeOnly(allExposes)) {
             exposes = allExposes;
         } else {
             exposes = (device: Zh.Device | undefined, options: KeyValue | undefined) => {
                 const result: Expose[] = [];
+
                 for (const item of allExposes) {
                     if (typeof item === 'function') {
                         result.push(...item(device, options));
@@ -230,6 +255,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
                         result.push(item);
                     }
                 }
+
                 return result;
             };
         }
@@ -334,7 +360,7 @@ export function addDefinition(definition: DefinitionWithExtend) {
 }
 
 for (const definition of allDefinitions) {
-    addDefinition(definition);
+    addDefinition(definition as DefinitionWithExtend);
 }
 
 export async function findByDevice(device: Zh.Device, generateForUnknown: boolean = false) {

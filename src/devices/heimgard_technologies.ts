@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {battery} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -24,7 +23,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tz.identify, tz.lock, tz.lock_sound_volume, tz.lock_auto_relock_time, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 39},
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -50,7 +49,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.lock, fz.battery, fz.lock_pin_code_response, fz.lock_user_status_response],
         toZigbee: [tz.lock, tz.lock_sound_volume, tz.identify, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 39},
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -67,7 +66,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Dimmer',
         fromZigbee: [fz.on_off, fz.brightness, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.light_brightness_move, tz.light_onoff_brightness],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.light_brightness(), e.power(), e.current(), e.voltage(), e.energy()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -119,7 +118,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smoke detector',
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -134,7 +133,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);

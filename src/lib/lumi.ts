@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import * as exposes from './exposes';
 import {logger} from './logger';
 import * as modernExtend from './modernExtend';
-import * as ota from './ota';
 import * as globalStore from './store';
 import {
     BatteryLinearVoltage,
@@ -1844,7 +1843,7 @@ export const lumiModernExtend = {
             endpointID: 1,
             outputClusters: ['genOta'],
         });
-        result.ota = ota.zigbeeOTA;
+        result.ota = true;
         return result;
     },
     lumiPower: (args?: Partial<modernExtend.NumericArgs>) =>

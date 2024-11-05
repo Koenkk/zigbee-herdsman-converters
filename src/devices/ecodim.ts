@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {deviceEndpoints, light} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -75,7 +74,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'Eco-Dim.07/Eco-Dim.10',
         vendor: 'EcoDim',
         description: 'Zigbee & Z-wave dimmer',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [light({configureReporting: true})],
     },
     {

@@ -19,7 +19,6 @@ import {
     light,
     numeric,
     onOff,
-    ota,
     quirkCheckinInterval,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
@@ -1466,8 +1465,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
-            ota(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacUserInterfaceCfg']);
@@ -1554,8 +1553,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
-            ota(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacUserInterfaceCfg']);
@@ -1617,8 +1616,8 @@ const definitions: DefinitionWithExtend[] = [
             boschExtend.childLock(),
             boschExtend.displayOntime(),
             boschExtend.displayBrightness(),
-            ota(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacUserInterfaceCfg']);
@@ -1763,7 +1762,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'BSP-FZ2',
         vendor: 'Bosch',
         description: 'Plug compact EU',
-        extend: [onOff(), electricityMeter({voltage: false, current: false}), ota()],
+        extend: [onOff(), electricityMeter({voltage: false, current: false})],
+        ota: true,
         whiteLabel: [
             {vendor: 'Bosch', model: 'BSP-EZ2', description: 'Plug compact FR', fingerprint: [{modelID: 'RBSH-SP-ZB-FR'}]},
             {vendor: 'Bosch', model: 'BSP-GZ2', description: 'Plug compact UK', fingerprint: [{modelID: 'RBSH-SP-ZB-GB'}]},
