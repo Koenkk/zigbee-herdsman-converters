@@ -475,7 +475,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMax(600)
                 .withValueStep(1)
                 .withLabel('Current distance')
-                .withDescription('Current Distance of Detected Motion'),
+                .withDescription('Current distance of detected motion'),
             e
                 .numeric('presence_time', ea.STATE_SET)
                 .withUnit('s')
