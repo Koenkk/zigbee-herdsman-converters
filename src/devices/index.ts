@@ -10,6 +10,7 @@ import akuvox from './akuvox';
 import alchemy from './alchemy';
 import aldi from './aldi';
 import alecto from './alecto';
+import amina from './amina';
 import anchor from './anchor';
 import atlantic from './atlantic';
 import atsmart from './atsmart';
@@ -38,6 +39,7 @@ import candeo from './candeo';
 import casaia from './casaia';
 import cel from './cel';
 import centralite from './centralite';
+import chacon from './chacon';
 import cleode from './cleode';
 import cleverio from './cleverio';
 import climax from './climax';
@@ -320,6 +322,7 @@ export default [
     ...alchemy,
     ...aldi,
     ...alecto,
+    ...amina,
     ...anchor,
     ...atlantic,
     ...atsmart,
@@ -348,6 +351,7 @@ export default [
     ...casaia,
     ...cel,
     ...centralite,
+    ...chacon,
     ...cleode,
     ...cleverio,
     ...climax,

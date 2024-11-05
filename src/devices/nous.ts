@@ -26,6 +26,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_qrztc3ev'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_snloy4rw'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_eanjj2pa'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ydrdfkim'},
         ],
         model: 'SZ-T04',
         vendor: 'Nous',

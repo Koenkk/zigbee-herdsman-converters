@@ -290,15 +290,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HG06335/HG07310',
         vendor: 'Lidl',
         description: 'Silvercrest smart motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        extend: [iasZoneAlarm({zoneType: 'occupancy', zoneStatusReporting: true, zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), battery()],
     },
     {
         fingerprint: [

@@ -741,11 +741,20 @@ const definitions: DefinitionWithExtend[] = [
                 modelID: 'SNZB-03',
                 endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]}],
             },
+            {
+                type: 'EndDevice',
+                manufacturerName: 'eWeLink',
+                modelID: 'SNZB-03',
+                endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1, 1280, 32], outputClusters: [25]}],
+            },
         ],
         zigbeeModel: ['MS01', 'MSO1'],
         model: 'SNZB-03',
         vendor: 'SONOFF',
-        whiteLabel: [{vendor: 'eWeLink', model: 'RHK09'}],
+        whiteLabel: [
+            {vendor: 'eWeLink', model: 'RHK09'},
+            {vendor: 'eWeLink', model: 'SQ510A'},
+        ],
         description: 'Motion sensor',
         extend: [ewelinkBattery(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
@@ -916,7 +925,7 @@ const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withSetpoint('occupied_heating_setpoint', 4, 35, 0.5)
                 .withLocalTemperature()
-                .withLocalTemperatureCalibration(-7.0, 7.0, 0.2)
+                .withLocalTemperatureCalibration(-12.8, 12.7, 0.2)
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.battery(),

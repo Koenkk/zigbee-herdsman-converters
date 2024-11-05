@@ -268,7 +268,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'SMART+ Motion Sensor',
         fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: {min: 1900, max: 3000}}},
+        meta: {battery: {voltageToPercentage: {min: 2100, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);

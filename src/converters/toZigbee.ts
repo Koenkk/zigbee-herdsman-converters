@@ -1047,7 +1047,7 @@ const converters2 = {
         },
     } satisfies Tz.Converter,
     light_onoff_brightness: {
-        key: ['state', 'brightness', 'brightness_percent', 'on_time'],
+        key: ['state', 'brightness', 'brightness_percent', 'on_time', 'off_wait_time'],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             const {message} = meta;

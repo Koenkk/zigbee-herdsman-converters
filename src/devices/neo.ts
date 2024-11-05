@@ -1,6 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {battery, humidity, temperature} from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -448,6 +449,13 @@ const definitions: DefinitionWithExtend[] = [
                 [15, 'battery', tuya.valueConverter.raw],
             ],
         },
+    },
+    {
+        fingerprint: [{modelID: 'SNZB-02', manufacturerName: '_TZ3000_utwgoauk'}],
+        model: 'NAS-TH07B2',
+        vendor: 'NEO',
+        description: 'Temperature & humidity sensor',
+        extend: [temperature(), humidity(), battery()],
     },
 ];
 
