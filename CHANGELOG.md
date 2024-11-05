@@ -1,5 +1,19 @@
 # Changelog
 
+## [20.41.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.40.0...v20.41.0) (2024-11-05)
+
+
+### Features
+
+* **add:** 9290023351B ([#8268](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8268)) ([979ad07](https://github.com/Koenkk/zigbee-herdsman-converters/commit/979ad07153cfaf07f0e84dd4b0ebda42664ca131))
+* **add:** TS130F_GIRIER https://github.com/Koenkk/zigbee2mqtt/issues/22321 ([9e3ada2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e3ada2896612ad3724260577c5d244c17330aa3))
+
+
+### Bug Fixes
+
+* Disable unsupported power on behaviour for Third Reality 3RWK0148Z ([#8275](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8275)) ([a77be07](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a77be07bcd1e8db66266f0c9f283dbcca7abd81a))
+* Fix battery % for Legrand 067646 ([#8278](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8278)) ([e6a3f39](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e6a3f399c0c1a6be491104ac014d8a984c356cea))
+
 ## [20.40.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.39.2...v20.40.0) (2024-11-04)
 
 
