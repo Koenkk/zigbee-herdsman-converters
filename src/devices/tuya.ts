@@ -7184,7 +7184,7 @@ const definitions: DefinitionWithExtend[] = [
             e.voltage(),
             e.energy(),
             e.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage'),
-            e.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on']).withDescription('Relay LED indicator mode'),
+            e.enum('indicator_mode', ea.STATE_SET, ['off', 'on/off', 'off/on']).withDescription('Relay LED indicator mode'),
         ],
         options: [exposes.options.measurement_poll_interval()],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
