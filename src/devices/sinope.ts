@@ -1674,7 +1674,6 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genGroups', 'genOnOff', 'ssIasZone', 'genLevelCtrl', 'genPowerCfg', 'seMetering', 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.batteryPercentageRemaining(endpoint);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint); // valve position
             try {
