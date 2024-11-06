@@ -466,7 +466,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.enum('presence_state', ea.STATE, ['none', 'presence']).withDescription('Presence State'),
+            e.presence(),
             e.enum('human_motion_state', ea.STATE, ['none', 'small', 'large']).withDescription('Human Motion State'),
             e
                 .numeric('dis_current', ea.STATE)
