@@ -1,5 +1,13 @@
 # Changelog
 
+## [20.42.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.41.0...v20.42.0) (2024-11-06)
+
+
+### Features
+
+* Add running state to Saswell TRV ([#8280](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8280)) ([ef0cf9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ef0cf9e6d131f6a614624dabe7937dde7df59f96))
+* **add:** NAS-PS10B2 ([#8242](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8242)) ([ad4d87d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ad4d87dab7bd60010a28152d8ee26d32ef0c5094))
+
 ## [20.41.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.40.0...v20.41.0) (2024-11-05)
 
 
