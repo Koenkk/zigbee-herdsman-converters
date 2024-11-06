@@ -521,7 +521,7 @@ const definitions: DefinitionWithExtend[] = [
                 [104, 'output_switch', tuya.valueConverter.onOff],
                 [103, 'output_time', tuya.valueConverter.raw],
                 [105, 'led_switch', tuya.valueConverter.onOff],
-                [102, 'lux_value', tuya.valueConverterBasic.lookup({'10 lux': 0, '20 lux': 1, '50 lux': 2, '24h': 3})],
+                [102, 'lux_value', tuya.valueConverterBasic.lookup({'10_lux': 0, '20_lux': 1, '50_lux': 2, '24h': 3})],
             ],
         },
     },
