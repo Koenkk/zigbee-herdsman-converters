@@ -10574,7 +10574,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.enum('state', ea.STATE, ['none', 'presence', 'move']).withDescription('Presence state'),
-            e.occupancy(),
+            e.presence(),
             e.numeric('distance', ea.STATE).withUnit('m').withDescription('Target distance'),
             e.illuminance_lux(),
             e
@@ -10585,12 +10585,12 @@ const definitions: DefinitionWithExtend[] = [
                 .withCategory('config')
                 .withDescription('Motion sensitivity'),
             e
-                .numeric('occupancy_sensitivity', ea.STATE_SET)
+                .numeric('presence_sensitivity', ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(10)
                 .withValueStep(1)
                 .withCategory('config')
-                .withDescription('Occupancy sensitivity'),
+                .withDescription('Presence sensitivity'),
             e
                 .numeric('max_range', ea.STATE_SET)
                 .withValueMin(1.5)
@@ -10600,22 +10600,22 @@ const definitions: DefinitionWithExtend[] = [
                 .withCategory('config')
                 .withDescription('Maximum range'),
             e
-                .numeric('occupancy_timeout', ea.STATE_SET)
+                .numeric('presence_timeout', ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(1500)
                 .withValueStep(1)
                 .withUnit('s')
-                .withDescription('Occupancy timeout'),
+                .withDescription('Presence timeout'),
         ],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [112, 'occupancy', tuya.valueConverter.trueFalse1],
-                [106, 'motion_sensitivity', tuya.valueConverter.raw],
-                [111, 'occupancy_sensitivity', tuya.valueConverter.raw],
+                [112, 'presence', tuya.valueConverter.trueFalse1],
+                [106, 'motion_sensitivity', tuya.valueConverter.divideBy10FromOnly],
+                [111, 'presence_sensitivity', tuya.valueConverter.divideBy10FromOnly],
                 [107, 'max_range', tuya.valueConverter.divideBy100],
                 [109, 'distance', tuya.valueConverter.divideBy100],
-                [110, 'occupancy_timeout', tuya.valueConverter.raw],
+                [110, 'presence_timeout', tuya.valueConverter.raw],
                 [104, 'illuminance_lux', tuya.valueConverter.raw],
                 [102, 'illuminance_treshold_max', tuya.valueConverter.raw],
                 [103, 'illuminance_treshold_min', tuya.valueConverter.raw],
