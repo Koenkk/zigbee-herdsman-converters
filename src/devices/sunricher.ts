@@ -211,6 +211,13 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['HK-SL-DIM-CLN'],
+        model: 'SR-ZG9101SAC-HP-CLN',
+        vendor: 'Sunricher',
+        description: 'Zigbee micro smart dimmer',
+        extend: [light({configureReporting: true}), sunricherExternalSwitchType(), sunricherMinimumPWM()],
+    },
+    {
         zigbeeModel: ['HK-SENSOR-CT-MINI'],
         model: 'SR-ZG9011A-DS',
         vendor: 'Sunricher',
@@ -483,7 +490,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [onOff({powerOnBehavior: false}), sunricherExternalSwitchType()],
     },
     {
         zigbeeModel: ['Micro Smart Dimmer', 'SM311', 'HK-SL-RDIM-A', 'HK-SL-DIM-EU-A'],
