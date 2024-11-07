@@ -205,6 +205,14 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint11.read('seMetering', ['currentSummDelivered']);
         },
     },
+
+    {
+        fingerprint: [{modelID: 'C-RFZB-SM1'}],
+        model: 'C-RFZB-SM1',
+        vendor: 'Candeo',
+        description: 'Zigbee & RF Switch Module',
+        extend: [onOff({powerOnBehavior: true})],
+    },
 ];
 
 export default definitions;
