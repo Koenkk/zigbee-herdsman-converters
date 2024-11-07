@@ -127,7 +127,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: 'Smart Siren', manufacturerName: 'AduroSmart Eria'}],
         model: '81868',
         vendor: 'AduroSmart',
-        description: 'AduroSmart ERIA Siren',
+        description: 'Siren',
         fromZigbee: [fz.battery, fz.ias_wd, fz.ias_enroll, fz.ias_siren],
         toZigbee: [tz.warning_simple, tz.ias_max_duration, tz.warning],
         configure: async (device, coordinatorEndpoint) => {
