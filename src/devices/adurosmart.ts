@@ -142,7 +142,7 @@ const definitions: DefinitionWithExtend[] = [
             e.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
             e.binary('alarm', ea.SET, 'ON', 'OFF').withDescription('Manual start of siren'),
         ],
-   },
+    },
 ];
 
 export default definitions;
