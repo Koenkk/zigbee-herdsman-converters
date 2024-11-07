@@ -125,7 +125,6 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: 'Smart Siren', manufacturerName: 'AduroSmart Eria'}],
-        zigbeeModel: ['Smart Siren'],
         model: '81868',
         vendor: 'AduroSmart',
         description: 'AduroSmart ERIA Siren',
