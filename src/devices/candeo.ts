@@ -210,11 +210,9 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: 'C-RFZB-SM1'}],
         model: 'C-RFZB-SM1',
         vendor: 'Candeo',
-        description: 'Candeo C-RFZB-SM1 Zigbee & RF Switch Module',
-        extend: [ onOff( {'powerOnBehavior': true} ) ],
-        meta: {},
+        description: 'Zigbee & RF Switch Module',
+        extend: [onOff({powerOnBehavior: true})],
     },
-    
 ];
 
 export default definitions;
