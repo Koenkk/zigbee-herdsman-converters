@@ -1,5 +1,19 @@
 # Changelog
 
+## [20.43.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.42.0...v20.43.0) (2024-11-07)
+
+
+### Features
+
+* **add:** 81868 ([#8286](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8286)) ([0eae0c9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0eae0c9115e12fc14e374ba54b625a2f8789d583))
+* **add:** C-RFZB-SM1 ([#8285](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8285)) ([880047a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/880047a5556e729de3f9245b332914ea79013134))
+* **add:** SR-ZG9101SAC-HP-CLN ([#8282](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8282)) ([7b4b5fe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b4b5fe7aac910f9be8c784e2ba4672eb6f64351))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_en3wvcbx` as Tuya TS0601_cover_1 ([#8284](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8284)) ([3a26152](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a26152a0f011ff04e5ace4e941817d38ad12463))
+
 ## [20.42.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.41.0...v20.42.0) (2024-11-06)
 
 
