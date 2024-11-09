@@ -1923,26 +1923,6 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    scenes_recall_click: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (isLegacyEnabled(options)) {
-                return {click: msg.data.sceneid};
-            }
-        },
-    } satisfies Fz.Converter,
-    AV2010_34_click: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (isLegacyEnabled(options)) {
-                return {click: msg.data.groupid};
-            }
-        },
-    } satisfies Fz.Converter,
     genOnOff_cmdOn: {
         cluster: 'genOnOff',
         type: 'commandOn',

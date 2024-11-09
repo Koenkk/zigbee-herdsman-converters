@@ -47,7 +47,6 @@ const definitions: DefinitionWithExtend[] = [
         meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [
             fz.command_recall,
-            legacy.fz.scenes_recall_click,
             fz.command_on,
             legacy.fz.genOnOff_cmdOn,
             fz.command_off,
@@ -84,7 +83,6 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee 3.0 Keypad Pulse 8S',
         fromZigbee: [
             fz.command_recall,
-            legacy.fz.scenes_recall_click,
             fz.command_on,
             legacy.fz.genOnOff_cmdOn,
             fz.command_off,
