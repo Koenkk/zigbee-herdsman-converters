@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {actionEnumLookup, battery, deviceEndpoints, onOff} from '../lib/modernExtend';
+import {actionEnumLookup, battery, deviceEndpoints, illuminance, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
@@ -611,6 +611,13 @@ const definitions: DefinitionWithExtend[] = [
             }),
             tuya.modernExtend.tuyaLedIndicator(),
         ],
+    },
+    {
+        zigbeeModel: ['TS0222'],
+        model: 'ZSS-QT-LS-C',
+        vendor: '_TZ3000_9kbbfeho',
+        description: 'Moes Smart Light Sensor',
+        extend: [battery(), illuminance()],
     },
 ];
 
