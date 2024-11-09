@@ -450,13 +450,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'IM6001-BTP01',
         vendor: 'SmartThings',
         description: 'Button',
-        fromZigbee: [
-            fz.command_status_change_notification_action,
-            legacy.fz.st_button_state,
-            fz.battery,
-            fz.temperature,
-            fz.ignore_iaszone_attreport,
-        ],
+        fromZigbee: [fz.command_status_change_notification_action, fz.battery, fz.temperature, fz.ignore_iaszone_attreport],
         exposes: [e.action(['off', 'single', 'double', 'hold']), e.battery(), e.temperature()],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {

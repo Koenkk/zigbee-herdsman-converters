@@ -1,6 +1,5 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
@@ -30,7 +29,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '2AJZ4KPKEY',
         vendor: 'Konke',
         description: 'Multi-function button',
-        fromZigbee: [fz.konke_action, fz.battery, legacy.fz.konke_click],
+        fromZigbee: [fz.konke_action, fz.battery],
         toZigbee: [],
         exposes: [e.battery_low(), e.battery(), e.action(['single', 'double', 'hold'])],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},

@@ -374,7 +374,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
-        fromZigbee: [fz.command_status_change_notification_action, legacy.fz.st_button_state, fz.battery],
+        fromZigbee: [fz.command_status_change_notification_action, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['off', 'single', 'double', 'hold'])],
         configure: async (device, coordinatorEndpoint) => {

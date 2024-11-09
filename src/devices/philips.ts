@@ -2373,9 +2373,9 @@ const definitions: DefinitionWithExtend[] = [
         model: '8718699693985',
         vendor: 'Philips',
         description: 'Hue smart button',
-        fromZigbee: [fz.command_on, fz.command_off_with_effect, legacy.fz.SmartButton_skip, fz.hue_smart_button_event, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.command_step, fz.hue_smart_button_event, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['on', 'off', 'skip_backward', 'skip_forward', 'press', 'hold', 'release'])],
+        exposes: [e.battery(), e.action(['on', 'off', 'press', 'hold', 'release'])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);

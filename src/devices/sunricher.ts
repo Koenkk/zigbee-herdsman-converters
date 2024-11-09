@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {
     battery,
@@ -420,19 +419,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG9001K12-DIM-Z4',
         vendor: 'Sunricher',
         description: '4 zone remote and dimmer',
-        fromZigbee: [
-            fz.battery,
-            fz.command_move,
-            legacy.fz.ZGRC013_brightness_onoff,
-            legacy.fz.ZGRC013_brightness,
-            fz.command_stop,
-            legacy.fz.ZGRC013_brightness_stop,
-            fz.command_on,
-            legacy.fz.ZGRC013_cmdOn,
-            fz.command_off,
-            legacy.fz.ZGRC013_cmdOff,
-            fz.command_recall,
-        ],
+        fromZigbee: [fz.battery, fz.command_move, fz.command_stop, fz.command_on, fz.command_off, fz.command_recall],
         exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'on', 'off', 'recall_*'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'RGB Genie', model: 'ZGRC-KEY-013'}],

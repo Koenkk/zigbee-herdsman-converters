@@ -42,7 +42,6 @@ const definitions: DefinitionWithExtend[] = [
             legacy.fz.CTR_U_brightness_updown_hold,
             legacy.fz.CTR_U_brightness_updown_release,
             fz.command_recall,
-            legacy.fz.CTR_U_scene,
         ],
         toZigbee: [],
     },
