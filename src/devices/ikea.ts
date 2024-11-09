@@ -12,7 +12,6 @@ import {
     ikeaConfigureRemote,
     ikeaConfigureStyrbar,
     ikeaDotsClick,
-    legacy as ikeaLegacy,
     ikeaLight,
     ikeaMediaCommands,
     ikeaVoc,
@@ -745,12 +744,6 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E1743',
         vendor: 'IKEA',
         description: 'TRADFRI on/off switch',
-        fromZigbee: [
-            // DEPRECATED
-            ikeaLegacy.fromZigbee.E1743_brightness_up,
-            ikeaLegacy.fromZigbee.E1743_brightness_down,
-            ikeaLegacy.fromZigbee.E1743_brightness_stop,
-        ],
         meta: {disableActionGroup: true},
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
@@ -797,11 +790,6 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E1744',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 1',
-        fromZigbee: [
-            // DEPRECATED
-            ikeaLegacy.fromZigbee.E1744_play_pause,
-            ikeaLegacy.fromZigbee.E1744_skip,
-        ],
         extend: [
             identify({isSleepy: true}),
             commandsOnOff({commands: ['toggle']}),
@@ -826,10 +814,6 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E2123',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 2',
-        fromZigbee: [
-            // DEPRECATED
-            ikeaLegacy.fromZigbee.E1744_play_pause,
-        ],
         extend: [
             bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
             deviceEndpoints({endpoints: {'1': 2, '2': 3}}),
