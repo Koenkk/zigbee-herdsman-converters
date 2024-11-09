@@ -9,7 +9,6 @@ import {
     batteryVoltageToPercentage,
     getKey,
     hasAlreadyProcessedMessage,
-    isLegacyEnabled,
     mapNumberRange,
     numberWithinRange,
     postfixWithEndpointName,
@@ -4079,14 +4078,7 @@ const converters1 = {
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const action = msg.data['onOff'] === 1 ? 'release' : 'hold';
-            const payload: KeyValueAny = {action: postfixWithEndpointName(action, msg, model, meta)};
-
-            if (isLegacyEnabled(options)) {
-                const key = `button_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
-                payload[key] = action;
-            }
-
-            return payload;
+            return {action: postfixWithEndpointName(action, msg, model, meta)};
         },
     } satisfies Fz.Converter,
     hue_motion_sensitivity: {
@@ -4179,14 +4171,6 @@ const converters1 = {
                 }
             }
 
-            if (!isLegacyEnabled(options)) {
-                delete payload.click;
-                delete payload.duration;
-                delete payload.rate;
-                delete payload.brightness;
-                delete payload.transition;
-            }
-
             return payload;
         },
     } satisfies Fz.Converter,
@@ -4261,15 +4245,6 @@ const converters1 = {
                     globalStore.putValue(msg.endpoint, 'last_seq', msg.meta.zclTransactionSequenceNumber);
                     globalStore.putValue(msg.endpoint, 'last_clk', clk);
                 }
-            }
-
-            if (!isLegacyEnabled(options)) {
-                delete payload.click;
-                delete payload.rate;
-                delete payload.duration;
-                delete payload.color_temp;
-                delete payload.transition;
-                delete payload.brightness;
             }
 
             return payload;
