@@ -1157,68 +1157,6 @@ const postfixWithEndpointName = (name: string, msg: KeyValueAny, definition: Def
     }
 };
 
-const addActionGroup = (payload: any, msg: any, definition: any) => {
-    const disableActionGroup = definition.meta && definition.meta.disableActionGroup;
-    if (!disableActionGroup && msg.groupID) {
-        payload.action_group = msg.groupID;
-    }
-};
-
-const ictcg1 = (model: any, msg: any, publish: any, options: any, action: any) => {
-    const deviceID = msg.device.ieeeAddr;
-    const payload: KeyValueAny = {};
-
-    if (!fromZigbeeStore[deviceID]) {
-        fromZigbeeStore[deviceID] = {since: false, direction: false, value: 255, publish: publish};
-    }
-
-    const s = fromZigbeeStore[deviceID];
-    // if rate == 70 so we rotate slowly
-    const rate = msg.data.rate == 70 ? 0.3 : 1;
-
-    if (action === 'move') {
-        s.since = Date.now();
-        const direction = msg.data.movemode === 1 ? 'left' : 'right';
-        s.direction = direction;
-        payload.action = `rotate_${direction}`;
-    } else if (action === 'level') {
-        s.value = msg.data.level;
-        const direction = s.value === 0 ? 'left' : 'right';
-        payload.action = `rotate_${direction}_quick`;
-        payload.brightness = s.value;
-    } else if (action === 'stop') {
-        if (s.direction) {
-            const duration = Date.now() - s.since;
-            const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
-            const newValue = s.value + delta;
-            if (newValue >= 0 && newValue <= 255) {
-                s.value = newValue;
-            }
-        }
-        payload.action = 'rotate_stop';
-        payload.brightness = s.value;
-        s.direction = false;
-    }
-    if (s.timerId) {
-        clearInterval(s.timerId);
-        s.timerId = false;
-    }
-    if (action === 'move') {
-        s.timerId = setInterval(() => {
-            const duration = Date.now() - s.since;
-            const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
-            const newValue = s.value + delta;
-            if (newValue >= 0 && newValue <= 255) {
-                s.value = newValue;
-            }
-            payload.brightness = s.value;
-            s.since = Date.now();
-            s.publish(payload);
-        }, 200);
-    }
-    return payload.brightness;
-};
-
 const SAFETY_MIN_SECS = 10;
 const CAPACITY = 'capacity';
 const DURATION = 'duration';
@@ -1847,110 +1785,6 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    tint404011_brightness_updown_click: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (isLegacyEnabled(options)) {
-                const direction = msg.data.stepmode === 1 ? 'down' : 'up';
-                const payload = {
-                    action: `brightness_${direction}_click`,
-                    step_size: msg.data.stepsize,
-                    transition_time: msg.data.transtime,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            } else {
-                return fromZigbeeConverters.command_step.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    tint404011_brightness_updown_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                const direction = msg.data.movemode === 1 ? 'down' : 'up';
-
-                // Save last direction for release event
-                if (!fromZigbeeStore[deviceID]) {
-                    fromZigbeeStore[deviceID] = {};
-                }
-                fromZigbeeStore[deviceID].movemode = direction;
-
-                const payload = {
-                    action: `brightness_${direction}_hold`,
-                    rate: msg.data.rate,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            } else {
-                return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    tint404011_brightness_updown_release: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                if (!fromZigbeeStore[deviceID]) {
-                    return null;
-                }
-
-                const direction = fromZigbeeStore[deviceID].movemode;
-                const payload = {action: `brightness_${direction}_release`};
-                addActionGroup(payload, msg, model);
-                return payload;
-            } else {
-                return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    tint404011_move_to_color_temp: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToColorTemp',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (isLegacyEnabled(options)) {
-                const payload = {
-                    action: `color_temp`,
-                    action_color_temperature: msg.data.colortemp,
-                    transition_time: msg.data.transtime,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            } else {
-                return fromZigbeeConverters.tint404011_move_to_color_temp.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    tint404011_move_to_color: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToColor',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (isLegacyEnabled(options)) {
-                const payload = {
-                    action_color: {
-                        x: utils.precisionRound(msg.data.colorx / 65535, 3),
-                        y: utils.precisionRound(msg.data.colory / 65535, 3),
-                    },
-                    action: 'color_wheel',
-                    transition_time: msg.data.transtime,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            } else {
-                return fromZigbeeConverters.command_move_to_color.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
     bitron_thermostat_att_report: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -2132,23 +1966,6 @@ const fromZigbee1 = {
             }
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
                 result.pi_heating_demand = utils.precisionRound(msg.data['pIHeatingDemand'], 2);
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    hvac_user_interface: {
-        cluster: 'hvacUserInterfaceCfg',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!isLegacyEnabled(options)) {
-                return fromZigbeeConverters.hvac_user_interface.convert(model, msg, publish, options, meta);
-            }
-
-            const result: KeyValueAny = {};
-            const lockoutMode = msg.data['keypadLockout'];
-            if (typeof lockoutMode == 'number') {
-                result.keypad_lockout = lockoutMode;
             }
             return result;
         },
@@ -7484,5 +7301,4 @@ export {
     convertTimeTo2ByteHexArray,
     getMetaValue,
     tuyaGetDataValue,
-    ictcg1,
 };

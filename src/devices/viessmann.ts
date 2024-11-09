@@ -34,7 +34,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZK03840',
         vendor: 'Viessmann',
         description: 'ViCare radiator thermostat valve',
-        fromZigbee: [legacy.fz.viessmann_thermostat_att_report, fz.battery, legacy.fz.hvac_user_interface],
+        fromZigbee: [legacy.fz.viessmann_thermostat_att_report, fz.battery, fz.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,

@@ -77,7 +77,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ST218',
         vendor: 'Stelpro',
         description: 'Ki convector, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface],
+        fromZigbee: [legacy.fz.stelpro_thermostat, fz.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -126,7 +126,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'STZB402',
         vendor: 'Stelpro',
         description: 'Ki, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
+        fromZigbee: [legacy.fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -175,7 +175,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SMT402',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
+        fromZigbee: [legacy.fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -279,7 +279,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SMT402AD',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
+        fromZigbee: [legacy.fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
