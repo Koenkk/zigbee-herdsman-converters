@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {ledvanceFz, ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
-import * as legacy from '../lib/legacy';
 import {deviceEndpoints} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -290,16 +289,15 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
         fromZigbee: [
-            legacy.fz.osram_lightify_switch_cmdOn,
-            legacy.fz.osram_lightify_switch_cmdMoveWithOnOff,
-            legacy.fz.osram_lightify_switch_AC0251100NJ_cmdStop,
-            legacy.fz.osram_lightify_switch_cmdMoveToColorTemp,
-            legacy.fz.osram_lightify_switch_cmdMoveHue,
-            legacy.fz.osram_lightify_switch_cmdMoveToSaturation,
-            legacy.fz.osram_lightify_switch_cmdOff,
-            legacy.fz.osram_lightify_switch_cmdMove,
+            fz.command_on,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_move_to_color_temp,
+            fz.command_move_to_hue,
+            fz.command_move_to_saturation,
+            fz.command_off,
             fz.battery,
-            legacy.fz.osram_lightify_switch_cmdMoveToLevelWithOnOff,
+            fz.command_move_to_level,
         ],
         exposes: [
             e.battery(),
@@ -353,14 +351,13 @@ const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [
             fz.battery,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdOn,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdOff,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdStepColorTemp,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdMoveWithOnOff,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdMove,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdStop,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdMoveHue,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdMoveSat,
+            fz.command_on,
+            fz.command_off,
+            fz.command_step_color_temperature,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_move_hue,
+            fz.command_move_to_saturation,
         ],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},

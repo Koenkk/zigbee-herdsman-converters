@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {battery, iasZoneAlarm, light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
@@ -227,7 +226,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HS1RC-N',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [fz.battery, legacy.fz.heiman_smart_controller_armmode, fz.command_emergency],
+        fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         configure: async (device, coordinatorEndpoint) => {
@@ -264,7 +263,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HS1RC-EM',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [fz.battery, legacy.fz.heiman_smart_controller_armmode, fz.command_emergency],
+        fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         configure: async (device, coordinatorEndpoint) => {

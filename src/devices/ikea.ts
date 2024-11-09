@@ -748,7 +748,7 @@ const definitions: DefinitionWithExtend[] = [
             addCustomClusterManuSpecificIkeaUnknown(),
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
-            commandsOnOff({commands: ['on', 'off'], legacyAction: true}),
+            commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
         ],
@@ -804,7 +804,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        extend: [ikeaConfigureRemote(), identify({isSleepy: true}), commandsWindowCovering({legacyAction: true}), ikeaBattery()],
+        extend: [ikeaConfigureRemote(), identify({isSleepy: true}), commandsWindowCovering(), ikeaBattery()],
         ota: true,
     },
     {

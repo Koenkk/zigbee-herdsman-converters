@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {electricityMeter, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -36,11 +35,11 @@ const definitions: DefinitionWithExtend[] = [
         model: 'STS-PRS-251',
         vendor: 'SmartThings',
         description: 'Arrival sensor',
-        fromZigbee: [fz.STS_PRS_251_presence, fz.battery, legacy.fz.STS_PRS_251_beeping],
+        fromZigbee: [fz.STS_PRS_251_presence, fz.battery, fz.identify],
         exposes: [
             e.battery(),
             e.presence(),
-            e.action(['beeping']),
+            e.action(['identify']),
             e.enum('beep', ea.SET, ['2', '5', '10', '15', '30']).withDescription('Trigger beep for x seconds'),
         ],
         toZigbee: [tz.STS_PRS_251_beep],

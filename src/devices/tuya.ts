@@ -892,7 +892,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0218',
         vendor: 'Tuya',
         description: 'Button',
-        fromZigbee: [legacy.fromZigbee.TS0218_click, fz.battery],
+        fromZigbee: [fz.command_emergency, fz.battery],
         exposes: [e.battery(), e.action(['click'])],
         toZigbee: [],
     },

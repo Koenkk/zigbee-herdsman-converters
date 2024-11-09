@@ -105,7 +105,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '07046L',
         vendor: 'Immax',
         description: '4-Touch single click buttons',
-        fromZigbee: [legacy.fz.immax_07046L_arm, fz.command_panic],
+        fromZigbee: [fz.command_arm, fz.command_panic],
         exposes: [e.action(['disarm', 'arm_stay', 'arm_away', 'panic'])],
         toZigbee: [],
     },
