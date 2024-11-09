@@ -700,7 +700,6 @@ const definitions: DefinitionWithExtend[] = [
             identify({isSleepy: true}),
             commandsLevelCtrl({
                 commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'],
-                legacyAction: true,
             }),
             battery({dontDividePercentage: true}),
         ],
@@ -795,7 +794,6 @@ const definitions: DefinitionWithExtend[] = [
             commandsOnOff({commands: ['toggle']}),
             commandsLevelCtrl({
                 commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down'],
-                legacyAction: true,
             }),
             ikeaBattery(),
         ],

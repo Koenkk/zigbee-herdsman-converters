@@ -21,10 +21,6 @@ import {
 
 const NS = 'zhc:utils';
 
-export function isLegacyEnabled(options: KeyValue) {
-    return options.legacy === undefined || options.legacy;
-}
-
 export function flatten<Type>(arr: Type[][]): Type[] {
     return [].concat(...arr);
 }
@@ -744,7 +740,6 @@ export function splitArrayIntoChunks<T>(arr: T[], chunkSize: number): T[][] {
 
 exports.noOccupancySince = noOccupancySince;
 exports.getOptions = getOptions;
-exports.isLegacyEnabled = isLegacyEnabled;
 exports.precisionRound = precisionRound;
 exports.toLocalISOString = toLocalISOString;
 exports.numberWithinRange = numberWithinRange;

@@ -13,6 +13,10 @@ import * as utils from './utils';
 
 const fromZigbeeStore: KeyValueAny = {};
 
+function isLegacyEnabled(options: any) {
+    return options.legacy === undefined || options.legacy;
+}
+
 interface KeyValueAny {
     [s: string]: any;
 }
@@ -1882,7 +1886,7 @@ const fromZigbee1 = {
         type: 'commandStep',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const direction = msg.data.stepmode === 1 ? 'backward' : 'forward';
                 return {
                     action: `skip_${direction}`,
@@ -1899,7 +1903,7 @@ const fromZigbee1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const value = msg.data['onOff'];
                 const lookup: KeyValueAny = {
                     128: {click: 'single'}, // single click
@@ -1916,7 +1920,7 @@ const fromZigbee1 = {
         type: 'raw',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 // 13,40,18,104, 0,8,1 - click
                 // 13,40,18,22,  0,17,1
                 // 13,40,18,32,  0,18,1
@@ -1952,7 +1956,7 @@ const fromZigbee1 = {
         type: ['commandOn', 'commandOff'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {click: 'power'};
             }
         },
@@ -1962,7 +1966,7 @@ const fromZigbee1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
                 const value = msg.data['presentValue'];
 
@@ -1987,7 +1991,7 @@ const fromZigbee1 = {
         type: 'commandMoveWithOnOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const button = msg.endpoint.ID;
                 const direction = msg.data.movemode == 0 ? 'up' : 'down';
                 if (button) {
@@ -2001,7 +2005,7 @@ const fromZigbee1 = {
         type: 'commandStopWithOnOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const button = msg.endpoint.ID;
                 if (button) {
                     return {click: `${button}_stop`};
@@ -2014,7 +2018,7 @@ const fromZigbee1 = {
         type: 'commandRecall',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
             }
         },
@@ -2024,7 +2028,7 @@ const fromZigbee1 = {
         type: 'commandOn',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const button = msg.endpoint.ID;
                 if (button) {
                     return {click: `${button}_on`};
@@ -2037,7 +2041,7 @@ const fromZigbee1 = {
         type: 'commandOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const button = msg.endpoint.ID;
                 if (button) {
                     return {click: `${button}_off`};
@@ -2050,7 +2054,7 @@ const fromZigbee1 = {
         type: 'commandMove',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const button = msg.endpoint.ID;
                 const direction = msg.data.movemode == 0 ? 'up' : 'down';
                 if (button) {
@@ -2064,7 +2068,7 @@ const fromZigbee1 = {
         type: 'commandRecall',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
             }
         },
@@ -2074,7 +2078,7 @@ const fromZigbee1 = {
         type: 'commandStatusChangeNotification',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const buttonStates: KeyValueAny = {
                     0: 'off',
                     1: 'single',
@@ -2097,7 +2101,7 @@ const fromZigbee1 = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {click: 'release'};
             }
         },
@@ -2107,7 +2111,7 @@ const fromZigbee1 = {
         type: 'commandUpOpen',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {click: 'open'};
             }
         },
@@ -2117,7 +2121,7 @@ const fromZigbee1 = {
         type: 'commandDownClose',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {click: 'close'};
             }
         },
@@ -2127,7 +2131,7 @@ const fromZigbee1 = {
         type: 'commandEmergency',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {action: 'click'};
             } else {
                 return fromZigbeeConverters.command_emergency.convert(model, msg, publish, options, meta);
@@ -2139,7 +2143,7 @@ const fromZigbee1 = {
         type: 'commandRecall',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {click: msg.data.sceneid};
             }
         },
@@ -2149,7 +2153,7 @@ const fromZigbee1 = {
         type: 'commandRecall',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {click: msg.data.groupid};
             }
         },
@@ -2159,7 +2163,7 @@ const fromZigbee1 = {
         type: 'commandOn',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {click: 'on'};
             }
         },
@@ -2169,7 +2173,7 @@ const fromZigbee1 = {
         type: 'commandOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {click: 'off'};
             }
         },
@@ -2179,7 +2183,7 @@ const fromZigbee1 = {
         type: 'commandOn',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
                 return {action: `${button}_on`};
             } else {
@@ -2192,7 +2196,7 @@ const fromZigbee1 = {
         type: 'commandOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
                 return {action: `${button}_off`};
             } else {
@@ -2205,7 +2209,7 @@ const fromZigbee1 = {
         type: 'commandStep',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
                 return {
                     action: `${button}_down`,
@@ -2223,7 +2227,7 @@ const fromZigbee1 = {
         type: 'commandStepWithOnOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
                 return {
                     action: `${button}_up`,
@@ -2241,7 +2245,7 @@ const fromZigbee1 = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
                 return {action: `${button}_stop`};
             } else {
@@ -2255,7 +2259,7 @@ const fromZigbee1 = {
         options: [exposes.options.legacy(), exposes.options.simulated_brightness(' Note: will only work when legacy: false is set.')],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 ictcg1(model, msg, publish, options, 'move');
                 const direction = msg.data.movemode === 1 ? 'left' : 'right';
                 return {action: `rotate_${direction}`, rate: msg.data.rate};
@@ -2269,7 +2273,7 @@ const fromZigbee1 = {
         type: 'commandMoveWithOnOff',
         options: [exposes.options.legacy(), exposes.options.simulated_brightness(' Note: will only work when legacy: false is set.')],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 ictcg1(model, msg, publish, options, 'move');
                 const direction = msg.data.movemode === 1 ? 'left' : 'right';
                 return {action: `rotate_${direction}`, rate: msg.data.rate};
@@ -2284,7 +2288,7 @@ const fromZigbee1 = {
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const value = ictcg1(model, msg, publish, options, 'stop');
                 return {action: `rotate_stop`, brightness: value};
             } else {
@@ -2297,7 +2301,7 @@ const fromZigbee1 = {
         type: 'commandStopWithOnOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const value = ictcg1(model, msg, publish, options, 'stop');
                 return {action: `rotate_stop`, brightness: value};
             } else {
@@ -2310,7 +2314,7 @@ const fromZigbee1 = {
         type: 'commandMoveToLevelWithOnOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const value = ictcg1(model, msg, publish, options, 'level');
                 const direction = msg.data.level === 0 ? 'left' : 'right';
                 return {action: `rotate_${direction}_quick`, level: msg.data.level, brightness: value};
@@ -2324,7 +2328,7 @@ const fromZigbee1 = {
         type: 'commandArm',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const action = msg.data['armmode'];
                 delete msg.data['armmode'];
                 const modeLookup: KeyValueAny = {
@@ -2343,7 +2347,7 @@ const fromZigbee1 = {
         type: 'commandArm',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const action = msg.data['armmode'];
                 delete msg.data['armmode'];
                 const modeLookup: KeyValueAny = {
@@ -2362,7 +2366,7 @@ const fromZigbee1 = {
         type: 'commandStep',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const deviceID = msg.device.ieeeAddr;
                 const direction = msg.data.stepmode === 1 ? 'down' : 'up';
 
@@ -2387,7 +2391,7 @@ const fromZigbee1 = {
         type: 'commandMove',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const deviceID = msg.device.ieeeAddr;
                 const direction = msg.data.movemode === 1 ? 'down' : 'up';
 
@@ -2411,7 +2415,7 @@ const fromZigbee1 = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const deviceID = msg.device.ieeeAddr;
                 if (!fromZigbeeStore[deviceID]) {
                     return null;
@@ -2431,7 +2435,7 @@ const fromZigbee1 = {
         type: 'commandOn',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {action: 'up'};
             } else {
                 return fromZigbeeConverters.command_on.convert(model, msg, publish, options, meta);
@@ -2443,7 +2447,7 @@ const fromZigbee1 = {
         type: 'commandOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {action: 'down'};
             } else {
                 return fromZigbeeConverters.command_off.convert(model, msg, publish, options, meta);
@@ -2455,7 +2459,7 @@ const fromZigbee1 = {
         type: 'commandMoveWithOnOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const deviceID = msg.device.ieeeAddr;
                 if (!fromZigbeeStore[deviceID]) {
                     fromZigbeeStore[deviceID] = {direction: null};
@@ -2472,7 +2476,7 @@ const fromZigbee1 = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const map: KeyValueAny = {
                     1: 'up_release',
                     2: 'down_release',
@@ -2489,7 +2493,7 @@ const fromZigbee1 = {
         type: 'commandMove',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const deviceID = msg.device.ieeeAddr;
                 if (!fromZigbeeStore[deviceID]) {
                     fromZigbeeStore[deviceID] = {direction: null};
@@ -2506,7 +2510,7 @@ const fromZigbee1 = {
         type: 'commandMoveHue',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 if (msg.data.movemode === 0) {
                     return {action: 'circle_release'};
                 }
@@ -2520,7 +2524,7 @@ const fromZigbee1 = {
         type: 'commandMoveToSaturation',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {action: 'circle_hold'};
             } else {
                 return fromZigbeeConverters.command_move_to_saturation.convert(model, msg, publish, options, meta);
@@ -2532,7 +2536,7 @@ const fromZigbee1 = {
         type: 'commandMoveToLevelWithOnOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {action: 'circle_click'};
             } else {
                 return fromZigbeeConverters.command_move_to_level.convert(model, msg, publish, options, meta);
@@ -2544,7 +2548,7 @@ const fromZigbee1 = {
         type: 'commandMoveToColorTemp',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return null;
             } else {
                 return fromZigbeeConverters.command_move_to_color_temp.convert(model, msg, publish, options, meta);
@@ -2556,7 +2560,7 @@ const fromZigbee1 = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const deviceID = msg.device.ieeeAddr;
                 if (!fromZigbeeStore[deviceID]) {
                     fromZigbeeStore[deviceID] = {direction: null};
@@ -2576,7 +2580,7 @@ const fromZigbee1 = {
         type: 'commandOn',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {action: 'left_top_click'};
             } else {
                 return fromZigbeeConverters.command_on.convert(model, msg, publish, options, meta);
@@ -2588,7 +2592,7 @@ const fromZigbee1 = {
         type: 'commandOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {action: 'left_bottom_click'};
             } else {
                 return fromZigbeeConverters.command_off.convert(model, msg, publish, options, meta);
@@ -2600,7 +2604,7 @@ const fromZigbee1 = {
         type: 'commandStepColorTemp',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const pos = msg.data.stepmode === 1 ? 'top' : 'bottom';
                 return {action: `right_${pos}_click`};
             } else {
@@ -2613,7 +2617,7 @@ const fromZigbee1 = {
         type: 'commandMoveWithOnOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {action: 'left_top_hold'};
             } else {
                 return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
@@ -2625,7 +2629,7 @@ const fromZigbee1 = {
         type: 'commandMove',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {action: 'left_bottom_hold'};
             } else {
                 return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
@@ -2637,7 +2641,7 @@ const fromZigbee1 = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const pos = msg.endpoint.ID === 1 ? 'top' : 'bottom';
                 return {action: `left_${pos}_release`};
             } else {
@@ -2650,7 +2654,7 @@ const fromZigbee1 = {
         type: 'commandMoveHue',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const pos = msg.endpoint.ID === 2 ? 'top' : 'bottom';
                 const action = msg.data.movemode === 0 ? 'release' : 'hold';
                 return {action: `right_${pos}_${action}`};
@@ -2664,7 +2668,7 @@ const fromZigbee1 = {
         type: 'commandMoveToSaturation',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const pos = msg.endpoint.ID === 2 ? 'top' : 'bottom';
                 return {action: `right_${pos}_hold`};
             } else {
@@ -2677,7 +2681,7 @@ const fromZigbee1 = {
         type: 'commandRecall',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {
                     action: `select_${msg.data.sceneid}`,
                 };
@@ -2691,7 +2695,7 @@ const fromZigbee1 = {
         type: 'commandStep',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {
                     action: 'down',
                     step_mode: msg.data.stepmode,
@@ -2708,7 +2712,7 @@ const fromZigbee1 = {
         type: 'commandStepWithOnOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {
                     action: 'up',
                     step_mode: msg.data.stepmode,
@@ -2725,7 +2729,7 @@ const fromZigbee1 = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {
                     action: 'stop',
                 };
@@ -2739,7 +2743,7 @@ const fromZigbee1 = {
         type: 'commandStep',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const direction = msg.data.stepmode === 1 ? 'down' : 'up';
                 const payload = {
                     action: `brightness_${direction}_click`,
@@ -2758,7 +2762,7 @@ const fromZigbee1 = {
         type: 'commandMove',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const deviceID = msg.device.ieeeAddr;
                 const direction = msg.data.movemode === 1 ? 'down' : 'up';
 
@@ -2784,7 +2788,7 @@ const fromZigbee1 = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const deviceID = msg.device.ieeeAddr;
                 if (!fromZigbeeStore[deviceID]) {
                     return null;
@@ -2804,7 +2808,7 @@ const fromZigbee1 = {
         type: 'commandMoveToColorTemp',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const payload = {
                     action: `color_temp`,
                     action_color_temperature: msg.data.colortemp,
@@ -2822,7 +2826,7 @@ const fromZigbee1 = {
         type: 'commandMoveToColor',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const payload = {
                     action_color: {
                         x: utils.precisionRound(msg.data.colorx / 65535, 3),
@@ -2843,7 +2847,7 @@ const fromZigbee1 = {
         type: 'commandArm',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 if (msg.data.armmode != null) {
                     const lookup: KeyValueAny = {
                         0: 'disarm',
@@ -2864,7 +2868,7 @@ const fromZigbee1 = {
         type: 'commandMoveToLevelWithOnOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {
                     action: msg.data.level,
                     transition_time: msg.data.transtime,
@@ -2879,7 +2883,7 @@ const fromZigbee1 = {
         type: 'commandStep',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const direction = msg.data.stepmode === 0 ? 'up' : 'down';
                 return {action: `${direction}`};
             } else {
@@ -2892,7 +2896,7 @@ const fromZigbee1 = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {action: 'stop', action_group: msg.groupID};
             } else {
                 return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
@@ -2904,7 +2908,7 @@ const fromZigbee1 = {
         type: 'commandMove',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 const value = msg.data['movemode'];
                 let action = null;
                 if (value === 0) action = {action: 'up-press', action_group: msg.groupID};
@@ -2920,7 +2924,7 @@ const fromZigbee1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 return {action: 'beeping'};
             } else {
                 return fromZigbeeConverters.identify.convert(model, msg, publish, options, meta);
@@ -2932,7 +2936,7 @@ const fromZigbee1 = {
         type: 'commandMoveToLevelWithOnOff',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
+            if (isLegacyEnabled(options)) {
                 ratelimitedDimmer(model, msg, publish, options, meta);
             } else {
                 return fromZigbeeConverters.command_move_to_level.convert(model, msg, publish, options, meta);
@@ -2944,7 +2948,7 @@ const fromZigbee1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbeeConverters.thermostat.convert(model, msg, publish, options, meta);
             }
 
@@ -2972,7 +2976,7 @@ const fromZigbee1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbeeConverters.thermostat.convert(model, msg, publish, options, meta);
             }
 
@@ -3056,7 +3060,7 @@ const fromZigbee1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbeeConverters.stelpro_thermostat.convert(model, msg, publish, options, meta);
             }
 
@@ -3085,7 +3089,7 @@ const fromZigbee1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbeeConverters.viessmann_thermostat.convert(model, msg, publish, options, meta);
             }
 
@@ -3107,7 +3111,7 @@ const fromZigbee1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbeeConverters.thermostat.convert(model, msg, publish, options, meta);
             }
 
@@ -3129,7 +3133,7 @@ const fromZigbee1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbeeConverters.hvac_user_interface.convert(model, msg, publish, options, meta);
             }
 
@@ -3146,7 +3150,7 @@ const fromZigbee1 = {
         type: ['commandGetWeeklyScheduleRsp'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbeeConverters.thermostat_weekly_schedule.convert(model, msg, publish, options, meta);
             }
 
@@ -3172,7 +3176,7 @@ const fromZigbee1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbeeConverters.terncy_knob.convert(model, msg, publish, options, meta);
             }
             if (typeof msg.data['27'] === 'number') {
@@ -3189,7 +3193,7 @@ const fromZigbee1 = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbeeConverters.battery.convert(model, msg, publish, options, meta);
             }
 
@@ -3216,7 +3220,7 @@ const fromZigbee1 = {
         type: 'commandRecall',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbeeConverters.command_recall.convert(model, msg, publish, options, meta);
             }
             return {action: `${msg.endpoint.ID}_scene_${msg.data.groupid}_${msg.data.sceneid}`};
@@ -3227,7 +3231,7 @@ const fromZigbee1 = {
         type: ['commandOn', 'commandOff', 'commandToggle'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 if (msg.type === 'commandOn') {
                     return fromZigbeeConverters.command_on.convert(model, msg, publish, options, meta);
                 } else if (msg.type === 'commandOff') {
@@ -3244,7 +3248,7 @@ const fromZigbee1 = {
         type: ['commandMoveWithOnOff', 'commandStopWithOnOff'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 if (msg.type === 'commandMoveWithOnOff') {
                     return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
                 } else if (msg.type === 'commandStopWithOnOff') {
@@ -3265,7 +3269,7 @@ const fromZigbee1 = {
         type: ['commandUpOpen', 'commandDownClose', 'commandStop'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 if (msg.type === 'commandUpOpen') {
                     return fromZigbeeConverters.command_cover_open.convert(model, msg, publish, options, meta);
                 } else if (msg.type === 'commandDownClose') {
@@ -3288,7 +3292,7 @@ const fromZigbee1 = {
         type: 'commandHueNotification',
         options: [exposes.options.legacy(), exposes.options.simulated_brightness('Only works when legacy is false.')],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbeeConverters.hue_dimmer_switch.convert(model, msg, publish, options, meta);
             }
 
@@ -5667,7 +5671,7 @@ const fromZigbee2 = {
         type: ['commandDataResponse', 'commandDataReport'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
+            if (!isLegacyEnabled(options)) {
                 return fromZigbee1.tuya_thermostat_weekly_schedule_2.convert(model, msg, publish, options, meta);
             }
 
