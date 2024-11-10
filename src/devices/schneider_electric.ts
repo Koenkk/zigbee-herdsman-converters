@@ -14,8 +14,14 @@ import {
     electricityMeter,
     enumLookup,
     identify,
+    illuminance,
     light,
+    lightingBallast,
+    numeric,
+    occupancy,
     onOff,
+    ScaleFunction,
+    setupConfigureForReading,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
@@ -310,6 +316,83 @@ const schneiderElectricExtend = {
                 },
             ],
         };
+    },
+
+    dimmingMode: (): ModernExtend => {
+        const extend = enumLookup({
+            name: 'dimmer_mode',
+            lookup: {
+                Auto: 0,
+                'RL-LED': 3,
+            },
+            cluster: 'lightingBallastCfg',
+            attribute: 'wiserControlMode',
+            description: 'Controls the dimmer mode.',
+            entityCategory: 'config',
+        });
+        extend.configure.push(setupConfigureForReading('lightingBallastCfg', ['wiserControlMode']));
+        return extend;
+    },
+
+    occupancyConfiguration: (): ModernExtend => {
+        const extend = enumLookup({
+            name: 'occupancy_sensitivity',
+            lookup: {
+                Low: 50,
+                Medium: 75,
+                High: 100,
+            },
+            cluster: 'msOccupancySensing',
+            attribute: 'schneiderOccupancySensitivity',
+            description: 'Sensitivity of the occupancy sensor',
+            entityCategory: 'config',
+        });
+
+        const luxScale: ScaleFunction = (value: number, type: 'from' | 'to') => {
+            if (type === 'from') {
+                return Math.round(Math.pow(10, (value - 1) / 10000));
+            } else {
+                return Math.round(10000 * Math.log10(value) + 1);
+            }
+        };
+
+        const luxThresholdExtend = numeric({
+            name: 'ambience_light_threshold',
+            cluster: 'manuSpecificSchneiderOccupancyConfiguration',
+            attribute: 'ambienceLightThreshold',
+            reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5},
+            description: 'Threshold above which occupancy will not trigger the light switch.',
+            unit: 'lx',
+            scale: luxScale,
+            entityCategory: 'config',
+            valueMin: 1,
+            valueMax: 1000,
+        });
+        extend.fromZigbee.push(...luxThresholdExtend.fromZigbee);
+        extend.toZigbee.push(...luxThresholdExtend.toZigbee);
+        extend.exposes.push(...luxThresholdExtend.exposes);
+        extend.configure.push(
+            setupConfigureForReading('manuSpecificSchneiderOccupancyConfiguration', ['ambienceLightThreshold']),
+            setupConfigureForReading('msOccupancySensing', ['schneiderOccupancySensitivity']),
+        );
+
+        return extend;
+    },
+
+    dimmingOnLevel: (): ModernExtend => {
+        const extend = enumLookup({
+            name: 'on_level',
+            lookup: {
+                '100%': 254,
+                'Last level': 255,
+            },
+            cluster: 'genLevelCtrl',
+            attribute: 'onLevel',
+            description: 'The level that will be applied when the light is turned on.',
+            entityCategory: 'config',
+        });
+        extend.configure.push(setupConfigureForReading('genLevelCtrl', ['onLevel']));
+        return extend;
     },
 };
 
@@ -2028,6 +2111,37 @@ const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.visaKeyEventNotification('2'),
             schneiderElectricExtend.visaKeyEventNotification('3'),
             schneiderElectricExtend.visaKeyEventNotification('4'),
+        ],
+    },
+    {
+        zigbeeModel: ['NHMOTION/DIMMER/1'],
+        model: 'NH3527A',
+        vendor: 'Schneider Electric',
+        description: 'Motion sensor with dimmer',
+        extend: [
+            light({
+                effect: false,
+                powerOnBehavior: false,
+                color: false,
+                configureReporting: true,
+            }),
+            lightingBallast(),
+            illuminance(),
+            occupancy({
+                pirConfig: ['otu_delay'],
+            }),
+            schneiderElectricExtend.occupancyConfiguration(),
+            schneiderElectricExtend.dimmingMode(),
+            schneiderElectricExtend.dimmingOnLevel(),
+        ],
+        whiteLabel: [
+            {vendor: 'Elko', model: 'EKO07250'},
+            {vendor: 'Elko', model: 'EKO07251'},
+            {vendor: 'Elko', model: 'EKO07252'},
+            {vendor: 'Elko', model: 'EKO07253'},
+            {vendor: 'Elko', model: 'EKO30199'},
+            {vendor: 'Exxact', model: 'WDE002962'},
+            {vendor: 'Exxact', model: 'WDE003962'},
         ],
     },
 ];
