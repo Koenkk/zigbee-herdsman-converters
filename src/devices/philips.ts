@@ -72,6 +72,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight()],
     },
     {
+        zigbeeModel: ['LWF005'],
+        model: '9290002269A',
+        vendor: 'Philips',
+        description: 'Philips Hue A60 bulb with on/off control',
+        extend: [philipsLight()],
+    },
+    {
         zigbeeModel: ['LTA013'],
         model: '929003596001',
         vendor: 'Philips',
