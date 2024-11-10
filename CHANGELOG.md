@@ -1,5 +1,21 @@
 # Changelog
 
+## [20.44.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.43.0...v20.44.0) (2024-11-10)
+
+
+### Features
+
+* **add:** 9290002269A ([#8292](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8292)) ([a4ee66a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a4ee66ae90a0379fb3ab226a6a7092a9773f7cc9))
+* **add:** 929003666901 ([#8288](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8288)) ([15835f6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/15835f6fa2e9658e6dbb1f1599c5ab88b7051622))
+
+
+### Bug Fixes
+
+* **detect:** Detect `TRADFRI bulb E26 WW globe 810lm` as IKEA LED2103G5 ([#8297](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8297)) ([84f70d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/84f70d45edc13dc03ff0cc450f64a315f3530860))
+* Fix Gledopto GL-SD-301P not reporting state changes https://github.com/Koenkk/zigbee-herdsman-converters/pull/8183 ([b81dfcb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b81dfcb165dee80ac307bfc00e62ad4362e44c6b))
+* Fix SNZB-04 status incorrect after some time https://github.com/Koenkk/zigbee2mqtt/issues/24668 ([b251c68](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b251c68c8bdf46390571fd7481fff1a6491a64e1))
+* **ignore:** update dependencies ([#8295](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8295)) ([fe8e4f4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fe8e4f4caf928c6bb16744853717c230d67bb7e7))
+
 ## [20.43.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.42.0...v20.43.0) (2024-11-07)
 
 
