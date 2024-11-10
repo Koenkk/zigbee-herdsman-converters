@@ -986,7 +986,7 @@ export interface LightArgs {
     configureReporting?: boolean;
     endpointNames?: string[];
     ota?: DefinitionOta;
-    levelConfig?: {disabledFeatures?: string[]; maxPreviousOnLevel?: boolean};
+    levelConfig?: {disabledFeatures?: string[]};
 }
 export function light(args?: LightArgs): ModernExtend {
     args = {effect: true, powerOnBehavior: true, configureReporting: false, ...args};
