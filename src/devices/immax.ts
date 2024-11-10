@@ -142,7 +142,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '07703L',
         vendor: 'Immax',
         description: 'Radiator valve',
-        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_1, legacy.fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_2, legacy.fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [
             legacy.tz.etop_thermostat_system_mode,
             legacy.tz.etop_thermostat_away_mode,

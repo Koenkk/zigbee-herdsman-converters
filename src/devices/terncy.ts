@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -49,7 +48,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TERNCY-SD01',
         vendor: 'TERNCY',
         description: 'Knob smart dimmer',
-        fromZigbee: [fz.terncy_raw, legacy.fz.terncy_knob, fz.battery],
+        fromZigbee: [fz.terncy_raw, fz.terncy_knob, fz.battery],
         toZigbee: [],
         ota: true,
         meta: {battery: {dontDividePercentage: true}},

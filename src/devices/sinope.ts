@@ -31,7 +31,6 @@ const fzLocal = {
     thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             // @ts-expect-error ignore
             delete msg['running_state'];

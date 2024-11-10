@@ -2367,7 +2367,6 @@ export const fromZigbee = {
     lumi_action: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
-        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM', 'QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model) && msg.data['61440']) {
                 return;
@@ -2565,7 +2564,6 @@ export const fromZigbee = {
     lumi_action_analog: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             if (model.model === 'MFKZQ01LM') {
                 /*
@@ -3241,7 +3239,6 @@ export const fromZigbee = {
     lumi_door_lock_report: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             const lockStatusLookup: KeyValueAny = {
@@ -3443,7 +3440,6 @@ export const fromZigbee = {
     lumi_action_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
-        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             if (globalStore.hasValue(msg.endpoint, 'button')) {
@@ -3483,7 +3479,6 @@ export const fromZigbee = {
     lumi_action_move_color_temp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveColorTemp',
-        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const stop = msg.data.movemode === 0;

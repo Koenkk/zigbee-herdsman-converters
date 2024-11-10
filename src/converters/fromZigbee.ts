@@ -4075,7 +4075,6 @@ const converters1 = {
     DNCKAT_S00X_buttons: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const action = msg.data['onOff'] === 1 ? 'release' : 'hold';
             return {action: postfixWithEndpointName(action, msg, model, meta)};
@@ -4112,13 +4111,11 @@ const converters1 = {
     } satisfies Fz.Converter,
     CCTSwitch_D0001_levelctrl: {
         cluster: 'genLevelCtrl',
-        options: [exposes.options.legacy()],
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff', 'commandMove', 'commandStop'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
             if (msg.type === 'commandMove' || msg.type === 'commandStop') {
                 const action = 'brightness';
-                payload.click = action;
                 if (msg.type === 'commandStop') {
                     const direction = globalStore.getValue(msg.endpoint, 'direction');
                     const duration = Date.now() - globalStore.getValue(msg.endpoint, 'start');
@@ -4166,7 +4163,6 @@ const converters1 = {
                 if (clk != 'memory') {
                     globalStore.putValue(msg.endpoint, 'last_seq', msg.meta.zclTransactionSequenceNumber);
                     globalStore.putValue(msg.endpoint, 'last_clk', clk);
-                    payload.click = clk;
                     payload.action = cmd;
                 }
             }
@@ -4177,12 +4173,10 @@ const converters1 = {
     CCTSwitch_D0001_lighting: {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveToColorTemp', 'commandMoveColorTemp'],
-        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
             if (msg.type === 'commandMoveColorTemp') {
                 const clk = 'colortemp';
-                payload.click = clk;
                 payload.rate = msg.data.rate;
                 payload.action_rate = msg.data.rate;
 
@@ -4221,7 +4215,6 @@ const converters1 = {
                 // see if it was the recognized start command for button4 - if so, ignore this second command,
                 // because it's not really button3, it's actually button4
                 if (lastClk == 'memory') {
-                    payload.click = lastClk;
                     payload.action = 'recall';
                     payload.brightness = globalStore.getValue(msg.endpoint, 'last_move_level');
                     payload.action_brightness = globalStore.getValue(msg.endpoint, 'last_move_level');
@@ -4236,7 +4229,6 @@ const converters1 = {
                     // and vice versa.
                     const direction = msg.data.colortemp > globalStore.getValue(msg.endpoint, 'last_color_temp') ? 'up' : 'down';
                     const cmd = `${clk}_${direction}`;
-                    payload.click = clk;
                     payload.action = cmd;
                     globalStore.putValue(msg.endpoint, 'last_color_temp', msg.data.colortemp);
                 }

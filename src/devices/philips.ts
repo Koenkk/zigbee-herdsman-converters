@@ -3,7 +3,6 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {deviceEndpoints, identify, quirkCheckinInterval} from '../lib/modernExtend';
 import {philipsFz, philipsLight, philipsOnOff, philipsTwilightOnOff, philipsTz} from '../lib/philips';
 import * as reporting from '../lib/reporting';
@@ -2279,7 +2278,7 @@ const definitions: DefinitionWithExtend[] = [
             fz.ignore_command_off_with_effect,
             fz.ignore_command_step,
             fz.ignore_command_stop,
-            legacy.fz.hue_dimmer_switch,
+            fz.hue_dimmer_switch,
             fz.battery,
         ],
         exposes: [

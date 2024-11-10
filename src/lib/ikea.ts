@@ -710,7 +710,6 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
         {
             cluster: 'genScenes',
             type: 'commandTradfriArrowRelease',
-            options: [options.legacy()],
             convert: (model, msg, publish, options, meta) => {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
                 if (args.styrbar) globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
