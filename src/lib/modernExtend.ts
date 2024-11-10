@@ -1516,8 +1516,6 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                   ]
                 : [],
             convert: (model, msg, publish, options, meta) => {
-                const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
-
                 if (args.alarmTimeout) {
                     const timeout = options?.[timeoutProperty] !== undefined ? Number(options[timeoutProperty]) : 90;
                     clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
@@ -1526,49 +1524,52 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                         globalStore.putValue(msg.endpoint, 'timer', timer);
                     }
                 }
-                let payload = {};
-                if (args.zoneAttributes.includes('tamper')) {
-                    payload = {tamper: (zoneStatus & (1 << 2)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('battery_low')) {
-                    payload = {battery_low: (zoneStatus & (1 << 3)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('supervision_reports')) {
-                    payload = {supervision_reports: (zoneStatus & (1 << 4)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('restore_reports')) {
-                    payload = {restore_reports: (zoneStatus & (1 << 5)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('trouble')) {
-                    payload = {trouble: (zoneStatus & (1 << 6)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('ac_status')) {
-                    payload = {ac_status: (zoneStatus & (1 << 7)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('test')) {
-                    payload = {test: (zoneStatus & (1 << 8)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('battery_defect')) {
-                    payload = {battery_defect: (zoneStatus & (1 << 9)) > 0, ...payload};
-                }
-                let alarm1Payload = (zoneStatus & 1) > 0;
-                let alarm2Payload = (zoneStatus & (1 << 1)) > 0;
+                const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+                if (zoneStatus !== undefined) {
+                    let payload = {};
+                    if (args.zoneAttributes.includes('tamper')) {
+                        payload = {tamper: (zoneStatus & (1 << 2)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('battery_low')) {
+                        payload = {battery_low: (zoneStatus & (1 << 3)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('supervision_reports')) {
+                        payload = {supervision_reports: (zoneStatus & (1 << 4)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('restore_reports')) {
+                        payload = {restore_reports: (zoneStatus & (1 << 5)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('trouble')) {
+                        payload = {trouble: (zoneStatus & (1 << 6)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('ac_status')) {
+                        payload = {ac_status: (zoneStatus & (1 << 7)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('test')) {
+                        payload = {test: (zoneStatus & (1 << 8)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('battery_defect')) {
+                        payload = {battery_defect: (zoneStatus & (1 << 9)) > 0, ...payload};
+                    }
+                    let alarm1Payload = (zoneStatus & 1) > 0;
+                    let alarm2Payload = (zoneStatus & (1 << 1)) > 0;
 
-                if (invertAlarmPayload) {
-                    alarm1Payload = !alarm1Payload;
-                    alarm2Payload = !alarm2Payload;
-                }
+                    if (invertAlarmPayload) {
+                        alarm1Payload = !alarm1Payload;
+                        alarm2Payload = !alarm2Payload;
+                    }
 
-                if (bothAlarms) {
-                    payload = {[alarm1Name]: alarm1Payload, ...payload};
-                    payload = {[alarm2Name]: alarm2Payload, ...payload};
-                } else if (args.zoneAttributes.includes('alarm_1')) {
-                    payload = {[alarm1Name]: alarm1Payload, ...payload};
-                } else if (args.zoneAttributes.includes('alarm_2')) {
-                    payload = {[alarm2Name]: alarm2Payload, ...payload};
-                }
+                    if (bothAlarms) {
+                        payload = {[alarm1Name]: alarm1Payload, ...payload};
+                        payload = {[alarm2Name]: alarm2Payload, ...payload};
+                    } else if (args.zoneAttributes.includes('alarm_1')) {
+                        payload = {[alarm1Name]: alarm1Payload, ...payload};
+                    } else if (args.zoneAttributes.includes('alarm_2')) {
+                        payload = {[alarm2Name]: alarm2Payload, ...payload};
+                    }
 
-                return payload;
+                    return payload;
+                }
             },
         },
     ];
