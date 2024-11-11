@@ -84,16 +84,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'KMPCIL_RES005',
         vendor: 'KMPCIL',
         description: 'Environment sensor',
-        exposes: [
-            e.battery(),
-            e.temperature(),
-            e.humidity(),
-            e.pressure(),
-            e.illuminance().withAccess(ea.STATE_GET),
-            e.illuminance_lux().withAccess(ea.STATE_GET),
-            e.occupancy(),
-            e.switch(),
-        ],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.illuminance().withAccess(ea.STATE_GET), e.occupancy(), e.switch()],
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pressure, fz.illuminance, fz.kmpcil_res005_occupancy, fz.kmpcil_res005_on_off],
         toZigbee: [tz.kmpcil_res005_on_off, tz.illuminance],
         configure: async (device, coordinatorEndpoint) => {

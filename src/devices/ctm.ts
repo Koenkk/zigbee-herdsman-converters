@@ -1286,7 +1286,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.switch(),
             e.illuminance(),
-            e.illuminance_lux(),
             e.occupancy(),
             e.binary('device_enabled', ea.ALL, 'ON', 'OFF').withDescription('Turn the device on or off'),
         ],
@@ -1366,7 +1365,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.light_brightness(),
             e.illuminance(),
-            e.illuminance_lux(),
             e.occupancy(),
             e.binary('device_enabled', ea.ALL, 'ON', 'OFF').withDescription('Turn the device on or off'),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(10).withValueMax(97).withDescription('Specifies the minimum brightness value'),

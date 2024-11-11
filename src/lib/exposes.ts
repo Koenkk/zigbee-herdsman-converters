@@ -1015,9 +1015,7 @@ export const presets = {
     holiday_temperature: () =>
         new Numeric('holiday_temperature', access.STATE_SET).withUnit('°C').withDescription('Holiday temperature').withValueMin(0).withValueMax(30),
     humidity: () => new Numeric('humidity', access.STATE).withUnit('%').withDescription('Measured relative humidity'),
-    illuminance: () => new Numeric('illuminance', access.STATE).withDescription('Raw measured illuminance'),
-    illuminance_lux: () =>
-        new Numeric('illuminance_lux', access.STATE).withLabel('Illuminance (lux)').withUnit('lx').withDescription('Measured illuminance in lux'),
+    illuminance: () => new Numeric('illuminance', access.STATE).withDescription('Measured illuminance').withUnit('lx'),
     brightness_state: () => new Enum('brightness_state', access.STATE, ['low', 'middle', 'high', 'strong']).withDescription('Brightness state'),
     keypad_lockout: () =>
         new Enum('keypad_lockout', access.ALL, ['unlock', 'lock1', 'lock2']).withDescription('Enables/disables physical input on the device'),

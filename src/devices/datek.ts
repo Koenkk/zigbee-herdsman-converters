@@ -93,7 +93,6 @@ const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.occupancy(),
             e.battery_low(),
-            e.illuminance_lux(),
             e.illuminance(),
             e.binary('led_on_motion', ea.ALL, true, false).withDescription('Enable/disable LED on motion'),
             e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535),

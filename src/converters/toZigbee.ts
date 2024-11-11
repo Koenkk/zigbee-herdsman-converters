@@ -1883,7 +1883,7 @@ const converters2 = {
         },
     } satisfies Tz.Converter,
     illuminance: {
-        key: ['illuminance', 'illuminance_lux'],
+        key: ['illuminance'],
         convertGet: async (entity, key, meta) => {
             await entity.read('msIlluminanceMeasurement', ['measuredValue']);
         },

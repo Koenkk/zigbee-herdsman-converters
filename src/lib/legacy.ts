@@ -1160,7 +1160,6 @@ const fromZigbee = {
                 switch (dp) {
                     case 2:
                         result.illuminance = value;
-                        result.illuminance_lux = value;
                         break;
                     case 4:
                         result.battery = value;
@@ -2917,7 +2916,7 @@ const fromZigbee = {
                     result = {fading_time: value / 10};
                     break;
                 case dataPoints.tshpsIlluminanceLux:
-                    result = {illuminance_lux: value};
+                    result = {illuminance: value};
                     break;
                 case dataPoints.tshpsCLI: // not recognize
                     result = {cli: value};
@@ -3105,7 +3104,7 @@ const fromZigbee = {
                 case dataPoints.thitBatteryPercentage:
                     return {battery: value};
                 case dataPoints.thitIlluminanceLux:
-                    return {illuminance_lux: value};
+                    return {illuminance: value};
                 default:
                     logger.debug(
                         `Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`,
@@ -3132,7 +3131,7 @@ const fromZigbee = {
                     case dataPoints.state:
                         return {brightness_state: brightnessState[value]};
                     case dataPoints.tIlluminanceLux:
-                        return {illuminance_lux: value};
+                        return {illuminance: value};
                     default:
                         logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_illuminance_sensor');
                 }
@@ -3898,7 +3897,7 @@ const fromZigbee = {
                     };
                 case 101:
                     return {
-                        illuminance_lux: value,
+                        illuminance: value,
                     };
                 case 102:
                     if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
@@ -3915,7 +3914,7 @@ const fromZigbee = {
                         led_enable: value == 1 ? true : false,
                     };
                 case 104:
-                    return {illuminance_lux: value};
+                    return {illuminance: value};
                 case 105:
                     return {
                         illuminance_calibration: value,
@@ -3951,7 +3950,7 @@ const fromZigbee = {
             const brightnesStateLookup: KeyValueAny = {'0': 'low', '1': 'middle', '2': 'high'};
             switch (dp) {
                 case 2:
-                    return {illuminance_lux: value};
+                    return {illuminance: value};
                 case 4:
                     return {battery: value};
                 case 1:

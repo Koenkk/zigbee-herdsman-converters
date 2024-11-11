@@ -193,7 +193,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.humidity(endpoint);
             await reporting.illuminance(endpoint);
         },
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.temperature(), e.illuminance(), e.humidity()],
     },
     {
         zigbeeModel: ['ColorTemperature'],
@@ -222,7 +222,6 @@ const definitions: DefinitionWithExtend[] = [
             e.tamper(),
             e.battery(),
             e.illuminance(),
-            e.illuminance_lux().withUnit('lx'),
             e.temperature(),
             e.humidity(),
             e.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes').withValueMin(0).withValueMax(1440),

@@ -489,10 +489,9 @@ const converters1 = {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
-            return {illuminance: illuminance, illuminance_lux: illuminanceLux};
+            return {illuminance: illuminanceLux};
         },
     } satisfies Fz.Converter,
     pressure: {
@@ -2654,7 +2653,7 @@ const converters1 = {
                             W: 'power',
                             Hz: 'frequency',
                             pf: 'power_factor',
-                            lx: 'illuminance_lux',
+                            lx: 'illuminance',
                         };
 
                         let nameAlt = '';
