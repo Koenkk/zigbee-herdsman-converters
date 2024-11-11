@@ -457,7 +457,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
         ],
         fromZigbee: [fzLocal.thirdreality_private_motion_sensor, fz.illuminance, fz.ias_occupancy_alarm_1_report],
-        exposes: [e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
+        exposes: [e.occupancy(), e.illuminance()],
         configure: async (device, coordinatorEndpoint) => {
             device.powerSource = 'Mains (single phase)';
             device.save();

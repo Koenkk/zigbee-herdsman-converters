@@ -183,7 +183,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint);
         },
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.illuminance()],
     },
     {
         zigbeeModel: ['SingleSocket50AU'],

@@ -277,8 +277,6 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 if (['RTCGQ11LM'].includes(model.model)) {
                     assertNumber(value);
                     payload.illuminance = value;
-                    // DEPRECATED: remove illuminance_lux here.
-                    payload.illuminance_lux = value;
                 }
                 break;
             case '12':
@@ -361,9 +359,8 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 } else if (['JTYJ-GD-01LM/BW'].includes(model.model)) {
                     payload.smoke_density = value;
                 } else if (['GZCGQ01LM'].includes(model.model)) {
-                    // DEPRECATED: change illuminance_lux -> illuminance
                     assertNumber(value);
-                    payload.illuminance_lux = value;
+                    payload.illuminance = value;
                 } else {
                     payload.state = value === 1 ? 'ON' : 'OFF';
                 }
@@ -868,7 +865,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             case '1065':
                 if (['ZNCLBL01LM'].includes(model.model)) {
                     assertNumber(value);
-                    payload.illuminance_lux = value * 50;
+                    payload.illuminance = value * 50;
                 }
                 break;
             case '1289':
@@ -3141,10 +3138,8 @@ export const fromZigbee = {
             msg.data.occupancy = 1;
             const payload = fz.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (payload) {
-                // DEPRECATED: remove illuminance_lux here.
                 const illuminance = msg.data['measuredValue'];
                 payload.illuminance = illuminance;
-                payload.illuminance_lux = illuminance;
             }
             return payload;
         },

@@ -39,7 +39,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'TERNCY',
         description: 'Awareness switch',
         fromZigbee: [fz.terncy_temperature, fz.occupancy_with_timeout, fz.illuminance, fz.terncy_raw, fz.battery],
-        exposes: [e.temperature(), e.occupancy(), e.illuminance_lux(), e.illuminance(), e.action(['single', 'double', 'triple', 'quadruple'])],
+        exposes: [e.temperature(), e.occupancy(), e.illuminance(), e.action(['single', 'double', 'triple', 'quadruple'])],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
     },

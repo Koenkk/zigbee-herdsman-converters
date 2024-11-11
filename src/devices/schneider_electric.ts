@@ -1561,7 +1561,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.switch().withEndpoint('l1'),
             e.occupancy(),
-            e.illuminance_lux(),
             e.illuminance(),
             e
                 .numeric('occupancy_timeout', ea.ALL)
@@ -1606,7 +1605,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
         },
-        exposes: [e.battery(), e.illuminance(), e.illuminance_lux(), e.occupancy()],
+        exposes: [e.battery(), e.illuminance(), e.occupancy()],
     },
     {
         zigbeeModel: ['CH/Socket/2'],

@@ -99,13 +99,11 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.illuminance'
-            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
             const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property1 = multiEndpoint ? postfixWithEndpointName('illuminance', msg, model, meta) : 'illuminance';
-            const property2 = multiEndpoint ? postfixWithEndpointName('illuminance_lux', msg, model, meta) : 'illuminance_lux';
-            return {[property1]: illuminance, [property2]: illuminanceLux};
+            return {[property1]: illuminanceLux};
         },
     } satisfies Fz.Converter,
     pressure2: {
@@ -468,7 +466,7 @@ const definitions: DefinitionWithExtend[] = [
                             W: 'power',
                             Hz: 'frequency',
                             pf: 'power_factor',
-                            lx: 'illuminance_lux',
+                            lx: 'illuminance',
                         };
                         valueName = valueName !== undefined ? valueName : infoLookup[valueId];
 
@@ -717,7 +715,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'b-parasite open source soil moisture sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture, fz.illuminance],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance_lux()],
+        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, [

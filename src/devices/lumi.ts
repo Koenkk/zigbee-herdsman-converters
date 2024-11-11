@@ -1603,15 +1603,7 @@ const definitions: DefinitionWithExtend[] = [
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
         fromZigbee: [lumi.fromZigbee.lumi_basic, fz.occupancy_with_timeout, lumi.fromZigbee.lumi_illuminance],
         toZigbee: [],
-        exposes: [
-            e.battery(),
-            e.occupancy(),
-            e.device_temperature(),
-            e.battery_voltage(),
-            e.illuminance_lux().withProperty('illuminance'),
-            e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
-            e.power_outage_count(false),
-        ],
+        exposes: [e.battery(), e.occupancy(), e.device_temperature(), e.battery_voltage(), e.illuminance(), e.power_outage_count(false)],
         extend: [quirkCheckinInterval('1_HOUR')],
     },
     {
@@ -1624,8 +1616,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [lumi.toZigbee.lumi_detection_interval],
         exposes: [
             e.occupancy(),
-            e.illuminance_lux().withProperty('illuminance'),
-            e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
+            e.illuminance(),
             e
                 .numeric('detection_interval', ea.ALL)
                 .withValueMin(2)
@@ -1685,8 +1676,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [lumi.toZigbee.lumi_detection_interval, lumi.toZigbee.lumi_motion_sensitivity, lumi.toZigbee.lumi_trigger_indicator],
         exposes: [
             e.occupancy(),
-            e.illuminance_lux().withProperty('illuminance'),
-            e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
+            e.illuminance(),
             e
                 .motion_sensitivity_select(['low', 'medium', 'high'])
                 .withDescription('Select motion sensitivity to use. Press pairing button right before changing this otherwise it will fail.'),
@@ -1723,8 +1713,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [lumi.toZigbee.lumi_detection_interval],
         exposes: [
             e.occupancy(),
-            e.illuminance_lux().withProperty('illuminance'),
-            e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
+            e.illuminance(),
             e
                 .numeric('detection_interval', ea.ALL)
                 .withValueMin(2)
@@ -2622,7 +2611,7 @@ const definitions: DefinitionWithExtend[] = [
             e.battery().withAccess(ea.STATE_GET),
             e.battery_voltage().withAccess(ea.STATE_GET),
             e.device_temperature(),
-            e.illuminance_lux(),
+            e.illuminance(),
             e.action(['manual_open', 'manual_close']),
             e.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing', 'pause']).withDescription('Motor state'),
             e.binary('running', ea.STATE, true, false).withDescription('Whether the motor is moving or not'),
@@ -3015,7 +3004,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        exposes: [e.battery(), e.battery_voltage(), e.illuminance().withAccess(ea.STATE_GET), e.illuminance_lux().withAccess(ea.STATE_GET)],
+        exposes: [e.battery(), e.battery_voltage(), e.illuminance().withAccess(ea.STATE_GET), e.illuminance().withAccess(ea.STATE_GET)],
     },
     {
         zigbeeModel: ['lumi.light.acn128'],
@@ -3541,7 +3530,6 @@ const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e.battery_voltage(),
             e.illuminance(),
-            e.illuminance_lux(),
             e
                 .numeric('detection_period', exposes.access.ALL)
                 .withValueMin(1)

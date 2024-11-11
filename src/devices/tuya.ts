@@ -1294,7 +1294,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Illuminance, temperature & humidity sensor',
         fromZigbee: [legacy.fromZigbee.tuya_illuminance_temperature_humidity_sensor],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.illuminance_lux(), e.battery()],
+        exposes: [e.temperature(), e.humidity(), e.illuminance(), e.battery()],
     },
     {
         fingerprint: [
@@ -1740,7 +1740,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
-        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.tamper(), e.illuminance_lux()],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.tamper(), e.illuminance()],
     },
     {
         fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_cwamkvua']),
@@ -2581,7 +2581,7 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
-        exposes: [e.battery(), e.illuminance_lux(), e.linkquality(), e.enum('brightness_level', ea.STATE, ['LOW', 'MEDIUM', 'HIGH'])],
+        exposes: [e.battery(), e.illuminance(), e.linkquality(), e.enum('brightness_level', ea.STATE, ['LOW', 'MEDIUM', 'HIGH'])],
     },
     {
         zigbeeModel: ['TS130F'],
@@ -7030,7 +7030,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.battery, fz.illuminance],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-        exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.battery(), e.illuminance()],
     },
     {
         fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_t9qqxn70']),
@@ -7040,7 +7040,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.humidity, fz.battery, fz.temperature, fz.illuminance],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance_lux()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
     },
     {
         fingerprint: [
@@ -7052,7 +7052,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Light intensity sensor',
         fromZigbee: [fz.battery, fz.illuminance, legacy.fromZigbee.TS0222],
         toZigbee: [],
-        exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.battery(), e.illuminance()],
         configure: tuya.configureMagicPacket,
     },
     {
@@ -7297,7 +7297,6 @@ const definitions: DefinitionWithExtend[] = [
             e.humidity(),
             e.battery(),
             e.illuminance(),
-            e.illuminance_lux(),
             e
                 .numeric('alarm_temperature_max', ea.STATE_SET)
                 .withUnit('°C')
@@ -7350,7 +7349,7 @@ const definitions: DefinitionWithExtend[] = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
         exposes: [
-            e.illuminance_lux(),
+            e.illuminance(),
             e.presence(),
             e.occupancy(),
             e.numeric('motion_speed', ea.STATE).withDescription('Speed of movement'),
@@ -7388,7 +7387,7 @@ const definitions: DefinitionWithExtend[] = [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
                 [2, 'radar_sensitivity', tuya.valueConverter.raw],
                 [102, 'occupancy', tuya.valueConverter.trueFalse1],
-                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [103, 'illuminance', tuya.valueConverter.raw],
                 [105, 'tumble_switch', tuya.valueConverter.plus1],
                 [106, 'tumble_alarm_time', tuya.valueConverter.raw],
                 [112, 'radar_scene', tuya.valueConverterBasic.lookup({default: 0, area: 1, toilet: 2, bedroom: 3, parlour: 4, office: 5, hotel: 6})],
@@ -7620,7 +7619,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Illuminance sensor',
         fromZigbee: [legacy.fromZigbee.tuya_illuminance_sensor],
         toZigbee: [],
-        exposes: [e.illuminance_lux(), e.brightness_state()],
+        exposes: [e.illuminance(), e.brightness_state()],
     },
     {
         fingerprint: [
@@ -7711,7 +7710,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Moes', 'ZSS-QY-HP', 'Human presence sensor', ['_TZE204_fwondbzy']),
         ],
         exposes: [
-            e.illuminance_lux(),
+            e.illuminance(),
             e.presence(),
             e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
             e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription('sensitivity of the radar'),
@@ -7775,7 +7774,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.presence(),
-            e.illuminance_lux(),
+            e.illuminance(),
             e.numeric('keep_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Keep sensitivity'),
             e.numeric('trigger_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(20).withValueStep(1).withDescription('Trigger sensitivity'),
             e
@@ -7791,7 +7790,7 @@ const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
                 [102, 'fading_time', tuya.valueConverter.raw],
-                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [103, 'illuminance', tuya.valueConverter.raw],
                 [110, 'keep_sensitivity', tuya.valueConverter.raw],
                 [114, 'trigger_sensitivity', tuya.valueConverter.raw],
                 [182, 'target_distance', tuya.valueConverter.divideBy10],
@@ -7808,7 +7807,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         whiteLabel: [tuya.whitelabel('Wenzhi', 'WZ-M100-W', 'Human presence sensor', ['_TZE204_e5m9c5hl'])],
         exposes: [
-            e.illuminance_lux(),
+            e.illuminance(),
             e.presence(),
             e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
             e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription('sensitivity of the radar'),
@@ -7837,7 +7836,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [104, 'illuminance_lux', tuya.valueConverter.raw],
+                [104, 'illuminance', tuya.valueConverter.raw],
                 [105, 'presence', tuya.valueConverter.trueFalse1],
                 [106, 'radar_sensitivity', tuya.valueConverter.raw],
                 [107, 'maximum_range', tuya.valueConverter.divideBy100],
@@ -7856,7 +7855,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.illuminance_lux(),
+            e.illuminance(),
             e.presence(),
             e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
             e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription('sensitivity of the radar'),
@@ -7887,7 +7886,7 @@ const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
                 [9, 'target_distance', tuya.valueConverter.divideBy100],
-                [104, 'illuminance_lux', tuya.valueConverter.raw],
+                [104, 'illuminance', tuya.valueConverter.raw],
                 [2, 'radar_sensitivity', tuya.valueConverter.raw],
                 [4, 'maximum_range', tuya.valueConverter.divideBy100],
                 [3, 'minimum_range', tuya.valueConverter.divideBy100],
@@ -7907,7 +7906,7 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.illuminance_lux(),
+            e.illuminance(),
             e.presence(),
             e
                 .numeric('target_distance', ea.STATE)
@@ -7960,7 +7959,7 @@ const definitions: DefinitionWithExtend[] = [
                 [3, 'minimum_range', tuya.valueConverter.divideBy100],
                 [4, 'maximum_range', tuya.valueConverter.divideBy100],
                 [9, 'target_distance', tuya.valueConverter.divideBy100],
-                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [103, 'illuminance', tuya.valueConverter.raw],
                 [104, 'interval_time', tuya.valueConverter.raw],
                 [105, 'detection_delay', tuya.valueConverter.divideBy10],
                 [106, 'fading_time', tuya.valueConverter.divideBy10],
@@ -7977,7 +7976,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.presence(),
             e.enum('motion_state', ea.STATE, ['none', 'large', 'small', 'static']).withDescription('Motion state'),
-            e.illuminance_lux(),
+            e.illuminance(),
             e
                 .numeric('fading_time', ea.STATE_SET)
                 .withValueMin(0)
@@ -8035,7 +8034,7 @@ const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
-                [20, 'illuminance_lux', tuya.valueConverter.raw],
+                [20, 'illuminance', tuya.valueConverter.raw],
                 [
                     11,
                     'motion_state',
@@ -8558,7 +8557,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.presence(),
             e.enum('motion_state', ea.STATE, ['none', 'large', 'small', 'static']).withDescription('Motion state'),
-            e.illuminance_lux(),
+            e.illuminance(),
             e.battery(),
             e
                 .numeric('fading_time', ea.STATE_SET)
@@ -8596,7 +8595,7 @@ const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
-                [106, 'illuminance_lux', tuya.valueConverter.raw],
+                [106, 'illuminance', tuya.valueConverter.raw],
                 [
                     101,
                     'motion_state',
@@ -10325,7 +10324,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.illuminance_lux(),
+            e.illuminance(),
             e.presence(),
             e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
             e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription('Sensitivity of the radar'),
@@ -10361,7 +10360,7 @@ const definitions: DefinitionWithExtend[] = [
                 [0x02, 'radar_sensitivity', tuya.valueConverter.raw],
                 [0x03, 'minimum_range', tuya.valueConverter.divideBy100],
                 [0x04, 'maximum_range', tuya.valueConverter.divideBy100],
-                [0x65, 'illuminance_lux', tuya.valueConverter.raw],
+                [0x65, 'illuminance', tuya.valueConverter.raw],
                 [0x66, 'detection_delay', tuya.valueConverter.divideBy10],
                 [0x67, 'fading_time', tuya.valueConverter.divideBy10],
                 [
@@ -10576,7 +10575,7 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('state', ea.STATE, ['none', 'presence', 'move']).withDescription('Presence state'),
             e.presence(),
             e.numeric('distance', ea.STATE).withUnit('m').withDescription('Target distance'),
-            e.illuminance_lux(),
+            e.illuminance(),
             e
                 .numeric('motion_sensitivity', ea.STATE_SET)
                 .withValueMin(1)
@@ -10616,7 +10615,7 @@ const definitions: DefinitionWithExtend[] = [
                 [107, 'max_range', tuya.valueConverter.divideBy100],
                 [109, 'distance', tuya.valueConverter.divideBy100],
                 [110, 'presence_timeout', tuya.valueConverter.raw],
-                [104, 'illuminance_lux', tuya.valueConverter.raw],
+                [104, 'illuminance', tuya.valueConverter.raw],
                 [102, 'illuminance_treshold_max', tuya.valueConverter.raw],
                 [103, 'illuminance_treshold_min', tuya.valueConverter.raw],
                 [105, 'state', tuya.valueConverterBasic.lookup({none: 0, presence: 1, move: 2})],
@@ -10635,7 +10634,7 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('state', ea.STATE, ['none', 'presence', 'move']).withDescription('Presence state sensor'),
             e.presence().withDescription('Occupancy'),
             e.numeric('distance', ea.STATE).withUnit('m').withDescription('Target distance'),
-            e.illuminance_lux().withDescription('Illuminance sensor'),
+            e.illuminance().withDescription('Illuminance sensor'),
             e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
             e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
             e
@@ -10669,7 +10668,7 @@ const definitions: DefinitionWithExtend[] = [
                 [4, 'detection_distance_max', tuya.valueConverter.divideBy100],
                 [9, 'distance', tuya.valueConverter.divideBy10],
                 [105, 'presence_timeout', tuya.valueConverter.raw],
-                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [103, 'illuminance', tuya.valueConverter.raw],
                 [1, 'state', tuya.valueConverterBasic.lookup({none: 0, presence: 1, move: 2})],
             ],
         },
@@ -10687,7 +10686,7 @@ const definitions: DefinitionWithExtend[] = [
             e.presence().withDescription('Occupancy'),
             e.numeric('distance', ea.STATE).withDescription('Target distance'),
             e.binary('find_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('distance switch'),
-            e.illuminance_lux().withDescription('Illuminance sensor'),
+            e.illuminance().withDescription('Illuminance sensor'),
             e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
             e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
             e
@@ -10749,7 +10748,7 @@ const definitions: DefinitionWithExtend[] = [
                 [9, 'distance', tuya.valueConverter.divideBy10],
                 [101, 'find_switch', tuya.valueConverter.onOff],
                 [102, 'presence_sensitivity', tuya.valueConverter.raw],
-                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [103, 'illuminance', tuya.valueConverter.raw],
                 [105, 'presence_timeout', tuya.valueConverter.raw],
             ],
         },
@@ -10858,7 +10857,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         exposes: [
             e.presence(),
-            e.illuminance_lux(),
+            e.illuminance(),
             e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
             e
                 .numeric('radar_sensitivity', ea.STATE_SET)
@@ -10945,7 +10944,7 @@ const definitions: DefinitionWithExtend[] = [
                 [101, 'entry_filter_time', tuya.valueConverter.divideBy10],
                 [102, 'departure_delay', tuya.valueConverter.raw],
                 [103, 'cline', tuya.valueConverter.raw],
-                [104, 'illuminance_lux', tuya.valueConverter.divideBy10],
+                [104, 'illuminance', tuya.valueConverter.divideBy10],
                 [105, 'entry_sensitivity', tuya.valueConverter.raw],
                 [106, 'entry_distance_indentation', tuya.valueConverter.divideBy100],
                 [107, 'breaker_mode', tuya.valueConverterBasic.lookup({standard: tuya.enum(0), local: tuya.enum(1)})],
@@ -11924,7 +11923,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.illuminance_lux(),
+            e.illuminance(),
             e.presence(),
             e
                 .numeric('detection_distance_max', ea.STATE_SET)
@@ -11949,7 +11948,7 @@ const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
                 [101, 'target_distance', tuya.valueConverter.raw],
-                [102, 'illuminance_lux', tuya.valueConverter.raw],
+                [102, 'illuminance', tuya.valueConverter.raw],
                 [103, 'fading_time', tuya.valueConverter.raw],
                 [104, 'indicator', tuya.valueConverter.onOff],
                 [107, 'detection_distance_max', tuya.valueConverter.raw],
@@ -12113,7 +12112,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.presence(),
-            e.illuminance_lux(),
+            e.illuminance(),
             e
                 .enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])
                 .withDescription('PIR sensor sensitivity (refresh and update only while active)'),
@@ -12124,7 +12123,7 @@ const definitions: DefinitionWithExtend[] = [
                 [1, 'presence', tuya.valueConverterBasic.lookup({True: 0, False: 1})],
                 [9, 'sensitivity', tuya.valueConverterBasic.lookup({low: tuya.enum(0), medium: tuya.enum(1), high: tuya.enum(2)})],
                 [10, 'keep_time', tuya.valueConverterBasic.lookup({'30': tuya.enum(0), '60': tuya.enum(1), '120': tuya.enum(2)})],
-                [12, 'illuminance_lux', tuya.valueConverter.raw],
+                [12, 'illuminance', tuya.valueConverter.raw],
             ],
         },
     },
@@ -12148,7 +12147,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.01)
                 .withUnit('m')
                 .withDescription('Target distance'),
-            e.illuminance_lux(),
+            e.illuminance(),
             e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED Indicator'),
             e
                 .numeric('none_delay_time', ea.STATE_SET)
@@ -12231,7 +12230,7 @@ const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [101, 'target_distance', tuya.valueConverter.divideBy100],
-                [102, 'illuminance_lux', tuya.valueConverter.raw],
+                [102, 'illuminance', tuya.valueConverter.raw],
                 [103, 'none_delay_time', tuya.valueConverter.raw],
                 [104, 'indicator', tuya.valueConverter.onOff],
                 [107, 'move_detection_max', tuya.valueConverter.divideBy100],

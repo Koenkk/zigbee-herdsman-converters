@@ -164,7 +164,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Motion sensor',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout, fz.illuminance],
         toZigbee: [],
-        exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.temperature(), e.humidity()],
+        exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.illuminance(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
