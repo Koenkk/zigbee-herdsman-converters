@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {
     battery,
     commandsLevelCtrl,
@@ -532,8 +531,8 @@ const definitions: DefinitionWithExtend[] = [
             fz.ignore_haDiagnostic,
             fz.ignore_genOta,
             fz.ignore_zclversion_read,
-            legacy.fz.wiser_thermostat,
-            legacy.fz.wiser_itrv_battery,
+            fz.thermostat,
+            fz.battery,
             fz.hvac_user_interface,
             fz.wiser_device_info,
         ],
@@ -909,8 +908,8 @@ const definitions: DefinitionWithExtend[] = [
             fz.ignore_haDiagnostic,
             fz.ignore_genOta,
             fz.ignore_zclversion_read,
-            legacy.fz.wiser_thermostat,
-            legacy.fz.wiser_itrv_battery,
+            fz.thermostat,
+            fz.battery,
             fz.hvac_user_interface,
             fz.wiser_device_info,
         ],

@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {deviceEndpoints, forcePowerSource, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
@@ -61,7 +60,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Nue / 3A',
         description: 'Smart 1 key scene wall switch',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.ignore_power_report],
         exposes: [e.action(['recall_*']), e.switch()],
     },
     {
@@ -71,7 +70,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart 2 key scene wall switch',
         toZigbee: [tz.on_off],
         exposes: [e.action(['recall_*']), e.switch()],
-        fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.ignore_power_report],
     },
     {
         zigbeeModel: ['FB56+ZSN08KJ2.3', 'FEB56-ZSN26YS1.3'],
@@ -79,7 +78,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Nue / 3A',
         description: 'Smart 4 key scene wall switch',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.ignore_power_report],
         exposes: [e.action(['recall_*']), e.switch()],
     },
     {

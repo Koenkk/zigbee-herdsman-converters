@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {battery, electricityMeter, forcePowerSource, iasZoneAlarm, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
@@ -305,7 +304,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PCT504',
         vendor: 'OWON',
         description: 'HVAC fan coil',
-        fromZigbee: [fz.fan, fz.thermostat, fz.humidity, fz.occupancy, legacy.fz.hvac_user_interface],
+        fromZigbee: [fz.fan, fz.thermostat, fz.humidity, fz.occupancy, fz.hvac_user_interface],
         toZigbee: [
             tz.fan_mode,
             tz.thermostat_occupied_heating_setpoint,
