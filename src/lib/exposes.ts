@@ -817,10 +817,10 @@ export const options = {
         new Numeric(`vibration_timeout`, access.SET)
             .withValueMin(0)
             .withDescription('Time in seconds after which vibration is cleared after detecting it (default 90 seconds).'),
-    simulated_brightness: (extraNote = '') =>
+    simulated_brightness: () =>
         new Composite('simulated_brightness', 'simulated_brightness', access.SET)
             .withDescription(
-                `Simulate a brightness value. If this device provides a brightness_move_up or brightness_move_down action it is possible to specify the update interval and delta. The action_brightness_delta indicates the delta for each interval. ${extraNote}`,
+                `Simulate a brightness value. If this device provides a brightness_move_up or brightness_move_down action it is possible to specify the update interval and delta. The action_brightness_delta indicates the delta for each interval.`,
             )
             .withFeature(new Numeric('delta', access.SET).withValueMin(0).withDescription('Delta per interval, 20 by default'))
             .withFeature(new Numeric('interval', access.SET).withValueMin(0).withUnit('ms').withDescription('Interval duration')),
