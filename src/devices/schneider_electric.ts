@@ -378,22 +378,6 @@ const schneiderElectricExtend = {
 
         return extend;
     },
-
-    dimmingOnLevel: (): ModernExtend => {
-        const extend = enumLookup({
-            name: 'on_level',
-            lookup: {
-                '100%': 254,
-                'Last level': 255,
-            },
-            cluster: 'genLevelCtrl',
-            attribute: 'onLevel',
-            description: 'The level that will be applied when the light is turned on.',
-            entityCategory: 'config',
-        });
-        extend.configure.push(setupConfigureForReading('genLevelCtrl', ['onLevel']));
-        return extend;
-    },
 };
 
 const tzLocal = {
@@ -2124,6 +2108,9 @@ const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 color: false,
                 configureReporting: true,
+                levelConfig: {
+                    disabledFeatures: ['on_transition_time', 'off_transition_time', 'on_off_transition_time', 'execute_if_off'],
+                },
             }),
             lightingBallast(),
             illuminance(),
@@ -2132,7 +2119,6 @@ const definitions: DefinitionWithExtend[] = [
             }),
             schneiderElectricExtend.occupancyConfiguration(),
             schneiderElectricExtend.dimmingMode(),
-            schneiderElectricExtend.dimmingOnLevel(),
         ],
         whiteLabel: [
             {vendor: 'Elko', model: 'EKO07250'},
