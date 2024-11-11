@@ -327,12 +327,26 @@ const schneiderElectricExtend = {
             },
             cluster: 'lightingBallastCfg',
             attribute: 'wiserControlMode',
-            description: 'Controls the dimmer mode.',
+            description: 'Auto detects the correct mode for the ballast. RL-LED may have improved dimming quality for LEDs.',
             entityCategory: 'config',
         });
         extend.configure.push(setupConfigureForReading('lightingBallastCfg', ['wiserControlMode']));
         return extend;
     },
+
+    addOccupancyConfigurationCluster: () =>
+        deviceAddCustomCluster('occupancyConfiguration', {
+            ID: 0xff19,
+            manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                ambienceLightThreshold: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                occupancyActions: {ID: 0x0001, type: Zcl.DataType.ENUM8},
+                unoccupiedLevelDflt: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                unoccupiedLevel: {ID: 0x0003, type: Zcl.DataType.UINT8},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 
     occupancyConfiguration: (): ModernExtend => {
         const extend = enumLookup({
@@ -343,7 +357,10 @@ const schneiderElectricExtend = {
                 High: 100,
             },
             cluster: 'msOccupancySensing',
-            attribute: 'schneiderOccupancySensitivity',
+            attribute: {ID: 0xe003, type: Zcl.DataType.UINT8},
+            zigbeeCommandOptions: {
+                manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            },
             description: 'Sensitivity of the occupancy sensor',
             entityCategory: 'config',
         });
@@ -358,7 +375,7 @@ const schneiderElectricExtend = {
 
         const luxThresholdExtend = numeric({
             name: 'ambience_light_threshold',
-            cluster: 'manuSpecificSchneiderOccupancyConfiguration',
+            cluster: 'occupancyConfiguration',
             attribute: 'ambienceLightThreshold',
             reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5},
             description: 'Threshold above which occupancy will not trigger the light switch.',
@@ -366,15 +383,12 @@ const schneiderElectricExtend = {
             scale: luxScale,
             entityCategory: 'config',
             valueMin: 1,
-            valueMax: 1000,
+            valueMax: 2000,
         });
         extend.fromZigbee.push(...luxThresholdExtend.fromZigbee);
         extend.toZigbee.push(...luxThresholdExtend.toZigbee);
         extend.exposes.push(...luxThresholdExtend.exposes);
-        extend.configure.push(
-            setupConfigureForReading('manuSpecificSchneiderOccupancyConfiguration', ['ambienceLightThreshold']),
-            setupConfigureForReading('msOccupancySensing', ['schneiderOccupancySensitivity']),
-        );
+        extend.configure.push(setupConfigureForReading('occupancyConfiguration', ['ambienceLightThreshold']));
 
         return extend;
     },
@@ -2117,6 +2131,7 @@ const definitions: DefinitionWithExtend[] = [
             occupancy({
                 pirConfig: ['otu_delay'],
             }),
+            schneiderElectricExtend.addOccupancyConfigurationCluster(),
             schneiderElectricExtend.occupancyConfiguration(),
             schneiderElectricExtend.dimmingMode(),
         ],

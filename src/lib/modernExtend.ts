@@ -820,8 +820,9 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
                     attribute: 'pirOToUDelay',
                     valueMin: 0,
                     valueMax: 65534,
+                    unit: 's',
                     ...settingsTemplate,
-                    description: 'Time in seconds before occupancy is cleared after detecting movement.',
+                    description: 'Time in seconds before occupancy is cleared after the last detected movement.',
                 }),
             );
             attributesForReading.push('pirOToUDelay');
@@ -1284,15 +1285,15 @@ export function lightingBallast(): ModernExtend {
         toZigbee: [tz.ballast_config],
         exposes: [
             new Numeric('ballast_minimum_level', ea.ALL)
-                .withValueMin(0)
+                .withValueMin(1)
                 .withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             new Numeric('ballast_maximum_level', ea.ALL)
-                .withValueMin(0)
+                .withValueMin(1)
                 .withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast'),
         ],
-        configure: [setupConfigureForReading('msOccupancySensing', ['ballast_minimum_level', 'ballast_maximum_level'])],
+        configure: [setupConfigureForReading('lightingBallastCfg', ['minLevel', 'maxLevel'])],
         isModernExtend: true,
     };
 
