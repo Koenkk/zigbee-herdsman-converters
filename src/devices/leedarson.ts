@@ -1,6 +1,5 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -69,14 +68,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '6ARCZABZH',
         vendor: 'Leedarson',
         description: '4-Key Remote Controller',
-        fromZigbee: [
-            fz.command_on,
-            fz.command_off,
-            legacy.fz.CCTSwitch_D0001_on_off,
-            fz.CCTSwitch_D0001_levelctrl,
-            fz.CCTSwitch_D0001_lighting,
-            fz.battery,
-        ],
+        fromZigbee: [fz.command_on, fz.command_off, fz.CCTSwitch_D0001_levelctrl, fz.CCTSwitch_D0001_lighting, fz.battery],
         exposes: [
             e.battery(),
             e.action([

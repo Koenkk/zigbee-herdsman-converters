@@ -322,7 +322,6 @@ const definitions: DefinitionWithExtend[] = [
             fz.battery,
             fz.on_off,
             fz.ptvo_multistate_action,
-            legacy.fz.ptvo_switch_buttons,
             fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input,
             fz.brightness,

@@ -3,7 +3,6 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
@@ -227,7 +226,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'AV2010/32',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless wall thermostat with relay',
-        fromZigbee: [legacy.fz.thermostat_att_report, fz.battery, fz.hvac_user_interface, bitron.fz.thermostat_hysteresis],
+        fromZigbee: [fz.thermostat, fz.battery, fz.hvac_user_interface, bitron.fz.thermostat_hysteresis],
         toZigbee: [
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_occupied_heating_setpoint,

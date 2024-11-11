@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {deviceEndpoints, electricityMeter, iasZoneAlarm, identify, onOff, temperature} from '../lib/modernExtend';
 import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -368,7 +367,6 @@ const definitions: DefinitionWithExtend[] = [
             fzLocal.zigusb_analog_input,
             fz.temperature,
             fz.ptvo_multistate_action,
-            legacy.fz.ptvo_switch_buttons,
             fzLocal.zigusb_button_config,
         ],
         toZigbee: [tzLocal.zigusb_restart_interval, tzLocal.zigusb_on_off_invert, tz.ptvo_switch_analog_input, tzLocal.zigusb_button_config],

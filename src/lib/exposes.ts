@@ -846,10 +846,6 @@ export const options = {
             .withDescription(
                 'Controls the transition time (in seconds) of on/off, brightness, color temperature (if applicable) and color (if applicable) changes. Defaults to `0` (no transition).',
             ),
-    legacy: () =>
-        new Binary(`legacy`, access.SET, true, false).withDescription(
-            `Set to false to disable the legacy integration (highly recommended), will change structure of the published payload (default true).`,
-        ),
     measurement_poll_interval: (extraNote = '') =>
         new Numeric(`measurement_poll_interval`, access.SET)
             .withValueMin(-1)

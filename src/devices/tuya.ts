@@ -892,7 +892,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0218',
         vendor: 'Tuya',
         description: 'Button',
-        fromZigbee: [legacy.fromZigbee.TS0218_click, fz.battery],
+        fromZigbee: [fz.command_emergency, fz.battery],
         exposes: [e.battery(), e.action(['click'])],
         toZigbee: [],
     },
@@ -4926,7 +4926,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ETOP',
         description: 'Wall-mount thermostat',
         fromZigbee: [
-            legacy.fromZigbee.tuya_thermostat_weekly_schedule_1,
+            legacy.fromZigbee.tuya_thermostat_weekly_schedule_2,
             legacy.fromZigbee.etop_thermostat,
             fz.ignore_basic_report,
             fz.ignore_tuya_set_time,
@@ -4966,7 +4966,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ETOP',
         description: 'Radiator valve',
         fromZigbee: [
-            legacy.fromZigbee.tuya_thermostat_weekly_schedule_1,
+            legacy.fromZigbee.tuya_thermostat_weekly_schedule_2,
             legacy.fromZigbee.etop_thermostat,
             fz.ignore_basic_report,
             fz.ignore_tuya_set_time,
@@ -6675,7 +6675,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'U86KWF-ZPSJ',
         vendor: 'Tuya',
         description: 'Environment controller',
-        fromZigbee: [legacy.fromZigbee.thermostat_att_report, fz.fan],
+        fromZigbee: [fz.thermostat, fz.fan],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_local_temperature_calibration,

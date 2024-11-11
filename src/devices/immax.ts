@@ -105,7 +105,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '07046L',
         vendor: 'Immax',
         description: '4-Touch single click buttons',
-        fromZigbee: [legacy.fz.immax_07046L_arm, fz.command_panic],
+        fromZigbee: [fz.command_arm, fz.command_panic],
         exposes: [e.action(['disarm', 'arm_stay', 'arm_away', 'panic'])],
         toZigbee: [],
     },
@@ -142,7 +142,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '07703L',
         vendor: 'Immax',
         description: 'Radiator valve',
-        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_1, legacy.fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_2, legacy.fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [
             legacy.tz.etop_thermostat_system_mode,
             legacy.tz.etop_thermostat_away_mode,

@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -132,16 +131,7 @@ const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
             }
         },
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.on_off,
-            fz.brightness,
-            legacy.fz.RM01_on_click,
-            legacy.fz.RM01_off_click,
-            legacy.fz.RM01_up_hold,
-            legacy.fz.RM01_down_hold,
-            legacy.fz.RM01_stop,
-        ],
+        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.command_on, fz.command_off, fz.command_step, fz.command_stop],
         options: [
             e
                 .numeric('state_poll_interval', ea.SET)

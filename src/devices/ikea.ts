@@ -12,7 +12,6 @@ import {
     ikeaConfigureRemote,
     ikeaConfigureStyrbar,
     ikeaDotsClick,
-    legacy as ikeaLegacy,
     ikeaLight,
     ikeaMediaCommands,
     ikeaVoc,
@@ -720,7 +719,6 @@ const definitions: DefinitionWithExtend[] = [
             identify({isSleepy: true}),
             commandsLevelCtrl({
                 commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'],
-                legacyAction: true,
             }),
             battery({dontDividePercentage: true}),
         ],
@@ -764,18 +762,12 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E1743',
         vendor: 'IKEA',
         description: 'TRADFRI on/off switch',
-        fromZigbee: [
-            // DEPRECATED
-            ikeaLegacy.fromZigbee.E1743_brightness_up,
-            ikeaLegacy.fromZigbee.E1743_brightness_down,
-            ikeaLegacy.fromZigbee.E1743_brightness_stop,
-        ],
         meta: {disableActionGroup: true},
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
-            commandsOnOff({commands: ['on', 'off'], legacyAction: true}),
+            commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
         ],
@@ -816,17 +808,11 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E1744',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 1',
-        fromZigbee: [
-            // DEPRECATED
-            ikeaLegacy.fromZigbee.E1744_play_pause,
-            ikeaLegacy.fromZigbee.E1744_skip,
-        ],
         extend: [
             identify({isSleepy: true}),
             commandsOnOff({commands: ['toggle']}),
             commandsLevelCtrl({
                 commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down'],
-                legacyAction: true,
             }),
             ikeaBattery(),
         ],
@@ -837,7 +823,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        extend: [ikeaConfigureRemote(), identify({isSleepy: true}), commandsWindowCovering({legacyAction: true}), ikeaBattery()],
+        extend: [ikeaConfigureRemote(), identify({isSleepy: true}), commandsWindowCovering(), ikeaBattery()],
         ota: true,
     },
     {
@@ -845,10 +831,6 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E2123',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 2',
-        fromZigbee: [
-            // DEPRECATED
-            ikeaLegacy.fromZigbee.E1744_play_pause,
-        ],
         extend: [
             bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
             deviceEndpoints({endpoints: {'1': 2, '2': 3}}),

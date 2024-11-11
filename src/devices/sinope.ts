@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {electricityMeter, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
@@ -32,7 +31,6 @@ const fzLocal = {
     thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             // @ts-expect-error ignore
             delete msg['running_state'];
@@ -606,7 +604,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
         extend: [electricityMeter()],
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -706,7 +704,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
         extend: [electricityMeter()],
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -806,7 +804,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
         extend: [electricityMeter()],
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -917,7 +915,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
         extend: [electricityMeter()],
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -1031,7 +1029,7 @@ const definitions: DefinitionWithExtend[] = [
             {model: 'TH1320ZB-04', vendor: 'Sinopé', description: 'Zigbee smart floor heating thermostat', fingerprint: [{modelID: 'TH1320ZB-04'}]},
         ],
         extend: [electricityMeter()],
-        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface, fz.ignore_temperature_report],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -1134,7 +1132,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fzLocal.thermostat,
             fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
+            fz.hvac_user_interface,
             fz.electrical_measurement,
             fz.metering,
             fz.ignore_temperature_report,
@@ -1315,7 +1313,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fzLocal.thermostat,
             fzLocal.sinope,
-            legacy.fz.hvac_user_interface,
+            fz.hvac_user_interface,
             fz.electrical_measurement,
             fz.metering,
             fz.ignore_temperature_report,

@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {eLegrand, fzLegrand, legrandOptions, readInitialBatteryState, tzLegrand} from '../lib/legrand';
 import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
@@ -252,7 +251,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Wireless remote switch',
         ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, legacy.fz.cmd_move, legacy.fz.cmd_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         onEvent: readInitialBatteryState,
@@ -673,7 +672,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Remote dimmer switch',
         ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, legacy.fz.cmd_move, legacy.fz.cmd_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         onEvent: readInitialBatteryState,
