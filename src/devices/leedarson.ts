@@ -105,7 +105,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Motion sensor',
         fromZigbee: [fz.occupancy, fz.illuminance, fz.ignore_occupancy_report],
         toZigbee: [],
-        exposes: [e.occupancy(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.occupancy(), e.illuminance()],
     },
     {
         zigbeeModel: ['ZB-SMART-PIRTH-V1'],
@@ -114,7 +114,7 @@ const definitions: DefinitionWithExtend[] = [
         description: '4-in-1-Sensor',
         fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.illuminance, fz.temperature, fz.humidity, fz.ignore_occupancy_report],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity()],
+        exposes: [e.battery(), e.occupancy(), e.temperature(), e.illuminance(), e.humidity()],
     },
     {
         zigbeeModel: ['ZB-MotionSensor-S0000'],

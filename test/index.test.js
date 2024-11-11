@@ -555,7 +555,6 @@ describe('index.js', () => {
             'battery_low',
             'linkquality',
             'temperature',
-            'illuminance_lux',
             'illuminance',
             'battery',
             'voltage',

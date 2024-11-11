@@ -315,7 +315,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart temperature and humidity meter with display',
         fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
+        exposes: [e.battery(), e.illuminance(), e.humidity(), e.temperature()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'}],

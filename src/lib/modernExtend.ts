@@ -651,33 +651,17 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
         return result;
     };
 
-    const rawIllinance = numeric({
+    return numeric({
         name: 'illuminance',
         cluster: 'msIlluminanceMeasurement',
         attribute: 'measuredValue',
-        description: 'Raw measured illuminance',
-        access: 'STATE_GET',
-        ...args,
-    });
-
-    const illiminanceLux = numeric({
-        name: 'illuminance_lux',
-        cluster: 'msIlluminanceMeasurement',
-        attribute: 'measuredValue',
         reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5}, // 5 lux
-        description: 'Measured illuminance in lux',
+        description: 'Measured illuminance',
         unit: 'lx',
         scale: luxScale,
         access: 'STATE_GET',
         ...args,
     });
-
-    const result: ModernExtend = illiminanceLux;
-    result.fromZigbee.push(...rawIllinance.fromZigbee);
-    result.toZigbee.push(...rawIllinance.toZigbee);
-    result.exposes.push(...rawIllinance.exposes);
-
-    return result;
 }
 
 export function temperature(args?: Partial<NumericArgs>) {

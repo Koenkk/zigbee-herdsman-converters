@@ -103,7 +103,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Temperature, relative humidity and illuminance sensor',
         fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
+        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.humidity(), e.temperature()],
     },
     {
         zigbeeModel: ['3AFE241000040002'],

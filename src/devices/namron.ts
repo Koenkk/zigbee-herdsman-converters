@@ -1249,7 +1249,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee multisensor (white)',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.humidity, fz.illuminance],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux(), e.temperature(), e.humidity()],
+        exposes: [e.occupancy(), e.battery(), e.battery_voltage(), e.illuminance(), e.temperature(), e.humidity()],
         whiteLabel: [{vendor: 'Namron', model: '4512771', description: 'Zigbee multisensor (black)', fingerprint: [{modelID: '4512771'}]}],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint3 = device.getEndpoint(3);
