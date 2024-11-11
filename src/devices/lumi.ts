@@ -3004,7 +3004,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        exposes: [e.battery(), e.battery_voltage(), e.illuminance().withAccess(ea.STATE_GET), e.illuminance().withAccess(ea.STATE_GET)],
+        exposes: [e.battery(), e.battery_voltage(), e.illuminance().withAccess(ea.STATE_GET)],
     },
     {
         zigbeeModel: ['lumi.light.acn128'],
