@@ -6,6 +6,7 @@ import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -120,6 +121,26 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'AduroSmart',
         description: 'AduroSmart on/off relay',
         extend: [onOff({powerOnBehavior: false})],
+    },
+    {
+        fingerprint: [{modelID: 'Smart Siren', manufacturerName: 'AduroSmart Eria'}],
+        model: '81868',
+        vendor: 'AduroSmart',
+        description: 'Siren',
+        fromZigbee: [fz.battery, fz.ias_wd, fz.ias_enroll, fz.ias_siren],
+        toZigbee: [tz.warning_simple, tz.ias_max_duration, tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'ssIasZone', 'ssIasWd']);
+            await endpoint.read('ssIasZone', ['zoneState', 'iasCieAddr', 'zoneId']);
+            await endpoint.read('ssIasWd', ['maxDuration']);
+        },
+        exposes: [
+            e.tamper(),
+            e.warning(),
+            e.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
+            e.binary('alarm', ea.SET, 'ON', 'OFF').withDescription('Manual start of siren'),
+        ],
     },
 ];
 

@@ -2070,7 +2070,7 @@ const fromZigbee = {
             switch (dp) {
                 case dataPoints.saswellHeating:
                     // heating status 1 - heating
-                    return {heating: value ? 'ON' : 'OFF'};
+                    return {heating: value ? 'ON' : 'OFF', running_state: value ? 'heat' : 'idle'};
                 case dataPoints.saswellWindowDetection:
                     return {window_detection: value ? 'ON' : 'OFF'};
                 case dataPoints.saswellFrostDetection:

@@ -134,7 +134,7 @@ const transactionStore: {[s: string]: number[]} = {};
 export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number = null, key: string = null) {
     if (model.meta && model.meta.publishDuplicateTransaction) return false;
     const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
-    key = key || msg.device.ieeeAddr;
+    key = key || msg.device.ieeeAddr + '-' + msg.endpoint.ID;
     if (transactionStore[key]?.includes(currentID)) return true;
     // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
     transactionStore[key] = [currentID, ...(transactionStore[key] ?? [])].slice(0, 5);

@@ -2633,11 +2633,11 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
+        fingerprint: tuya.fingerprint('TS130F', ['_TZ3210_dwytrmda', '_TZ3000_1dd0d5yi']),
         model: 'MS-108ZR',
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch module',
-        whiteLabel: [tuya.whitelabel('QA', 'QACZ1', 'Curtain switch', ['_TZ3210_xbpt8ewc'])],
+        whiteLabel: [tuya.whitelabel('Girier', 'TS130F_GIRIER', 'Smart curtain switch', ['_TZ3210_dwytrmda'])],
         ota: true,
         meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
@@ -4016,6 +4016,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE204_1fuxihti'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_57hjqelq'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_m1wl5fvq'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_en3wvcbx'},
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_hsgrhjpf'},
@@ -5372,6 +5373,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Moes', 'ZK-EU', 'Smart wallsocket (with power monitoring)', ['_TZ3000_ss98ec5d']),
             tuya.whitelabel('Nous', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_ksw8qtmt']),
             tuya.whitelabel('Elivco', 'LSPA9', 'Smart plug (with power monitoring)', ['_TZ3000_okaz9tjs']),
+            tuya.whitelabel('PSMART', 'T440', 'Smart wallsocket (with power monitoring)', ['_TZ3000_y4ona9me']),
         ],
         ota: true,
         extend: [
@@ -10611,7 +10613,7 @@ const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [112, 'presence', tuya.valueConverter.trueFalse1],
                 [106, 'motion_sensitivity', tuya.valueConverter.divideBy10FromOnly],
-                [111, 'presence_sensitivity', tuya.valueConverter.divideBy10FromOnly],
+                [111, 'occupancy_sensitivity', tuya.valueConverter.divideBy10FromOnly],
                 [107, 'max_range', tuya.valueConverter.divideBy100],
                 [109, 'distance', tuya.valueConverter.divideBy100],
                 [110, 'presence_timeout', tuya.valueConverter.raw],

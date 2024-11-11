@@ -1368,7 +1368,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['4512782', '4512781'],
         model: '4512782',
-        vendor: 'Namron AS',
+        vendor: 'Namron',
         description: 'Rotary dimmer with screen',
         extend: [
             light({effect: false, configureReporting: true, powerOnBehavior: false}),
