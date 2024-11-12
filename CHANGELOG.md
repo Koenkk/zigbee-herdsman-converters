@@ -1,5 +1,19 @@
 # Changelog
 
+## [20.45.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.44.0...v20.45.0) (2024-11-12)
+
+
+### Features
+
+* **add:** TS0105 https://github.com/Koenkk/zigbee2mqtt/issues/24722 ([ebfb2d5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ebfb2d55d31fffc3c72e075bdc0871a9c2a29fa8))
+
+
+### Bug Fixes
+
+* Fix EcoDim ED-10012 and ED-10014 battery % https://github.com/Koenkk/zigbee2mqtt/issues/24698 ([8047ae2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8047ae24e0c1c15bf703c42517cab7e5b8fb9ec6))
+* Fix hasAlreadyProcessedMessage when device has multiple endpoints ([#8301](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8301)) ([ba97340](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ba97340d2416dfde77794d780fec9c44d403fa90))
+* Fix preset value for Tuya `_TZE200_viy9ihs7`  ([#8298](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8298)) ([e96ca33](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e96ca33e1c2c73156e1f7f0b766e79d9556a0577))
+
 ## [20.44.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.43.0...v20.44.0) (2024-11-10)
 
 
