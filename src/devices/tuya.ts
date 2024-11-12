@@ -6895,7 +6895,7 @@ const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverterBasic.lookup((_, device) => {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/21353#issuecomment-1938328429
                         if (device.manufacturerName === '_TZE200_viy9ihs7') {
-                            return {auto: tuya.enum(1), manual: tuya.enum(0), temporary_manual: tuya.enum(2)};
+                            return {auto: tuya.enum(0), manual: tuya.enum(1), temporary_manual: tuya.enum(2)};
                         } else {
                             return {auto: tuya.enum(0), manual: tuya.enum(1), temporary_manual: tuya.enum(2)};
                         }
