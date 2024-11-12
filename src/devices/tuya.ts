@@ -12293,6 +12293,25 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ['TS0105'],
+        model: 'TS0105',
+        vendor: 'TuYa',
+        description: '3 gang switch',
+        extend: [tuyaBase({dp: true}), deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1}})],
+        exposes: [
+            e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iba1ckek', '_TZE200_hggxgsjj']),
         model: 'ZG-103Z',
         vendor: 'Tuya',
