@@ -418,7 +418,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB (pro)',
-		extend: [light({color: {modes: ['xy', 'hs'], enhancedHue: true}}), identify(), gledoptoConfigureReadModelID()],
+        extend: [light({color: {modes: ['xy', 'hs'], enhancedHue: true}}), identify(), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-C-008P'],
