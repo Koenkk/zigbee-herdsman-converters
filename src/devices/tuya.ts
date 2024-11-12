@@ -1616,7 +1616,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Tuya', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
             tuya.whitelabel('Lidl', '14158704L', 'Livarno Home LED floor lamp, RGBW', ['_TZ3210_z1vlyufu']),
             tuya.whitelabel('Lidl', '14158804L', 'Livarno Home LED desk lamp RGBW', ['_TZ3210_hxtfthp5']),
-            tuya.whitelabel('Lidl', 'HG07834A/HG09155A', 'Livarno Lux GU10 spot RGB', ['_TZ3000_quqaeew6']),
+            tuya.whitelabel('Lidl', 'HG07834A/HG09155A/HG08131A', 'Livarno Home GU10 spot RGB+CCT', ['_TZ3000_quqaeew6']),
             tuya.whitelabel('Lidl', 'HG07834B/HG08131B', 'Livarno Home E14 candle RGB+CCT', ['_TZ3000_th6zqqy6']),
             tuya.whitelabel('Lidl', 'HG07834B', 'Livarno Home E14 candle RGB+CCT', ['_TZ3000_wr6g6olr']),
             tuya.whitelabel('Lidl', 'HG08131C', 'Livarno Home outdoor E27 bulb in set with flare', ['_TZ3000_q50zhdsc']),
