@@ -1926,14 +1926,13 @@ const converters1 = {
             const result: KeyValueAny = {};
             const data = msg.data;
             if (data.localTemp !== undefined) {
-                const value = precisionRound(msg.data['localTemp'], 2) / 100;              
+                const value = precisionRound(msg.data['localTemp'], 2) / 100;
                 const valuesFloorSensor = ['floor', 'supervisor_floor'];
                 const sensorType = globalStore.getValue(msg.endpoint, 'sensor');
                 const floorTemperature = globalStore.getValue(msg.endpoint, 'floor_temp');
                 if (valuesFloorSensor.includes(sensorType) && options.local_temperature_based_on_sensor) {
                     result[postfixWithEndpointName('local_temperature', msg, model, meta)] = floorTemperature;
-                }
-                else {
+                } else {
                     if (value >= -273.15) {
                         result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
                     }
