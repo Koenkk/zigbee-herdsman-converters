@@ -1,5 +1,20 @@
 # Changelog
 
+## [20.46.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.45.0...v20.46.0) (2024-11-13)
+
+
+### Features
+
+* Add Livarno Home (Lidl) HG08131A, HG08131B, HG08131C ([#8307](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8307)) ([963d9a9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/963d9a9eaf06e64c0751f3adb4c623d9692729b1))
+* Support OTA for RB 272 T ([#8310](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8310)) ([3e08ed6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e08ed6d294ef5ce428a03afbb6cfcafe67d63af))
+
+
+### Bug Fixes
+
+* Add back colour to Gledopto GL-C-003P ([#8305](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8305)) ([829eb5f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/829eb5fff07f34a988596b4b92a9793e3759d978))
+* **detect:** Detect `_TZE200_9xfjixap` as Avatto ME167 ([#8312](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8312)) ([14f3c9f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14f3c9fcabf62210e817aaa1bc6ffa4c09dec7c9))
+* Fix attribute name for Elko Super RF ([#8308](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8308)) ([ebbe3b2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ebbe3b247c6ad546bbd6c53efc9920c8fe60899d))
+
 ## [20.45.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.44.0...v20.45.0) (2024-11-12)
 
 
