@@ -37,7 +37,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4523430',
         vendor: 'ELKO',
         description: 'ESH Plus Super TR RF PH',
-        fromZigbee: [fz.elko_thermostat, fz.thermostat],
+        fromZigbee: [fz.elko_thermostat],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.elko_display_text,
@@ -93,7 +93,7 @@ const definitions: DefinitionWithExtend[] = [
             numeric({
                 name: 'floor_temp',
                 cluster: 'hvacThermostat',
-                attribute: 'elkoFloorTemp',
+                attribute: 'elkoExternalTemp',
                 description: 'Current temperature measured on the external sensor (floor)',
                 access: 'STATE_GET',
                 unit: '°C',
@@ -165,7 +165,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'genBasic', 'genIdentify']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
 
             // standard ZCL attributes
             await reporting.thermostatTemperature(endpoint);

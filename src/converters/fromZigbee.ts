@@ -1924,32 +1924,102 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             const data = msg.data;
-
+            if (data.localTemp !== undefined) {
+                const value = precisionRound(msg.data['localTemp'], 2) / 100;              
+                const valuesFloorSensor = ['floor', 'supervisor_floor'];
+                const sensorType = globalStore.getValue(msg.endpoint, 'sensor');
+                const floorTemperature = globalStore.getValue(msg.endpoint, 'floor_temp');
+                if (valuesFloorSensor.includes(sensorType)) {
+                    result[postfixWithEndpointName('local_temperature', msg, model, meta)] = floorTemperature;
+                }
+                else {
+                    if (value >= -273.15) {
+                        result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
+                    }
+                }
+            }
+            if (data.localTemperatureCalibration !== undefined) {
+                result[postfixWithEndpointName('local_temperature_calibration', msg, model, meta)] =
+                    precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
+            }
+            if (data.occupiedHeatingSetpoint !== undefined) {
+                const value = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+                // Stelpro will return -325.65 when set to off, value is not realistic anyway
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('occupied_heating_setpoint', msg, model, meta)] = value;
+                }
+            }
+            if (data.occupiedCoolingSetpoint !== undefined) {
+                result[postfixWithEndpointName('occupied_cooling_setpoint', msg, model, meta)] =
+                    precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
+            }
+            if (data.systemMode !== undefined) {
+                result[postfixWithEndpointName('system_mode', msg, model, meta)] = constants.thermostatSystemModes[msg.data['systemMode']];
+            }
+            if (data.runningState !== undefined) {
+                result[postfixWithEndpointName('running_state', msg, model, meta)] = constants.thermostatRunningStates[msg.data['runningState']];
+            }
             if (data.elkoDisplayText !== undefined) {
                 // Display text
                 result.display_text = data['elkoDisplayText'];
             }
-
+            if (data.elkoSensor !== undefined) {
+                // Sensor
+                const sensorModeLookup = {
+                    0: 'air',
+                    1: 'floor',
+                    3: 'supervisor_floor',
+                };
+                const value = utils.getFromLookup(data['elkoSensor'], sensorModeLookup);
+                globalStore.putValue(msg.endpoint, 'sensor', value);
+                result.sensor = value;
+            }
             if (data.elkoPowerStatus !== undefined) {
                 // Power status
                 result.system_mode = data['elkoPowerStatus'] ? 'heat' : 'off';
             }
-
             if (data.elkoExternalTemp !== undefined) {
                 // External temp (floor)
-                result.floor_temp = utils.precisionRound(data['elkoExternalTemp'], 2) / 100;
+                const value = precisionRound(data['elkoExternalTemp'], 2) / 100;
+                globalStore.putValue(msg.endpoint, 'floor_temp', value);
+                result.floor_temp = value;
             }
-
             if (data.elkoRelayState !== undefined) {
                 // Relay state
                 result.running_state = data['elkoRelayState'] ? 'heat' : 'idle';
             }
-
             if (data.elkoCalibration !== undefined) {
                 // Calibration
                 result.local_temperature_calibration = precisionRound(data['elkoCalibration'], 2) / 10;
             }
-
+            if (data.elkoLoad !== undefined) {
+                // Load
+                result.load = data['elkoLoad'];
+            }
+            if (data.elkoRegulatorMode !== undefined) {
+                // Regulator mode
+                result.regulator_mode = data['elkoRegulatorMode'] ? 'regulator' : 'thermostat';
+            }
+            if (data.elkoMeanPower !== undefined) {
+                // Mean power
+                result.mean_power = data['elkoMeanPower'];
+            }
+            if (data.elkoNightSwitching !== undefined) {
+                // Night switching
+                result.night_switching = data['elkoNightSwitching'] ? 'on' : 'off';
+            }
+            if (data.elkoFrostGuard !== undefined) {
+                // Frost guard
+                result.frost_guard = data['elkoFrostGuard'] ? 'on' : 'off';
+            }
+            if (data.elkoChildLock !== undefined) {
+                // Child lock
+                result.child_lock = data['elkoChildLock'] ? 'lock' : 'unlock';
+            }
+            if (data.elkoMaxFloorTemp !== undefined) {
+                // Max floor temp
+                result.max_floor_temp = data['elkoMaxFloorTemp'];
+            }
             return result;
         },
     } satisfies Fz.Converter,
