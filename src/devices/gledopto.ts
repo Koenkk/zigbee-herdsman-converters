@@ -417,8 +417,9 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GL-C-003P',
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
-        description: 'Zigbee LED Controller CCT (pro)',
-        extend: [light({colorTemp: {range: [158, 500]}}), identify(), gledoptoConfigureReadModelID()],
+        description: 'Zigbee LED Controller RGB (pro)',
+        // Supports color: https://github.com/Koenkk/zigbee2mqtt/issues/24091
+        extend: [light({color: {modes: ['xy', 'hs'], enhancedHue: true}}), identify(), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-C-008P'],
