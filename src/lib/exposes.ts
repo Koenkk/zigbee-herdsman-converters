@@ -873,8 +873,12 @@ export const options = {
             .withValueMax(30),
     cover_position_tilt_disable_report: () =>
         new Binary(`cover_position_tilt_disable_report`, access.SET, true, false).withDescription(
-            `Do not publish set cover target position as a normal 'position' value (default false).`,
+            `Do not publish set cover target position as a normal 'position' value (default false).`
         ),
+    local_temperature_based_on_sensor: () =>
+        new Binary(`local_temperature_based_on_sensor`, access.SET, true, false)
+            .withLabel('Local temperature sensor reporting')
+            .withDescription(`Base local temperature on sensor choice (default false).`),
 };
 
 export const presets = {

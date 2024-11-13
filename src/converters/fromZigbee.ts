@@ -1921,6 +1921,7 @@ const converters1 = {
     elko_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.local_temperature_based_on_sensor()],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             const data = msg.data;
@@ -1929,7 +1930,7 @@ const converters1 = {
                 const valuesFloorSensor = ['floor', 'supervisor_floor'];
                 const sensorType = globalStore.getValue(msg.endpoint, 'sensor');
                 const floorTemperature = globalStore.getValue(msg.endpoint, 'floor_temp');
-                if (valuesFloorSensor.includes(sensorType)) {
+                if (valuesFloorSensor.includes(sensorType) && options.local_temperature_based_on_sensor) {
                     result[postfixWithEndpointName('local_temperature', msg, model, meta)] = floorTemperature;
                 }
                 else {
