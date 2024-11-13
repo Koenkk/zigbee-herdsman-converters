@@ -93,7 +93,7 @@ const definitions: DefinitionWithExtend[] = [
             numeric({
                 name: 'floor_temp',
                 cluster: 'hvacThermostat',
-                attribute: 'elkoFloorTemp',
+                attribute: 'elkoExternalTemp',
                 description: 'Current temperature measured on the external sensor (floor)',
                 access: 'STATE_GET',
                 unit: '°C',
