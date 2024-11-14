@@ -165,7 +165,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'genIdentify']);
 
             // standard ZCL attributes
             await reporting.thermostatTemperature(endpoint);
