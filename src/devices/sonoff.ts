@@ -22,10 +22,11 @@ import {
     onOff,
     ota,
     temperature,
+    deviceEndpoints,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
@@ -57,6 +58,9 @@ const sonoffExtend = {
         deviceAddCustomCluster('customClusterEwelink', {
             ID: 0xfc11,
             attributes: {
+                networkLed: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+                backLight: {ID: 0x0002, type: Zcl.DataType.BOOLEAN},
+                faultCode: {ID: 0x0010, type: Zcl.DataType.INT32},
                 radioPower: {ID: 0x0012, type: Zcl.DataType.INT16},
                 radioPowerWithManuCode: {
                     ID: 0x0012,
@@ -67,6 +71,8 @@ const sonoffExtend = {
                 delayedPowerOnTime: {ID: 0x0015, type: Zcl.DataType.UINT16},
                 externalTriggerMode: {ID: 0x0016, type: Zcl.DataType.UINT8},
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
+                deviceWorkMode: {ID: 0x0018, type: Zcl.DataType.UINT8},
+                detachRelayMode2: {ID: 0x0019, type: Zcl.DataType.BITMAP8},
                 lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16},
             },
             commands: {
@@ -545,6 +551,132 @@ const sonoffExtend = {
             toZigbee,
             isModernExtend: true,
         };
+    },
+    detachRelayModeControl: (relayCount: number): ModernExtend => {
+        const clusterName = 'customClusterEwelink';
+        const attributeName = 'detachRelayMode2';
+        const exposes = e.composite('detach_relay_mode', 'detach_relay_mode', ea.ALL);
+        if (1 == relayCount) {
+            exposes
+                .withDescription(
+                    'Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
+                        'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
+                        'a scene command to control the smart light on or off, then we can enable the relay separation mode.',
+                )
+                .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'));
+        } else if (2 == relayCount) {
+            exposes
+                .withDescription(
+                    'Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
+                        'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
+                        'a scene command to control the smart light on or off, then we can enable the relay separation mode.',
+                )
+                .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'))
+                .withFeature(e.binary('detach_relay_outlet2', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'));
+        } else if (3 == relayCount) {
+            exposes
+                .withDescription(
+                    'Relay separation mode. Can be used when the load is a smart device (such as smart light), ' +
+                        'when we control the wall switch, do not want to turn off the power of the smart light, but through ' +
+                        'a scene command to control the smart light on or off, then we can enable the relay separation mode.',
+                )
+                .withFeature(e.binary('detach_relay_outlet1', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'))
+                .withFeature(e.binary('detach_relay_outlet2', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'))
+                .withFeature(e.binary('detach_relay_outlet3', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable detach relay.'));
+        }
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: clusterName,
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.detachRelayMode2 !== undefined) {
+                        const detachMode = msg.data['detachRelayMode2'];
+                        logger.debug(`form zigbee detachRelayMode2 ${detachMode}`, NS);
+
+                        const datachRelayStatus = {
+                            detach_relay_outlet1: 'DISABLE',
+                            detach_relay_outlet2: 'DISABLE',
+                            detach_relay_outlet3: 'DISABLE',
+                        };
+
+                        if ((detachMode & 0x01) !== 0) {
+                            datachRelayStatus['detach_relay_outlet1'] = 'ENABLE';
+                        }
+                        if ((detachMode & 0x02) !== 0) {
+                            datachRelayStatus['detach_relay_outlet2'] = 'ENABLE';
+                        }
+                        if ((detachMode & 0x04) !== 0) {
+                            datachRelayStatus['detach_relay_outlet3'] = 'ENABLE';
+                        }
+                        return {detach_relay_mode: datachRelayStatus};
+                    }
+                },
+            },
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['detach_relay_mode'],
+                convertSet: async (entity, key, value, meta) => {
+                    // logger.debug(`from zigbee 'key' ${key}`, NS);
+                    const detachRelay1 = 'detach_relay_outlet1';
+                    // logger.debug(`from zigbee detachRelay1: ${value[detachRelay1 as keyof typeof value]}`, NS);
+                    const detachRelay2 = 'detach_relay_outlet2';
+                    // logger.debug(`from zigbee detachRelay2: ${value[detachRelay2 as keyof typeof value]}`, NS);
+                    const detachRelay3 = 'detach_relay_outlet3';
+                    // logger.debug(`from zigbee detachRelay3: ${value[detachRelay3 as keyof typeof value]}`, NS);
+                    let detachRelayMask: number = 0;
+
+                    if (value[detachRelay1 as keyof typeof value] == 'ENABLE') {
+                        detachRelayMask |= 0x01;
+                    } else {
+                        detachRelayMask &= ~0x01;
+                    }
+                    if (value[detachRelay2 as keyof typeof value] == 'ENABLE') {
+                        detachRelayMask |= 0x02;
+                    } else {
+                        detachRelayMask &= ~0x02;
+                    }
+                    if (value[detachRelay3 as keyof typeof value] == 'ENABLE') {
+                        detachRelayMask |= 0x04;
+                    } else {
+                        detachRelayMask &= ~0x04;
+                    }
+                    // logger.info(`from zigbee detachRelayMask: ${detachRelayMask}`, NS);
+                    await entity.write(clusterName, {[attributeName]: detachRelayMask}, defaultResponseOptions);
+                    return {state: {[key]: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read(clusterName, [attributeName], defaultResponseOptions);
+                },
+            },
+        ];
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    sonoffOnOff(args: {powerOnBehavior?: boolean; skipDuplicateTransaction?: boolean; endpointNames?: string[]}): ModernExtend {
+        args = {powerOnBehavior: true, skipDuplicateTransaction: false, ...args};
+        const exposes: Expose[] = args.endpointNames ? args.endpointNames.map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
+        const fromZigbee: Fz.Converter[] = [args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
+        const toZigbee: Tz.Converter[] = [tz.on_off];
+
+        if (args.powerOnBehavior) {
+            const behavior_string = ['off', 'on', 'toggle', 'previous'];
+            fromZigbee.push(fz.power_on_behavior);
+            toZigbee.push(tz.power_on_behavior);
+            if (args.endpointNames) {
+                exposes.push(...args.endpointNames.map((ep) => e.power_on_behavior(behavior_string).withEndpoint(ep)));
+            } else {
+                exposes.push(e.power_on_behavior(behavior_string));
+            }
+        }
+
+        const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+        return result;
     },
 };
 
@@ -1216,6 +1348,129 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'customClusterEwelink']);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
             await endpoint.read('customClusterEwelink', ['radioPower', 0x0014, 0x0015, 0x0016, 0x0017], defaultResponseOptions);
+        },
+    },
+    {
+        zigbeeModel: ['ZBM5-1C-120'],
+        model: 'ZBM5-1C-120',
+        vendor: 'SONOFF',
+        description: 'Zigbee Smart one-channel wall switch (type 120).',
+        exposes: [],
+        extend: [
+            deviceEndpoints({endpoints: {first: 1}}),
+            ota(),
+            onOff(),
+            sonoffExtend.addCustomClusterEwelink(),
+            enumLookup({
+                name: 'device_work_mode',
+                lookup: {'Zigbee end device': 0, 'Zigbee router': 1},
+                cluster: 'customClusterEwelink',
+                attribute: 'deviceWorkMode',
+                description: 'The device runs as a Zigbee End device or Zigbee router.',
+                access: 'STATE_GET',
+            }),
+            binary({
+                name: 'network_indicator',
+                cluster: 'customClusterEwelink',
+                attribute: 'networkLed',
+                description: 'Network indicator settings, turn off/on the blue online status network indicator.',
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            sonoffExtend.detachRelayModeControl(1),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'customClusterEwelink']);
+            await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
+            await endpoint1.read('genOnOff', [0x0000, 0x4003], defaultResponseOptions);
+            await endpoint1.read('customClusterEwelink', [0x0010, 0x0018, 0x0019], defaultResponseOptions);
+        },
+    },
+    {
+        zigbeeModel: ['ZBM5-2C-120'],
+        model: 'ZBM5-2C-120',
+        vendor: 'SONOFF',
+        description: 'Zigbee Smart two-channel wall switch (type 120).',
+        exposes: [],
+        extend: [
+            deviceEndpoints({endpoints: {first: 1, second: 2}}),
+            ota(),
+            onOff({endpointNames: ['first', 'second']}),
+            sonoffExtend.addCustomClusterEwelink(),
+            enumLookup({
+                name: 'device_work_mode',
+                lookup: {'Zigbee end device': 0, 'Zigbee router': 1},
+                cluster: 'customClusterEwelink',
+                attribute: 'deviceWorkMode',
+                description: 'The device runs as a Zigbee End device or Zigbee router.',
+                access: 'STATE_GET',
+            }),
+            binary({
+                name: 'network_indicator',
+                cluster: 'customClusterEwelink',
+                attribute: 'networkLed',
+                description: 'Network indicator settings, turn off/on the blue online status network indicator.',
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            sonoffExtend.detachRelayModeControl(2),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'customClusterEwelink']);
+            await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
+            await endpoint1.read('genOnOff', [0x0000, 0x4003], defaultResponseOptions);
+            await endpoint1.read('customClusterEwelink', [0x0010, 0x0018, 0x0019], defaultResponseOptions);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
+            await endpoint2.read('genOnOff', [0x0000, 0x4003], defaultResponseOptions);
+        },
+    },
+    {
+        zigbeeModel: ['ZBM5-3C-120'],
+        model: 'ZBM5-3C-120',
+        vendor: 'SONOFF',
+        description: 'Zigbee Smart three-channel wall switch (type 120).',
+        exposes: [],
+        extend: [
+            deviceEndpoints({endpoints: {first: 1, second: 2, third: 3}}),
+            ota(),
+            onOff({endpointNames: ['first', 'second', 'third']}),
+            sonoffExtend.addCustomClusterEwelink(),
+            enumLookup({
+                name: 'device_work_mode',
+                lookup: {'Zigbee end device': 0, 'Zigbee router': 1},
+                cluster: 'customClusterEwelink',
+                attribute: 'deviceWorkMode',
+                description: 'The device runs as a Zigbee End device or Zigbee router.',
+                access: 'STATE_GET',
+            }),
+            binary({
+                name: 'network_indicator',
+                cluster: 'customClusterEwelink',
+                attribute: 'networkLed',
+                description: 'Network indicator settings, turn off/on the blue online status network indicator.',
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            sonoffExtend.detachRelayModeControl(3),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'customClusterEwelink']);
+            await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
+            await endpoint1.read('genOnOff', [0x0000, 0x4003], defaultResponseOptions);
+            await endpoint1.read('customClusterEwelink', [0x0010, 0x0018, 0x0019], defaultResponseOptions);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
+            await endpoint2.read('genOnOff', [0x0000, 0x4003], defaultResponseOptions);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint3, {min: 1, max: 1810, change: 0});
+            await endpoint3.read('genOnOff', [0x0000, 0x4003], defaultResponseOptions);
         },
     },
 ];
