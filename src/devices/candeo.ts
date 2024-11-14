@@ -1,11 +1,5 @@
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import {electricityMeter, identify, light, onOff} from '../lib/modernExtend';
-import * as reporting from '../lib/reporting';
+import {deviceEndpoints, electricityMeter, identify, light, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
-
-const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -156,62 +150,34 @@ const definitions: DefinitionWithExtend[] = [
             identify(),
         ],
     },
-
     {
         fingerprint: [{modelID: 'C-ZB-SM205-2G', manufacturerName: 'Candeo'}],
         model: 'C-ZB-SM205-2G',
         vendor: 'Candeo',
         description: 'Smart 2 gang switch module',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-            e.power(),
-            e.current(),
-            e.voltage(),
-            e.energy(),
-            e.power_on_behavior(['off', 'on', 'previous']).withEndpoint('l1'),
-            e.power_on_behavior(['off', 'on', 'previous']).withEndpoint('l2'),
+        extend: [
+            deviceEndpoints({
+                endpoints: {l1: 1, l2: 2},
+                multiEndpointSkip: ['power', 'current', 'voltage', 'energy'],
+            }),
+            onOff({endpointNames: ['l1', 'l2']}),
+            electricityMeter(),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            await reporting.onOff(endpoint2);
-            await endpoint1.read('genOnOff', [0x0000]);
-            await endpoint2.read('genOnOff', [0x0000]);
-            await endpoint1.write('genOnOff', {0x4003: {value: 0xff, type: 0x30}});
-            await endpoint1.read('genOnOff', [0x4003]);
-            await endpoint2.write('genOnOff', {0x4003: {value: 0xff, type: 0x30}});
-            await endpoint2.read('genOnOff', [0x4003]);
-            const endpoint11 = device.getEndpoint(11);
-            await reporting.bind(endpoint11, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint11);
-            await reporting.activePower(endpoint11, {min: 10, change: 50, max: 600});
-            await reporting.rmsCurrent(endpoint11, {min: 10, change: 100, max: 600});
-            await reporting.rmsVoltage(endpoint11, {min: 10, change: 10, max: 600});
-            await reporting.readMeteringMultiplierDivisor(endpoint11);
-            await reporting.currentSummDelivered(endpoint11, {min: 10, change: 360000, max: 600});
-            await endpoint11.read('haElectricalMeasurement', ['activePower']);
-            await endpoint11.read('haElectricalMeasurement', ['rmsCurrent']);
-            await endpoint11.read('haElectricalMeasurement', ['rmsVoltage']);
-            await endpoint11.read('seMetering', ['currentSummDelivered']);
-        },
+        meta: {},
     },
-
     {
         fingerprint: [{modelID: 'C-RFZB-SM1'}],
         model: 'C-RFZB-SM1',
         vendor: 'Candeo',
         description: 'Zigbee & RF Switch Module',
         extend: [onOff({powerOnBehavior: true})],
+    },
+    {
+        fingerprint: [{modelID: 'C203', manufacturerName: 'Candeo'}],
+        model: 'C203',
+        vendor: 'Candeo',
+        description: 'Zigbee micro smart dimmer',
+        extend: [light({configureReporting: true})],
     },
 ];
 
