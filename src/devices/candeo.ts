@@ -176,9 +176,8 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: 'C203', manufacturerName: 'Candeo'}],
         model: 'C203',
         vendor: 'Candeo',
-        description: 'Zigbee Micro Smart Dimmer',
+        description: 'Zigbee micro smart dimmer',
         extend: [light({configureReporting: true})],
-        meta: {},
     },
 ];
 
