@@ -3116,6 +3116,14 @@ const definitions: DefinitionWithExtend[] = [
         extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}}), lumiZigbeeOTA()],
     },
     {
+        zigbeeModel: ['lumi.light.cwacn1'],
+        model: 'ZNTGMK12LM',
+        vendor: 'Aqara',
+        description: 'Smart Color Temperature light controller',
+        extend: [lumiLight({colorTemp: true, powerOutageCount: true, deviceTemperature: true}), lumiZigbeeOTA()],
+        meta: {},
+    },
+    {
         zigbeeModel: ['lumi.light.cbacn1'],
         model: 'HLQDQ01LM',
         vendor: 'Aqara',
