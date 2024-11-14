@@ -13,6 +13,7 @@ import {
     commandsOnOff,
     customTimeResponse,
     deviceAddCustomCluster,
+    deviceEndpoints,
     enumLookup,
     forcePowerSource,
     humidity,
@@ -22,7 +23,6 @@ import {
     onOff,
     ota,
     temperature,
-    deviceEndpoints,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
