@@ -1,11 +1,5 @@
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
 import {deviceEndpoints, electricityMeter, identify, light, onOff} from '../lib/modernExtend';
-import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
-
-const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -156,21 +150,21 @@ const definitions: DefinitionWithExtend[] = [
             identify(),
         ],
     },
-
     {
-        fingerprint: [{ modelID: 'C-ZB-SM205-2G', manufacturerName: 'Candeo' }],
+        fingerprint: [{modelID: 'C-ZB-SM205-2G', manufacturerName: 'Candeo'}],
         model: 'C-ZB-SM205-2G',
         vendor: 'Candeo',
         description: 'Smart 2 gang switch module',
         extend: [
             deviceEndpoints({
-                endpoints: { l1: 1, l2: 2,}, multiEndpointSkip: ['power', 'current', 'voltage', 'energy']}),
-                onOff({endpointNames: ['l1', 'l2']}),
-            electricityMeter()
-                ],
+                endpoints: {l1: 1, l2: 2},
+                multiEndpointSkip: ['power', 'current', 'voltage', 'energy'],
+            }),
+            onOff({endpointNames: ['l1', 'l2']}),
+            electricityMeter(),
+        ],
         meta: {},
     },
-
     {
         fingerprint: [{modelID: 'C-RFZB-SM1'}],
         model: 'C-RFZB-SM1',
@@ -178,17 +172,14 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee & RF Switch Module',
         extend: [onOff({powerOnBehavior: true})],
     },
-
     {
-        fingerprint: [{ modelID: 'C203', manufacturerName: 'Candeo' }],
+        fingerprint: [{modelID: 'C203', manufacturerName: 'Candeo'}],
         model: 'C203',
         vendor: 'Candeo',
         description: 'Zigbee Micro Smart Dimmer',
-        extend: [light({ configureReporting: true })],
+        extend: [light({configureReporting: true})],
         meta: {},
     },
-
-   
 ];
 
 export default definitions;
