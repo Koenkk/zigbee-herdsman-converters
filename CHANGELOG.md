@@ -1,5 +1,19 @@
 # Changelog
 
+## [20.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.46.0...v20.47.0) (2024-11-14)
+
+
+### Features
+
+* **add:** C203 ([#8309](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8309)) ([f9fdbd5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f9fdbd541653fbf05347caea66d999e815065cd0))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_g4au0afs` as Tuya TS0601_switch_6_gang https://github.com/Koenkk/zigbee2mqtt/issues/24743 ([8e8cefc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8e8cefc4307d735f61dad076ac9e99bc9f337b65))
+* **detect:** Detect `_TZE284_p3dbf6qs` as Tuya TS0601_thermostat_3 https://github.com/Koenkk/zigbee2mqtt/issues/24742 ([1e70867](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1e708678d3c6bb58cccede24ef314ffe5c65f3f4))
+* **detect:** Detect `SNZB-05` as Tuya TS0207_water_leak_detector https://github.com/Koenkk/zigbee2mqtt/issues/24759 ([4c83855](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c83855f37f2219aa9c886b892421b781dc23eca))
+
 ## [20.46.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.45.0...v20.46.0) (2024-11-13)
 
 
