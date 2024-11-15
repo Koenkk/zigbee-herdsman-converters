@@ -1928,8 +1928,8 @@ const converters1 = {
             if (data.localTemp !== undefined) {
                 const value = precisionRound(msg.data['localTemp'], 2) / 100;
                 const valuesFloorSensor = ['floor', 'supervisor_floor'];
-                const sensorType = globalStore.getValue(msg.endpoint, 'sensor');
-                const floorTemperature = globalStore.getValue(msg.endpoint, 'floor_temp');
+                const sensorType = meta.state.sensor as string;
+                const floorTemperature = meta.state.floor_temp as number;
                 if (valuesFloorSensor.includes(sensorType) && options.local_temperature_based_on_sensor) {
                     result[postfixWithEndpointName('local_temperature', msg, model, meta)] = floorTemperature;
                 } else {
@@ -1971,7 +1971,6 @@ const converters1 = {
                     3: 'supervisor_floor',
                 };
                 const value = utils.getFromLookup(data['elkoSensor'], sensorModeLookup);
-                globalStore.putValue(msg.endpoint, 'sensor', value);
                 result.sensor = value;
             }
             if (data.elkoPowerStatus !== undefined) {
@@ -1981,7 +1980,6 @@ const converters1 = {
             if (data.elkoExternalTemp !== undefined) {
                 // External temp (floor)
                 const value = precisionRound(data['elkoExternalTemp'], 2) / 100;
-                globalStore.putValue(msg.endpoint, 'floor_temp', value);
                 result.floor_temp = value;
             }
             if (data.elkoRelayState !== undefined) {
