@@ -2159,11 +2159,7 @@ const definitions: DefinitionWithExtend[] = [
                 configureReporting: true,
                 endpointNames: ['light'],
                 levelConfig: {
-                    disabledFeatures: [
-                        'on_off_transition_time',
-                        'on_transition_time',
-                        'off_transition_time',
-                    ],
+                    disabledFeatures: ['on_off_transition_time', 'on_transition_time', 'off_transition_time'],
                 },
             }),
             illuminance({
