@@ -1931,7 +1931,7 @@ const converters1 = {
                 const sensorType = meta.state.sensor as string;
                 const floorTemperature = meta.state.floor_temp as number;
                 if (valuesFloorSensor.includes(sensorType) && options.local_temperature_based_on_sensor) {
-                    result[postfixWithEndpointName('local_temperature', msg, model, meta)] = floorTemperature;
+                    result[postfixWithEndpointName('local_temperature', msg, model, meta)] = floorTemperature / 100;
                 } else {
                     if (value >= -273.15) {
                         result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
