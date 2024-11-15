@@ -26,7 +26,7 @@ import {
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
