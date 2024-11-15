@@ -658,26 +658,6 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    sonoffOnOff(args: {powerOnBehavior?: boolean; skipDuplicateTransaction?: boolean; endpointNames?: string[]}): ModernExtend {
-        args = {powerOnBehavior: true, skipDuplicateTransaction: false, ...args};
-        const exposes: Expose[] = args.endpointNames ? args.endpointNames.map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
-        const fromZigbee: Fz.Converter[] = [args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
-        const toZigbee: Tz.Converter[] = [tz.on_off];
-
-        if (args.powerOnBehavior) {
-            const behavior_string = ['off', 'on', 'toggle', 'previous'];
-            fromZigbee.push(fz.power_on_behavior);
-            toZigbee.push(tz.power_on_behavior);
-            if (args.endpointNames) {
-                exposes.push(...args.endpointNames.map((ep) => e.power_on_behavior(behavior_string).withEndpoint(ep)));
-            } else {
-                exposes.push(e.power_on_behavior(behavior_string));
-            }
-        }
-
-        const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
-        return result;
-    },
 };
 
 const definitions: DefinitionWithExtend[] = [
@@ -1357,7 +1337,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee Smart one-channel wall switch (type 120).',
         exposes: [],
         extend: [
-            deviceEndpoints({endpoints: {first: 1}}),
+            deviceEndpoints({endpoints: {l1: 1}}),
             ota(),
             onOff(),
             sonoffExtend.addCustomClusterEwelink(),
@@ -1394,9 +1374,9 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee Smart two-channel wall switch (type 120).',
         exposes: [],
         extend: [
-            deviceEndpoints({endpoints: {first: 1, second: 2}}),
+            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             ota(),
-            onOff({endpointNames: ['first', 'second']}),
+            onOff({endpointNames: ['l1', 'l2']}),
             sonoffExtend.addCustomClusterEwelink(),
             enumLookup({
                 name: 'device_work_mode',
@@ -1435,9 +1415,9 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee Smart three-channel wall switch (type 120).',
         exposes: [],
         extend: [
-            deviceEndpoints({endpoints: {first: 1, second: 2, third: 3}}),
+            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             ota(),
-            onOff({endpointNames: ['first', 'second', 'third']}),
+            onOff({endpointNames: ['l1', 'l2', 'l3']}),
             sonoffExtend.addCustomClusterEwelink(),
             enumLookup({
                 name: 'device_work_mode',
