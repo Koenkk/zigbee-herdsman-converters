@@ -12895,6 +12895,35 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_fvldku9h']),
+        model: 'TS0601',
+        vendor: 'Tuya',
+        description: 'Fan switch',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        whiteLabel: [{vendor: 'Somgoms', model: 'ZB-1SRW-US'},
+            tuya.whitelabel('Somgoms', 'ZB-1SRW-US', 'Fan switch', ['_TZE200_fvldku9h']),
+        ],
+        exposes: [
+            e.binary('backlight_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight switch'),
+            e.binary('switch_fan', ea.STATE_SET, 'ON', 'OFF').withDescription('Fan On Off'),
+            e.numeric('fan_speed', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%').withDescription('Fan Speed'),
+            e.enum('relay_status', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Recover state after power outage'),
+            e.numeric('countdown_fan', ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit('s').withDescription('Max ON time in seconds'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'switch_fan', tuya.valueConverter.onOff],
+                [2, 'countdown_fan', tuya.valueConverter.countdown],
+                [4, 'fan_speed', tuya.valueConverter.raw],
+                [11, 'relay_status', tuya.valueConverter.raw],
+                [13, 'backlight_switch', tuya.valueConverter.onOff],
+            ],
+        },
+    },
 ];
 
 export default definitions;
