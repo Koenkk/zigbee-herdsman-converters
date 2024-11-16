@@ -1,12 +1,11 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {battery, iasZoneAlarm, identify} from '../lib/modernExtend';
+import {deviceEndpoints, windowCovering, battery, iasZoneAlarm, identify} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
-const {deviceEndpoints, windowCovering, battery} = require('../lib/modernExtend');
 
 const definitions: DefinitionWithExtend[] = [
     {
