@@ -6,6 +6,7 @@ import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
+const {deviceEndpoints, windowCovering, battery} = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definitions: DefinitionWithExtend[] = [
     {
