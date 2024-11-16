@@ -2213,7 +2213,7 @@ const converters1 = {
                 if (meta.device.manufacturerName === '_TZ3000_cet6ch1r') {
                     const endpoint = msg.endpoint.ID;
                     const calibrationLookup: KeyValueAny = {1: 'up', 2: 'down'};
-                    result[postfixWithEndpointName(`calibration_time_'${calibrationLookup[endpoint]}'`, msg, model, meta)] = value;
+                    result[postfixWithEndpointName(`calibration_time_${calibrationLookup[endpoint]}`, msg, model, meta)] = value;
                 } else {
                     result[postfixWithEndpointName('calibration_time', msg, model, meta)] = value;
                 }
