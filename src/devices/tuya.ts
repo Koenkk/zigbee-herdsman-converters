@@ -8658,6 +8658,7 @@ const definitions: DefinitionWithExtend[] = [
             e.light_brightness().withMinBrightness().withMaxBrightness(),
             tuya.exposes.lightType().withAccess(ea.ALL),
             e.power_on_behavior().withAccess(ea.ALL),
+            tuya.exposes.switchType(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
