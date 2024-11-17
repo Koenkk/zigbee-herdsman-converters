@@ -30,7 +30,7 @@ describe('index.js', () => {
         expect(() => utils.toNumber('')).toThrowError('Value is not a number, got string ()');
     });
 
-    it('Find by device where modelID is null', async () => {
+    it('Find by device where modelID is undefined', async () => {
         const endpoints = [
             {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
             {ID: 232, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
@@ -47,7 +47,7 @@ describe('index.js', () => {
         expect(definition.model).toBe('XBee');
     });
 
-    it("Find by device shouldn't match when modelID is null and there is no fingerprint match", async () => {
+    it("Find by device shouldn't match when modelID is undefined and there is no fingerprint match", async () => {
         const endpoints = [{ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}];
         const device = {
             type: undefined,
@@ -58,7 +58,7 @@ describe('index.js', () => {
         };
 
         const definition = await index.findByDevice(device);
-        expect(definition).toBeNull();
+        expect(definition).toBeUndefined();
     });
 
     it('Find by device should generate for unknown', async () => {
@@ -289,6 +289,33 @@ describe('index.js', () => {
         };
         index.addDefinition(overwriteDefinition);
         expect((await index.findByDevice(device)).vendor).toBe('other-vendor');
+    });
+
+    it('Handles external converter definition addition/removal', async () => {
+        const converterDef = {
+            mock: true,
+            zigbeeModel: ['external_converter_device'],
+            vendor: 'external',
+            model: 'external_converter_device',
+            description: 'external',
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: [],
+            externalConverterName: 'foo.js',
+        };
+
+        const count = index.definitions.length;
+
+        index.addDefinition(converterDef);
+
+        expect(index.definitions.length).toStrictEqual(count + 1);
+        expect(index.definitions[0].zigbeeModel[0]).toStrictEqual(converterDef.zigbeeModel[0]);
+        expect(index.findByModel('external_converter_device')).toBeDefined();
+
+        index.removeExternalDefinitions(converterDef.externalConverterName);
+
+        expect(index.definitions.length).toStrictEqual(count);
+        expect(index.findByModel('external_converter_device')).toBeUndefined();
     });
 
     it('Exposes light with endpoint', () => {
