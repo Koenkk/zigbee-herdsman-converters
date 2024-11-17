@@ -10,6 +10,7 @@ import {
     commandsOnOff,
     deviceEndpoints,
     enumLookup,
+    forcePowerSource,
     humidity,
     light,
     numeric,
@@ -702,6 +703,13 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.soil_moisture(firstEndpoint, overrides);
         },
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature()],
+    },
+    {
+        zigbeeModel: ['UT-01'],
+        model: 'EFR32MG21.Router',
+        vendor: 'Custom devices (DiY)',
+        description: 'EFR32MG21 Zigbee bridge router',
+        extend: [forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['UT-02'],
