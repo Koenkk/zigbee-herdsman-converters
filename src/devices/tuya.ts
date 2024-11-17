@@ -8770,7 +8770,7 @@ const definitions: DefinitionWithExtend[] = [
                 [111, 'energy_b', tuya.valueConverter.divideBy1000],
                 [121, 'energy_c', tuya.valueConverter.divideBy1000],
                 [131, 'current', tuya.valueConverter.divideBy1000],
-                [9, 'power', tuya.valueConverter.raw],
+                [9, 'power', tuya.valueConverter.power],
                 [102, 'power_factor_a', tuya.valueConverter.raw],
                 [112, 'power_factor_b', tuya.valueConverter.raw],
                 [122, 'power_factor_c', tuya.valueConverter.raw],
