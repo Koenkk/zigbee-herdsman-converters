@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {battery, iasZoneAlarm, identify} from '../lib/modernExtend';
+import {battery, iasZoneAlarm, identify, windowCovering} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -12,8 +12,8 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['Sonesse Ultra 30 WF Li-Ion Rolle'],
         model: 'SOMFY-1241752',
         vendor: 'SOMFY',
-        description: 'Blinds from Somfy',
-        extend: [windowCovering({"controls":["lift"]}), battery()],
+        description: 'Blinds',
+        extend: [windowCovering({controls: ['lift']}), battery()],
     },
     {
         zigbeeModel: ['1822647'],
