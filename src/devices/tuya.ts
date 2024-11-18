@@ -2810,7 +2810,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ojtqawav', '_TZE204_gbagoilo']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ojtqawav', '_TZE204_gbagoilo', '_TZE200_ojtqawav']),
         model: 'TS0601_switch_1_gang',
         vendor: 'Tuya',
         description: '1 gang switch',
