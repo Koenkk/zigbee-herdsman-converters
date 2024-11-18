@@ -706,14 +706,14 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['UT-01'],
-        model: 'EFR32MG21.Router',
+        model: 'EFR32MG21.Router.1',
         vendor: 'Custom devices (DiY)',
         description: 'EFR32MG21 Zigbee bridge router',
         extend: [forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['UT-02'],
-        model: 'EFR32MG21.Router',
+        model: 'EFR32MG21.Router.2',
         vendor: 'Custom devices (DiY)',
         description: 'EFR32MG21 router',
         fromZigbee: [],
