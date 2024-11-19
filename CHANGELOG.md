@@ -1,5 +1,20 @@
 # Changelog
 
+## [20.49.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.48.0...v20.49.0) (2024-11-19)
+
+
+### Features
+
+* **add:** HHST001 ([#8337](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8337)) ([fcf278d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fcf278d76a6caa475b548fa46d44d1daf550eb4a))
+* **add:** SR-ZG2835PAC-AU ([#8338](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8338)) ([d66acfc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d66acfc8b5d1475ba2ca7cc978d0487521b2ab91))
+* **add:** VNTH-T2 ([#8323](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8323)) ([f982c46](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f982c46bda87f66191d47f2d22d831e106ad7cfa))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_o3x45p96` as AVATTO TRV06_1 ([#8339](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8339)) ([14f56db](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14f56dbd43353a0d1a0bda90e06047b45ba9796f))
+* Fixed presence state for Tuya RT_ZCZ03Z (_TZE204_uxllnywp) ([#8335](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8335)) ([27c4c48](https://github.com/Koenkk/zigbee-herdsman-converters/commit/27c4c48aa3f5f3fdb015079b437c66739c7bf398))
+
 ## [20.48.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.47.0...v20.48.0) (2024-11-18)
 
 
