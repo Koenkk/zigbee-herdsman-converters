@@ -11958,7 +11958,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'presence', tuya.valueConverterBasic.lookup({ True: 4, False: 0 })],
+                [1, 'presence', tuya.valueConverterBasic.trueFalse(4)],
                 [101, 'target_distance', tuya.valueConverter.raw],
                 [102, 'illuminance_lux', tuya.valueConverter.raw],
                 [103, 'fading_time', tuya.valueConverter.raw],
