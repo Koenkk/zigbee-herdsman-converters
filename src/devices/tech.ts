@@ -20,7 +20,6 @@ const definitions: DefinitionWithExtend[] = [
             e.child_lock(),
             e.window_detection(),
             e.window_open(),
-            e.binary('window_open', ea.STATE, true, false).withDescription('Window open?'),
             e
                 .climate()
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)

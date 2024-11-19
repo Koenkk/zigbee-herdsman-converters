@@ -352,36 +352,47 @@ describe('index.js', () => {
 
     it('Exposes access matches toZigbee', () => {
         index.definitions.forEach((device) => {
-            if (device.exposes) {
-                // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
-                if (device.toZigbee.includes(tuya.tz.datapoints)) return;
+            // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
+            if (device.toZigbee.includes(tuya.tz.datapoints)) return;
 
-                const toCheck = [];
-                const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
-                for (const expose of expss) {
-                    if (expose.access !== undefined) {
-                        toCheck.push(expose);
-                    } else if (expose.features) {
-                        toCheck.push(...expose.features.filter((e) => e.access !== undefined));
-                    }
+            const toCheck = [];
+            const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+            for (const expose of expss) {
+                if (expose.access !== undefined) {
+                    toCheck.push(expose);
+                } else if (expose.features) {
+                    toCheck.push(...expose.features.filter((e) => e.access !== undefined));
+                }
+            }
+
+            for (const expose of toCheck) {
+                let property = expose.property;
+                if (expose.endpoint && expose.property.length > expose.endpoint.length) {
+                    property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
                 }
 
-                for (const expose of toCheck) {
-                    let property = expose.property;
-                    if (expose.endpoint && expose.property.length > expose.endpoint.length) {
-                        property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
-                    }
+                const toZigbee = device.toZigbee.find((item) => item.key.includes(property));
 
-                    const toZigbee = device.toZigbee.find((item) => item.key.includes(property));
-
-                    if ((expose.access & exposes.access.SET) != (toZigbee && toZigbee.convertSet ? exposes.access.SET : 0)) {
-                        throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
-                    }
-
-                    if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
-                        throw new Error(`${device.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
-                    }
+                if ((expose.access & exposes.access.SET) != (toZigbee && toZigbee.convertSet ? exposes.access.SET : 0)) {
+                    throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
                 }
+
+                if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
+                    throw new Error(`${device.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
+                }
+            }
+        });
+    });
+
+    it('Exposes properties are unique', () => {
+        index.definitions.forEach((device) => {
+            const exposes = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+            const found = [];
+            for (const expose of exposes) {
+                if (expose.property && found.includes(expose.property)) {
+                    throw new Error(`Duplicate expose property found: '${expose.property}' for '${device.model}'`);
+                }
+                found.push(expose.property);
             }
         });
     });
