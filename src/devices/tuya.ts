@@ -4718,7 +4718,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_9xfjixap' /* model: 'ME167', vendor: 'AVATTO' */,
             '_TZE200_p3dbf6qs' /* model: 'ME168', vendor: 'AVATTO' */,
             '_TZE200_rxntag7i' /* model: 'ME168', vendor: 'AVATTO' */,
-            '_TZE200_yqgbrdyo', 
+            '_TZE200_yqgbrdyo',
             '_TZE284_p3dbf6qs',
             '_TZE200_rxq4iti9',
             '_TZE200_hvaxb2tc' /* model: 'TRV06', vendor: 'AVATTO' */,
