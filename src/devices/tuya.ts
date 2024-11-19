@@ -12904,7 +12904,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_q12rv9gj']),
         model: 'HHST001',
         vendor: 'HeatHUB',
-        description: 'Fan Coil ZIGBEE Thermostat',
+        description: 'Fan coil thermostat',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
