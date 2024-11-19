@@ -12900,6 +12900,46 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_q12rv9gj']),
+        model: 'HHST001',
+        vendor: 'HeatHUB',
+        description: 'Fan coil thermostat',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(['cool', 'heat', 'fan_only'], ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 5, 45, 1, ea.STATE_SET)
+                .withFanMode(['auto', 'high', 'medium', 'low'], ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET),
+            e.min_temperature().withValueMin(5).withValueMax(15),
+            e.max_temperature().withValueMin(35).withValueMax(45),
+            e.child_lock(),
+            e.humidity(),
+            e.binary('manual_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Manual = ON or Schedule = OFF'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [2, 'system_mode', tuya.valueConverterBasic.lookup({cool: tuya.enum(0), heat: tuya.enum(1), fan_only: tuya.enum(2)})],
+                [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [19, 'max_temperature', tuya.valueConverter.divideBy10],
+                [24, 'local_temperature', tuya.valueConverter.divideBy10],
+                [26, 'min_temperature', tuya.valueConverter.divideBy10],
+                [102, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration],
+                [28, 'fan_mode', tuya.valueConverterBasic.lookup({auto: tuya.enum(0), high: tuya.enum(1), medium: tuya.enum(2), low: tuya.enum(3)})],
+                [40, 'child_lock', tuya.valueConverter.lockUnlock],
+                [113, 'humidity', tuya.valueConverter.raw],
+                [101, 'manual_mode', tuya.valueConverter.onOff],
+            ],
+        },
+    },
 ];
 
 export default definitions;
