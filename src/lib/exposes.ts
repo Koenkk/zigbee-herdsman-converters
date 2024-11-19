@@ -391,7 +391,7 @@ export class Light extends Base {
             levelConfig = levelConfig.withFeature(
                 new Numeric('on_transition_time', access.ALL)
                     .withLabel('ON transition time')
-                    .withPreset('disabled', 65535, 'Use on_off_transition_time value')
+                    .withPreset('disabled', 'disabled', 'Use on_off_transition_time value')
                     .withDescription(
                         'Represents the time taken to move the current level from the minimum level to the maximum level when an On command is received',
                     ),
@@ -401,7 +401,7 @@ export class Light extends Base {
             levelConfig = levelConfig.withFeature(
                 new Numeric('off_transition_time', access.ALL)
                     .withLabel('OFF transition time')
-                    .withPreset('disabled', 65535, 'Use on_off_transition_time value')
+                    .withPreset('disabled', 'disabled', 'Use on_off_transition_time value')
                     .withDescription(
                         'Represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received',
                     ),
@@ -419,7 +419,7 @@ export class Light extends Base {
                 new Numeric('on_level', access.ALL)
                     .withValueMin(1)
                     .withValueMax(254)
-                    .withPreset('previous', 255, 'Use previous value')
+                    .withPreset('previous', 'previous', 'Use previous value')
                     .withDescription('Specifies the level that shall be applied, when an on/toggle command causes the light to turn on.'),
             );
         }
@@ -428,8 +428,8 @@ export class Light extends Base {
                 new Numeric('current_level_startup', access.ALL)
                     .withValueMin(1)
                     .withValueMax(254)
-                    .withPreset('minimum', 0, 'Use minimum permitted value')
-                    .withPreset('previous', 255, 'Use previous value')
+                    .withPreset('minimum', 'minimum', 'Use minimum permitted value')
+                    .withPreset('previous', 'previous', 'Use previous value')
                     .withDescription('Defines the desired startup level for a device when it is supplied with power'),
             );
         }

@@ -1,5 +1,31 @@
 # Changelog
 
+## [20.48.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.47.0...v20.48.0) (2024-11-18)
+
+
+### Features
+
+* **add:** EFR32MG21.Router ([#8334](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8334)) ([42004da](https://github.com/Koenkk/zigbee-herdsman-converters/commit/42004da71f36bbf5d0c976fd4976983010faa971))
+* **add:** NH3527A ([#8300](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8300)) ([6dd98f8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6dd98f89a9fc09a01f2396ec37b1ea83741ab1ba))
+* **add:** ZBM5-1C-120, ZBM5-2C-120, ZBM5-3C-120 ([#8314](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8314)) ([6113ce2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6113ce277075e6be2ffacea0a484299d959e16ad))
+* **add:** ZNTGMK12LM ([#8315](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8315)) ([38644c2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/38644c287a09508c415c1c0682833bdb64c82fb7))
+* Expose switch type for TS110E_1gang_2 ([#8326](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8326)) ([f711098](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f7110985024ac51bb1523ac389de843abf186f95))
+
+
+### Bug Fixes
+
+* Detect new model of LED2109G6 and fix model of LED2201G8 ([#8330](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8330)) ([df7e3eb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/df7e3eb1c8453ec3702fb5ca2dd68b599c1e7a5a))
+* **detect:** Detect `_TZ3000_9kbbfeho` as Tuya TS0222_light ([#8318](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8318)) ([5466e60](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5466e6096970b24cb4f6a68aae0baacde355bb24))
+* **detect:** Detect `_TZ3000_upgcbody` as Tuya TS0207_water_leak_detector_1 https://github.com/Koenkk/zigbee2mqtt/issues/24759 ([16efcd2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/16efcd232b9167285ab55e60e5011c3831ffafd4))
+* **detect:** Detect `_TZE200_ojtqawav` as Tuya TS0601_switch_1_gang https://github.com/Koenkk/zigbee2mqtt/issues/24747 ([347eeb3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/347eeb3a4ce88bf7f2eb9490f8881e1d45f5e04c))
+* **detect:** Detect `_TZE200_qjp4ynvi` as Tuya TS0601_thermostat ([#8319](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8319)) ([3f3549f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f3549f79a38e8daabbca41760672bc73e0c42c6))
+* **detect:** Detect `TRADFRIbulbG125E26WSopal440lm` as IKEA LED1936G5 ([#8328](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8328)) ([c7e6744](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c7e6744be4ee25b5113a0b6487114f316612588e))
+* Fix overall power for TS0601_3_phase_clamp_meter ([#8329](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8329)) ([71b0617](https://github.com/Koenkk/zigbee-herdsman-converters/commit/71b06171d41389afdde402a8f4b6afc7210baf89))
+* Fix Somfy SOMFY-1241752 integration ([#8325](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8325)) ([0306b39](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0306b3969990effe612477f6f93aa47364004e32))
+* Fixed LoraTap SC400ZB-EU calibration time reading ([#8321](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8321)) ([761650e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/761650e1fe2833acd3c02a4722ad6f778b77a80a))
+* **ignore:** fix 42004da71f36bbf5d0c976fd4976983010faa971 ([936e0f4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/936e0f4f1b999f520676bc07076d1c4076624171))
+* **ignore:** fix c7e6744be4ee25b5113a0b6487114f316612588e ([fc44f1c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc44f1cce4a903061f82ee203be2029815593b81))
+
 ## [20.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.46.0...v20.47.0) (2024-11-14)
 
 
