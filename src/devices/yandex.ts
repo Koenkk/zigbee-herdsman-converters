@@ -359,7 +359,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {'1': 1, '2': 2, 'b1_down': 3, 'b2_down': 4, 'b1_up': 5, 'b2_up': 6},
+                endpoints: {'1': 1, '2': 2, b1_down: 3, b2_down: 4, b1_up: 5, b2_up: 6},
             }),
             onOff({
                 endpointNames: ['1', '2'],
