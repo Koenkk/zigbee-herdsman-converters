@@ -38,6 +38,7 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
                     ? async (entity, key, value, meta) => {
                           const payloadValue = getFromLookup(value, lookup);
                           await determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
@@ -72,6 +73,7 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
                     ? async (entity, key, value, meta) => {
                           const payloadValue = value === valueOn[0] ? valueOn[1] : valueOff[1];
                           await determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
@@ -95,6 +97,7 @@ function YandexCluster(): ModernExtend {
             switchMode: {ID: 0x0001, type: Zcl.DataType.ENUM8},
             switchType: {ID: 0x0002, type: Zcl.DataType.ENUM8},
             powerType: {ID: 0x0003, type: Zcl.DataType.ENUM8},
+            ledIndicator: {ID: 0x0005, type: Zcl.DataType.BOOLEAN},
             interlock: {ID: 0x0007, type: Zcl.DataType.BOOLEAN},
         },
         commands: {
@@ -109,6 +112,10 @@ function YandexCluster(): ModernExtend {
             powerType: {
                 ID: 0x03,
                 parameters: [{name: 'value', type: Zcl.DataType.UINT8}],
+            },
+            ledIndicator: {
+                ID: 0x05,
+                parameters: [{name: 'value', type: Zcl.DataType.BOOLEAN}],
             },
             interlock: {
                 ID: 0x07,
@@ -147,7 +154,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {'1': 1, b: 2},
+                endpoints: {'1': 1, '': 2},
             }),
             onOff({
                 endpointNames: ['1'],
@@ -182,7 +189,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 entityCategory: 'config',
             }),
-            commandsOnOff({endpointNames: ['b']}),
+            commandsOnOff({endpointNames: ['']}),
         ],
     },
     {
@@ -279,7 +286,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {b1_up: 1, b1_down: 2, b2_up: 1, b2_down: 2},
+                endpoints: {b1_down: 1, b2_down: 2, b1_up: 3, b2_up: 4},
             }),
             commandsOnOff({endpointNames: ['b1_up', 'b1_down', 'b2_up', 'b2_down']}),
         ],
@@ -330,6 +337,17 @@ const definitions: DefinitionWithExtend[] = [
                 entityCategory: 'config',
                 endpointName: '1',
             }),
+            binaryWithSetCommand({
+                name: 'led_indicator',
+                cluster: 'manuSpecificYandex',
+                attribute: 'ledIndicator',
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                setCommand: 'ledIndicator',
+                zigbeeCommandOptions: {manufacturerCode},
+                description: 'Led indicator',
+                entityCategory: 'config',
+            }),
         ],
     },
     {
@@ -341,7 +359,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {'1': 1, '2': 2, '1_down': 3, '2_down': 4, '1_up': 5, '2_up': 6},
+                endpoints: {'1': 1, '2': 2, 'b1_down': 3, 'b2_down': 4, 'b1_up': 5, 'b2_up': 6},
             }),
             onOff({
                 endpointNames: ['1', '2'],
@@ -361,7 +379,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 entityCategory: 'config',
             }),
-            commandsOnOff({endpointNames: ['1_up', '1_down', '2_up', '2_down']}),
+            commandsOnOff({endpointNames: ['b1_up', 'b1_down', 'b2_up', 'b2_down']}),
             enumLookupWithSetCommand({
                 name: 'operation_mode',
                 cluster: 'manuSpecificYandex',
@@ -393,6 +411,17 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 entityCategory: 'config',
                 endpointName: '2',
+            }),
+            binaryWithSetCommand({
+                name: 'led_indicator',
+                cluster: 'manuSpecificYandex',
+                attribute: 'ledIndicator',
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                setCommand: 'ledIndicator',
+                zigbeeCommandOptions: {manufacturerCode},
+                description: 'Led indicator',
+                entityCategory: 'config',
             }),
         ],
     },
