@@ -55,10 +55,15 @@ const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 CWS globe 806lm', 'TRADFRI bulb E26 CWS globe 806lm', 'TRADFRI bulb E26 CWS globe 800lm'],
+        zigbeeModel: [
+            'TRADFRI bulb E26 CWS globe 800lm',
+            'TRADFRI bulb E26 CWS globe 806lm',
+            'TRADFRI bulb E26 CWS globe 810lm',
+            'TRADFRI bulb E27 CWS globe 806lm',
+        ],
         model: 'LED2109G6',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, color/white spectrum, globe, opal, 806 lm',
+        description: 'TRADFRI bulb E26/E27, color/white spectrum, globe, opal, 800/806/810 lm',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: true}), identify()],
     },
     {
@@ -107,10 +112,15 @@ const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), identify()],
     },
     {
-        zigbeeModel: ['TRADFRIbulbG125E27WSopal470lm', 'TRADFRIbulbG125E26WSopal450lm', 'TRADFRIbulbG125E26WSopal470lm'],
+        zigbeeModel: [
+            'TRADFRIbulbG125E27WSopal470lm',
+            'TRADFRIbulbG125E26WSopal450lm',
+            'TRADFRIbulbG125E26WSopal470lm',
+            'TRADFRIbulbG125E26WSopal440lm',
+        ],
         model: 'LED1936G5',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, white spectrum, globe, opal, 450/470 lm',
+        description: 'TRADFRI bulb E26/E27, white spectrum, globe, opal, 440/450/470 lm',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
@@ -119,7 +129,6 @@ const definitions: DefinitionWithExtend[] = [
             'TRADFRIbulbE26WSglobeopal1100lm',
             'TRADFRIbulbE26WSglobeopal1160lm',
             'TRADFRIbulbE26WSglobeopal1055lm',
-            'TRADFRI bulb E26 WS globe 1160lm',
         ],
         model: 'LED2003G10',
         vendor: 'IKEA',
@@ -196,10 +205,15 @@ const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WS globe 1055lm', 'TRADFRI bulb E26 WS globe 1055lm', 'TRADFRI bulb E26 WS globe 1100lm'],
+        zigbeeModel: [
+            'TRADFRI bulb E27 WS globe 1055lm',
+            'TRADFRI bulb E26 WS globe 1055lm',
+            'TRADFRI bulb E26 WS globe 1100lm',
+            'TRADFRI bulb E26 WS globe 1160lm',
+        ],
         model: 'LED2201G8',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/27, white spectrum, globe, opal, 1055/1100 lm',
+        description: 'TRADFRI bulb E26/27, white spectrum, globe, opal, 1055/1100/1160 lm',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {

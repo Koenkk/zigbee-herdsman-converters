@@ -254,6 +254,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
         extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
+        ota: true,
     },
     {
         zigbeeModel: ['RB 278 T'],
