@@ -1,5 +1,5 @@
-import * as ota from '../lib/ota';
 import * as exposes from '../lib/exposes';
+import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
