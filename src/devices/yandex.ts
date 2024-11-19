@@ -1,26 +1,26 @@
+import {Zcl} from 'zigbee-herdsman';
+
+import {access as ea} from '../lib/exposes';
+import {logger} from '../lib/logger';
 import {
     binary,
-    enumLookup,
-    onOff,
-    deviceEndpoints,
-    deviceAddCustomCluster,
-    EnumLookupArgs,
+    BinaryArgs,
     commandsOnOff,
     determineEndpoint,
-    BinaryArgs,
+    deviceAddCustomCluster,
+    deviceEndpoints,
+    enumLookup,
+    EnumLookupArgs,
+    onOff,
 } from '../lib/modernExtend';
-import { ModernExtend, Tz, OnEvent } from '../lib/types';
-import { getFromLookup, isString } from '../lib/utils';
-import { access as ea} from '../lib/exposes';
-import {logger} from '../lib/logger';
-import {DefinitionWithExtend} from '../lib/types';
-import {Zcl} from 'zigbee-herdsman';
+import {DefinitionWithExtend, ModernExtend, OnEvent, Tz} from '../lib/types';
+import {getFromLookup, isString} from '../lib/utils';
 
 const NS = 'zhc:yandex';
 const manufacturerCode = 0x140a;
 
 interface EnumLookupWithSetCommandArgs extends EnumLookupArgs {
-    setCommand: string,
+    setCommand: string;
 }
 
 function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExtend {
@@ -29,40 +29,39 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
     const access = ea[args.access ?? 'ALL'];
 
     const mExtend = enumLookup(args);
-    
+
     const toZigbee: Tz.Converter[] = [
         {
             key: [name],
             convertSet:
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
-                        const payloadValue = getFromLookup(value, lookup);
-                        await determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
-                        return {state: {[key]: value}};
-                    }
+                          const payloadValue = getFromLookup(value, lookup);
+                          await determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
+                          return {state: {[key]: value}};
+                      }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                        await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
-                    }
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                      }
                     : undefined,
         },
     ];
-    
+
     return {...mExtend, toZigbee};
 }
-    
 
 interface BinaryWithSetCommandArgs extends BinaryArgs {
-    setCommand: string,
+    setCommand: string;
 }
 
 function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, zigbeeCommandOptions, setCommand} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
-    
+
     const mExtend = binary(args);
 
     const toZigbee: Tz.Converter[] = [
@@ -84,53 +83,41 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
                     : undefined,
         },
     ];
-    
+
     return {...mExtend, toZigbee};
 }
 
-
 function YandexCluster(): ModernExtend {
-    return deviceAddCustomCluster(
-        'manuSpecificYandex',
-        {
-            ID: 0xfc03,
-            manufacturerCode,
-            attributes: {
-                switchMode: { ID: 0x0001, type: Zcl.DataType.ENUM8 },
-                switchType: { ID: 0x0002, type: Zcl.DataType.ENUM8 },
-                powerType: { ID: 0x0003, type: Zcl.DataType.ENUM8 },
-                interlock: { ID: 0x0007, type: Zcl.DataType.BOOLEAN },
-            },
-            commands: {
-                switchMode: {
-                    ID: 0x01,
-                    parameters: [
-                        {name: 'value', type: Zcl.DataType.UINT8},
-                    ],
-                },
-                switchType: {
-                    ID: 0x02,
-                    parameters: [
-                        {name: 'value', type: Zcl.DataType.UINT8},
-                    ],
-                },
-                powerType: {
-                    ID: 0x03,
-                    parameters: [
-                        {name: 'value', type: Zcl.DataType.UINT8},
-                    ],
-                },
-                interlock: {
-                    ID: 0x07,
-                    parameters: [
-                        {name: 'value', type: Zcl.DataType.UINT8},
-                    ],
-                },
-            },
-            commandsResponse: {},
+    return deviceAddCustomCluster('manuSpecificYandex', {
+        ID: 0xfc03,
+        manufacturerCode,
+        attributes: {
+            switchMode: {ID: 0x0001, type: Zcl.DataType.ENUM8},
+            switchType: {ID: 0x0002, type: Zcl.DataType.ENUM8},
+            powerType: {ID: 0x0003, type: Zcl.DataType.ENUM8},
+            interlock: {ID: 0x0007, type: Zcl.DataType.BOOLEAN},
         },
-    )
-};
+        commands: {
+            switchMode: {
+                ID: 0x01,
+                parameters: [{name: 'value', type: Zcl.DataType.UINT8}],
+            },
+            switchType: {
+                ID: 0x02,
+                parameters: [{name: 'value', type: Zcl.DataType.UINT8}],
+            },
+            powerType: {
+                ID: 0x03,
+                parameters: [{name: 'value', type: Zcl.DataType.UINT8}],
+            },
+            interlock: {
+                ID: 0x07,
+                parameters: [{name: 'value', type: Zcl.DataType.UINT8}],
+            },
+        },
+        commandsResponse: {},
+    });
+}
 
 const reinterview: OnEvent = async (type, data, device, settings, state) => {
     if (type == 'deviceAnnounce') {
@@ -150,7 +137,6 @@ const reinterview: OnEvent = async (type, data, device, settings, state) => {
     }
 };
 
-
 const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['YNDX-00537'],
@@ -161,7 +147,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {'1': 1, 'b': 2},
+                endpoints: {'1': 1, b: 2},
             }),
             onOff({
                 endpointNames: ['1'],
@@ -174,10 +160,10 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
                 description: 'Power supply type',
                 lookup: {
-                    'full': 0x03,
-                    'low': 0x02,
-                    'medium': 0x01,
-                    'high': 0x00,
+                    full: 0x03,
+                    low: 0x02,
+                    medium: 0x01,
+                    high: 0x00,
                 },
                 entityCategory: 'config',
             }),
@@ -190,9 +176,9 @@ const definitions: DefinitionWithExtend[] = [
                 endpointName: '1',
                 description: 'External switch type 1',
                 lookup: {
-                    'rocker': 0x00,
-                    'button': 0x01,
-                    'decoupled': 0x02,
+                    rocker: 0x00,
+                    button: 0x01,
+                    decoupled: 0x02,
                 },
                 entityCategory: 'config',
             }),
@@ -208,7 +194,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {'1': 1, '2': 2, 'b1': 3, 'b2': 4},
+                endpoints: {'1': 1, '2': 2, b1: 3, b2: 4},
             }),
             onOff({
                 endpointNames: ['1', '2'],
@@ -221,10 +207,10 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
                 description: 'Power supply type',
                 lookup: {
-                    'full': 0x03,
-                    'low': 0x02,
-                    'medium': 0x01,
-                    'high': 0x00,
+                    full: 0x03,
+                    low: 0x02,
+                    medium: 0x01,
+                    high: 0x00,
                 },
                 entityCategory: 'config',
             }),
@@ -248,9 +234,9 @@ const definitions: DefinitionWithExtend[] = [
                 endpointName: '1',
                 description: 'External switch type 1',
                 lookup: {
-                    'rocker': 0x00,
-                    'button': 0x01,
-                    'decoupled': 0x02,
+                    rocker: 0x00,
+                    button: 0x01,
+                    decoupled: 0x02,
                 },
                 entityCategory: 'config',
             }),
@@ -263,9 +249,9 @@ const definitions: DefinitionWithExtend[] = [
                 endpointName: '2',
                 description: 'External switch type 2',
                 lookup: {
-                    'rocker': 0x00,
-                    'button': 0x01,
-                    'decoupled': 0x02,
+                    rocker: 0x00,
+                    button: 0x01,
+                    decoupled: 0x02,
                 },
                 entityCategory: 'config',
             }),
@@ -280,7 +266,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {'up': 1, 'down': 2},
+                endpoints: {up: 1, down: 2},
             }),
             commandsOnOff({endpointNames: ['up', 'down']}),
         ],
@@ -293,7 +279,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {'b1_up': 1, 'b1_down': 2, 'b2_up': 1, 'b2_down': 2},
+                endpoints: {b1_up: 1, b1_down: 2, b2_up: 1, b2_down: 2},
             }),
             commandsOnOff({endpointNames: ['b1_up', 'b1_down', 'b2_up', 'b2_down']}),
         ],
@@ -307,7 +293,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {'1': 1, 'up': 2, 'down': 3},
+                endpoints: {'1': 1, up: 2, down: 3},
             }),
             onOff({
                 endpointNames: ['1'],
@@ -320,10 +306,10 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
                 description: 'Power supply type',
                 lookup: {
-                    'full': 0x03,
-                    'low': 0x02,
-                    'medium': 0x01,
-                    'high': 0x00,
+                    full: 0x03,
+                    low: 0x02,
+                    medium: 0x01,
+                    high: 0x00,
                 },
                 entityCategory: 'config',
             }),
@@ -336,10 +322,10 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
                 description: 'Switch mode (control_relay - the button control the relay, decoupled - button send events when pressed)',
                 lookup: {
-                    'control_relay': 0x00,
-                    'up_decoupled': 0x01,
-                    'decoupled': 0x02,
-                    'down_decoupled': 0x03,
+                    control_relay: 0x00,
+                    up_decoupled: 0x01,
+                    decoupled: 0x02,
+                    down_decoupled: 0x03,
                 },
                 entityCategory: 'config',
                 endpointName: '1',
@@ -368,10 +354,10 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
                 description: 'Power supply type',
                 lookup: {
-                    'full': 0x03,
-                    'low': 0x02,
-                    'medium': 0x01,
-                    'high': 0x00,
+                    full: 0x03,
+                    low: 0x02,
+                    medium: 0x01,
+                    high: 0x00,
                 },
                 entityCategory: 'config',
             }),
@@ -384,10 +370,10 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
                 description: 'Switch mode (control_relay - the button control the relay, decoupled - button send events when pressed)',
                 lookup: {
-                    'control_relay': 0x00,
-                    'up_decoupled': 0x01,
-                    'decoupled': 0x02,
-                    'down_decoupled': 0x03,
+                    control_relay: 0x00,
+                    up_decoupled: 0x01,
+                    decoupled: 0x02,
+                    down_decoupled: 0x03,
                 },
                 entityCategory: 'config',
                 endpointName: '1',
@@ -400,10 +386,10 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
                 description: 'Switch mode (control_relay - the buttons control the relay, decoupled - buttons send events when pressed)',
                 lookup: {
-                    'control_relay': 0x00,
-                    'up_decoupled': 0x01,
-                    'decoupled': 0x02,
-                    'down_decoupled': 0x03,
+                    control_relay: 0x00,
+                    up_decoupled: 0x01,
+                    decoupled: 0x02,
+                    down_decoupled: 0x03,
                 },
                 entityCategory: 'config',
                 endpointName: '2',
