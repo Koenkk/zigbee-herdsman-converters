@@ -12927,7 +12927,7 @@ const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff],
-                [2, 'mode', tuya.valueConverterBasic.lookup({cold: tuya.enum(0), hot: tuya.enum(1), wind: tuya.enum(2)})],
+                [2, 'system_mode', tuya.valueConverterBasic.lookup({cool: tuya.enum(0), heat: tuya.enum(1), fan_only: tuya.enum(2)})],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [19, 'max_temperature', tuya.valueConverter.divideBy10],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
