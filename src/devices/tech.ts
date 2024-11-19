@@ -11,7 +11,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_r7brscr6'}],
         model: 'VNTH-T2',
         vendor: 'TECH',
-        description: 'Smart Radiator Valve',
+        description: 'Smart radiator valve',
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
