@@ -1929,8 +1929,11 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: 'CR Smart Home', model: 'TS0207'},
             tuya.whitelabel('Meian', 'SW02', 'Water leak sensor', ['_TZ3000_kyb656no']),
-            tuya.whitelabel('Aubess', 'IH-K665', 'Water leak sensor', ['_TZ3000_k4ej3ww2', '_TZ3000_kstbkt6a', '_TZ3000_upgcbody']),
-            tuya.whitelabel('Tuya', 'TS0207_water_leak_detector_1', 'Zigbee water flood sensor + 1m probe cable', ['_TZ3000_ocjlo4ea']),
+            tuya.whitelabel('Aubess', 'IH-K665', 'Water leak sensor', ['_TZ3000_k4ej3ww2', '_TZ3000_kstbkt6a']),
+            tuya.whitelabel('Tuya', 'TS0207_water_leak_detector_1', 'Zigbee water flood sensor + 1m probe cable', [
+                '_TZ3000_ocjlo4ea',
+                '_TZ3000_upgcbody',
+            ]),
             tuya.whitelabel('Tuya', 'TS0207_water_leak_detector_3', 'Zigbee water leak sensor', ['_TYZB01_sqmd19i1']),
             tuya.whitelabel('Tuya', '899WZ', 'Water leak detector with 80DB Alarm', ['_TZ3000_mugyhz0q']),
             tuya.whitelabel('Niceboy', 'ORBIS Water Sensor', 'Water leak sensor', ['_TZ3000_awvmkayh']),
@@ -2807,7 +2810,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ojtqawav', '_TZE204_gbagoilo']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ojtqawav', '_TZE204_gbagoilo', '_TZE200_ojtqawav']),
         model: 'TS0601_switch_1_gang',
         vendor: 'Tuya',
         description: '1 gang switch',
@@ -4243,6 +4246,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_lpwgshtl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rk1wojce'}, // Emos P5630S
             {modelID: 'TS0601', manufacturerName: '_TZE200_rndg81sf'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_qjp4ynvi'},
         ],
         model: 'TS0601_thermostat',
         vendor: 'Tuya',
@@ -7029,7 +7033,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
     },
     {
-        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_8uxxzz4b', '_TZ3000_hy6ncvmw']),
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_8uxxzz4b', '_TZ3000_hy6ncvmw', '_TZ3000_9kbbfeho']),
         model: 'TS0222_light',
         vendor: 'Tuya',
         description: 'Light sensor',
@@ -8658,6 +8662,7 @@ const definitions: DefinitionWithExtend[] = [
             e.light_brightness().withMinBrightness().withMaxBrightness(),
             tuya.exposes.lightType().withAccess(ea.ALL),
             e.power_on_behavior().withAccess(ea.ALL),
+            tuya.exposes.switchType(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -8770,7 +8775,7 @@ const definitions: DefinitionWithExtend[] = [
                 [111, 'energy_b', tuya.valueConverter.divideBy1000],
                 [121, 'energy_c', tuya.valueConverter.divideBy1000],
                 [131, 'current', tuya.valueConverter.divideBy1000],
-                [9, 'power', tuya.valueConverter.raw],
+                [9, 'power', tuya.valueConverter.power],
                 [102, 'power_factor_a', tuya.valueConverter.raw],
                 [112, 'power_factor_b', tuya.valueConverter.raw],
                 [122, 'power_factor_c', tuya.valueConverter.raw],
@@ -12922,13 +12927,13 @@ const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff],
-                [2, 'mode', tuya.valueConverterBasic.lookup({cold: tuya.enum(0), hot: tuya.enum(1), wind: tuya.enum(2)})],
+                [2, 'mode', tuya.valueConverterBasic.lookup({ cold: tuya.enum(0), hot: tuya.enum(1), wind: tuya.enum(2) })],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [19, 'max_temperature', tuya.valueConverter.divideBy10],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [26, 'min_temperature', tuya.valueConverter.divideBy10],
                 [102, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration],
-                [28, 'fan_mode', tuya.valueConverterBasic.lookup({auto: tuya.enum(0), high: tuya.enum(1), medium: tuya.enum(2), low: tuya.enum(3)})],
+                [28, 'fan_mode', tuya.valueConverterBasic.lookup({ auto: tuya.enum(0), high: tuya.enum(1), medium: tuya.enum(2), low: tuya.enum(3) })],
                 [40, 'child_lock', tuya.valueConverter.lockUnlock],
                 [113, 'humidity', tuya.valueConverter.raw],
                 [101, 'manual_mode', tuya.valueConverter.onOff],
@@ -12936,5 +12941,6 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
+
 export default definitions;
 module.exports = definitions;
