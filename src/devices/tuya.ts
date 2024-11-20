@@ -7034,7 +7034,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
-        whiteLabel: [tuya.whitelabel('Moes', 'ZSS-QT-LS-C', 'Light Sensor', ['_TZ3000_9kbbfeho'])],
+        whiteLabel: [tuya.whitelabel('Moes', 'ZSS-QT-LS-C', 'Light sensor', ['_TZ3000_9kbbfeho'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_t9qqxn70']),
