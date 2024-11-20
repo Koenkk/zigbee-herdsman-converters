@@ -4723,6 +4723,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_rxq4iti9',
             '_TZE200_hvaxb2tc' /* model: 'TRV06', vendor: 'AVATTO' */,
             '_TZE284_o3x45p96' /* model: 'TRV06', vendor: 'AVATTO' */,
+            '_TZE284_c6wv4xyo' /* model: 'TRV06', vendor: 'AVATTO' */,
         ]),
         model: 'TS0601_thermostat_3',
         vendor: 'Tuya',
@@ -4732,7 +4733,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('AVATTO', 'ME167', 'Thermostatic radiator valve', ['_TZE200_bvu2wnxz', '_TZE200_6rdj8dzm', '_TZE200_9xfjixap']),
             tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_p3dbf6qs', '_TZE200_rxntag7i']),
-            tuya.whitelabel('AVATTO', 'TRV06_1', 'Thermostatic radiator valve', ['_TZE200_hvaxb2tc', '_TZE284_o3x45p96']),
+            tuya.whitelabel('AVATTO', 'TRV06_1', 'Thermostatic radiator valve', ['_TZE200_hvaxb2tc', '_TZE284_o3x45p96','_TZE284_c6wv4xyo']),
             tuya.whitelabel('EARU', 'TRV06', 'Smart thermostat module', ['_TZE200_yqgbrdyo', '_TZE200_rxq4iti9']),
         ],
         onEvent: tuya.onEventSetTime,
