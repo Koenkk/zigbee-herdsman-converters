@@ -1,5 +1,21 @@
 # Changelog
 
+## [20.50.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.49.1...v20.50.0) (2024-11-20)
+
+
+### Features
+
+* **add:** AVATTO_TRV06 ([#8343](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8343)) ([3c2d52c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c2d52c601d10a549fbe7f127c56f1080497c131))
+* **add:** YNDX_00537, YNDX_00538, YNDX_00534, YNDX_00535, YNDX_00531, YNDX_00532 ([#8345](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8345)) ([4afed8c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4afed8c3634407b92d6c0154276074f7ca7e939b))
+* **add:** ZSS-QT-LS-C ([#8294](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8294)) ([18b80ed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/18b80ed29e069751f7bd9bcf2d75ffbe8e65f6d4))
+
+
+### Bug Fixes
+
+* Add Nedis ZBWS40WT as whitelabel for Tuya TS0044 ([#8342](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8342)) ([545b2af](https://github.com/Koenkk/zigbee-herdsman-converters/commit/545b2afcea4b6eed0045f4f5e99c3ee53f491598))
+* Add new fingerprint for GL-C-007-2ID https://github.com/Koenkk/zigbee2mqtt/issues/24745 ([ac7e475](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ac7e4758c3af5ff924bcb75fc28a51340ac24f1d))
+* Elko Super Thermostat: configurable reporting of local temperature based on sensor choice ([#8313](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8313)) ([9c0d004](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c0d004b0d84f09773e059321eb8208b39a7f1b2))
+
 ## [20.49.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.49.0...v20.49.1) (2024-11-19)
 
 
