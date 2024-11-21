@@ -312,6 +312,16 @@ const definitions: DefinitionWithExtend[] = [
                     {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
                 ],
             },
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GLEDOPTO',
+                endpoints: [
+                    {ID: 10, profileID: 260, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8], outputClusters: []},
+                    {ID: 11, profileID: 260, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                ],
+            },
         ],
         model: 'GL-C-007-2ID', // 2 ID controls white and color separate
         vendor: 'Gledopto',
@@ -417,8 +427,9 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GL-C-003P',
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
-        description: 'Zigbee LED Controller CCT (pro)',
-        extend: [light({colorTemp: {range: [158, 500]}}), identify(), gledoptoConfigureReadModelID()],
+        description: 'Zigbee LED Controller RGB (pro)',
+        // Supports color: https://github.com/Koenkk/zigbee2mqtt/issues/24091
+        extend: [light({color: {modes: ['xy', 'hs'], enhancedHue: true}}), identify(), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-C-008P'],

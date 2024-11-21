@@ -269,6 +269,7 @@ import swann from './swann';
 import sylvania from './sylvania';
 import tapestry from './tapestry';
 import tci from './tci';
+import tech from './tech';
 import technicolor from './technicolor';
 import terncy from './terncy';
 import the_light_group from './the_light_group';
@@ -580,6 +581,7 @@ export default [
     ...sylvania,
     ...tapestry,
     ...tci,
+    ...tech,
     ...technicolor,
     ...terncy,
     ...the_light_group,
