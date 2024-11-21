@@ -250,9 +250,9 @@ describe('index.js', () => {
         });
     });
 
-    it('Verify addDefinition', () => {
+    it('Verify addDefinition for external converters', () => {
         const mockZigbeeModel = 'my-mock-device';
-        let mockDevice = {toZigbee: []};
+        let mockDevice = {toZigbee: [], externalConverterName: 'mock-model.js'};
         const undefinedDevice = index.findByModel('mock-model');
         expect(undefinedDevice).toBeUndefined();
         const beforeAdditionDeviceCount = index.definitions.length;

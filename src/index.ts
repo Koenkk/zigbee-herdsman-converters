@@ -316,7 +316,9 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
         definition.exposes = definition.exposes.concat([exposesLib.presets.linkquality()]);
     }
 
-    validateDefinition(definition);
+    if (definition.externalConverterName) {
+        validateDefinition(definition);
+    }
 
     // Add all the options
     if (!definition.options) {
