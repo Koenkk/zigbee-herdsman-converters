@@ -373,11 +373,11 @@ export function replaceToZigbeeConvertersInArray(
     return clone;
 }
 
-export function filterObject(obj: KeyValue, keys: string[]) {
-    const result: KeyValue = {};
+export function filterObject<T>(obj: T, keys: string[]): Partial<T> {
+    const result: Partial<T> = {};
     for (const [key, value] of Object.entries(obj)) {
         if (keys.includes(key)) {
-            result[key] = value;
+            result[key as keyof T] = value;
         }
     }
     return result;
