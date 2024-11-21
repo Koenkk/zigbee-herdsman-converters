@@ -1347,7 +1347,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ogkdpgy2', '_TZE200_3ejwxpmu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ogkdpgy2', '_TZE204_ogkdpgy2', '_TZE200_3ejwxpmu']),
         model: 'TS0601_co2_sensor',
         vendor: 'Tuya',
         description: 'NDIR co2 sensor',
@@ -3093,6 +3093,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
+        ota: true,
         whiteLabel: [
             {vendor: 'BlitzWolf', model: 'BW-IS4'},
             tuya.whitelabel('Tuya', 'TS0201_1', 'Zigbee 3.0 temperature humidity sensor with display', ['_TZ3210_alxkwn0h']),
@@ -3258,6 +3259,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Haozee', model: 'ESW-OZAA-EU'},
             {vendor: 'LoraTap', model: 'SS6400ZB'},
             {vendor: 'Moes', model: 'ZT-SY-EU-G-4S-WH-MS'},
+            {vendor: 'Nedis', model: 'ZBWS40WT'},
             tuya.whitelabel('Moes', 'ZT-SR-EU4', 'Star Ring 4 Gang Scene Switch', ['_TZ3000_a4xycprs']),
             tuya.whitelabel('Tuya', 'TS0044_1', 'Zigbee 4 button remote - 12 scene', ['_TZ3000_dziaict4', '_TZ3000_mh9px7cq', '_TZ3000_j61x9rxn']),
             tuya.whitelabel('Tuya', 'TM-YKQ004', 'Zigbee 4 button remote - 12 scene', ['_TZ3000_u3nv1jwk']),
@@ -4722,6 +4724,8 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_rxq4iti9',
             '_TZE200_hvaxb2tc' /* model: 'TRV06', vendor: 'AVATTO' */,
             '_TZE284_o3x45p96' /* model: 'TRV06', vendor: 'AVATTO' */,
+            '_TZE284_c6wv4xyo' /* model: 'AVATTO_TRV06', vendor: 'AVATTO_TRV06' */,
+            '_TZE204_o3x45p96' /* model: 'AVATTO_TRV06', vendor: 'AVATTO_TRV06' */,
         ]),
         model: 'TS0601_thermostat_3',
         vendor: 'Tuya',
@@ -4733,6 +4737,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_p3dbf6qs', '_TZE200_rxntag7i']),
             tuya.whitelabel('AVATTO', 'TRV06_1', 'Thermostatic radiator valve', ['_TZE200_hvaxb2tc', '_TZE284_o3x45p96']),
             tuya.whitelabel('EARU', 'TRV06', 'Smart thermostat module', ['_TZE200_yqgbrdyo', '_TZE200_rxq4iti9']),
+            tuya.whitelabel('AVATTO', 'AVATTO_TRV06', 'Thermostatic radiator valve', ['_TZE284_c6wv4xyo', '_TZE204_o3x45p96']),
         ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
@@ -7041,6 +7046,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         exposes: [e.battery(), e.illuminance()],
+        whiteLabel: [tuya.whitelabel('Moes', 'ZSS-QT-LS-C', 'Light sensor', ['_TZ3000_9kbbfeho'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_t9qqxn70']),
@@ -10685,7 +10691,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ya4ft0w4']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ya4ft0w4', '_TZE200_ya4ft0w4']),
         model: 'ZY-M100-24GV3',
         vendor: 'Tuya',
         description: '24G MmWave radar human presence motion sensor（added distance switch）',

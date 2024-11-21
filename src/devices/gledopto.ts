@@ -311,6 +311,16 @@ const definitions: DefinitionWithExtend[] = [
                     {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
                 ],
             },
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GLEDOPTO',
+                endpoints: [
+                    {ID: 10, profileID: 260, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8], outputClusters: []},
+                    {ID: 11, profileID: 260, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                ],
+            },
         ],
         model: 'GL-C-007-2ID', // 2 ID controls white and color separate
         vendor: 'Gledopto',

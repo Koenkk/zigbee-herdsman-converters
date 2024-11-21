@@ -302,6 +302,7 @@ import wyze from './wyze';
 import xinghuoyuan from './xinghuoyuan';
 import xyzroe from './xyzroe';
 import yale from './yale';
+import yandex from './yandex';
 import ynoa from './ynoa';
 import yookee from './yookee';
 import ysrsai from './ysrsai';
@@ -614,6 +615,7 @@ export default [
     ...xinghuoyuan,
     ...xyzroe,
     ...yale,
+    ...yandex,
     ...ynoa,
     ...yookee,
     ...ysrsai,
