@@ -10693,7 +10693,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ya4ft0w4']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ya4ft0w4', '_TZE200_ya4ft0w4']),
         model: 'ZY-M100-24GV3',
         vendor: 'Tuya',
         description: '24G MmWave radar human presence motion sensor（added distance switch）',
