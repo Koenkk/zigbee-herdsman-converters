@@ -1349,10 +1349,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: [
-            'RBSH-TRV0-ZB-EU',
-            'RBSH-TRV1-ZB-EU',
-        ],
+        zigbeeModel: ['RBSH-TRV0-ZB-EU', 'RBSH-TRV1-ZB-EU'],
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
