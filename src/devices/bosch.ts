@@ -1351,7 +1351,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: [
             'RBSH-TRV0-ZB-EU',
-            'RBSH-TRV1-ZB-EU'
+            'RBSH-TRV1-ZB-EU',
         ],
         model: 'BTH-RA',
         vendor: 'Bosch',
