@@ -66,7 +66,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HAL550',
         vendor: 'Schwaiger',
         description: 'Smart light bulb LED RGB dimmable GU10',
-        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], "enhancedHue": true}})],
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
 
