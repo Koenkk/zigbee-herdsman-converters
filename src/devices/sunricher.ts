@@ -211,6 +211,13 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['HK-ZRC-K12&RS-E'],
+        model: 'SR-ZG9002KR12-Pro',
+        vendor: 'Sunricher',
+        description: 'Zigbee smart wall panel remote',
+        extend: [battery(), commandsOnOff(), commandsLevelCtrl(), commandsColorCtrl()],
+    },
+    {
         zigbeeModel: ['ZV9380A'],
         model: 'SR-ZG9042MP',
         vendor: 'Sunricher',
