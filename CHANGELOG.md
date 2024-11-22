@@ -1,5 +1,19 @@
 # Changelog
 
+## [20.52.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.51.0...v20.52.0) (2024-11-22)
+
+
+### Features
+
+* **add:** HAL550 ([#8356](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8356)) ([c4919b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c4919b74f890f3fdbac71b5b4a1de9a0601e8d30))
+* **add:** SR-ZG9002KR12-Pro ([#8355](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8355)) ([d13a730](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d13a730de3eb3c34e76b95af237506dd1427b751))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_jtbgusdc` as Avatto ZDMS16-2 https://github.com/Koenkk/zigbee2mqtt/issues/24840 ([1153ccf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1153ccfc9e1f9a97fccf4daf432e1c1e2d37e675))
+* **detect:** Detect `_TZE204_qyflbnbj` as Tuya TS0601_temperature_humidity_sensor_1 ([#8358](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8358)) ([1ca3d57](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1ca3d57bcb2405c24fdc0e8b8b3a2e20db3c3158))
+
 ## [20.51.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.50.0...v20.51.0) (2024-11-21)
 
 
