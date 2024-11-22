@@ -211,6 +211,20 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['ZV9380A'],
+        model: 'SR-ZG9042MP',
+        vendor: 'Sunricher',
+        description: 'Zigbee three phase power meter',
+        extend: [electricityMeter()],
+    },
+    {
+        zigbeeModel: ['HK-SL-DIM-AU-K-A'],
+        model: 'SR-ZG2835PAC-AU',
+        vendor: 'Sunricher',
+        description: 'Zigbee push button smart dimmer',
+        extend: [light({configureReporting: true}), sunricherExternalSwitchType(), electricityMeter()],
+    },
+    {
         zigbeeModel: ['HK-SL-DIM-CLN'],
         model: 'SR-ZG9101SAC-HP-CLN',
         vendor: 'Sunricher',
