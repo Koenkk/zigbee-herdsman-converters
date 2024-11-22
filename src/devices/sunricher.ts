@@ -197,6 +197,59 @@ const fzLocal = {
             return {action: utils.getFromLookup(commandID, lookup)};
         },
     } satisfies Fz.Converter,
+    sunricher_SRZG9002KR12Pro: {
+        cluster: 0xff03,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const bytes = [...msg.data];
+            const messageType = bytes[3];
+
+            let action = 'unknown';
+            let buttons: string[] = [];
+            let speed = 0;
+
+            if (messageType === 0x01) {
+                const pressTypeMask: number = bytes[6];
+                const pressTypeLookup: {[key: number]: string} = {
+                    0x01: 'short_press',
+                    0x02: 'double_press',
+                    0x03: 'hold',
+                    0x04: 'hold_released',
+                };
+                action = pressTypeLookup[pressTypeMask] || 'unknown';
+
+                const buttonMask = (bytes[4] << 8) | bytes[5];
+                const specialButtonMap: {[key: number]: string} = {
+                    9: 'knob',
+                    11: 'k9',
+                    12: 'k10',
+                    15: 'k11',
+                    16: 'k12',
+                };
+
+                const tmp = [];
+                for (let i = 0; i < 16; i++) {
+                    if ((buttonMask >> i) & 1) {
+                        tmp.push(i + 1);
+                    }
+                }
+                buttons = tmp.map((button) => specialButtonMap[button] ?? `k${button}`);
+            } else if (messageType === 0x03) {
+                const directionMask = bytes[4];
+                speed = bytes[6];
+
+                const directionMap: {[key: number]: string} = {
+                    0x01: 'clockwise',
+                    0x02: 'anti_clockwise',
+                };
+                const direction = directionMap[directionMask] || 'unknown';
+
+                action = `${direction}_rotation`;
+            }
+
+            return {action, buttons, speed};
+        },
+    } satisfies Fz.Converter,
 };
 
 async function syncTime(endpoint: Zh.Endpoint) {
@@ -215,7 +268,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG9002KR12-Pro',
         vendor: 'Sunricher',
         description: 'Zigbee smart wall panel remote',
-        extend: [battery(), commandsOnOff(), commandsLevelCtrl(), commandsColorCtrl()],
+        extend: [battery()],
+        fromZigbee: [fzLocal.sunricher_SRZG9002KR12Pro],
     },
     {
         zigbeeModel: ['ZV9380A'],
