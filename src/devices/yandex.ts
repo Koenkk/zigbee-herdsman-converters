@@ -14,7 +14,7 @@ import {
     EnumLookupArgs,
     onOff,
 } from '../lib/modernExtend';
-import {Configure, DefinitionWithExtend, Fz, ModernExtend, OnEvent, Tz} from '../lib/types';
+import {Configure, DefinitionWithExtend, ModernExtend, OnEvent, Tz} from '../lib/types';
 import {getFromLookup, isString} from '../lib/utils';
 
 const NS = 'zhc:yandex';
