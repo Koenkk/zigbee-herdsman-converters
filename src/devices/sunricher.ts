@@ -203,9 +203,8 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const bytes = [...msg.data];
             const messageType = bytes[3];
-
+            const buttons: string[] = [];
             let action = 'unknown';
-            let buttons: string[] = [];
             let speed = 0;
 
             if (messageType === 0x01) {
@@ -227,13 +226,12 @@ const fzLocal = {
                     16: 'k12',
                 };
 
-                const tmp = [];
                 for (let i = 0; i < 16; i++) {
                     if ((buttonMask >> i) & 1) {
-                        tmp.push(i + 1);
+                        const button = i + 1;
+                        buttons.push(specialButtonMap[button] ?? `k${button}`);
                     }
                 }
-                buttons = tmp.map((button) => specialButtonMap[button] ?? `k${button}`);
             } else if (messageType === 0x03) {
                 const directionMask = bytes[4];
                 speed = bytes[6];
