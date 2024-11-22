@@ -129,31 +129,12 @@ function YandexCluster(): ModernExtend {
 
 function reinterview(): ModernExtend {
     let coordEnd: Endpoint | number = 1;
-    let localMeta: Fz.Meta;
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
             coordEnd = coordinatorEndpoint;
         },
     ];
-    const fromZigbee: Fz.Converter[] = [
-        {
-            cluster: 'genOnOff',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                localMeta = meta;
-                return;
-            },
-        } satisfies Fz.Converter,
-        {
-            cluster: 'genBasic',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                localMeta = meta;
-                return;
-            },
-        } satisfies Fz.Converter,
-    ];
-    const onEvent: OnEvent = async (type, data, device, settings, state) => {
+    const onEvent: OnEvent = async (type, data, device, settings, state, meta) => {
         if (type == 'deviceAnnounce') {
             // reinterview
             try {
@@ -166,14 +147,14 @@ function reinterview(): ModernExtend {
                     }
                 }
                 // send updates to clients
-                if (localMeta) localMeta.deviceExposesChanged();
+                if (meta) meta.deviceExposesChanged();
             } catch (error) {
                 logger.error(`Reinterview failed for '${device.ieeeAddr} with error '${error}'`, NS);
             }
         }
     };
 
-    return {fromZigbee, onEvent, configure, isModernExtend: true};
+    return {onEvent, configure, isModernExtend: true};
 }
 
 const definitions: DefinitionWithExtend[] = [
