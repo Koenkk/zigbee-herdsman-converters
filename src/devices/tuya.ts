@@ -2450,6 +2450,10 @@ const definitions: DefinitionWithExtend[] = [
                 modelID: 'TS0601',
                 manufacturerName: '_TZE204_o9gyszw2',
             },
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_jtbgusdc',
+            },
         ],
         model: 'ZDMS16-2',
         vendor: 'Avatto',
