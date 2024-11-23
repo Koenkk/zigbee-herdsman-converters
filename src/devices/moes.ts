@@ -613,13 +613,13 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0222', manufacturerName: '_TZ3000_9kbbfeho'},
-        ],
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TZ3000_9kbbfeho'}],
         model: 'ZSS-QY-LS-C',
-        description: 'Light intensity sensor',
         vendor: 'Moes',
-        extend: [illuminance(), battery()],
+        description: 'Light intensity sensor',
+        fromZigbee: [fz.battery, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
     },
 ];
 
