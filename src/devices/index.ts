@@ -269,6 +269,7 @@ import swann from './swann';
 import sylvania from './sylvania';
 import tapestry from './tapestry';
 import tci from './tci';
+import tech from './tech';
 import technicolor from './technicolor';
 import terncy from './terncy';
 import the_light_group from './the_light_group';
@@ -301,6 +302,7 @@ import wyze from './wyze';
 import xinghuoyuan from './xinghuoyuan';
 import xyzroe from './xyzroe';
 import yale from './yale';
+import yandex from './yandex';
 import ynoa from './ynoa';
 import yookee from './yookee';
 import ysrsai from './ysrsai';
@@ -579,6 +581,7 @@ export default [
     ...sylvania,
     ...tapestry,
     ...tci,
+    ...tech,
     ...technicolor,
     ...terncy,
     ...the_light_group,
@@ -612,6 +615,7 @@ export default [
     ...xinghuoyuan,
     ...xyzroe,
     ...yale,
+    ...yandex,
     ...ynoa,
     ...yookee,
     ...ysrsai,
