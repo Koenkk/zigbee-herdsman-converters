@@ -613,7 +613,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TZ3000_9kbbfeho'}],
+        fingerprint: [{modelID: 'TS0222_light', manufacturerName: '_TZ3000_9kbbfeho'}],
         model: 'ZSS-QY-LS-C',
         vendor: 'Moes',
         description: 'Light intensity sensor',
