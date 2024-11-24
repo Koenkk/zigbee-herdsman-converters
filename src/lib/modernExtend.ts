@@ -2075,7 +2075,8 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
-                    return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
+                    // skip undefined value
+                    if (msg.data[attributeKey] !== undefined) return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
                 }
             },
         },
