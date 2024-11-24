@@ -1763,7 +1763,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'BSP-FZ2',
         vendor: 'Bosch',
         description: 'Plug compact EU',
-        extend: [onOff(), electricityMeter(), ota()],
+        extend: [onOff(), electricityMeter({voltage: false, current: false}), ota()],
         whiteLabel: [
             {vendor: 'Bosch', model: 'BSP-EZ2', description: 'Plug compact FR', fingerprint: [{modelID: 'RBSH-SP-ZB-FR'}]},
             {vendor: 'Bosch', model: 'BSP-GZ2', description: 'Plug compact UK', fingerprint: [{modelID: 'RBSH-SP-ZB-GB'}]},
