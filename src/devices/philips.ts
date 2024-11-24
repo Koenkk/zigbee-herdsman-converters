@@ -3983,6 +3983,13 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Philips Hue Go White and Color',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
+    {
+        zigbeeModel: ['LCV001'],
+        model: '929003151501',
+        vendor: 'Philips',
+        description: 'Hue Lightguide E27 Edison ST72 500lm',
+        extend: [philipsLight({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    },
 ];
 
 export default definitions;
