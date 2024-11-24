@@ -758,33 +758,32 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['NHROTARY/UNIDIM/1'],
-        model: 'WDE002961',
+        model: 'NH3516A',
         vendor: 'Schneider Electric',
         description: 'Rotary dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
-        exposes: [
-            e.light_brightness().withLevelConfig(),
-            e
-                .numeric('ballast_minimum_level', ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription('Specifies the minimum light output of the ballast'),
-            e
-                .numeric('ballast_maximum_level', ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription('Specifies the maximum light output of the ballast'),
-            e
-                .enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
-                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)'),
+        extend: [
+            light({
+                effect: false,
+                powerOnBehavior: false,
+                color: false,
+                configureReporting: true,
+                levelConfig: {
+                    disabledFeatures: ['on_transition_time', 'off_transition_time', 'on_off_transition_time', 'execute_if_off'],
+                },
+            }),
+            lightingBallast(),
+            schneiderElectricExtend.dimmingMode(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        whiteLabel: [
+            {vendor: 'Elko', model: 'EKO07278'},
+            {vendor: 'Elko', model: 'EKO07279'},
+            {vendor: 'Elko', model: 'EKO07280'},
+            {vendor: 'Elko', model: 'EKO07281'},
+            {vendor: 'Elko', model: 'EKO30198'},
+            {vendor: 'Schneider', model: 'WDE002961'},
+            {vendor: 'Schneider', model: 'WDE003961'},
+            {vendor: 'Schneider', model: 'WDE004961'},
+        ],
     },
     {
         zigbeeModel: ['NHPB/UNIDIM/1'],
@@ -1637,43 +1636,28 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['NHMOTION/SWITCH/1'],
-        model: '545D6306',
+        model: 'NH3526',
         vendor: 'Schneider Electric',
-        description: 'LK FUGA Wiser wireless PIR with relay',
-        fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fz.occupancy_timeout],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.occupancy(),
-            e.illuminance_lux(),
-            e.illuminance(),
-            e
-                .numeric('occupancy_timeout', ea.ALL)
-                .withUnit('s')
-                .withValueMin(0)
-                .withValueMax(3600)
-                .withDescription('Time in seconds after which occupancy is cleared after detecting it'),
+        description: 'Motion sensor with switch',
+        extend: [
+            onOff({
+                powerOnBehavior: false,
+                configureReporting: true,
+            }),
+            illuminance(),
+            occupancy({
+                pirConfig: ['otu_delay'],
+            }),
+            schneiderElectricExtend.addOccupancyConfigurationCluster(),
+            schneiderElectricExtend.occupancyConfiguration(),
         ],
-        toZigbee: [tz.on_off, tz.occupancy_timeout],
-        endpoint: (device) => {
-            return {default: 37, l1: 1, l2: 37};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const binds1 = ['genBasic', 'genIdentify', 'genOnOff'];
-            await reporting.bind(endpoint1, coordinatorEndpoint, binds1);
-            await reporting.onOff(endpoint1);
-            // read switch state
-            await endpoint1.read('genOnOff', ['onOff']);
-
-            const endpoint37 = device.getEndpoint(37);
-            const binds37 = ['msIlluminanceMeasurement', 'msOccupancySensing'];
-            await reporting.bind(endpoint37, coordinatorEndpoint, binds37);
-            await reporting.occupancy(endpoint37);
-            await reporting.illuminance(endpoint37);
-            // read occupancy_timeout
-            await endpoint37.read('msOccupancySensing', ['pirOToUDelay']);
-        },
+        whiteLabel: [
+            {vendor: 'Elko', model: 'EKO06988'},
+            {vendor: 'Elko', model: 'EKO06989'},
+            {vendor: 'Elko', model: 'EKO06990'},
+            {vendor: 'Elko', model: 'EKO06991'},
+            {vendor: 'LK', model: '545D6306'},
+        ],
     },
     {
         zigbeeModel: ['CCT595011_AS'],
