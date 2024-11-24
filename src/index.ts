@@ -21,10 +21,10 @@ import {
     DefinitionWithExtend,
     Expose,
     Fingerprint,
-    Fz,
     KeyValue,
     OnEvent,
     OnEventData,
+    OnEventMeta,
     OnEventType,
     Option,
     OtaUpdateAvailableResult,
@@ -454,7 +454,7 @@ export function findByModel(model: string) {
 
 // Can be used to handle events for devices which are not fully paired yet (no modelID).
 // Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
-export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.Device, meta: Fz.Meta) {
+export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.Device, meta: OnEventMeta) {
     // support Legrand security protocol
     // when pairing, a powered device will send a read frame to every device on the network
     // it expects at least one answer. The payload contains the number of seconds
