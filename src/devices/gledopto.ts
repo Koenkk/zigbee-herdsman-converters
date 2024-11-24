@@ -991,7 +991,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['GL-C-310P'],
         model: 'GL-C-310P',
         vendor: 'Gledopto',
-        description: 'Zigbee Relay Switch',
+        description: 'Zigbee relay switch',
         extend: [onOff()],
     },
 ];
