@@ -1,5 +1,24 @@
 # Changelog
 
+## [20.53.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.52.0...v20.53.0) (2024-11-24)
+
+
+### Features
+
+* **add:** 929003151501 ([#8368](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8368)) ([7ffa36c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7ffa36cfeb37433f4d718122c7d57cf0b9455532))
+* **add:** GL-C-310P ([#8366](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8366)) ([d00eb09](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d00eb090510f3a1eae36df847011036857d87e74))
+* **add:** TS0505B_4 ([#8361](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8361)) ([e4c0956](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e4c0956af0931135c7d3a88ecf020a8fe13dec22))
+* **add:** ZB-DoorSensor-D000 ([#8372](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8372)) ([f944ca0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f944ca0ee56d07eeaf2d8fcfdb24437080c2574c))
+
+
+### Bug Fixes
+
+* Bosch BSP-FZ2 (Plug Compact): fix failing interview due to wrong device configuration ([#8359](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8359)) ([7c1ac76](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7c1ac7625f2301c1bd64285fe6253a77f8732c92))
+* **ignore:** fix 53d6b99 https://github.com/Koenkk/zigbee-herdsman-converters/pull/8354 ([8d7d673](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8d7d673b03a01417ea84fe9d62f597700de5a089))
+* **ignore:** Notification of successful device update after re-interview for Yandex devices ([#8348](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8348)) ([9045784](https://github.com/Koenkk/zigbee-herdsman-converters/commit/90457845803e7c1bea4f251d927fc303f61eaa53))
+* **ignore:** Update dependencies ([#8365](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8365)) ([010866e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/010866e244b5cfdd8992d0ed6c704067dd2b490e))
+* Update Schneider PIR switch/Rotary dimmer config ([#8371](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8371)) ([32cc3e6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/32cc3e6b5ca79b276432a18d0bcc93425e66e3a4))
+
 ## [20.52.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.51.0...v20.52.0) (2024-11-22)
 
 
