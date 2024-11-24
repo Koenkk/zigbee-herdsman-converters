@@ -987,6 +987,13 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee triac AC dimmer',
         extend: [gledoptoLight({configureReporting: true})],
     },
+    {
+        zigbeeModel: ['GL-C-310P'],
+        model: 'GL-C-310P',
+        vendor: 'Gledopto',
+        description: 'Zigbee relay switch',
+        extend: [onOff()],
+    },
 ];
 
 export default definitions;
