@@ -1685,7 +1685,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0505B_4',
         vendor: 'Tuya',
         description: 'Zigbee RGB+CCT light',
-        whiteLabel: [tuya.whitelabel('Tuya', 'TS0505B_4_4', 'Zigbee 3.0 15W led light bulb E27 RGBCW', ['_TZ3210_bfwvfyx1'])],
+        whiteLabel: [tuya.whitelabel('Tuya', 'TS0505B_4_1', 'Zigbee 3.0 15W led light bulb E27 RGBCW', ['_TZ3210_bfwvfyx1'])],
         toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
         exposes: [e.light_brightness_colortemp_colorhs([50, 1000]).removeFeature('color_temp_startup'), tuya.exposes.doNotDisturb()],
