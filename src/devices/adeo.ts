@@ -439,6 +439,13 @@ const definitions: DefinitionWithExtend[] = [
             iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
         ],
     },
+    {
+        zigbeeModel: ['ZB-DoorSensor-D0007'],
+        model: 'ZB-DoorSensor-D0007',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN wireless smart door window sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
+    },
 ];
 
 export default definitions;
