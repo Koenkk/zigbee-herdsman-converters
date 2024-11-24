@@ -226,10 +226,19 @@ export interface DefinitionMeta {
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
+
 export interface OnEventMeta {
     deviceExposesChanged: () => void;
 }
-export type OnEvent = (type: OnEventType, data: OnEventData, device: Zh.Device, settings: KeyValue, state: KeyValue, meta?: OnEventMeta) => Promise<void>;
+
+export type OnEvent = (
+    type: OnEventType,
+    data: OnEventData,
+    device: Zh.Device,
+    settings: KeyValue,
+    state: KeyValue,
+    meta?: OnEventMeta,
+) => Promise<void>;
 
 export interface ModernExtend {
     fromZigbee?: Fz.Converter[];
