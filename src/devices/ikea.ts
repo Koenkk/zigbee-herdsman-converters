@@ -618,8 +618,25 @@ const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta()],
     },
     {
+        fingerprint: [{modelID: 'E2206', manufacturerName: 'IKEA'}],
         zigbeeModel: ['INSPELNING Smart plug'],
         model: 'E2206',
+        vendor: 'IKEA',
+        description: 'INSPELNING smart plug',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ota(), electricityMeter()],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            // Enable reporting of powerDivisor, needs to change dynamically with the amount of power
+            // For details, see: https://github.com/Koenkk/zigbee2mqtt/issues/23961#issuecomment-2366733453
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {attribute: 'acPowerDivisor', minimumReportInterval: 10, maximumReportInterval: repInterval.MAX, reportableChange: 1},
+            ]);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'INSPELNING Smart plug', manufacturerName: 'IKEA of Sweden'}],
+        zigbeeModel: ['INSPELNING Smart plug'],
+        model: 'E2223',
         vendor: 'IKEA',
         description: 'INSPELNING smart plug',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ota(), electricityMeter()],
