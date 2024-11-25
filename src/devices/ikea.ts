@@ -619,7 +619,6 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: 'E2206', manufacturerName: 'IKEA'}],
-        zigbeeModel: ['INSPELNING Smart plug'],
         model: 'E2206',
         vendor: 'IKEA',
         description: 'INSPELNING smart plug',
@@ -635,7 +634,6 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: 'INSPELNING Smart plug', manufacturerName: 'IKEA of Sweden'}],
-        zigbeeModel: ['INSPELNING Smart plug'],
         model: 'E2223',
         vendor: 'IKEA',
         description: 'INSPELNING smart plug',
