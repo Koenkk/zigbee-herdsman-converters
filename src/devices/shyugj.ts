@@ -3,10 +3,10 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['DoorSensor-ZB3.0'],
-        model: 'DoorSensor-ZB3.0',
+        fingerprint: [{modelID: 'DoorSensor-ZB3.0', manufacturerName: 'Shyugj'}],
+        model: 'S901D-ZG',
         vendor: 'Shyugj',
-        description: 'Automatically generated definition',
+        description: 'Door sensor',
         extend: [
             battery(),
             iasZoneAlarm({
@@ -14,7 +14,6 @@ const definitions: DefinitionWithExtend[] = [
                 zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low'],
             }),
         ],
-        meta: {},
     },
 ];
 
