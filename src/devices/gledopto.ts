@@ -994,6 +994,18 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee relay switch',
         extend: [onOff()],
     },
+	{
+		zigbeeModel: ['GL-C-008'],
+		model: 'GL-C-008',
+		vendor: 'Gledopto',
+		ota: ota.zigbeeOTA,
+		description: 'Zigbee LED Controller RGB+CCT',
+		extend: [
+			light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}),
+			identify(),
+			gledoptoConfigureReadModelID(),
+		],
+    },
 ];
 
 export default definitions;
