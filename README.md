@@ -38,7 +38,7 @@ If you'd like to submit a pull request, you should run the following commands to
 ```sh
 npm install -g pnpm
 pnpm install --frozen-lockfile
-pnpm run eslint -- --fix
+pnpm run eslint --fix
 pnpm run pretty:write
 pnpm run build
 pnpm test
