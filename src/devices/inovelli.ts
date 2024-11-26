@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceAddCustomCluster, identify} from '../lib/modernExtend';
+import {deviceAddCustomCluster, deviceEndpoints, humidity, identify, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Expose, Fz, Tz, Zh} from '../lib/types';
@@ -391,25 +391,6 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
             "A setting of 'instant' turns the light immediately off. Increasing the value slows down the transition speed. " +
             'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnLocal setting.',
     },
-    minimumLevel: {
-        ID: 9,
-        dataType: Zcl.DataType.UINT8,
-        min: 1,
-        max: 254,
-        description:
-            'The minimum level that the dimmer allows the bulb to be dimmed to. ' +
-            'Useful when the user has an LED bulb that does not turn on or flickers at a lower level.',
-    },
-    maximumLevel: {
-        ID: 10,
-        dataType: Zcl.DataType.UINT8,
-        min: 2,
-        max: 255,
-        description:
-            'The maximum level that the dimmer allows the bulb to be dimmed to.' +
-            'Useful when the user has an LED bulb that reaches its maximum level before the ' +
-            'dimmer value of 99 or when the user wants to limit the maximum brightness.',
-    },
     invertSwitch: {
         ID: 11,
         dataType: Zcl.DataType.BOOLEAN,
@@ -480,16 +461,6 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         },
         min: 0,
         max: 11,
-    },
-    powerType: {
-        ID: 21,
-        dataType: Zcl.DataType.BOOLEAN,
-        displayType: 'enum',
-        values: {'Non Neutral': 0, Neutral: 1},
-        min: 0,
-        max: 1,
-        readOnly: true,
-        description: 'Set the power type for the device.',
     },
     switchType: {
         ID: 22,
@@ -940,15 +911,6 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 101,
         description: 'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
-    outputMode: {
-        ID: 258,
-        min: 0,
-        max: 1,
-        values: {Dimmer: 0, 'On/Off': 1},
-        dataType: Zcl.DataType.BOOLEAN,
-        description: 'Use device as a Dimmer or an On/Off switch.',
-        displayType: 'enum',
-    },
     doubleTapClearNotifications: {
         ID: 262,
         dataType: Zcl.DataType.BOOLEAN,
@@ -968,8 +930,56 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
 };
 
-const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
+const COMMON_DIMMER_ATTRIBUTES: {[s: string]: Attribute} = {
     ...COMMON_ATTRIBUTES,
+    minimumLevel: {
+        ID: 9,
+        dataType: Zcl.DataType.UINT8,
+        min: 1,
+        max: 254,
+        description:
+            'The minimum level that the dimmer allows the bulb to be dimmed to. ' +
+            'Useful when the user has an LED bulb that does not turn on or flickers at a lower level.',
+    },
+    maximumLevel: {
+        ID: 10,
+        dataType: Zcl.DataType.UINT8,
+        min: 2,
+        max: 255,
+        description:
+            'The maximum level that the dimmer allows the bulb to be dimmed to.' +
+            'Useful when the user has an LED bulb that reaches its maximum level before the ' +
+            'dimmer value of 99 or when the user wants to limit the maximum brightness.',
+    },
+    powerType: {
+        ID: 21,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: 'enum',
+        values: {'Non Neutral': 0, Neutral: 1},
+        min: 0,
+        max: 1,
+        readOnly: true,
+        description: 'Set the power type for the device.',
+    },
+    outputMode: {
+        ID: 258,
+        min: 0,
+        max: 1,
+        values: {Dimmer: 0, 'On/Off': 1},
+        dataType: Zcl.DataType.BOOLEAN,
+        description: 'Use device as a Dimmer or an On/Off switch.',
+        displayType: 'enum',
+    },
+};
+
+const COMMON_DIMMER_ON_OFF_ATTRIBUTES: {[s: string]: Attribute} = {
+    ledBarScaling: {
+        ID: 100,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: 'enum',
+        values: {'Gen3 method (VZM-style)': 0, 'Gen2 method (LZW-style)': 1},
+        description: 'Method used for scaling.',
+    },
     activePowerReports: {
         ID: 18,
         dataType: Zcl.DataType.UINT8,
@@ -993,6 +1003,11 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
             'Energy reports Energy level change which will result in sending a new energy report.' +
             '0 = disabled, 1-32767 = 0.01kWh-327.67kWh. Default setting: 10 (0.1 kWh)',
     },
+};
+
+const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
+    ...COMMON_DIMMER_ATTRIBUTES,
+    ...COMMON_DIMMER_ON_OFF_ATTRIBUTES,
     quickStartTime: {
         ID: 23,
         dataType: Zcl.DataType.UINT8,
@@ -1016,13 +1031,6 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 1,
         description: 'Increase level in non-neutral mode',
     },
-    ledBarScaling: {
-        ID: 100,
-        dataType: Zcl.DataType.BOOLEAN,
-        displayType: 'enum',
-        values: {'Gen3 method (VZM-style)': 0, 'Gen2 method (LZW-style)': 1},
-        description: 'Method used for scaling.',
-    },
     relayClick: {
         ID: 261,
         dataType: Zcl.DataType.BOOLEAN,
@@ -1038,16 +1046,16 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
 };
 
 const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
-    ...COMMON_ATTRIBUTES,
+    ...COMMON_DIMMER_ATTRIBUTES,
     minimumLevel: {
-        ...COMMON_ATTRIBUTES.minimumLevel,
+        ...COMMON_DIMMER_ATTRIBUTES.minimumLevel,
         description:
             '1-84: The level corresponding to the fan is Low, Medium, High. ' +
             '85-170: The level corresponding to the fan is Medium, Medium, High. ' +
             '170-254: The level corresponding to the fan is High, High, High ',
     },
     maximumLevel: {
-        ...COMMON_ATTRIBUTES.maximumLevel,
+        ...COMMON_DIMMER_ATTRIBUTES.maximumLevel,
         description: '2-84: The level corresponding to the fan is Low, Medium, High.',
     },
     switchType: {
@@ -1082,7 +1090,7 @@ const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
         description: 'Identification value in Non-nuetral, low gear, aux switch',
     },
     outputMode: {
-        ...COMMON_ATTRIBUTES.outputMode,
+        ...COMMON_DIMMER_ATTRIBUTES.outputMode,
         values: {'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1},
         description: 'Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.',
     },
@@ -1100,8 +1108,8 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     rampRateOffToOnRemote_1: {...COMMON_ATTRIBUTES.rampRateOffToOnRemote},
     dimmingSpeedDownRemote_1: {...COMMON_ATTRIBUTES.dimmingSpeedDownRemote},
     rampRateOnToOffRemote_1: {...COMMON_ATTRIBUTES.rampRateOnToOffRemote},
-    minimumLevel_1: {...COMMON_ATTRIBUTES.minimumLevel},
-    maximumLevel_1: {...COMMON_ATTRIBUTES.maximumLevel},
+    minimumLevel_1: {...COMMON_DIMMER_ATTRIBUTES.minimumLevel},
+    maximumLevel_1: {...COMMON_DIMMER_ATTRIBUTES.maximumLevel},
     autoTimerOff_1: {
         ...COMMON_ATTRIBUTES.autoTimerOff,
         description:
@@ -1158,7 +1166,7 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     ledColorWhenOn_1: {...COMMON_ATTRIBUTES.ledColorWhenOn},
     ledIntensityWhenOn_1: {...COMMON_ATTRIBUTES.ledIntensityWhenOn},
     // remote protection is readonly...
-    outputMode_1: {...COMMON_ATTRIBUTES.outputMode},
+    outputMode_1: {...COMMON_DIMMER_ATTRIBUTES.outputMode},
     // Endpoint 2 (Fan)
     dimmingSpeedUpRemote_2: {
         ...COMMON_ATTRIBUTES.dimmingSpeedUpRemote,
@@ -1189,11 +1197,11 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnRemote setting.',
     },
     minimumLevel_2: {
-        ...COMMON_ATTRIBUTES.minimumLevel,
+        ...COMMON_DIMMER_ATTRIBUTES.minimumLevel,
         description: 'The minimum level that the fan can be set to.',
     },
     maximumLevel_2: {
-        ...COMMON_ATTRIBUTES.maximumLevel,
+        ...COMMON_DIMMER_ATTRIBUTES.maximumLevel,
         description: 'The maximum level that the fan can be set to.',
     },
     autoTimerOff_2: {
@@ -1223,15 +1231,25 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     // internal temp readonly
     // overheat readonly
     smartBulbMode_2: {
-        ...COMMON_ATTRIBUTES.smartBulbMode,
+        ...COMMON_DIMMER_ATTRIBUTES.smartBulbMode,
         values: {Disabled: 0, 'Smart Fan Mode': 1},
         description: 'For use with Smart Fans that need constant power and are controlled via commands rather than power.',
     },
     // remote protection readonly..
     outputMode_2: {
-        ...COMMON_ATTRIBUTES.outputMode,
+        ...COMMON_DIMMER_ATTRIBUTES.outputMode,
         values: {'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1},
         description: 'Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.',
+    },
+};
+
+const VZM30_ATTRIBUTES: {[s: string]: Attribute} = {
+    ...COMMON_ATTRIBUTES,
+    ...COMMON_DIMMER_ON_OFF_ATTRIBUTES,
+    switchType: {
+        ...COMMON_ATTRIBUTES.switchType,
+        values: {'Single Pole': 0, 'Aux Switch': 1},
+        max: 1,
     },
 };
 
@@ -2092,10 +2110,105 @@ const exposesListVZM36: Expose[] = [
         .withCategory('config'),
 ];
 
+const exposesListVZM30: Expose[] = [
+    e.light_brightness(),
+    e.power(),
+    e.energy(),
+    e
+        .composite('led_effect', 'led_effect', ea.STATE_SET)
+        .withFeature(
+            e
+                .enum('effect', ea.STATE_SET, [
+                    'off',
+                    'solid',
+                    'fast_blink',
+                    'slow_blink',
+                    'pulse',
+                    'chase',
+                    'open_close',
+                    'small_to_big',
+                    'aurora',
+                    'slow_falling',
+                    'medium_falling',
+                    'fast_falling',
+                    'slow_rising',
+                    'medium_rising',
+                    'fast_rising',
+                    'medium_blink',
+                    'slow_chase',
+                    'fast_chase',
+                    'fast_siren',
+                    'slow_siren',
+                    'clear_effect',
+                ])
+                .withDescription('Animation Effect to use for the LEDs'),
+        )
+        .withFeature(
+            e
+                .numeric('color', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription('Calculated by using a hue color circle(value/255*360) If color = 255 display white'),
+        )
+        .withFeature(e.numeric('level', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Brightness of the LEDs'))
+        .withFeature(
+            e
+                .numeric('duration', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription(
+                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
+                        'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
+                        'Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
+                ),
+        )
+        .withCategory('config'),
+    e
+        .composite('individual_led_effect', 'individual_led_effect', ea.STATE_SET)
+        .withFeature(e.enum('led', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7']).withDescription('Individual LED to target.'))
+        .withFeature(
+            e
+                .enum('effect', ea.STATE_SET, [
+                    'off',
+                    'solid',
+                    'fast_blink',
+                    'slow_blink',
+                    'pulse',
+                    'chase',
+                    'falling',
+                    'rising',
+                    'aurora',
+                    'clear_effect',
+                ])
+                .withDescription('Animation Effect to use for the LED'),
+        )
+        .withFeature(
+            e
+                .numeric('color', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription('Calculated by using a hue color circle(value/255*360) If color = 255 display white'),
+        )
+        .withFeature(e.numeric('level', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Brightness of the LED'))
+        .withFeature(
+            e
+                .numeric('duration', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription(
+                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
+                        'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
+                        ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
+                ),
+        )
+        .withCategory('config'),
+];
+
 // Populate exposes list from the attributes description
 attributesToExposeList(VZM31_ATTRIBUTES, exposesListVZM31);
 attributesToExposeList(VZM35_ATTRIBUTES, exposesListVZM35);
 attributesToExposeList(VZM36_ATTRIBUTES, exposesListVZM36);
+attributesToExposeList(VZM30_ATTRIBUTES, exposesListVZM30);
 
 // Put actions at the bottom of ui
 exposesListVZM31.push(
@@ -2258,6 +2371,58 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint2);
+        },
+    },
+    {
+        zigbeeModel: ['VZM30-SN'],
+        model: 'VZM30-SN',
+        vendor: 'Inovelli',
+        description: 'On/off switch',
+        exposes: exposesListVZM30.concat(identify().exposes as Expose[]),
+        extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            inovelliExtend.addCustomClusterInovelli(),
+            temperature({endpointNames: ['4']}),
+            humidity({endpointNames: ['4']}),
+        ],
+        toZigbee: [
+            tzLocal.light_onoff_brightness_inovelli,
+            tz.power_on_behavior,
+            tz.ignore_transition,
+            tz.identify,
+            tzLocal.inovelli_led_effect,
+            tzLocal.inovelli_individual_led_effect,
+            tzLocal.inovelli_parameters(VZM30_ATTRIBUTES),
+            tzLocal.inovelli_parameters_readOnly(VZM30_ATTRIBUTES),
+        ],
+        fromZigbee: [
+            fz.on_off,
+            fz.brightness,
+            fz.level_config,
+            fz.power_on_behavior,
+            fz.ignore_basic_report,
+            fz.electrical_measurement,
+            fz.metering,
+            fzLocal.inovelli(VZM30_ATTRIBUTES),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering', 'haElectricalMeasurement', 'genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+
+            // Bind for Button Event Reporting
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificInovelli']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+
+            await reporting.activePower(endpoint, {min: 15, max: 3600, change: 1});
+            await reporting.currentSummDelivered(endpoint, {
+                min: 15,
+                max: 3600,
+                change: 0,
+            });
         },
     },
 ];
