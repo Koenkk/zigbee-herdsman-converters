@@ -13125,6 +13125,32 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
+{
+    fingerprint: tuya.fingerprint('TS0601', ['_TZE284_nhgdf6qr']),
+    model: 'GX04',
+    vendor: 'GIEX',
+    description: 'GIEX Soil Moisture Sensor',
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [tuya.tz.datapoints],
+    configure: tuya.configureMagicPacket,
+    exposes: [
+        e.temperature(),
+        e.soil_moisture(),
+        tuya.exposes.temperatureUnit(),
+        e.battery(),
+        tuya.exposes.batteryState(),
+    ],
+    meta: {
+        tuyaDatapoints: [
+            [3, 'soil_moisture', tuya.valueConverter.raw],
+            [5, 'temperature', tuya.valueConverter.divideBy10],
+            [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
+            [14, 'battery_state', tuya.valueConverter.batteryState],
+            [15, 'battery', tuya.valueConverter.raw],
+        ]
+    },
+}
+
 
 export default definitions;
 module.exports = definitions;
