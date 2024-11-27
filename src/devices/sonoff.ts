@@ -751,16 +751,13 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SNZB-04',
         vendor: 'SONOFF',
         whiteLabel: [
-            {vendor: 'eWeLink', model: 'RHK06'}, 
+            {vendor: 'eWeLink', model: 'RHK06'},
             {
-                vendor: 'eWeLink', 
+                vendor: 'eWeLink',
                 model: 'SNZB-04',
-                fingerprint: [
-                    {modelID: 'SNZB-04', manufacturerName: 'eWeLink'}
-                ],
+                fingerprint: [{modelID: 'SNZB-04', manufacturerName: 'eWeLink'}],
             },
             tuya.whitelabel('Tuya', 'WL-19DWZ', 'Contact sensor', ['_TZ3000_n2egfsli']),
-            
         ],
         description: 'Contact sensor',
         extend: [ewelinkBattery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
@@ -772,11 +769,9 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: 'eWeLink', model: 'RHK07'},
             {
-                vendor: 'eWeLink', 
-                model: 'SNZB-01', 
-                fingerprint: [
-                    {modelID: 'SNZB-01', manufacturerName: 'eWeLink'}
-                ],
+                vendor: 'eWeLink',
+                model: 'SNZB-01',
+                fingerprint: [{modelID: 'SNZB-01', manufacturerName: 'eWeLink'}],
             },
         ],
         description: 'Wireless button',
@@ -832,11 +827,9 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: 'eWeLink', model: 'RHK08'},
             {
-                vendor: 'eWeLink', 
+                vendor: 'eWeLink',
                 model: 'SNZB-02',
-                fingerprint: [
-                    {modelID: 'SNZB-02', manufacturerName: 'eWeLink'}
-                ],
+                fingerprint: [{modelID: 'SNZB-02', manufacturerName: 'eWeLink'}],
             },
         ],
         description: 'Temperature and humidity sensor',
@@ -895,21 +888,24 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: 'eWeLink', model: 'RHK09'},
             {vendor: 'eWeLink', model: 'SQ510A'},
-            {vendor: 'eWeLink', model: 'SNZB-03', fingerprint:[
-                {
-                // SNZB-O3 OUVOPO Wireless Motion Sensor (2023)
-                type: 'EndDevice',
-                manufacturerName: 'eWeLink',
-                modelID: 'SNZB-03',
-                endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]}],
-                },
-                {
-                type: 'EndDevice',
-                manufacturerName: 'eWeLink',
-                modelID: 'SNZB-03',
-                endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1, 1280, 32], outputClusters: [25]}],
-                },
-            ]
+            {
+                vendor: 'eWeLink',
+                model: 'SNZB-03',
+                fingerprint: [
+                    {
+                        // SNZB-O3 OUVOPO Wireless Motion Sensor (2023)
+                        type: 'EndDevice',
+                        manufacturerName: 'eWeLink',
+                        modelID: 'SNZB-03',
+                        endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]}],
+                    },
+                    {
+                        type: 'EndDevice',
+                        manufacturerName: 'eWeLink',
+                        modelID: 'SNZB-03',
+                        endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1, 1280, 32], outputClusters: [25]}],
+                    },
+                ],
             },
         ],
         description: 'Motion sensor',

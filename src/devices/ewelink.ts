@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {deviceEndpoints, onOff, battery, iasZoneAlarm} from '../lib/modernExtend';
+import {battery, deviceEndpoints, iasZoneAlarm, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 
 const e = exposes.presets;
