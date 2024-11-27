@@ -5001,7 +5001,7 @@ const definitions: DefinitionWithExtend[] = [
             e.min_temperature(),
             e.position(),
             e.window_detection(),
-            e.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
+            e.binary('window', ea.STATE, 'CLOSE', 'OPEN').withDescription('Window status closed or open '),
             e.binary('alarm_switch', ea.STATE, 'ON', 'OFF').withDescription('Thermostat in error state'),
             e
                 .climate()
