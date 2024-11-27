@@ -816,11 +816,13 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
         if (args.pirConfig.includes('otu_delay')) {
             settingsExtends.push(
                 numeric({
-                    name: 'pir_otu_delay',
+                    name: 'occupancy_timeout',
                     attribute: 'pirOToUDelay',
                     valueMin: 0,
                     valueMax: 65534,
+                    unit: 's',
                     ...settingsTemplate,
+                    description: 'Time in seconds before occupancy is cleared after the last detected movement.',
                 }),
             );
             attributesForReading.push('pirOToUDelay');
@@ -1273,6 +1275,27 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
     if (args.bind) result.configure = [setupConfigureForBinding('lightingColorCtrl', 'output', args.endpointNames)];
+
+    return result;
+}
+
+export function lightingBallast(): ModernExtend {
+    const result: ModernExtend = {
+        fromZigbee: [fz.lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config],
+        exposes: [
+            new Numeric('ballast_minimum_level', ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            new Numeric('ballast_maximum_level', ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
+        ],
+        configure: [setupConfigureForReading('lightingBallastCfg', ['minLevel', 'maxLevel'])],
+        isModernExtend: true,
+    };
 
     return result;
 }
@@ -2052,7 +2075,8 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
-                    return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
+                    // skip undefined value
+                    if (msg.data[attributeKey] !== undefined) return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
                 }
             },
         },
