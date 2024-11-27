@@ -2209,57 +2209,35 @@ attributesToExposeList(VZM36_ATTRIBUTES, exposesListVZM36);
 attributesToExposeList(VZM30_ATTRIBUTES, exposesListVZM30);
 
 // Put actions at the bottom of ui
-exposesListVZM31.push(
-    e.action([
-        'down_single',
-        'up_single',
-        'config_single',
-        'down_release',
-        'up_release',
-        'config_release',
-        'down_held',
-        'up_held',
-        'config_held',
-        'down_double',
-        'up_double',
-        'config_double',
-        'down_triple',
-        'up_triple',
-        'config_triple',
-        'down_quadruple',
-        'up_quadruple',
-        'config_quadruple',
-        'down_quintuple',
-        'up_quintuple',
-        'config_quintuple',
-    ]),
-);
+const buttonTapSequences = [
+    'down_single',
+    'up_single',
+    'config_single',
+    'down_release',
+    'up_release',
+    'config_release',
+    'down_held',
+    'up_held',
+    'config_held',
+    'down_double',
+    'up_double',
+    'config_double',
+    'down_triple',
+    'up_triple',
+    'config_triple',
+    'down_quadruple',
+    'up_quadruple',
+    'config_quadruple',
+    'down_quintuple',
+    'up_quintuple',
+    'config_quintuple',
+];
 
-exposesListVZM35.push(
-    e.action([
-        'down_single',
-        'up_single',
-        'config_single',
-        'down_release',
-        'up_release',
-        'config_release',
-        'down_held',
-        'up_held',
-        'config_held',
-        'down_double',
-        'up_double',
-        'config_double',
-        'down_triple',
-        'up_triple',
-        'config_triple',
-        'down_quadruple',
-        'up_quadruple',
-        'config_quadruple',
-        'down_quintuple',
-        'up_quintuple',
-        'config_quintuple',
-    ]),
-);
+exposesListVZM31.push(e.action(buttonTapSequences));
+
+exposesListVZM35.push(e.action(buttonTapSequences));
+
+exposesListVZM30.push(e.action(buttonTapSequences));
 
 const definitions: DefinitionWithExtend[] = [
     {
