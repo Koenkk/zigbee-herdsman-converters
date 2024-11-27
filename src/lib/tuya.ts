@@ -938,7 +938,9 @@ export const valueConverter = {
                 throw new Error('Invalid "week_day" property value: ' + weekDay);
             }
             let weekScheduleType = 'separate';
-            if (meta.state && meta.state.working_day) weekScheduleType = meta.state.working_day;
+            if (meta.state && meta.state.working_day) {
+                weekScheduleType = String(meta.state.working_day);
+            }
             const payload = [];
 
             switch (weekScheduleType) {
