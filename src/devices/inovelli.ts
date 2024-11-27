@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceAddCustomCluster, deviceEndpoints, humidity, identify, temperature} from '../lib/modernExtend';
+import {deviceAddCustomCluster, deviceEndpoints, electricityMeter, humidity, identify, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Expose, Fz, Tz, Zh} from '../lib/types';
@@ -2112,8 +2112,6 @@ const exposesListVZM36: Expose[] = [
 
 const exposesListVZM30: Expose[] = [
     e.light_brightness(),
-    e.power(),
-    e.energy(),
     e
         .composite('led_effect', 'led_effect', ea.STATE_SET)
         .withFeature(
@@ -2384,6 +2382,7 @@ const definitions: DefinitionWithExtend[] = [
             inovelliExtend.addCustomClusterInovelli(),
             temperature({endpointNames: ['4']}),
             humidity({endpointNames: ['4']}),
+            electricityMeter(),
         ],
         toZigbee: [
             tzLocal.light_onoff_brightness_inovelli,
@@ -2395,34 +2394,16 @@ const definitions: DefinitionWithExtend[] = [
             tzLocal.inovelli_parameters(VZM30_ATTRIBUTES),
             tzLocal.inovelli_parameters_readOnly(VZM30_ATTRIBUTES),
         ],
-        fromZigbee: [
-            fz.on_off,
-            fz.brightness,
-            fz.level_config,
-            fz.power_on_behavior,
-            fz.ignore_basic_report,
-            fz.electrical_measurement,
-            fz.metering,
-            fzLocal.inovelli(VZM30_ATTRIBUTES),
-        ],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report, fzLocal.inovelli(VZM30_ATTRIBUTES)],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering', 'haElectricalMeasurement', 'genOnOff', 'genLevelCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
 
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificInovelli']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-
-            await reporting.activePower(endpoint, {min: 15, max: 3600, change: 1});
-            await reporting.currentSummDelivered(endpoint, {
-                min: 15,
-                max: 3600,
-                change: 0,
-            });
         },
     },
 ];
