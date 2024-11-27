@@ -241,6 +241,11 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller WW/CW (pro)',
+        whiteLabel: [
+            {vendor: 'Gledopto', model: 'GL-C-006P_mini'},
+            {vendor: 'Gledopto', model: 'GL-C-003P_1'},
+            {vendor: 'Gledopto', model: 'GL-C-301P'},
+        ],
         extend: [light({colorTemp: {range: [158, 500]}}), identify(), gledoptoConfigureReadModelID()],
     },
     {
@@ -351,6 +356,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGBW (pro)',
+        whiteLabel: [
+            {vendor: 'Gledopto', model: 'GL-C-007P_mini'},
+        ],
         extend: [
             light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}),
             identify(),
@@ -438,8 +446,14 @@ const definitions: DefinitionWithExtend[] = [
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB+CCT (pro)',
         whiteLabel: [
+            {vendor: 'Gledopto', model: 'GL-C-008P_mini'},
             {vendor: 'Gledopto', model: 'GL-C-001P'},
             {vendor: 'Gledopto', model: 'GL-C-002P'},
+            {vendor: 'Gledopto', model: 'GL-C-011P'},
+            {vendor: 'Gledopto', model: 'GL-C-201P'},
+            {vendor: 'Gledopto', model: 'GL-C-202P'},
+            {vendor: 'Gledopto', model: 'GL-C-204P'},
+            {vendor: 'Gledopto', model: 'GL-C-301P'},
         ],
         extend: [
             light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}),
@@ -472,6 +486,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller W (pro)',
+        whiteLabel: [
+            {vendor: 'Gledopto', model: 'GL-C-009P_mini'},
+        ],
         extend: [light(), identify(), gledoptoConfigureReadModelID()],
     },
     {
