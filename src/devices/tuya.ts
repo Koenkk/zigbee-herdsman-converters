@@ -1944,7 +1944,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [],
     },
     {
-        zigbeeModel: ['TS0207', 'FNB54-WTS08ML1.0', 'SNZB-05'],
+        zigbeeModel: ['TS0207', 'FNB54-WTS08ML1.0'],
         model: 'TS0207_water_leak_detector',
         vendor: 'Tuya',
         description: 'Water leak detector',
