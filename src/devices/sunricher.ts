@@ -203,9 +203,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const bytes = [...msg.data];
             const messageType = bytes[3];
-            const buttons: string[] = [];
             let action = 'unknown';
-            let speed = 0;
 
             if (messageType === 0x01) {
                 const pressTypeMask: number = bytes[6];
@@ -226,15 +224,17 @@ const fzLocal = {
                     16: 'k12',
                 };
 
+                const action_buttons: string[] = [];
                 for (let i = 0; i < 16; i++) {
                     if ((buttonMask >> i) & 1) {
                         const button = i + 1;
-                        buttons.push(specialButtonMap[button] ?? `k${button}`);
+                        action_buttons.push(specialButtonMap[button] ?? `k${button}`);
                     }
                 }
+                return {action, action_buttons};
             } else if (messageType === 0x03) {
                 const directionMask = bytes[4];
-                speed = bytes[6];
+                const action_speed = bytes[6];
 
                 const directionMap: {[key: number]: string} = {
                     0x01: 'clockwise',
@@ -243,9 +243,10 @@ const fzLocal = {
                 const direction = directionMap[directionMask] || 'unknown';
 
                 action = `${direction}_rotation`;
+                return {action, action_speed};
             }
 
-            return {action, buttons, speed};
+            return {action};
         },
     } satisfies Fz.Converter,
 };
@@ -268,9 +269,10 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee smart wall panel remote',
         extend: [battery()],
         fromZigbee: [fzLocal.sunricher_SRZG9002KR12Pro],
+        exposes: [e.action(['short_press', 'double_press', 'hold', 'hold_released', 'clockwise_rotation', 'anti_clockwise_rotation'])],
     },
     {
-        zigbeeModel: ['ZV9380A'],
+        zigbeeModel: ['ZV9380A', 'ZG9380A'],
         model: 'SR-ZG9042MP',
         vendor: 'Sunricher',
         description: 'Zigbee three phase power meter',
