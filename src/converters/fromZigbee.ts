@@ -1335,7 +1335,6 @@ const converters1 = {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
                 if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
                     const timer = setInterval(() => {
-                        //TODO bug? This is not being cleared up? What does interval even do?
                         let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
                         const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ? deltaOpts : -1 * deltaOpts;
                         brightness += delta;
