@@ -565,6 +565,26 @@ const fzLocal = {
             return ret;
         },
     } satisfies Fz.Converter,
+    ias_smoke_alarm_1_heat_alarm_2_with_hush: {
+        cluster: 'ssIasZone',
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+            return {
+                smoke: (zoneStatus & 1) > 0,
+                heat: (zoneStatus & 1<<1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                supervision_reports: (zoneStatus & 1<<4) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+                trouble: (zoneStatus & 1<<6) > 0,
+                ac_status: (zoneStatus & 1<<7) > 0,
+                test: (zoneStatus & 1<<8) > 0,
+                battery_defect: (zoneStatus & 1<<9) > 0,
+                hush: (zoneStatus & 1<<11) > 0,
+            };
+        },
+    } satisfies Fz.Converter,
 };
 
 const definitions: DefinitionWithExtend[] = [
@@ -1727,14 +1747,16 @@ const definitions: DefinitionWithExtend[] = [
         model: 'W599001',
         vendor: 'Schneider Electric',
         description: 'Wiser smoke alarm',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_smoke_alarm_1],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fzLocal.ias_smoke_alarm_1_heat_alarm_2_with_hush],
         toZigbee: [],
         ota: ota.zigbeeOTA, // local OTA updates are untested
         exposes: [
             e.smoke(),
+            e.binary('heat', ea.STATE, true, false).withDescription('Indicates whether the device has detected high temperature'),
             e.test(),
             e.battery_low(),
             e.tamper(),
+            e.binary('hush', ea.STATE, true, false).withDescription('Indicates the device is in hush mode'),
             e.battery(),
             e.battery_voltage(),
             // the temperature readings are unreliable and may need more investigation.
