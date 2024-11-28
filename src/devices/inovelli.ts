@@ -2356,10 +2356,13 @@ const definitions: DefinitionWithExtend[] = [
         description: 'On/off switch',
         exposes: exposesListVZM30.concat(identify().exposes as Expose[]),
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            deviceEndpoints({
+                endpoints: {'1': 1, '2': 2, '3': 3, '4': 4},
+                multiEndpointSkip: ['state', 'voltage', 'power', 'current', 'energy', 'brightness', 'temperature', 'humidity'],
+            }),
             inovelliExtend.addCustomClusterInovelli(),
-            temperature({endpointNames: ['4']}),
-            humidity({endpointNames: ['4']}),
+            temperature(),
+            humidity(),
             electricityMeter(),
         ],
         toZigbee: [
