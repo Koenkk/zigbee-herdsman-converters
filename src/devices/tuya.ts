@@ -7598,7 +7598,6 @@ const definitions: DefinitionWithExtend[] = [
                 'rotate_left',
                 'rotate_right',
             ]),
-            e.numeric('action_brightness_delta', ea.STATE).withValueMin(-255).withValueMax(255),
             e.numeric('action_step_size', ea.STATE).withValueMin(0).withValueMax(255),
             e.numeric('action_transition_time', ea.STATE).withUnit('s'),
             e.numeric('action_rate', ea.STATE).withValueMin(0).withValueMax(255),

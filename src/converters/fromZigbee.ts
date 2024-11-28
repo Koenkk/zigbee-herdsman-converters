@@ -1335,6 +1335,7 @@ const converters1 = {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
                 if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
                     const timer = setInterval(() => {
+                        //TODO bug? This is not being cleared up? What does interval even do?
                         let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
                         const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ? deltaOpts : -1 * deltaOpts;
                         brightness += delta;
@@ -1412,6 +1413,7 @@ const converters1 = {
     command_step_color_temperature: {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
+        options: [exposes.options.simulated_color_temperature()],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
@@ -1422,6 +1424,22 @@ const converters1 = {
 
             if (msg.data.transtime !== undefined) {
                 payload.action_transition_time = msg.data.transtime / 100;
+            }
+
+            if (options.simulated_color_temperature) {
+                const deltaOpts = options.simulated_color_temperature_delta ?? 500;
+
+                if (globalStore.getValue(msg.endpoint, 'simulated_color_temperature') === undefined) {
+                    let color_temperature = globalStore.getValue(msg.endpoint, 'simulated_color_temperature_temperature', 2000);
+                    const delta = direction === 'up' ? deltaOpts : -deltaOpts;
+                    color_temperature += delta;
+                    color_temperature = numberWithinRange(color_temperature, 2000, 6500);
+                    globalStore.putValue(msg.endpoint, 'simulated_color_temperature_temperature', color_temperature);
+                    const property = postfixWithEndpointName('color_temperature', msg, model, meta);
+                    payload[property] = color_temperature;
+                    const deltaProperty = postfixWithEndpointName('action_color_temperature_delta', msg, model, meta);
+                    payload[deltaProperty] = delta;
+                }
             }
 
             addActionGroup(payload, msg, model);
