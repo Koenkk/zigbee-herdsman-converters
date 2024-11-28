@@ -566,17 +566,10 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     ias_smoke_alarm_1_heat_alarm_2_with_hush: {
-        cluster: "ssIasZone",
-        type: [
-            "commandStatusChangeNotification",
-            "attributeReport",
-            "readResponse",
-        ],
+        cluster: 'ssIasZone',
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const zoneStatus =
-                msg.type === "commandStatusChangeNotification"
-                    ? msg.data.zonestatus
-                    : msg.data.zoneStatus;
+            const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
             return {
                 smoke: (zoneStatus & 1) > 0,
                 heat: (zoneStatus & (1 << 1)) > 0,
@@ -1754,27 +1747,16 @@ const definitions: DefinitionWithExtend[] = [
         model: 'W599001',
         vendor: 'Schneider Electric',
         description: 'Wiser smoke alarm',
-        fromZigbee: [
-            fz.temperature,
-            fz.battery,
-            fz.ias_enroll,
-            fzLocal.ias_smoke_alarm_1_heat_alarm_2_with_hush,
-        ],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fzLocal.ias_smoke_alarm_1_heat_alarm_2_with_hush],
         toZigbee: [],
         ota: ota.zigbeeOTA, // local OTA updates are untested
         exposes: [
             e.smoke(),
-            e
-                .binary("heat", ea.STATE, true, false)
-                .withDescription(
-                    "Indicates whether the device has detected high temperature",
-                ),
+            e.binary('heat', ea.STATE, true, false).withDescription('Indicates whether the device has detected high temperature'),
             e.test(),
             e.battery_low(),
             e.tamper(),
-            e
-                .binary("hush", ea.STATE, true, false)
-                .withDescription("Indicates the device is in hush mode"),
+            e.binary('hush', ea.STATE, true, false).withDescription('Indicates the device is in hush mode'),
             e.battery(),
             e.battery_voltage(),
             // the temperature readings are unreliable and may need more investigation.
