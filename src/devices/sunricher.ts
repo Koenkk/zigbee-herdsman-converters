@@ -224,17 +224,17 @@ const fzLocal = {
                     16: 'k12',
                 };
 
-                const action_buttons: string[] = [];
+                const actionButtons: string[] = [];
                 for (let i = 0; i < 16; i++) {
                     if ((buttonMask >> i) & 1) {
                         const button = i + 1;
-                        action_buttons.push(specialButtonMap[button] ?? `k${button}`);
+                        actionButtons.push(specialButtonMap[button] ?? `k${button}`);
                     }
                 }
-                return {action, action_buttons};
+                return {action, action_buttons: actionButtons};
             } else if (messageType === 0x03) {
                 const directionMask = bytes[4];
-                const action_speed = bytes[6];
+                const actionSpeed = bytes[6];
 
                 const directionMap: {[key: number]: string} = {
                     0x01: 'clockwise',
@@ -243,7 +243,7 @@ const fzLocal = {
                 const direction = directionMap[directionMask] || 'unknown';
 
                 action = `${direction}_rotation`;
-                return {action, action_speed};
+                return {action, action_speed: actionSpeed};
             }
 
             return {action};
