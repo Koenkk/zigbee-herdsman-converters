@@ -1,7 +1,7 @@
 {
     "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
 
-    "postCreateCommand": "pnpm i --frozen-lockfile",
+    "postCreateCommand": "pnpm config set store-dir /home/node/.local/share/pnpm/store && pnpm i --frozen-lockfile",
 
     "customizations": {
         "vscode": {
