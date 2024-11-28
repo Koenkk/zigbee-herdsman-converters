@@ -1,5 +1,13 @@
 # Changelog
 
+## [20.56.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.55.0...v20.56.0) (2024-11-28)
+
+
+### Features
+
+* Add SR-ZG9002KR12-Pro expose and add ZG9380A zigbeeModel for SR-ZG9042MP ([#8388](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8388)) ([f482272](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f482272ff1aff08da904e6028a93cf7df77d29e6))
+* **add:** SR-ZG2836D5-Pro ([#8392](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8392)) ([2d229ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2d229ffdae8f31c9dc1825ffa1ee4940d9cd029c))
+
 ## [20.55.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.54.0...v20.55.0) (2024-11-27)
 
 
