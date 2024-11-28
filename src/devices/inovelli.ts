@@ -1892,39 +1892,10 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const exposesListVZM31: Expose[] = [
-    e.light_brightness(),
-    e.power(),
-    e.energy(),
-    e
+const exposeLedEffects = () => {
+    return e
         .composite('led_effect', 'led_effect', ea.STATE_SET)
-        .withFeature(
-            e
-                .enum('effect', ea.STATE_SET, [
-                    'off',
-                    'solid',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'chase',
-                    'open_close',
-                    'small_to_big',
-                    'aurora',
-                    'slow_falling',
-                    'medium_falling',
-                    'fast_falling',
-                    'slow_rising',
-                    'medium_rising',
-                    'fast_rising',
-                    'medium_blink',
-                    'slow_chase',
-                    'fast_chase',
-                    'fast_siren',
-                    'slow_siren',
-                    'clear_effect',
-                ])
-                .withDescription('Animation Effect to use for the LEDs'),
-        )
+        .withFeature(e.enum('effect', ea.STATE_SET, Object.keys(ledEffects)).withDescription('Animation Effect to use for the LEDs'))
         .withFeature(
             e
                 .numeric('color', ea.STATE_SET)
@@ -1944,26 +1915,14 @@ const exposesListVZM31: Expose[] = [
                         'Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
                 ),
         )
-        .withCategory('config'),
-    e
+        .withCategory('config');
+};
+
+const exposeIndividualLedEffects = () => {
+    return e
         .composite('individual_led_effect', 'individual_led_effect', ea.STATE_SET)
         .withFeature(e.enum('led', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7']).withDescription('Individual LED to target.'))
-        .withFeature(
-            e
-                .enum('effect', ea.STATE_SET, [
-                    'off',
-                    'solid',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'chase',
-                    'falling',
-                    'rising',
-                    'aurora',
-                    'clear_effect',
-                ])
-                .withDescription('Animation Effect to use for the LED'),
-        )
+        .withFeature(e.enum('effect', ea.STATE_SET, Object.keys(individualLedEffects)).withDescription('Animation Effect to use for the LED'))
         .withFeature(
             e
                 .numeric('color', ea.STATE_SET)
@@ -1983,98 +1942,15 @@ const exposesListVZM31: Expose[] = [
                         ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
                 ),
         )
-        .withCategory('config'),
-];
+        .withCategory('config');
+};
+
+const exposesListVZM31: Expose[] = [e.light_brightness(), e.power(), e.energy(), exposeLedEffects(), exposeIndividualLedEffects()];
 
 const exposesListVZM35: Expose[] = [
     e.fan().withModes(Object.keys(fanModes)),
-    e
-        .composite('led_effect', 'led_effect', ea.STATE_SET)
-        .withFeature(
-            e
-                .enum('effect', ea.STATE_SET, [
-                    'off',
-                    'solid',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'chase',
-                    'open_close',
-                    'small_to_big',
-                    'aurora',
-                    'slow_falling',
-                    'medium_falling',
-                    'fast_falling',
-                    'slow_rising',
-                    'medium_rising',
-                    'fast_rising',
-                    'medium_blink',
-                    'slow_chase',
-                    'fast_chase',
-                    'fast_siren',
-                    'slow_siren',
-                    'clear_effect',
-                ])
-                .withDescription('Animation Effect to use for the LEDs'),
-        )
-        .withFeature(
-            e
-                .numeric('color', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription('Calculated by using a hue color circle(value/255*360) If color = 255 display white'),
-        )
-        .withFeature(e.numeric('level', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Brightness of the LEDs'))
-        .withFeature(
-            e
-                .numeric('duration', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription(
-                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
-                        'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
-                        'Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
-                ),
-        ),
-    e
-        .composite('individual_led_effect', 'individual_led_effect', ea.STATE_SET)
-        .withFeature(e.enum('led', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7']).withDescription('Individual LED to target.'))
-        .withFeature(
-            e
-                .enum('effect', ea.STATE_SET, [
-                    'off',
-                    'solid',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'chase',
-                    'falling',
-                    'rising',
-                    'aurora',
-                    'clear_effect',
-                ])
-                .withDescription('Animation Effect to use for the LED'),
-        )
-        .withFeature(
-            e
-                .numeric('color', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription('Calculated by using a hue color circle(value/255*360) If color = 255 display white'),
-        )
-        .withFeature(e.numeric('level', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Brightness of the LED'))
-        .withFeature(
-            e
-                .numeric('duration', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription(
-                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
-                        'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
-                        ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
-                ),
-        )
-        .withCategory('config'),
+    exposeLedEffects(),
+    exposeIndividualLedEffects(),
     e
         .composite('breeze mode', 'breezeMode', ea.STATE_SET)
         .withFeature(e.enum('speed1', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 1 Speed'))
@@ -2110,97 +1986,7 @@ const exposesListVZM36: Expose[] = [
         .withCategory('config'),
 ];
 
-const exposesListVZM30: Expose[] = [
-    e.light_brightness(),
-    e
-        .composite('led_effect', 'led_effect', ea.STATE_SET)
-        .withFeature(
-            e
-                .enum('effect', ea.STATE_SET, [
-                    'off',
-                    'solid',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'chase',
-                    'open_close',
-                    'small_to_big',
-                    'aurora',
-                    'slow_falling',
-                    'medium_falling',
-                    'fast_falling',
-                    'slow_rising',
-                    'medium_rising',
-                    'fast_rising',
-                    'medium_blink',
-                    'slow_chase',
-                    'fast_chase',
-                    'fast_siren',
-                    'slow_siren',
-                    'clear_effect',
-                ])
-                .withDescription('Animation Effect to use for the LEDs'),
-        )
-        .withFeature(
-            e
-                .numeric('color', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription('Calculated by using a hue color circle(value/255*360) If color = 255 display white'),
-        )
-        .withFeature(e.numeric('level', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Brightness of the LEDs'))
-        .withFeature(
-            e
-                .numeric('duration', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription(
-                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
-                        'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
-                        'Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
-                ),
-        )
-        .withCategory('config'),
-    e
-        .composite('individual_led_effect', 'individual_led_effect', ea.STATE_SET)
-        .withFeature(e.enum('led', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7']).withDescription('Individual LED to target.'))
-        .withFeature(
-            e
-                .enum('effect', ea.STATE_SET, [
-                    'off',
-                    'solid',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'chase',
-                    'falling',
-                    'rising',
-                    'aurora',
-                    'clear_effect',
-                ])
-                .withDescription('Animation Effect to use for the LED'),
-        )
-        .withFeature(
-            e
-                .numeric('color', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription('Calculated by using a hue color circle(value/255*360) If color = 255 display white'),
-        )
-        .withFeature(e.numeric('level', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Brightness of the LED'))
-        .withFeature(
-            e
-                .numeric('duration', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription(
-                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
-                        'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
-                        ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
-                ),
-        )
-        .withCategory('config'),
-];
+const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
 
 // Populate exposes list from the attributes description
 attributesToExposeList(VZM31_ATTRIBUTES, exposesListVZM31);
