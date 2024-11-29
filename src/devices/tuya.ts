@@ -4985,7 +4985,6 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_bvrlmajk'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_9mjy74mp'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9mjy74mp'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_rtrmfadk'},
         ],
         model: 'TS0601_thermostat_1',
         vendor: 'Tuya',
@@ -4993,6 +4992,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('id3', 'GTZ06', 'Thermostatic radiator valve', ['_TZE200_z1tyspqw']),
             tuya.whitelabel('Avatto', 'TRV07', 'Thermostatic radiator valve', ['_TZE200_bvrlmajk']),
+            tuya.whitelabel('Moes', 'TS0601', 'Thermostatic radiator valve', ['_TZE204_9mjy74mp', '_TZE204_9mjy74mp']),
         ],
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
