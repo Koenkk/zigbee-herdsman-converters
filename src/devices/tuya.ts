@@ -13113,7 +13113,7 @@ const definitions: DefinitionWithExtend[] = [
             e.max_temperature().withValueMin(35).withValueMax(45),
             e.child_lock(),
             e.humidity(),
-            e.binary('manual_mode', ea.STATE_SET, 'Auto', 'Manual', 'Tempoary').withDescription('Manual = Manual or Schedule = Auto'),
+            e.binary('manual_mode', ea.STATE_SET, 'Auto', 'Manual',).withDescription('Manual = Manual or Schedule = Auto'),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
         ],
         meta: {
