@@ -2976,6 +2976,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZ3000_0dumfk2z',
             '_TZ3000_ssp0maqm',
             '_TZ3000_p3fph1go',
+            '_TZ3000_9r5jaajv',
         ]),
         model: 'TS0215A_sos',
         vendor: 'Tuya',
