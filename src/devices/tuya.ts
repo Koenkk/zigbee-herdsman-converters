@@ -3241,9 +3241,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0041A',
         vendor: 'Tuya',
         description: 'Wireless switch with 1 button',
-        whiteLabel: [
-            {vendor: 'Marmitek', model: 'Push ME'},
-        ],
+        whiteLabel: [{vendor: 'Marmitek', model: 'Push ME'}],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold'])],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
