@@ -1911,13 +1911,8 @@ const exposeIndividualLedEffects = () => {
         .withCategory('config');
 };
 
-const exposesListVZM31: Expose[] = [e.light_brightness(), e.power(), e.energy(), exposeLedEffects(), exposeIndividualLedEffects()];
-
-const exposesListVZM35: Expose[] = [
-    e.fan().withModes(Object.keys(fanModes)),
-    exposeLedEffects(),
-    exposeIndividualLedEffects(),
-    e
+const exposeBreezeMode = () => {
+    return e
         .composite('breeze mode', 'breezeMode', ea.STATE_SET)
         .withFeature(e.enum('speed1', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 1 Speed'))
         .withFeature(e.numeric('time1', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 1  '))
@@ -1929,28 +1924,14 @@ const exposesListVZM35: Expose[] = [
         .withFeature(e.numeric('time4', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 4  '))
         .withFeature(e.enum('speed5', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 5 Speed'))
         .withFeature(e.numeric('time5', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 5  '))
-        .withCategory('config'),
-];
+        .withCategory('config');
+};
 
-const exposesListVZM36: Expose[] = [
-    e.light_brightness(),
-    e.fan().withModes(Object.keys(fanModes)),
+const exposesListVZM31: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
 
-    // Breezee
-    e
-        .composite('breeze mode', 'breezeMode', ea.STATE_SET)
-        .withFeature(e.enum('speed1', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 1 Speed'))
-        .withFeature(e.numeric('time1', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 1  '))
-        .withFeature(e.enum('speed2', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 2 Speed'))
-        .withFeature(e.numeric('time2', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 2  '))
-        .withFeature(e.enum('speed3', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 3 Speed'))
-        .withFeature(e.numeric('time3', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 3  '))
-        .withFeature(e.enum('speed4', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 4 Speed'))
-        .withFeature(e.numeric('time4', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 4  '))
-        .withFeature(e.enum('speed5', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 5 Speed'))
-        .withFeature(e.numeric('time5', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 5  '))
-        .withCategory('config'),
-];
+const exposesListVZM35: Expose[] = [e.fan().withModes(Object.keys(fanModes)), exposeLedEffects(), exposeIndividualLedEffects(), exposeBreezeMode()];
+
+const exposesListVZM36: Expose[] = [e.light_brightness(), e.fan().withModes(Object.keys(fanModes)), exposeBreezeMode()];
 
 const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
 
