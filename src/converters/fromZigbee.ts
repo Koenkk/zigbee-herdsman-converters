@@ -35,6 +35,16 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
+    fan_speed: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.currentLevel !== undefined) {
+                const property = postfixWithEndpointName('fan_speed', msg, model, meta);
+                return {[property]: msg.data['currentLevel']};
+            }
+        },
+    } satisfies Fz.Converter,
     thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
