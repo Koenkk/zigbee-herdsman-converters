@@ -1979,7 +1979,19 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Inovelli',
         description: '2-in-1 switch + dimmer',
         exposes: exposesListVZM31.concat(identify().exposes as Expose[]),
-        extend: [inovelliExtend.addCustomClusterInovelli()],
+        extend: [
+            deviceEndpoints({
+                endpoints: {'1': 1, '2': 2, '3': 3},
+                multiEndpointSkip: ['state', 'power', 'energy', 'brightness'],
+            }),
+            inovelliExtend.addCustomClusterInovelli(),
+            electricityMeter({
+                current: false,
+                voltage: false,
+                power: {min: 15, max: 3600, change: 1},
+                energy: {min: 15, max: 3600, change: 0},
+            }),
+        ],
         toZigbee: [
             tzLocal.light_onoff_brightness_inovelli,
             tz.power_on_behavior,
@@ -1990,34 +2002,16 @@ const definitions: DefinitionWithExtend[] = [
             tzLocal.inovelli_parameters(VZM31_ATTRIBUTES),
             tzLocal.inovelli_parameters_readOnly(VZM31_ATTRIBUTES),
         ],
-        fromZigbee: [
-            fz.on_off,
-            fz.brightness,
-            fz.level_config,
-            fz.power_on_behavior,
-            fz.ignore_basic_report,
-            fz.electrical_measurement,
-            fz.metering,
-            fzLocal.inovelli(VZM31_ATTRIBUTES),
-        ],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report, fzLocal.inovelli(VZM31_ATTRIBUTES)],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering', 'haElectricalMeasurement', 'genOnOff', 'genLevelCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
 
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificInovelli']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-
-            await reporting.activePower(endpoint, {min: 15, max: 3600, change: 1});
-            await reporting.currentSummDelivered(endpoint, {
-                min: 15,
-                max: 3600,
-                change: 0,
-            });
         },
     },
     {
