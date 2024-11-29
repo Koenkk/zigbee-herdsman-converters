@@ -3237,11 +3237,13 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['TS0041A'],
-        fingerprint: [{manufacturerName: '_TYZB01_1xktopx6'}],
         model: 'TS0041A',
         vendor: 'Tuya',
         description: 'Wireless switch with 1 button',
-        whiteLabel: [{vendor: 'Marmitek', model: 'Push ME'}],
+        whiteLabel: [
+            tuya.whitelabel('Cleverio', 'SB100', 'Wireless switch with 1 button', ['_TYZB01_4qw4rl1u']),
+            tuya.whitelabel('Marmitek', 'Push ME', 'Wireless switch with 1 button', ['_TYZB01_1xktopx6']),
+        ],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold'])],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
