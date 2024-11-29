@@ -3244,7 +3244,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: 'Marmitek', model: 'Push ME'},
         ],
-        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold']))],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold'])],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
