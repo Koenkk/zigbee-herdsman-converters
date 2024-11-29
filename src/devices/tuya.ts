@@ -4983,8 +4983,6 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_dv8abrrz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_z1tyspqw'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bvrlmajk'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_9mjy74mp'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9mjy74mp'},
         ],
         model: 'TS0601_thermostat_1',
         vendor: 'Tuya',
