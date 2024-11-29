@@ -1473,29 +1473,35 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    fan_mode: {
-        key: ['fan_mode'],
-        convertSet: async (entity, key, value: string, meta) => {
-            await entity.command(
-                'genLevelCtrl',
-                'moveToLevelWithOnOff',
-                {
-                    level: fanModes[value],
-                    transtime: 0xffff,
-                },
-                utils.getOptions(meta.mapped, entity),
-            );
-            return {
-                state: {
-                    [key]: value,
-                    state: 'ON',
-                },
-            };
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genLevelCtrl', ['currentLevel']);
-        },
-    } satisfies Tz.Converter,
+    fan_mode: (endpointId: number) =>
+        ({
+            key: ['fan_mode'],
+            convertSet: async (entity, key, value: string, meta) => {
+                const endpoint = meta.device.getEndpoint(endpointId);
+                await endpoint.command(
+                    'genLevelCtrl',
+                    'moveToLevelWithOnOff',
+                    {
+                        level: fanModes[value],
+                        transtime: 0xffff,
+                    },
+                    utils.getOptions(meta.mapped, entity),
+                );
+
+                meta.state[key] = value;
+
+                return {
+                    state: {
+                        [key]: value,
+                        state: 'ON',
+                    },
+                };
+            },
+            convertGet: async (entity, key, meta) => {
+                const endpoint = meta.device.getEndpoint(endpointId);
+                await endpoint.read('genLevelCtrl', ['currentLevel']);
+            },
+        }) satisfies Tz.Converter,
     fan_state: {
         key: ['fan_state'],
         convertSet: async (entity, key, value, meta) => {
@@ -1514,35 +1520,7 @@ const tzLocal = {
             await entity.read('genOnOff', ['onOff']);
         },
     } satisfies Tz.Converter,
-    vzm36_fan_mode: {
-        key: ['fan_mode'],
-        convertSet: async (entity, key, value: string, meta) => {
-            const endpoint = meta.device.getEndpoint(2);
 
-            await endpoint.command(
-                'genLevelCtrl',
-                'moveToLevelWithOnOff',
-                {
-                    level: fanModes[value],
-                    transtime: 0xffff,
-                },
-                utils.getOptions(meta.mapped, entity),
-            );
-
-            meta.state[key] = value;
-
-            return {
-                state: {
-                    [key]: value,
-                    fan_state: 'ON',
-                },
-            };
-        },
-        convertGet: async (entity, key, meta) => {
-            const endpoint = meta.device.getEndpoint(2);
-            await endpoint.read('genLevelCtrl', ['currentLevel']);
-        },
-    } satisfies Tz.Converter,
     /**
      * On the VZM36, When turning the fan on and off, we must ensure that we are sending these
      * commands to endpoint 2 on the canopy module.
@@ -1774,34 +1752,22 @@ const fzLocal = {
                 }
             },
         }) satisfies Fz.Converter,
-    fan_mode: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.currentLevel !== undefined) {
-                const mode = intToFanMode(msg.data['currentLevel'] || 1);
-                return {
-                    fan_mode: mode,
-                };
-            }
-            return msg.data;
-        },
-    } satisfies Fz.Converter,
-    vzm36_fan_mode: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID == 2) {
-                if (msg.data.currentLevel !== undefined) {
-                    const mode = intToFanMode(msg.data['currentLevel'] || 1);
-                    return {
-                        fan_mode: mode,
-                    };
+    fan_mode: (endpointId: number) =>
+        ({
+            cluster: 'genLevelCtrl',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.endpoint.ID == endpointId) {
+                    if (msg.data.currentLevel !== undefined) {
+                        const mode = intToFanMode(msg.data['currentLevel'] || 1);
+                        return {
+                            fan_mode: mode,
+                        };
+                    }
                 }
-            }
-            return msg.data;
-        },
-    } satisfies Fz.Converter,
+                return msg.data;
+            },
+        }) satisfies Fz.Converter,
     fan_state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -2078,11 +2044,11 @@ const definitions: DefinitionWithExtend[] = [
         model: 'VZM35-SN',
         vendor: 'Inovelli',
         description: 'Fan controller',
-        fromZigbee: [fzLocal.fan_state, fzLocal.fan_mode, fzLocal.breeze_mode, fzLocal.inovelli(VZM35_ATTRIBUTES)],
+        fromZigbee: [fzLocal.fan_state, fzLocal.fan_mode(1), fzLocal.breeze_mode, fzLocal.inovelli(VZM35_ATTRIBUTES)],
         toZigbee: [
             tz.identify,
             tzLocal.fan_state,
-            tzLocal.fan_mode,
+            tzLocal.fan_mode(1),
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
             tzLocal.inovelli_parameters(VZM35_ATTRIBUTES),
@@ -2105,17 +2071,11 @@ const definitions: DefinitionWithExtend[] = [
         model: 'VZM36',
         vendor: 'Inovelli',
         description: 'Fan canopy module',
-        fromZigbee: [
-            fzLocal.brightness,
-            fzLocal.vzm36_fan_light_state,
-            fzLocal.vzm36_fan_mode,
-            fzLocal.breeze_mode,
-            fzLocal.inovelli(VZM36_ATTRIBUTES),
-        ],
+        fromZigbee: [fzLocal.brightness, fzLocal.vzm36_fan_light_state, fzLocal.fan_mode(2), fzLocal.breeze_mode, fzLocal.inovelli(VZM36_ATTRIBUTES)],
         toZigbee: [
             tz.identify,
             tzLocal.vzm36_fan_on_off, // Need to use VZM36 specific converter
-            tzLocal.vzm36_fan_mode, // Need to use VZM36 specific converter
+            tzLocal.fan_mode(2),
             tzLocal.light_onoff_brightness_inovelli,
             tzLocal.inovelli_parameters(VZM36_ATTRIBUTES),
             tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES),
