@@ -241,6 +241,11 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller WW/CW (pro)',
+        whiteLabel: [
+            {vendor: 'Gledopto', model: 'GL-C-006P_mini', description: 'Zigbee LED Controller WW/CW (pro) (mini)'},
+            {vendor: 'Gledopto', model: 'GL-C-003P_1', description: 'Zigbee 2in1 LED Controller CCT/DIM (pro)'},
+            {vendor: 'Gledopto', model: 'GL-C-203P', description: 'Zigbee 2in1 LED Controller CCT/DIM (pro+)'},
+        ],
         extend: [light({colorTemp: {range: [158, 500]}}), identify(), gledoptoConfigureReadModelID()],
     },
     {
@@ -312,6 +317,16 @@ const definitions: DefinitionWithExtend[] = [
                     {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
                 ],
             },
+            {
+                type: 'Router',
+                manufacturerName: 'GLEDOPTO',
+                modelID: 'GLEDOPTO',
+                endpoints: [
+                    {ID: 10, profileID: 260, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 8], outputClusters: []},
+                    {ID: 11, profileID: 260, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
+                    {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+                ],
+            },
         ],
         model: 'GL-C-007-2ID', // 2 ID controls white and color separate
         vendor: 'Gledopto',
@@ -341,6 +356,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGBW (pro)',
+        whiteLabel: [{vendor: 'Gledopto', model: 'GL-C-007P_mini', description: 'Zigbee LED Controller RGBW (pro) (mini)'}],
         extend: [
             light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}),
             identify(),
@@ -417,8 +433,9 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GL-C-003P',
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
-        description: 'Zigbee LED Controller CCT (pro)',
-        extend: [light({colorTemp: {range: [158, 500]}}), identify(), gledoptoConfigureReadModelID()],
+        description: 'Zigbee LED Controller RGB (pro)',
+        // Supports color: https://github.com/Koenkk/zigbee2mqtt/issues/24091
+        extend: [light({color: {modes: ['xy', 'hs'], enhancedHue: true}}), identify(), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-C-008P'],
@@ -427,8 +444,14 @@ const definitions: DefinitionWithExtend[] = [
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB+CCT (pro)',
         whiteLabel: [
-            {vendor: 'Gledopto', model: 'GL-C-001P'},
-            {vendor: 'Gledopto', model: 'GL-C-002P'},
+            {vendor: 'Gledopto', model: 'GL-C-008P_mini', description: 'Zigbee LED Controller RGB+CCT (pro) (mini)'},
+            {vendor: 'Gledopto', model: 'GL-C-001P', description: 'Zigbee 5in1 LED Controller (pro)'},
+            {vendor: 'Gledopto', model: 'GL-C-002P', description: 'Zigbee 5in1 LED Controller (pro) (mini)'},
+            {vendor: 'Gledopto', model: 'GL-C-011P', description: 'Zigbee 5in1 LED Controller (pro) (din)'},
+            {vendor: 'Gledopto', model: 'GL-C-201P', description: 'Zigbee 5in1 LED Controller (pro+)'},
+            {vendor: 'Gledopto', model: 'GL-C-202P', description: 'Zigbee 3in1 LED Controller (pro+)'},
+            {vendor: 'Gledopto', model: 'GL-C-204P', description: 'Zigbee 5in1 LED Controller (pro+) (pwm)'},
+            {vendor: 'Gledopto', model: 'GL-C-301P', description: 'Zigbee 5in1 LED Controller (pro+) (ultra-mini)'},
         ],
         extend: [
             light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}),
@@ -461,6 +484,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller W (pro)',
+        whiteLabel: [{vendor: 'Gledopto', model: 'GL-C-009P_mini', description: 'Zigbee LED Controller W (pro) (mini)'}],
         extend: [light(), identify(), gledoptoConfigureReadModelID()],
     },
     {
@@ -974,7 +998,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GL-SD-301P',
         vendor: 'Gledopto',
         description: 'Zigbee triac AC dimmer',
-        extend: [gledoptoLight({})],
+        extend: [gledoptoLight({configureReporting: true})],
+    },
+    {
+        zigbeeModel: ['GL-C-310P'],
+        model: 'GL-C-310P',
+        vendor: 'Gledopto',
+        description: 'Zigbee relay switch',
+        extend: [onOff()],
     },
 ];
 

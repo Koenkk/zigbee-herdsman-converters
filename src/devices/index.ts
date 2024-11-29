@@ -243,6 +243,7 @@ import sercomm from './sercomm';
 import shade_control from './shade_control';
 import shenzhen_homa from './shenzhen_homa';
 import shinasystem from './shinasystem';
+import shyugj from './shyugj';
 import siglis from './siglis';
 import sikom from './sikom';
 import sinope from './sinope';
@@ -269,6 +270,7 @@ import swann from './swann';
 import sylvania from './sylvania';
 import tapestry from './tapestry';
 import tci from './tci';
+import tech from './tech';
 import technicolor from './technicolor';
 import terncy from './terncy';
 import the_light_group from './the_light_group';
@@ -301,6 +303,7 @@ import wyze from './wyze';
 import xinghuoyuan from './xinghuoyuan';
 import xyzroe from './xyzroe';
 import yale from './yale';
+import yandex from './yandex';
 import ynoa from './ynoa';
 import yookee from './yookee';
 import ysrsai from './ysrsai';
@@ -553,6 +556,7 @@ export default [
     ...shade_control,
     ...shenzhen_homa,
     ...shinasystem,
+    ...shyugj,
     ...siglis,
     ...sikom,
     ...sinope,
@@ -579,6 +583,7 @@ export default [
     ...sylvania,
     ...tapestry,
     ...tci,
+    ...tech,
     ...technicolor,
     ...terncy,
     ...the_light_group,
@@ -612,6 +617,7 @@ export default [
     ...xinghuoyuan,
     ...xyzroe,
     ...yale,
+    ...yandex,
     ...ynoa,
     ...yookee,
     ...ysrsai,

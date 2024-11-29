@@ -119,7 +119,7 @@ const definitions: DefinitionWithExtend[] = [
             ]),
         ],
         toZigbee: [],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
     },
     {
         zigbeeModel: ['ED-10013'],
@@ -177,7 +177,7 @@ const definitions: DefinitionWithExtend[] = [
             ]),
         ],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ['ED-10015'],

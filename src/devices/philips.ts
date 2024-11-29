@@ -72,6 +72,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight()],
     },
     {
+        zigbeeModel: ['LWF005'],
+        model: '9290002269A',
+        vendor: 'Philips',
+        description: 'Philips Hue A60 bulb with on/off control',
+        extend: [philipsLight()],
+    },
+    {
         zigbeeModel: ['LTA013'],
         model: '929003596001',
         vendor: 'Philips',
@@ -632,6 +639,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight()],
     },
     {
+        zigbeeModel: ['LWA030'],
+        model: '9290023351B',
+        vendor: 'Philips',
+        description: 'Hue white A21 bulb E26 with Bluetooth (1600 Lumen)',
+        extend: [philipsLight()],
+    },
+    {
         zigbeeModel: ['LWA031'],
         model: '8719514343320',
         vendor: 'Philips',
@@ -1082,6 +1096,13 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['LWG004'],
         model: 'LWG004',
+        vendor: 'Philips',
+        description: 'Hue white GU10 bluetooth',
+        extend: [philipsLight()],
+    },
+    {
+        zigbeeModel: ['LWG005'],
+        model: '929003666901',
         vendor: 'Philips',
         description: 'Hue white GU10 bluetooth',
         extend: [philipsLight()],
@@ -3960,6 +3981,13 @@ const definitions: DefinitionWithExtend[] = [
         model: '915005821901',
         vendor: 'Philips',
         description: 'Philips Hue Go White and Color',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ['LCV001'],
+        model: '929003151501',
+        vendor: 'Philips',
+        description: 'Hue Lightguide E27 Edison ST72 500lm',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];

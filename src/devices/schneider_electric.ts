@@ -14,8 +14,14 @@ import {
     electricityMeter,
     enumLookup,
     identify,
+    illuminance,
     light,
+    lightingBallast,
+    numeric,
+    occupancy,
     onOff,
+    ScaleFunction,
+    setupConfigureForReading,
 } from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
@@ -310,6 +316,81 @@ const schneiderElectricExtend = {
                 },
             ],
         };
+    },
+
+    dimmingMode: (): ModernExtend => {
+        const extend = enumLookup({
+            name: 'dimmer_mode',
+            lookup: {
+                Auto: 0,
+                'RL-LED': 3,
+            },
+            cluster: 'lightingBallastCfg',
+            attribute: 'wiserControlMode',
+            description: 'Auto detects the correct mode for the ballast. RL-LED may have improved dimming quality for LEDs.',
+            entityCategory: 'config',
+        });
+        extend.configure.push(setupConfigureForReading('lightingBallastCfg', ['wiserControlMode']));
+        return extend;
+    },
+
+    addOccupancyConfigurationCluster: () =>
+        deviceAddCustomCluster('occupancyConfiguration', {
+            ID: 0xff19,
+            manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                ambienceLightThreshold: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                occupancyActions: {ID: 0x0001, type: Zcl.DataType.ENUM8},
+                unoccupiedLevelDflt: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                unoccupiedLevel: {ID: 0x0003, type: Zcl.DataType.UINT8},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+
+    occupancyConfiguration: (): ModernExtend => {
+        const extend = enumLookup({
+            name: 'occupancy_sensitivity',
+            lookup: {
+                Low: 50,
+                Medium: 75,
+                High: 100,
+            },
+            cluster: 'msOccupancySensing',
+            attribute: {ID: 0xe003, type: Zcl.DataType.UINT8},
+            zigbeeCommandOptions: {
+                manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            },
+            description: 'Sensitivity of the occupancy sensor',
+            entityCategory: 'config',
+        });
+
+        const luxScale: ScaleFunction = (value: number, type: 'from' | 'to') => {
+            if (type === 'from') {
+                return Math.round(Math.pow(10, (value - 1) / 10000));
+            } else {
+                return Math.round(10000 * Math.log10(value) + 1);
+            }
+        };
+
+        const luxThresholdExtend = numeric({
+            name: 'ambience_light_threshold',
+            cluster: 'occupancyConfiguration',
+            attribute: 'ambienceLightThreshold',
+            reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5},
+            description: 'Threshold above which occupancy will not trigger the light switch.',
+            unit: 'lx',
+            scale: luxScale,
+            entityCategory: 'config',
+            valueMin: 1,
+            valueMax: 2000,
+        });
+        extend.fromZigbee.push(...luxThresholdExtend.fromZigbee);
+        extend.toZigbee.push(...luxThresholdExtend.toZigbee);
+        extend.exposes.push(...luxThresholdExtend.exposes);
+        extend.configure.push(setupConfigureForReading('occupancyConfiguration', ['ambienceLightThreshold']));
+
+        return extend;
     },
 };
 
@@ -677,33 +758,32 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['NHROTARY/UNIDIM/1'],
-        model: 'WDE002961',
+        model: 'NH3516A',
         vendor: 'Schneider Electric',
         description: 'Rotary dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
-        exposes: [
-            e.light_brightness().withLevelConfig(),
-            e
-                .numeric('ballast_minimum_level', ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription('Specifies the minimum light output of the ballast'),
-            e
-                .numeric('ballast_maximum_level', ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription('Specifies the maximum light output of the ballast'),
-            e
-                .enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
-                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)'),
+        extend: [
+            light({
+                effect: false,
+                powerOnBehavior: false,
+                color: false,
+                configureReporting: true,
+                levelConfig: {
+                    disabledFeatures: ['on_transition_time', 'off_transition_time', 'on_off_transition_time', 'execute_if_off'],
+                },
+            }),
+            lightingBallast(),
+            schneiderElectricExtend.dimmingMode(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        whiteLabel: [
+            {vendor: 'Elko', model: 'EKO07278'},
+            {vendor: 'Elko', model: 'EKO07279'},
+            {vendor: 'Elko', model: 'EKO07280'},
+            {vendor: 'Elko', model: 'EKO07281'},
+            {vendor: 'Elko', model: 'EKO30198'},
+            {vendor: 'Schneider', model: 'WDE002961'},
+            {vendor: 'Schneider', model: 'WDE003961'},
+            {vendor: 'Schneider', model: 'WDE004961'},
+        ],
     },
     {
         zigbeeModel: ['NHPB/UNIDIM/1'],
@@ -1556,43 +1636,28 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['NHMOTION/SWITCH/1'],
-        model: '545D6306',
+        model: 'NH3526',
         vendor: 'Schneider Electric',
-        description: 'LK FUGA Wiser wireless PIR with relay',
-        fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fz.occupancy_timeout],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.occupancy(),
-            e.illuminance_lux(),
-            e.illuminance(),
-            e
-                .numeric('occupancy_timeout', ea.ALL)
-                .withUnit('s')
-                .withValueMin(0)
-                .withValueMax(3600)
-                .withDescription('Time in seconds after which occupancy is cleared after detecting it'),
+        description: 'Motion sensor with switch',
+        extend: [
+            onOff({
+                powerOnBehavior: false,
+                configureReporting: true,
+            }),
+            illuminance(),
+            occupancy({
+                pirConfig: ['otu_delay'],
+            }),
+            schneiderElectricExtend.addOccupancyConfigurationCluster(),
+            schneiderElectricExtend.occupancyConfiguration(),
         ],
-        toZigbee: [tz.on_off, tz.occupancy_timeout],
-        endpoint: (device) => {
-            return {default: 37, l1: 1, l2: 37};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const binds1 = ['genBasic', 'genIdentify', 'genOnOff'];
-            await reporting.bind(endpoint1, coordinatorEndpoint, binds1);
-            await reporting.onOff(endpoint1);
-            // read switch state
-            await endpoint1.read('genOnOff', ['onOff']);
-
-            const endpoint37 = device.getEndpoint(37);
-            const binds37 = ['msIlluminanceMeasurement', 'msOccupancySensing'];
-            await reporting.bind(endpoint37, coordinatorEndpoint, binds37);
-            await reporting.occupancy(endpoint37);
-            await reporting.illuminance(endpoint37);
-            // read occupancy_timeout
-            await endpoint37.read('msOccupancySensing', ['pirOToUDelay']);
-        },
+        whiteLabel: [
+            {vendor: 'Elko', model: 'EKO06988'},
+            {vendor: 'Elko', model: 'EKO06989'},
+            {vendor: 'Elko', model: 'EKO06990'},
+            {vendor: 'Elko', model: 'EKO06991'},
+            {vendor: 'LK', model: '545D6306'},
+        ],
     },
     {
         zigbeeModel: ['CCT595011_AS'],
@@ -1667,6 +1732,7 @@ const definitions: DefinitionWithExtend[] = [
         ota: ota.zigbeeOTA, // local OTA updates are untested
         exposes: [
             e.smoke(),
+            e.test(),
             e.battery_low(),
             e.tamper(),
             e.battery(),
@@ -2028,6 +2094,40 @@ const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.visaKeyEventNotification('2'),
             schneiderElectricExtend.visaKeyEventNotification('3'),
             schneiderElectricExtend.visaKeyEventNotification('4'),
+        ],
+    },
+    {
+        zigbeeModel: ['NHMOTION/DIMMER/1'],
+        model: 'NH3527A',
+        vendor: 'Schneider Electric',
+        description: 'Motion sensor with dimmer',
+        extend: [
+            light({
+                effect: false,
+                powerOnBehavior: false,
+                color: false,
+                configureReporting: true,
+                levelConfig: {
+                    disabledFeatures: ['on_transition_time', 'off_transition_time', 'on_off_transition_time', 'execute_if_off'],
+                },
+            }),
+            lightingBallast(),
+            illuminance(),
+            occupancy({
+                pirConfig: ['otu_delay'],
+            }),
+            schneiderElectricExtend.addOccupancyConfigurationCluster(),
+            schneiderElectricExtend.occupancyConfiguration(),
+            schneiderElectricExtend.dimmingMode(),
+        ],
+        whiteLabel: [
+            {vendor: 'Elko', model: 'EKO07250'},
+            {vendor: 'Elko', model: 'EKO07251'},
+            {vendor: 'Elko', model: 'EKO07252'},
+            {vendor: 'Elko', model: 'EKO07253'},
+            {vendor: 'Elko', model: 'EKO30199'},
+            {vendor: 'Exxact', model: 'WDE002962'},
+            {vendor: 'Exxact', model: 'WDE003962'},
         ],
     },
 ];
