@@ -1220,7 +1220,7 @@ export const presets = {
     presence: () => new Binary('presence', access.STATE, true, false).withDescription('Indicates whether the device detected presence'),
     pressure: () => new Numeric('pressure', access.STATE).withUnit('hPa').withDescription('The measured atmospheric pressure'),
     programming_operation_mode: (values = ['setpoint', 'schedule', 'schedule_with_preheat', 'eco']) =>
-        new Enum('programming_operation_mode', access.ALL, ['setpoint', 'schedule', 'schedule_with_preheat', 'eco']).withDescription(
+        new Enum('programming_operation_mode', access.ALL, values).withDescription(
             'Controls how programming affects the thermostat. Possible values: setpoint (only use specified setpoint), schedule (follow programmed setpoint schedule), schedule_with_preheat (follow programmed setpoint schedule with pre-heating). Changing this value does not clear programmed schedules.',
         ),
     setup: () =>

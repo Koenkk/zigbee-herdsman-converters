@@ -197,6 +197,111 @@ const fzLocal = {
             return {action: utils.getFromLookup(commandID, lookup)};
         },
     } satisfies Fz.Converter,
+    sunricher_SRZG9002KR12Pro: {
+        cluster: 0xff03,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const bytes = [...msg.data];
+            const messageType = bytes[3];
+            let action = 'unknown';
+
+            if (messageType === 0x01) {
+                const pressTypeMask: number = bytes[6];
+                const pressTypeLookup: {[key: number]: string} = {
+                    0x01: 'short_press',
+                    0x02: 'double_press',
+                    0x03: 'hold',
+                    0x04: 'hold_released',
+                };
+                action = pressTypeLookup[pressTypeMask] || 'unknown';
+
+                const buttonMask = (bytes[4] << 8) | bytes[5];
+                const specialButtonMap: {[key: number]: string} = {
+                    9: 'knob',
+                    11: 'k9',
+                    12: 'k10',
+                    15: 'k11',
+                    16: 'k12',
+                };
+
+                const actionButtons: string[] = [];
+                for (let i = 0; i < 16; i++) {
+                    if ((buttonMask >> i) & 1) {
+                        const button = i + 1;
+                        actionButtons.push(specialButtonMap[button] ?? `k${button}`);
+                    }
+                }
+                return {action, action_buttons: actionButtons};
+            } else if (messageType === 0x03) {
+                const directionMask = bytes[4];
+                const actionSpeed = bytes[6];
+
+                const directionMap: {[key: number]: string} = {
+                    0x01: 'clockwise',
+                    0x02: 'anti_clockwise',
+                };
+                const direction = directionMap[directionMask] || 'unknown';
+
+                action = `${direction}_rotation`;
+                return {action, action_speed: actionSpeed};
+            }
+
+            return {action};
+        },
+    } satisfies Fz.Converter,
+    sunricher_SRZG2836D5Pro: {
+        cluster: 0xff03,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const bytes = [...msg.data];
+            const messageType = bytes[3];
+            let action = 'unknown';
+
+            if (messageType === 0x01) {
+                const pressTypeMask: number = bytes[6];
+                const pressTypeLookup: {[key: number]: string} = {
+                    0x01: 'short_press',
+                    0x02: 'double_press',
+                    0x03: 'hold',
+                    0x04: 'hold_released',
+                };
+                action = pressTypeLookup[pressTypeMask] || 'unknown';
+
+                const buttonMask = bytes[5];
+                const specialButtonLookup: {[key: number]: string} = {
+                    0x01: 'top_left',
+                    0x02: 'top_right',
+                    0x03: 'bottom_left',
+                    0x04: 'bottom_right',
+                    0x05: 'center',
+                };
+
+                const actionButtons: string[] = [];
+                for (let i = 0; i < 5; i++) {
+                    if ((buttonMask >> i) & 1) {
+                        const button = i + 1;
+                        actionButtons.push(specialButtonLookup[button] || `unknown_${button}`);
+                    }
+                }
+                return {action, action_buttons: actionButtons};
+            } else if (messageType === 0x03) {
+                const directionMask = bytes[4];
+                const actionSpeed = bytes[6];
+                const isStop = bytes[5] === 0x02;
+
+                const directionMap: {[key: number]: string} = {
+                    0x01: 'clockwise',
+                    0x02: 'anti_clockwise',
+                };
+                const direction = isStop ? 'stop' : directionMap[directionMask] || 'unknown';
+
+                action = `${direction}_rotation`;
+                return {action, action_speed: actionSpeed};
+            }
+
+            return {action};
+        },
+    } satisfies Fz.Converter,
 };
 
 async function syncTime(endpoint: Zh.Endpoint) {
@@ -211,7 +316,27 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['ZV9380A'],
+        zigbeeModel: ['HK-ZRC-K5&RS-E'],
+        model: 'SR-ZG2836D5-Pro',
+        vendor: 'Sunricher',
+        description: 'Zigbee smart remote',
+        extend: [battery()],
+        fromZigbee: [fzLocal.sunricher_SRZG2836D5Pro],
+        exposes: [
+            e.action(['short_press', 'double_press', 'hold', 'hold_released', 'clockwise_rotation', 'anti_clockwise_rotation', 'stop_rotation']),
+        ],
+    },
+    {
+        zigbeeModel: ['HK-ZRC-K12&RS-E'],
+        model: 'SR-ZG9002KR12-Pro',
+        vendor: 'Sunricher',
+        description: 'Zigbee smart wall panel remote',
+        extend: [battery()],
+        fromZigbee: [fzLocal.sunricher_SRZG9002KR12Pro],
+        exposes: [e.action(['short_press', 'double_press', 'hold', 'hold_released', 'clockwise_rotation', 'anti_clockwise_rotation'])],
+    },
+    {
+        zigbeeModel: ['ZV9380A', 'ZG9380A'],
         model: 'SR-ZG9042MP',
         vendor: 'Sunricher',
         description: 'Zigbee three phase power meter',

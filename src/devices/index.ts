@@ -243,6 +243,7 @@ import sercomm from './sercomm';
 import shade_control from './shade_control';
 import shenzhen_homa from './shenzhen_homa';
 import shinasystem from './shinasystem';
+import shyugj from './shyugj';
 import siglis from './siglis';
 import sikom from './sikom';
 import sinope from './sinope';
@@ -555,6 +556,7 @@ export default [
     ...shade_control,
     ...shenzhen_homa,
     ...shinasystem,
+    ...shyugj,
     ...siglis,
     ...sikom,
     ...sinope,

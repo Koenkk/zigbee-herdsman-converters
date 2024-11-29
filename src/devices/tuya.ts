@@ -1028,6 +1028,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_vs0skpuc'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_44af8vyi'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zl1kmjqx'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_qyflbnbj'},
         ],
         model: 'TS0601_temperature_humidity_sensor_1',
         vendor: 'Tuya',
@@ -1036,7 +1037,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: (device, options) => {
             const exps: Expose[] = [e.temperature(), e.humidity(), e.battery()];
-            if (!device || device.manufacturerName === '_TZE200_qyflbnbj') {
+            if (!device || device.manufacturerName === '_TZE200_qyflbnbj' || device.manufacturerName === '_TZE204_qyflbnbj') {
                 exps.push(e.battery_low());
                 exps.push(e.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'));
             }
@@ -1348,13 +1349,22 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ogkdpgy2', '_TZE204_ogkdpgy2', '_TZE200_3ejwxpmu']),
-        model: 'TS0601_co2_sensor',
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ogkdpgy2', '_TZE200_3ejwxpmu']),
+        model: 'TS0601_temperature_humidity_co2_sensor',
         vendor: 'Tuya',
         description: 'NDIR co2 sensor',
         fromZigbee: [legacy.fromZigbee.tuya_air_quality],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.co2()],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ogkdpgy2']),
+        model: 'TS0601_co2_sensor',
+        vendor: 'Tuya',
+        description: 'NDIR co2 sensor',
+        fromZigbee: [legacy.fromZigbee.tuya_air_quality],
+        toZigbee: [],
+        exposes: [e.co2()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7bztmfm1'}],
@@ -1680,6 +1690,19 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_bfwvfyx1']),
+        model: 'TS0505B_4',
+        vendor: 'Tuya',
+        description: 'Zigbee RGB+CCT light',
+        whiteLabel: [tuya.whitelabel('Tuya', 'TS0505B_4_1', 'Zigbee 3.0 15W led light bulb E27 RGBCW', ['_TZ3210_bfwvfyx1'])],
+        toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
+        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
+        exposes: [e.light_brightness_colortemp_colorhs([50, 1000]).removeFeature('color_temp_startup'), tuya.exposes.doNotDisturb()],
+        configure: async (device, coordinatorEndpoint) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
         zigbeeModel: ['TS0503B'],
         model: 'TS0503B',
         vendor: 'Tuya',
@@ -1921,7 +1944,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [],
     },
     {
-        zigbeeModel: ['TS0207', 'FNB54-WTS08ML1.0', 'SNZB-05'],
+        zigbeeModel: ['TS0207', 'FNB54-WTS08ML1.0'],
         model: 'TS0207_water_leak_detector',
         vendor: 'Tuya',
         description: 'Water leak detector',
@@ -2448,6 +2471,10 @@ const definitions: DefinitionWithExtend[] = [
             {
                 modelID: 'TS0601',
                 manufacturerName: '_TZE204_o9gyszw2',
+            },
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_jtbgusdc',
             },
         ],
         model: 'ZDMS16-2',
@@ -4974,7 +5001,7 @@ const definitions: DefinitionWithExtend[] = [
             e.min_temperature(),
             e.position(),
             e.window_detection(),
-            e.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
+            e.binary('window', ea.STATE, 'CLOSE', 'OPEN').withDescription('Window status closed or open '),
             e.binary('alarm_switch', ea.STATE, 'ON', 'OFF').withDescription('Thermostat in error state'),
             e
                 .climate()
@@ -8727,6 +8754,8 @@ const definitions: DefinitionWithExtend[] = [
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint('l1'),
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint('l2'),
             e.power_on_behavior().withAccess(ea.ALL),
+            tuya.exposes.switchType().withEndpoint('l1'),
+            tuya.exposes.switchType().withEndpoint('l2'),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -11547,17 +11576,165 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_l6llgoxq', '_TZE204_kobbcyum']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_kobbcyum']),
+        model: 'TOWSMR1',
+        vendor: 'Tongou',
+        description: 'Single-phase multifunction RCBO (DIN Module)',
+        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
+        toZigbee: [tuya.tz.datapoints],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            // Required to get the device to start reporting
+            await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
+        },
+        exposes: [
+            tuya.exposes.switch(),
+            e.temperature(),
+            e.current(),
+            e.power(),
+            e.voltage(),
+            e.energy(),
+            e.numeric('leakage_current', ea.STATE).withUnit('mA').withDescription('Current leakage'),
+            e
+                .enum('event', ea.STATE, [
+                    'normal',
+                    'over_current_trip',
+                    'over_power_trip',
+                    'high_temp_trip',
+                    'over_voltage_trip',
+                    'under_voltage_trip',
+                    'over_current_alarm',
+                    'over_power_alarm',
+                    'high_temp_alarm',
+                    'over_voltage_alarm',
+                    'under_voltage_alarm',
+                    'remote_on',
+                    'remote_off',
+                    'manual_on',
+                    'manual_off',
+                    'leakage_trip',
+                    'leakage_alarm',
+                    'restore_default',
+                    'automatic_closing',
+                    'electricity_shortage',
+                    'electricity_shortage_alarm',
+                    'timing_switch_On',
+                    'timing_switch_off',
+                ])
+                .withDescription('Last event of the device'),
+            e.enum('over_current_setting', ea.STATE_SET, ['Ignore', 'Alarm', 'Trip']).withDescription('Over current setting'),
+            e
+                .numeric('over_current_threshold', ea.STATE_SET)
+                .withUnit('A')
+                .withDescription('Setup the value on the device')
+                .withValueMin(1)
+                .withValueMax(40),
+            e.enum('over_voltage_setting', ea.STATE_SET, ['Ignore', 'Alarm', 'Trip']).withDescription('Over voltage setting'),
+            e
+                .numeric('over_voltage_threshold', ea.STATE_SET)
+                .withUnit('V')
+                .withDescription('Setup value on the device')
+                .withValueMin(240)
+                .withValueMax(295),
+            e.enum('under_voltage_setting', ea.STATE_SET, ['Ignore', 'Alarm', 'Trip']).withDescription('Under voltage setting'),
+            e
+                .numeric('under_voltage_threshold', ea.STATE_SET)
+                .withUnit('V')
+                .withDescription('Setup value on the device')
+                .withValueMin(145)
+                .withValueMax(220),
+            e.enum('leakage_setting', ea.STATE_SET, ['Ignore', 'Alarm', 'Trip']).withDescription('Leakage setting'),
+            e
+                .numeric('leakage_threshold', ea.STATE_SET)
+                .withUnit('mA')
+                .withDescription('Setup value on the device')
+                .withValueMin(30)
+                .withValueMax(100),
+            e.enum('temperature_setting', ea.STATE_SET, ['Ignore', 'Alarm', 'Trip']).withDescription('Temperature setting'),
+            e
+                .numeric('temperature_threshold', ea.STATE_SET)
+                .withUnit('°C')
+                .withDescription('Setup value on the device')
+                .withValueMin(-25)
+                .withValueMax(100),
+            e.enum('over_power_setting', ea.STATE_SET, ['Ignore', 'Alarm', 'Trip']).withDescription('Over power setting'),
+            e
+                .numeric('over_power_threshold', ea.STATE_SET)
+                .withUnit('W')
+                .withDescription('Setup value on the device')
+                .withValueMin(1)
+                .withValueMax(25000),
+            e
+                .binary('auto_reclosing', ea.STATE_SET, 'ON', 'OFF')
+                .withLabel('Auto reclosing')
+                .withDescription(
+                    'When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voltage returns to normal',
+                ),
+            e.binary('restore_default', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn ON to restore default settings'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'energy', tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2], // voltage and current
+                [15, 'leakage_current', tuya.valueConverter.raw],
+                [16, 'state', tuya.valueConverter.onOff],
+                [
+                    110,
+                    'event',
+                    tuya.valueConverterBasic.lookup({
+                        normal: 0,
+                        over_current_trip: 1,
+                        over_power_trip: 2,
+                        high_temp_trip: 3,
+                        over_voltage_trip: 4,
+                        under_voltage_trip: 5,
+                        over_current_alarm: 6,
+                        over_power_alarm: 7,
+                        high_temp_alarm: 8,
+                        over_voltage_alarm: 9,
+                        under_voltage_alarm: 10,
+                        remote_on: 11,
+                        remote_off: 12,
+                        manual_on: 13,
+                        manual_off: 14,
+                        leakage_trip: 15,
+                        leakage_alarm: 16,
+                        restore_default: 17,
+                        automatic_closing: 18,
+                        electricity_shortage: 19,
+                        electricity_shortage_alarm: 20,
+                        timing_switch_on: 21,
+                        timing_switch_off: 22,
+                    }),
+                ],
+                [102, 'over_voltage_setting', tuya.valueConverterBasic.lookup({Ignore: tuya.enum(0), Alarm: tuya.enum(1), Trip: tuya.enum(2)})],
+                [103, 'under_voltage_setting', tuya.valueConverterBasic.lookup({Ignore: tuya.enum(0), Alarm: tuya.enum(1), Trip: tuya.enum(2)})],
+                [104, 'over_current_setting', tuya.valueConverterBasic.lookup({Ignore: tuya.enum(0), Alarm: tuya.enum(1), Trip: tuya.enum(2)})],
+                [105, 'over_power_setting', tuya.valueConverterBasic.lookup({Ignore: tuya.enum(0), Alarm: tuya.enum(1), Trip: tuya.enum(2)})],
+                [107, 'temperature_setting', tuya.valueConverterBasic.lookup({Ignore: tuya.enum(0), Alarm: tuya.enum(1), Trip: tuya.enum(2)})],
+                [108, 'leakage_setting', tuya.valueConverterBasic.lookup({Ignore: tuya.enum(0), Alarm: tuya.enum(1), Trip: tuya.enum(2)})],
+                [112, 'auto_reclosing', tuya.valueConverter.onOff],
+                [113, 'restore_default', tuya.valueConverter.onOff],
+                [114, 'over_current_threshold', tuya.valueConverter.raw],
+                [115, 'over_voltage_threshold', tuya.valueConverter.raw],
+                [116, 'under_voltage_threshold', tuya.valueConverter.raw],
+                [117, 'leakage_threshold', tuya.valueConverter.raw],
+                [118, 'temperature_threshold', tuya.valueConverter.divideBy10],
+                [119, 'over_power_threshold', tuya.valueConverter.raw],
+                [131, 'temperature', tuya.valueConverter.divideBy10],
+            ],
+        },
+        onEvent: tuya.onEvent({respondToMcuVersionResponse: false, queryIntervalSeconds: 10}),
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_l6llgoxq']),
         model: 'EA4161C-BI',
         vendor: 'Tuya',
         description: 'Single-phase multifunction energy meter (DIN Module)',
         fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        whiteLabel: [
-            {vendor: 'XOCA', model: 'DAC4121C'},
-            tuya.whitelabel('Tongou', 'TOWSMR1', 'Single-phase multifunction energy meter (DIN Module)', ['_TZE204_kobbcyum']),
-        ],
+        whiteLabel: [{vendor: 'XOCA', model: 'DAC4121C'}],
         exposes: [e.current(), e.power(), e.voltage(), e.energy(), e.text('meter_id', ea.STATE).withDescription('Meter ID (ID of device)')],
         meta: {
             tuyaDatapoints: [
