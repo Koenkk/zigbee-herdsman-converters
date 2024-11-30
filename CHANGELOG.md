@@ -1,5 +1,28 @@
 # Changelog
 
+## [20.56.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.55.0...v20.56.0) (2024-11-28)
+
+
+### Features
+
+* Add SR-ZG9002KR12-Pro expose and add ZG9380A zigbeeModel for SR-ZG9042MP ([#8388](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8388)) ([f482272](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f482272ff1aff08da904e6028a93cf7df77d29e6))
+* **add:** SR-ZG2836D5-Pro ([#8392](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8392)) ([2d229ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2d229ffdae8f31c9dc1825ffa1ee4940d9cd029c))
+
+## [20.55.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.54.0...v20.55.0) (2024-11-27)
+
+
+### Features
+
+* Expose `test` for W599001 ([#8382](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8382)) ([d68f0dd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d68f0dd98cbadf8bafdc0216bc10705599b8e53a))
+
+
+### Bug Fixes
+
+* eWelink: fix some device detections ([#8385](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8385)) ([164654d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/164654dacffb6ed02521c83f320d690a62e1245c))
+* Fix `window` `CLOSE` value for Tuya TS0601_thermostat_1 ([#8389](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8389)) ([144753e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/144753ef153ece87f1b758fe0bc58f4ee299416c))
+* Fix battery % multiplied by two for ROB_200-008-0 https://github.com/Koenkk/zigbee2mqtt/issues/24930 ([6bd889b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6bd889bb6e87d5568e56fa36441345b001424fe4))
+* Fix setting schedule for some Tuya thermostats when no `working_day` has been set yet ([#8386](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8386)) ([a7517c4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a7517c4186be8f68eeef76db1499bd8d23f6c662))
+
 ## [20.54.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.53.0...v20.54.0) (2024-11-25)
 
 

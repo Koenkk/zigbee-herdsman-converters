@@ -1732,6 +1732,7 @@ const definitions: DefinitionWithExtend[] = [
         ota: ota.zigbeeOTA, // local OTA updates are untested
         exposes: [
             e.smoke(),
+            e.test(),
             e.battery_low(),
             e.tamper(),
             e.battery(),

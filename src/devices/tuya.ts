@@ -1944,7 +1944,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [],
     },
     {
-        zigbeeModel: ['TS0207', 'FNB54-WTS08ML1.0', 'SNZB-05'],
+        zigbeeModel: ['TS0207', 'FNB54-WTS08ML1.0'],
         model: 'TS0207_water_leak_detector',
         vendor: 'Tuya',
         description: 'Water leak detector',
@@ -2976,6 +2976,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZ3000_0dumfk2z',
             '_TZ3000_ssp0maqm',
             '_TZ3000_p3fph1go',
+            '_TZ3000_9r5jaajv',
         ]),
         model: 'TS0215A_sos',
         vendor: 'Tuya',
@@ -5001,7 +5002,7 @@ const definitions: DefinitionWithExtend[] = [
             e.min_temperature(),
             e.position(),
             e.window_detection(),
-            e.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
+            e.binary('window', ea.STATE, 'CLOSE', 'OPEN').withDescription('Window status closed or open '),
             e.binary('alarm_switch', ea.STATE, 'ON', 'OFF').withDescription('Thermostat in error state'),
             e
                 .climate()
