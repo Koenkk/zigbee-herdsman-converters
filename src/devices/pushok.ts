@@ -192,7 +192,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             enumLookup({
                 name: 'set_op_mode',
-                lookup: {Monitor: 0, Heater: 1, Cooler: 2, MonitorInverted: 3, HeaterInverted: 4, CoolerInverted: 5},
+                lookup: {monitor: 0, heater: 1, cooler: 2, monitor_inverted: 3, heater_inverted: 4, cooler_inverted: 5},
                 cluster: 'genMultistateOutput',
                 attribute: 'presentValue',
                 zigbeeCommandOptions: {},
