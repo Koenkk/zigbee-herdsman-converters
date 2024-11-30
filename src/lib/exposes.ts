@@ -824,7 +824,26 @@ export const options = {
             )
             .withFeature(new Numeric('delta', access.SET).withValueMin(0).withDescription('Delta per interval, 20 by default'))
             .withFeature(new Numeric('interval', access.SET).withValueMin(0).withUnit('ms').withDescription('Interval duration')),
-    simulated_color_temperature: () => new Numeric('simulated_color_temperature_delta', access.SET).withDescription('Testing testing'),
+    simulated_color_temperature: () =>
+        new Composite('Simulated Color Temperature', 'simulated_color_temperature', access.SET)
+            .withFeature(
+                new Numeric('delta', access.SET)
+                    .withValueMin(1)
+                    .withDescription('Delta describes how much per tick the color temperature will change.'),
+            )
+            .withFeature(
+                new Numeric('minimum', access.SET)
+                    .withValueMin(0)
+                    .withValueMax(1000)
+                    .withDescription('Minimum midred value that will be simulated. Default 153 midred (~6500 kelvin)'),
+            )
+            .withFeature(
+                new Numeric('maximum', access.SET)
+                    .withValueMin(0)
+                    .withValueMax(1000)
+                    .withDescription('Maximum midred value that will be simulated. Default 500 midred (~2000 kelvin)'),
+            )
+            .withDescription('Simulate a color temperature in midred with minimum and maximum value and a delta value '),
     no_occupancy_since_true: () =>
         new List(`no_occupancy_since`, access.SET, new Numeric('time', access.STATE_SET)).withDescription(
             'Sends a message the last time occupancy (occupancy: true) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be send after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',

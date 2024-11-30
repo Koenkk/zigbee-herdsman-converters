@@ -1426,19 +1426,22 @@ const converters1 = {
             }
 
             if (options.simulated_color_temperature) {
-                const deltaOpts = options.simulated_color_temperature_delta ?? 500;
+                const SIMULATED_COLOR_TEMPERATURE_KEY = 'simulated_color_temperature_temperature';
 
-                if (globalStore.getValue(msg.endpoint, 'simulated_color_temperature') === undefined) {
-                    let color_temperature = globalStore.getValue(msg.endpoint, 'simulated_color_temperature_temperature', 2000);
-                    const delta = direction === 'up' ? deltaOpts : -deltaOpts;
-                    color_temperature += delta;
-                    color_temperature = numberWithinRange(color_temperature, 2000, 6500);
-                    globalStore.putValue(msg.endpoint, 'simulated_color_temperature_temperature', color_temperature);
-                    const property = postfixWithEndpointName('color_temperature', msg, model, meta);
-                    payload[property] = color_temperature;
-                    const deltaProperty = postfixWithEndpointName('action_color_temperature_delta', msg, model, meta);
-                    payload[deltaProperty] = delta;
-                }
+                const opts: KeyValueAny = options.simulated_color_temperature;
+                const deltaOpts: number = typeof opts === 'object' && opts.delta !== undefined ? opts.delta : 50;
+                const minimumOpts: number = typeof opts === 'object' && opts.minimum !== undefined ? opts.minimum : 153;
+                const maximumOpts: number = typeof opts === 'object' && opts.maximum !== undefined ? opts.maximum : 500;
+
+                let colorTemperature = globalStore.getValue(msg.endpoint, SIMULATED_COLOR_TEMPERATURE_KEY, 250);
+                const delta = direction === 'up' ? deltaOpts : -deltaOpts;
+                colorTemperature += delta;
+                colorTemperature = numberWithinRange(colorTemperature, minimumOpts, maximumOpts);
+                globalStore.putValue(msg.endpoint, SIMULATED_COLOR_TEMPERATURE_KEY, colorTemperature);
+                const property = postfixWithEndpointName('color_temperature', msg, model, meta);
+                payload[property] = colorTemperature;
+                const deltaProperty = postfixWithEndpointName('action_color_temperature_delta', msg, model, meta);
+                payload[deltaProperty] = delta;
             }
 
             addActionGroup(payload, msg, model);
