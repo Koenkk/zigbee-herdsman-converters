@@ -1379,9 +1379,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Zigbee Smart one-channel wall switch (type 120).',
         exposes: [],
+        ota: true,
         extend: [
             deviceEndpoints({endpoints: {l1: 1}}),
-            ota(),
             onOff(),
             sonoffExtend.addCustomClusterEwelink(),
             enumLookup({
@@ -1416,9 +1416,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Zigbee Smart two-channel wall switch (type 120).',
         exposes: [],
+        ota: true,
         extend: [
             deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            ota(),
             onOff({endpointNames: ['l1', 'l2']}),
             sonoffExtend.addCustomClusterEwelink(),
             enumLookup({
@@ -1457,9 +1457,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Zigbee Smart three-channel wall switch (type 120).',
         exposes: [],
+        ota: true,
         extend: [
             deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            ota(),
             onOff({endpointNames: ['l1', 'l2', 'l3']}),
             sonoffExtend.addCustomClusterEwelink(),
             enumLookup({
