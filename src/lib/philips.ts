@@ -22,8 +22,8 @@ const encodeRGBToScaledGradient = (hex: string) => {
     const xy = ColorRGB.fromHex(hex).toXY();
     const x = (xy.x * 4095) / 0.7347;
     const y = (xy.y * 4095) / 0.8413;
-    const xx = Math.round(x).toString(16);
-    const yy = Math.round(y).toString(16);
+    const xx = Math.round(x).toString(16).padStart(3, '0');
+    const yy = Math.round(y).toString(16).padStart(3, '0');
 
     return [xx[1], xx[2], yy[2], xx[0], yy[0], yy[1]].join('');
 };
