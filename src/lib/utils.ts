@@ -21,10 +21,6 @@ import {
 
 const NS = 'zhc:utils';
 
-export function isLegacyEnabled(options: KeyValue) {
-    return options.legacy === undefined || options.legacy;
-}
-
 export function flatten<Type>(arr: Type[][]): Type[] {
     return [].concat(...arr);
 }
@@ -138,7 +134,7 @@ const transactionStore: {[s: string]: number[]} = {};
 export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number = null, key: string = null) {
     if (model.meta && model.meta.publishDuplicateTransaction) return false;
     const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
-    key = key || msg.device.ieeeAddr;
+    key = key || msg.device.ieeeAddr + '-' + msg.endpoint.ID;
     if (transactionStore[key]?.includes(currentID)) return true;
     // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
     transactionStore[key] = [currentID, ...(transactionStore[key] ?? [])].slice(0, 5);
@@ -165,7 +161,6 @@ export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
     soil_moisture: 2,
     co2: 0,
     illuminance: 0,
-    illuminance_lux: 0,
     voc: 0,
     formaldehyd: 0,
     co: 0,
@@ -356,10 +351,15 @@ export function isInRange(min: number, max: number, value: number) {
     return value >= min && value <= max;
 }
 
-export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[], errorIfNotInArray = true) {
+export function replaceToZigbeeConvertersInArray(
+    arr: Tz.Converter[],
+    oldElements: Tz.Converter[],
+    newElements: Tz.Converter[],
+    errorIfNotInArray = true,
+) {
     const clone = [...arr];
     for (let i = 0; i < oldElements.length; i++) {
-        const index = clone.indexOf(oldElements[i]);
+        const index = clone.findIndex((t) => t.key === oldElements[i].key);
 
         if (index !== -1) {
             clone[index] = newElements[i];
@@ -373,11 +373,11 @@ export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[], 
     return clone;
 }
 
-export function filterObject(obj: KeyValue, keys: string[]) {
-    const result: KeyValue = {};
+export function filterObject<T>(obj: T, keys: string[]): Partial<T> {
+    const result: Partial<T> = {};
     for (const [key, value] of Object.entries(obj)) {
         if (keys.includes(key)) {
-            result[key] = value;
+            result[key as keyof T] = value;
         }
     }
     return result;
@@ -690,7 +690,7 @@ export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unkno
 
 export function configureSetPowerSourceWhenUnknown(powerSource: 'Battery' | 'Mains (single phase)'): Configure {
     return async (device: Zh.Device): Promise<void> => {
-        if (!device.powerSource) {
+        if (!device.powerSource || device.powerSource === 'Unknown') {
             logger.debug(`Device has no power source, forcing to '${powerSource}'`, NS);
             device.powerSource = powerSource;
             device.save();
@@ -726,9 +726,19 @@ export function isLightExpose(expose: Expose): expose is Light {
     return expose?.type === 'light';
 }
 
+export function splitArrayIntoChunks<T>(arr: T[], chunkSize: number): T[][] {
+    const result = [];
+
+    for (let i = 0; i < arr.length; i += chunkSize) {
+        const chunk = arr.slice(i, i + chunkSize);
+        result.push(chunk);
+    }
+
+    return result;
+}
+
 exports.noOccupancySince = noOccupancySince;
 exports.getOptions = getOptions;
-exports.isLegacyEnabled = isLegacyEnabled;
 exports.precisionRound = precisionRound;
 exports.toLocalISOString = toLocalISOString;
 exports.numberWithinRange = numberWithinRange;
@@ -750,7 +760,6 @@ exports.getMetaValue = getMetaValue;
 exports.validateValue = validateValue;
 exports.hasEndpoints = hasEndpoints;
 exports.isInRange = isInRange;
-exports.replaceInArray = replaceInArray;
 exports.filterObject = filterObject;
 exports.saveSceneState = saveSceneState;
 exports.sleep = sleep;

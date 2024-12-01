@@ -9,7 +9,7 @@ const ea = exposes.access;
 
 const tzLocal = {
     TS0225: {
-        key: ['motion_detection_distance', 'motion_detection_sensitivity', 'static_detection_sensitivity'],
+        key: ['motion_detection_distance', 'motion_detection_sensitivity', 'static_detection_sensitivity', 'led_indicator'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
                 case 'motion_detection_distance': {
@@ -27,6 +27,10 @@ const tzLocal = {
                     await entity.write('manuSpecificTuya_2', {57349: {value, type: 0x20}});
                     break;
                 }
+                case 'led_indicator': {
+                    await entity.write('manuSpecificTuya_2', {57353: {value: value ? 0x01 : 0x00, type: 0x10}});
+                    break;
+                }
             }
         },
     } satisfies Tz.Converter,
@@ -38,7 +42,8 @@ const fzLocal = {
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
             const buffer = msg.data;
-            return {illuminance: Math.round(0.0001 * Math.pow(Number(buffer[7]), 3.413))};
+            const measuredValue = Number(buffer[7]) * 256 + Number(buffer[6]);
+            return {illuminance: measuredValue === 0 ? 0 : Math.round(Math.pow(10, (measuredValue - 1) / 10000))};
         },
     } satisfies Fz.Converter,
     TS0225: {
@@ -60,6 +65,9 @@ const fzLocal = {
             }
             if (msg.data['57345'] !== undefined) {
                 result['presence_keep_time'] = msg.data['57345'];
+            }
+            if (msg.data['57353'] !== undefined) {
+                result['led_indicator'] = msg.data['57353'] === 1 ? true : false;
             }
             return result;
         },
@@ -106,6 +114,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit('s')
                 .withDescription('Time after which the device will check again for presence'),
+            e.binary('led_indicator', ea.STATE_SET, true, false).withDescription('LED Presence Indicator'),
         ],
         meta: {
             tuyaDatapoints: [[101, 'fading_time', tuya.valueConverter.raw]],

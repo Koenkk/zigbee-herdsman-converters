@@ -26,6 +26,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_qrztc3ev'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_snloy4rw'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_eanjj2pa'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ydrdfkim'},
         ],
         model: 'SZ-T04',
         vendor: 'Nous',
@@ -80,7 +81,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_wtikaxzs', '_TZE200_nnrfa68v']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_wtikaxzs', '_TZE200_nnrfa68v', '_TZE200_zppcgbdj']),
         model: 'E6',
         vendor: 'Nous',
         description: 'Temperature & humidity LCD sensor',

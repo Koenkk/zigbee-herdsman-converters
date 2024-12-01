@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
 import {
     battery,
@@ -25,12 +24,151 @@ import {
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Fz, Zh} from '../lib/types';
+import {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const NS = 'zhc:sunricher';
 const e = exposes.presets;
 const ea = exposes.access;
+
+const sunricherManufacturerCode = 0x1224;
+
+function sunricherExternalSwitchType(): ModernExtend {
+    const attribute = 0x8803;
+    const data_type = 0x20;
+    const value_map: {[key: number]: string} = {
+        0: 'push_button',
+        1: 'normal_on_off',
+        2: 'three_way',
+    };
+    const value_lookup: {[key: string]: number} = {
+        push_button: 0,
+        normal_on_off: 1,
+        three_way: 2,
+    };
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'genBasic',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    const value = msg.data[attribute];
+                    return {
+                        external_switch_type: value_map[value] || 'unknown',
+                        external_switch_type_numeric: value,
+                    };
+                }
+                return undefined;
+            },
+        } satisfies Fz.Converter,
+    ];
+
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ['external_switch_type'],
+            convertSet: async (entity, key, value: string, meta) => {
+                const numericValue = value_lookup[value] ?? parseInt(value, 10);
+                await entity.write('genBasic', {[attribute]: {value: numericValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
+                return {state: {external_switch_type: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
+            },
+        } satisfies Tz.Converter,
+    ];
+
+    const exposes: Expose[] = [
+        e.enum('external_switch_type', ea.ALL, ['push_button', 'normal_on_off', 'three_way']).withLabel('External switch type'),
+    ];
+
+    const configure: [Configure] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(1);
+            try {
+                await endpoint.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
+            } catch (error) {
+                console.warn(`Failed to read external switch type attribute: ${error}`);
+            }
+        },
+    ];
+
+    return {
+        fromZigbee,
+        toZigbee,
+        exposes,
+        configure,
+        isModernExtend: true,
+    };
+}
+
+function sunricherMinimumPWM(): ModernExtend {
+    const attribute = 0x7809;
+    const data_type = 0x20;
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'genBasic',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    console.log(`from `, msg.data[attribute]);
+                    const value = Math.round(msg.data[attribute] / 5.1);
+                    return {
+                        minimum_pwm: value,
+                    };
+                }
+                return undefined;
+            },
+        },
+    ];
+
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ['minimum_pwm'],
+            convertSet: async (entity: Zh.Endpoint, key: string, value: number | string, meta) => {
+                console.log(`to `, value);
+                const numValue = typeof value === 'string' ? parseInt(value) : value;
+                const zgValue = Math.round(numValue * 5.1);
+                await entity.write('genBasic', {[attribute]: {value: zgValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
+                return {state: {minimum_pwm: numValue}};
+            },
+            convertGet: async (entity: Zh.Endpoint, key: string, meta) => {
+                await entity.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
+            },
+        },
+    ];
+
+    const exposes: Expose[] = [
+        e
+            .numeric('minimum_pwm', ea.ALL)
+            .withLabel('Minimum PWM')
+            .withDescription('Power off the device and wait for 3 seconds before reconnecting to apply the settings.')
+            .withValueMin(0)
+            .withValueMax(50)
+            .withUnit('%')
+            .withValueStep(1),
+    ];
+
+    const configure: [Configure] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(1);
+            try {
+                await endpoint.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
+            } catch (error) {
+                console.warn(`Failed to read external switch type attribute: ${error}`);
+            }
+        },
+    ];
+
+    return {
+        fromZigbee,
+        toZigbee,
+        exposes,
+        configure,
+        isModernExtend: true,
+    };
+}
 
 const fzLocal = {
     sunricher_SRZGP2801K45C: {
@@ -58,6 +196,111 @@ const fzLocal = {
             return {action: utils.getFromLookup(commandID, lookup)};
         },
     } satisfies Fz.Converter,
+    sunricher_SRZG9002KR12Pro: {
+        cluster: 0xff03,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const bytes = [...msg.data];
+            const messageType = bytes[3];
+            let action = 'unknown';
+
+            if (messageType === 0x01) {
+                const pressTypeMask: number = bytes[6];
+                const pressTypeLookup: {[key: number]: string} = {
+                    0x01: 'short_press',
+                    0x02: 'double_press',
+                    0x03: 'hold',
+                    0x04: 'hold_released',
+                };
+                action = pressTypeLookup[pressTypeMask] || 'unknown';
+
+                const buttonMask = (bytes[4] << 8) | bytes[5];
+                const specialButtonMap: {[key: number]: string} = {
+                    9: 'knob',
+                    11: 'k9',
+                    12: 'k10',
+                    15: 'k11',
+                    16: 'k12',
+                };
+
+                const actionButtons: string[] = [];
+                for (let i = 0; i < 16; i++) {
+                    if ((buttonMask >> i) & 1) {
+                        const button = i + 1;
+                        actionButtons.push(specialButtonMap[button] ?? `k${button}`);
+                    }
+                }
+                return {action, action_buttons: actionButtons};
+            } else if (messageType === 0x03) {
+                const directionMask = bytes[4];
+                const actionSpeed = bytes[6];
+
+                const directionMap: {[key: number]: string} = {
+                    0x01: 'clockwise',
+                    0x02: 'anti_clockwise',
+                };
+                const direction = directionMap[directionMask] || 'unknown';
+
+                action = `${direction}_rotation`;
+                return {action, action_speed: actionSpeed};
+            }
+
+            return {action};
+        },
+    } satisfies Fz.Converter,
+    sunricher_SRZG2836D5Pro: {
+        cluster: 0xff03,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const bytes = [...msg.data];
+            const messageType = bytes[3];
+            let action = 'unknown';
+
+            if (messageType === 0x01) {
+                const pressTypeMask: number = bytes[6];
+                const pressTypeLookup: {[key: number]: string} = {
+                    0x01: 'short_press',
+                    0x02: 'double_press',
+                    0x03: 'hold',
+                    0x04: 'hold_released',
+                };
+                action = pressTypeLookup[pressTypeMask] || 'unknown';
+
+                const buttonMask = bytes[5];
+                const specialButtonLookup: {[key: number]: string} = {
+                    0x01: 'top_left',
+                    0x02: 'top_right',
+                    0x03: 'bottom_left',
+                    0x04: 'bottom_right',
+                    0x05: 'center',
+                };
+
+                const actionButtons: string[] = [];
+                for (let i = 0; i < 5; i++) {
+                    if ((buttonMask >> i) & 1) {
+                        const button = i + 1;
+                        actionButtons.push(specialButtonLookup[button] || `unknown_${button}`);
+                    }
+                }
+                return {action, action_buttons: actionButtons};
+            } else if (messageType === 0x03) {
+                const directionMask = bytes[4];
+                const actionSpeed = bytes[6];
+                const isStop = bytes[5] === 0x02;
+
+                const directionMap: {[key: number]: string} = {
+                    0x01: 'clockwise',
+                    0x02: 'anti_clockwise',
+                };
+                const direction = isStop ? 'stop' : directionMap[directionMask] || 'unknown';
+
+                action = `${direction}_rotation`;
+                return {action, action_speed: actionSpeed};
+            }
+
+            return {action};
+        },
+    } satisfies Fz.Converter,
 };
 
 async function syncTime(endpoint: Zh.Endpoint) {
@@ -71,6 +314,47 @@ async function syncTime(endpoint: Zh.Endpoint) {
 }
 
 const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['HK-ZRC-K5&RS-E'],
+        model: 'SR-ZG2836D5-Pro',
+        vendor: 'Sunricher',
+        description: 'Zigbee smart remote',
+        extend: [battery()],
+        fromZigbee: [fzLocal.sunricher_SRZG2836D5Pro],
+        exposes: [
+            e.action(['short_press', 'double_press', 'hold', 'hold_released', 'clockwise_rotation', 'anti_clockwise_rotation', 'stop_rotation']),
+        ],
+    },
+    {
+        zigbeeModel: ['HK-ZRC-K12&RS-E'],
+        model: 'SR-ZG9002KR12-Pro',
+        vendor: 'Sunricher',
+        description: 'Zigbee smart wall panel remote',
+        extend: [battery()],
+        fromZigbee: [fzLocal.sunricher_SRZG9002KR12Pro],
+        exposes: [e.action(['short_press', 'double_press', 'hold', 'hold_released', 'clockwise_rotation', 'anti_clockwise_rotation'])],
+    },
+    {
+        zigbeeModel: ['ZV9380A', 'ZG9380A'],
+        model: 'SR-ZG9042MP',
+        vendor: 'Sunricher',
+        description: 'Zigbee three phase power meter',
+        extend: [electricityMeter()],
+    },
+    {
+        zigbeeModel: ['HK-SL-DIM-AU-K-A'],
+        model: 'SR-ZG2835PAC-AU',
+        vendor: 'Sunricher',
+        description: 'Zigbee push button smart dimmer',
+        extend: [light({configureReporting: true}), sunricherExternalSwitchType(), electricityMeter()],
+    },
+    {
+        zigbeeModel: ['HK-SL-DIM-CLN'],
+        model: 'SR-ZG9101SAC-HP-CLN',
+        vendor: 'Sunricher',
+        description: 'Zigbee micro smart dimmer',
+        extend: [light({configureReporting: true}), sunricherExternalSwitchType(), sunricherMinimumPWM()],
+    },
     {
         zigbeeModel: ['HK-SENSOR-CT-MINI'],
         model: 'SR-ZG9011A-DS',
@@ -281,19 +565,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG9001K12-DIM-Z4',
         vendor: 'Sunricher',
         description: '4 zone remote and dimmer',
-        fromZigbee: [
-            fz.battery,
-            fz.command_move,
-            legacy.fz.ZGRC013_brightness_onoff,
-            legacy.fz.ZGRC013_brightness,
-            fz.command_stop,
-            legacy.fz.ZGRC013_brightness_stop,
-            fz.command_on,
-            legacy.fz.ZGRC013_cmdOn,
-            fz.command_off,
-            legacy.fz.ZGRC013_cmdOff,
-            fz.command_recall,
-        ],
+        fromZigbee: [fz.battery, fz.command_move, fz.command_stop, fz.command_on, fz.command_off, fz.command_recall],
         exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'on', 'off', 'recall_*'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'RGB Genie', model: 'ZGRC-KEY-013'}],
@@ -344,7 +616,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [onOff({powerOnBehavior: false}), sunricherExternalSwitchType()],
     },
     {
         zigbeeModel: ['Micro Smart Dimmer', 'SM311', 'HK-SL-RDIM-A', 'HK-SL-DIM-EU-A'],
@@ -378,7 +650,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG9040A/ZG9041A-D',
         vendor: 'Sunricher',
         description: 'Zigbee micro smart dimmer',
-        extend: [light({configureReporting: true}), electricityMeter()],
+        extend: [light({configureReporting: true}), electricityMeter(), sunricherExternalSwitchType(), sunricherMinimumPWM()],
     },
     {
         zigbeeModel: ['HK-ZD-DIM-A'],

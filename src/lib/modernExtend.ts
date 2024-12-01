@@ -3,9 +3,7 @@ import {ClusterDefinition} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstyp
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as globalLegacy from '../lib/legacy';
 import {logger} from '../lib/logger';
-import {zigbeeOTA} from '../lib/ota';
 import * as globalStore from '../lib/store';
 import {Cover, presets as e, access as ea, Numeric, options as opt} from './exposes';
 import {configure as lightConfigure} from './light';
@@ -16,7 +14,6 @@ import {
     Configure,
     DefinitionExposesFunction,
     DefinitionMeta,
-    DefinitionOta,
     Expose,
     Fz,
     KeyValue,
@@ -41,13 +38,13 @@ import {
     getOptions,
     hasAlreadyProcessedMessage,
     isEndpoint,
-    isLegacyEnabled,
     isNumber,
     isObject,
     isString,
     noOccupancySince,
     postfixWithEndpointName,
     precisionRound,
+    splitArrayIntoChunks,
 } from './utils';
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: 'input' | 'output') {
@@ -64,7 +61,51 @@ function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, ty
     return endpoints;
 }
 
-export const timeLookup = {
+const IAS_EXPOSE_LOOKUP = {
+    occupancy: e.binary('occupancy', ea.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
+    contact: e.binary('contact', ea.STATE, false, true).withDescription('Indicates whether the device is opened or closed'),
+    smoke: e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
+    water_leak: e.binary('water_leak', ea.STATE, true, false).withDescription('Indicates whether the device detected a water leak'),
+    carbon_monoxide: e.binary('carbon_monoxide', ea.STATE, true, false).withDescription('Indicates whether the device detected carbon monoxide'),
+    sos: e.binary('sos', ea.STATE, true, false).withLabel('SOS').withDescription('Indicates whether the SOS alarm is triggered'),
+    vibration: e.binary('vibration', ea.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
+    alarm: e.binary('alarm', ea.STATE, true, false).withDescription('Indicates whether the alarm is triggered'),
+    gas: e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
+    alarm_1: e.binary('alarm_1', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 1 is active'),
+    alarm_2: e.binary('alarm_2', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 2 is active'),
+    tamper: e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered').withCategory('diagnostic'),
+    rain: e.binary('rain', ea.STATE, true, false).withDescription('Indicates whether the device detected rainfall'),
+    battery_low: e
+        .binary('battery_low', ea.STATE, true, false)
+        .withDescription('Indicates whether the battery of the device is almost empty')
+        .withCategory('diagnostic'),
+    supervision_reports: e
+        .binary('supervision_reports', ea.STATE, true, false)
+        .withDescription('Indicates whether the device issues reports on zone operational status')
+        .withCategory('diagnostic'),
+    restore_reports: e
+        .binary('restore_reports', ea.STATE, true, false)
+        .withDescription('Indicates whether the device issues reports on alarm no longer being present')
+        .withCategory('diagnostic'),
+    ac_status: e
+        .binary('ac_status', ea.STATE, true, false)
+        .withDescription('Indicates whether the device mains voltage supply is at fault')
+        .withCategory('diagnostic'),
+    test: e
+        .binary('test', ea.STATE, true, false)
+        .withDescription('Indicates whether the device is currently performing a test')
+        .withCategory('diagnostic'),
+    trouble: e
+        .binary('trouble', ea.STATE, true, false)
+        .withDescription('Indicates whether the device is currently havin trouble')
+        .withCategory('diagnostic'),
+    battery_defect: e
+        .binary('battery_defect', ea.STATE, true, false)
+        .withDescription('Indicates whether the device battery is defective')
+        .withCategory('diagnostic'),
+};
+
+export const TIME_LOOKUP = {
     MAX: 65000,
     '4_HOURS': 14400,
     '1_HOUR': 3600,
@@ -78,15 +119,15 @@ export const timeLookup = {
     MIN: 0,
 };
 
-type ReportingConfigTime = number | keyof typeof timeLookup;
+type ReportingConfigTime = number | keyof typeof TIME_LOOKUP;
 type ReportingConfigAttribute = string | number | {ID: number; type: number};
 type ReportingConfig = {min: ReportingConfigTime; max: ReportingConfigTime; change: number; attribute: ReportingConfigAttribute};
 export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, 'attribute'>;
 
 function convertReportingConfigTime(time: ReportingConfigTime): number {
     if (isString(time)) {
-        if (!(time in timeLookup)) throw new Error(`Reporting time '${time}' is unknown`);
-        return timeLookup[time];
+        if (!(time in TIME_LOOKUP)) throw new Error(`Reporting time '${time}' is unknown`);
+        return TIME_LOOKUP[time];
     } else {
         return time;
     }
@@ -107,28 +148,37 @@ export async function setupAttributes(
             `Configure reporting: ${configureReporting}, read: ${read} for ${ieeeAddr}/${endpoint.ID} ${cluster} ${JSON.stringify(config)}`,
             'zhc:setupattribute',
         );
+
+        // Split into chunks of 4 to prevent to message becoming too big.
+        const chunks = splitArrayIntoChunks(config, 4);
+
         if (configureReporting) {
             await endpoint.bind(cluster, coordinatorEndpoint);
-            await endpoint.configureReporting(
-                cluster,
-                config.map((a) => ({
-                    minimumReportInterval: convertReportingConfigTime(a.min),
-                    maximumReportInterval: convertReportingConfigTime(a.max),
-                    reportableChange: a.change,
-                    attribute: a.attribute,
-                })),
-            );
-        }
-        if (read) {
-            try {
-                // Don't fail configuration if reading this attribute fails
-                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
-                await endpoint.read(
+            for (const chunk of chunks) {
+                await endpoint.configureReporting(
                     cluster,
-                    config.map((a) => (isString(a) ? a : isObject(a.attribute) ? a.attribute.ID : a.attribute)),
+                    chunk.map((a) => ({
+                        minimumReportInterval: convertReportingConfigTime(a.min),
+                        maximumReportInterval: convertReportingConfigTime(a.max),
+                        reportableChange: a.change,
+                        attribute: a.attribute,
+                    })),
                 );
-            } catch (e) {
-                logger.debug(`Reading attribute failed: ${e}`, 'zhc:setupattribute');
+            }
+        }
+
+        if (read) {
+            for (const chunk of chunks) {
+                try {
+                    // Don't fail configuration if reading this attribute fails
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
+                    await endpoint.read(
+                        cluster,
+                        chunk.map((a) => (isString(a) ? a : isObject(a.attribute) ? a.attribute.ID : a.attribute)),
+                    );
+                } catch (e) {
+                    logger.debug(`Reading attribute failed: ${e}`, 'zhc:setupattribute');
+                }
             }
         }
     }
@@ -462,7 +512,7 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
 
 export interface OnOffArgs {
     powerOnBehavior?: boolean;
-    ota?: DefinitionOta;
+    ota?: ModernExtend['ota'];
     skipDuplicateTransaction?: boolean;
     endpointNames?: string[];
     configureReporting?: boolean;
@@ -476,7 +526,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
         : exposeEndpoints(e.switch(), args.endpointNames);
 
     const fromZigbee: Fz.Converter[] = [args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
-    const toZigbee: Tz.Converter[] = [tz.on_off];
+    const toZigbee: Tz.Converter[] = [args?.endpointNames ? {...tz.on_off, endpoints: args?.endpointNames} : tz.on_off];
 
     if (args.powerOnBehavior) {
         exposes.push(...exposeEndpoints(e.power_on_behavior(['off', 'on', 'toggle', 'previous']), args.endpointNames));
@@ -519,10 +569,9 @@ export interface CommandsOnOffArgs {
     commands?: ('on' | 'off' | 'toggle')[];
     bind?: boolean;
     endpointNames?: string[];
-    legacyAction?: boolean;
 }
 export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
-    args = {commands: ['on', 'off', 'toggle'], bind: true, legacyAction: false, ...args};
+    args = {commands: ['on', 'off', 'toggle'], bind: true, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -548,10 +597,6 @@ export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
             },
         },
     ];
-
-    if (args.legacyAction) {
-        fromZigbee.push(...[globalLegacy.fromZigbee.genOnOff_cmdOn, globalLegacy.fromZigbee.genOnOff_cmdOff]);
-    }
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
@@ -606,33 +651,17 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
         return result;
     };
 
-    const rawIllinance = numeric({
+    return numeric({
         name: 'illuminance',
         cluster: 'msIlluminanceMeasurement',
         attribute: 'measuredValue',
-        description: 'Raw measured illuminance',
-        access: 'STATE_GET',
-        ...args,
-    });
-
-    const illiminanceLux = numeric({
-        name: 'illuminance_lux',
-        cluster: 'msIlluminanceMeasurement',
-        attribute: 'measuredValue',
         reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5}, // 5 lux
-        description: 'Measured illuminance in lux',
+        description: 'Measured illuminance',
         unit: 'lx',
         scale: luxScale,
         access: 'STATE_GET',
         ...args,
     });
-
-    const result: ModernExtend = illiminanceLux;
-    result.fromZigbee.push(...rawIllinance.fromZigbee);
-    result.toZigbee.push(...rawIllinance.toZigbee);
-    result.exposes.push(...rawIllinance.exposes);
-
-    return result;
 }
 
 export function temperature(args?: Partial<NumericArgs>) {
@@ -762,11 +791,13 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
         if (args.pirConfig.includes('otu_delay')) {
             settingsExtends.push(
                 numeric({
-                    name: 'pir_otu_delay',
+                    name: 'occupancy_timeout',
                     attribute: 'pirOToUDelay',
                     valueMin: 0,
                     valueMax: 65534,
+                    unit: 's',
                     ...settingsTemplate,
+                    description: 'Time in seconds before occupancy is cleared after the last detected movement.',
                 }),
             );
             attributesForReading.push('pirOToUDelay');
@@ -930,7 +961,7 @@ export interface LightArgs {
     turnsOffAtBrightness1?: boolean;
     configureReporting?: boolean;
     endpointNames?: string[];
-    ota?: DefinitionOta;
+    ota?: ModernExtend['ota'];
     levelConfig?: {disabledFeatures?: string[]};
 }
 export function light(args?: LightArgs): ModernExtend {
@@ -951,7 +982,7 @@ export function light(args?: LightArgs): ModernExtend {
 
     const fromZigbee: Fz.Converter[] = [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
     const toZigbee: Tz.Converter[] = [
-        tz.light_onoff_brightness,
+        args?.endpointNames ? {...tz.light_onoff_brightness, endpoints: args?.endpointNames} : tz.light_onoff_brightness,
         tz.ignore_transition,
         tz.level_config,
         tz.ignore_rate,
@@ -1069,7 +1100,6 @@ export interface CommandsLevelCtrl {
     )[];
     bind?: boolean;
     endpointNames?: string[];
-    legacyAction?: boolean;
 }
 export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
     args = {
@@ -1082,7 +1112,6 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
             'brightness_stop',
         ],
         bind: true,
-        legacyAction: false,
         ...args,
     };
     let actions: string[] = args.commands;
@@ -1094,48 +1123,6 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
     ];
 
     const fromZigbee: Fz.Converter[] = [fz.command_move_to_level, fz.command_move, fz.command_step, fz.command_stop];
-
-    if (args.legacyAction) {
-        // Legacy converters with removed hasAlreadyProcessedMessage and redirects
-        const legacyFromZigbee: Fz.Converter[] = [
-            {
-                cluster: 'genLevelCtrl',
-                type: ['commandMove', 'commandMoveWithOnOff'],
-                options: [opt.legacy(), opt.simulated_brightness(' Note: will only work when legacy: false is set.')],
-                convert: (model, msg, publish, options, meta) => {
-                    if (isLegacyEnabled(options)) {
-                        globalLegacy.ictcg1(model, msg, publish, options, 'move');
-                        const direction = msg.data.movemode === 1 ? 'left' : 'right';
-                        return {action: `rotate_${direction}`, rate: msg.data.rate};
-                    }
-                },
-            },
-            {
-                cluster: 'genLevelCtrl',
-                type: ['commandStop', 'commandStopWithOnOff'],
-                options: [opt.legacy()],
-                convert: (model, msg, publish, options, meta) => {
-                    if (isLegacyEnabled(options)) {
-                        const value = globalLegacy.ictcg1(model, msg, publish, options, 'stop');
-                        return {action: `rotate_stop`, brightness: value};
-                    }
-                },
-            },
-            {
-                cluster: 'genLevelCtrl',
-                type: 'commandMoveToLevelWithOnOff',
-                options: [opt.legacy()],
-                convert: (model, msg, publish, options, meta) => {
-                    if (isLegacyEnabled(options)) {
-                        const value = globalLegacy.ictcg1(model, msg, publish, options, 'level');
-                        const direction = msg.data.level === 0 ? 'left' : 'right';
-                        return {action: `rotate_${direction}_quick`, level: msg.data.level, brightness: value};
-                    }
-                },
-            },
-        ];
-        fromZigbee.push(...legacyFromZigbee);
-    }
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
@@ -1223,6 +1210,27 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
     return result;
 }
 
+export function lightingBallast(): ModernExtend {
+    const result: ModernExtend = {
+        fromZigbee: [fz.lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config],
+        exposes: [
+            new Numeric('ballast_minimum_level', ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            new Numeric('ballast_maximum_level', ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
+        ],
+        configure: [setupConfigureForReading('lightingBallastCfg', ['minLevel', 'maxLevel'])],
+        isModernExtend: true,
+    };
+
+    return result;
+}
+
 // #endregion
 
 // #region HVAC
@@ -1233,12 +1241,19 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
 
 export interface LockArgs {
     pinCodeCount: number;
+    endpointNames?: string[];
 }
 export function lock(args?: LockArgs): ModernExtend {
     args = {...args};
 
     const fromZigbee = [fz.lock, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response, fz.lock_user_status_response];
-    const toZigbee = [tz.lock, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume];
+    const toZigbee = [
+        {...tz.lock, endpoints: args?.endpointNames},
+        tz.pincode_lock,
+        tz.lock_userstatus,
+        tz.lock_auto_relock_time,
+        tz.lock_sound_volume,
+    ];
     const exposes = [
         e.lock(),
         e.pincode(),
@@ -1272,7 +1287,7 @@ export function windowCovering(args: WindowCoveringArgs): ModernExtend {
     const exposes: Expose[] = [coverExpose];
 
     const fromZigbee: Fz.Converter[] = [fz.cover_position_tilt];
-    const toZigbee: Tz.Converter[] = [tz.cover_state, tz.cover_position_tilt];
+    const toZigbee: Tz.Converter[] = [{...tz.cover_state, endpoints: args?.endpointNames}, tz.cover_position_tilt];
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
 
@@ -1324,10 +1339,9 @@ export interface CommandsWindowCoveringArgs {
     commands?: ('open' | 'close' | 'stop')[];
     bind?: boolean;
     endpointNames?: string[];
-    legacyAction: boolean;
 }
 export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): ModernExtend {
-    args = {commands: ['open', 'close', 'stop'], bind: true, legacyAction: false, ...args};
+    args = {commands: ['open', 'close', 'stop'], bind: true, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -1354,10 +1368,6 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
             },
         },
     ];
-
-    if (args.legacyAction) {
-        fromZigbee.push(...[globalLegacy.fromZigbee.cover_open, globalLegacy.fromZigbee.cover_close, globalLegacy.fromZigbee.cover_stop]);
-    }
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
@@ -1397,53 +1407,10 @@ export interface IasArgs {
     zoneType: iasZoneType;
     zoneAttributes: iasZoneAttribute[];
     alarmTimeout?: boolean;
+    zoneStatusReporting?: boolean;
     description?: string;
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
-    const exposeList = {
-        occupancy: e.binary('occupancy', ea.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
-        contact: e.binary('contact', ea.STATE, false, true).withDescription('Indicates whether the device is opened or closed'),
-        smoke: e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
-        water_leak: e.binary('water_leak', ea.STATE, true, false).withDescription('Indicates whether the device detected a water leak'),
-        carbon_monoxide: e.binary('carbon_monoxide', ea.STATE, true, false).withDescription('Indicates whether the device detected carbon monoxide'),
-        sos: e.binary('sos', ea.STATE, true, false).withLabel('SOS').withDescription('Indicates whether the SOS alarm is triggered'),
-        vibration: e.binary('vibration', ea.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
-        alarm: e.binary('alarm', ea.STATE, true, false).withDescription('Indicates whether the alarm is triggered'),
-        gas: e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
-        alarm_1: e.binary('alarm_1', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 1 is active'),
-        alarm_2: e.binary('alarm_2', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 2 is active'),
-        tamper: e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered').withCategory('diagnostic'),
-        rain: e.binary('rain', ea.STATE, true, false).withDescription('Indicates whether the device detected rainfall'),
-        battery_low: e
-            .binary('battery_low', ea.STATE, true, false)
-            .withDescription('Indicates whether the battery of the device is almost empty')
-            .withCategory('diagnostic'),
-        supervision_reports: e
-            .binary('supervision_reports', ea.STATE, true, false)
-            .withDescription('Indicates whether the device issues reports on zone operational status')
-            .withCategory('diagnostic'),
-        restore_reports: e
-            .binary('restore_reports', ea.STATE, true, false)
-            .withDescription('Indicates whether the device issues reports on alarm no longer being present')
-            .withCategory('diagnostic'),
-        ac_status: e
-            .binary('ac_status', ea.STATE, true, false)
-            .withDescription('Indicates whether the device mains voltage supply is at fault')
-            .withCategory('diagnostic'),
-        test: e
-            .binary('test', ea.STATE, true, false)
-            .withDescription('Indicates whether the device is currently performing a test')
-            .withCategory('diagnostic'),
-        trouble: e
-            .binary('trouble', ea.STATE, true, false)
-            .withDescription('Indicates whether the device is currently havin trouble')
-            .withCategory('diagnostic'),
-        battery_defect: e
-            .binary('battery_defect', ea.STATE, true, false)
-            .withDescription('Indicates whether the device battery is defective')
-            .withCategory('diagnostic'),
-    };
-
     const exposes: Expose[] = [];
     const invertAlarmPayload = args.zoneType === 'contact';
     const bothAlarms = args.zoneAttributes.includes('alarm_1') && args.zoneAttributes.includes('alarm_2');
@@ -1453,7 +1420,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 
     if (args.zoneType === 'generic') {
         args.zoneAttributes.map((attr) => {
-            let expose = exposeList[attr];
+            let expose = IAS_EXPOSE_LOOKUP[attr];
             if (args.description) {
                 expose = expose.clone().withDescription(args.description);
             }
@@ -1462,20 +1429,24 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
     } else {
         if (bothAlarms) {
             exposes.push(
-                e.binary(args.zoneType + '_alarm_1', ea.STATE, true, false).withDescription(exposeList[args.zoneType].description + ' (alarm_1)'),
+                e
+                    .binary(args.zoneType + '_alarm_1', ea.STATE, true, false)
+                    .withDescription(IAS_EXPOSE_LOOKUP[args.zoneType].description + ' (alarm_1)'),
             );
             alarm1Name = args.zoneType + '_alarm_1';
             exposes.push(
-                e.binary(args.zoneType + '_alarm_2', ea.STATE, true, false).withDescription(exposeList[args.zoneType].description + ' (alarm_2)'),
+                e
+                    .binary(args.zoneType + '_alarm_2', ea.STATE, true, false)
+                    .withDescription(IAS_EXPOSE_LOOKUP[args.zoneType].description + ' (alarm_2)'),
             );
             alarm2Name = args.zoneType + '_alarm_2';
         } else {
-            exposes.push(exposeList[args.zoneType]);
+            exposes.push(IAS_EXPOSE_LOOKUP[args.zoneType]);
             alarm1Name = args.zoneType;
             alarm2Name = args.zoneType;
         }
         args.zoneAttributes.map((attr) => {
-            if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(exposeList[attr]);
+            if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(IAS_EXPOSE_LOOKUP[attr]);
         });
     }
 
@@ -1494,8 +1465,6 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                   ]
                 : [],
             convert: (model, msg, publish, options, meta) => {
-                const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
-
                 if (args.alarmTimeout) {
                     const timeout = options?.[timeoutProperty] !== undefined ? Number(options[timeoutProperty]) : 90;
                     clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
@@ -1504,54 +1473,66 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                         globalStore.putValue(msg.endpoint, 'timer', timer);
                     }
                 }
-                let payload = {};
-                if (args.zoneAttributes.includes('tamper')) {
-                    payload = {tamper: (zoneStatus & (1 << 2)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('battery_low')) {
-                    payload = {battery_low: (zoneStatus & (1 << 3)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('supervision_reports')) {
-                    payload = {supervision_reports: (zoneStatus & (1 << 4)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('restore_reports')) {
-                    payload = {restore_reports: (zoneStatus & (1 << 5)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('trouble')) {
-                    payload = {trouble: (zoneStatus & (1 << 6)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('ac_status')) {
-                    payload = {ac_status: (zoneStatus & (1 << 7)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('test')) {
-                    payload = {test: (zoneStatus & (1 << 8)) > 0, ...payload};
-                }
-                if (args.zoneAttributes.includes('battery_defect')) {
-                    payload = {battery_defect: (zoneStatus & (1 << 9)) > 0, ...payload};
-                }
-                let alarm1Payload = (zoneStatus & 1) > 0;
-                let alarm2Payload = (zoneStatus & (1 << 1)) > 0;
+                const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+                if (zoneStatus !== undefined) {
+                    let payload = {};
+                    if (args.zoneAttributes.includes('tamper')) {
+                        payload = {tamper: (zoneStatus & (1 << 2)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('battery_low')) {
+                        payload = {battery_low: (zoneStatus & (1 << 3)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('supervision_reports')) {
+                        payload = {supervision_reports: (zoneStatus & (1 << 4)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('restore_reports')) {
+                        payload = {restore_reports: (zoneStatus & (1 << 5)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('trouble')) {
+                        payload = {trouble: (zoneStatus & (1 << 6)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('ac_status')) {
+                        payload = {ac_status: (zoneStatus & (1 << 7)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('test')) {
+                        payload = {test: (zoneStatus & (1 << 8)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('battery_defect')) {
+                        payload = {battery_defect: (zoneStatus & (1 << 9)) > 0, ...payload};
+                    }
+                    let alarm1Payload = (zoneStatus & 1) > 0;
+                    let alarm2Payload = (zoneStatus & (1 << 1)) > 0;
 
-                if (invertAlarmPayload) {
-                    alarm1Payload = !alarm1Payload;
-                    alarm2Payload = !alarm2Payload;
-                }
+                    if (invertAlarmPayload) {
+                        alarm1Payload = !alarm1Payload;
+                        alarm2Payload = !alarm2Payload;
+                    }
 
-                if (bothAlarms) {
-                    payload = {[alarm1Name]: alarm1Payload, ...payload};
-                    payload = {[alarm2Name]: alarm2Payload, ...payload};
-                } else if (args.zoneAttributes.includes('alarm_1')) {
-                    payload = {[alarm1Name]: alarm1Payload, ...payload};
-                } else if (args.zoneAttributes.includes('alarm_2')) {
-                    payload = {[alarm2Name]: alarm2Payload, ...payload};
-                }
+                    if (bothAlarms) {
+                        payload = {[alarm1Name]: alarm1Payload, ...payload};
+                        payload = {[alarm2Name]: alarm2Payload, ...payload};
+                    } else if (args.zoneAttributes.includes('alarm_1')) {
+                        payload = {[alarm1Name]: alarm1Payload, ...payload};
+                    } else if (args.zoneAttributes.includes('alarm_2')) {
+                        payload = {[alarm2Name]: alarm2Payload, ...payload};
+                    }
 
-                return payload;
+                    return payload;
+                }
             },
         },
     ];
 
-    return {fromZigbee, exposes, isModernExtend: true};
+    let configure: Configure[];
+    if (args.zoneStatusReporting) {
+        configure = [
+            async (device, coordinatorEndpoint) => {
+                await setupAttributes(device, coordinatorEndpoint, 'ssIasZone', [{attribute: 'zoneStatus', min: 'MIN', max: 'MAX', change: 0}]);
+            },
+        ];
+    }
+
+    return {fromZigbee, exposes, isModernExtend: true, ...(configure && {configure})};
 }
 
 export interface IasWarningArgs {
@@ -1936,14 +1917,6 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 
 // #endregion
 
-// #region OTA
-
-export function ota(definition?: DefinitionOta): ModernExtend {
-    return {ota: definition !== undefined ? definition : zigbeeOTA, isModernExtend: true};
-}
-
-// #endregion
-
 // #region Other extends
 
 export interface CommandsScenesArgs {
@@ -2020,7 +1993,8 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
-                    return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
+                    // skip undefined value
+                    if (msg.data[attributeKey] !== undefined) return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
                 }
             },
         },
@@ -2337,10 +2311,10 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
     return {configure, isModernExtend: true};
 }
 
-export function quirkCheckinInterval(timeout: number | keyof typeof timeLookup): ModernExtend {
+export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP): ModernExtend {
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
-            device.checkinInterval = typeof timeout == 'number' ? timeout : timeLookup[timeout];
+            device.checkinInterval = typeof timeout == 'number' ? timeout : TIME_LOOKUP[timeout];
             device.save();
         },
     ];

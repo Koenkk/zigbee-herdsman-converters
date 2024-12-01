@@ -3,7 +3,6 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {battery, iasZoneAlarm} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
@@ -230,7 +229,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HG08673',
         vendor: 'Lidl',
         description: 'Silvercrest smart plug with power monitoring (EU, FR)',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -290,15 +289,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HG06335/HG07310',
         vendor: 'Lidl',
         description: 'Silvercrest smart motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        extend: [iasZoneAlarm({zoneType: 'occupancy', zoneStatusReporting: true, zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), battery()],
     },
     {
         fingerprint: [
