@@ -5149,10 +5149,11 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rtrmfadk'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_9mjy74mp', '_TZE200_rtrmfadk']),
         model: 'TRV602',
         vendor: 'Tuya',
         description: 'Thermostatic radiator valve.',
+        whiteLabel: [tuya.whitelabel('Moes', 'TRV801', 'Thermostatic radiator valve', ['_TZE204_9mjy74mp'])],
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -5438,6 +5439,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Nous', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_ksw8qtmt']),
             tuya.whitelabel('Elivco', 'LSPA9', 'Smart plug (with power monitoring)', ['_TZ3000_okaz9tjs']),
             tuya.whitelabel('PSMART', 'T440', 'Smart wallsocket (with power monitoring)', ['_TZ3000_y4ona9me']),
+            tuya.whitelabel('Nous', 'A6Z', 'Outdoor smart socket', ['_TZ3000_266azbg3']),
         ],
         ota: true,
         extend: [
