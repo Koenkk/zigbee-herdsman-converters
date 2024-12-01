@@ -1,5 +1,20 @@
 # Changelog
 
+## [20.57.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.56.0...v20.57.0) (2024-11-30)
+
+
+### Features
+
+* **add:** 929003711401 https://github.com/Koenkk/zigbee2mqtt/issues/24965 ([8e3ed7c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8e3ed7c41eaa4d008d7c459ee98c8353b96423bc))
+* **add:** Push_ME ([#8399](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8399)) ([91d4798](https://github.com/Koenkk/zigbee-herdsman-converters/commit/91d479850bc8901072fd23cd46686153d08c6f86))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_9r5jaajv` as Tuya TS0215A_sos ([#8397](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8397)) ([6fd1c15](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6fd1c15f98fdc454392603abfac155f17bfc2af5))
+* **detect:** Detect `_TZE200_lrznf59v` as Brennenstuhl HT CZ 01 https://github.com/Koenkk/zigbee2mqtt/issues/24942 ([6636ec5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6636ec57fc1121beddff6c9a55d0fd01367d4288))
+* **detect:** Detect `_TZE200_zppcgbdj` as Nous E6 ([#8405](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8405)) ([839d8cd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/839d8cd2c4aabc5971751b85ef9005a550c33e74))
+
 ## [20.56.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.55.0...v20.56.0) (2024-11-28)
 
 

@@ -3953,20 +3953,10 @@ const definitions: DefinitionWithExtend[] = [
         model: '929003711201',
         vendor: 'Philips',
         description: 'Hue Twilight sleep and wake-up light white',
-        extend: [
-            deviceEndpoints({endpoints: {switch: 1, back: 11, front: 12}}),
-
-            philipsLight({colorTemp: {range: [153, 500]}, color: true, endpointNames: ['front']}),
-            philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true, endpointNames: ['back']}),
-
-            philipsTwilightOnOff(),
+        whiteLabel: [
+            {model: '929003711301', vendor: 'Philips', description: 'Hue Twilight sleep and wake-up light black', fingerprint: [{modelID: 'LGT002'}]},
+            {model: '929003711401', vendor: 'Philips', description: 'Hue Twilight sleep and wake-up light black', fingerprint: [{modelID: 'LGT003'}]},
         ],
-    },
-    {
-        zigbeeModel: ['LGT002'],
-        model: '929003711301',
-        vendor: 'Philips',
-        description: 'Hue Twilight sleep and wake-up light black',
         extend: [
             deviceEndpoints({endpoints: {switch: 1, back: 11, front: 12}}),
 
