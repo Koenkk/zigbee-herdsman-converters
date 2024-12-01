@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -46,35 +45,31 @@ const definitions: DefinitionWithExtend[] = [
             //  2. The top rocker will not be usable (not emit any events) as it's hardwired to the relay/dimmer
             if (!device || device.getEndpoint(0x12) != null) {
                 expose.push(e.light_brightness().withEndpoint('relay'));
-                // Exposing the device as a switch without endpoint is actually wrong, but this is the historic
-                // definition and we are keeping it for compatibility reasons.
-                // DEPRECATED and should be removed in the future
-                expose.push(e.switch());
             }
             // Not all devices support all actions (depends on number of rocker rows and if relay/dimmer is installed),
             // but defining all possible actions here won't do any harm.
             expose.push(
                 e.action([
-                    'row_1_on',
-                    'row_1_off',
-                    'row_1_up',
-                    'row_1_down',
-                    'row_1_stop',
-                    'row_2_on',
-                    'row_2_off',
-                    'row_2_up',
-                    'row_2_down',
-                    'row_2_stop',
-                    'row_3_on',
-                    'row_3_off',
-                    'row_3_up',
-                    'row_3_down',
-                    'row_3_stop',
-                    'row_4_on',
-                    'row_4_off',
-                    'row_4_up',
-                    'row_4_down',
-                    'row_4_stop',
+                    'off_row_1',
+                    'on_row_1',
+                    'brightness_step_down_row_1',
+                    'brightness_step_up_row_1',
+                    'brightness_stop_row_1',
+                    'off_row_2',
+                    'on_row_2',
+                    'brightness_step_down_row_2',
+                    'brightness_step_up_row_2',
+                    'brightness_stop_row_2',
+                    'off_row_3',
+                    'on_row_3',
+                    'brightness_step_down_row_3',
+                    'brightness_step_up_row_3',
+                    'brightness_stop_row_3',
+                    'off_row_4',
+                    'on_row_4',
+                    'brightness_step_down_row_4',
+                    'brightness_step_up_row_4',
+                    'brightness_stop_row_4',
                 ]),
             );
             expose.push(e.linkquality());
@@ -132,16 +127,7 @@ const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
             }
         },
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.on_off,
-            fz.brightness,
-            legacy.fz.RM01_on_click,
-            legacy.fz.RM01_off_click,
-            legacy.fz.RM01_up_hold,
-            legacy.fz.RM01_down_hold,
-            legacy.fz.RM01_stop,
-        ],
+        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.command_on, fz.command_off, fz.command_step, fz.command_stop],
         options: [
             e
                 .numeric('state_poll_interval', ea.SET)

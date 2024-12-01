@@ -3,7 +3,6 @@ import {Zcl} from 'zigbee-herdsman';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {binary, deviceAddCustomCluster, electricityMeter, numeric, onOff} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -131,7 +130,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'amina S',
         vendor: 'Amina Distribution AS',
         description: 'Amina S EV Charger',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fzLocal.ev_status, fzLocal.alarms],
         toZigbee: [tzLocal.ev_status, tzLocal.alarms, tzLocal.charge_limit],
         exposes: [

@@ -315,14 +315,14 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart temperature and humidity meter with display',
         fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
+        exposes: [e.battery(), e.illuminance(), e.humidity(), e.temperature()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'}],
         model: 'BRT-100-TRV',
         vendor: 'Moes',
         description: 'Thermostatic radiator valve',
-        // ota: ota.zigbeeOTA,
+        // ota: true,
         // OTA available but bricks device https://github.com/Koenkk/zigbee2mqtt/issues/18840
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, legacy.fz.moesS_thermostat],

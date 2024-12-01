@@ -287,7 +287,7 @@ describe('ModernExtend', () => {
         });
     });
 
-    test(`ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: ota.zigbeeOTA})`, async () => {
+    test(`ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: true})`, async () => {
         await assertDefintion({
             device: mockDevice({
                 modelID: 'Zigbee 3.0 DALI CONV LI',

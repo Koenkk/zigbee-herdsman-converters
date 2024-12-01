@@ -7,7 +7,6 @@ import fz from '../converters/fromZigbee';
 import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Expose, Fz, KeyValue, Tz, Zh} from '../lib/types';
@@ -2330,7 +2329,7 @@ const definitions: DefinitionWithExtend[] = [
                 }
             }
         },
-        ota: ota.gmmts,
+        ota: {manufacturerName: 'GammaTroniques'}, // TODO: not sure if it's set properly in device
     },
 ];
 

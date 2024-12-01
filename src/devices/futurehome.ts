@@ -2,7 +2,6 @@ import {DefinitionWithExtend} from 'src/lib/types';
 
 import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 
 const e = exposes.presets;
@@ -89,7 +88,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4509243',
         vendor: 'Futurehome',
         description: 'Smart puck',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [light({configureReporting: true})],
     },
 ];

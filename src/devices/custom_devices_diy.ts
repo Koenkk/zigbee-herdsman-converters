@@ -18,7 +18,6 @@ import {
     quirkAddEndpointCluster,
     temperature,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from '../lib/types';
 import {getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from '../lib/utils';
@@ -101,13 +100,11 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.illuminance'
-            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
             const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property1 = multiEndpoint ? postfixWithEndpointName('illuminance', msg, model, meta) : 'illuminance';
-            const property2 = multiEndpoint ? postfixWithEndpointName('illuminance_lux', msg, model, meta) : 'illuminance_lux';
-            return {[property1]: illuminance, [property2]: illuminanceLux};
+            return {[property1]: illuminanceLux};
         },
     } satisfies Fz.Converter,
     pressure2: {
@@ -323,7 +320,6 @@ const definitions: DefinitionWithExtend[] = [
             fz.battery,
             fz.on_off,
             fz.ptvo_multistate_action,
-            legacy.fz.ptvo_switch_buttons,
             fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input,
             fz.brightness,
@@ -471,7 +467,7 @@ const definitions: DefinitionWithExtend[] = [
                             W: 'power',
                             Hz: 'frequency',
                             pf: 'power_factor',
-                            lx: 'illuminance_lux',
+                            lx: 'illuminance',
                         };
                         valueName = valueName !== undefined ? valueName : infoLookup[valueId];
 
@@ -727,7 +723,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'b-parasite open source soil moisture sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture, fz.illuminance],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance_lux()],
+        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -870,7 +866,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Comfort parameters/Humidity maximum, in 0.01% steps.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
@@ -981,7 +977,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Comfort parameters/Humidity maximum, in 1% steps. Requires v0.1.1.7 or newer.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['MHO-C401N-z'],
@@ -1084,7 +1080,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Measurement interval, default 10 seconds.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];

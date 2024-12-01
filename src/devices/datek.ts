@@ -6,7 +6,6 @@ import * as constants from '../lib/constants';
 import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {electricityMeter, onOff, temperature} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -21,7 +20,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'APEX smart plug 16A',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.temperature],
         toZigbee: [tz.on_off, tz.power_on_behavior],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
@@ -43,7 +42,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Datek Eva AMS HAN power-meter sensor',
         fromZigbee: [fz.hw_version],
         extend: [onOff(), electricityMeter({threePhase: true, fzMetering: fz.metering_datek, producedEnergy: true}), temperature()],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             try {
@@ -94,7 +93,6 @@ const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.occupancy(),
             e.battery_low(),
-            e.illuminance_lux(),
             e.illuminance(),
             e.binary('led_on_motion', ea.ALL, true, false).withDescription('Enable/disable LED on motion'),
             e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535),
@@ -167,7 +165,6 @@ const definitions: DefinitionWithExtend[] = [
                 data.cluster === 'closuresDoorLock' &&
                 data.data &&
                 data.data.userid !== undefined &&
-                // Don't read RF events, we can do this with retrieve_state
                 (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] != 'rf')
             ) {
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});

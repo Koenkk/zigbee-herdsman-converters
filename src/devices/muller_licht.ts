@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {LightArgs, light as lightDontUse, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
@@ -132,12 +131,12 @@ const definitions: DefinitionWithExtend[] = [
             fz.command_on,
             fz.command_off,
             fz.command_toggle,
-            legacy.fz.tint404011_brightness_updown_click,
-            legacy.fz.tint404011_move_to_color_temp,
-            legacy.fz.tint404011_move_to_color,
+            fz.command_step,
+            fz.tint404011_move_to_color_temp,
+            fz.command_move_to_color,
             fz.tint_scene,
-            legacy.fz.tint404011_brightness_updown_release,
-            legacy.fz.tint404011_brightness_updown_hold,
+            fz.command_stop,
+            fz.command_move,
         ],
         exposes: [
             e.action([

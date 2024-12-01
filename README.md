@@ -8,24 +8,24 @@ Collection of device converters to be used with zigbee-herdsman.
 
 20.0.0
 
--   A toZigbee converter is now allowed to not define any `key`, in this case the converter should be used for any key.
+- A toZigbee converter is now allowed to not define any `key`, in this case the converter should be used for any key.
 
-19.0.0
+    19.0.0
 
--   Legacy extend was removed
+- Legacy extend was removed
 
-18.0.0
+    18.0.0
 
--   After converting a message with a fromZigbee converter, `postProcessConvertedFromZigbeeMessage` should be called now (for applying calibration/precision)
+- After converting a message with a fromZigbee converter, `postProcessConvertedFromZigbeeMessage` should be called now (for applying calibration/precision)
 
-17.0.0
+    17.0.0
 
--   Various methods in `index.ts` are now async and return a `Promise`
+- Various methods in `index.ts` are now async and return a `Promise`
 
-15.0.0
+    15.0.0
 
--   OTA `isUpdateAvailable` now returns an object instead of a boolean (e.g. `{available: true, currentFileVersion: 120, otaFileVersion: 125}`)
--   OTA `updateToLatest` now returns a number (`fileVersion` of the new OTA) instead of a void
+- OTA `isUpdateAvailable` now returns an object instead of a boolean (e.g. `{available: true, currentFileVersion: 120, otaFileVersion: 125}`)
+- OTA `updateToLatest` now returns a number (`fileVersion` of the new OTA) instead of a void
 
 ## Contributing
 

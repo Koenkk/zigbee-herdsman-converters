@@ -817,10 +817,10 @@ export const options = {
         new Numeric(`vibration_timeout`, access.SET)
             .withValueMin(0)
             .withDescription('Time in seconds after which vibration is cleared after detecting it (default 90 seconds).'),
-    simulated_brightness: (extraNote = '') =>
+    simulated_brightness: () =>
         new Composite('simulated_brightness', 'simulated_brightness', access.SET)
             .withDescription(
-                `Simulate a brightness value. If this device provides a brightness_move_up or brightness_move_down action it is possible to specify the update interval and delta. The action_brightness_delta indicates the delta for each interval. ${extraNote}`,
+                `Simulate a brightness value. If this device provides a brightness_move_up or brightness_move_down action it is possible to specify the update interval and delta. The action_brightness_delta indicates the delta for each interval.`,
             )
             .withFeature(new Numeric('delta', access.SET).withValueMin(0).withDescription('Delta per interval, 20 by default'))
             .withFeature(new Numeric('interval', access.SET).withValueMin(0).withUnit('ms').withDescription('Interval duration')),
@@ -846,10 +846,6 @@ export const options = {
             .withDescription(
                 'Controls the transition time (in seconds) of on/off, brightness, color temperature (if applicable) and color (if applicable) changes. Defaults to `0` (no transition).',
             ),
-    legacy: () =>
-        new Binary(`legacy`, access.SET, true, false).withDescription(
-            `Set to false to disable the legacy integration (highly recommended), will change structure of the published payload (default true).`,
-        ),
     measurement_poll_interval: (extraNote = '') =>
         new Numeric(`measurement_poll_interval`, access.SET)
             .withValueMin(-1)
@@ -944,12 +940,7 @@ export const presets = {
     calibrated: () =>
         new Binary('calibrated', access.STATE, true, false).withDescription('Indicates if this device is calibrated').withCategory('diagnostic'),
     carbon_monoxide: () => new Binary('carbon_monoxide', access.STATE, true, false).withDescription('Indicates if CO (carbon monoxide) is detected'),
-    child_lock: () =>
-        new Lock()
-            .withLabel('Child lock')
-            .withState('child_lock', 'LOCK', 'UNLOCK', 'Enables/disables physical input on the device', access.STATE_SET),
-    child_lock_bool: () =>
-        new Binary('child_lock', access.ALL, true, false).withDescription('Unlocks/locks physical input on the device').withCategory('config'),
+    child_lock: () => new Binary('child_lock', access.STATE_SET, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
     co2: () => new Numeric('co2', access.STATE).withLabel('CO2').withUnit('ppm').withDescription('The measured CO2 (carbon dioxide) value'),
     co: () => new Numeric('co', access.STATE).withLabel('CO').withUnit('ppm').withDescription('The measured CO (carbon monoxide) value'),
     comfort_temperature: () =>
@@ -1028,9 +1019,7 @@ export const presets = {
     holiday_temperature: () =>
         new Numeric('holiday_temperature', access.STATE_SET).withUnit('°C').withDescription('Holiday temperature').withValueMin(0).withValueMax(30),
     humidity: () => new Numeric('humidity', access.STATE).withUnit('%').withDescription('Measured relative humidity'),
-    illuminance: () => new Numeric('illuminance', access.STATE).withDescription('Raw measured illuminance'),
-    illuminance_lux: () =>
-        new Numeric('illuminance_lux', access.STATE).withLabel('Illuminance (lux)').withUnit('lx').withDescription('Measured illuminance in lux'),
+    illuminance: () => new Numeric('illuminance', access.STATE).withDescription('Measured illuminance').withUnit('lx'),
     brightness_state: () => new Enum('brightness_state', access.STATE, ['low', 'middle', 'high', 'strong']).withDescription('Brightness state'),
     keypad_lockout: () =>
         new Enum('keypad_lockout', access.ALL, ['unlock', 'lock1', 'lock2']).withDescription('Enables/disables physical input on the device'),
