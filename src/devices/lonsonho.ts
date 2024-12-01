@@ -72,9 +72,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_t3s9qmmg'},
-        ],
+        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_t3s9qmmg'}],
         model: 'X701A',
         vendor: 'Lonsonho',
         description: '1 gang switch with backlight',
