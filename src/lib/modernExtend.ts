@@ -107,6 +107,7 @@ const IAS_EXPOSE_LOOKUP = {
         .binary('battery_defect', ea.STATE, true, false)
         .withDescription('Indicates whether the device battery is defective')
         .withCategory('diagnostic'),
+    hush: e.binary('hush', ea.STATE, true, false).withDescription('Indicates whether the device is in hush mode').withCategory('diagnostic'),
 };
 
 export const TIME_LOOKUP = {
@@ -1476,7 +1477,8 @@ export type iasZoneAttribute =
     | 'ac_status'
     | 'test'
     | 'trouble'
-    | 'battery_defect';
+    | 'battery_defect'
+    | 'hush';
 export interface IasArgs {
     zoneType: iasZoneType;
     zoneAttributes: iasZoneAttribute[];
@@ -1573,6 +1575,9 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     }
                     if (args.zoneAttributes.includes('battery_defect')) {
                         payload = {battery_defect: (zoneStatus & (1 << 9)) > 0, ...payload};
+                    }
+                    if (args.zoneAttributes.includes('hush')) {
+                        payload = {hush: (zoneStatus & (1 << 11)) > 0, ...payload};
                     }
                     let alarm1Payload = (zoneStatus & 1) > 0;
                     let alarm2Payload = (zoneStatus & (1 << 1)) > 0;
