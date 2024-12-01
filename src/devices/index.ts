@@ -42,6 +42,7 @@ import centralite from './centralite';
 import chacon from './chacon';
 import cleode from './cleode';
 import cleverio from './cleverio';
+import click_smart_plus from './click_smart_plus';
 import climax from './climax';
 import commercial_electric from './commercial_electric';
 import cree from './cree';
@@ -357,6 +358,7 @@ export default [
     ...chacon,
     ...cleode,
     ...cleverio,
+    ...click_smart_plus,
     ...climax,
     ...commercial_electric,
     ...cree,
