@@ -21,10 +21,6 @@ import {
 
 const NS = 'zhc:utils';
 
-export function isLegacyEnabled(options: KeyValue) {
-    return options.legacy === undefined || options.legacy;
-}
-
 export function flatten<Type>(arr: Type[][]): Type[] {
     return [].concat(...arr);
 }
@@ -165,7 +161,6 @@ export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
     soil_moisture: 2,
     co2: 0,
     illuminance: 0,
-    illuminance_lux: 0,
     voc: 0,
     formaldehyd: 0,
     co: 0,
@@ -378,11 +373,11 @@ export function replaceToZigbeeConvertersInArray(
     return clone;
 }
 
-export function filterObject(obj: KeyValue, keys: string[]) {
-    const result: KeyValue = {};
+export function filterObject<T>(obj: T, keys: string[]): Partial<T> {
+    const result: Partial<T> = {};
     for (const [key, value] of Object.entries(obj)) {
         if (keys.includes(key)) {
-            result[key] = value;
+            result[key as keyof T] = value;
         }
     }
     return result;
@@ -744,7 +739,6 @@ export function splitArrayIntoChunks<T>(arr: T[], chunkSize: number): T[][] {
 
 exports.noOccupancySince = noOccupancySince;
 exports.getOptions = getOptions;
-exports.isLegacyEnabled = isLegacyEnabled;
 exports.precisionRound = precisionRound;
 exports.toLocalISOString = toLocalISOString;
 exports.numberWithinRange = numberWithinRange;

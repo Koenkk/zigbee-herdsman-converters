@@ -1,10 +1,8 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {eLegrand, fzLegrand, legrandOptions, readInitialBatteryState, tzLegrand} from '../lib/legrand';
 import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -20,7 +18,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '067755',
         vendor: 'Legrand',
         description: 'Wireless and batteryless 4 scenes control',
-        ota: ota.zigbeeOTA,
+        ota: true,
         meta: {multiEndpoint: true, battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
         fromZigbee: [fz.identify, fz.battery, fz.command_recall],
         toZigbee: [],
@@ -40,7 +38,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'DIN dry contactor module',
         whiteLabel: [{vendor: 'BTicino', model: 'FC80AC'}],
         extend: [onOff()],
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tz.electrical_measurement_power],
         exposes: [
@@ -69,7 +67,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'DIN contactor module',
         whiteLabel: [{vendor: 'BTicino', model: 'FC80CC'}],
         extend: [onOff(), electricityMeter({cluster: 'electrical', voltage: false, current: false})],
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta, fz.electrical_measurement],
         toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tzLegrand.auto_mode, tz.electrical_measurement_power],
         exposes: [
@@ -91,7 +89,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'DIN smart relay for light control',
         whiteLabel: [{vendor: 'BTicino', model: 'FC80RC'}],
         extend: [onOff()],
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tz.electrical_measurement_power],
         exposes: [
@@ -112,7 +110,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '067646',
         vendor: 'Legrand',
         description: 'Wireless shutter switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         fromZigbee: [
             fz.identify,
@@ -142,7 +140,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '067776',
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [
             fz.ignore_basic_report,
             fz.cover_position_tilt,
@@ -190,7 +188,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '067776_inverted',
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         meta: {coverInverted: true},
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt, fzLegrand.cluster_fc01],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode],
@@ -214,7 +212,7 @@ const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{hardwareVersion: 9}, {hardwareVersion: 13}],
             },
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [
             fz.ignore_basic_report,
             fz.cover_position_tilt,
@@ -251,9 +249,9 @@ const definitions: DefinitionWithExtend[] = [
         model: '067773',
         vendor: 'Legrand',
         description: 'Wireless remote switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, legacy.fz.cmd_move, legacy.fz.cmd_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         onEvent: readInitialBatteryState,
@@ -267,7 +265,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '067774',
         vendor: 'Legrand',
         description: 'Wireless double remote switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         meta: {multiEndpoint: true, battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
         fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
@@ -288,7 +286,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '067694',
         vendor: 'Legrand',
         description: 'Remote toggle switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle'])],
@@ -303,7 +301,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '067771',
         vendor: 'Legrand',
         description: 'Wired switch without neutral',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.level_config, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
         toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config, tz.level_config],
         exposes: [
@@ -337,7 +335,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '199182',
         vendor: 'Legrand',
         description: 'Wired switch without neutral',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
         toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
         exposes: [
@@ -358,7 +356,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '067775/741811',
         vendor: 'Legrand',
         description: 'Power socket with power consumption monitoring',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.power_on_behavior, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify, tz.power_on_behavior],
         exposes: [
@@ -392,7 +390,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Wired micromodule switch',
         whiteLabel: [{vendor: 'BTicino', model: '3584C'}],
         extend: [onOff()],
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify],
         toZigbee: [tzLegrand.identify],
         configure: async (device, coordinatorEndpoint) => {
@@ -407,7 +405,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Legrand',
         description: 'Home & away switch / master switch',
         whiteLabel: [{vendor: 'BTicino', model: 'LN4570CWI'}],
-        ota: ota.zigbeeOTA,
+        ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         fromZigbee: [fz.legrand_scenes, fz.legrand_master_switch_center, fz.ignore_poll_ctrl, fz.battery],
         toZigbee: [],
@@ -434,7 +432,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Legrand', description: 'DIN power consumption module', model: '412172', fingerprint: [{modelID: ' Smart shedder module'}]},
             {vendor: 'BTicino', description: 'DIN power consumption module', model: 'FC80GCS', fingerprint: [{modelID: ' Smart shedder module'}]},
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [
             fz.identify,
             fz.metering,
@@ -494,7 +492,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '752189',
         vendor: 'Legrand',
         description: 'Night/day wireless switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         fromZigbee: [fz.legrand_scenes, fz.battery, fz.ignore_poll_ctrl, fz.legrand_master_switch_center],
         toZigbee: [],
@@ -509,7 +507,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZLGP14/ZLGP15/ZLGP16',
         vendor: 'Legrand',
         description: 'Wireless and batteryless scenario switch (home arrival/departure, 1-4 switches, daytime day/night)',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.legrand_greenpower],
         toZigbee: [],
         exposes: [
@@ -530,7 +528,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZLGP17/ZLGP18',
         vendor: 'Legrand',
         description: 'Wireless and batteryless (double) lighting control',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.legrand_greenpower],
         toZigbee: [],
         exposes: [e.action(['press_once', 'press_twice'])],
@@ -540,7 +538,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '600087L',
         vendor: 'Legrand',
         description: 'Wireless and batteryless blind control switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.legrand_greenpower],
         toZigbee: [],
         exposes: [e.action(['stop', 'up', 'down'])],
@@ -550,7 +548,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '064882',
         vendor: 'Legrand',
         description: 'Cable outlet with pilot wire and consumption measurement',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fzLegrand.cluster_fc01, fz.legrand_pilot_wire_mode, fz.on_off, fz.electrical_measurement, fz.power_on_behavior],
         toZigbee: [tz.legrand_device_mode, tz.legrand_pilot_wire_mode, tz.on_off, tz.electrical_measurement_power, tz.power_on_behavior],
         exposes: [
@@ -577,7 +575,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '067772',
         vendor: 'Legrand',
         description: 'Double wired switch with neutral',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.legrand_binary_input_on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
         toZigbee: [tzLegrand.identify, tz.legrand_device_mode, tzLegrand.led_mode, tz.ballast_config],
         exposes: [
@@ -618,7 +616,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'WNRR15/WNRR20',
         vendor: 'Legrand',
         description: 'Outlet with power consumption monitoring',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify],
         exposes: [e.switch(), e.action(['identify']), e.power()],
@@ -635,7 +633,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'WNAL10/WNRL10',
         vendor: 'Legrand',
         description: 'Smart switch with Netatmo',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.on_off, fz.legrand_binary_input_on_off, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode],
         exposes: [e.switch(), eLegrand.ledInDark(), eLegrand.ledIfOn()],
@@ -650,7 +648,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'WNAL50/WNRL50',
         vendor: 'Legrand',
         description: 'Smart dimmer switch with Netatmo',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
         toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
         exposes: [
@@ -672,9 +670,9 @@ const definitions: DefinitionWithExtend[] = [
         model: 'WNAL63',
         vendor: 'Legrand',
         description: 'Remote dimmer switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, legacy.fz.cmd_move, legacy.fz.cmd_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         onEvent: readInitialBatteryState,
@@ -688,7 +686,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '067766',
         vendor: 'Legrand',
         description: 'Centralized ventilation switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.identify, fz.on_off, fz.power_on_behavior, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify, tz.power_on_behavior],
         exposes: [e.switch(), e.action(['identify']), eLegrand.ledInDark(), eLegrand.ledIfOn(), e.power_on_behavior()],

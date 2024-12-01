@@ -8,7 +8,6 @@ import * as libColor from './color';
 import * as exposes from './exposes';
 import {logger} from './logger';
 import * as modernExtend from './modernExtend';
-import * as ota from './ota';
 import * as globalStore from './store';
 import {Configure, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from './types';
 import * as utils from './utils';
@@ -55,7 +54,7 @@ const knownEffects = {
 };
 
 export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolean; gradient?: true | {extraEffects: string[]}}) {
-    args = {hueEffect: true, turnsOffAtBrightness1: true, ota: ota.zigbeeOTA, ...args};
+    args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
     if (args.hueEffect || args.gradient) args.effect = false;
     if (args.color) args.color = {modes: ['xy', 'hs'], ...(isObject(args.color) ? args.color : {})};
     const result = modernExtend.light(args);
@@ -96,7 +95,7 @@ export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolea
 }
 
 export function philipsOnOff(args?: modernExtend.OnOffArgs) {
-    args = {powerOnBehavior: false, ota: ota.zigbeeOTA, ...args};
+    args = {powerOnBehavior: false, ota: true, ...args};
     const result = modernExtend.onOff(args);
     result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
     return result;

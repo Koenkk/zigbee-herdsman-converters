@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -73,7 +72,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '81825',
         vendor: 'AduroSmart',
         description: 'ERIA smart wireless dimming switch',
-        fromZigbee: [fz.command_on, fz.command_off, legacy.fz.eria_81825_updown],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step],
         exposes: [e.action(['on', 'off', 'up', 'down'])],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
