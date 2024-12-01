@@ -3161,7 +3161,10 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [...tuya.fingerprint('TS0201', ['_TZ3000_dowj6gyi', '_TZ3000_8ybe88nf', '_TZ3000_akqdg6g7']), {manufacturerName: '_TZ3000_zl1kmjqx'}],
+        fingerprint: [
+            ...tuya.fingerprint('TS0201', ['_TZ3000_dowj6gyi', '_TZ3000_8ybe88nf', '_TZ3000_akqdg6g7']),
+            {manufacturerName: '_TZ3000_zl1kmjqx'},
+        ],
         model: 'IH-K009',
         vendor: 'Tuya',
         description: 'Temperature & humidity sensor',
