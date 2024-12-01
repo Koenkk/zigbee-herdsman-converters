@@ -13146,6 +13146,102 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_eaulras5']),
+        zigbeeModel: ['TS0601'],
+        model: 'PJ3201A',
+        vendor: 'Dongguan Pinjia Technology Co.,LTD.',
+        description: 'Human Presence Sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.presence(),
+            e.occupancy(),
+            e.numeric('target_dis_closest', ea.STATE).withDescription('the target distance away from the sensor').withUnit('m'),
+            e
+                .numeric('mov_delay', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withDescription('setting the delay time to keep moving status  (the time from moving -> None)')
+                .withUnit('s'),
+            e
+                .numeric('none_delay', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withDescription('setting the delay time to keep present status (the time from present -> None)')
+                .withUnit('s'),
+            e.illuminance(),
+            e
+                .numeric('far_mov_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('the moving detecting sensitivity 1 meter away'),
+            e
+                .numeric('near_mov_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('the moving detecting sensitivity  within 1 meter'),
+            e
+                .numeric('near_occ_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('the presence detecting sensitivity  within 1 meter'),
+            e
+                .numeric('far_occ_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('the presence detecting sensitivity  1 meter away'),
+            e
+                .numeric('near_detection', ea.STATE_SET)
+                .withValueMin(0.1)
+                .withValueMax(7)
+                .withValueStep(0.1)
+                .withDescription('The closest distance that can be detected')
+                .withUnit('m'),
+            e
+                .numeric('far_detection', ea.STATE_SET)
+                .withValueMin(0.1)
+                .withValueMax(7)
+                .withValueStep(0.1)
+                .withDescription('The farest distance that can be detected (moving)')
+                .withUnit('m'),
+            e
+                .numeric('occ_detection', ea.STATE_SET)
+                .withValueMin(0.1)
+                .withValueMax(7)
+                .withValueStep(0.1)
+                .withDescription('The farest distance that can be detected (present)')
+                .withUnit('m'),
+            e.binary('restore_factory', ea.STATE_SET, 'ON', 'OFF').withDescription('restore_factory'),
+            e.binary('led_indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('turn on or off the led '),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [104, 'presence', tuya.valueConverter.trueFalse1],
+                [112, 'occupancy', tuya.valueConverter.trueFalseInvert],
+                [9, 'target_dis_closest', tuya.valueConverter.divideBy100],
+                [101, 'mov_delay', tuya.valueConverter.raw],
+                [102, 'none_delay', tuya.valueConverter.raw],
+                [103, 'illuminance', tuya.valueConverter.raw],
+                [105, 'far_mov_sensitivity', tuya.valueConverter.raw],
+                [110, 'near_mov_sensitivity', tuya.valueConverter.raw],
+                [109, 'near_occ_sensitivity', tuya.valueConverter.raw],
+                [111, 'far_occ_sensitivity', tuya.valueConverter.raw],
+                [3, 'near_detection', tuya.valueConverter.divideBy100],
+                [4, 'far_detection', tuya.valueConverter.divideBy100],
+                [108, 'occ_detection', tuya.valueConverter.divideBy100],
+                [106, 'restore_factory', tuya.valueConverterBasic.lookup({ON: false, OFF: true})],
+                [107, 'led_indicator', tuya.valueConverterBasic.lookup({ON: false, OFF: true})],
+            ],
+        },
+    },
 ];
 
 export default definitions;
