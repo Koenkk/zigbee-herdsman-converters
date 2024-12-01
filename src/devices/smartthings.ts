@@ -305,6 +305,8 @@ const definitions: DefinitionWithExtend[] = [
             const options = {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD};
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x14, type: 0x20}}, options);
+            await endpoint.write('genPollCtrl', {checkinInterval: 14400});
+            await endpoint.write('genPollCtrl', {longPollInterval: 3600});
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             const payloadA = reporting.payload('acceleration', 10, constants.repInterval.HOUR, 5);
