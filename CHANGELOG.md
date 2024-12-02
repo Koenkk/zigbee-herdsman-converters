@@ -1,5 +1,24 @@
 # Changelog
 
+## [21.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.0.0...v21.1.0) (2024-12-02)
+
+
+### Features
+
+* **add:** A6Z https://github.com/Koenkk/zigbee2mqtt/issues/24967 ([b7877b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b7877b7d0b10f64a827e19801d39a4b021043dd3))
+* **add:** TRV801 ([#8415](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8415)) ([7fb34d9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7fb34d9b1485ea436486be96ba68284b4653299c))
+* **add:** WT-1 ([#8422](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8422)) ([068658f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/068658f3cef2bf37e3ca8bfd668823ad5d4b15f8))
+* **add:** X701A ([#8156](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8156)) ([5478391](https://github.com/Koenkk/zigbee-herdsman-converters/commit/547839101d21dcf48b4404c30b7d1f0003609051))
+
+
+### Bug Fixes
+
+* Add new transitionCount parameter on thermostatScheduleDayMultiDP ([#8414](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8414)) ([9bf46b4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9bf46b41ccc190860f5128f81a17264fac58d386))
+* Change endpoint for Yandex switches ([#8420](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8420)) ([f648f16](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f648f161fe94c3c5e2ebfc2d02a5c3c3e065c62e))
+* **detect:** Detect `_TZE284_kobbcyum` as Tongou TOWSMR1 https://github.com/Koenkk/zigbee2mqtt/issues/24516 ([8eb499f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8eb499fd6f83548fdad5b88a6cd9678d38935740))
+* Fix `LGT002` and `LGT003` not marked as supported https://github.com/Koenkk/zigbee2mqtt/issues/24965 ([e58aead](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e58aead21b686d3f4c53f7477ac5d2c1bf168aa2))
+* Fix the temperature compensation issue of 'HHST001' and add blind spot temperature function ([#8419](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8419)) ([26aa30d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/26aa30d7b1a766a7c42bf0ca354e4022e33c3964))
+
 ## [21.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v20.58.0...v21.0.0) (2024-12-01)
 
 
