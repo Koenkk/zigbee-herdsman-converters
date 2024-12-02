@@ -11600,7 +11600,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_kobbcyum']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_kobbcyum', '_TZE284_kobbcyum']),
         model: 'TOWSMR1',
         vendor: 'Tongou',
         description: 'Single-phase multifunction RCBO (DIN Module)',
