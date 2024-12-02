@@ -13123,14 +13123,21 @@ const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(['cool', 'heat', 'fan_only'], ea.STATE_SET)
-                .withSetpoint('current_heating_setpoint', 5, 45, 1, ea.STATE_SET)
-                .withFanMode(['auto', 'high', 'medium', 'low'], ea.STATE_SET)
-                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET),
+                .withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
+                .withFanMode(['auto', 'high', 'medium', 'low', 'off'], ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET),
+            e
+                .numeric('deadzone_temperature', ea.STATE_SET)
+                .withValueMax(5)
+                .withValueMin(1)
+                .withValueStep(1)
+                .withPreset('default', 1, 'Default value')
+                .withDescription('The difference between the local temperature that triggers heating and the set temperature'),
             e.min_temperature().withValueMin(5).withValueMax(15),
             e.max_temperature().withValueMin(35).withValueMax(45),
             e.child_lock(),
             e.humidity(),
-            e.binary('manual_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Manual = ON or Schedule = OFF'),
+            e.binary('manual_mode', ea.STATE_SET, 'Auto', 'Manual').withDescription('Manual = Manual or Schedule = Auto'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -13138,13 +13145,30 @@ const definitions: DefinitionWithExtend[] = [
                 [2, 'system_mode', tuya.valueConverterBasic.lookup({cool: tuya.enum(0), heat: tuya.enum(1), fan_only: tuya.enum(2)})],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [19, 'max_temperature', tuya.valueConverter.divideBy10],
+                [18, 'max_temperature_f', tuya.valueConverter.raw],
+                [20, 'min_temperature_f', tuya.valueConverter.raw],
+                [21, 'local_temperature_f', tuya.valueConverter.raw],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [26, 'min_temperature', tuya.valueConverter.divideBy10],
-                [102, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration],
-                [28, 'fan_mode', tuya.valueConverterBasic.lookup({auto: tuya.enum(0), high: tuya.enum(1), medium: tuya.enum(2), low: tuya.enum(3)})],
+                [102, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [103, 'local_temperature_calibration_f', tuya.valueConverter.raw],
+                [104, 'deadzone_temperature', tuya.valueConverter.raw],
+                [105, 'deadzone_temperature_f', tuya.valueConverter.raw],
+                [
+                    28,
+                    'fan_mode',
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        high: tuya.enum(1),
+                        medium: tuya.enum(2),
+                        low: tuya.enum(3),
+                        off: tuya.enum(4),
+                    }),
+                ],
                 [40, 'child_lock', tuya.valueConverter.lockUnlock],
-                [113, 'humidity', tuya.valueConverter.raw],
-                [101, 'manual_mode', tuya.valueConverter.onOff],
+                [44, 'current_heating_setpoint_f', tuya.valueConverter.raw],
+                [46, 'temperature_scale', tuya.valueConverter.raw],
+                [101, 'manual_mode', tuya.valueConverterBasic.lookup({Auto: tuya.enum(0), Manual: tuya.enum(1), Tempoary: tuya.enum(2)})],
             ],
         },
     },
