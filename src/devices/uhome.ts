@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -13,7 +12,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TWV',
         vendor: 'UHome',
         description: 'Smart valve',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off],
         exposes: [e.battery(), e.switch()],

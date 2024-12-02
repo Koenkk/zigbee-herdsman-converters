@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {electricityMeter, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -36,11 +35,11 @@ const definitions: DefinitionWithExtend[] = [
         model: 'STS-PRS-251',
         vendor: 'SmartThings',
         description: 'Arrival sensor',
-        fromZigbee: [fz.STS_PRS_251_presence, fz.battery, legacy.fz.STS_PRS_251_beeping],
+        fromZigbee: [fz.STS_PRS_251_presence, fz.battery, fz.identify],
         exposes: [
             e.battery(),
             e.presence(),
-            e.action(['beeping']),
+            e.action(['identify']),
             e.enum('beep', ea.SET, ['2', '5', '10', '15', '30']).withDescription('Trigger beep for x seconds'),
         ],
         toZigbee: [tz.STS_PRS_251_beep],
@@ -305,6 +304,8 @@ const definitions: DefinitionWithExtend[] = [
             const options = {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD};
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x14, type: 0x20}}, options);
+            await endpoint.write('genPollCtrl', {checkinInterval: 14400});
+            await endpoint.write('genPollCtrl', {longPollInterval: 3600});
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             const payloadA = reporting.payload('acceleration', 10, constants.repInterval.HOUR, 5);
@@ -450,13 +451,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'IM6001-BTP01',
         vendor: 'SmartThings',
         description: 'Button',
-        fromZigbee: [
-            fz.command_status_change_notification_action,
-            legacy.fz.st_button_state,
-            fz.battery,
-            fz.temperature,
-            fz.ignore_iaszone_attreport,
-        ],
+        fromZigbee: [fz.command_status_change_notification_action, fz.battery, fz.temperature, fz.ignore_iaszone_attreport],
         exposes: [e.action(['off', 'single', 'double', 'hold']), e.battery(), e.temperature()],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {

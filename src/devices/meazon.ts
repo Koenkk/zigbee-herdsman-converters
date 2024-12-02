@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -16,7 +15,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MEAZON_BIZY_PLUG',
         vendor: 'Meazon',
         description: 'Bizy plug meter',
-        fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff, fz.on_off, fz.meazon_meter],
+        fromZigbee: [fz.command_on, fz.command_off, fz.on_off, fz.meazon_meter],
         exposes: [e.switch(), e.power(), e.voltage(), e.current(), e.energy()],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint) => {
@@ -44,7 +43,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MEAZON_DINRAIL',
         vendor: 'Meazon',
         description: 'DinRail 1-phase meter',
-        fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff, fz.on_off, fz.meazon_meter],
+        fromZigbee: [fz.command_on, fz.command_off, fz.on_off, fz.meazon_meter],
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint) => {

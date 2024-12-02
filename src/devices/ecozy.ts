@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -14,7 +13,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '1TST-EU',
         vendor: 'eCozy',
         description: 'Smart heating thermostat',
-        fromZigbee: [fz.battery, legacy.fz.thermostat_att_report],
+        fromZigbee: [fz.battery, fz.thermostat],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_local_temperature_calibration,
