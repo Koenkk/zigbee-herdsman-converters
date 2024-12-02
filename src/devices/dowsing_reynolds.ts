@@ -1,4 +1,4 @@
-const {philipsLight} = require('zigbee-herdsman-converters/lib/philips');
+import {philipsLight} from '../lib/philips';
 
 const definition = {
     zigbeeModel: ['DR3000'],
