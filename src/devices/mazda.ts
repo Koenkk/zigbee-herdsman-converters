@@ -12,6 +12,10 @@ const definitions: DefinitionWithExtend[] = [
                 modelID: 'TS0601',
                 manufacturerName: '_TZE284_k6rdmisz',
             },
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_k6rdmisz',
+            },
         ],
         model: 'MZVT1Z',
         vendor: 'MAZDA',
