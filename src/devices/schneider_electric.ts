@@ -1734,8 +1734,25 @@ const definitions: DefinitionWithExtend[] = [
             temperature(),
             iasZoneAlarm({
                 zoneType: 'smoke',
-                zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low', 'test', 'hush'],
+                zoneAttributes: ['alarm_1', 'tamper', 'battery_low', 'test'],
                 zoneStatusReporting: true,
+                manufacturerZoneAttributes: [
+                    {
+                        bit: 1,
+                        name: 'heat',
+                        valueOn: true,
+                        valueOff: false,
+                        description: 'Indicates whether the device has detected high temperature',
+                    },
+                    {
+                        bit: 11,
+                        name: 'hush',
+                        valueOn: true,
+                        valueOff: false,
+                        description: 'Indicates whether the device is in hush mode',
+                        entityCategory: 'diagnostic',
+                    },
+                ],
             }),
         ],
         whiteLabel: [

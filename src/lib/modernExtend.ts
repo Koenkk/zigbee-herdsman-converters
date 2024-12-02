@@ -107,7 +107,6 @@ const IAS_EXPOSE_LOOKUP = {
         .binary('battery_defect', ea.STATE, true, false)
         .withDescription('Indicates whether the device battery is defective')
         .withCategory('diagnostic'),
-    hush: e.binary('hush', ea.STATE, true, false).withDescription('Indicates whether the device is in hush mode').withCategory('diagnostic'),
 };
 
 export const TIME_LOOKUP = {
@@ -1477,14 +1476,22 @@ export type iasZoneAttribute =
     | 'ac_status'
     | 'test'
     | 'trouble'
-    | 'battery_defect'
-    | 'hush';
+    | 'battery_defect';
+export type manufacturerZoneAttribute = {
+    bit: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+    name: string;
+    valueOn: string | boolean;
+    valueOff: string | boolean;
+    description: string;
+    entityCategory?: 'config' | 'diagnostic';
+};
 export interface IasArgs {
     zoneType: iasZoneType;
     zoneAttributes: iasZoneAttribute[];
     alarmTimeout?: boolean;
     zoneStatusReporting?: boolean;
     description?: string;
+    manufacturerZoneAttributes?: manufacturerZoneAttribute[];
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposes: Expose[] = [];
@@ -1525,6 +1532,13 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
             if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(IAS_EXPOSE_LOOKUP[attr]);
         });
     }
+
+    if (args.manufacturerZoneAttributes)
+        args.manufacturerZoneAttributes.map((attr) => {
+            let expose = e.binary(attr.name, ea.STATE, attr.valueOn, attr.valueOff).withDescription(attr.description);
+            if (attr.entityCategory) expose = expose.withCategory(attr.entityCategory);
+            exposes.push(expose);
+        });
 
     const timeoutProperty = `${args.zoneType}_timeout`;
 
@@ -1576,9 +1590,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     if (args.zoneAttributes.includes('battery_defect')) {
                         payload = {battery_defect: (zoneStatus & (1 << 9)) > 0, ...payload};
                     }
-                    if (args.zoneAttributes.includes('hush')) {
-                        payload = {hush: (zoneStatus & (1 << 11)) > 0, ...payload};
-                    }
+
                     let alarm1Payload = (zoneStatus & 1) > 0;
                     let alarm2Payload = (zoneStatus & (1 << 1)) > 0;
 
@@ -1595,6 +1607,11 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     } else if (args.zoneAttributes.includes('alarm_2')) {
                         payload = {[alarm2Name]: alarm2Payload, ...payload};
                     }
+
+                    if (args.manufacturerZoneAttributes)
+                        args.manufacturerZoneAttributes.map((attr) => {
+                            payload = {[attr.name]: (zoneStatus & (1 << attr.bit)) > 0, ...payload};
+                        });
 
                     return payload;
                 }
