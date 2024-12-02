@@ -5082,7 +5082,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE204_rtrmfadk'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_9mjy74mp'} // MOES
+            {modelID: 'TS0601', manufacturerName: '_TZE204_9mjy74mp'}, // MOES
         ],
         model: 'TRV601',
         vendor: 'Tuya',
