@@ -13229,7 +13229,7 @@ const definitions: DefinitionWithExtend[] = [
                 [9, 'target_dis_closest', tuya.valueConverter.divideBy100],
                 [101, 'mov_delay', tuya.valueConverter.raw],
                 [102, 'none_delay', tuya.valueConverter.raw],
-                [103, 'illuminance', tuya.valueConverter.raw],
+                [103, 'illuminance', tuya.valueConverter.divideBy10],
                 [105, 'far_mov_sensitivity', tuya.valueConverter.raw],
                 [110, 'near_mov_sensitivity', tuya.valueConverter.raw],
                 [109, 'near_occ_sensitivity', tuya.valueConverter.raw],
