@@ -59,6 +59,7 @@ import digi from './digi';
 import diyruz from './diyruz';
 import dlink from './dlink';
 import dnake from './dnake';
+import dowsing_reynolds from './dowsing_reynolds';
 import dresden_elektronik from './dresden_elektronik';
 import easyaccess from './easyaccess';
 import easyiot from './easyiot';
@@ -374,6 +375,7 @@ export default [
     ...diyruz,
     ...dlink,
     ...dnake,
+    ...dowsing_reynolds,
     ...dresden_elektronik,
     ...easyaccess,
     ...easyiot,
