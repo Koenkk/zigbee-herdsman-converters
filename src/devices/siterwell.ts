@@ -1,6 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -18,6 +19,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_owwdxjbx'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_2cs6g9i7'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_04yfvweb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_lrznf59v'},
         ],
         model: 'GS361A-H04',
         vendor: 'Siterwell',
@@ -52,7 +54,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Tesla Smart', description: 'Thermostatic Radiator Valve Controller', model: 'TSL-TRV-GS361A'},
             {vendor: 'Nedis', description: 'Thermostatic Radiator Valve Controller', model: 'ZBHTR10WT'},
             {vendor: 'TCP Smart', description: 'Smart Thermostatic Radiator Valve', model: 'TBUWTRV'},
-            {vendor: 'Brennenstuhl', description: 'Radiator Thermostat', model: 'HT CZ 01'},
+            tuya.whitelabel('Brennenstuhl', 'HT CZ 01', 'Radiator thermostat', ['_TZE200_lrznf59v']),
             {vendor: 'Appartme', description: 'Głowica termostatyczna', model: 'APRM-04-001'},
         ],
         exposes: [

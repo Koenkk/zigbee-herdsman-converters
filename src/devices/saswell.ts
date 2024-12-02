@@ -39,7 +39,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'RTX', model: 'ZB-RT1'},
             {vendor: 'SETTI+', model: 'TRV001'},
         ],
-        fromZigbee: [legacy.fz.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, legacy.fz.tuya_thermostat_weekly_schedule_1],
+        fromZigbee: [legacy.fz.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, legacy.fz.tuya_thermostat_weekly_schedule_2],
         toZigbee: [
             legacy.tz.saswell_thermostat_current_heating_setpoint,
             legacy.tz.saswell_thermostat_mode,
@@ -75,6 +75,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
+                .withRunningState(['idle', 'heat'], ea.STATE)
                 // Range is -6 - 6 and step 1: https://github.com/Koenkk/zigbee2mqtt/issues/11777
                 .withLocalTemperatureCalibration(-6, 6, 1, ea.STATE_SET),
         ],

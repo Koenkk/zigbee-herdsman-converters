@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -27,16 +26,6 @@ const definitions: DefinitionWithExtend[] = [
             const bindClusters = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
         },
-    },
-    {
-        fingerprint: [{modelID: 'TS0041A', manufacturerName: '_TYZB01_4qw4rl1u'}],
-        model: 'SB100',
-        vendor: 'Cleverio',
-        description: 'Wireless switch with 1 button',
-        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
-        fromZigbee: [tuya.fz.on_off_action, fz.battery],
-        toZigbee: [],
-        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: [{modelID: 'SM0201', manufacturerName: '_TYZB01_lzrhtcxu'}],

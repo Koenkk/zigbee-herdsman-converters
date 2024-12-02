@@ -1,6 +1,5 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -11,7 +10,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SWO-KEF1PA',
         vendor: 'Swann',
         description: 'Key fob remote',
-        fromZigbee: [legacy.fz.KEF1PA_arm, fz.command_panic],
+        fromZigbee: [fz.command_arm, fz.command_panic],
         toZigbee: [],
         exposes: [e.action(['home', 'sleep', 'away', 'panic'])],
     },

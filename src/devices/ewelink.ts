@@ -157,18 +157,11 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.rain()],
     },
     {
-        fingerprint: [
-            {
-                type: 'EndDevice',
-                manufacturerName: 'eWeLink',
-                modelID: 'SNZB-03',
-                endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1, 1280, 32], outputClusters: [25]}],
-            },
-        ],
-        model: 'SQ510A',
+        zigbeeModel: ['SNZB-05'],
+        model: 'SNZB-05',
         vendor: 'eWeLink',
-        description: 'Water leak sensor',
-        extend: [iasZoneAlarm({zoneAttributes: ['alarm_1', 'battery_low', 'tamper'], zoneType: 'water_leak'}), battery()],
+        description: 'Zigbee water sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
 ];
 

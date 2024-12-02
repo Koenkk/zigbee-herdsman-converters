@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {identify, light} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {Configure, DefinitionWithExtend, Fz, OnEvent, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -184,7 +183,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint);
         },
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.illuminance()],
     },
     {
         zigbeeModel: ['SingleSocket50AU'],
@@ -233,7 +232,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tzLocal.backlight_brightness, tz.on_off],
         meta: {multiEndpoint: true},
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {left: 1, right: 2};
         },

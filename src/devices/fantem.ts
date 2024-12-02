@@ -50,7 +50,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.occupancy(),
             e.tamper(),
-            e.illuminance_lux(),
             e.illuminance(),
             e.temperature(),
             e.humidity(),

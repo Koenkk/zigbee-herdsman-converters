@@ -19,7 +19,6 @@ import {
     light,
     numeric,
     onOff,
-    ota,
     quirkCheckinInterval,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
@@ -566,7 +565,7 @@ const boschExtend = {
                 .withUnit('ppm')
                 .withDescription('The measured CO2 (carbon dioxide) value'),
             e.numeric('aqi', ea.STATE).withValueMin(0).withValueMax(500).withValueStep(1).withLabel('AQI').withDescription('Air Quality Index'),
-            e.numeric('illuminance_lux', ea.STATE).withUnit('lx').withDescription('Measured illuminance in lux'),
+            e.illuminance(),
             e
                 .numeric('battery', ea.STATE)
                 .withUnit('%')
@@ -631,8 +630,8 @@ const boschExtend = {
                     if (msg.data.temperature !== undefined) {
                         result.temperature = utils.toNumber(msg.data['temperature']) / 100.0;
                     }
-                    if (msg.data.illuminance_lux !== undefined) {
-                        result.illuminance_lux = utils.precisionRound(msg.data['illuminance_lux'] / 2, 2);
+                    if (msg.data.illuminance !== undefined) {
+                        result.illuminance = utils.precisionRound(msg.data['illuminance'] / 2, 2);
                     }
                     if (msg.data.battery !== undefined) {
                         result.battery = utils.precisionRound(msg.data['battery'] / 2, 2);
@@ -1330,7 +1329,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.batteryVoltage(endpoint);
             await reporting.illuminance(endpoint);
         },
-        exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper(), e.illuminance()],
     },
     {
         zigbeeModel: ['ISW-ZPR1-WP13'],
@@ -1349,7 +1348,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['RBSH-TRV0-ZB-EU'],
+        zigbeeModel: ['RBSH-TRV0-ZB-EU', 'RBSH-TRV1-ZB-EU'],
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
@@ -1466,8 +1465,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
-            ota(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacUserInterfaceCfg']);
@@ -1554,8 +1553,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
-            ota(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacUserInterfaceCfg']);
@@ -1617,8 +1616,8 @@ const definitions: DefinitionWithExtend[] = [
             boschExtend.childLock(),
             boschExtend.displayOntime(),
             boschExtend.displayBrightness(),
-            ota(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacUserInterfaceCfg']);
@@ -1671,7 +1670,7 @@ const definitions: DefinitionWithExtend[] = [
                     unknown2: {ID: 0x4002, type: Zcl.DataType.UINT16},
                     airpurity: {ID: 0x4003, type: Zcl.DataType.UINT16},
                     temperature: {ID: 0x4004, type: Zcl.DataType.INT16},
-                    illuminance_lux: {ID: 0x4005, type: Zcl.DataType.UINT16},
+                    illuminance: {ID: 0x4005, type: Zcl.DataType.UINT16},
                     battery: {ID: 0x4006, type: Zcl.DataType.UINT16},
                     unknown3: {ID: 0x4007, type: Zcl.DataType.UINT16},
                     unknown4: {ID: 0x4008, type: Zcl.DataType.UINT16},
@@ -1763,7 +1762,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'BSP-FZ2',
         vendor: 'Bosch',
         description: 'Plug compact EU',
-        extend: [onOff(), electricityMeter(), ota()],
+        extend: [onOff(), electricityMeter({voltage: false, current: false})],
+        ota: true,
         whiteLabel: [
             {vendor: 'Bosch', model: 'BSP-EZ2', description: 'Plug compact FR', fingerprint: [{modelID: 'RBSH-SP-ZB-FR'}]},
             {vendor: 'Bosch', model: 'BSP-GZ2', description: 'Plug compact UK', fingerprint: [{modelID: 'RBSH-SP-ZB-GB'}]},
