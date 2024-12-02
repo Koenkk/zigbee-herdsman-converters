@@ -2155,9 +2155,7 @@ const definitions: DefinitionWithExtend[] = [
                 [15, 'battery', tuya.valueConverter.raw],
             ],
         },
-         whiteLabel: [
-        tuya.whitelabel('GIEX', 'GX04', 'Soil Moisture Sensor', ['_TZE284_nhgdf6qr']), 
-             ]
+        whiteLabel: [tuya.whitelabel('GIEX', 'GX04', 'Soil Moisture Sensor', ['_TZE284_nhgdf6qr'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
@@ -13159,20 +13157,34 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.binary('valve1', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch state'),
-        e.numeric('countdown_V1', ea.STATE_SET).withUnit('min').withDescription('Countdown timer for valve operation'),
-        e.binary('valve2', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch state'),
-        e.numeric('countdown_V2', ea.STATE_SET).withUnit('min').withDescription('Countdown timer for valve operation'),
-        e.battery(),],
+        exposes: [
+            e.binary('valve1', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch state'),
+            e
+                .numeric('countdown_V1', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(1440)
+                .withValueStep(1)
+                .withUnit('min')
+                .withDescription('Countdown timer for valve operation'),
+            e.binary('valve2', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch state'),
+            e
+                .numeric('countdown_V2', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(1440)
+                .withValueStep(1)
+                .withUnit('min')
+                .withDescription('Countdown timer for valve operation'),
+            e.battery(),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, 'valve1', tuya.valueConverter.onOff],
                 [59, 'battery', tuya.valueConverter.raw],
-                [104, 'valve1',tuya.valueConverterBasic.lookup({OFF: tuya.enum(2), ON: tuya.enum(0)})],
+                [104, 'valve1', tuya.valueConverterBasic.lookup({OFF: tuya.enum(2), ON: tuya.enum(0)})],
                 [2, 'valve2', tuya.valueConverter.onOff],
-                [105, 'valve1',tuya.valueConverterBasic.lookup({OFF: tuya.enum(2), ON: tuya.enum(0)})],
+                [105, 'valve1', tuya.valueConverterBasic.lookup({OFF: tuya.enum(2), ON: tuya.enum(0)})],
                 [13, 'countdown_V1', tuya.valueConverter.raw],
-                [14, 'countdown_V2', tuya.valueConverter.raw],batteryState],
+                [14, 'countdown_V2', tuya.valueConverter.raw],
                 [15, 'battery', tuya.valueConverter.raw],
             ],
         },
