@@ -2155,7 +2155,9 @@ const definitions: DefinitionWithExtend[] = [
                 [15, 'battery', tuya.valueConverter.raw],
             ],
         },
+         whiteLabel: [
         tuya.whitelabel('GIEX', 'GX04', 'Soil Moisture Sensor', ['_TZE284_nhgdf6qr']), 
+             ]
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
