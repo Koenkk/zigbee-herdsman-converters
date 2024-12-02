@@ -17,6 +17,7 @@ const definitions: DefinitionWithExtend[] = [
                 manufacturerName: '_TZE204_k6rdmisz',
             },
         ],
+        zigbeeModel: ['MZVE1Z','MZVT1Z'],
         model: 'MZVT1Z',
         vendor: 'MAZDA',
         description: 'Thermostatic radiator valve',
