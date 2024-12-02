@@ -2149,45 +2149,26 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['NHMOTION/UNIDIM/1'],
         model: 'NHMOTION/UNIDIM/1',
         vendor: 'Schneider Electric',
-        description: 'Motion detector with dimmer',
+        description: 'Motion sensor with dimmer',
         extend: [
-            deviceEndpoints({endpoints: {light: 3, sensor: 37}}),
             light({
                 effect: false,
                 powerOnBehavior: false,
                 color: false,
                 configureReporting: true,
-                endpointNames: ['light'],
                 levelConfig: {
                     disabledFeatures: ['on_off_transition_time', 'on_transition_time', 'off_transition_time'],
                 },
             }),
-            illuminance({
-                endpointNames: ['sensor'],
-            }),
+            lightingBallast(),
+            illuminance(),
             occupancy({
-                endpointNames: ['sensor'],
+                pirConfig: ['otu_delay'],
             }),
+            schneiderElectricExtend.addOccupancyConfigurationCluster(),
+            schneiderElectricExtend.occupancyConfiguration(),
+            schneiderElectricExtend.dimmingMode(),
         ],
-        fromZigbee: [fz.schneider_lighting_ballast_configuration],
-        toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
-        exposes: [
-            e
-                .numeric('ballast_minimum_level', ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription('Specifies the minimum light output of the ballast'),
-            e
-                .numeric('ballast_maximum_level', ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription('Specifies the maximum light output of the ballast'),
-            e.enum('dimmer_mode', ea.ALL, ['auto', 'rl_led']).withDescription('Controls capacitive or inductive dimming mode'),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['lightingBallastCfg']);
-        },
         whiteLabel: [
             {vendor: 'ELKO', model: 'EKO06984', description: 'SmartPir with push dimmer'},
             {vendor: 'ELKO', model: 'EKO06985', description: 'SmartPir with push dimmer'},
