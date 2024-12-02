@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {
     battery,
     commandsLevelCtrl,
@@ -23,7 +22,6 @@ import {
     ScaleFunction,
     setupConfigureForReading,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -614,8 +612,8 @@ const definitions: DefinitionWithExtend[] = [
             fz.ignore_haDiagnostic,
             fz.ignore_genOta,
             fz.ignore_zclversion_read,
-            legacy.fz.wiser_thermostat,
-            legacy.fz.wiser_itrv_battery,
+            fz.thermostat,
+            fz.battery,
             fz.hvac_user_interface,
             fz.wiser_device_info,
         ],
@@ -663,7 +661,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CCT5010-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [light({configureReporting: true, levelConfig: {}})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
@@ -689,7 +687,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CCT5011-0001/CCT5011-0002/MEG5011-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module switch',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [onOff({powerOnBehavior: false})],
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
     },
@@ -698,7 +696,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CCT5010-0003',
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer with neutral lead',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [light({configureReporting: true, levelConfig: {}})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
@@ -758,33 +756,32 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['NHROTARY/UNIDIM/1'],
-        model: 'WDE002961',
+        model: 'NH3516A',
         vendor: 'Schneider Electric',
         description: 'Rotary dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
-        exposes: [
-            e.light_brightness().withLevelConfig(),
-            e
-                .numeric('ballast_minimum_level', ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription('Specifies the minimum light output of the ballast'),
-            e
-                .numeric('ballast_maximum_level', ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription('Specifies the maximum light output of the ballast'),
-            e
-                .enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
-                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)'),
+        extend: [
+            light({
+                effect: false,
+                powerOnBehavior: false,
+                color: false,
+                configureReporting: true,
+                levelConfig: {
+                    disabledFeatures: ['on_transition_time', 'off_transition_time', 'on_off_transition_time', 'execute_if_off'],
+                },
+            }),
+            lightingBallast(),
+            schneiderElectricExtend.dimmingMode(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        whiteLabel: [
+            {vendor: 'Elko', model: 'EKO07278'},
+            {vendor: 'Elko', model: 'EKO07279'},
+            {vendor: 'Elko', model: 'EKO07280'},
+            {vendor: 'Elko', model: 'EKO07281'},
+            {vendor: 'Elko', model: 'EKO30198'},
+            {vendor: 'Schneider', model: 'WDE002961'},
+            {vendor: 'Schneider', model: 'WDE003961'},
+            {vendor: 'Schneider', model: 'WDE004961'},
+        ],
     },
     {
         zigbeeModel: ['NHPB/UNIDIM/1'],
@@ -880,7 +877,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast'),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -898,7 +895,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '41E2PBSWMZ/356PB2MBTZ',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 2AX',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [onOff({powerOnBehavior: false}), indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -915,7 +912,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '41E10PBSWMZ-VW',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 10AX with ControlLink',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [onOff({powerOnBehavior: false}), indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -935,7 +932,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.fan],
         toZigbee: [tzLocal.fan_mode],
         exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [fanIndicatorMode(), fanIndicatorOrientation()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(7);
@@ -991,8 +988,8 @@ const definitions: DefinitionWithExtend[] = [
             fz.ignore_haDiagnostic,
             fz.ignore_genOta,
             fz.ignore_zclversion_read,
-            legacy.fz.wiser_thermostat,
-            legacy.fz.wiser_itrv_battery,
+            fz.thermostat,
+            fz.battery,
             fz.hvac_user_interface,
             fz.wiser_device_info,
         ],
@@ -1637,43 +1634,28 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['NHMOTION/SWITCH/1'],
-        model: '545D6306',
+        model: 'NH3526',
         vendor: 'Schneider Electric',
-        description: 'LK FUGA Wiser wireless PIR with relay',
-        fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fz.occupancy_timeout],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.occupancy(),
-            e.illuminance_lux(),
-            e.illuminance(),
-            e
-                .numeric('occupancy_timeout', ea.ALL)
-                .withUnit('s')
-                .withValueMin(0)
-                .withValueMax(3600)
-                .withDescription('Time in seconds after which occupancy is cleared after detecting it'),
+        description: 'Motion sensor with switch',
+        extend: [
+            onOff({
+                powerOnBehavior: false,
+                configureReporting: true,
+            }),
+            illuminance(),
+            occupancy({
+                pirConfig: ['otu_delay'],
+            }),
+            schneiderElectricExtend.addOccupancyConfigurationCluster(),
+            schneiderElectricExtend.occupancyConfiguration(),
         ],
-        toZigbee: [tz.on_off, tz.occupancy_timeout],
-        endpoint: (device) => {
-            return {default: 37, l1: 1, l2: 37};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const binds1 = ['genBasic', 'genIdentify', 'genOnOff'];
-            await reporting.bind(endpoint1, coordinatorEndpoint, binds1);
-            await reporting.onOff(endpoint1);
-            // read switch state
-            await endpoint1.read('genOnOff', ['onOff']);
-
-            const endpoint37 = device.getEndpoint(37);
-            const binds37 = ['msIlluminanceMeasurement', 'msOccupancySensing'];
-            await reporting.bind(endpoint37, coordinatorEndpoint, binds37);
-            await reporting.occupancy(endpoint37);
-            await reporting.illuminance(endpoint37);
-            // read occupancy_timeout
-            await endpoint37.read('msOccupancySensing', ['pirOToUDelay']);
-        },
+        whiteLabel: [
+            {vendor: 'Elko', model: 'EKO06988'},
+            {vendor: 'Elko', model: 'EKO06989'},
+            {vendor: 'Elko', model: 'EKO06990'},
+            {vendor: 'Elko', model: 'EKO06991'},
+            {vendor: 'LK', model: '545D6306'},
+        ],
     },
     {
         zigbeeModel: ['CCT595011_AS'],
@@ -1689,14 +1671,14 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
         },
-        exposes: [e.battery(), e.illuminance(), e.illuminance_lux(), e.occupancy()],
+        exposes: [e.battery(), e.illuminance(), e.occupancy()],
     },
     {
         zigbeeModel: ['CH/Socket/2'],
         model: '3025CSGZ',
         vendor: 'Schneider Electric',
         description: 'Dual connected smart socket',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
     },
     {
@@ -1745,9 +1727,10 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Wiser smoke alarm',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_smoke_alarm_1],
         toZigbee: [],
-        ota: ota.zigbeeOTA, // local OTA updates are untested
+        ota: true, // local OTA updates are untested
         exposes: [
             e.smoke(),
+            e.test(),
             e.battery_low(),
             e.tamper(),
             e.battery(),

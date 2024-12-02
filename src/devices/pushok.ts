@@ -10,7 +10,6 @@ import {
     numeric,
     NumericArgs,
     onOff,
-    ota,
     temperature,
 } from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
@@ -88,8 +87,8 @@ const definitions: DefinitionWithExtend[] = [
                 valueStep: 1,
                 reporting: null,
             }),
-            ota(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['POK002', 'POK007'],
@@ -100,8 +99,8 @@ const definitions: DefinitionWithExtend[] = [
             humidity({reporting: null}),
             temperature({reporting: null}),
             battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
-            ota(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['POK003'],
@@ -121,15 +120,16 @@ const definitions: DefinitionWithExtend[] = [
             }),
             temperature({reporting: null}),
             battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
-            ota(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['POK004'],
         model: 'POK004',
         vendor: 'PushOk Hardware',
         description: 'Solar powered zigbee router and illuminance sensor',
-        extend: [illuminance({reporting: null}), battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}), ota()],
+        extend: [illuminance({reporting: null}), battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false})],
+        ota: true,
     },
     {
         zigbeeModel: ['POK005'],
@@ -140,8 +140,8 @@ const definitions: DefinitionWithExtend[] = [
             humidity({reporting: null}),
             temperature({reporting: null}),
             battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
-            ota(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['POK006'],
@@ -154,8 +154,8 @@ const definitions: DefinitionWithExtend[] = [
             pushokExtend.valveStatus(),
             identify({isSleepy: true}),
             pushokExtend.stallTime(),
-            ota(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['POK008'],
@@ -192,7 +192,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             enumLookup({
                 name: 'set_op_mode',
-                lookup: {Monitor: 0, Heater: 1, Cooler: 2},
+                lookup: {monitor: 0, heater: 1, cooler: 2, monitor_inverted: 3, heater_inverted: 4, cooler_inverted: 5},
                 cluster: 'genMultistateOutput',
                 attribute: 'presentValue',
                 zigbeeCommandOptions: {},
@@ -200,8 +200,8 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'ALL',
                 reporting: null,
             }),
-            ota(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['POK009'],
@@ -253,8 +253,8 @@ const definitions: DefinitionWithExtend[] = [
             }),
             identify({isSleepy: true}),
             battery({percentage: true, voltage: true, lowStatus: true, percentageReporting: false}),
-            ota(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['POK010'],
@@ -274,15 +274,16 @@ const definitions: DefinitionWithExtend[] = [
             }),
             temperature({reporting: null}),
             battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
-            ota(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['POK011'],
         model: 'POK011',
         vendor: 'PushOk Hardware',
         description: 'Illuminance sensor',
-        extend: [illuminance({reporting: null}), battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}), ota()],
+        extend: [illuminance({reporting: null}), battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false})],
+        ota: true,
     },
     {
         zigbeeModel: ['POK012'],
@@ -306,8 +307,8 @@ const definitions: DefinitionWithExtend[] = [
                 alarmTimeout: false,
             }),
             battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
-            ota(),
         ],
+        ota: true,
     },
 ];
 

@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
@@ -65,7 +64,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'RC-2000WH',
         vendor: 'Leviton',
         description: 'Omnistat2 wireless thermostat',
-        fromZigbee: [legacy.fz.thermostat_att_report, fz.fan],
+        fromZigbee: [fz.thermostat, fz.fan],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_local_temperature_calibration,

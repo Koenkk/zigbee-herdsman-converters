@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import {getFromLookup, getKey, postfixWithEndpointName, precisionRound, toNumber} from '../lib/utils';
@@ -145,7 +144,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['L101Z-SBI'],
         model: 'L101Z-SBI',
         vendor: 'Lytko',
-        ota: ota.zigbeeOTA,
+        ota: true,
         description: 'Single channel Zigbee thermostat',
         fromZigbee: [fz.humidity, fz.temperature, fz.thermostat, fzLocal.thermostat, fzLocal.thermostat_ui],
         toZigbee: [
@@ -240,7 +239,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'L101Z-SBN',
         vendor: 'Lytko',
         description: 'Single channel Zigbee thermostat',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.thermostat, fzLocal.thermostat, fzLocal.thermostat_ui],
         toZigbee: [
             tz.thermostat_keypad_lockout,
@@ -328,7 +327,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'L101Z-SLN',
         vendor: 'Lytko',
         description: 'Single channel Zigbee thermostat without screen',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.thermostat, fzLocal.thermostat],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -392,7 +391,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'L101Z-DBI',
         vendor: 'Lytko',
         description: 'Dual channel Zigbee thermostat',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.humidity, fz.temperature, fz.thermostat, fzLocal.thermostat, fzLocal.thermostat_ui],
         toZigbee: [
             tz.thermostat_keypad_lockout,
@@ -527,7 +526,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'L101Z-DBN',
         vendor: 'Lytko',
         description: 'Dual channel zigbee thermostat',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.thermostat, fzLocal.thermostat, fzLocal.thermostat_ui],
         toZigbee: [
             tz.thermostat_keypad_lockout,
@@ -656,7 +655,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'L101Z-DLN',
         vendor: 'Lytko',
         description: 'Dual channel Zigbee thermostat without screen',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.thermostat, fzLocal.thermostat],
         toZigbee: [
             tz.thermostat_local_temperature,
