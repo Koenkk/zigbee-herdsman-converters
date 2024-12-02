@@ -9,4 +9,5 @@ const definition = {
     meta: {},
 };
 
+export default definition;
 module.exports = definition;
