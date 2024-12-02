@@ -16,7 +16,6 @@ import {
     temperature,
     windowCovering,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -158,7 +157,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'NodOn',
         description: 'Dry contact sensor',
         extend: [battery(), nodonModernExtend.dryContact()],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -173,7 +172,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.battery()],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -192,7 +191,7 @@ const definitions: DefinitionWithExtend[] = [
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['SIN-4-RS-20_PRO'],
@@ -206,14 +205,14 @@ const definitions: DefinitionWithExtend[] = [
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['SIN-4-1-20'],
         model: 'SIN-4-1-20',
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: [onOff({ota: ota.zigbeeOTA}), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
+        extend: [onOff({ota: true}), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
         endpoint: (device) => {
             return {default: 1};
         },
@@ -223,7 +222,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SIN-4-1-20_PRO',
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: [onOff({ota: ota.zigbeeOTA}), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
+        extend: [onOff({ota: true}), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
         endpoint: (device) => {
             return {default: 1};
         },
@@ -233,7 +232,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SIN-4-1-21',
         vendor: 'NodOn',
         description: 'Multifunction relay switch with metering',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
@@ -258,7 +257,7 @@ const definitions: DefinitionWithExtend[] = [
             nodonModernExtend.switchType({endpointName: 'l1'}),
             nodonModernExtend.switchType({endpointName: 'l2'}),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['SIN-4-2-20_PRO'],
@@ -271,14 +270,14 @@ const definitions: DefinitionWithExtend[] = [
             nodonModernExtend.switchType({endpointName: 'l1'}),
             nodonModernExtend.switchType({endpointName: 'l2'}),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['SIN-4-FP-20'],
         model: 'SIN-4-FP-20',
         vendor: 'NodOn',
         description: 'Pilot wire heating module',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
         toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [e.power(), e.energy(), e.pilot_wire_mode()],
@@ -297,7 +296,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SIN-4-FP-21',
         vendor: 'NodOn',
         description: 'Pilot wire heating module',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
         toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [e.power(), e.energy(), e.pilot_wire_mode()],
@@ -317,7 +316,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'NodOn',
         description: 'Temperature & humidity sensor',
         extend: [battery(), temperature(), humidity()],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['TRV-4-1-00'],
@@ -355,7 +354,7 @@ const definitions: DefinitionWithExtend[] = [
                 .binary('mirror_display', ea.ALL, 'ON', 'OFF')
                 .withDescription('Mirror display of the thermostat. Useful when it is mounted in a way where the display is presented upside down.'),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS};

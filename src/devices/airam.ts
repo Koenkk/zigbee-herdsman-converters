@@ -1,6 +1,5 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -32,18 +31,7 @@ const definitions: DefinitionWithExtend[] = [
                 'brightness_up_release',
             ]),
         ],
-        fromZigbee: [
-            fz.command_on,
-            legacy.fz.genOnOff_cmdOn,
-            fz.command_off,
-            legacy.fz.genOnOff_cmdOff,
-            legacy.fz.CTR_U_brightness_updown_click,
-            fz.ignore_basic_report,
-            legacy.fz.CTR_U_brightness_updown_hold,
-            legacy.fz.CTR_U_brightness_updown_release,
-            fz.command_recall,
-            legacy.fz.CTR_U_scene,
-        ],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.ignore_basic_report, fz.command_move, fz.command_stop, fz.command_recall],
         toZigbee: [],
     },
     {

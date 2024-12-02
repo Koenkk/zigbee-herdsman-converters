@@ -12,7 +12,6 @@ import {
     light,
     onOff,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -149,7 +148,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_via_brightness],
         exposes: [e.cover_position()],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['ZG2801K2-G1-RGB-CCT-LEAD'],

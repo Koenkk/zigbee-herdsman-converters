@@ -7,7 +7,6 @@ import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, onOff} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
@@ -158,7 +157,7 @@ const develco = {
             key: ['pulse_configuration'],
             convertSet: async (entity, key, value, meta) => {
                 await entity.write('seMetering', {develcoPulseConfiguration: value}, manufacturerOptions);
-                return {readAfterWriteTime: 200, state: {pulse_configuration: value}};
+                return {state: {pulse_configuration: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('seMetering', ['develcoPulseConfiguration'], manufacturerOptions);
@@ -169,7 +168,7 @@ const develco = {
             convertSet: async (entity, key, value, meta) => {
                 const payload = {develcoInterfaceMode: utils.getKey(constants.develcoInterfaceMode, value, undefined, Number)};
                 await entity.write('seMetering', payload, manufacturerOptions);
-                return {readAfterWriteTime: 200, state: {interface_mode: value}};
+                return {state: {interface_mode: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('seMetering', ['develcoInterfaceMode'], manufacturerOptions);
@@ -224,7 +223,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Develco',
         description: 'Power plug',
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -241,7 +240,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SPLZB-132',
         vendor: 'Develco',
         description: 'Power plug',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -258,7 +257,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SPLZB-134',
         vendor: 'Develco',
         description: 'Power plug (type G)',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -277,7 +276,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
         configure: async (device, coordinatorEndpoint) => {
@@ -319,7 +318,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Wattle AMS HAN power-meter sensor',
         fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.total_power],
         toZigbee: [tz.EMIZB_132_mode],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -380,7 +379,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -430,7 +429,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
         configure: async (device, coordinatorEndpoint) => {
@@ -457,7 +456,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Frient', model: '94431', description: 'Smart Intelligent Heat Alarm'}],
         fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -509,7 +508,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {default: 35};
         },
@@ -534,7 +533,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {default: 35};
         },
@@ -633,7 +632,7 @@ const definitions: DefinitionWithExtend[] = [
             dynExposes.push(e.linkquality());
             return dynExposes;
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {default: 35};
         },
@@ -693,7 +692,7 @@ const definitions: DefinitionWithExtend[] = [
             dynExposes.push(e.linkquality());
             return dynExposes;
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {default: 35};
         },
@@ -726,7 +725,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HMSZB-110',
         vendor: 'Develco',
         description: 'Temperature & humidity sensor',
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {default: 38};
         },
@@ -809,7 +808,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Flood alarm device ',
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.battery_low(), e.tamper(), e.water_leak()],
         endpoint: (device) => {
             return {default: 35};
@@ -833,7 +832,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'AQSZB-110',
         vendor: 'Develco',
         description: 'Air quality sensor',
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {default: 38};
         },
@@ -920,7 +919,7 @@ const definitions: DefinitionWithExtend[] = [
             e.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 23'),
             e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency']),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -1011,7 +1010,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart button',
         fromZigbee: [fz.ewelink_action],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.action(['single'])],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),

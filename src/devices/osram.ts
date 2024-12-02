@@ -1,9 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {ledvanceFz, ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
-import * as legacy from '../lib/legacy';
 import {deviceEndpoints} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -291,16 +289,15 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
         fromZigbee: [
-            legacy.fz.osram_lightify_switch_cmdOn,
-            legacy.fz.osram_lightify_switch_cmdMoveWithOnOff,
-            legacy.fz.osram_lightify_switch_AC0251100NJ_cmdStop,
-            legacy.fz.osram_lightify_switch_cmdMoveToColorTemp,
-            legacy.fz.osram_lightify_switch_cmdMoveHue,
-            legacy.fz.osram_lightify_switch_cmdMoveToSaturation,
-            legacy.fz.osram_lightify_switch_cmdOff,
-            legacy.fz.osram_lightify_switch_cmdMove,
+            fz.command_on,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_move_to_color_temp,
+            fz.command_move_to_hue,
+            fz.command_move_to_saturation,
+            fz.command_off,
             fz.battery,
-            legacy.fz.osram_lightify_switch_cmdMoveToLevelWithOnOff,
+            fz.command_move_to_level,
         ],
         exposes: [
             e.battery(),
@@ -319,7 +316,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        ota: ota.ledvance,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -354,18 +351,17 @@ const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [
             fz.battery,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdOn,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdOff,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdStepColorTemp,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdMoveWithOnOff,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdMove,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdStop,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdMoveHue,
-            legacy.fz.osram_lightify_switch_AB371860355_cmdMoveSat,
+            fz.command_on,
+            fz.command_off,
+            fz.command_step_color_temperature,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_move_hue,
+            fz.command_move_to_saturation,
         ],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        ota: ota.ledvance,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -409,7 +405,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one device and pushbutton)',
         fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [e.action(['toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
-        extend: [ledvanceLight({configureReporting: true, ota: ota.zigbeeOTA})],
+        extend: [ledvanceLight({configureReporting: true, ota: true})],
         onEvent: async (type, data, device) => {
             if (type === 'deviceInterview') {
                 device.getEndpoint(25).addBinding('genOnOff', device.getEndpoint(10));
@@ -425,10 +421,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4062172044776_3',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices)',
-        extend: [
-            deviceEndpoints({endpoints: {l1: 10, l2: 11}}),
-            ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2'], ota: ota.zigbeeOTA}),
-        ],
+        extend: [deviceEndpoints({endpoints: {l1: 10, l2: 11}}), ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2'], ota: true})],
     },
     {
         fingerprint: [
@@ -440,7 +433,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
         extend: [
             deviceEndpoints({endpoints: {l1: 10, l2: 11, s1: 25}}),
-            ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2', 's1'], ota: ota.zigbeeOTA}),
+            ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2', 's1'], ota: true}),
         ],
         fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [e.action(['toggle_s1', 'brightness_move_up_s1', 'brightness_move_down_s1', 'brightness_stop_s1'])],

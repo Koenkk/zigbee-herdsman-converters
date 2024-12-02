@@ -1,6 +1,5 @@
+import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -13,7 +12,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LZL4BWHL01',
         vendor: 'Lutron',
         description: 'Connected bulb remote control',
-        fromZigbee: [legacy.fz.insta_down_hold, legacy.fz.insta_up_hold, legacy.fz.LZL4B_onoff, legacy.fz.insta_stop],
+        fromZigbee: [fz.command_step, fz.command_step, fz.command_move_to_level, fz.command_stop],
         toZigbee: [],
         exposes: [e.action(['brightness_step_down', 'brightness_step_up', 'brightness_stop', 'brightness_move_to_level'])],
     },
@@ -22,14 +21,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'Z3-1BRL',
         vendor: 'Lutron',
         description: 'Aurora smart bulb dimmer',
-        fromZigbee: [legacy.fz.dimmer_passthru_brightness],
+        fromZigbee: [fz.command_move_to_level],
         toZigbee: [],
         exposes: [e.action(['brightness']), e.numeric('brightness', ea.STATE)],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
 ];
 

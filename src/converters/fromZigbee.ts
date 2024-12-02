@@ -9,7 +9,6 @@ import {
     batteryVoltageToPercentage,
     getKey,
     hasAlreadyProcessedMessage,
-    isLegacyEnabled,
     mapNumberRange,
     numberWithinRange,
     postfixWithEndpointName,
@@ -490,10 +489,9 @@ const converters1 = {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
-            return {illuminance: illuminance, illuminance_lux: illuminanceLux};
+            return {illuminance: illuminanceLux};
         },
     } satisfies Fz.Converter,
     pressure: {
@@ -2701,7 +2699,7 @@ const converters1 = {
                             W: 'power',
                             Hz: 'frequency',
                             pf: 'power_factor',
-                            lx: 'illuminance_lux',
+                            lx: 'illuminance',
                         };
 
                         let nameAlt = '';
@@ -4122,17 +4120,9 @@ const converters1 = {
     DNCKAT_S00X_buttons: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const action = msg.data['onOff'] === 1 ? 'release' : 'hold';
-            const payload: KeyValueAny = {action: postfixWithEndpointName(action, msg, model, meta)};
-
-            if (isLegacyEnabled(options)) {
-                const key = `button_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
-                payload[key] = action;
-            }
-
-            return payload;
+            return {action: postfixWithEndpointName(action, msg, model, meta)};
         },
     } satisfies Fz.Converter,
     hue_motion_sensitivity: {
@@ -4166,13 +4156,11 @@ const converters1 = {
     } satisfies Fz.Converter,
     CCTSwitch_D0001_levelctrl: {
         cluster: 'genLevelCtrl',
-        options: [exposes.options.legacy()],
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff', 'commandMove', 'commandStop'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
             if (msg.type === 'commandMove' || msg.type === 'commandStop') {
                 const action = 'brightness';
-                payload.click = action;
                 if (msg.type === 'commandStop') {
                     const direction = globalStore.getValue(msg.endpoint, 'direction');
                     const duration = Date.now() - globalStore.getValue(msg.endpoint, 'start');
@@ -4220,17 +4208,8 @@ const converters1 = {
                 if (clk != 'memory') {
                     globalStore.putValue(msg.endpoint, 'last_seq', msg.meta.zclTransactionSequenceNumber);
                     globalStore.putValue(msg.endpoint, 'last_clk', clk);
-                    payload.click = clk;
                     payload.action = cmd;
                 }
-            }
-
-            if (!isLegacyEnabled(options)) {
-                delete payload.click;
-                delete payload.duration;
-                delete payload.rate;
-                delete payload.brightness;
-                delete payload.transition;
             }
 
             return payload;
@@ -4239,12 +4218,10 @@ const converters1 = {
     CCTSwitch_D0001_lighting: {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveToColorTemp', 'commandMoveColorTemp'],
-        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
             if (msg.type === 'commandMoveColorTemp') {
                 const clk = 'colortemp';
-                payload.click = clk;
                 payload.rate = msg.data.rate;
                 payload.action_rate = msg.data.rate;
 
@@ -4283,7 +4260,6 @@ const converters1 = {
                 // see if it was the recognized start command for button4 - if so, ignore this second command,
                 // because it's not really button3, it's actually button4
                 if (lastClk == 'memory') {
-                    payload.click = lastClk;
                     payload.action = 'recall';
                     payload.brightness = globalStore.getValue(msg.endpoint, 'last_move_level');
                     payload.action_brightness = globalStore.getValue(msg.endpoint, 'last_move_level');
@@ -4298,7 +4274,6 @@ const converters1 = {
                     // and vice versa.
                     const direction = msg.data.colortemp > globalStore.getValue(msg.endpoint, 'last_color_temp') ? 'up' : 'down';
                     const cmd = `${clk}_${direction}`;
-                    payload.click = clk;
                     payload.action = cmd;
                     globalStore.putValue(msg.endpoint, 'last_color_temp', msg.data.colortemp);
                 }
@@ -4307,15 +4282,6 @@ const converters1 = {
                     globalStore.putValue(msg.endpoint, 'last_seq', msg.meta.zclTransactionSequenceNumber);
                     globalStore.putValue(msg.endpoint, 'last_clk', clk);
                 }
-            }
-
-            if (!isLegacyEnabled(options)) {
-                delete payload.click;
-                delete payload.rate;
-                delete payload.duration;
-                delete payload.color_temp;
-                delete payload.transition;
-                delete payload.brightness;
             }
 
             return payload;

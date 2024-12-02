@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {deviceAddCustomCluster} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -266,7 +265,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['ZHA-DoorLockSensor'],
@@ -296,7 +295,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['PEHWE20', 'PEHWE2X'],
@@ -433,7 +432,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withDescription('Limit of electric energy consumption in kW*h. 0 value represents no limit'),
             e.numeric('rssi', ea.STATE).withUnit('dB').withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
 ];
 
