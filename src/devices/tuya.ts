@@ -5080,7 +5080,10 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_rtrmfadk'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE204_rtrmfadk'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_9mjy74mp'} // MOES
+        ],
         model: 'TRV601',
         vendor: 'Tuya',
         description: 'Thermostatic radiator valve.',
