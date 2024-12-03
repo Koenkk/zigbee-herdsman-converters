@@ -5,7 +5,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {battery, deviceAddCustomCluster, humidity, iasZoneAlarm, light, onOff, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz} from '../lib/types';
 
 const e = exposes.presets;
 
@@ -14,7 +14,6 @@ const fzLocal = {
         cluster: '3rVirationSpecialcluster',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const vibration = msg.data['0'];
             if (msg.data['0'] == 0) return;
             const payload = {xAxis: msg.data['xAxis'], yAxis: msg.data['yAxis'], zAxis: msg.data['zAxis']};
             return payload;
