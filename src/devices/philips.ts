@@ -3943,7 +3943,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
     {
-        zigbeeModel: ['LGT001'],
+        zigbeeModel: ['LGT001', 'LGT002', 'LGT003'],
         model: '929003711201',
         vendor: 'Philips',
         description: 'Hue Twilight sleep and wake-up light white',

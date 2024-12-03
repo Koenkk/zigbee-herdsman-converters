@@ -29,6 +29,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_exfrnlow'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9m4kmbfu'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3yp57tby'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_7p8ugv8d'},
         ],
         model: 'SEA801-Zigbee/SEA802-Zigbee',
         vendor: 'Saswell',
@@ -36,6 +37,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: 'HiHome', model: 'WZB-TRVL'},
             {vendor: 'Hama', model: '00176592'},
+            {vendor: 'Maginon', model: 'WT-1'},
             {vendor: 'RTX', model: 'ZB-RT1'},
             {vendor: 'SETTI+', model: 'TRV001'},
         ],
