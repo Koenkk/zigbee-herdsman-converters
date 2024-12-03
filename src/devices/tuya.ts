@@ -13181,7 +13181,7 @@ const definitions: DefinitionWithExtend[] = [
                 [1, 'valve1', tuya.valueConverter.onOff],
                 [59, 'battery', tuya.valueConverter.raw],
                 [104, 'valve1', tuya.valueConverterBasic.lookup({OFF: tuya.enum(2), ON: tuya.enum(0)})],
-                [2, 'valve2', tuya.valueConverter.onOff],
+                [2, 'valve_2', tuya.valueConverter.onOff],
                 [105, 'valve1', tuya.valueConverterBasic.lookup({OFF: tuya.enum(2), ON: tuya.enum(0)})],
                 [13, 'countdown_V1', tuya.valueConverter.raw],
                 [14, 'countdown_V2', tuya.valueConverter.raw],
