@@ -923,6 +923,11 @@ const definitions: DefinitionWithExtend[] = [
             } catch {
                 /* Fails for some*/
             }
+
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            }
         },
     },
     {

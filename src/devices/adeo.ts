@@ -326,7 +326,10 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.warning(), e.battery(), e.battery_low(), e.tamper()],
         extend: [quirkCheckinInterval(0)],
         configure: async (device, coordinatorEndpoint) => {
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            }
         },
     },
     {
