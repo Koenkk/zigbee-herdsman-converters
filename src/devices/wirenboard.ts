@@ -10,7 +10,7 @@ import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const {forcePowerSource, temperature, humidity, co2, deviceEndpoints, onOff, illuminance, occupancy, ota} = modernExtend;
+const {forcePowerSource, temperature, humidity, co2, deviceEndpoints, onOff, illuminance, occupancy} = modernExtend;
 
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -492,7 +492,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.temperature(),
             e.illuminance(),
-            e.illuminance_lux(),
             e.humidity(),
             e.occupancy(),
             e.occupancy_level(),
@@ -598,7 +597,7 @@ const definitions: DefinitionWithExtend[] = [
             return {default: 1, l1: 2, l2: 3, l3: 4};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
-        extend: [ota()],
+        ota: true,
     },
     {
         zigbeeModel: ['WBMSW4'],
@@ -629,8 +628,8 @@ const definitions: DefinitionWithExtend[] = [
             sprutNoiseTimeout(),
             sprutVoc(),
             sprutIrBlaster(),
-            ota(),
         ],
+        ota: true,
     },
 ];
 

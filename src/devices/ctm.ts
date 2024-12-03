@@ -5,7 +5,6 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {battery, identify, light, temperature} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -779,7 +778,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.on_off, fz.brightness, fz.lighting_ballast_configuration],
         toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness_move, tz.ballast_config],
         meta: {disableDefaultResponse: true},
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
@@ -874,7 +873,7 @@ const definitions: DefinitionWithExtend[] = [
             tzLocal.ctm_thermostat_child_lock,
             tzLocal.ctm_thermostat_gets,
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
@@ -1008,7 +1007,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'mStikk OP, wall socket',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -1259,7 +1258,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.illuminance, fz.occupancy, fzLocal.ctm_mbd_device_enabled, fzLocal.ctm_relay_state],
         toZigbee: [tzLocal.ctm_mbd_device_enabled, tzLocal.ctm_relay_state],
         meta: {disableDefaultResponse: true},
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'msIlluminanceMeasurement', 'msOccupancySensing']);
@@ -1287,7 +1286,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.switch(),
             e.illuminance(),
-            e.illuminance_lux(),
             e.occupancy(),
             e.binary('device_enabled', ea.ALL, 'ON', 'OFF').withDescription('Turn the device on or off'),
         ],
@@ -1367,7 +1365,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.light_brightness(),
             e.illuminance(),
-            e.illuminance_lux(),
             e.occupancy(),
             e.binary('device_enabled', ea.ALL, 'ON', 'OFF').withDescription('Turn the device on or off'),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(10).withValueMax(97).withDescription('Specifies the minimum brightness value'),
@@ -1385,7 +1382,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'CTM Lyng',
         description: 'NorLum Dim OP, 2-250W rotary dimmer',
         extend: [identify(), light({configureReporting: true, powerOnBehavior: true, effect: false})],
-        ota: ota.zigbeeOTA,
+        ota: true,
         meta: {},
     },
 ];

@@ -11,13 +11,11 @@ import {
     light as lightDontUse,
     numeric,
     NumericArgs,
-    ota,
     ReportingConfigWithoutAttribute,
     setupConfigureForBinding,
     setupConfigureForReporting,
     TIME_LOOKUP,
 } from '../lib/modernExtend';
-import {tradfri as ikea} from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
@@ -27,7 +25,6 @@ import {
     getEndpointName,
     getFromLookup,
     hasAlreadyProcessedMessage,
-    isLegacyEnabled,
     isObject,
     mapNumberRange,
     postfixWithEndpointName,
@@ -94,7 +91,7 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
         ? args.levelConfig
         : {disabledFeatures: ['on_off_transition_time', 'on_transition_time', 'off_transition_time', 'on_level']};
     const result = lightDontUse({...args, colorTemp, levelConfig});
-    result.ota = ikea;
+    result.ota = true;
     result.onEvent = bulbOnEvent;
     if (isObject(args?.colorTemp) && args.colorTemp.viaColor) {
         result.toZigbee = replaceToZigbeeConvertersInArray(result.toZigbee, [tz.light_color_colortemp], [tz.light_color_and_colortemp_via_color]);
@@ -118,10 +115,6 @@ export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: tru
     };
 
     return result;
-}
-
-export function ikeaOta(): ModernExtend {
-    return ota(ikea);
 }
 
 export function ikeaBattery(): ModernExtend {
@@ -717,16 +710,13 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
         {
             cluster: 'genScenes',
             type: 'commandTradfriArrowRelease',
-            options: [options.legacy()],
             convert: (model, msg, publish, options, meta) => {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
                 if (args.styrbar) globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
                 const direction = globalStore.getValue(msg.endpoint, 'direction');
                 if (direction) {
                     globalStore.clearValue(msg.endpoint, 'direction');
-                    const duration = msg.data.value / 1000;
-                    const result = {action: `arrow_${direction}_release`, duration, action_duration: duration};
-                    if (!isLegacyEnabled(options)) delete result.duration;
+                    const result = {action: `arrow_${direction}_release`, action_duration: msg.data.value / 1000};
                     return result;
                 }
             },
@@ -825,64 +815,3 @@ export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
         commandsResponse: {},
     });
 }
-
-export const legacy = {
-    fromZigbee: {
-        E1744_play_pause: {
-            cluster: 'genOnOff',
-            type: 'commandToggle',
-            options: [options.legacy()],
-            convert: (model, msg, publish, options, meta) => {
-                if (isLegacyEnabled(options)) {
-                    return {action: 'play_pause'};
-                }
-            },
-        } satisfies Fz.Converter,
-        E1744_skip: {
-            cluster: 'genLevelCtrl',
-            type: 'commandStep',
-            options: [options.legacy()],
-            convert: (model, msg, publish, options, meta) => {
-                if (isLegacyEnabled(options)) {
-                    const direction = msg.data.stepmode === 1 ? 'backward' : 'forward';
-                    return {
-                        action: `skip_${direction}`,
-                        step_size: msg.data.stepsize,
-                        transition_time: msg.data.transtime,
-                    };
-                }
-            },
-        } satisfies Fz.Converter,
-        E1743_brightness_down: {
-            cluster: 'genLevelCtrl',
-            type: 'commandMove',
-            options: [options.legacy()],
-            convert: (model, msg, publish, options, meta) => {
-                if (isLegacyEnabled(options)) {
-                    return {click: 'brightness_down'};
-                }
-            },
-        } satisfies Fz.Converter,
-        E1743_brightness_up: {
-            cluster: 'genLevelCtrl',
-            type: 'commandMoveWithOnOff',
-            options: [options.legacy()],
-            convert: (model, msg, publish, options, meta) => {
-                if (isLegacyEnabled(options)) {
-                    return {click: 'brightness_up'};
-                }
-            },
-        } satisfies Fz.Converter,
-        E1743_brightness_stop: {
-            cluster: 'genLevelCtrl',
-            type: 'commandStopWithOnOff',
-            options: [options.legacy()],
-            convert: (model, msg, publish, options, meta) => {
-                if (isLegacyEnabled(options)) {
-                    return {click: 'brightness_stop'};
-                }
-            },
-        } satisfies Fz.Converter,
-    },
-    toZigbee: {},
-};

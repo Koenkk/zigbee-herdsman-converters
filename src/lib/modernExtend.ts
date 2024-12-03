@@ -3,9 +3,7 @@ import {ClusterDefinition} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstyp
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as globalLegacy from '../lib/legacy';
 import {logger} from '../lib/logger';
-import {zigbeeOTA} from '../lib/ota';
 import * as globalStore from '../lib/store';
 import {Cover, presets as e, access as ea, Numeric, options as opt} from './exposes';
 import {configure as lightConfigure} from './light';
@@ -16,7 +14,6 @@ import {
     Configure,
     DefinitionExposesFunction,
     DefinitionMeta,
-    DefinitionOta,
     Expose,
     Fz,
     KeyValue,
@@ -41,7 +38,6 @@ import {
     getOptions,
     hasAlreadyProcessedMessage,
     isEndpoint,
-    isLegacyEnabled,
     isNumber,
     isObject,
     isString,
@@ -516,7 +512,7 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
 
 export interface OnOffArgs {
     powerOnBehavior?: boolean;
-    ota?: DefinitionOta;
+    ota?: ModernExtend['ota'];
     skipDuplicateTransaction?: boolean;
     endpointNames?: string[];
     configureReporting?: boolean;
@@ -573,10 +569,9 @@ export interface CommandsOnOffArgs {
     commands?: ('on' | 'off' | 'toggle')[];
     bind?: boolean;
     endpointNames?: string[];
-    legacyAction?: boolean;
 }
 export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
-    args = {commands: ['on', 'off', 'toggle'], bind: true, legacyAction: false, ...args};
+    args = {commands: ['on', 'off', 'toggle'], bind: true, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -602,10 +597,6 @@ export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
             },
         },
     ];
-
-    if (args.legacyAction) {
-        fromZigbee.push(...[globalLegacy.fromZigbee.genOnOff_cmdOn, globalLegacy.fromZigbee.genOnOff_cmdOff]);
-    }
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
@@ -660,33 +651,17 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
         return result;
     };
 
-    const rawIllinance = numeric({
+    return numeric({
         name: 'illuminance',
         cluster: 'msIlluminanceMeasurement',
         attribute: 'measuredValue',
-        description: 'Raw measured illuminance',
-        access: 'STATE_GET',
-        ...args,
-    });
-
-    const illiminanceLux = numeric({
-        name: 'illuminance_lux',
-        cluster: 'msIlluminanceMeasurement',
-        attribute: 'measuredValue',
         reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5}, // 5 lux
-        description: 'Measured illuminance in lux',
+        description: 'Measured illuminance',
         unit: 'lx',
         scale: luxScale,
         access: 'STATE_GET',
         ...args,
     });
-
-    const result: ModernExtend = illiminanceLux;
-    result.fromZigbee.push(...rawIllinance.fromZigbee);
-    result.toZigbee.push(...rawIllinance.toZigbee);
-    result.exposes.push(...rawIllinance.exposes);
-
-    return result;
 }
 
 export function temperature(args?: Partial<NumericArgs>) {
@@ -986,7 +961,7 @@ export interface LightArgs {
     turnsOffAtBrightness1?: boolean;
     configureReporting?: boolean;
     endpointNames?: string[];
-    ota?: DefinitionOta;
+    ota?: ModernExtend['ota'];
     levelConfig?: {disabledFeatures?: string[]};
 }
 export function light(args?: LightArgs): ModernExtend {
@@ -1125,7 +1100,6 @@ export interface CommandsLevelCtrl {
     )[];
     bind?: boolean;
     endpointNames?: string[];
-    legacyAction?: boolean;
 }
 export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
     args = {
@@ -1138,7 +1112,6 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
             'brightness_stop',
         ],
         bind: true,
-        legacyAction: false,
         ...args,
     };
     let actions: string[] = args.commands;
@@ -1150,48 +1123,6 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
     ];
 
     const fromZigbee: Fz.Converter[] = [fz.command_move_to_level, fz.command_move, fz.command_step, fz.command_stop];
-
-    if (args.legacyAction) {
-        // Legacy converters with removed hasAlreadyProcessedMessage and redirects
-        const legacyFromZigbee: Fz.Converter[] = [
-            {
-                cluster: 'genLevelCtrl',
-                type: ['commandMove', 'commandMoveWithOnOff'],
-                options: [opt.legacy(), opt.simulated_brightness(' Note: will only work when legacy: false is set.')],
-                convert: (model, msg, publish, options, meta) => {
-                    if (isLegacyEnabled(options)) {
-                        globalLegacy.ictcg1(model, msg, publish, options, 'move');
-                        const direction = msg.data.movemode === 1 ? 'left' : 'right';
-                        return {action: `rotate_${direction}`, rate: msg.data.rate};
-                    }
-                },
-            },
-            {
-                cluster: 'genLevelCtrl',
-                type: ['commandStop', 'commandStopWithOnOff'],
-                options: [opt.legacy()],
-                convert: (model, msg, publish, options, meta) => {
-                    if (isLegacyEnabled(options)) {
-                        const value = globalLegacy.ictcg1(model, msg, publish, options, 'stop');
-                        return {action: `rotate_stop`, brightness: value};
-                    }
-                },
-            },
-            {
-                cluster: 'genLevelCtrl',
-                type: 'commandMoveToLevelWithOnOff',
-                options: [opt.legacy()],
-                convert: (model, msg, publish, options, meta) => {
-                    if (isLegacyEnabled(options)) {
-                        const value = globalLegacy.ictcg1(model, msg, publish, options, 'level');
-                        const direction = msg.data.level === 0 ? 'left' : 'right';
-                        return {action: `rotate_${direction}_quick`, level: msg.data.level, brightness: value};
-                    }
-                },
-            },
-        ];
-        fromZigbee.push(...legacyFromZigbee);
-    }
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
@@ -1408,10 +1339,9 @@ export interface CommandsWindowCoveringArgs {
     commands?: ('open' | 'close' | 'stop')[];
     bind?: boolean;
     endpointNames?: string[];
-    legacyAction: boolean;
 }
 export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): ModernExtend {
-    args = {commands: ['open', 'close', 'stop'], bind: true, legacyAction: false, ...args};
+    args = {commands: ['open', 'close', 'stop'], bind: true, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -1438,10 +1368,6 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
             },
         },
     ];
-
-    if (args.legacyAction) {
-        fromZigbee.push(...[globalLegacy.fromZigbee.cover_open, globalLegacy.fromZigbee.cover_close, globalLegacy.fromZigbee.cover_stop]);
-    }
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
@@ -1987,14 +1913,6 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     }
 
     return result;
-}
-
-// #endregion
-
-// #region OTA
-
-export function ota(definition?: DefinitionOta): ModernExtend {
-    return {ota: definition !== undefined ? definition : zigbeeOTA, isModernExtend: true};
 }
 
 // #endregion

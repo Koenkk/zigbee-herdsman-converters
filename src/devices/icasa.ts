@@ -1,6 +1,5 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {light, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -45,18 +44,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Keypad Pulse 4S',
         meta: {battery: {dontDividePercentage: true}},
-        fromZigbee: [
-            fz.command_recall,
-            legacy.fz.scenes_recall_click,
-            fz.command_on,
-            legacy.fz.genOnOff_cmdOn,
-            fz.command_off,
-            legacy.fz.genOnOff_cmdOff,
-            fz.battery,
-            legacy.fz.cmd_move_with_onoff,
-            legacy.fz.cmd_stop_with_onoff,
-            fz.command_store,
-        ],
+        fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop, fz.command_store],
         exposes: [
             e.battery(),
             e.action([
@@ -82,18 +70,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ICZB-KPD18S',
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Keypad Pulse 8S',
-        fromZigbee: [
-            fz.command_recall,
-            legacy.fz.scenes_recall_click,
-            fz.command_on,
-            legacy.fz.genOnOff_cmdOn,
-            fz.command_off,
-            legacy.fz.genOnOff_cmdOff,
-            fz.battery,
-            legacy.fz.cmd_move_with_onoff,
-            legacy.fz.cmd_stop_with_onoff,
-            fz.command_store,
-        ],
+        fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop, fz.command_store],
         exposes: [
             e.battery(),
             e.action([

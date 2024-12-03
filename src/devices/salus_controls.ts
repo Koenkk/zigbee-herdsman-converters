@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {electricityMeter, onOff} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -14,7 +13,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Salus Controls',
         description: 'Smart plug (EU socket)',
         extend: [onOff(), electricityMeter({cluster: 'metering'})],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['SP600'],
@@ -22,7 +21,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Salus Controls',
         description: 'Smart plug (UK socket)',
         extend: [onOff(), electricityMeter({cluster: 'metering', fzMetering: fz.SP600_power})],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['SX885ZB'],
@@ -30,14 +29,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Salus Controls',
         description: 'miniSmartPlug',
         extend: [onOff(), electricityMeter({cluster: 'metering'})],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['SR600'],
         model: 'SR600',
         vendor: 'Salus Controls',
         description: 'Relay switch',
-        extend: [onOff({ota: ota.salus})],
+        extend: [onOff({ota: {manufacturerName: 'SalusControls'}})],
     },
     {
         zigbeeModel: ['SW600'],
@@ -47,7 +46,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['WLS600'],
@@ -57,7 +56,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['OS600'],
@@ -67,7 +66,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['SS909ZB', 'PS600'],
@@ -84,7 +83,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['RE600'],
@@ -94,7 +93,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
 ];
 

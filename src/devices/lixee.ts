@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from '../lib/types';
@@ -1860,7 +1859,7 @@ const definitions: DefinitionWithExtend[] = [
                     throw e.reason;
                 });
         },
-        ota: ota.zigbeeOTA,
+        ota: {manufacturerName: 'LiXee'}, // TODO: not sure if it's set properly in device
         onEvent: async (type, data, device, options) => {
             const endpoint = device.getEndpoint(1);
             if (type === 'start') {

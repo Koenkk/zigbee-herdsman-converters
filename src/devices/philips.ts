@@ -3,9 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {deviceEndpoints, identify, quirkCheckinInterval} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import {philipsFz, philipsLight, philipsOnOff, philipsTwilightOnOff, philipsTz} from '../lib/philips';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -2301,7 +2299,7 @@ const definitions: DefinitionWithExtend[] = [
             fz.ignore_command_off_with_effect,
             fz.ignore_command_step,
             fz.ignore_command_stop,
-            legacy.fz.hue_dimmer_switch,
+            fz.hue_dimmer_switch,
             fz.battery,
         ],
         exposes: [
@@ -2341,7 +2339,7 @@ const definitions: DefinitionWithExtend[] = [
             return {ep1: 1, ep2: 2};
         },
         extend: [quirkCheckinInterval('1_HOUR')],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['RWL022'],
@@ -2388,16 +2386,16 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.write('genBasic', {0x0031: {value: 0x000b, type: 0x19}}, options);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['ROM001', 'RDM003'],
         model: '8718699693985',
         vendor: 'Philips',
         description: 'Hue smart button',
-        fromZigbee: [fz.command_on, fz.command_off_with_effect, legacy.fz.SmartButton_skip, fz.hue_smart_button_event, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.command_step, fz.hue_smart_button_event, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['on', 'off', 'skip_backward', 'skip_forward', 'press', 'hold', 'release'])],
+        exposes: [e.battery(), e.action(['on', 'off', 'press', 'hold', 'release'])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -2407,7 +2405,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['manuSpecificPhilips', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['SML001'],
@@ -2427,7 +2425,6 @@ const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.occupancy(),
             e.battery(),
-            e.illuminance_lux(),
             e.illuminance(),
             e.motion_sensitivity_select(['low', 'medium', 'high']),
             e.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
@@ -2449,7 +2446,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['SML002'],
@@ -2469,7 +2466,6 @@ const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.occupancy(),
             e.battery(),
-            e.illuminance_lux(),
             e.illuminance(),
             e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             e.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
@@ -2491,7 +2487,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['929003128401'],
@@ -2560,7 +2556,6 @@ const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.occupancy(),
             e.battery(),
-            e.illuminance_lux(),
             e.illuminance(),
             e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high', 'very_high', 'max']),
             e.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
@@ -2598,7 +2593,6 @@ const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.occupancy(),
             e.battery(),
-            e.illuminance_lux(),
             e.illuminance(),
             e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high', 'very_high', 'max']),
             e.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
@@ -2618,7 +2612,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
         // Temporary disable until OTA is available: https://github.com/Koenkk/zigbee2mqtt/issues/14923
-        // ota: ota.zigbeeOTA,
+        // ota: true,
     },
     {
         zigbeeModel: ['LOM001'],
@@ -3202,7 +3196,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.write('genBasic', {0x0031: {value: 0x000b, type: 0x19}}, options);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000004.....$/}],
@@ -3949,24 +3943,14 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
     {
-        zigbeeModel: ['LGT001'],
+        zigbeeModel: ['LGT001', 'LGT002', 'LGT003'],
         model: '929003711201',
         vendor: 'Philips',
         description: 'Hue Twilight sleep and wake-up light white',
-        extend: [
-            deviceEndpoints({endpoints: {switch: 1, back: 11, front: 12}}),
-
-            philipsLight({colorTemp: {range: [153, 500]}, color: true, endpointNames: ['front']}),
-            philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true, endpointNames: ['back']}),
-
-            philipsTwilightOnOff(),
+        whiteLabel: [
+            {model: '929003711301', vendor: 'Philips', description: 'Hue Twilight sleep and wake-up light black', fingerprint: [{modelID: 'LGT002'}]},
+            {model: '929003711401', vendor: 'Philips', description: 'Hue Twilight sleep and wake-up light black', fingerprint: [{modelID: 'LGT003'}]},
         ],
-    },
-    {
-        zigbeeModel: ['LGT002'],
-        model: '929003711301',
-        vendor: 'Philips',
-        description: 'Hue Twilight sleep and wake-up light black',
         extend: [
             deviceEndpoints({endpoints: {switch: 1, back: 11, front: 12}}),
 

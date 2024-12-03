@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -15,7 +14,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Peanut Smart Plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        ota: ota.securifi,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);

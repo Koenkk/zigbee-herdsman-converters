@@ -1,8 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -23,17 +21,10 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Jung', model: 'ZLLA5004M'},
             {vendor: 'Jung', model: 'ZLLHS4'},
         ],
-        fromZigbee: [
-            legacy.fz.insta_scene_click,
-            fz.command_on,
-            fz.command_off_with_effect,
-            legacy.fz.insta_down_hold,
-            legacy.fz.insta_up_hold,
-            legacy.fz.insta_stop,
-        ],
+        fromZigbee: [fz.command_recall, fz.command_on, fz.command_off_with_effect, fz.command_step, fz.command_step, fz.command_stop],
         exposes: [e.action(['select_0', 'select_1', 'select_2', 'select_3', 'select_4', 'select_5', 'on', 'off', 'down', 'up', 'stop'])],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['NEXENTRO Blinds Actuator', 'Generic UP Device'],
@@ -57,7 +48,7 @@ const definitions: DefinitionWithExtend[] = [
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         fingerprint: [

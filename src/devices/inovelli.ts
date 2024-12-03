@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {deviceAddCustomCluster, identify} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Expose, Fz, Tz, Zh} from '../lib/types';
@@ -1416,8 +1415,6 @@ const tzLocal = {
                     }
 
                     const result = await inovelliOnOffConvertSet(entity, 'state', state, meta);
-                    // @ts-expect-error ignore
-                    result.readAfterWriteTime = 0;
                     if (result.state && result.state.state === 'ON' && meta.state.brightness === 0) {
                         // @ts-expect-error ignore
                         result.state.brightness = 1;
@@ -1442,18 +1439,11 @@ const tzLocal = {
                     utils.getOptions(meta.mapped, entity),
                 );
 
-                const defaultTransitionTime = await entity.read('manuSpecificInovelli', ['rampRateOnToOffRemote']);
-
                 return {
                     state: {
                         state: brightness === 0 ? 'OFF' : 'ON',
                         brightness: Number(brightness),
                     },
-                    readAfterWriteTime:
-                        transition.time === 0
-                            ? // @ts-expect-error ignore
-                              defaultTransitionTime.rampRateOnToOffRemote * 100
-                            : transition.time * 100, // need on speed
                 };
             }
         },
@@ -2188,7 +2178,7 @@ const definitions: DefinitionWithExtend[] = [
             fz.metering,
             fzLocal.inovelli(VZM31_ATTRIBUTES),
         ],
-        ota: ota.inovelli,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering', 'haElectricalMeasurement', 'genOnOff', 'genLevelCtrl']);
@@ -2226,7 +2216,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         exposes: exposesListVZM35.concat(identify().exposes as Expose[]),
         extend: [inovelliExtend.addCustomClusterInovelli()],
-        ota: ota.inovelli,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -2258,7 +2248,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         exposes: exposesListVZM36.concat(identify().exposes as Expose[]),
         extend: [inovelliExtend.addCustomClusterInovelli()],
-        ota: ota.inovelli,
+        ota: true,
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
         configure: async (device, coordinatorEndpoint) => {
