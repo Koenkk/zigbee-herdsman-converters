@@ -15,11 +15,11 @@ fingerprint: [
             // You may need to add \u0000 at the end of the name in some cases
             modelID: 'TS0601',
             // The manufacturer name from: Device with modelID 'TS0601' is not supported.
-            manufacturerName: '_TZE204_kobbcyum',
+            manufacturerName: '_TZE284_hecsejsb',
         },
     ],
     
-    model: 'TOWSMR1',
+    model: 'TOWSMR1 Type A',
     vendor: 'Tongou',
     description: 'Single-phase multifunction energy meter (DIN Module)',
     fromZigbee: [tuya.fz.datapoints],
