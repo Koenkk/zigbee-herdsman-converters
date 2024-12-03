@@ -1,5 +1,12 @@
 # Changelog
 
+## [21.2.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.2.0...v21.2.1) (2024-12-03)
+
+
+### Bug Fixes
+
+* **ignore:** fix X701A ([c1d8c3c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c1d8c3c218f67523903a234f3afd4a286144eb6a))
+
 ## [21.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.1.0...v21.2.0) (2024-12-03)
 
 
