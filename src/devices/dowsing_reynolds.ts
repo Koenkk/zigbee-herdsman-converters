@@ -1,4 +1,4 @@
-import {philipsLight} from '../lib/philips';
+import {light} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -6,9 +6,8 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['DR3000'],
         model: 'DR3000',
         vendor: 'Dowsing & Reynolds',
-        description: 'Automatically generated definition',
-        extend: [philipsLight()],
-        meta: {},
+        description: 'Antique brass double dimmer switch',
+        extend: [light()],
     },
 ];
 
