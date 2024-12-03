@@ -286,7 +286,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {up: 1, down: 2},
+                endpoints: {down: 1, up: 2},
             }),
             commandsOnOff({endpointNames: ['up', 'down']}),
         ],
@@ -313,7 +313,7 @@ const definitions: DefinitionWithExtend[] = [
             reinterview(),
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {'1': 1, up: 2, down: 3},
+                endpoints: {'1': 1, down: 2, up: 3},
             }),
             onOff({
                 endpointNames: ['1'],
