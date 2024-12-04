@@ -177,6 +177,7 @@ import lytko from './lytko';
 import m_elec from './m_elec';
 import makegood from './makegood';
 import matcall_bv from './matcall_bv';
+import mazda from './mazda';
 import meazon from './meazon';
 import mercator from './mercator';
 import miboxer from './miboxer';
@@ -492,6 +493,7 @@ export default [
     ...m_elec,
     ...makegood,
     ...matcall_bv,
+    ...mazda,
     ...meazon,
     ...mercator,
     ...miboxer,
