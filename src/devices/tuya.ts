@@ -1564,6 +1564,13 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Zemismart', 'ZM-H7', 'Hand wave wall smart switch', ['_TZ3000_jcqs2mrv'])],
     },
     {
+        zigbeeModel: ['TS0505'],
+        model: 'TS0505',
+        vendor: 'Tuya',
+        description: ' GU10 zbeacon Zigbee LED bulb',
+        extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs']}})],
+    },
+    {
         zigbeeModel: ['TS0505B'],
         model: 'TS0505B_1',
         vendor: 'Tuya',
