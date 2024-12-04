@@ -815,6 +815,20 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart E26 LED bulb',
         extend: [light({turnsOffAtBrightness1: true})],
     },
+    {
+        zigbeeModel: ['RF 271 T'],
+        model: 'RF 271 T',
+        vendor: 'Innr',
+        description: 'Smart E27 filament LED globe light bulb',
+        extend: [light({colorTemp: {range: [153, 556]}, turnsOffAtBrightness1: true})],
+    },
+    {
+        zigbeeModel: ['RF 273 T'],
+        model: 'RF 273 T',
+        vendor: 'Innr',
+        description: 'Smart E27 filament LED light bulb',
+        extend: [light({colorTemp: {range: [153, 556]}, turnsOffAtBrightness1: true})],
+    },
 ];
 
 export default definitions;

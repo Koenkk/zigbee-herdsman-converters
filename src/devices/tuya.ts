@@ -817,47 +817,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.gas(), e.tamper()],
     },
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_wktrysab',
-            },
-        ],
-        model: 'WLS098-ZIGBEE',
-        vendor: 'Tuya',
-        description: '8 gang wall touch switch board',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
-        exposes: [...Array.from({length: 8}, (_, i) => tuya.exposes.switch().withEndpoint(`l${i + 1}`))],
-        endpoint: (device) => {
-            return {
-                l1: 1,
-                l2: 1,
-                l3: 1,
-                l4: 1,
-                l5: 1,
-                l6: 1,
-                l7: 1,
-                l8: 1,
-            };
-        },
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, 'state_l1', tuya.valueConverter.onOff],
-                [2, 'state_l2', tuya.valueConverter.onOff],
-                [3, 'state_l3', tuya.valueConverter.onOff],
-                [4, 'state_l4', tuya.valueConverter.onOff],
-                [5, 'state_l5', tuya.valueConverter.onOff],
-                [6, 'state_l6', tuya.valueConverter.onOff],
-                [0x65, 'state_l7', tuya.valueConverter.onOff],
-                [0x66, 'state_l8', tuya.valueConverter.onOff],
-            ],
-        },
-    },
-    {
         zigbeeModel: ['TS0205'],
         model: 'TS0205',
         vendor: 'Tuya',
@@ -963,6 +922,11 @@ const definitions: DefinitionWithExtend[] = [
                 await reporting.batteryVoltage(endpoint);
             } catch {
                 /* Fails for some*/
+            }
+
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
             }
         },
     },
@@ -9852,6 +9816,10 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_vmcgja59'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_dvosyycn'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_wktrysab'},
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_wktrysab',
+            },
         ],
         model: 'TS0601_switch_8',
         vendor: 'Tuya',
@@ -11601,7 +11569,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_kobbcyum']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_kobbcyum', '_TZE284_kobbcyum', '_TZE284_hecsejsb']),
         model: 'TOWSMR1',
         vendor: 'Tongou',
         description: 'Single-phase multifunction RCBO (DIN Module)',
@@ -13124,14 +13092,21 @@ const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(['cool', 'heat', 'fan_only'], ea.STATE_SET)
-                .withSetpoint('current_heating_setpoint', 5, 45, 1, ea.STATE_SET)
-                .withFanMode(['auto', 'high', 'medium', 'low'], ea.STATE_SET)
-                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET),
+                .withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
+                .withFanMode(['auto', 'high', 'medium', 'low', 'off'], ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET),
+            e
+                .numeric('deadzone_temperature', ea.STATE_SET)
+                .withValueMax(5)
+                .withValueMin(1)
+                .withValueStep(1)
+                .withPreset('default', 1, 'Default value')
+                .withDescription('The difference between the local temperature that triggers heating and the set temperature'),
             e.min_temperature().withValueMin(5).withValueMax(15),
             e.max_temperature().withValueMin(35).withValueMax(45),
             e.child_lock(),
             e.humidity(),
-            e.binary('manual_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Manual = ON or Schedule = OFF'),
+            e.binary('manual_mode', ea.STATE_SET, 'Auto', 'Manual').withDescription('Manual = Manual or Schedule = Auto'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -13139,13 +13114,30 @@ const definitions: DefinitionWithExtend[] = [
                 [2, 'system_mode', tuya.valueConverterBasic.lookup({cool: tuya.enum(0), heat: tuya.enum(1), fan_only: tuya.enum(2)})],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [19, 'max_temperature', tuya.valueConverter.divideBy10],
+                [18, 'max_temperature_f', tuya.valueConverter.raw],
+                [20, 'min_temperature_f', tuya.valueConverter.raw],
+                [21, 'local_temperature_f', tuya.valueConverter.raw],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [26, 'min_temperature', tuya.valueConverter.divideBy10],
-                [102, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration],
-                [28, 'fan_mode', tuya.valueConverterBasic.lookup({auto: tuya.enum(0), high: tuya.enum(1), medium: tuya.enum(2), low: tuya.enum(3)})],
+                [102, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [103, 'local_temperature_calibration_f', tuya.valueConverter.raw],
+                [104, 'deadzone_temperature', tuya.valueConverter.raw],
+                [105, 'deadzone_temperature_f', tuya.valueConverter.raw],
+                [
+                    28,
+                    'fan_mode',
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        high: tuya.enum(1),
+                        medium: tuya.enum(2),
+                        low: tuya.enum(3),
+                        off: tuya.enum(4),
+                    }),
+                ],
                 [40, 'child_lock', tuya.valueConverter.lockUnlock],
-                [113, 'humidity', tuya.valueConverter.raw],
-                [101, 'manual_mode', tuya.valueConverter.onOff],
+                [44, 'current_heating_setpoint_f', tuya.valueConverter.raw],
+                [46, 'temperature_scale', tuya.valueConverter.raw],
+                [101, 'manual_mode', tuya.valueConverterBasic.lookup({Auto: tuya.enum(0), Manual: tuya.enum(1), Tempoary: tuya.enum(2)})],
             ],
         },
     },
