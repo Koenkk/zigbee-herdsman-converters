@@ -817,47 +817,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.gas(), e.tamper()],
     },
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_wktrysab',
-            },
-        ],
-        model: 'WLS098-ZIGBEE',
-        vendor: 'Tuya',
-        description: '8 gang wall touch switch board',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
-        exposes: [...Array.from({length: 8}, (_, i) => tuya.exposes.switch().withEndpoint(`l${i + 1}`))],
-        endpoint: (device) => {
-            return {
-                l1: 1,
-                l2: 1,
-                l3: 1,
-                l4: 1,
-                l5: 1,
-                l6: 1,
-                l7: 1,
-                l8: 1,
-            };
-        },
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, 'state_l1', tuya.valueConverter.onOff],
-                [2, 'state_l2', tuya.valueConverter.onOff],
-                [3, 'state_l3', tuya.valueConverter.onOff],
-                [4, 'state_l4', tuya.valueConverter.onOff],
-                [5, 'state_l5', tuya.valueConverter.onOff],
-                [6, 'state_l6', tuya.valueConverter.onOff],
-                [0x65, 'state_l7', tuya.valueConverter.onOff],
-                [0x66, 'state_l8', tuya.valueConverter.onOff],
-            ],
-        },
-    },
-    {
         zigbeeModel: ['TS0205'],
         model: 'TS0205',
         vendor: 'Tuya',
@@ -963,6 +922,11 @@ const definitions: DefinitionWithExtend[] = [
                 await reporting.batteryVoltage(endpoint);
             } catch {
                 /* Fails for some*/
+            }
+
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
             }
         },
     },
@@ -9851,6 +9815,10 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_vmcgja59'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_dvosyycn'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_wktrysab'},
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_wktrysab',
+            },
         ],
         model: 'TS0601_switch_8',
         vendor: 'Tuya',
@@ -11600,7 +11568,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_kobbcyum', '_TZE284_kobbcyum']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_kobbcyum', '_TZE284_kobbcyum', '_TZE284_hecsejsb']),
         model: 'TOWSMR1',
         vendor: 'Tongou',
         description: 'Single-phase multifunction RCBO (DIN Module)',

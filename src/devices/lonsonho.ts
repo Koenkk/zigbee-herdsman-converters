@@ -76,7 +76,6 @@ const definitions: DefinitionWithExtend[] = [
         model: 'X701A',
         vendor: 'Lonsonho',
         description: '1 gang switch with backlight',
-        exposes: [e.switch()],
         extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);

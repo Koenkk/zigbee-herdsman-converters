@@ -12,6 +12,7 @@ import {
     deviceEndpoints,
     electricityMeter,
     enumLookup,
+    iasZoneAlarm,
     identify,
     illuminance,
     light,
@@ -21,6 +22,7 @@ import {
     onOff,
     ScaleFunction,
     setupConfigureForReading,
+    temperature,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from '../lib/types';
@@ -1725,32 +1727,32 @@ const definitions: DefinitionWithExtend[] = [
         model: 'W599001',
         vendor: 'Schneider Electric',
         description: 'Wiser smoke alarm',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_smoke_alarm_1],
-        toZigbee: [],
-        ota: true, // local OTA updates are untested
-        exposes: [
-            e.smoke(),
-            e.test(),
-            e.battery_low(),
-            e.tamper(),
-            e.battery(),
-            e.battery_voltage(),
-            // the temperature readings are unreliable and may need more investigation.
-            e.temperature(),
+        extend: [
+            battery({voltage: true, voltageReporting: true}),
+            temperature(),
+            iasZoneAlarm({
+                zoneType: 'smoke',
+                zoneAttributes: ['alarm_1', 'tamper', 'battery_low', 'test'],
+                zoneStatusReporting: true,
+                manufacturerZoneAttributes: [
+                    {
+                        bit: 1,
+                        name: 'heat',
+                        valueOn: true,
+                        valueOff: false,
+                        description: 'Indicates whether the device has detected high temperature',
+                    },
+                    {
+                        bit: 11,
+                        name: 'hush',
+                        valueOn: true,
+                        valueOff: false,
+                        description: 'Indicates whether the device is in hush mode',
+                        entityCategory: 'diagnostic',
+                    },
+                ],
+            }),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(20);
-            const binds = ['msTemperatureMeasurement', 'ssIasZone', 'genPowerCfg'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.temperature(endpoint);
-            await endpoint.read('msTemperatureMeasurement', ['measuredValue']);
-            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneStatus', 'zoneId']);
-            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
         whiteLabel: [
             {vendor: 'Schneider Electric', model: 'W599501', description: 'Wiser smoke alarm', fingerprint: [{modelID: 'W599501'}]},
             {vendor: 'Schneider Electric', model: '755WSA', description: 'Clipsal Wiser smoke alarm', fingerprint: [{modelID: '755WSA'}]},
