@@ -1,5 +1,32 @@
 # Changelog
 
+## [21.2.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.2.0...v21.2.1) (2024-12-03)
+
+
+### Bug Fixes
+
+* **ignore:** fix X701A ([c1d8c3c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c1d8c3c218f67523903a234f3afd4a286144eb6a))
+
+## [21.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.1.0...v21.2.0) (2024-12-03)
+
+
+### Features
+
+* **add:** DR3000 ([#8424](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8424)) ([2d41a04](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2d41a04a7a1c5ca97063cc438a25571c0589b764))
+* **add:** RF 271 T, RF 273 T ([#8429](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8429)) ([b636059](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b636059240de84c2333f9efb455db77bbdc37ba6))
+* Improvement to W599001 Smoke Alarm ([#8393](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8393)) ([098daba](https://github.com/Koenkk/zigbee-herdsman-converters/commit/098daba7caba5af3b55a3d305c7b699398804714))
+
+
+### Bug Fixes
+
+* add SR-ZG9002KR12-Pro SR-ZG9002KR12-Pro configure and use extend instead only fromZigbee ([#8427](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8427)) ([0ce8cd8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0ce8cd8e24f00e927ab97abc6dee7276a7706828))
+* **detect:** Detect `_TZE204_wktrysab` as Tuya TS0601_switch_8 ([#8423](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8423)) ([9ea3f04](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9ea3f04efe41648ca0aaa16af4255f5f13b3f918))
+* **detect:** Detect `_TZE284_hecsejsb` as Tongou TOWSMR1 https://github.com/Koenkk/zigbee-herdsman-converters/pull/8426 ([8411b28](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8411b28f51b4cf0300104e56a0542461d37fb7ec))
+* **detect:** Detect `929003810001_01` and `929003810001_02` as 5063230P7 ([#8430](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8430)) ([dbf7869](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dbf7869eae6a2283ff13b00f12c19eab354e56db))
+* **detect:** Detect `LCL007` as Philips 8718699703424 ([#8432](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8432)) ([e2c5da5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e2c5da54acf7d7847d21b7faa68930a374330a93))
+* Fix `Handling of poll check-in failed` for Tuya TS0203 https://github.com/Koenkk/zigbee2mqtt/issues/24938 ([286d454](https://github.com/Koenkk/zigbee-herdsman-converters/commit/286d45497aa81952bde2779498673ba66b6e7466))
+* Fix some Third Reality devices bugs ([#8428](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8428)) ([8528633](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8528633662cb6149c3c5534d0a2eb205deb4e7c8))
+
 ## [21.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.0.0...v21.1.0) (2024-12-02)
 
 
