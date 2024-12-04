@@ -2130,6 +2130,36 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Exxact', model: 'WDE003962'},
         ],
     },
+    {
+        zigbeeModel: ['NHMOTION/UNIDIM/1'],
+        model: 'NHMOTION/UNIDIM/1',
+        vendor: 'Schneider Electric',
+        description: 'Motion sensor with dimmer',
+        extend: [
+            light({
+                effect: false,
+                powerOnBehavior: false,
+                color: false,
+                configureReporting: true,
+                levelConfig: {
+                    disabledFeatures: ['on_off_transition_time', 'on_transition_time', 'off_transition_time', 'execute_if_off'],
+                },
+            }),
+            lightingBallast(),
+            illuminance(),
+            occupancy({
+                pirConfig: ['otu_delay'],
+            }),
+            schneiderElectricExtend.addOccupancyConfigurationCluster(),
+            schneiderElectricExtend.occupancyConfiguration(),
+            schneiderElectricExtend.dimmingMode(),
+        ],
+        whiteLabel: [
+            {vendor: 'ELKO', model: 'EKO06984', description: 'SmartPir with push dimmer'},
+            {vendor: 'ELKO', model: 'EKO06985', description: 'SmartPir with push dimmer'},
+            {vendor: 'ELKO', model: 'EKO06986', description: 'SmartPir with push dimmer'},
+        ],
+    },
 ];
 
 export default definitions;
