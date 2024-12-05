@@ -66,8 +66,20 @@ const definitions: DefinitionWithExtend[] = [
                         off: tuya.enum(6),
                     }),
                 ],
+                [
+                    2,
+                    'system_mode',
+                    {
+                        from: (v) => {
+                            return v === tuya.enum(6) ? 'off' : 'heat';
+                        },
+                        to: (v) => {
+                            // By default switching to "heat" will activate schedule mode on Homeassistant
+                            return v === 'off' ? tuya.enum(6) : tuya.enum(1);
+                        },
+                    },
+                ],
                 [3, 'running_state', tuya.valueConverterBasic.lookup({heat: 1, idle: 0})],
-                [3, 'system_mode', tuya.valueConverterBasic.lookup({heat: tuya.enum(1), off: tuya.enum(0)})],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [6, 'battery', tuya.valueConverter.raw],
