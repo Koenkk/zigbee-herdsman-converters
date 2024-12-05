@@ -215,8 +215,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'evConnected',
                 description: 'An EV is connected to the charger',
-                valueOn: ['true', 1],
-                valueOff: ['false', 0],
+                valueOn: [true, 1],
+                valueOff: [false, 0],
                 access: 'STATE',
             }),
 
@@ -225,8 +225,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'charging',
                 description: 'Power is being delivered to the EV',
-                valueOn: ['true', 1],
-                valueOff: ['false', 0],
+                valueOn: [true, 1],
+                valueOff: [false, 0],
                 access: 'STATE',
             }),
 
@@ -235,8 +235,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'derated',
                 description: 'Charging derated due to high temperature',
-                valueOn: ['true', 1],
-                valueOff: ['false', 0],
+                valueOn: [true, 1],
+                valueOff: [false, 0],
                 access: 'STATE',
             }),
 
@@ -245,8 +245,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'alarmActive',
                 description: 'An active alarm is present',
-                valueOn: ['true', 1],
-                valueOff: ['false', 0],
+                valueOn: [true, 1],
+                valueOff: [false, 0],
                 access: 'STATE',
             }),
 
