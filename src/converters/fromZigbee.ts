@@ -1175,6 +1175,32 @@ const converters1 = {
             };
         },
     } satisfies Fz.Converter,
+    ias_occupancy_alarm_1_with_safety_timeout: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            // For devices that send periodic zone updates as long as motion is detected,
+            // but also send a regular "no motion detected" message once the keep_time
+            // expires. So this is a safety measure, in case the device goes offline etc.
+            // while the zone is occupied, and we'd miss the clearance message.
+            // Interval is 60s, so allow for one missed update, plus a small safety margin.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/24621
+            const zoneStatus = msg.data.zonestatus;
+            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+            if (zoneStatus & 1) {
+                const timeout = 125;
+                const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000);
+                globalStore.putValue(msg.endpoint, 'timer', timer);
+            } else {
+                globalStore.putValue(msg.endpoint, 'timer', null);
+            }
+            return {
+                occupancy: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        },
+    } satisfies Fz.Converter,
     command_store: {
         cluster: 'genScenes',
         type: 'commandStore',

@@ -1850,7 +1850,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'IH012-RT01',
         vendor: 'Tuya',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ignore_basic_report, fz.ZM35HQ_attr, fz.battery],
+        fromZigbee: [fz.ias_occupancy_alarm_1_with_safety_timeout, fz.ignore_basic_report, fz.ZM35HQ_attr, fz.battery],
         toZigbee: [tz.ZM35HQ_attr],
         extend: [quirkCheckinInterval(15000)],
         exposes: [
