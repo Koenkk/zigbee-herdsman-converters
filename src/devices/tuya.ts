@@ -3103,7 +3103,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Tuya', 'TS0201_1', 'Zigbee 3.0 temperature humidity sensor with display', ['_TZ3210_alxkwn0h']),
             tuya.whitelabel('Tuya', 'ZTH01/ZTH02', 'Temperature and humidity sensor', ['_TZ3000_0s1izerx']),
             tuya.whitelabel('SEDEA', 'eTH730', 'Temperature and humidity sensor', ['_TZ3000_lqmvrwa2']),
-            tuya.whitelabel('Danfoss', 'Ally Room Sensor 014G2480', 'Temperature and humidity sensor', ['_TZ3000_mxzo5rhf']),
+            tuya.whitelabel('Danfoss', '014G2480', 'Temperature and humidity sensor', ['_TZ3000_mxzo5rhf']),
         ],
     },
     {
