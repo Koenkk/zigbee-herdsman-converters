@@ -5347,7 +5347,7 @@ const definitions: DefinitionWithExtend[] = [
             e.child_lock(),
             e.window_detection(),
             e.binary('window', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status closed or open '),
-                e.enum('mode', ea.STATE_SET, ['auto', 'manual']).withDescription('Mode'),
+            e.enum('mode', ea.STATE_SET, ['auto', 'manual']).withDescription('Mode'),
             e.binary('holiday_mode', ea.STATE_SET, 'ON', 'OFF'),
             e.binary('heating_stop', ea.STATE_SET, 'ON', 'OFF'),
             e
@@ -5359,7 +5359,7 @@ const definitions: DefinitionWithExtend[] = [
             e.eco_temperature().withValueMin(5).withValueMax(30).withDescription('Eco mode temperature'),
             e.enum('screen_orientation', ea.STATE_SET, ['up', 'right', 'down', 'left']).withDescription('Screen orientation'),
             tuya.exposes.frostProtection(),
-                e.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF'),
+            e.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF'),
             e.numeric('boost_time', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes').withValueMin(0).withValueMax(1000),
             e.numeric('fault_code', ea.STATE).withDescription('Raw fault code'),
         ],
