@@ -2109,7 +2109,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_aao3yzhs', '_TZE284_nhgdf6qr']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_aao3yzhs', '_TZE284_nhgdf6qr', '_TZE284_ap9owrsa']),
         model: 'TS0601_soil_3',
         vendor: 'Tuya',
         description: 'Soil sensor',
