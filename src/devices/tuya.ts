@@ -2123,7 +2123,7 @@ const definitions: DefinitionWithExtend[] = [
                 [5, 'temperature', tuya.valueConverter.divideBy10],
                 [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
                 [14, 'battery_state', tuya.valueConverter.batteryState],
-                [15, 'battery', tuya.valueConverter.raw],
+                [15, 'battery', tuya.valueConverterBasic.scale(6, 60, 0, 100)], //device reports back false scaling
             ],
         },
         whiteLabel: [tuya.whitelabel('GIEX', 'GX04', 'Soil Moisture Sensor', ['_TZE284_nhgdf6qr'])],
