@@ -7359,7 +7359,8 @@ const definitions: DefinitionWithExtend[] = [
                 type: tuya.dataTypes.bool,
                 valueOn: [true, true],
                 valueOff: [false, false],
-                description: 'Request door to close (= false) or open (= true), will not pulse output if contact shows door is already in requested state',
+                description:
+                    'Request door to close (= false) or open (= true), will not pulse output if contact shows door is already in requested state',
             }),
             dpNumeric({
                 name: 'countdown',
@@ -7367,6 +7368,7 @@ const definitions: DefinitionWithExtend[] = [
                 type: tuya.dataTypes.number,
                 description: 'Countdown to trigger door movement after a certain time, will pulse output in all cases',
                 unit: 's',
+                valueMin: 0,
                 valueMax: 43200,
             }),
             dpBinary({
@@ -7384,6 +7386,7 @@ const definitions: DefinitionWithExtend[] = [
                 type: tuya.dataTypes.number,
                 description: 'Configure the time to wait for the door contact status to change before triggering a run time alarm',
                 unit: 's',
+                valueMin: 0,
                 valueMax: 120,
             }),
             dpNumeric({
@@ -7392,6 +7395,7 @@ const definitions: DefinitionWithExtend[] = [
                 type: tuya.dataTypes.number,
                 description: 'Configure the amount of time the door may be open before an open time alarm is triggered',
                 unit: 's',
+                valueMin: 0,
                 valueMax: 86400,
             }),
             dpEnumLookup({
@@ -7399,7 +7403,7 @@ const definitions: DefinitionWithExtend[] = [
                 dp: 12,
                 type: tuya.dataTypes.enum,
                 description: 'Indicates run time alarm, door open alarm or noraml status, will not retunr to normal until door is triggered again',
-                lookup: {'Open Time Alarm': 0, 'Run Time Alarm': 1, 'Normal': 2},
+                lookup: {'Open Time Alarm': 0, 'Run Time Alarm': 1, Normal: 2},
                 readOnly: true,
             }),
         ],
