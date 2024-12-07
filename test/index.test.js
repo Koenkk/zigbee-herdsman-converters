@@ -439,8 +439,8 @@ describe('index.js', () => {
         };
 
         const HG06492B_match = await index.findByDevice(HG06492B);
-        expect(HG06492B_match.model).toBe('HG06492B');
-        expect(HG06492B_match.description).toBe('Livarno Lux E14 candle CCT');
+        expect(HG06492B_match.model).toBe('HG06492B/HG08130B');
+        expect(HG06492B_match.description).toBe('Livarno Home E14 candle CCT');
         expect(HG06492B_match.vendor).toBe('Lidl');
 
         const TS0502A_match = await index.findByDevice(TS0502A);
