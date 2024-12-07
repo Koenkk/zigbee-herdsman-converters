@@ -20,8 +20,8 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['RDM-35274001'],
         model: 'RDM-35274001',
         vendor: 'Rademacher',
-        description: 'addZ White + Colour E27 LED',
-        extend: [light({"colorTemp":{"range":[153,555]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        description: 'addZ white + colour E27 LED',
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
 
