@@ -13,6 +13,7 @@ export class Base {
     endpoint?: string;
     property?: string;
     description?: string;
+    hint?: string;
     features?: Feature[];
     category?: 'config' | 'diagnostic';
 
@@ -54,6 +55,11 @@ export class Base {
 
     withDescription(description: string) {
         this.description = description;
+        return this;
+    }
+
+    withHint(hint: string) {
+        this.hint = hint;
         return this;
     }
 
