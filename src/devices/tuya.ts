@@ -30,7 +30,7 @@ import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} fro
 import * as zosung from '../lib/zosung';
 
 const NS = 'zhc:tuya';
-const {tuyaLight, tuyaBase} = tuya.modernExtend;
+const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup} = tuya.modernExtend;
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -7350,17 +7350,62 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PJ-ZGD01',
         vendor: 'Tuya',
         description: 'Garage door opener',
-        fromZigbee: [legacy.fromZigbee.matsee_garage_door_opener, fz.ignore_basic_report],
-        toZigbee: [legacy.toZigbee.matsee_garage_door_opener, legacy.toZigbee.tuya_data_point_test],
         whiteLabel: [{vendor: 'MatSee Plus', model: 'PJ-ZGD01'}],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
-        exposes: [
-            e.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
-            e.binary('garage_door_contact', ea.STATE, true, false),
+        extend: [
+            tuyaMagicPacket(),
+            dpBinary({
+                name: 'trigger',
+                dp: 1,
+                type: tuya.dataTypes.bool,
+                valueOn: [true, true],
+                valueOff: [false, false],
+                description:
+                    'Request door to close (= false) or open (= true), will not pulse output if contact shows door is already in requested state',
+            }),
+            dpNumeric({
+                name: 'countdown',
+                dp: 2,
+                type: tuya.dataTypes.number,
+                description: 'Countdown to trigger door movement after a certain time, will pulse output in all cases',
+                unit: 's',
+                valueMin: 0,
+                valueMax: 43200,
+            }),
+            dpBinary({
+                name: 'garage_door_contact',
+                dp: 3,
+                type: tuya.dataTypes.bool,
+                valueOn: [true, false],
+                valueOff: [false, true],
+                description: 'Indicates if the garage door contact is closed (= true) or open (= false)',
+                readOnly: true,
+            }),
+            dpNumeric({
+                name: 'run_time',
+                dp: 4,
+                type: tuya.dataTypes.number,
+                description: 'Configure the time to wait for the door contact status to change before triggering a run time alarm',
+                unit: 's',
+                valueMin: 0,
+                valueMax: 120,
+            }),
+            dpNumeric({
+                name: 'open_alarm_time',
+                dp: 5,
+                type: tuya.dataTypes.number,
+                description: 'Configure the amount of time the door may be open before an open time alarm is triggered',
+                unit: 's',
+                valueMin: 0,
+                valueMax: 86400,
+            }),
+            dpEnumLookup({
+                name: 'status',
+                dp: 12,
+                type: tuya.dataTypes.enum,
+                description: 'Indicates run time alarm, door open alarm or noraml status, will not retunr to normal until door is triggered again',
+                lookup: {'Open Time Alarm': 0, 'Run Time Alarm': 1, Normal: 2},
+                readOnly: true,
+            }),
         ],
     },
     {
