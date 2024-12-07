@@ -3974,6 +3974,13 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Hue Lightguide E27 Edison ST72 500lm',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
+    {
+        zigbeeModel: ['LWA024'],
+        model: '9290018217A',
+        vendor: 'Philips',
+        description: 'Philips Hue White B22 Bulb 800 with Bluetooth', 
+        extend: philips.extend.light_onoff_brightness(),
+    },
 ];
 
 export default definitions;
