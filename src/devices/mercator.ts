@@ -6,6 +6,7 @@ import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -212,6 +213,43 @@ const definitions: DefinitionWithExtend[] = [
             endpoint1.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint1.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_agumlajc'}],
+        model: 'SSWMPIR-ZB',
+        vendor: 'Mercator Ikuü',
+        description: 'Combination Sensor',
+        fromZigbee: [fz.occupancy, fz.temperature, fz.humidity, fz.illuminance, fz.on_off, tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.occupancy(), e.temperature(), e.humidity(), e.illuminance(), e.light(), 
+            e.enum('state', ea.STATE_SET, ['ON', 'OFF', 'AUTO']).withDescription('Light Mode')
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOta', 'genTime', 'genGroups', 'genScenes']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'manuSpecificTuya']);
+        },
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [2, 'humidity', tuya.valueConverter.raw],
+                //[10, ],
+                //[11, ],
+                //[12, ],
+                //[13, ],
+                [101, 'illuminance', tuya.valueConverter.raw ], //illuminance
+                //[102, ],
+                //[103, ],
+                [104, 'occupancy', tuya.valueConverter.trueFalse1],
+                [105, 'state', tuya.valueConverterBasic.lookup({'ON': tuya.enum(0), 'OFF': tuya.enum(1), 'AUTO': tuya.enum(2)}) ] //Light motion setting
+                //[106, ],
+                //[107, ],
+                //[108, ],
+                //[109, ],
+            ],
         },
     },
 ];
