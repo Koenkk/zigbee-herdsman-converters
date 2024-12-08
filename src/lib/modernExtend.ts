@@ -2253,9 +2253,10 @@ export interface TextArgs {
     reporting?: ReportingConfig;
     access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     entityCategory?: 'config' | 'diagnostic';
+    validate?(value: unknown): void;
 }
 export function text(args: TextArgs): ModernExtend {
-    const {name, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory} = args;
+    const {name, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, validate} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
@@ -2281,6 +2282,7 @@ export function text(args: TextArgs): ModernExtend {
             convertSet:
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
+                          void validate(value);
                           const payload = isString(attribute) ? {[attribute]: value} : {[attribute.ID]: {value, type: attribute.type}};
                           await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
                           return {state: {[key]: value}};
