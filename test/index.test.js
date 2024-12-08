@@ -132,6 +132,36 @@ describe('index.js', () => {
         expect((await index.findByDevice(TS011F_plug_1)).model).toBe('TS011F_plug_1');
     });
 
+    it('finds router builds with priority from manufacturer', async () => {
+        const customSLZB06M = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-06M',
+            applicationVersion: 200,
+        };
+        const fromManufSLZB06M = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-06M',
+        };
+        const customSLZB07 = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-07',
+            applicationVersion: 200,
+        };
+        const fromManufSLZB07 = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-07',
+        };
+
+        expect((await index.findByDevice(customSLZB06M)).model).toBe('Silabs series 2 router');
+        expect((await index.findByDevice(fromManufSLZB06M)).model).toBe('SLZB-06M');
+        expect((await index.findByDevice(customSLZB07)).model).toBe('Silabs series 2 router');
+        expect((await index.findByDevice(fromManufSLZB07)).model).toBe('SLZB-07');
+    });
+
     it('Find by device should prefer fingerprint match over zigbeeModel', async () => {
         const mullerEndpoints = [
             {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
