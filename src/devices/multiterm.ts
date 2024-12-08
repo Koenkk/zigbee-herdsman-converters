@@ -3,7 +3,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {deviceEndpoints} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -36,7 +36,7 @@ const tzLocal = {
         ...tz.fan_mode,
         convertSet: async (entity, key, value, meta) => {
             if (String(value).toLowerCase() === 'on') value = 'high';
-            return tz.fan_mode.convertSet(entity, key, value, meta);
+            return await tz.fan_mode.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
     binary_output: {
@@ -59,7 +59,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZC0101'],
         model: 'ZC0101',

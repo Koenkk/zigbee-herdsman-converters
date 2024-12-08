@@ -5,12 +5,12 @@ import * as legacy from '../lib/legacy';
 import {light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_jak16dll']),
         model: '07752L',
@@ -105,7 +105,7 @@ const definitions: Definition[] = [
         model: '07046L',
         vendor: 'Immax',
         description: '4-Touch single click buttons',
-        fromZigbee: [legacy.fz.immax_07046L_arm, fz.command_panic],
+        fromZigbee: [fz.command_arm, fz.command_panic],
         exposes: [e.action(['disarm', 'arm_stay', 'arm_away', 'panic'])],
         toZigbee: [],
     },
@@ -142,7 +142,7 @@ const definitions: Definition[] = [
         model: '07703L',
         vendor: 'Immax',
         description: 'Radiator valve',
-        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_1, legacy.fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_2, legacy.fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [
             legacy.tz.etop_thermostat_system_mode,
             legacy.tz.etop_thermostat_away_mode,
@@ -193,7 +193,7 @@ const definitions: Definition[] = [
             await reporting.humidity(endpoint);
             await reporting.illuminance(endpoint);
         },
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.temperature(), e.illuminance(), e.humidity()],
     },
     {
         zigbeeModel: ['ColorTemperature'],
@@ -222,7 +222,6 @@ const definitions: Definition[] = [
             e.tamper(),
             e.battery(),
             e.illuminance(),
-            e.illuminance_lux().withUnit('lx'),
             e.temperature(),
             e.humidity(),
             e.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes').withValueMin(0).withValueMax(1440),
@@ -237,7 +236,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n9clpsht', '_TZE200_nyvavzbj']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n9clpsht', '_TZE200_nyvavzbj', '_TZE200_moycceze']),
         model: '07505L',
         vendor: 'Immax',
         description: 'Neo smart keypad',

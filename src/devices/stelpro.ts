@@ -1,18 +1,18 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
-import * as reporting from '../lib/reporting';
-import {Definition, Fz} from '../lib/types';
-const e = exposes.presets;
 import * as constants from '../lib/constants';
+import * as exposes from '../lib/exposes';
+import * as reporting from '../lib/reporting';
+import {DefinitionWithExtend, Fz} from '../lib/types';
+
+const e = exposes.presets;
 
 const fzLocal = {
     power: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('16392')) {
+            if (msg.data['16392'] !== undefined) {
                 return {power: msg.data['16392']};
             }
         },
@@ -21,14 +21,14 @@ const fzLocal = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('16393')) {
+            if (msg.data['16393'] !== undefined) {
                 return {energy: parseFloat(msg.data['16393']) / 1000};
             }
         },
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['HT402'],
         model: 'HT402',
@@ -76,7 +76,7 @@ const definitions: Definition[] = [
         model: 'ST218',
         vendor: 'Stelpro',
         description: 'Ki convector, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface],
+        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -125,7 +125,7 @@ const definitions: Definition[] = [
         model: 'STZB402',
         vendor: 'Stelpro',
         description: 'Ki, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
+        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -174,7 +174,7 @@ const definitions: Definition[] = [
         model: 'SMT402',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
+        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -278,7 +278,7 @@ const definitions: Definition[] = [
         model: 'SMT402AD',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
+        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,

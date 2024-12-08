@@ -1,14 +1,12 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
-import * as legacy from '../lib/legacy';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Contact Sensor-A'],
         model: '74388',
@@ -30,18 +28,11 @@ const definitions: Definition[] = [
         model: '73743',
         vendor: 'Sylvania',
         description: 'Lightify Smart Dimming Switch',
-        fromZigbee: [
-            legacy.fz.osram_lightify_switch_cmdOn,
-            legacy.fz.osram_lightify_switch_cmdMoveWithOnOff,
-            legacy.fz.osram_lightify_switch_cmdOff,
-            legacy.fz.osram_lightify_switch_cmdMove,
-            legacy.fz.osram_lightify_switch_73743_cmdStop,
-            fz.battery,
-        ],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(), e.action(['up', 'up_hold', 'down', 'down_hold', 'up_release', 'down_release'])],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        ota: ota.ledvance,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);

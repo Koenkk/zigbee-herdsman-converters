@@ -1,13 +1,12 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'SmokeSensor-EM', manufacturerName: 'Trust'}],
         model: 'ZSDR-850',
@@ -44,7 +43,7 @@ const definitions: Definition[] = [
         model: 'ZYCT-202',
         vendor: 'Trust',
         description: 'Remote control',
-        fromZigbee: [fz.command_on, fz.command_off_with_effect, legacy.fz.ZYCT202_stop, legacy.fz.ZYCT202_up_down],
+        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.command_stop, fz.command_move],
         exposes: [e.action(['on', 'off', 'stop', 'brightness_stop', 'brightness_move_up', 'brightness_move_down']), e.action_group()],
         toZigbee: [],
         // Device does not support battery: https://github.com/Koenkk/zigbee2mqtt/issues/5928

@@ -1,9 +1,10 @@
-import {Definition, Fz, KeyValue} from 'src/lib/types';
+import {DefinitionWithExtend, Fz, KeyValue} from 'src/lib/types';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -56,7 +57,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['easyCodeTouch_v1', 'EasyCodeTouch', 'EasyFingerTouch'],
         model: 'easyCodeTouch_v1',

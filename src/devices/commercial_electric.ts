@@ -1,7 +1,7 @@
 import {forcePowerSource, light} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Zigbee CCT Downlight'],
         model: '53170161',

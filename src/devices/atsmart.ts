@@ -1,7 +1,7 @@
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Z601', 'Z602', 'Z603', 'Z604'],
         model: 'Z6',

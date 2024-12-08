@@ -1,8 +1,8 @@
 import {light} from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['AJ-RGBCCT 5 in 1'],
         model: 'Aj_Zigbee_Led_Strip',

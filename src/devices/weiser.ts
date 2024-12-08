@@ -3,10 +3,11 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_10'],
         model: '9GED18000-009',
@@ -29,7 +30,6 @@ const definitions: Definition[] = [
                 data.cluster === 'closuresDoorLock' &&
                 data.data &&
                 data.data.userid !== undefined &&
-                // Don't read RF events, we can do this with retrieve_state
                 (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] != 'rf')
             ) {
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});
@@ -59,7 +59,6 @@ const definitions: Definition[] = [
                 data.cluster === 'closuresDoorLock' &&
                 data.data &&
                 data.data.userid !== undefined &&
-                // Don't read RF events, we can do this with retrieve_state
                 (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] != 'rf')
             ) {
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});

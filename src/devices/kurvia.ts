@@ -1,8 +1,8 @@
 import tz from '../converters/toZigbee';
 import {light} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZB-CL01'],
         model: 'ZB-CL01',

@@ -1,7 +1,7 @@
 import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {
@@ -71,11 +71,11 @@ const definitions: Definition[] = [
         extend: [light()],
     },
     {
-        zigbeeModel: ['HOMA1009', '050'],
+        zigbeeModel: ['HOMA1009', '050', 'HOMA1022'],
         model: 'HLD503-Z-CT',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver',
-        extend: [light({colorTemp: {range: undefined}})],
+        extend: [light({colorTemp: {range: [150, 500]}})],
     },
     {
         zigbeeModel: ['HOMA1002', 'HOMA1004', 'HOMA0019', 'HOMA0006', 'HOMA000F', '019'],

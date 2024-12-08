@@ -10,12 +10,14 @@ import akuvox from './akuvox';
 import alchemy from './alchemy';
 import aldi from './aldi';
 import alecto from './alecto';
+import amina from './amina';
 import anchor from './anchor';
 import atlantic from './atlantic';
 import atsmart from './atsmart';
 import aubess from './aubess';
 import aurora_lighting from './aurora_lighting';
 import automaton from './automaton';
+import avatto from './avatto';
 import awox from './awox';
 import axis from './axis';
 import bankamp from './bankamp';
@@ -37,6 +39,7 @@ import candeo from './candeo';
 import casaia from './casaia';
 import cel from './cel';
 import centralite from './centralite';
+import chacon from './chacon';
 import cleode from './cleode';
 import cleverio from './cleverio';
 import climax from './climax';
@@ -56,6 +59,7 @@ import digi from './digi';
 import diyruz from './diyruz';
 import dlink from './dlink';
 import dnake from './dnake';
+import dowsing_reynolds from './dowsing_reynolds';
 import dresden_elektronik from './dresden_elektronik';
 import easyaccess from './easyaccess';
 import easyiot from './easyiot';
@@ -97,6 +101,7 @@ import gledopto from './gledopto';
 import gmmts from './gmmts';
 import gmy from './gmy';
 import gs from './gs';
+import gumax from './gumax';
 import halemeier from './halemeier';
 import hampton_bay from './hampton_bay';
 import heatit from './heatit';
@@ -109,7 +114,6 @@ import hive from './hive';
 import hommyn from './hommyn';
 import honyar from './honyar';
 import hornbach from './hornbach';
-import hzc from './hzc';
 import hzc_electric from './hzc_electric';
 import icasa from './icasa';
 import idinio from './idinio';
@@ -165,6 +169,7 @@ import lixee from './lixee';
 import lonsonho from './lonsonho';
 import ls from './ls';
 import lubeez from './lubeez';
+import lumi from './lumi';
 import lupus from './lupus';
 import lutron from './lutron';
 import lux from './lux';
@@ -172,6 +177,7 @@ import lytko from './lytko';
 import m_elec from './m_elec';
 import makegood from './makegood';
 import matcall_bv from './matcall_bv';
+import mazda from './mazda';
 import meazon from './meazon';
 import mercator from './mercator';
 import miboxer from './miboxer';
@@ -207,12 +213,14 @@ import paul_neuhaus from './paul_neuhaus';
 import paulmann from './paulmann';
 import peq from './peq';
 import perenio from './perenio';
+import philio from './philio';
 import philips from './philips';
 import plaid from './plaid';
 import plugwise from './plugwise';
 import profalux from './profalux';
 import prolight from './prolight';
 import pushok from './pushok';
+import qa from './qa';
 import qmotion from './qmotion';
 import qoto from './qoto';
 import quotra from './quotra';
@@ -237,6 +245,7 @@ import sercomm from './sercomm';
 import shade_control from './shade_control';
 import shenzhen_homa from './shenzhen_homa';
 import shinasystem from './shinasystem';
+import shyugj from './shyugj';
 import siglis from './siglis';
 import sikom from './sikom';
 import sinope from './sinope';
@@ -263,6 +272,7 @@ import swann from './swann';
 import sylvania from './sylvania';
 import tapestry from './tapestry';
 import tci from './tci';
+import tech from './tech';
 import technicolor from './technicolor';
 import terncy from './terncy';
 import the_light_group from './the_light_group';
@@ -283,7 +293,6 @@ import villeroy_boch from './villeroy_boch';
 import vimar from './vimar';
 import visonic from './visonic';
 import vrey from './vrey';
-import lumi from './lumi';
 import wally from './wally';
 import waxman from './waxman';
 import weiser from './weiser';
@@ -296,6 +305,7 @@ import wyze from './wyze';
 import xinghuoyuan from './xinghuoyuan';
 import xyzroe from './xyzroe';
 import yale from './yale';
+import yandex from './yandex';
 import ynoa from './ynoa';
 import yookee from './yookee';
 import ysrsai from './ysrsai';
@@ -303,7 +313,6 @@ import zemismart from './zemismart';
 import zen from './zen';
 import zigbeetlc from './zigbeetlc';
 import zipato from './zipato';
-import qa from './qa';
 
 export default [
     ...acova,
@@ -318,12 +327,14 @@ export default [
     ...alchemy,
     ...aldi,
     ...alecto,
+    ...amina,
     ...anchor,
     ...atlantic,
     ...atsmart,
     ...aubess,
     ...aurora_lighting,
     ...automaton,
+    ...avatto,
     ...awox,
     ...axis,
     ...bankamp,
@@ -345,6 +356,7 @@ export default [
     ...casaia,
     ...cel,
     ...centralite,
+    ...chacon,
     ...cleode,
     ...cleverio,
     ...climax,
@@ -364,6 +376,7 @@ export default [
     ...diyruz,
     ...dlink,
     ...dnake,
+    ...dowsing_reynolds,
     ...dresden_elektronik,
     ...easyaccess,
     ...easyiot,
@@ -405,6 +418,7 @@ export default [
     ...gmmts,
     ...gmy,
     ...gs,
+    ...gumax,
     ...halemeier,
     ...hampton_bay,
     ...heatit,
@@ -418,7 +432,6 @@ export default [
     ...honyar,
     ...hornbach,
     ...hzc_electric,
-    ...hzc,
     ...icasa,
     ...idinio,
     ...ihorn,
@@ -480,6 +493,7 @@ export default [
     ...m_elec,
     ...makegood,
     ...matcall_bv,
+    ...mazda,
     ...meazon,
     ...mercator,
     ...miboxer,
@@ -515,6 +529,7 @@ export default [
     ...paulmann,
     ...peq,
     ...perenio,
+    ...philio,
     ...philips,
     ...plaid,
     ...plugwise,
@@ -545,6 +560,7 @@ export default [
     ...shade_control,
     ...shenzhen_homa,
     ...shinasystem,
+    ...shyugj,
     ...siglis,
     ...sikom,
     ...sinope,
@@ -571,6 +587,7 @@ export default [
     ...sylvania,
     ...tapestry,
     ...tci,
+    ...tech,
     ...technicolor,
     ...terncy,
     ...the_light_group,
@@ -604,6 +621,7 @@ export default [
     ...xinghuoyuan,
     ...xyzroe,
     ...yale,
+    ...yandex,
     ...ynoa,
     ...yookee,
     ...ysrsai,

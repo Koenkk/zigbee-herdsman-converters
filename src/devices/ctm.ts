@@ -4,11 +4,11 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {battery, temperature, identify, light} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
+import {battery, identify, light, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {KeyValue, Definition, Tz, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -19,7 +19,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty('onOff')) {
+            if (data.onOff !== undefined) {
                 result.device_enabled = data['onOff'] ? 'ON' : 'OFF';
             }
 
@@ -32,7 +32,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x2200)) {
+            if (data[0x2200] !== undefined) {
                 const deviceModeLookup = {0: 'astro_clock', 1: 'timer', 2: 'daily_timer', 3: 'weekly_timer'};
                 result.device_mode = utils.getFromLookup(data[0x2200], deviceModeLookup);
             }
@@ -46,7 +46,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x2201)) {
+            if (data[0x2201] !== undefined) {
                 result.device_enabled = data[0x2201] ? 'ON' : 'OFF';
             }
 
@@ -59,7 +59,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x2202)) {
+            if (data[0x2202] !== undefined) {
                 result.child_lock = data[0x2202] ? 'locked' : 'unlocked';
             }
 
@@ -72,7 +72,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x5000)) {
+            if (data[0x5000] !== undefined) {
                 result.current_flag = data[0x5000];
             }
 
@@ -85,7 +85,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x5001)) {
+            if (data[0x5001] !== undefined) {
                 result.state = data[0x5001] ? 'ON' : 'OFF';
             }
 
@@ -98,15 +98,23 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x0401)) {
+            if (data[0x0401] !== undefined) {
                 // Load
                 result.load = data[0x0401];
             }
-            if (data.hasOwnProperty(0x0402)) {
+            if (data.elkoLoad !== undefined) {
+                // Load
+                result.load = data['elkoLoad'];
+            }
+            if (data[0x0402] !== undefined) {
                 // Display text
                 result.display_text = data[0x0402];
             }
-            if (data.hasOwnProperty(0x0403)) {
+            if (data.elkoDisplayText !== undefined) {
+                // Display text
+                result.display_text = data['elkoDisplayText'];
+            }
+            if (data[0x0403] !== undefined) {
                 // Sensor
                 const sensorModeLookup = {
                     0: 'air',
@@ -119,99 +127,136 @@ const fzLocal = {
                 };
                 result.sensor = utils.getFromLookup(data[0x0403], sensorModeLookup);
             }
-            if (data.hasOwnProperty(0x0405)) {
+            if (data.elkoSensor !== undefined) {
+                // Sensor
+                const sensorModeLookup = {
+                    0: 'air',
+                    1: 'floor',
+                    2: 'external',
+                    3: 'regulator',
+                    4: 'mv_air',
+                    5: 'mv_external',
+                    6: 'mv_regulator',
+                };
+                result.sensor = utils.getFromLookup(data['elkoSensor'], sensorModeLookup);
+            }
+            if (data[0x0405] !== undefined) {
                 // Regulator mode
                 result.regulator_mode = data[0x0405] ? 'regulator' : 'thermostat';
             }
-            if (data.hasOwnProperty(0x0406)) {
+            if (data.elkoRegulatorMode !== undefined) {
+                // Regulator mode
+                result.regulator_mode = data['elkoRegulatorMode'] ? 'regulator' : 'thermostat';
+            }
+            if (data[0x0406] !== undefined) {
                 // Power status
                 result.power_status = data[0x0406] ? 'ON' : 'OFF';
             }
-            if (data.hasOwnProperty('elkoPowerStatus')) {
+            if (data.elkoPowerStatus !== undefined) {
                 // Power status
                 result.power_status = data['elkoPowerStatus'] ? 'ON' : 'OFF';
             }
-            if (data.hasOwnProperty(0x0408)) {
+            if (data[0x0408] !== undefined) {
                 // Mean power
                 result.mean_power = data[0x0408];
             }
-            if (data.hasOwnProperty(0x0409)) {
+            if (data.elkoMeanPower !== undefined) {
+                // Mean power
+                result.mean_power = data['elkoMeanPower'];
+            }
+            if (data[0x0409] !== undefined) {
                 // Floor temp
                 result.floor_temp = utils.precisionRound(data[0x0409], 2) / 100;
             }
-            if (data.hasOwnProperty('elkoExternalTemp')) {
+            if (data.elkoExternalTemp !== undefined) {
                 // External temp (floor)
                 result.floor_temp = utils.precisionRound(data['elkoExternalTemp'], 2) / 100;
             }
-            if (data.hasOwnProperty(0x0411)) {
+            if (data[0x0411] !== undefined) {
                 // Night switching
                 result.night_switching = data[0x0411] ? 'ON' : 'OFF';
             }
-            if (data.hasOwnProperty(0x0412)) {
+            if (data.elkoNightSwitching !== undefined) {
+                // Night switching
+                result.night_switching = data['elkoNightSwitching'] ? 'ON' : 'OFF';
+            }
+            if (data[0x0412] !== undefined) {
                 // Frost guard
                 result.frost_guard = data[0x0412] ? 'ON' : 'OFF';
             }
-            if (data.hasOwnProperty(0x0413)) {
+            if (data.elkoFrostGuard !== undefined) {
+                // Frost guard
+                result.frost_guard = data['elkoFrostGuard'] ? 'ON' : 'OFF';
+            }
+            if (data[0x0413] !== undefined) {
                 // Child lock
                 result.child_lock = data[0x0413] ? 'LOCK' : 'UNLOCK';
             }
-            if (data.hasOwnProperty(0x0414)) {
+            if (data.elkoChildLock !== undefined) {
+                // Child lock
+                result.child_lock = data['elkoChildLock'] ? 'LOCK' : 'UNLOCK';
+            }
+            if (data[0x0414] !== undefined) {
                 // Max floor temp
                 result.max_floor_temp = data[0x0414];
             }
-            if (data.hasOwnProperty(0x0415)) {
+            if (data.elkoMaxFloorTemp !== undefined) {
+                // Max floor temp
+                result.max_floor_temp = data['elkoMaxFloorTemp'];
+            }
+            if (data[0x0415] !== undefined) {
                 // Running_state
                 result.running_state = data[0x0415] ? 'heat' : 'idle';
             }
-            if (data.hasOwnProperty('elkoRelayState')) {
+            if (data.elkoRelayState !== undefined) {
                 // Running_state
                 result.running_state = data['elkoRelayState'] ? 'heat' : 'idle';
             }
-            if (data.hasOwnProperty(0x0420)) {
+            if (data[0x0420] !== undefined) {
                 // Regulator setpoint
                 result.regulator_setpoint = data[0x0420];
             }
-            if (data.hasOwnProperty(0x0421)) {
+            if (data[0x0421] !== undefined) {
                 // Regulation mode
                 const regulationModeLookup = {0: 'thermostat', 1: 'regulator', 2: 'zzilent'};
                 result.regulation_mode = utils.getFromLookup(data[0x0421], regulationModeLookup);
             }
-            if (data.hasOwnProperty(0x0422)) {
+            if (data[0x0422] !== undefined) {
                 // Operation mode
                 const presetLookup = {0: 'off', 1: 'away', 2: 'sleep', 3: 'home'};
                 const systemModeLookup = {0: 'off', 1: 'off', 2: 'off', 3: 'heat'};
                 result.preset = utils.getFromLookup(data[0x0422], presetLookup);
                 result.system_mode = utils.getFromLookup(data[0x0422], systemModeLookup);
             }
-            if (data.hasOwnProperty(0x0423)) {
+            if (data[0x0423] !== undefined) {
                 // Maximum floor temp guard
                 result.max_floor_guard = data[0x0423] ? 'ON' : 'OFF';
             }
-            if (data.hasOwnProperty(0x0424)) {
+            if (data[0x0424] !== undefined) {
                 // Weekly timer enabled
                 result.weekly_timer = data[0x0424] ? 'ON' : 'OFF';
             }
-            if (data.hasOwnProperty(0x0425)) {
+            if (data[0x0425] !== undefined) {
                 // Frost guard setpoint
                 result.frost_guard_setpoint = data[0x0425];
             }
-            if (data.hasOwnProperty(0x0426)) {
+            if (data[0x0426] !== undefined) {
                 // External temperature
                 result.external_temp = utils.precisionRound(data[0x0426], 2) / 100;
             }
-            if (data.hasOwnProperty(0x0428)) {
+            if (data[0x0428] !== undefined) {
                 // External sensor source
                 result.exteral_sensor_source = data[0x0428];
             }
-            if (data.hasOwnProperty(0x0429)) {
+            if (data[0x0429] !== undefined) {
                 // Current air temperature
                 result.air_temp = utils.precisionRound(data[0x0429], 2) / 100;
             }
-            if (data.hasOwnProperty(0x0424)) {
+            if (data[0x0424] !== undefined) {
                 // Floor Sensor Error
                 result.floor_sensor_error = data[0x042b] ? 'error' : 'ok';
             }
-            if (data.hasOwnProperty(0x0424)) {
+            if (data[0x0424] !== undefined) {
                 // External Air Sensor Error
                 result.exteral_sensor_error = data[0x042c] ? 'error' : 'ok';
             }
@@ -225,7 +270,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x0000)) {
+            if (data[0x0000] !== undefined) {
                 result.group_id = data[0x0000];
             }
 
@@ -238,7 +283,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x0001)) {
+            if (data[0x0001] !== undefined) {
                 // Alarm status
                 const alarmStatusLookup = {
                     0: 'ok',
@@ -251,31 +296,31 @@ const fzLocal = {
                 };
                 result.alarm_status = utils.getFromLookup(data[0x0001], alarmStatusLookup);
             }
-            if (data.hasOwnProperty(0x0002)) {
+            if (data[0x0002] !== undefined) {
                 // Change battery
                 result.battery_low = data[0x0002] ? true : false;
             }
-            if (data.hasOwnProperty(0x0003)) {
+            if (data[0x0003] !== undefined) {
                 // Stove temperature
                 result.stove_temperature = data[0x0003];
             }
-            if (data.hasOwnProperty(0x0004)) {
+            if (data[0x0004] !== undefined) {
                 // Ambient temperature
                 result.ambient_temperature = data[0x0004];
             }
-            if (data.hasOwnProperty(0x0005)) {
+            if (data[0x0005] !== undefined) {
                 // Active
                 result.active = data[0x0005] ? true : false;
             }
-            if (data.hasOwnProperty(0x0006)) {
+            if (data[0x0006] !== undefined) {
                 // Runtime
                 result.runtime = data[0x0006];
             }
-            if (data.hasOwnProperty(0x0007)) {
+            if (data[0x0007] !== undefined) {
                 // Runtime timeout
                 result.runtime_timeout = data[0x0007];
             }
-            if (data.hasOwnProperty(0x0008)) {
+            if (data[0x0008] !== undefined) {
                 // Reset reason
                 const resetReasonLookup = {
                     0: 'unknown',
@@ -289,56 +334,56 @@ const fzLocal = {
                 };
                 result.reset_reason = utils.getFromLookup(data[0x0008], resetReasonLookup);
             }
-            if (data.hasOwnProperty(0x0009)) {
+            if (data[0x0009] !== undefined) {
                 // Dip switch
                 result.dip_switch = data[0x0009];
             }
-            if (data.hasOwnProperty(0x000a)) {
+            if (data[0x000a] !== undefined) {
                 // Software version
                 result.sw_version = data[0x000a];
             }
-            if (data.hasOwnProperty(0x000b)) {
+            if (data[0x000b] !== undefined) {
                 // Hardware version
                 result.hw_version = data[0x000b];
             }
-            if (data.hasOwnProperty(0x000c)) {
+            if (data[0x000c] !== undefined) {
                 // Bootloader version
                 result.bootloader_version = data[0x000c];
             }
-            if (data.hasOwnProperty(0x000d)) {
+            if (data[0x000d] !== undefined) {
                 // Model
                 const modelLookup = {0: 'unknown', 1: '1_8', 2: 'infinity', 3: 'hybrid', 4: 'tak', 0xff: 'unknown'};
                 result.model = utils.getFromLookup(data[0x000d], modelLookup);
             }
-            if (data.hasOwnProperty(0x0010)) {
+            if (data[0x0010] !== undefined) {
                 // Relay address
                 result.relay_address = data[0x0010];
             }
-            if (data.hasOwnProperty(0x0100)) {
+            if (data[0x0100] !== undefined) {
                 // Relay current flag
                 const currentFlagLookup = {0: 'false', 1: 'true', 0xff: 'unknown'};
                 result.current_flag = utils.getFromLookup(data[0x0100], currentFlagLookup);
             }
-            if (data.hasOwnProperty(0x0101)) {
+            if (data[0x0101] !== undefined) {
                 // Relay current
                 result.relay_current = data[0x0101];
             }
-            if (data.hasOwnProperty(0x0102)) {
+            if (data[0x0102] !== undefined) {
                 // Relay status
                 const relayStatusLookup = {0: 'off', 1: 'on', 2: 'not_present', 0xff: 'unknown'};
                 result.relay_status = utils.getFromLookup(data[0x0102], relayStatusLookup);
             }
-            if (data.hasOwnProperty(0x0103)) {
+            if (data[0x0103] !== undefined) {
                 // Relay external button
                 const relayStatusLookup = {0: 'not_clicked', 1: 'clicked', 0xff: 'unknown'};
                 result.external_button = utils.getFromLookup(data[0x0103], relayStatusLookup);
             }
-            if (data.hasOwnProperty(0x0104)) {
+            if (data[0x0104] !== undefined) {
                 // Relay alarm
                 const relayAlarmLookup = {0: 'ok', 1: 'no_communication', 2: 'over_current', 3: 'over_temperature', 0xff: 'unknown'};
                 result.relay_alarm = utils.getFromLookup(data[0x0104], relayAlarmLookup);
             }
-            if (data.hasOwnProperty(0x0105)) {
+            if (data[0x0105] !== undefined) {
                 // Alarm status (from relay)
                 const relayAlarmStatusLookup = {
                     0: 'ok',
@@ -724,7 +769,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['mTouch Dim', 'DimmerPille'],
         model: 'mTouch_Dim',
@@ -733,7 +778,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.brightness, fz.lighting_ballast_configuration],
         toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness_move, tz.ballast_config],
         meta: {disableDefaultResponse: true},
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
@@ -828,7 +873,7 @@ const definitions: Definition[] = [
             tzLocal.ctm_thermostat_child_lock,
             tzLocal.ctm_thermostat_gets,
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
@@ -962,7 +1007,7 @@ const definitions: Definition[] = [
         description: 'mStikk OP, wall socket',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -1213,7 +1258,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.illuminance, fz.occupancy, fzLocal.ctm_mbd_device_enabled, fzLocal.ctm_relay_state],
         toZigbee: [tzLocal.ctm_mbd_device_enabled, tzLocal.ctm_relay_state],
         meta: {disableDefaultResponse: true},
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'msIlluminanceMeasurement', 'msOccupancySensing']);
@@ -1241,7 +1286,6 @@ const definitions: Definition[] = [
         exposes: [
             e.switch(),
             e.illuminance(),
-            e.illuminance_lux(),
             e.occupancy(),
             e.binary('device_enabled', ea.ALL, 'ON', 'OFF').withDescription('Turn the device on or off'),
         ],
@@ -1321,7 +1365,6 @@ const definitions: Definition[] = [
         exposes: [
             e.light_brightness(),
             e.illuminance(),
-            e.illuminance_lux(),
             e.occupancy(),
             e.binary('device_enabled', ea.ALL, 'ON', 'OFF').withDescription('Turn the device on or off'),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(10).withValueMax(97).withDescription('Specifies the minimum brightness value'),
@@ -1339,7 +1382,7 @@ const definitions: Definition[] = [
         vendor: 'CTM Lyng',
         description: 'NorLum Dim OP, 2-250W rotary dimmer',
         extend: [identify(), light({configureReporting: true, powerOnBehavior: true, effect: false})],
-        ota: ota.zigbeeOTA,
+        ota: true,
         meta: {},
     },
 ];

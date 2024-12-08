@@ -30,7 +30,7 @@ describe('index.js', () => {
         expect(() => utils.toNumber('')).toThrowError('Value is not a number, got string ()');
     });
 
-    it('Find by device where modelID is null', async () => {
+    it('Find by device where modelID is undefined', async () => {
         const endpoints = [
             {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
             {ID: 232, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
@@ -47,7 +47,7 @@ describe('index.js', () => {
         expect(definition.model).toBe('XBee');
     });
 
-    it("Find by device shouldn't match when modelID is null and there is no fingerprint match", async () => {
+    it("Find by device shouldn't match when modelID is undefined and there is no fingerprint match", async () => {
         const endpoints = [{ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}];
         const device = {
             type: undefined,
@@ -58,7 +58,7 @@ describe('index.js', () => {
         };
 
         const definition = await index.findByDevice(device);
-        expect(definition).toBeNull();
+        expect(definition).toBeUndefined();
     });
 
     it('Find by device should generate for unknown', async () => {
@@ -203,7 +203,7 @@ describe('index.js', () => {
 
         index.definitions.forEach((device) => {
             // Check for duplicate zigbee model ids
-            if (device.hasOwnProperty('zigbeeModel')) {
+            if (device.zigbeeModel !== undefined) {
                 device.zigbeeModel.forEach((m) => {
                     if (foundZigbeeModels.includes(m.toLowerCase())) {
                         throw new Error(`Duplicate zigbee model ${m}`);
@@ -250,9 +250,9 @@ describe('index.js', () => {
         });
     });
 
-    it('Verify addDefinition', () => {
+    it('Verify addDefinition for external converters', () => {
         const mockZigbeeModel = 'my-mock-device';
-        let mockDevice = {toZigbee: []};
+        let mockDevice = {toZigbee: [], externalConverterName: 'mock-model.js'};
         const undefinedDevice = index.findByModel('mock-model');
         expect(undefinedDevice).toBeUndefined();
         const beforeAdditionDeviceCount = index.definitions.length;
@@ -289,6 +289,33 @@ describe('index.js', () => {
         };
         index.addDefinition(overwriteDefinition);
         expect((await index.findByDevice(device)).vendor).toBe('other-vendor');
+    });
+
+    it('Handles external converter definition addition/removal', async () => {
+        const converterDef = {
+            mock: true,
+            zigbeeModel: ['external_converter_device'],
+            vendor: 'external',
+            model: 'external_converter_device',
+            description: 'external',
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: [],
+            externalConverterName: 'foo.js',
+        };
+
+        const count = index.definitions.length;
+
+        index.addDefinition(converterDef);
+
+        expect(index.definitions.length).toStrictEqual(count + 1);
+        expect(index.definitions[0].zigbeeModel[0]).toStrictEqual(converterDef.zigbeeModel[0]);
+        expect(index.findByModel('external_converter_device')).toBeDefined();
+
+        index.removeExternalDefinitions(converterDef.externalConverterName);
+
+        expect(index.definitions.length).toStrictEqual(count);
+        expect(index.findByModel('external_converter_device')).toBeUndefined();
     });
 
     it('Exposes light with endpoint', () => {
@@ -352,36 +379,47 @@ describe('index.js', () => {
 
     it('Exposes access matches toZigbee', () => {
         index.definitions.forEach((device) => {
-            if (device.exposes) {
-                // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
-                if (device.toZigbee.includes(tuya.tz.datapoints)) return;
+            // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
+            if (device.toZigbee.includes(tuya.tz.datapoints)) return;
 
-                const toCheck = [];
-                const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
-                for (const expose of expss) {
-                    if (expose.access !== undefined) {
-                        toCheck.push(expose);
-                    } else if (expose.features) {
-                        toCheck.push(...expose.features.filter((e) => e.access !== undefined));
-                    }
+            const toCheck = [];
+            const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+            for (const expose of expss) {
+                if (expose.access !== undefined) {
+                    toCheck.push(expose);
+                } else if (expose.features) {
+                    toCheck.push(...expose.features.filter((e) => e.access !== undefined));
+                }
+            }
+
+            for (const expose of toCheck) {
+                let property = expose.property;
+                if (expose.endpoint && expose.property.length > expose.endpoint.length) {
+                    property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
                 }
 
-                for (const expose of toCheck) {
-                    let property = expose.property;
-                    if (expose.endpoint && expose.property.length > expose.endpoint.length) {
-                        property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
-                    }
+                const toZigbee = device.toZigbee.find((item) => item.key.includes(property));
 
-                    const toZigbee = device.toZigbee.find((item) => item.key.includes(property));
-
-                    if ((expose.access & exposes.access.SET) != (toZigbee && toZigbee.convertSet ? exposes.access.SET : 0)) {
-                        throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
-                    }
-
-                    if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
-                        throw new Error(`${device.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
-                    }
+                if ((expose.access & exposes.access.SET) != (toZigbee && toZigbee.convertSet ? exposes.access.SET : 0)) {
+                    throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
                 }
+
+                if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
+                    throw new Error(`${device.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
+                }
+            }
+        });
+    });
+
+    it('Exposes properties are unique', () => {
+        index.definitions.forEach((device) => {
+            const exposes = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+            const found = [];
+            for (const expose of exposes) {
+                if (expose.property && found.includes(expose.property)) {
+                    throw new Error(`Duplicate expose property found: '${expose.property}' for '${device.model}'`);
+                }
+                found.push(expose.property);
             }
         });
     });
@@ -401,8 +439,8 @@ describe('index.js', () => {
         };
 
         const HG06492B_match = await index.findByDevice(HG06492B);
-        expect(HG06492B_match.model).toBe('HG06492B');
-        expect(HG06492B_match.description).toBe('Livarno Lux E14 candle CCT');
+        expect(HG06492B_match.model).toBe('HG06492B/HG08130B');
+        expect(HG06492B_match.description).toBe('Livarno Home E14 candle CCT');
         expect(HG06492B_match.vendor).toBe('Lidl');
 
         const TS0502A_match = await index.findByDevice(TS0502A);
@@ -555,7 +593,6 @@ describe('index.js', () => {
             'battery_low',
             'linkquality',
             'temperature',
-            'illuminance_lux',
             'illuminance',
             'battery',
             'voltage',

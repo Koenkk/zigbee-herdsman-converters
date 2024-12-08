@@ -1,5 +1,5 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-namespace */
+
 import type {Device as ZHDevice, Endpoint as ZHEndpoint, Group as ZHGroup} from 'zigbee-herdsman/dist/controller/model';
 import type {Header as ZHZclHeader} from 'zigbee-herdsman/dist/zspec/zcl';
 import type {FrameControl} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
@@ -7,10 +7,10 @@ import type {FrameControl} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstyp
 import * as exposes from './exposes';
 
 export interface Logger {
-    debug: (message: string, namespace: string) => void;
-    info: (message: string, namespace: string) => void;
-    warning: (message: string, namespace: string) => void;
-    error: (message: string | Error, namespace: string) => void;
+    debug: (messageOrLambda: string | (() => string), namespace: string) => void;
+    info: (messageOrLambda: string | (() => string), namespace: string) => void;
+    warning: (messageOrLambda: string | (() => string), namespace: string) => void;
+    error: (messageOrLambda: string | (() => string), namespace: string) => void;
 }
 
 export type Range = [number, number];
@@ -49,6 +49,7 @@ export type Expose =
     | exposes.Lock
     | exposes.Cover
     | exposes.Climate
+    | exposes.Fan
     | exposes.Text;
 export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum | exposes.List | exposes.Text;
 export interface Fingerprint {
@@ -70,17 +71,12 @@ export interface Fingerprint {
 export type WhiteLabel =
     | {vendor: string; model: string; description: string; fingerprint: Fingerprint[]}
     | {vendor: string; model: string; description?: string};
-export interface OtaUpdateAvailableResult {
-    available: boolean;
-    currentFileVersion: number;
-    otaFileVersion: number;
-}
 
 export interface MockProperty {
     property: string;
     value: KeyValue | string;
 }
-// eslint-disable-next-line camelcase
+
 export interface DiscoveryEntry {
     mockProperties: MockProperty[];
     type: string;
@@ -218,20 +214,36 @@ export interface DefinitionMeta {
      * Override the Home Assistant discovery payload using a custom function.
      */
     overrideHaDiscoveryPayload?(payload: KeyValueAny): void;
+    /**
+     * Never use a transition when transitioning to off (even when specified)
+     */
+    noOffTransitionWhenOff?: boolean | ((entity: Zh.Endpoint) => boolean);
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
-export type OnEvent = (type: OnEventType, data: OnEventData, device: Zh.Device, settings: KeyValue, state: KeyValue) => Promise<void>;
+
+export interface OnEventMeta {
+    deviceExposesChanged: () => void;
+}
+
+export type OnEvent = (
+    type: OnEventType,
+    data: OnEventData,
+    device: Zh.Device,
+    settings: KeyValue,
+    state: KeyValue,
+    meta?: OnEventMeta,
+) => Promise<void>;
 
 export interface ModernExtend {
-    fromZigbee?: Fz.Converter[];
-    toZigbee?: Tz.Converter[];
+    fromZigbee?: Definition['fromZigbee'];
+    toZigbee?: Definition['toZigbee'];
     exposes?: (Expose | DefinitionExposesFunction)[];
-    configure?: Configure[];
-    meta?: DefinitionMeta;
-    ota?: DefinitionOta;
-    onEvent?: OnEvent;
-    endpoint?: (device: Zh.Device) => {[s: string]: number};
+    configure?: Definition['configure'][];
+    meta?: Definition['meta'];
+    ota?: Definition['ota'];
+    onEvent?: Definition['onEvent'];
+    endpoint?: Definition['endpoint'];
     isModernExtend: true;
 }
 
@@ -243,16 +255,13 @@ export interface OnEventData {
     data?: KeyValueAny;
 }
 
-export type DefinitionOta = {
-    isUpdateAvailable: (device: Zh.Device, requestPayload: Ota.ImageInfo) => Promise<OtaUpdateAvailableResult>;
-    updateToLatest: (device: Zh.Device, onProgress: Ota.OnProgress) => Promise<number>;
-};
-
 export type DefinitionExposesFunction = (device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[];
 
 export type DefinitionExposes = Expose[] | DefinitionExposesFunction;
 
-export type Definition = {
+type DefinitionMatcher = {zigbeeModel: string[]; fingerprint?: Fingerprint[]} | {zigbeeModel?: string[]; fingerprint: Fingerprint[]};
+
+type DefinitionBase = {
     model: string;
     vendor: string;
     description: string;
@@ -262,22 +271,22 @@ export type Definition = {
     options?: Option[];
     meta?: DefinitionMeta;
     onEvent?: OnEvent;
-    ota?: DefinitionOta;
-    generated?: boolean;
-} & ({zigbeeModel: string[]; fingerprint?: Fingerprint[]} | {zigbeeModel?: string[]; fingerprint: Fingerprint[]}) &
-    (
-        | {
-              extend: ModernExtend[];
-              fromZigbee?: Fz.Converter[];
-              toZigbee?: Tz.Converter[];
-              exposes?: DefinitionExposes;
-          }
-        | {
-              fromZigbee: Fz.Converter[];
-              toZigbee: Tz.Converter[];
-              exposes: DefinitionExposes;
-          }
-    );
+    ota?: true | Ota.ExtraMetas;
+    generated?: true;
+    externalConverterName?: string;
+};
+
+type DefinitionFeatures = {
+    fromZigbee: Fz.Converter[];
+    toZigbee: Tz.Converter[];
+    exposes: DefinitionExposes;
+};
+
+export type Definition = DefinitionMatcher & DefinitionBase & DefinitionFeatures;
+
+export type DefinitionWithExtend = DefinitionMatcher &
+    DefinitionBase &
+    (({extend: ModernExtend[]} & Partial<DefinitionFeatures>) | DefinitionFeatures);
 
 export namespace Fz {
     export interface Message {
@@ -307,18 +316,18 @@ export namespace Fz {
 export namespace Tz {
     export interface Meta {
         message: KeyValue;
-        device: Zh.Device;
+        device: Zh.Device | undefined;
         mapped: Definition | Definition[];
         options: KeyValue;
         state: KeyValue;
-        endpoint_name: string;
+        endpoint_name: string | undefined;
         membersState?: {[s: string]: KeyValue};
     }
-    export type ConvertSetResult = {state?: KeyValue; readAfterWriteTime?: number; membersState?: {[s: string]: KeyValue}} | void;
+    export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | void;
     export interface Converter {
         key?: string[];
         options?: Option[] | ((definition: Definition) => Option[]);
-        endpoint?: string;
+        endpoints?: string[];
         convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult>;
         convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>;
     }
@@ -360,7 +369,20 @@ export namespace Tuya {
 }
 
 export namespace Ota {
-    export type OnProgress = (progress: number, remaining: number) => void;
+    export type OnProgress = (progress: number, remaining?: number) => void;
+
+    export interface Settings {
+        dataDir: string;
+        overrideIndexLocation?: string;
+        imageBlockResponseDelay?: number;
+        defaultMaximumDataSize?: number;
+    }
+
+    export interface UpdateAvailableResult {
+        available: boolean;
+        currentFileVersion: number;
+        otaFileVersion: number;
+    }
     export interface Version {
         imageType: number;
         manufacturerCode: number;
@@ -393,26 +415,38 @@ export namespace Ota {
         raw: Buffer;
     }
     export interface ImageInfo {
-        imageType: number;
-        fileVersion: number;
-        manufacturerCode: number;
+        imageType: ImageHeader['imageType'];
+        fileVersion: ImageHeader['fileVersion'];
+        manufacturerCode: ImageHeader['manufacturerCode'];
     }
     export interface ImageMeta {
-        fileVersion: number;
-        fileSize?: number;
+        fileVersion: ImageHeader['fileVersion'];
+        fileSize?: ImageHeader['totalImageSize'];
         url: string;
-        sha256?: string;
         force?: boolean;
         sha512?: string;
-        hardwareVersionMin?: number;
-        hardwareVersionMax?: number;
+        otaHeaderString?: ImageHeader['otaHeaderString'];
+        hardwareVersionMin?: ImageHeader['minimumHardwareVersion'];
+        hardwareVersionMax?: ImageHeader['maximumHardwareVersion'];
     }
-    export type GetImageMeta = (current: ImageInfo, device: Zh.Device) => Promise<ImageMeta>;
+    export interface ZigbeeOTAImageMeta extends ImageInfo, ImageMeta {
+        fileName: string;
+        modelId?: string;
+        manufacturerName?: string[];
+        minFileVersion?: ImageHeader['fileVersion'];
+        maxFileVersion?: ImageHeader['fileVersion'];
+        originalUrl?: string;
+        releaseNotes?: string;
+    }
+    export type ExtraMetas = Pick<ZigbeeOTAImageMeta, 'modelId' | 'otaHeaderString' | 'hardwareVersionMin' | 'hardwareVersionMax'> & {
+        manufacturerName?: string;
+        suppressElementImageParseFailure?: boolean;
+    };
 }
 export namespace Reporting {
     export interface Override {
         min?: number;
         max?: number;
-        change?: number | [number, number];
+        change?: number;
     }
 }

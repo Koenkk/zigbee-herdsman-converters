@@ -2,13 +2,15 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {actionEnumLookup, battery, deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+import * as zosung from '../lib/zosung';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {onOff, deviceEndpoints, actionEnumLookup, battery} from '../lib/modernExtend';
-import * as zosung from '../lib/zosung';
+
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -19,7 +21,7 @@ const exposesLocal = {
     program_temperature: (name: string) => e.numeric(name, ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5),
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'},
@@ -139,7 +141,9 @@ const definitions: Definition[] = [
                     .withSystemMode(['off', 'heat'], ea.STATE_SET)
                     .withRunningState(['idle', 'heat', 'cool'], ea.STATE)
                     .withPreset(['hold', 'program']),
+
                 e.temperature_sensor_select(['IN', 'AL', 'OU']),
+
                 e
                     .composite('program', 'program', ea.STATE_SET)
                     .withDescription('Time of day and setpoint to use when in program mode')
@@ -311,14 +315,14 @@ const definitions: Definition[] = [
         description: 'Smart temperature and humidity meter with display',
         fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
+        exposes: [e.battery(), e.illuminance(), e.humidity(), e.temperature()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'}],
         model: 'BRT-100-TRV',
         vendor: 'Moes',
         description: 'Thermostatic radiator valve',
-        // ota: ota.zigbeeOTA,
+        // ota: true,
         // OTA available but bricks device https://github.com/Koenkk/zigbee2mqtt/issues/18840
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, legacy.fz.moesS_thermostat],
@@ -461,7 +465,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rjxqso4a'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hr0tdd47', '_TZE200_rjxqso4a']),
         model: 'ZC-HM',
         vendor: 'Moes',
         description: 'Carbon monoxide alarm',
@@ -478,6 +482,7 @@ const definitions: Definition[] = [
                 [16, 'silence', tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel('HEIMAN', 'HS-720ES', 'Carbon monoxide alarm', ['_TZE200_hr0tdd47'])],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_vawy74yh'}],
@@ -545,12 +550,12 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await endpoint.write('genOnOff', {tuyaOperationMode: 1});
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xe001, [0xd011]);
-            } catch (err) {
+            } catch {
                 /* do nothing */
             }
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);

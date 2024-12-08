@@ -4,12 +4,12 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {binary, enumLookup, light, numeric, text} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const ea = exposes.access;
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ElkoDimmerZHA'],
         model: '316GLEDRF',
@@ -37,7 +37,7 @@ const definitions: Definition[] = [
         model: '4523430',
         vendor: 'ELKO',
         description: 'ESH Plus Super TR RF PH',
-        fromZigbee: [fz.elko_thermostat, fz.thermostat],
+        fromZigbee: [fz.elko_thermostat],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.elko_display_text,
@@ -100,7 +100,7 @@ const definitions: Definition[] = [
             numeric({
                 name: 'floor_temp',
                 cluster: 'hvacThermostat',
-                attribute: 'elkoFloorTemp',
+                attribute: 'elkoExternalTemp',
                 description: 'Current temperature measured on the external sensor (floor)',
                 access: 'STATE_GET',
                 unit: '°C',
@@ -171,7 +171,7 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'genBasic', 'genIdentify']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'genIdentify']);
 
             // standard ZCL attributes
             await reporting.thermostatTemperature(endpoint);
