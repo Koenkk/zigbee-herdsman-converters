@@ -318,10 +318,14 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.illuminance(), e.humidity(), e.temperature()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_qsoecqlk'},
+        ],
         model: 'BRT-100-TRV',
         vendor: 'Moes',
         description: 'Thermostatic radiator valve',
+        whiteLabel: [tuya.whitelabel('Sibling', 'Powerswitch-ZK(W)', 'Thermostatic radiator valve', ['_TZE200_qsoecqlk'])],
         // ota: true,
         // OTA available but bricks device https://github.com/Koenkk/zigbee2mqtt/issues/18840
         onEvent: tuya.onEventSetLocalTime,
