@@ -4990,6 +4990,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('id3', 'GTZ06', 'Thermostatic radiator valve', ['_TZE200_z1tyspqw']),
             tuya.whitelabel('Avatto', 'TRV07', 'Thermostatic radiator valve', ['_TZE200_bvrlmajk']),
+            tuya.whitelabel('Moes', 'TS0601', 'Thermostatic radiator valve', ['_TZE204_9mjy74mp', '_TZE204_9mjy74mp']),
         ],
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
