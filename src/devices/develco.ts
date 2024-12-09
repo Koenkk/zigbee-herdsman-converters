@@ -6,12 +6,12 @@ import * as constants from '../lib/constants';
 import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {battery, humidity, illuminance} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
+import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Fz, Tz, Zh, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -50,10 +50,10 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('totalActivePower') && msg.data['totalActivePower'] !== -0x80000000) {
+                if (msg.data.totalActivePower !== undefined && msg.data['totalActivePower'] !== -0x80000000) {
                     result[utils.postfixWithEndpointName('power', msg, model, meta)] = msg.data['totalActivePower'];
                 }
-                if (msg.data.hasOwnProperty('totalReactivePower') && msg.data['totalReactivePower'] !== -0x80000000) {
+                if (msg.data.totalReactivePower !== undefined && msg.data['totalReactivePower'] !== -0x80000000) {
                     result[utils.postfixWithEndpointName('power_reactive', msg, model, meta)] = msg.data['totalReactivePower'];
                 }
                 return result;
@@ -72,7 +72,7 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
+                if (msg.data.develcoPulseConfiguration !== undefined) {
                     result[utils.postfixWithEndpointName('pulse_configuration', msg, model, meta)] = msg.data['develcoPulseConfiguration'];
                 }
 
@@ -84,14 +84,13 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
-                    result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] = constants.develcoInterfaceMode.hasOwnProperty(
-                        msg.data['develcoInterfaceMode'],
-                    )
-                        ? constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']]
-                        : msg.data['develcoInterfaceMode'];
+                if (msg.data.develcoInterfaceMode !== undefined) {
+                    result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] =
+                        constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] !== undefined
+                            ? constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']]
+                            : msg.data['develcoInterfaceMode'];
                 }
-                if (msg.data.hasOwnProperty('status')) {
+                if (msg.data.status !== undefined) {
                     result['battery_low'] = (msg.data.status & 2) > 0;
                     result['check_meter'] = (msg.data.status & 1) > 0;
                 }
@@ -104,11 +103,11 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('reliability')) {
+                if (msg.data.reliability !== undefined) {
                     const lookup = {0: 'no_fault_detected', 7: 'unreliable_other', 8: 'process_error'};
                     result.reliability = utils.getFromLookup(msg.data['reliability'], lookup);
                 }
-                if (msg.data.hasOwnProperty('statusFlags')) {
+                if (msg.data.statusFlags !== undefined) {
                     result.fault = msg.data['statusFlags'] === 1;
                 }
                 return result;
@@ -120,7 +119,7 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
-                if (msg.data.hasOwnProperty('develcoLedControl')) {
+                if (msg.data.develcoLedControl !== undefined) {
                     state['led_control'] = utils.getFromLookup(msg.data['develcoLedControl'], develcoLedControlMap);
                 }
 
@@ -133,7 +132,7 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
-                if (msg.data.hasOwnProperty('develcoAlarmOffDelay')) {
+                if (msg.data.develcoAlarmOffDelay !== undefined) {
                     state['occupancy_timeout'] = msg.data['develcoAlarmOffDelay'];
                 }
 
@@ -145,7 +144,7 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('presentValue')) {
+                if (msg.data.presentValue !== undefined) {
                     const value = msg.data['presentValue'];
                     result[utils.postfixWithEndpointName('input', msg, model, meta)] = value == 1;
                 }
@@ -158,7 +157,7 @@ const develco = {
             key: ['pulse_configuration'],
             convertSet: async (entity, key, value, meta) => {
                 await entity.write('seMetering', {develcoPulseConfiguration: value}, manufacturerOptions);
-                return {readAfterWriteTime: 200, state: {pulse_configuration: value}};
+                return {state: {pulse_configuration: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('seMetering', ['develcoPulseConfiguration'], manufacturerOptions);
@@ -169,7 +168,7 @@ const develco = {
             convertSet: async (entity, key, value, meta) => {
                 const payload = {develcoInterfaceMode: utils.getKey(constants.develcoInterfaceMode, value, undefined, Number)};
                 await entity.write('seMetering', payload, manufacturerOptions);
-                return {readAfterWriteTime: 200, state: {interface_mode: value}};
+                return {state: {interface_mode: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('seMetering', ['develcoInterfaceMode'], manufacturerOptions);
@@ -223,28 +222,15 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SPLZB-131',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.power_reactive(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-            await reporting.acFrequency(endpoint, {change: 10});
-        },
         endpoint: (device) => {
             return {default: 2};
         },
@@ -254,34 +240,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SPLZB-132',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
-        toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
-        options: [exposes.options.precision(`ac_frequency`)],
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            // Set to true, to access the acFrequencyDivisor and acFrequencyMultiplier attribute. Not all devices support this.
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            /*
-                seMetering.instantaneousDemand and haElectricalMeasurement.activePower both return the same thing
-                spot checks indicate both return the exact same value, no point in having both report
-            */
-            // await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-            await reporting.acFrequency(endpoint);
-        },
         endpoint: (device) => {
             return {default: 2};
         },
@@ -291,31 +257,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SPLZB-134',
         vendor: 'Develco',
         description: 'Power plug (type G)',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
-        toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            /*
-                seMetering.instantaneousDemand and haElectricalMeasurement.activePower both return the same thing
-                spot checks indicate both return the exact same value, no point in having both report
-            */
-            // await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-        },
         endpoint: (device) => {
             return {default: 2};
         },
@@ -327,7 +276,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
         configure: async (device, coordinatorEndpoint) => {
@@ -351,26 +300,13 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SMRZB-143',
         vendor: 'Develco',
         description: 'Smart cable',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
+            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            onOff(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
-            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
-            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
-            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-        },
         endpoint: (device) => {
             return {default: 2};
         },
@@ -382,7 +318,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Wattle AMS HAN power-meter sensor',
         fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.total_power],
         toZigbee: [tz.EMIZB_132_mode],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -443,7 +379,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -460,7 +396,13 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
+            // Device supports only 4 binds (otherwise you get TABLE_FULL error)
+            // https://github.com/Koenkk/zigbee2mqtt/issues/23684
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            }
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBinaryInput']);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -487,7 +429,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
         configure: async (device, coordinatorEndpoint) => {
@@ -514,7 +456,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Frient', model: '94431', description: 'Smart Intelligent Heat Alarm'}],
         fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -531,15 +473,13 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
-            // Device returns `ZDP_TABLE_FULL` on bind even though it succeeds
-            // https://github.com/Koenkk/zigbee2mqtt/issues/22492
-            for (const cluster of ['ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']) {
-                try {
-                    await endpoint.bind(cluster, coordinatorEndpoint);
-                } catch (error) {
-                    logger.debug(`Failed to bind '${cluster}'`, NS);
-                }
+            // Device supports only 4 binds (otherwise you get TABLE_FULL error)
+            // https://github.com/Koenkk/zigbee2mqtt/issues/23684
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
             }
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'ssIasWd', 'genBinaryInput']);
 
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
@@ -568,7 +508,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {default: 35};
         },
@@ -593,7 +533,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {default: 35};
         },
@@ -679,12 +619,12 @@ const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             const dynExposes = [];
             dynExposes.push(e.occupancy());
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
                 dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(5).withValueMax(65535));
             }
             dynExposes.push(e.tamper());
             dynExposes.push(e.battery_low());
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
                 dynExposes.push(
                     e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
                 );
@@ -692,7 +632,7 @@ const definitions: DefinitionWithExtend[] = [
             dynExposes.push(e.linkquality());
             return dynExposes;
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {default: 35};
         },
@@ -714,10 +654,10 @@ const definitions: DefinitionWithExtend[] = [
             // zigbee2mqtt#14277 some features are not available on older firmwares
             // modernExtend's readGenBasicPrimaryVersions is called before this one, should be fine
             const endpoint35 = device.getEndpoint(35);
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 3) {
                 await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
             }
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 4) {
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 4) {
                 await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
             }
         },
@@ -727,10 +667,57 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MOSZB-141',
         vendor: 'Develco',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low()],
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}),
+        ],
+    },
+    {
+        whiteLabel: [{vendor: 'Frient', model: 'MOSZB-153', description: 'Motion Sensor 2 Pet'}],
+        zigbeeModel: ['MOSZB-153'],
+        model: 'MOSZB-153',
+        vendor: 'Develco',
+        description: 'Motion sensor 2 pet',
+        fromZigbee: [develco.fz.led_control, develco.fz.ias_occupancy_timeout],
+        toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
+        exposes: (device, options) => {
+            const dynExposes = [];
+            if (Number(device?.softwareBuildID?.split('.')[0]) >= 2) {
+                dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(5).withValueMax(65535));
+                dynExposes.push(
+                    e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
+                );
+            }
+            dynExposes.push(e.linkquality());
+            return dynExposes;
+        },
+        ota: true,
+        endpoint: (device) => {
+            return {default: 35};
+        },
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            develcoModernExtend.temperature(),
+            illuminance({reporting: {min: 60, max: 3600, change: 500}}),
+            battery({
+                voltageToPercentage: {min: 2500, max: 3000},
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1']}),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 2) {
+                const endpoint35 = device.getEndpoint(35);
+                await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+                await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
+            }
+        },
     },
     {
         whiteLabel: [{vendor: 'Frient', model: 'HMSZB-120', description: 'Temperature & humidity sensor', fingerprint: [{modelID: 'HMSZB-120'}]}],
@@ -738,7 +725,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HMSZB-110',
         vendor: 'Develco',
         description: 'Temperature & humidity sensor',
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {default: 38};
         },
@@ -821,7 +808,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Flood alarm device ',
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.battery_low(), e.tamper(), e.water_leak()],
         endpoint: (device) => {
             return {default: 35};
@@ -845,7 +832,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'AQSZB-110',
         vendor: 'Develco',
         description: 'Air quality sensor',
-        ota: ota.zigbeeOTA,
+        ota: true,
         endpoint: (device) => {
             return {default: 38};
         },
@@ -932,7 +919,7 @@ const definitions: DefinitionWithExtend[] = [
             e.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 23'),
             e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency']),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -1023,7 +1010,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart button',
         fromZigbee: [fz.ewelink_action],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: true,
         exposes: [e.action(['single'])],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),

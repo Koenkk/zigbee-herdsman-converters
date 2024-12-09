@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -238,7 +237,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'DIYRuZ_R8_8',
         vendor: 'DIYRuZ',
         description: 'DiY 8 Relays + 8 switches',
-        fromZigbee: [fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fz.ignore_basic_report],
+        fromZigbee: [fz.ptvo_multistate_action, fz.ignore_basic_report],
         extend: [
             deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8}}),
             onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8']}),

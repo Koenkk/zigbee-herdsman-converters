@@ -1,10 +1,11 @@
 import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
-import tz from '../converters/toZigbee';
-import {onOff} from '../lib/modernExtend';
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -12,6 +13,13 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CSLC601-D-E',
         vendor: 'CASAIA',
         description: 'Dry contact relay switch module in 220v AC for gas boiler',
+        extend: [onOff()],
+    },
+    {
+        zigbeeModel: ['CSAC451-WTC-E'],
+        model: 'CSAC451-WTC-E',
+        vendor: 'CASAIA',
+        description: 'Dry contact relay switch module in 6-24v AC',
         extend: [onOff()],
     },
     {

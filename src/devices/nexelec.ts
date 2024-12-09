@@ -1,4 +1,4 @@
-import {temperature, humidity, co2, battery, identify} from '../lib/modernExtend';
+import {battery, co2, humidity, identify, temperature} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [

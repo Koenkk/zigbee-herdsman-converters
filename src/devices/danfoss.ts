@@ -4,9 +4,9 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -126,16 +126,17 @@ const definitions: DefinitionWithExtend[] = [
                             'TRV is not accurate enough: If the radiator is covered behind curtains or furniture, if the room is rather big, or ' +
                             'if the radiator itself is big and the flow temperature is high, then the temperature in the room may easily diverge ' +
                             'from the `local_temperature` measured by the TRV by 5°C to 8°C. In this case you might choose to use an external ' +
-                            'room sensor and send the measured value of the external room sensor to the `External_measured_room_sensor` property.' +
+                            'room sensor and send the measured value of the external room sensor to the `External_measured_room_sensor` property. ' +
                             'The way the TRV operates on the `External_measured_room_sensor` depends on the setting of the `Radiator_covered` ' +
                             'property: If `Radiator_covered` is `false` (Auto Offset Mode): You *must* set the `External_measured_room_sensor` ' +
                             'property *at least* every 3 hours. After 3 hours the TRV disables this function and resets the value of the ' +
                             '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
-                            'property *at most* every 30 minutes or every 0.1K change in measured room temperature.' +
+                            'property *at most* every 30 minutes or every 0.1°C change in measured room temperature. ' +
                             'If `Radiator_covered` is `true` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property *at ' +
                             'least* every 30 minutes. After 35 minutes the TRV disables this function and resets the value of the ' +
                             '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
-                            'property *at most* every 5 minutes or every 0.1K change in measured room temperature.',
+                            'property *at most* every 5 minutes or every 0.1°C change in measured room temperature. ' +
+                            'The unit of this value is 0.01 `°C` (so e.g. 21°C would be represented as 2100).',
                     )
                     .withValueMin(-8000)
                     .withValueMax(3500),
@@ -208,7 +209,7 @@ const definitions: DefinitionWithExtend[] = [
                     .withValueMax(25),
             ];
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
@@ -295,7 +296,7 @@ const definitions: DefinitionWithExtend[] = [
                     ],
                     options,
                 );
-            } catch (e) {
+            } catch {
                 /* not supported by all */
             }
 
@@ -321,7 +322,7 @@ const definitions: DefinitionWithExtend[] = [
                     ],
                     options,
                 );
-            } catch (e) {
+            } catch {
                 /* not supported by all https://github.com/Koenkk/zigbee2mqtt/issues/11872 */
             }
 

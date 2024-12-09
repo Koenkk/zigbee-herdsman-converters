@@ -1,9 +1,10 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
-import {DefinitionWithExtend, Tz, Fz, KeyValueAny} from '../lib/types';
+import {deviceEndpoints, electricityMeter, iasZoneAlarm, identify, onOff, temperature} from '../lib/modernExtend';
+import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -106,9 +107,9 @@ const tzLocal = {
             const state = utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
 
-            if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
-                const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
+            if (state === 'on' && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
+                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== 'number') {
                     throw Error('The on_time value must be a number!');
@@ -227,7 +228,7 @@ const fzLocal = {
             payload[name] = utils.precisionRound(msg.data['presentValue'], 3);
             if (channel === 5) {
                 payload[`uptime_${name}`] = utils.precisionRound(msg.data['presentValue'], 3);
-            } else if (msg.data.hasOwnProperty('description')) {
+            } else if (msg.data.description !== undefined) {
                 const data1 = msg.data['description'];
                 if (data1) {
                     const data2 = data1.split(',');
@@ -278,9 +279,9 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 const payload: KeyValueAny = {};
-                const endpointName = model.hasOwnProperty('endpoint') ? utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
+                const endpointName = model.endpoint !== undefined ? utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
                 const state = msg.data['onOff'] === 1 ? 'OFF' : 'ON';
                 payload[`state_${endpointName}`] = state;
                 return payload;
@@ -366,7 +367,6 @@ const definitions: DefinitionWithExtend[] = [
             fzLocal.zigusb_analog_input,
             fz.temperature,
             fz.ptvo_multistate_action,
-            legacy.fz.ptvo_switch_buttons,
             fzLocal.zigusb_button_config,
         ],
         toZigbee: [tzLocal.zigusb_restart_interval, tzLocal.zigusb_on_off_invert, tz.ptvo_switch_analog_input, tzLocal.zigusb_button_config],
@@ -461,6 +461,43 @@ const definitions: DefinitionWithExtend[] = [
                 {attribute: 'onOff', minimumReportInterval: 20, maximumReportInterval: 120, reportableChange: 0.1},
             ]);
         },
+    },
+    {
+        zigbeeModel: ['ZigUSB_C6'],
+        model: 'ZigUSB_C6',
+        vendor: 'xyzroe',
+        description: 'Zigbee USB switch with monitoring',
+        ota: true,
+        toZigbee: [tzLocal.zigusb_restart_interval],
+        exposes: [
+            e
+                .numeric('restart', ea.SET)
+                .withEndpoint('4')
+                .withValueMin(1)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription('Restart USB device - OFF time')
+                .withUnit('seconds'),
+        ],
+        extend: [
+            deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3, 4: 4}}),
+            identify(),
+            electricityMeter({
+                cluster: 'electrical',
+                electricalMeasurementType: 'both',
+                // Since this device measures lower voltage devices, lower the change value.
+                current: {change: 100},
+                power: {change: 100},
+                voltage: {change: 100},
+                endpointNames: ['1'],
+            }),
+            temperature(),
+            onOff({endpointNames: ['1'], description: 'Controls the USB port'}),
+            onOff({powerOnBehavior: false, endpointNames: ['2'], description: 'LED indicates the Zigbee status'}),
+            onOff({powerOnBehavior: false, endpointNames: ['3'], description: 'LED indicates the USB state'}),
+            iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1'], description: 'Over current alarm'}),
+        ],
+        meta: {multiEndpoint: true},
     },
 ];
 

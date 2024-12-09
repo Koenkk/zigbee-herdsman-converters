@@ -1,5 +1,4 @@
 import {battery, deviceEndpoints, light} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -8,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'Mega23M12',
         vendor: 'Dresden Elektronik',
         description: 'ZigBee Light Link wireless electronic ballast',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [
             deviceEndpoints({endpoints: {rgb: 10, white: 11}}),
             light({colorTemp: {range: undefined}, color: true, endpointNames: ['rgb', 'white']}),
@@ -27,14 +26,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Dresden Elektronik',
         description: 'Zigbee 3.0 dimm actuator',
         extend: [light()],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['Hive'],
         model: 'Hive',
         vendor: 'Phoscon',
         description: 'Battery powered smart LED light',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [light({colorTemp: {range: [153, 370]}, color: true}), battery()],
     },
     {

@@ -16,18 +16,19 @@ jobs:
             - uses: actions/checkout@v4
               with:
                   token: ${{ secrets.GH_TOKEN }}
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 9
             - uses: actions/setup-node@v4
               with:
                   node-version: 20
-                  cache: npm
-            - run: npx npm-check-updates -u -x eslint
-            - run: rm -f package-lock.json
-            - run: npm install
+                  cache: pnpm
+            - run: pnpm up --latest
             - uses: peter-evans/create-pull-request@v7
               env:
                   HUSKY: '0'
               with:
                   commit-message: 'fix(ignore): update dependencies'
                   branch: 'deps/all'
-                  title: Update dependencies
+                  title: 'fix(ignore): update dependencies'
                   token: ${{ secrets.GH_TOKEN }}

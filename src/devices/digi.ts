@@ -1,4 +1,5 @@
 import {DefinitionWithExtend} from '../lib/types';
+
 const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [

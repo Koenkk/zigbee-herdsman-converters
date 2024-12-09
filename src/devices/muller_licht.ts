@@ -1,8 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
-import {light as lightDontUse, onOff, LightArgs} from '../lib/modernExtend';
+import {LightArgs, light as lightDontUse, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend, Zh} from '../lib/types';
@@ -109,7 +108,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '404028/44435',
         vendor: 'Müller Licht',
         description: 'Tint LED Panel, color, opal white',
-        extend: [mullerLichtLight({colorTemp: {range: undefined}, color: true})],
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
         fingerprint: [
@@ -132,12 +131,12 @@ const definitions: DefinitionWithExtend[] = [
             fz.command_on,
             fz.command_off,
             fz.command_toggle,
-            legacy.fz.tint404011_brightness_updown_click,
-            legacy.fz.tint404011_move_to_color_temp,
-            legacy.fz.tint404011_move_to_color,
+            fz.command_step,
+            fz.tint404011_move_to_color_temp,
+            fz.command_move_to_color,
             fz.tint_scene,
-            legacy.fz.tint404011_brightness_updown_release,
-            legacy.fz.tint404011_brightness_updown_hold,
+            fz.command_stop,
+            fz.command_move,
         ],
         exposes: [
             e.action([
@@ -157,6 +156,7 @@ const definitions: DefinitionWithExtend[] = [
                 'scene_5',
                 'scene_6',
             ]),
+            e.action_group(),
         ],
         toZigbee: [],
     },
@@ -230,6 +230,7 @@ const definitions: DefinitionWithExtend[] = [
                 'scene_9',
                 'scene_10',
             ]),
+            e.action_group(),
         ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {

@@ -1,11 +1,12 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {DefinitionWithExtend} from '../lib/types';
-const e = exposes.presets;
-const ea = exposes.access;
 import {light} from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend} from '../lib/types';
+
+const e = exposes.presets;
+const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -39,7 +40,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_0aqbrnts', '_TZ3210_rxqls8v0', '_TZ3210_zmy9hjay', '_TZ3210_wuhzzfqg']),
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_0aqbrnts', '_TZ3210_rxqls8v0', '_TZ3210_zmy9hjay', '_TZ3210_wuhzzfqg', '_TZ3210_ohvnwamm']),
         model: 'ZB003-X',
         vendor: 'Fantem',
         description: '4 in 1 multi sensor',
@@ -49,7 +50,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.occupancy(),
             e.tamper(),
-            e.illuminance_lux(),
             e.illuminance(),
             e.temperature(),
             e.humidity(),

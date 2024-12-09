@@ -1,5 +1,5 @@
 import fz from '../converters/fromZigbee';
-import {onOff, light, electricityMeter} from '../lib/modernExtend';
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [

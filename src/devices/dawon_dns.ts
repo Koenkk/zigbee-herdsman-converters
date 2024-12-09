@@ -4,6 +4,7 @@ import * as exposes from '../lib/exposes';
 import {deviceEndpoints, forcePowerSource, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 

@@ -2,9 +2,10 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {binary, enumLookup, light, numeric} from '../lib/modernExtend';
+import {binary, enumLookup, light, numeric, text} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
+import {assertString} from '../lib/utils';
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -37,15 +38,20 @@ const definitions: DefinitionWithExtend[] = [
         model: '4523430',
         vendor: 'ELKO',
         description: 'ESH Plus Super TR RF PH',
-        fromZigbee: [fz.elko_thermostat, fz.thermostat],
-        toZigbee: [
-            tz.thermostat_occupied_heating_setpoint,
-            tz.elko_display_text,
-            tz.elko_power_status,
-            tz.elko_relay_state,
-            tz.elko_local_temperature_calibration,
-        ],
+        fromZigbee: [fz.elko_thermostat],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.elko_power_status, tz.elko_relay_state, tz.elko_local_temperature_calibration],
         extend: [
+            text({
+                name: 'display_text',
+                cluster: 'hvacThermostat',
+                attribute: 'elkoDisplayText',
+                description: 'Displayed text on thermostat display (zone). Max 14 characters',
+                access: 'ALL',
+                validate: (value) => {
+                    assertString(value);
+                    if (value.length > 14) throw new Error('Length of text is greater than 14');
+                },
+            }),
             numeric({
                 name: 'load',
                 cluster: 'hvacThermostat',
@@ -93,7 +99,7 @@ const definitions: DefinitionWithExtend[] = [
             numeric({
                 name: 'floor_temp',
                 cluster: 'hvacThermostat',
-                attribute: 'elkoFloorTemp',
+                attribute: 'elkoExternalTemp',
                 description: 'Current temperature measured on the external sensor (floor)',
                 access: 'STATE_GET',
                 unit: '°C',
@@ -154,7 +160,6 @@ const definitions: DefinitionWithExtend[] = [
             }),
         ],
         exposes: [
-            e.text('display_text', ea.ALL).withDescription('Displayed text on thermostat display (zone). Max 14 characters'),
             e
                 .climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 50, 1)
@@ -165,7 +170,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'genBasic', 'genIdentify']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'genIdentify']);
 
             // standard ZCL attributes
             await reporting.thermostatTemperature(endpoint);

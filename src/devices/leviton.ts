@@ -1,11 +1,11 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -14,7 +14,7 @@ const fzLocal = {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentLevel')) {
+            if (msg.data.currentLevel !== undefined) {
                 const currentLevel = Number(msg.data['currentLevel']);
                 const property = utils.postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: currentLevel > 0 ? 'ON' : 'OFF'};
@@ -64,7 +64,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'RC-2000WH',
         vendor: 'Leviton',
         description: 'Omnistat2 wireless thermostat',
-        fromZigbee: [legacy.fz.thermostat_att_report, fz.fan],
+        fromZigbee: [fz.thermostat, fz.fan],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_local_temperature_calibration,

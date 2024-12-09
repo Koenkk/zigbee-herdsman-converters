@@ -3,7 +3,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {Zh, DefinitionWithExtend} from '../lib/types';
+import {DefinitionWithExtend, Zh} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;

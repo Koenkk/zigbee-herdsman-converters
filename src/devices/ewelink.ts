@@ -1,8 +1,9 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {battery, deviceEndpoints, iasZoneAlarm, onOff} from '../lib/modernExtend';
 import {DefinitionWithExtend, Fz} from '../lib/types';
+
 const e = exposes.presets;
 
 const NS = 'zhc:ewelink';
@@ -50,7 +51,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             try {
                 await device.getEndpoint(1).bind('genOnOff', coordinatorEndpoint);
-            } catch (error) {
+            } catch {
                 // This might fail because there are some repeaters which advertise to support genOnOff but don't support it.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/19865
                 logger.debug('Failed to bind genOnOff for SA-003-Zigbee', NS);
@@ -154,6 +155,13 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.WS01_rain],
         toZigbee: [],
         exposes: [e.rain()],
+    },
+    {
+        zigbeeModel: ['SNZB-05'],
+        model: 'SNZB-05',
+        vendor: 'eWeLink',
+        description: 'Zigbee water sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
 ];
 

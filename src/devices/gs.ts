@@ -1,14 +1,14 @@
 import {
+    battery,
+    electricityMeter,
+    humidity,
+    iasWarning,
+    iasZoneAlarm,
+    identify,
+    ignoreClusterReport,
     light,
     onOff,
-    electricityMeter,
-    iasZoneAlarm,
     temperature,
-    humidity,
-    battery,
-    ignoreClusterReport,
-    iasWarning,
-    identify,
 } from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 

@@ -4,6 +4,7 @@ import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 
 const fzLocal = {
@@ -19,7 +20,7 @@ const fzLocal = {
             ];
             const payload: KeyValue = {};
             for (const entry of lookup) {
-                if (msg.data.hasOwnProperty(entry.key)) {
+                if (msg.data[entry.key] !== undefined) {
                     const value = msg.data[entry.key] / 1000;
                     payload[entry.name] = value;
                 }

@@ -3,12 +3,16 @@ import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dmfguuli'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_dmfguuli'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_rxypyjkw'},
+        ],
         model: 'EZ200',
         vendor: 'Evanell',
         description: 'Thermostatic radiator valve',

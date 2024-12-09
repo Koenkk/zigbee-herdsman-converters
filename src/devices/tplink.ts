@@ -2,6 +2,7 @@ import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
@@ -12,7 +13,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.illuminance],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.illuminance()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);

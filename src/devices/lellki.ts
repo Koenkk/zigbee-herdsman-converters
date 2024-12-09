@@ -1,12 +1,13 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
-import * as tuya from '../lib/tuya';
 
 const definitions: DefinitionWithExtend[] = [
     {

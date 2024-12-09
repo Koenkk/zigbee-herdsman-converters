@@ -1,4 +1,4 @@
-npm run pretty:check
-npm run eslint
-npm run test
-npm run build
+pnpm run pretty:check
+pnpm run eslint
+pnpm run test
+pnpm run build

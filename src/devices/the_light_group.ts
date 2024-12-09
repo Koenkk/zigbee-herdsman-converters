@@ -82,6 +82,13 @@ const definitions: DefinitionWithExtend[] = [
         description: 'SLC SmartOne CV led dimmable driver',
         extend: [light()],
     },
+    {
+        zigbeeModel: ['S32055'],
+        model: 'S32055',
+        vendor: 'The Light Group',
+        description: 'SLC SmartOne TW led dimmable driver 24V/75W',
+        extend: [light({colorTemp: {range: [160, 450]}})],
+    },
 ];
 
 export default definitions;

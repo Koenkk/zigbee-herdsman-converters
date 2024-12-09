@@ -1,10 +1,11 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
+import {light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
-const e = exposes.presets;
-import {light} from '../lib/modernExtend';
 import * as utils from '../lib/utils';
+
+const e = exposes.presets;
 
 const fzLocal = {
     // ZB-1026 requires separate on/off converters since it re-uses the transaction number
