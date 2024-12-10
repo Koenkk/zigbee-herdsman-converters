@@ -13330,7 +13330,6 @@ const definitions: DefinitionWithExtend[] = [
                 [105, 'valve_1', tuya.valueConverterBasic.lookup({OFF: tuya.enum(2), ON: tuya.enum(0)})],
                 [13, 'countdown_1', tuya.valueConverter.raw],
                 [14, 'countdown_2', tuya.valueConverter.raw],
-                [15, 'battery', tuya.valueConverter.raw],
             ],
         },
     },
