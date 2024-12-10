@@ -8,8 +8,8 @@ const ea = exposes.access;
 const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
-            { modelID: 'TS0601', manufacturerName: '_TZE204_r7brscr6' },
-            { modelID: 'TS0601', manufacturerName: '_TZE204_p1qrtljn' },
+            {modelID: 'TS0601', manufacturerName: '_TZE204_r7brscr6'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_p1qrtljn'},
         ],
         model: 'VNTH-T2',
         vendor: 'TECH',
