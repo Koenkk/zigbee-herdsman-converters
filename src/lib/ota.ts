@@ -608,7 +608,7 @@ async function isImageAvailable(
 
     /* istanbul ignore next */
     if (meta.releaseNotes) {
-        logger.info(() => `${deviceLogString} Firmware release notes: ${meta.releaseNotes!.replace(/[\r\n]/g, '')}`, NS);
+        logger.info(() => `${deviceLogString(device)} Firmware release notes: ${meta.releaseNotes!.replace(/[\r\n]/g, '')}`, NS);
     }
 
     // Negative number means the firmware is 'newer' than current one

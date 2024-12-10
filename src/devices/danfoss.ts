@@ -342,6 +342,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
+            {modelID: '0x0200', manufacturerName: 'Danfoss'}, // Icon Basic Main Controller
             {modelID: '0x8020', manufacturerName: 'Danfoss'}, // RT24V Display
             {modelID: '0x8021', manufacturerName: 'Danfoss'}, // RT24V Display  Floor sensor
             {modelID: '0x8030', manufacturerName: 'Danfoss'}, // RTbattery Display

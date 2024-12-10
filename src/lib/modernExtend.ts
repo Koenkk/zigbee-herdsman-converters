@@ -2243,6 +2243,65 @@ export function binary(args: BinaryArgs): ModernExtend {
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
+export interface TextArgs {
+    name: string;
+    cluster: string | number;
+    attribute: string | {ID: number; type: number};
+    description: string;
+    zigbeeCommandOptions?: {manufacturerCode: number};
+    endpointName?: string;
+    reporting?: ReportingConfig;
+    access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
+    entityCategory?: 'config' | 'diagnostic';
+    validate?(value: unknown): void;
+}
+export function text(args: TextArgs): ModernExtend {
+    const {name, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, validate} = args;
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
+    const access = ea[args.access ?? 'ALL'];
+
+    let expose = e.text(name, access).withDescription(description);
+    if (endpointName) expose = expose.withEndpoint(endpointName);
+    if (entityCategory) expose = expose.withCategory(entityCategory);
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: cluster.toString(),
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                    return {[expose.property]: msg.data[attributeKey]};
+                }
+            },
+        },
+    ];
+
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: [name],
+            convertSet:
+                access & ea.SET
+                    ? async (entity, key, value, meta) => {
+                          void validate(value);
+                          const payload = isString(attribute) ? {[attribute]: value} : {[attribute.ID]: {value, type: attribute.type}};
+                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          return {state: {[key]: value}};
+                      }
+                    : undefined,
+            convertGet:
+                access & ea.GET
+                    ? async (entity, key, meta) => {
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                      }
+                    : undefined,
+        },
+    ];
+
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+
+    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
+}
+
 export type Parse = (msg: Fz.Message, attributeKey: string | number) => unknown;
 export interface ActionEnumLookupArgs {
     actionLookup: KeyValue;
