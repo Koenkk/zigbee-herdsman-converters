@@ -15,7 +15,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['0'] == 0) return;
-            const payload = {x_axis: msg.data['x_axis'], y_axis: msg.data['y_axis'], z_axis: msg.data['z_axis']};
+            const payload = {"x_axis": msg.data['x_axis'], "y_axis": msg.data['y_axis'], "z_axis": msg.data['z_axis']};
             return payload;
         },
     } satisfies Fz.Converter,
