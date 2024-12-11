@@ -13413,7 +13413,7 @@ const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [104, 'presence', tuya.valueConverter.trueFalse1],
                 [112, 'occupancy', tuya.valueConverter.trueFalseInvert],
-                [9, 'target_dis_closest', tuya.valueConverter.divideBy100],
+                [9, 'target_distance_closest', tuya.valueConverter.divideBy100],
                 [101, 'mov_delay', tuya.valueConverter.raw],
                 [102, 'none_delay', tuya.valueConverter.raw],
                 [103, 'illuminance', tuya.valueConverter.divideBy10],
