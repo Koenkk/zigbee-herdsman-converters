@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceAddCustomCluster, deviceEndpoints, electricityMeter, identify} from '../lib/modernExtend';
+import {deviceAddCustomCluster, deviceEndpoints, electricityMeter, humidity, identify, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Expose, Fz, Tz, Zh} from '../lib/types';
@@ -478,6 +478,8 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 127,
         readOnly: true,
         description: 'The temperature measured by the temperature sensor inside the chip, in degrees Celsius',
+        category: 'diagnostic',
+        unit: '°C',
     },
     overheat: {
         ID: 33,
@@ -1002,6 +1004,16 @@ const COMMON_DIMMER_ON_OFF_ATTRIBUTES: {[s: string]: Attribute} = {
         description:
             'Energy reports Energy level change which will result in sending a new energy report.' +
             '0 = disabled, 1-32767 = 0.01kWh-327.67kWh. Default setting: 10 (0.1 kWh)',
+    },
+};
+
+const VZM30_ATTRIBUTES: {[s: string]: Attribute} = {
+    ...COMMON_ATTRIBUTES,
+    ...COMMON_DIMMER_ON_OFF_ATTRIBUTES,
+    switchType: {
+        ...COMMON_ATTRIBUTES.switchType,
+        values: {'Single Pole': 0, 'Aux Switch': 1},
+        max: 1,
     },
 };
 
@@ -1917,6 +1929,8 @@ const exposeBreezeMode = () => {
         .withCategory('config');
 };
 
+const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
+
 const exposesListVZM31: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
 
 const exposesListVZM35: Expose[] = [e.fan().withModes(Object.keys(fanModes)), exposeLedEffects(), exposeIndividualLedEffects(), exposeBreezeMode()];
@@ -1924,6 +1938,7 @@ const exposesListVZM35: Expose[] = [e.fan().withModes(Object.keys(fanModes)), ex
 const exposesListVZM36: Expose[] = [e.light_brightness(), e.fan().withModes(Object.keys(fanModes)), exposeBreezeMode()];
 
 // Populate exposes list from the attributes description
+attributesToExposeList(VZM30_ATTRIBUTES, exposesListVZM30);
 attributesToExposeList(VZM31_ATTRIBUTES, exposesListVZM31);
 attributesToExposeList(VZM35_ATTRIBUTES, exposesListVZM35);
 attributesToExposeList(VZM36_ATTRIBUTES, exposesListVZM36);
@@ -1953,11 +1968,49 @@ const buttonTapSequences = [
     'config_quintuple',
 ];
 
+exposesListVZM30.push(e.action(buttonTapSequences));
 exposesListVZM31.push(e.action(buttonTapSequences));
-
 exposesListVZM35.push(e.action(buttonTapSequences));
 
 const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['VZM30-SN'],
+        model: 'VZM30-SN',
+        vendor: 'Inovelli',
+        description: 'On/off switch',
+        exposes: exposesListVZM30.concat(identify().exposes as Expose[]),
+        extend: [
+            deviceEndpoints({
+                endpoints: {'1': 1, '2': 2, '3': 3, '4': 4},
+                multiEndpointSkip: ['state', 'voltage', 'power', 'current', 'energy', 'brightness', 'temperature', 'humidity'],
+            }),
+            inovelliExtend.addCustomClusterInovelli(),
+            temperature(),
+            humidity(),
+            electricityMeter(),
+        ],
+        toZigbee: [
+            tzLocal.light_onoff_brightness_inovelli,
+            tz.power_on_behavior,
+            tz.ignore_transition,
+            tz.identify,
+            tzLocal.inovelli_led_effect,
+            tzLocal.inovelli_individual_led_effect,
+            tzLocal.inovelli_parameters(VZM30_ATTRIBUTES),
+            tzLocal.inovelli_parameters_readOnly(VZM30_ATTRIBUTES),
+        ],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report, fzLocal.inovelli(VZM30_ATTRIBUTES)],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+
+            // Bind for Button Event Reporting
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificInovelli']);
+        },
+    },
     {
         zigbeeModel: ['VZM31-SN'],
         model: 'VZM31-SN',
