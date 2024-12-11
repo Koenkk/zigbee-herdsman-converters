@@ -13336,7 +13336,6 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_eaulras5']),
-        zigbeeModel: ['TS0601'],
         model: 'PJ3201A',
         vendor: 'Dongguan Pinjia Technology Co.,LTD.',
         description: 'Human Presence Sensor',
