@@ -72,6 +72,17 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_t3s9qmmg'}],
+        model: 'X701A',
+        vendor: 'Lonsonho',
+        description: '1 gang switch with backlight',
+        extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_8vxj8khv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_7tdtqgwv'},

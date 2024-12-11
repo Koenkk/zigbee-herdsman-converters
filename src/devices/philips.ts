@@ -1134,7 +1134,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ['LCL001', 'LCL006'],
+        zigbeeModel: ['LCL001', 'LCL006', 'LCL007'],
         model: '8718699703424',
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
@@ -2183,7 +2183,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ['5063230P7'],
+        zigbeeModel: ['5063230P7', '929003810001_01', '929003810001_02'],
         model: '5063230P7',
         vendor: 'Philips',
         description: 'Hue Bluetooth white & color ambiance spot Fugato black (2 spots)',
@@ -3943,7 +3943,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
     {
-        zigbeeModel: ['LGT001'],
+        zigbeeModel: ['LGT001', 'LGT002', 'LGT003'],
         model: '929003711201',
         vendor: 'Philips',
         description: 'Hue Twilight sleep and wake-up light white',

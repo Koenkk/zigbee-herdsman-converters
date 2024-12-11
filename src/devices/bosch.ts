@@ -1127,7 +1127,9 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read(0x0502, [0xa000, 0xa001, 0xa002, 0xa003, 0xa004, 0xa005], manufacturerOptions);
-            await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            }
         },
         exposes: [
             e.binary('alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Alarm turn ON/OFF'),

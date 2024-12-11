@@ -626,6 +626,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [light({colorTemp: {range: [154, 500]}, turnsOffAtBrightness1: true})],
     },
     {
+        zigbeeModel: ['AE 270 T-2'],
+        model: 'AE 270 T-2',
+        vendor: 'Innr',
+        description: 'E26/24 bulb 1100lm, dimmable, white spectrum',
+        extend: [light({colorTemp: {range: [154, 500]}, turnsOffAtBrightness1: true})],
+    },
+    {
         zigbeeModel: ['AE 280 C'],
         model: 'AE 280 C',
         vendor: 'Innr',
@@ -814,6 +821,20 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Innr',
         description: 'Smart E26 LED bulb',
         extend: [light({turnsOffAtBrightness1: true})],
+    },
+    {
+        zigbeeModel: ['RF 271 T'],
+        model: 'RF 271 T',
+        vendor: 'Innr',
+        description: 'Smart E27 filament LED globe light bulb',
+        extend: [light({colorTemp: {range: [153, 556]}, turnsOffAtBrightness1: true})],
+    },
+    {
+        zigbeeModel: ['RF 273 T'],
+        model: 'RF 273 T',
+        vendor: 'Innr',
+        description: 'Smart E27 filament LED light bulb',
+        extend: [light({colorTemp: {range: [153, 556]}, turnsOffAtBrightness1: true})],
     },
 ];
 

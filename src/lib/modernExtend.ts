@@ -1403,12 +1403,21 @@ export type iasZoneAttribute =
     | 'test'
     | 'trouble'
     | 'battery_defect';
+export type manufacturerZoneAttribute = {
+    bit: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+    name: string;
+    valueOn: string | boolean;
+    valueOff: string | boolean;
+    description: string;
+    entityCategory?: 'config' | 'diagnostic';
+};
 export interface IasArgs {
     zoneType: iasZoneType;
     zoneAttributes: iasZoneAttribute[];
     alarmTimeout?: boolean;
     zoneStatusReporting?: boolean;
     description?: string;
+    manufacturerZoneAttributes?: manufacturerZoneAttribute[];
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposes: Expose[] = [];
@@ -1449,6 +1458,13 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
             if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(IAS_EXPOSE_LOOKUP[attr]);
         });
     }
+
+    if (args.manufacturerZoneAttributes)
+        args.manufacturerZoneAttributes.map((attr) => {
+            let expose = e.binary(attr.name, ea.STATE, attr.valueOn, attr.valueOff).withDescription(attr.description);
+            if (attr.entityCategory) expose = expose.withCategory(attr.entityCategory);
+            exposes.push(expose);
+        });
 
     const timeoutProperty = `${args.zoneType}_timeout`;
 
@@ -1500,6 +1516,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     if (args.zoneAttributes.includes('battery_defect')) {
                         payload = {battery_defect: (zoneStatus & (1 << 9)) > 0, ...payload};
                     }
+
                     let alarm1Payload = (zoneStatus & 1) > 0;
                     let alarm2Payload = (zoneStatus & (1 << 1)) > 0;
 
@@ -1516,6 +1533,11 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     } else if (args.zoneAttributes.includes('alarm_2')) {
                         payload = {[alarm2Name]: alarm2Payload, ...payload};
                     }
+
+                    if (args.manufacturerZoneAttributes)
+                        args.manufacturerZoneAttributes.map((attr) => {
+                            payload = {[attr.name]: (zoneStatus & (1 << attr.bit)) > 0, ...payload};
+                        });
 
                     return payload;
                 }
@@ -2203,6 +2225,65 @@ export function binary(args: BinaryArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
+                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          return {state: {[key]: value}};
+                      }
+                    : undefined,
+            convertGet:
+                access & ea.GET
+                    ? async (entity, key, meta) => {
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                      }
+                    : undefined,
+        },
+    ];
+
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+
+    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
+}
+
+export interface TextArgs {
+    name: string;
+    cluster: string | number;
+    attribute: string | {ID: number; type: number};
+    description: string;
+    zigbeeCommandOptions?: {manufacturerCode: number};
+    endpointName?: string;
+    reporting?: ReportingConfig;
+    access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
+    entityCategory?: 'config' | 'diagnostic';
+    validate?(value: unknown): void;
+}
+export function text(args: TextArgs): ModernExtend {
+    const {name, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, validate} = args;
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
+    const access = ea[args.access ?? 'ALL'];
+
+    let expose = e.text(name, access).withDescription(description);
+    if (endpointName) expose = expose.withEndpoint(endpointName);
+    if (entityCategory) expose = expose.withCategory(entityCategory);
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: cluster.toString(),
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                    return {[expose.property]: msg.data[attributeKey]};
+                }
+            },
+        },
+    ];
+
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: [name],
+            convertSet:
+                access & ea.SET
+                    ? async (entity, key, value, meta) => {
+                          void validate(value);
+                          const payload = isString(attribute) ? {[attribute]: value} : {[attribute.ID]: {value, type: attribute.type}};
                           await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }

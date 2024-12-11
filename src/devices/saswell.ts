@@ -29,6 +29,8 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_exfrnlow'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9m4kmbfu'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3yp57tby'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_7p8ugv8d'},
+            {modelID: 'TS0601', manufacturerName: '_TZE284_3yp57tby'},
         ],
         model: 'SEA801-Zigbee/SEA802-Zigbee',
         vendor: 'Saswell',
@@ -36,8 +38,10 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: 'HiHome', model: 'WZB-TRVL'},
             {vendor: 'Hama', model: '00176592'},
+            {vendor: 'Maginon', model: 'WT-1'},
             {vendor: 'RTX', model: 'ZB-RT1'},
             {vendor: 'SETTI+', model: 'TRV001'},
+            {vendor: 'Royal Thermo', model: 'RTE 77.001B'},
         ],
         fromZigbee: [legacy.fz.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, legacy.fz.tuya_thermostat_weekly_schedule_2],
         toZigbee: [

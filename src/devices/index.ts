@@ -59,6 +59,7 @@ import digi from './digi';
 import diyruz from './diyruz';
 import dlink from './dlink';
 import dnake from './dnake';
+import dowsing_reynolds from './dowsing_reynolds';
 import dresden_elektronik from './dresden_elektronik';
 import easyaccess from './easyaccess';
 import easyiot from './easyiot';
@@ -176,6 +177,7 @@ import lytko from './lytko';
 import m_elec from './m_elec';
 import makegood from './makegood';
 import matcall_bv from './matcall_bv';
+import mazda from './mazda';
 import meazon from './meazon';
 import mercator from './mercator';
 import miboxer from './miboxer';
@@ -374,6 +376,7 @@ export default [
     ...diyruz,
     ...dlink,
     ...dnake,
+    ...dowsing_reynolds,
     ...dresden_elektronik,
     ...easyaccess,
     ...easyiot,
@@ -490,6 +493,7 @@ export default [
     ...m_elec,
     ...makegood,
     ...matcall_bv,
+    ...mazda,
     ...meazon,
     ...mercator,
     ...miboxer,

@@ -11,13 +11,13 @@ const e = exposes.presets;
 
 const fzLocal = {
     thirdreality_acceleration: {
-        cluster: '65521',
+        cluster: '3rVirationSpecialcluster',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValue = {};
-            if (msg.data['1']) payload.x_axis = msg.data['1'];
-            if (msg.data['2']) payload.y_axis = msg.data['2'];
-            if (msg.data['3']) payload.z_axis = msg.data['3'];
+            if (msg.data['xAxis']) payload.x_axis = msg.data['xAxis'];
+            if (msg.data['yAxis']) payload.y_axis = msg.data['yAxis'];
+            if (msg.data['zAxis']) payload.z_axis = msg.data['zAxis'];
             return payload;
         },
     } satisfies Fz.Converter,
@@ -427,9 +427,9 @@ const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1233,
                 attributes: {
                     coolDownTime: {ID: 0x0004, type: Zcl.DataType.UINT16},
-                    xAxis: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    yAxis: {ID: 0x0002, type: Zcl.DataType.UINT16},
-                    zAxis: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                    xAxis: {ID: 0x0001, type: Zcl.DataType.INT16},
+                    yAxis: {ID: 0x0002, type: Zcl.DataType.INT16},
+                    zAxis: {ID: 0x0003, type: Zcl.DataType.INT16},
                 },
                 commands: {},
                 commandsResponse: {},
