@@ -385,10 +385,13 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: [' Micromodule switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
-        model: '064888 / 199142',
+        model: '064888',
         vendor: 'Legrand',
         description: 'Wired micromodule switch',
-        whiteLabel: [{vendor: 'BTicino', model: '3584C'}],
+        whiteLabel: [
+            {vendor: 'Legrand', description: 'Micromodule switch', model: '199142'},
+            {vendor: 'BTicino', description: 'Connected lighting micromodule', model: '3584C'},
+        ],
         extend: [onOff()],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify],
