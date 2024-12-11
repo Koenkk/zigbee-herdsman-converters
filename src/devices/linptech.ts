@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
-import {KeyValue, Definition, Tz, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -9,7 +9,7 @@ const ea = exposes.access;
 
 const tzLocal = {
     TS0225: {
-        key: ['motion_detection_distance', 'motion_detection_sensitivity', 'static_detection_sensitivity'],
+        key: ['motion_detection_distance', 'motion_detection_sensitivity', 'static_detection_sensitivity', 'led_indicator'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
                 case 'motion_detection_distance': {
@@ -27,6 +27,10 @@ const tzLocal = {
                     await entity.write('manuSpecificTuya_2', {57349: {value, type: 0x20}});
                     break;
                 }
+                case 'led_indicator': {
+                    await entity.write('manuSpecificTuya_2', {57353: {value: value ? 0x01 : 0x00, type: 0x10}});
+                    break;
+                }
             }
         },
     } satisfies Tz.Converter,
@@ -38,7 +42,8 @@ const fzLocal = {
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
             const buffer = msg.data;
-            return {illuminance: Math.round(0.0001 * Math.pow(Number(buffer[7]), 3.413))};
+            const measuredValue = Number(buffer[7]) * 256 + Number(buffer[6]);
+            return {illuminance: measuredValue === 0 ? 0 : Math.round(Math.pow(10, (measuredValue - 1) / 10000))};
         },
     } satisfies Fz.Converter,
     TS0225: {
@@ -46,27 +51,30 @@ const fzLocal = {
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('57354')) {
+            if (msg.data['57354'] !== undefined) {
                 result['target_distance'] = msg.data['57354'];
             }
-            if (msg.data.hasOwnProperty('57355')) {
+            if (msg.data['57355'] !== undefined) {
                 result['motion_detection_distance'] = msg.data['57355'];
             }
-            if (msg.data.hasOwnProperty('57348')) {
+            if (msg.data['57348'] !== undefined) {
                 result['motion_detection_sensitivity'] = msg.data['57348'];
             }
-            if (msg.data.hasOwnProperty('57349')) {
+            if (msg.data['57349'] !== undefined) {
                 result['static_detection_sensitivity'] = msg.data['57349'];
             }
-            if (msg.data.hasOwnProperty('57345')) {
+            if (msg.data['57345'] !== undefined) {
                 result['presence_keep_time'] = msg.data['57345'];
+            }
+            if (msg.data['57353'] !== undefined) {
+                result['led_indicator'] = msg.data['57353'] === 1 ? true : false;
             }
             return result;
         },
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0225', ['_TZ3218_awarhusb', '_TZ3218_t9ynfz4x']),
         model: 'ES1ZZ(TY)',
@@ -106,6 +114,7 @@ const definitions: Definition[] = [
                 .withValueStep(1)
                 .withUnit('s')
                 .withDescription('Time after which the device will check again for presence'),
+            e.binary('led_indicator', ea.STATE_SET, true, false).withDescription('LED Presence Indicator'),
         ],
         meta: {
             tuyaDatapoints: [[101, 'fading_time', tuya.valueConverter.raw]],

@@ -1,14 +1,13 @@
-import {Definition} from 'src/lib/types';
+import {DefinitionWithExtend} from 'src/lib/types';
 
 import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e5hpkc6d', '_TZE200_4hbx5cvx', '_TZE200_e5hpkc6d']),
         model: 'TS0601_futurehome_thermostat',
@@ -89,7 +88,7 @@ const definitions: Definition[] = [
         model: '4509243',
         vendor: 'Futurehome',
         description: 'Smart puck',
-        ota: ota.zigbeeOTA,
+        ota: true,
         extend: [light({configureReporting: true})],
     },
 ];

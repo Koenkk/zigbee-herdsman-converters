@@ -1,12 +1,14 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import {battery, humidity, temperature} from '../lib/modernExtend';
+import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_d0yu2xgi'}],
         zigbeeModel: ['0yu2xgi'],
@@ -102,7 +104,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nlrfgpny', '_TZE204_nlrfgpny']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nlrfgpny', '_TZE284_nlrfgpny', '_TZE204_nlrfgpny']),
         model: 'NAS-AB06B2',
         vendor: 'Neo',
         description: 'Outdoor solar alarm',
@@ -445,6 +447,81 @@ const definitions: Definition[] = [
                 [106, 'min_humidity_alarm', tuya.valueConverter.raw],
                 [109, 'schedule_periodic', tuya.valueConverter.raw],
                 [15, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: [{modelID: 'SNZB-02', manufacturerName: '_TZ3000_utwgoauk'}],
+        model: 'NAS-TH07B2',
+        vendor: 'NEO',
+        description: 'Temperature & humidity sensor',
+        extend: [temperature(), humidity(), battery()],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_1youk3hj']),
+        model: 'NAS-PS10B2',
+        vendor: 'NEO',
+        description: 'Human presence sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.presence(),
+            e.enum('human_motion_state', ea.STATE, ['none', 'small', 'large']).withDescription('Human Motion State'),
+            e
+                .numeric('dis_current', ea.STATE)
+                .withUnit('cm')
+                .withValueMin(0)
+                .withValueMax(600)
+                .withValueStep(1)
+                .withLabel('Current distance')
+                .withDescription('Current distance of detected motion'),
+            e
+                .numeric('presence_time', ea.STATE_SET)
+                .withUnit('s')
+                .withValueMin(3)
+                .withValueMax(600)
+                .withValueStep(1)
+                .withDescription('Presence Time'),
+            e
+                .numeric('motion_far_detection', ea.STATE_SET)
+                .withUnit('cm')
+                .withValueMin(150)
+                .withValueMax(600)
+                .withValueStep(75)
+                .withDescription('Motion Range Detection'),
+            e
+                .numeric('motion_sensitivity_value', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(7)
+                .withValueStep(1)
+                .withDescription('Motion Detection Sensitivity'),
+            e
+                .numeric('motionless_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(7)
+                .withValueStep(1)
+                .withDescription('Motionless Detection Sensitivity'),
+            e.enum('work_mode', ea.STATE_SET, ['manual', 'auto']).withDescription('Work Mode'),
+            e.binary('output_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Output Switch'),
+            e.numeric('output_time', ea.STATE_SET).withUnit('s').withValueMin(10).withValueMax(1800).withDescription('Output Times'),
+            e.binary('led_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Led Switch'),
+            e.enum('lux_value', ea.STATE_SET, ['10 lux', '20 lux', '50 lux', '24h']).withDescription('Lux Value'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [11, 'human_motion_state', tuya.valueConverterBasic.lookup({none: 0, small: 1, large: 2})],
+                [19, 'dis_current', tuya.valueConverter.raw],
+                [12, 'presence_time', tuya.valueConverter.raw],
+                [13, 'motion_far_detection', tuya.valueConverter.raw],
+                [15, 'motion_sensitivity', tuya.valueConverter.raw],
+                [16, 'motionless_sensitivity', tuya.valueConverter.raw],
+                [101, 'work_mode', tuya.valueConverterBasic.lookup({manual: 0, auto: 1})],
+                [104, 'output_switch', tuya.valueConverter.onOff],
+                [103, 'output_time', tuya.valueConverter.raw],
+                [105, 'led_switch', tuya.valueConverter.onOff],
+                [102, 'lux_value', tuya.valueConverterBasic.lookup({'10_lux': 0, '20_lux': 1, '50_lux': 2, '24h': 3})],
             ],
         },
     },

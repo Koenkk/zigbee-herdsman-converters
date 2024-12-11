@@ -1,8 +1,8 @@
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['tubeszb.router'],
         model: 'tubeszb.router',

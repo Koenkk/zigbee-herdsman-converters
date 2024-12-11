@@ -1,7 +1,7 @@
 import {light} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RDM-35104001'],
         model: '35104001',
@@ -15,6 +15,13 @@ const definitions: Definition[] = [
         vendor: 'Rademacher',
         description: 'addZ white + colour',
         extend: [light({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        zigbeeModel: ['RDM-35274001'],
+        model: 'RDM-35274001',
+        vendor: 'Rademacher',
+        description: 'addZ white + colour E27 LED',
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
 

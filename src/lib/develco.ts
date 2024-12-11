@@ -1,19 +1,9 @@
 import {Zcl} from 'zigbee-herdsman';
 
 import {presets as e, access as ea} from './exposes';
-import {logger} from './logger';
-import {
-    numeric,
-    NumericArgs,
-    ScaleFunction,
-    temperature,
-    deviceTemperature,
-    deviceAddCustomCluster,
-    setupConfigureForReporting,
-} from './modernExtend';
-import {Fz, Tz, ModernExtend, Configure} from './types';
+import {deviceAddCustomCluster, deviceTemperature, numeric, NumericArgs, temperature} from './modernExtend';
+import {Configure, Fz, ModernExtend} from './types';
 
-const NS = 'zhc:develco';
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
 export const develcoModernExtend = {
@@ -53,16 +43,16 @@ export const develcoModernExtend = {
                         try {
                             const data = await ep.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
 
-                            if (data.hasOwnProperty('develcoPrimarySwVersion')) {
+                            if (data.develcoPrimarySwVersion !== undefined) {
                                 device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
                             }
 
-                            if (data.hasOwnProperty('develcoPrimaryHwVersion')) {
+                            if (data.develcoPrimaryHwVersion !== undefined) {
                                 device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
                             }
 
                             device.save();
-                        } catch (error) {
+                        } catch {
                             /* catch timeouts of sleeping devices */
                         }
                         break;
@@ -109,7 +99,7 @@ export const develcoModernExtend = {
                 cluster: clusterName,
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(attributeName)) {
+                    if (msg.data[attributeName] !== undefined) {
                         const vocPpb = parseFloat(msg.data[attributeName]);
 
                         // from aqszb-110-technical-manual-air-quality-sensor-04-08-20.pdf page 6, section 2.2 voc
@@ -159,7 +149,7 @@ export const develcoModernExtend = {
                 cluster: clusterName,
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty(attributeName) && msg.data[attributeName] < 255) {
+                    if (msg.data[attributeName] !== undefined && msg.data[attributeName] < 255) {
                         const voltage = parseInt(msg.data[attributeName]);
                         return {[propertyName]: voltage <= 25};
                     }
@@ -178,6 +168,28 @@ export const develcoModernExtend = {
         deviceTemperature({
             reporting: {min: '5_MINUTES', max: '1_HOUR', change: 2}, // Device temperature reports with 2 degree change
             valueIgnore: [0xffff, -0x8000],
+            ...args,
+        }),
+    currentSummation: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'current_summation',
+            cluster: 'seMetering',
+            attribute: 'develcoCurrentSummation',
+            description: 'Current summation value sent to the display. e.g. 570 = 0,570 kWh',
+            access: 'SET',
+            valueMin: 0,
+            valueMax: 268435455,
+            ...args,
+        }),
+    pulseConfiguration: (args?: Partial<NumericArgs>) =>
+        numeric({
+            name: 'pulse_configuration',
+            cluster: 'seMetering',
+            attribute: 'develcoPulseConfiguration',
+            description: 'Pulses per kwh. Default 1000 imp/kWh. Range 0 to 65535',
+            access: 'ALL',
+            valueMin: 0,
+            valueMax: 65535,
             ...args,
         }),
 };

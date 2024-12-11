@@ -1,10 +1,9 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {deviceEndpoints, forcePowerSource, light, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -16,7 +15,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('tuyaMovingState')) {
+            if (msg.data.tuyaMovingState !== undefined) {
                 const value = msg.data['tuyaMovingState'];
                 const movingLookup = {0: 'DOWN', 1: 'UP', 2: 'STOP'};
                 result.moving = utils.getFromLookup(value, movingLookup);
@@ -28,14 +27,14 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 return {state: msg.data['onOff'] === 1 ? 'CLOSE' : 'OPEN'};
             }
         },
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['LXN59-1S7LX1.0'],
         model: 'HGZB-01',
@@ -61,7 +60,7 @@ const definitions: Definition[] = [
         vendor: 'Nue / 3A',
         description: 'Smart 1 key scene wall switch',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.ignore_power_report],
         exposes: [e.action(['recall_*']), e.switch()],
     },
     {
@@ -71,7 +70,7 @@ const definitions: Definition[] = [
         description: 'Smart 2 key scene wall switch',
         toZigbee: [tz.on_off],
         exposes: [e.action(['recall_*']), e.switch()],
-        fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.ignore_power_report],
     },
     {
         zigbeeModel: ['FB56+ZSN08KJ2.3', 'FEB56-ZSN26YS1.3'],
@@ -79,7 +78,7 @@ const definitions: Definition[] = [
         vendor: 'Nue / 3A',
         description: 'Smart 4 key scene wall switch',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, fz.ignore_power_report],
         exposes: [e.action(['recall_*']), e.switch()],
     },
     {

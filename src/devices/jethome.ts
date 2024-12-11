@@ -1,8 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -43,7 +42,7 @@ const jetHome = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'WS7', manufacturerName: 'JetHome'}],
         model: 'WS7',
@@ -51,7 +50,7 @@ const definitions: Definition[] = [
         description: '3-ch battery discrete input module',
         fromZigbee: [fz.battery, jetHome.fz.multiStateAction],
         toZigbee: [],
-        ota: ota.jethome,
+        ota: true,
         exposes: [
             e.battery(),
             e.battery_voltage(),

@@ -1,7 +1,7 @@
 import {light} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'RGBW Down Light', manufacturerName: 'Letsleds China'}],
         model: 'HLC929-Z-RGBW-4C-IA-OTA-3.0',

@@ -1,26 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import fs from 'fs';
 
 import fromZigbeeConverters from '../converters/fromZigbee';
-import * as globalStore from './store';
-import * as utils from './utils';
-const fromZigbeeStore: KeyValueAny = {};
 import * as constants from './constants';
 import * as exposes from './exposes';
 import * as light from './light';
 import {logger} from './logger';
-import {Zh, KeyValueNumberString, Definition, Fz, Publish, Tz} from './types';
+import * as globalStore from './store';
+import {Definition, Fz, KeyValueNumberString, Publish, Tz, Zh} from './types';
+import * as utils from './utils';
 
 interface KeyValueAny {
     [s: string]: any;
 }
-
-// get object property name (key) by it's value
-const getKey = (object: KeyValueAny, value: any) => {
-    for (const key in object) {
-        if (object[key] == value) return key;
-    }
-};
 
 const dataTypes = {
     raw: 0, // [ bytes ]
@@ -229,10 +222,10 @@ function convertRawToCycleTimer(value: any) {
             weekdays = 'once';
         }
         let minsincemidnight: any = value[4] * 256 + value[5];
-        // @ts-ignore
+        // @ts-expect-error ignore
         starttime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
         minsincemidnight = value[6] * 256 + value[7];
-        // @ts-ignore
+        // @ts-expect-error ignore
         endtime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
         irrigationDuration = value[8] * 256 + value[9];
         pauseDuration = value[10] * 256 + value[11];
@@ -465,7 +458,7 @@ function convertRawToTimer(value: any) {
     if (value.length > 12) {
         timernr = value[1];
         const minsincemidnight = value[2] * 256 + value[3];
-        // @ts-ignore
+        // @ts-expect-error ignore
         starttime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
         duration = value[4] * 256 + value[5];
         if (value[6] > 0) {
@@ -1065,30 +1058,11 @@ function firstDpValue(msg: any, meta: any, converterName: any) {
     return dpValues[0];
 }
 
-const numberWithinRange = (number: number, min: number, max: number) => {
-    if (number > max) {
-        return max;
-    } else if (number < min) {
-        return min;
-    } else {
-        return number;
-    }
-};
-
-const holdUpdateBrightness324131092621 = (deviceID: any) => {
-    if (fromZigbeeStore[deviceID] && fromZigbeeStore[deviceID].brightnessSince && fromZigbeeStore[deviceID].brightnessDirection) {
-        const duration = Date.now() - fromZigbeeStore[deviceID].brightnessSince;
-        const delta = (duration / 10) * (fromZigbeeStore[deviceID].brightnessDirection === 'up' ? 1 : -1);
-        const newValue = fromZigbeeStore[deviceID].brightnessValue + delta;
-        fromZigbeeStore[deviceID].brightnessValue = numberWithinRange(newValue, 1, 255);
-    }
-};
-
 function getMetaValue(entity: any, definition: any, key: string, groupStrategy = 'first') {
     if (entity.constructor.name === 'Group' && entity.members.length > 0) {
         const values = [];
         for (const memberMeta of definition) {
-            if (memberMeta.meta && memberMeta.meta.hasOwnProperty(key)) {
+            if (memberMeta.meta && memberMeta.meta[key] !== undefined) {
                 if (groupStrategy === 'first') {
                     return memberMeta.meta[key];
                 }
@@ -1102,7 +1076,7 @@ function getMetaValue(entity: any, definition: any, key: string, groupStrategy =
         if (groupStrategy === 'allEqual' && new Set(values).size === 1) {
             return values[0];
         }
-    } else if (definition && definition.meta && definition.meta.hasOwnProperty(key)) {
+    } else if (definition && definition.meta && definition.meta[key] !== undefined) {
         return definition.meta[key];
     }
 
@@ -1129,122 +1103,6 @@ const tuyaGetDataValue = (dataType: any, data: any) => {
         case dataTypes.bitmap:
             return convertMultiByteNumberPayloadToSingleDecimalNumber(data);
     }
-};
-
-const toPercentage = (value: number, min: number, max: number) => {
-    if (value > max) {
-        value = max;
-    } else if (value < min) {
-        value = min;
-    }
-
-    const normalised = (value - min) / (max - min);
-    return Math.round(normalised * 100);
-};
-
-const postfixWithEndpointName = (name: string, msg: KeyValueAny, definition: Definition) => {
-    if (definition.meta && definition.meta.multiEndpoint) {
-        const endpointName = definition.hasOwnProperty('endpoint') ? getKey(definition.endpoint(msg.device), msg.endpoint.ID) : msg.endpoint.ID;
-        return `${name}_${endpointName}`;
-    } else {
-        return name;
-    }
-};
-
-const transactionStore: KeyValueAny = {};
-const hasAlreadyProcessedMessage = (msg: KeyValueAny, model: Definition, transaction: number = null, key: string = null) => {
-    if (model.meta && model.meta.publishDuplicateTransaction) return false;
-    const current = transaction !== null ? transaction : msg.meta.zclTransactionSequenceNumber;
-    key = key || msg.device.ieeeAddr;
-    if (transactionStore[key] === current) return true;
-    transactionStore[key] = current;
-    return false;
-};
-
-const addActionGroup = (payload: any, msg: any, definition: any) => {
-    const disableActionGroup = definition.meta && definition.meta.disableActionGroup;
-    if (!disableActionGroup && msg.groupID) {
-        payload.action_group = msg.groupID;
-    }
-};
-
-const ratelimitedDimmer = (model: any, msg: any, publish: any, options: any, meta: any) => {
-    const deviceID = msg.device.ieeeAddr;
-    const payload: KeyValueAny = {};
-    let duration = 0;
-
-    if (!fromZigbeeStore[deviceID]) {
-        fromZigbeeStore[deviceID] = {lastmsg: false};
-    }
-    const s = fromZigbeeStore[deviceID];
-
-    if (s.lastmsg) {
-        duration = Date.now() - s.lastmsg;
-    } else {
-        s.lastmsg = Date.now();
-    }
-
-    if (duration > 500) {
-        s.lastmsg = Date.now();
-        payload.action = 'brightness';
-        payload.brightness = msg.data.level;
-        publish(payload);
-    }
-};
-
-const ictcg1 = (model: any, msg: any, publish: any, options: any, action: any) => {
-    const deviceID = msg.device.ieeeAddr;
-    const payload: KeyValueAny = {};
-
-    if (!fromZigbeeStore[deviceID]) {
-        fromZigbeeStore[deviceID] = {since: false, direction: false, value: 255, publish: publish};
-    }
-
-    const s = fromZigbeeStore[deviceID];
-    // if rate == 70 so we rotate slowly
-    const rate = msg.data.rate == 70 ? 0.3 : 1;
-
-    if (action === 'move') {
-        s.since = Date.now();
-        const direction = msg.data.movemode === 1 ? 'left' : 'right';
-        s.direction = direction;
-        payload.action = `rotate_${direction}`;
-    } else if (action === 'level') {
-        s.value = msg.data.level;
-        const direction = s.value === 0 ? 'left' : 'right';
-        payload.action = `rotate_${direction}_quick`;
-        payload.brightness = s.value;
-    } else if (action === 'stop') {
-        if (s.direction) {
-            const duration = Date.now() - s.since;
-            const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
-            const newValue = s.value + delta;
-            if (newValue >= 0 && newValue <= 255) {
-                s.value = newValue;
-            }
-        }
-        payload.action = 'rotate_stop';
-        payload.brightness = s.value;
-        s.direction = false;
-    }
-    if (s.timerId) {
-        clearInterval(s.timerId);
-        s.timerId = false;
-    }
-    if (action === 'move') {
-        s.timerId = setInterval(() => {
-            const duration = Date.now() - s.since;
-            const delta = Math.round(rate * (duration / 10) * (s.direction === 'left' ? -1 : 1));
-            const newValue = s.value + delta;
-            if (newValue >= 0 && newValue <= 255) {
-                s.value = newValue;
-            }
-            payload.brightness = s.value;
-            s.since = Date.now();
-            s.publish(payload);
-        }, 200);
-    }
-    return payload.brightness;
 };
 
 const SAFETY_MIN_SECS = 10;
@@ -1290,7 +1148,7 @@ const giexWaterValve = {
     waterConsumed: 'water_consumed',
 };
 
-const fromZigbee1 = {
+const fromZigbee = {
     TS0222: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
@@ -1302,7 +1160,6 @@ const fromZigbee1 = {
                 switch (dp) {
                     case 2:
                         result.illuminance = value;
-                        result.illuminance_lux = value;
                         break;
                     case 4:
                         result.battery = value;
@@ -1537,7 +1394,7 @@ const fromZigbee1 = {
                         break;
                     }
                     case 1: // report state
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.state = {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value];
                         break;
                     case dataPoints.motorDirection: // reverse direction
@@ -1547,7 +1404,7 @@ const fromZigbee1 = {
                         result.cycle_time = value;
                         break;
                     case 101: // model
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.motor_type = {
                             0: '',
                             1: 'AM0/6-28R-Sm',
@@ -1561,11 +1418,11 @@ const fromZigbee1 = {
                         result.cycle_count = value;
                         break;
                     case 103: // set or clear bottom limit
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.bottom_limit = {0: 'SET', 1: 'CLEAR'}[value];
                         break;
                     case 104: // set or clear top limit
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.top_limit = {0: 'SET', 1: 'CLEAR'}[value];
                         break;
                     case 109: // active power
@@ -1577,7 +1434,7 @@ const fromZigbee1 = {
                     case 116: // report confirmation
                         break;
                     case 121: // running state
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.motor_state = {0: 'OPENING', 1: 'STOPPED', 2: 'CLOSING'}[value];
                         result.running = value !== 1 ? true : false;
                         break;
@@ -1807,7 +1664,7 @@ const fromZigbee1 = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
-            // @ts-ignore
+            // @ts-expect-error ignore
             const modelConverters = giexFzModelConverters[model.model] || {};
             for (const dpValue of msg.data.dpValues) {
                 const value = getDataValue(dpValue);
@@ -1850,14 +1707,14 @@ const fromZigbee1 = {
             const value = getDataValue(dpValue);
             switch (dp) {
                 case dataPoints.alectoSmokeState:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {smoke_state: {0: 'alarm', 1: 'normal'}[value]};
                 case dataPoints.alectoSmokeValue:
                     return {smoke_value: value};
                 case dataPoints.alectoSelfChecking:
                     return {self_checking: value};
                 case dataPoints.alectoCheckingResult:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {checking_result: {0: 'checking', 1: 'check_success', 2: 'check_failure', 3: 'others'}[value]};
                 case dataPoints.alectoSmokeTest:
                     return {smoke_test: value};
@@ -1866,1572 +1723,13 @@ const fromZigbee1 = {
                 case dataPoints.alectoBatteryPercentage:
                     return {battery: value};
                 case dataPoints.alectoBatteryState:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {battery_state: {0: 'low', 1: 'middle', 2: 'high'}[value]};
                 case dataPoints.alectoSilence:
                     return {silence: value};
                 default:
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(msg.data)}`, 'zhc:legacy:fz:tuya_alecto_smoke');
             }
-        },
-    } satisfies Fz.Converter,
-    SmartButton_skip: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const direction = msg.data.stepmode === 1 ? 'backward' : 'forward';
-                return {
-                    action: `skip_${direction}`,
-                    step_size: msg.data.stepsize,
-                    transition_time: msg.data.transtime,
-                };
-            } else {
-                return fromZigbeeConverters.command_step.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    konke_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const value = msg.data['onOff'];
-                const lookup: KeyValueAny = {
-                    128: {click: 'single'}, // single click
-                    129: {click: 'double'}, // double and many click
-                    130: {click: 'long'}, // hold
-                };
-
-                return lookup[value] ? lookup[value] : null;
-            }
-        },
-    } satisfies Fz.Converter,
-    terncy_raw: {
-        cluster: 'manuSpecificClusterAduroSmart',
-        type: 'raw',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                // 13,40,18,104, 0,8,1 - click
-                // 13,40,18,22,  0,17,1
-                // 13,40,18,32,  0,18,1
-                // 13,40,18,6,   0,16,1
-                // 13,40,18,111, 0,4,2 - double click
-                // 13,40,18,58,  0,7,2
-                // 13,40,18,6,   0,2,3 - triple click
-                // motion messages:
-                // 13,40,18,105, 4,167,0,7 - motion on right side
-                // 13,40,18,96,  4,27,0,5
-                // 13,40,18,101, 4,27,0,7
-                // 13,40,18,125, 4,28,0,5
-                // 13,40,18,85,  4,28,0,7
-                // 13,40,18,3,   4,24,0,5
-                // 13,40,18,81,  4,10,1,7
-                // 13,40,18,72,  4,30,1,5
-                // 13,40,18,24,  4,25,0,40 - motion on left side
-                // 13,40,18,47,  4,28,0,56
-                // 13,40,18,8,   4,32,0,40
-                let value: any = {};
-                if (msg.data[4] == 0) {
-                    value = msg.data[6];
-                    if (1 <= value && value <= 3) {
-                        const actionLookup: any = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
-                        return {click: actionLookup[value]};
-                    }
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    CCTSwitch_D0001_on_off: {
-        cluster: 'genOnOff',
-        type: ['commandOn', 'commandOff'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: 'power'};
-            }
-        },
-    } satisfies Fz.Converter,
-    ptvo_switch_buttons: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-                const value = msg.data['presentValue'];
-
-                const actionLookup: KeyValueAny = {
-                    0: 'release',
-                    1: 'single',
-                    2: 'double',
-                    3: 'tripple',
-                    4: 'hold',
-                };
-
-                const action = actionLookup[value];
-
-                if (button) {
-                    return {click: button + (action ? `_${action}` : '')};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    ZGRC013_brightness_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const button = msg.endpoint.ID;
-                const direction = msg.data.movemode == 0 ? 'up' : 'down';
-                if (button) {
-                    return {click: `${button}_${direction}`};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    ZGRC013_brightness_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStopWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const button = msg.endpoint.ID;
-                if (button) {
-                    return {click: `${button}_stop`};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    ZGRC013_scene: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
-            }
-        },
-    } satisfies Fz.Converter,
-    ZGRC013_cmdOn: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const button = msg.endpoint.ID;
-                if (button) {
-                    return {click: `${button}_on`};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    ZGRC013_cmdOff: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const button = msg.endpoint.ID;
-                if (button) {
-                    return {click: `${button}_off`};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    ZGRC013_brightness: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const button = msg.endpoint.ID;
-                const direction = msg.data.movemode == 0 ? 'up' : 'down';
-                if (button) {
-                    return {click: `${button}_${direction}`};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    CTR_U_scene: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: `scene_${msg.data.groupid}_${msg.data.sceneid}`};
-            }
-        },
-    } satisfies Fz.Converter,
-    st_button_state: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const buttonStates: KeyValueAny = {
-                    0: 'off',
-                    1: 'single',
-                    2: 'double',
-                    3: 'hold',
-                };
-
-                if (msg.data.hasOwnProperty('data')) {
-                    const zoneStatus = msg.data.zonestatus;
-                    return {click: buttonStates[zoneStatus]};
-                } else {
-                    const zoneStatus = msg.data.zonestatus;
-                    return {click: buttonStates[zoneStatus]};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    cover_stop: {
-        cluster: 'closuresWindowCovering',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: 'release'};
-            }
-        },
-    } satisfies Fz.Converter,
-    cover_open: {
-        cluster: 'closuresWindowCovering',
-        type: 'commandUpOpen',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: 'open'};
-            }
-        },
-    } satisfies Fz.Converter,
-    cover_close: {
-        cluster: 'closuresWindowCovering',
-        type: 'commandDownClose',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: 'close'};
-            }
-        },
-    } satisfies Fz.Converter,
-    TS0218_click: {
-        cluster: 'ssIasAce',
-        type: 'commandEmergency',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'click'};
-            } else {
-                return fromZigbeeConverters.command_emergency.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    scenes_recall_click: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: msg.data.sceneid};
-            }
-        },
-    } satisfies Fz.Converter,
-    AV2010_34_click: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: msg.data.groupid};
-            }
-        },
-    } satisfies Fz.Converter,
-    genOnOff_cmdOn: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: 'on'};
-            }
-        },
-    } satisfies Fz.Converter,
-    genOnOff_cmdOff: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: 'off'};
-            }
-        },
-    } satisfies Fz.Converter,
-    RM01_on_click: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-                return {action: `${button}_on`};
-            } else {
-                return fromZigbeeConverters.command_on.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    RM01_off_click: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-                return {action: `${button}_off`};
-            } else {
-                return fromZigbeeConverters.command_off.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    RM01_down_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-                return {
-                    action: `${button}_down`,
-                    step_mode: msg.data.stepmode,
-                    step_size: msg.data.stepsize,
-                    transition_time: msg.data.transtime,
-                };
-            } else {
-                return fromZigbeeConverters.command_step.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    RM01_up_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStepWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-                return {
-                    action: `${button}_up`,
-                    step_mode: msg.data.stepmode,
-                    step_size: msg.data.stepsize,
-                    transition_time: msg.data.transtime,
-                };
-            } else {
-                return fromZigbeeConverters.command_step.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    RM01_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-                return {action: `${button}_stop`};
-            } else {
-                return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    cmd_move: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        options: [exposes.options.legacy(), exposes.options.simulated_brightness(' Note: will only work when legacy: false is set.')],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            if (utils.isLegacyEnabled(options)) {
-                ictcg1(model, msg, publish, options, 'move');
-                const direction = msg.data.movemode === 1 ? 'left' : 'right';
-                return {action: `rotate_${direction}`, rate: msg.data.rate};
-            } else {
-                return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    cmd_move_with_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        options: [exposes.options.legacy(), exposes.options.simulated_brightness(' Note: will only work when legacy: false is set.')],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                ictcg1(model, msg, publish, options, 'move');
-                const direction = msg.data.movemode === 1 ? 'left' : 'right';
-                return {action: `rotate_${direction}`, rate: msg.data.rate};
-            } else {
-                return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    cmd_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            if (utils.isLegacyEnabled(options)) {
-                const value = ictcg1(model, msg, publish, options, 'stop');
-                return {action: `rotate_stop`, brightness: value};
-            } else {
-                return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    cmd_stop_with_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStopWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const value = ictcg1(model, msg, publish, options, 'stop');
-                return {action: `rotate_stop`, brightness: value};
-            } else {
-                return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    cmd_move_to_level_with_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveToLevelWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const value = ictcg1(model, msg, publish, options, 'level');
-                const direction = msg.data.level === 0 ? 'left' : 'right';
-                return {action: `rotate_${direction}_quick`, level: msg.data.level, brightness: value};
-            } else {
-                return fromZigbeeConverters.command_move_to_level.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    immax_07046L_arm: {
-        cluster: 'ssIasAce',
-        type: 'commandArm',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const action = msg.data['armmode'];
-                delete msg.data['armmode'];
-                const modeLookup: KeyValueAny = {
-                    0: 'disarm',
-                    1: 'arm_stay',
-                    3: 'arm_away',
-                };
-                return {action: modeLookup[action]};
-            } else {
-                return fromZigbeeConverters.command_arm.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    KEF1PA_arm: {
-        cluster: 'ssIasAce',
-        type: 'commandArm',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const action = msg.data['armmode'];
-                delete msg.data['armmode'];
-                const modeLookup: KeyValueAny = {
-                    0: 'home',
-                    2: 'sleep',
-                    3: 'away',
-                };
-                return {action: modeLookup[action]};
-            } else {
-                return fromZigbeeConverters.command_arm.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    CTR_U_brightness_updown_click: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                const direction = msg.data.stepmode === 1 ? 'down' : 'up';
-
-                // Save last direction for release event
-                if (!fromZigbeeStore[deviceID]) {
-                    fromZigbeeStore[deviceID] = {};
-                }
-                fromZigbeeStore[deviceID].direction = direction;
-
-                return {
-                    action: `brightness_${direction}_click`,
-                    step_size: msg.data.stepsize,
-                    transition_time: msg.data.transtime,
-                };
-            } else {
-                return fromZigbeeConverters.command_step.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    CTR_U_brightness_updown_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                const direction = msg.data.movemode === 1 ? 'down' : 'up';
-
-                // Save last direction for release event
-                if (!fromZigbeeStore[deviceID]) {
-                    fromZigbeeStore[deviceID] = {};
-                }
-                fromZigbeeStore[deviceID].direction = direction;
-
-                return {
-                    action: `brightness_${direction}_hold`,
-                    rate: msg.data.rate,
-                };
-            } else {
-                return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    CTR_U_brightness_updown_release: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                if (!fromZigbeeStore[deviceID]) {
-                    return null;
-                }
-
-                const direction = fromZigbeeStore[deviceID].direction;
-                return {
-                    action: `brightness_${direction}_release`,
-                };
-            } else {
-                return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_cmdOn: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'up'};
-            } else {
-                return fromZigbeeConverters.command_on.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_cmdOff: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'down'};
-            } else {
-                return fromZigbeeConverters.command_off.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_cmdMoveWithOnOff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                if (!fromZigbeeStore[deviceID]) {
-                    fromZigbeeStore[deviceID] = {direction: null};
-                }
-                fromZigbeeStore[deviceID].direction = 'up';
-                return {action: 'up_hold'};
-            } else {
-                return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_AC0251100NJ_cmdStop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const map: KeyValueAny = {
-                    1: 'up_release',
-                    2: 'down_release',
-                };
-
-                return {action: map[msg.endpoint.ID]};
-            } else {
-                return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_cmdMove: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                if (!fromZigbeeStore[deviceID]) {
-                    fromZigbeeStore[deviceID] = {direction: null};
-                }
-                fromZigbeeStore[deviceID].direction = 'down';
-                return {action: 'down_hold'};
-            } else {
-                return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_cmdMoveHue: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveHue',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if (msg.data.movemode === 0) {
-                    return {action: 'circle_release'};
-                }
-            } else {
-                return fromZigbeeConverters.command_move_hue.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_cmdMoveToSaturation: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToSaturation',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'circle_hold'};
-            } else {
-                return fromZigbeeConverters.command_move_to_saturation.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_cmdMoveToLevelWithOnOff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveToLevelWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'circle_click'};
-            } else {
-                return fromZigbeeConverters.command_move_to_level.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_cmdMoveToColorTemp: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToColorTemp',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return null;
-            } else {
-                return fromZigbeeConverters.command_move_to_color_temp.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_73743_cmdStop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                if (!fromZigbeeStore[deviceID]) {
-                    fromZigbeeStore[deviceID] = {direction: null};
-                }
-                let direction;
-                if (fromZigbeeStore[deviceID].direction) {
-                    direction = `${fromZigbeeStore[deviceID].direction}_`;
-                }
-                return {action: `${direction}release`};
-            } else {
-                return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_AB371860355_cmdOn: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'left_top_click'};
-            } else {
-                return fromZigbeeConverters.command_on.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_AB371860355_cmdOff: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'left_bottom_click'};
-            } else {
-                return fromZigbeeConverters.command_off.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_AB371860355_cmdStepColorTemp: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandStepColorTemp',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const pos = msg.data.stepmode === 1 ? 'top' : 'bottom';
-                return {action: `right_${pos}_click`};
-            } else {
-                return fromZigbeeConverters.command_step_color_temperature.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_AB371860355_cmdMoveWithOnOff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'left_top_hold'};
-            } else {
-                return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_AB371860355_cmdMove: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'left_bottom_hold'};
-            } else {
-                return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_AB371860355_cmdStop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const pos = msg.endpoint.ID === 1 ? 'top' : 'bottom';
-                return {action: `left_${pos}_release`};
-            } else {
-                return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_AB371860355_cmdMoveHue: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveHue',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const pos = msg.endpoint.ID === 2 ? 'top' : 'bottom';
-                const action = msg.data.movemode === 0 ? 'release' : 'hold';
-                return {action: `right_${pos}_${action}`};
-            } else {
-                return fromZigbeeConverters.command_move_hue.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    osram_lightify_switch_AB371860355_cmdMoveSat: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToSaturation',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const pos = msg.endpoint.ID === 2 ? 'top' : 'bottom';
-                return {action: `right_${pos}_hold`};
-            } else {
-                return fromZigbeeConverters.command_move_to_saturation.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    insta_scene_click: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {
-                    action: `select_${msg.data.sceneid}`,
-                };
-            } else {
-                return fromZigbeeConverters.command_recall.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    insta_down_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {
-                    action: 'down',
-                    step_mode: msg.data.stepmode,
-                    step_size: msg.data.stepsize,
-                    transition_time: msg.data.transtime,
-                };
-            } else {
-                return fromZigbeeConverters.command_step.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    insta_up_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStepWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {
-                    action: 'up',
-                    step_mode: msg.data.stepmode,
-                    step_size: msg.data.stepsize,
-                    transition_time: msg.data.transtime,
-                };
-            } else {
-                return fromZigbeeConverters.command_step.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    insta_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {
-                    action: 'stop',
-                };
-            } else {
-                return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    tint404011_brightness_updown_click: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const direction = msg.data.stepmode === 1 ? 'down' : 'up';
-                const payload = {
-                    action: `brightness_${direction}_click`,
-                    step_size: msg.data.stepsize,
-                    transition_time: msg.data.transtime,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            } else {
-                return fromZigbeeConverters.command_step.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    tint404011_brightness_updown_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                const direction = msg.data.movemode === 1 ? 'down' : 'up';
-
-                // Save last direction for release event
-                if (!fromZigbeeStore[deviceID]) {
-                    fromZigbeeStore[deviceID] = {};
-                }
-                fromZigbeeStore[deviceID].movemode = direction;
-
-                const payload = {
-                    action: `brightness_${direction}_hold`,
-                    rate: msg.data.rate,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            } else {
-                return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    tint404011_brightness_updown_release: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                if (!fromZigbeeStore[deviceID]) {
-                    return null;
-                }
-
-                const direction = fromZigbeeStore[deviceID].movemode;
-                const payload = {action: `brightness_${direction}_release`};
-                addActionGroup(payload, msg, model);
-                return payload;
-            } else {
-                return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    tint404011_move_to_color_temp: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToColorTemp',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const payload = {
-                    action: `color_temp`,
-                    action_color_temperature: msg.data.colortemp,
-                    transition_time: msg.data.transtime,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            } else {
-                return fromZigbeeConverters.tint404011_move_to_color_temp.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    tint404011_move_to_color: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveToColor',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const payload = {
-                    action_color: {
-                        x: utils.precisionRound(msg.data.colorx / 65535, 3),
-                        y: utils.precisionRound(msg.data.colory / 65535, 3),
-                    },
-                    action: 'color_wheel',
-                    transition_time: msg.data.transtime,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            } else {
-                return fromZigbeeConverters.command_move_to_color.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    heiman_smart_controller_armmode: {
-        cluster: 'ssIasAce',
-        type: 'commandArm',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if (msg.data.armmode != null) {
-                    const lookup: KeyValueAny = {
-                        0: 'disarm',
-                        1: 'arm_partial_zones',
-                        3: 'arm_all_zones',
-                    };
-
-                    const value = msg.data.armmode;
-                    return {action: lookup[value] || `armmode_${value}`};
-                }
-            } else {
-                return fromZigbeeConverters.command_arm.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    LZL4B_onoff: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveToLevelWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {
-                    action: msg.data.level,
-                    transition_time: msg.data.transtime,
-                };
-            } else {
-                return fromZigbeeConverters.command_move_to_level.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    eria_81825_updown: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const direction = msg.data.stepmode === 0 ? 'up' : 'down';
-                return {action: `${direction}`};
-            } else {
-                return fromZigbeeConverters.command_step.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    ZYCT202_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'stop', action_group: msg.groupID};
-            } else {
-                return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    ZYCT202_up_down: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const value = msg.data['movemode'];
-                let action = null;
-                if (value === 0) action = {action: 'up-press', action_group: msg.groupID};
-                else if (value === 1) action = {action: 'down-press', action_group: msg.groupID};
-                return action ? action : null;
-            } else {
-                return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    STS_PRS_251_beeping: {
-        cluster: 'genIdentify',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'beeping'};
-            } else {
-                return fromZigbeeConverters.identify.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    dimmer_passthru_brightness: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveToLevelWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                ratelimitedDimmer(model, msg, publish, options, meta);
-            } else {
-                return fromZigbeeConverters.command_move_to_level.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    bitron_thermostat_att_report: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.thermostat.convert(model, msg, publish, options, meta);
-            }
-
-            const result: KeyValueAny = {};
-            if (typeof msg.data['localTemp'] == 'number') {
-                result.local_temperature = utils.precisionRound(msg.data['localTemp'], 2) / 100;
-            }
-            if (typeof msg.data['localTemperatureCalibration'] == 'number') {
-                result.local_temperature_calibration = utils.precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
-            }
-            if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
-                result.occupied_heating_setpoint = utils.precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data['runningState'] == 'number') {
-                result.running_state = msg.data['runningState'];
-            }
-            if (typeof msg.data['batteryAlarmState'] == 'number') {
-                result.battery_alarm_state = msg.data['batteryAlarmState'];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_att_report: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.thermostat.convert(model, msg, publish, options, meta);
-            }
-
-            const result: KeyValueAny = {};
-            if (typeof msg.data['localTemp'] == 'number') {
-                result[postfixWithEndpointName('local_temperature', msg, model)] = utils.precisionRound(msg.data['localTemp'], 2) / 100;
-            }
-            if (typeof msg.data['localTemperatureCalibration'] == 'number') {
-                result[postfixWithEndpointName('local_temperature_calibration', msg, model)] =
-                    utils.precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
-            }
-            if (typeof msg.data['occupancy'] == 'number') {
-                result[postfixWithEndpointName('occupancy', msg, model)] = msg.data['occupancy'];
-            }
-            if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
-                let ohs = utils.precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
-                // Stelpro will return -325.65 when set to off
-                ohs = ohs < -250 ? 0 : ohs;
-                result[postfixWithEndpointName('occupied_heating_setpoint', msg, model)] = ohs;
-            }
-            if (typeof msg.data['unoccupiedHeatingSetpoint'] == 'number') {
-                result[postfixWithEndpointName('unoccupied_heating_setpoint', msg, model)] =
-                    utils.precisionRound(msg.data['unoccupiedHeatingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data['occupiedCoolingSetpoint'] == 'number') {
-                result[postfixWithEndpointName('occupied_cooling_setpoint', msg, model)] =
-                    utils.precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data['unoccupiedCoolingSetpoint'] == 'number') {
-                result[postfixWithEndpointName('unoccupied_cooling_setpoint', msg, model)] =
-                    utils.precisionRound(msg.data['unoccupiedCoolingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data['weeklySchedule'] == 'number') {
-                result[postfixWithEndpointName('weekly_schedule', msg, model)] = msg.data['weeklySchedule'];
-            }
-            if (typeof msg.data['setpointChangeAmount'] == 'number') {
-                result[postfixWithEndpointName('setpoint_change_amount', msg, model)] = msg.data['setpointChangeAmount'] / 100;
-            }
-            if (typeof msg.data['setpointChangeSource'] == 'number') {
-                result[postfixWithEndpointName('setpoint_change_source', msg, model)] = msg.data['setpointChangeSource'];
-            }
-            if (typeof msg.data['setpointChangeSourceTimeStamp'] == 'number') {
-                result[postfixWithEndpointName('setpoint_change_source_timestamp', msg, model)] = msg.data['setpointChangeSourceTimeStamp'];
-            }
-            if (typeof msg.data['remoteSensing'] == 'number') {
-                result[postfixWithEndpointName('remote_sensing', msg, model)] = msg.data['remoteSensing'];
-            }
-            const ctrl = msg.data['ctrlSeqeOfOper'];
-            if (typeof ctrl == 'number' && thermostatControlSequenceOfOperations.hasOwnProperty(ctrl)) {
-                result[postfixWithEndpointName('control_sequence_of_operation', msg, model)] =
-                    // @ts-ignore
-                    thermostatControlSequenceOfOperations[ctrl];
-            }
-            const smode = msg.data['systemMode'];
-            if (typeof smode == 'number' && thermostatSystemModes.hasOwnProperty(smode)) {
-                // @ts-ignore
-                result[postfixWithEndpointName('system_mode', msg, model)] = thermostatSystemModes[smode];
-            }
-            const rmode = msg.data['runningMode'];
-            if (typeof rmode == 'number' && thermostatSystemModes.hasOwnProperty(rmode)) {
-                // @ts-ignore
-                result[postfixWithEndpointName('running_mode', msg, model)] = thermostatSystemModes[rmode];
-            }
-            const state = msg.data['runningState'];
-            if (typeof state == 'number' && constants.thermostatRunningStates.hasOwnProperty(state)) {
-                // @ts-ignore
-                result[postfixWithEndpointName('running_state', msg, model)] = constants.thermostatRunningStates[state];
-            }
-            if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                result[postfixWithEndpointName('pi_heating_demand', msg, model)] = utils.precisionRound(
-                    (msg.data['pIHeatingDemand'] / 255.0) * 100.0,
-                    0,
-                );
-            }
-            if (typeof msg.data['tempSetpointHold'] == 'number') {
-                result[postfixWithEndpointName('temperature_setpoint_hold', msg, model)] = msg.data['tempSetpointHold'];
-            }
-            if (typeof msg.data['tempSetpointHoldDuration'] == 'number') {
-                result[postfixWithEndpointName('temperature_setpoint_hold_duration', msg, model)] = msg.data['tempSetpointHoldDuration'];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    stelpro_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.stelpro_thermostat.convert(model, msg, publish, options, meta);
-            }
-
-            const result = fromZigbee.thermostat_att_report.convert(model, msg, publish, options, meta) as KeyValueAny;
-            const mode = msg.data['StelproSystemMode'];
-            if (mode == 'number') {
-                result.stelpro_mode = mode;
-                switch (mode) {
-                    case 5:
-                        // 'Eco' mode is translated into 'auto' here
-                        result.system_mode = thermostatSystemModes[1];
-                        break;
-                }
-            }
-            const piHeatingDemand = msg.data['pIHeatingDemand'];
-            if (typeof piHeatingDemand == 'number') {
-                // DEPRECATED: only return running_state here (change operation -> running_state)
-                result.operation = piHeatingDemand >= 10 ? 'heating' : 'idle';
-                result.running_state = piHeatingDemand >= 10 ? 'heat' : 'idle';
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    viessmann_thermostat_att_report: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.viessmann_thermostat.convert(model, msg, publish, options, meta);
-            }
-
-            const result = fromZigbee.thermostat_att_report.convert(model, msg, publish, options, meta) as KeyValueAny;
-
-            // ViessMann TRVs report piHeatingDemand from 0-5
-            // NOTE: remove the result for now, but leave it configure for reporting
-            //       it will show up in the debug log still to help try and figure out
-            //       what this value potentially means.
-            if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                delete result.pi_heating_demand;
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter,
-    wiser_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.thermostat.convert(model, msg, publish, options, meta);
-            }
-
-            const result: KeyValueAny = {};
-            if (typeof msg.data['localTemp'] == 'number') {
-                result.local_temperature = utils.precisionRound(msg.data['localTemp'], 2) / 100;
-            }
-            if (typeof msg.data['occupiedHeatingSetpoint'] == 'number') {
-                result.occupied_heating_setpoint = utils.precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
-            }
-            if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                result.pi_heating_demand = utils.precisionRound(msg.data['pIHeatingDemand'], 2);
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    hvac_user_interface: {
-        cluster: 'hvacUserInterfaceCfg',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.hvac_user_interface.convert(model, msg, publish, options, meta);
-            }
-
-            const result: KeyValueAny = {};
-            const lockoutMode = msg.data['keypadLockout'];
-            if (typeof lockoutMode == 'number') {
-                result.keypad_lockout = lockoutMode;
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_weekly_schedule_rsp: {
-        cluster: 'hvacThermostat',
-        type: ['commandGetWeeklyScheduleRsp'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.thermostat_weekly_schedule.convert(model, msg, publish, options, meta);
-            }
-
-            const result: KeyValueAny = {};
-            const key = postfixWithEndpointName('weekly_schedule', msg, model);
-            result[key] = {};
-            if (typeof msg.data['dayofweek'] == 'number') {
-                result[key][msg.data['dayofweek']] = msg.data;
-                for (const elem of result[key][msg.data['dayofweek']]['transitions']) {
-                    if (typeof elem['heatSetpoint'] == 'number') {
-                        elem['heatSetpoint'] /= 100;
-                    }
-                    if (typeof elem['coolSetpoint'] == 'number') {
-                        elem['coolSetpoint'] /= 100;
-                    }
-                }
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    terncy_knob: {
-        cluster: 'manuSpecificClusterAduroSmart',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.terncy_knob.convert(model, msg, publish, options, meta);
-            }
-            if (typeof msg.data['27'] === 'number') {
-                return {
-                    action: 'rotate',
-                    direction: msg.data['27'] > 0 ? 'clockwise' : 'counterclockwise',
-                    number: Math.abs(msg.data['27']) / 12,
-                };
-            }
-        },
-    } satisfies Fz.Converter,
-    wiser_itrv_battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.battery.convert(model, msg, publish, options, meta);
-            }
-
-            const result: KeyValueAny = {};
-            if (typeof msg.data['batteryVoltage'] == 'number') {
-                const battery = {max: 30, min: 22};
-                const voltage = msg.data['batteryVoltage'];
-                result.battery = toPercentage(voltage, battery.min, battery.max);
-                result.voltage = voltage / 10;
-            }
-            if (typeof msg.data['batteryAlarmState'] == 'number') {
-                const battLow = msg.data['batteryAlarmState'];
-                if (battLow) {
-                    result['battery_low'] = true;
-                } else {
-                    result['battery_low'] = false;
-                }
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    ubisys_c4_scenes: {
-        cluster: 'genScenes',
-        type: 'commandRecall',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.command_recall.convert(model, msg, publish, options, meta);
-            }
-            return {action: `${msg.endpoint.ID}_scene_${msg.data.groupid}_${msg.data.sceneid}`};
-        },
-    } satisfies Fz.Converter,
-    ubisys_c4_onoff: {
-        cluster: 'genOnOff',
-        type: ['commandOn', 'commandOff', 'commandToggle'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                if (msg.type === 'commandOn') {
-                    return fromZigbeeConverters.command_on.convert(model, msg, publish, options, meta);
-                } else if (msg.type === 'commandOff') {
-                    return fromZigbeeConverters.command_off.convert(model, msg, publish, options, meta);
-                } else if (msg.type === 'commandToggle') {
-                    return fromZigbeeConverters.command_toggle.convert(model, msg, publish, options, meta);
-                }
-            }
-            return {action: `${msg.endpoint.ID}_${msg.type.substr(7).toLowerCase()}`};
-        },
-    } satisfies Fz.Converter,
-    ubisys_c4_level: {
-        cluster: 'genLevelCtrl',
-        type: ['commandMoveWithOnOff', 'commandStopWithOnOff'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                if (msg.type === 'commandMoveWithOnOff') {
-                    return fromZigbeeConverters.command_move.convert(model, msg, publish, options, meta);
-                } else if (msg.type === 'commandStopWithOnOff') {
-                    return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-                }
-            }
-
-            switch (msg.type) {
-                case 'commandMoveWithOnOff':
-                    return {action: `${msg.endpoint.ID}_level_move_${msg.data.movemode ? 'down' : 'up'}`};
-                case 'commandStopWithOnOff':
-                    return {action: `${msg.endpoint.ID}_level_stop`};
-            }
-        },
-    } satisfies Fz.Converter,
-    ubisys_c4_cover: {
-        cluster: 'closuresWindowCovering',
-        type: ['commandUpOpen', 'commandDownClose', 'commandStop'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                if (msg.type === 'commandUpOpen') {
-                    return fromZigbeeConverters.command_cover_open.convert(model, msg, publish, options, meta);
-                } else if (msg.type === 'commandDownClose') {
-                    return fromZigbeeConverters.command_cover_close.convert(model, msg, publish, options, meta);
-                } else if (msg.type === 'commandStop') {
-                    return fromZigbeeConverters.command_cover_stop.convert(model, msg, publish, options, meta);
-                }
-            }
-
-            const lookup: KeyValueAny = {
-                commandUpOpen: 'open',
-                commandDownClose: 'close',
-                commandStop: 'stop',
-            };
-            return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
-        },
-    } satisfies Fz.Converter,
-    hue_dimmer_switch: {
-        cluster: 'manuSpecificPhilips',
-        type: 'commandHueNotification',
-        options: [exposes.options.legacy(), exposes.options.simulated_brightness('Only works when legacy is false.')],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbeeConverters.hue_dimmer_switch.convert(model, msg, publish, options, meta);
-            }
-
-            const multiplePressTimeout = options && options.hasOwnProperty('multiple_press_timeout') ? options.multiple_press_timeout : 0.25;
-
-            const getPayload = function (
-                button: any,
-                pressType: any,
-                pressDuration: any,
-                pressCounter: any,
-                brightnessSend: any,
-                brightnessValue: any,
-            ) {
-                const payLoad: KeyValueAny = {};
-                payLoad['action'] = `${button}-${pressType}`;
-                payLoad['duration'] = pressDuration / 1000;
-                if (pressCounter) {
-                    payLoad['counter'] = pressCounter;
-                }
-                if (brightnessSend) {
-                    payLoad['brightness'] = fromZigbeeStore[deviceID].brightnessValue;
-                }
-                return payLoad;
-            };
-
-            const deviceID = msg.device.ieeeAddr;
-            const buttonLookup: KeyValueAny = {1: 'on', 2: 'up', 3: 'down', 4: 'off'};
-            const button = buttonLookup[msg.data['button']];
-
-            const typeLookup: KeyValueAny = {0: 'press', 1: 'hold', 2: 'release', 3: 'release'};
-            const type = typeLookup[msg.data['type']];
-
-            const brightnessEnabled = options && options.hasOwnProperty('send_brightess') ? options.send_brightess : true;
-            const brightnessSend = brightnessEnabled && button && (button == 'up' || button == 'down');
-
-            // Initialize store
-            if (!fromZigbeeStore[deviceID]) {
-                fromZigbeeStore[deviceID] = {
-                    pressStart: null,
-                    pressType: null,
-                    delayedButton: null,
-                    delayedBrightnessSend: null,
-                    delayedType: null,
-                    delayedCounter: 0,
-                    delayedTimerStart: null,
-                    delayedTimer: null,
-                };
-                if (brightnessEnabled) {
-                    fromZigbeeStore[deviceID].brightnessValue = 255;
-                    fromZigbeeStore[deviceID].brightnessSince = null;
-                    fromZigbeeStore[deviceID].brightnessDirection = null;
-                }
-            }
-
-            if (button && type) {
-                if (type == 'press') {
-                    fromZigbeeStore[deviceID].pressStart = Date.now();
-                    fromZigbeeStore[deviceID].pressType = 'press';
-                    if (brightnessSend) {
-                        const newValue = fromZigbeeStore[deviceID].brightnessValue + (button === 'up' ? 32 : -32);
-                        fromZigbeeStore[deviceID].brightnessValue = numberWithinRange(newValue, 1, 255);
-                    }
-                } else if (type == 'hold') {
-                    fromZigbeeStore[deviceID].pressType = 'hold';
-                    if (brightnessSend) {
-                        holdUpdateBrightness324131092621(deviceID);
-                        fromZigbeeStore[deviceID].brightnessSince = Date.now();
-                        fromZigbeeStore[deviceID].brightnessDirection = button;
-                    }
-                } else if (type == 'release') {
-                    if (brightnessSend) {
-                        fromZigbeeStore[deviceID].brightnessSince = null;
-                        fromZigbeeStore[deviceID].brightnessDirection = null;
-                    }
-                    if (fromZigbeeStore[deviceID].pressType == 'hold') {
-                        fromZigbeeStore[deviceID].pressType += '-release';
-                    }
-                }
-                if (type == 'press') {
-                    // pressed different button
-                    if (fromZigbeeStore[deviceID].delayedTimer && fromZigbeeStore[deviceID].delayedButton != button) {
-                        clearTimeout(fromZigbeeStore[deviceID].delayedTimer);
-                        fromZigbeeStore[deviceID].delayedTimer = null;
-                        publish(
-                            getPayload(
-                                fromZigbeeStore[deviceID].delayedButton,
-                                fromZigbeeStore[deviceID].delayedType,
-                                0,
-                                fromZigbeeStore[deviceID].delayedCounter,
-                                fromZigbeeStore[deviceID].delayedBrightnessSend,
-                                fromZigbeeStore[deviceID].brightnessValue,
-                            ),
-                        );
-                    }
-                } else {
-                    // released after press: start timer
-                    if (fromZigbeeStore[deviceID].pressType == 'press') {
-                        if (fromZigbeeStore[deviceID].delayedTimer) {
-                            clearTimeout(fromZigbeeStore[deviceID].delayedTimer);
-                            fromZigbeeStore[deviceID].delayedTimer = null;
-                        } else {
-                            fromZigbeeStore[deviceID].delayedCounter = 0;
-                        }
-                        fromZigbeeStore[deviceID].delayedButton = button;
-                        fromZigbeeStore[deviceID].delayedBrightnessSend = brightnessSend;
-                        fromZigbeeStore[deviceID].delayedType = fromZigbeeStore[deviceID].pressType;
-                        fromZigbeeStore[deviceID].delayedCounter++;
-                        fromZigbeeStore[deviceID].delayedTimerStart = Date.now();
-                        fromZigbeeStore[deviceID].delayedTimer = setTimeout(() => {
-                            publish(
-                                getPayload(
-                                    fromZigbeeStore[deviceID].delayedButton,
-                                    fromZigbeeStore[deviceID].delayedType,
-                                    0,
-                                    fromZigbeeStore[deviceID].delayedCounter,
-                                    fromZigbeeStore[deviceID].delayedBrightnessSend,
-                                    fromZigbeeStore[deviceID].brightnessValue,
-                                ),
-                            );
-                            fromZigbeeStore[deviceID].delayedTimer = null;
-                            // @ts-expect-error
-                        }, multiplePressTimeout * 1000);
-                    } else {
-                        const pressDuration =
-                            fromZigbeeStore[deviceID].pressType == 'hold' || fromZigbeeStore[deviceID].pressType == 'hold-release'
-                                ? Date.now() - fromZigbeeStore[deviceID].pressStart
-                                : 0;
-                        return getPayload(
-                            button,
-                            fromZigbeeStore[deviceID].pressType,
-                            pressDuration,
-                            null,
-                            brightnessSend,
-                            fromZigbeeStore[deviceID].brightnessValue,
-                        );
-                    }
-                }
-            }
-
-            return {};
         },
     } satisfies Fz.Converter,
     blitzwolf_occupancy_with_timeout: {
@@ -3593,7 +1891,7 @@ const fromZigbee1 = {
             const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
             switch (dp) {
                 case dataPoints.moesSsystemMode:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {preset: presetLookup[value], system_mode: 'heat'};
                 case dataPoints.moesSheatingSetpoint:
                     return {current_heating_setpoint: value};
@@ -3623,7 +1921,7 @@ const fromZigbee1 = {
                         // local_temperature is now stale: the valve does not report the re-calibrated value until an actual temperature change
                         // so update local_temperature by subtracting the old calibration and adding the new one
                         ...(meta && meta.state && meta.state.local_temperature != null && meta.state.local_temperature_calibration != null
-                            ? // @ts-expect-error
+                            ? // @ts-expect-error ignore
                               {local_temperature: meta.state.local_temperature + (value - meta.state.local_temperature_calibration)}
                             : {}),
                     };
@@ -3664,14 +1962,14 @@ const fromZigbee1 = {
                     return {humidity: value / 10};
                 // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
                 case dataPoints.tuyaSabFormaldehyd:
-                    if (['_TZE200_dwcarsat', '_TZE200_ryfmq5rl', '_TZE200_mja3fuja'].includes(meta.device.manufacturerName)) {
+                    if (['_TZE200_dwcarsat', '_TZE200_ryfmq5rl', '_TZE200_mja3fuja', '_TZE204_dwcarsat'].includes(meta.device.manufacturerName)) {
                         return {co2: value};
                     } else {
                         return {formaldehyd: value};
                     }
                 // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
                 case dataPoints.tuyaSabCO2:
-                    if (['_TZE200_dwcarsat'].includes(meta.device.manufacturerName)) {
+                    if (['_TZE200_dwcarsat', '_TZE204_dwcarsat'].includes(meta.device.manufacturerName)) {
                         // Ignore: https://github.com/Koenkk/zigbee2mqtt/issues/11033#issuecomment-1109808552
                         if (value === 0xaaac || value === 0xaaab) return;
                         return {pm25: value};
@@ -3744,7 +2042,7 @@ const fromZigbee1 = {
                 case dataPoints.connecteTempFloor:
                     return {external_temperature: value};
                 case dataPoints.connecteSensorType:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {sensor: {0: 'internal', 1: 'external', 2: 'both'}[value]};
                 case dataPoints.connecteHysteresis:
                     return {hysteresis: value};
@@ -3772,7 +2070,7 @@ const fromZigbee1 = {
             switch (dp) {
                 case dataPoints.saswellHeating:
                     // heating status 1 - heating
-                    return {heating: value ? 'ON' : 'OFF'};
+                    return {heating: value ? 'ON' : 'OFF', running_state: value ? 'heat' : 'idle'};
                 case dataPoints.saswellWindowDetection:
                     return {window_detection: value ? 'ON' : 'OFF'};
                 case dataPoints.saswellFrostDetection:
@@ -3799,7 +2097,7 @@ const fromZigbee1 = {
                         return {away_mode: 'OFF', preset_mode: 'none'};
                     }
                 case dataPoints.saswellScheduleMode:
-                    if (thermostatScheduleMode.hasOwnProperty(value)) {
+                    if (thermostatScheduleMode[value] !== undefined) {
                         return {schedule_mode: thermostatScheduleMode[value]};
                     } else {
                         logger.warning(`Unknown schedule mode ${value}`, 'zhc:legacy:fz:saswell_thermostat');
@@ -4059,13 +2357,13 @@ const fromZigbee1 = {
                     return {away_preset_days: value};
                 case dataPoints.mode: {
                     const ret: KeyValueAny = {};
-                    const presetOk = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset').hasOwnProperty(value);
+                    const presetOk = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value] !== undefined;
                     if (presetOk) {
                         ret.preset = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
                         ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
                         const presetToSystemMode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPresetToSystemMode', null, {});
                         if (value in presetToSystemMode) {
-                            // @ts-expect-error
+                            // @ts-expect-error ignore
                             ret.system_mode = presetToSystemMode[value];
                         }
                     } else {
@@ -4137,7 +2435,7 @@ const fromZigbee1 = {
             let result = null;
             switch (dp) {
                 case dataPoints.state:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {occupancy: {1: true, 0: false}[value]};
                     break;
                 case dataPoints.msReferenceLuminance:
@@ -4150,7 +2448,7 @@ const fromZigbee1 = {
                     result = {v_sensitivity: msLookups.VSensitivity[value]};
                     break;
                 case dataPoints.msLedStatus:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {led_status: {1: 'OFF', 0: 'ON'}[value]};
                     break;
                 case dataPoints.msVacancyDelay:
@@ -4258,11 +2556,11 @@ const fromZigbee1 = {
                     }
                     break;
                 case dataPoints.tvWindowDetection:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {window_detection: {1: true, 0: false}[value]};
                     break;
                 case dataPoints.tvFrostDetection:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {frost_detection: {1: true, 0: false}[value]};
                     break;
                 case dataPoints.tvHeatingSetpoint:
@@ -4282,7 +2580,7 @@ const fromZigbee1 = {
                     result = {battery: value};
                     break;
                 case dataPoints.tvChildLock:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {child_lock: {1: 'LOCK', 0: 'UNLOCK'}[value]};
                     break;
                 case dataPoints.tvErrorStatus:
@@ -4441,7 +2739,7 @@ const fromZigbee1 = {
         convert: (model, msg, publish, options, meta) => {
             const separateWhite = model.meta && model.meta.separateWhite;
             const result: KeyValueAny = {};
-            for (const [i, dpValue] of msg.data.dpValues.entries()) {
+            for (const dpValue of msg.data.dpValues.values()) {
                 const dp = dpValue.dp;
                 const value = getDataValue(dpValue);
                 if (dp === dataPoints.state) {
@@ -4596,7 +2894,7 @@ const fromZigbee1 = {
             let result = null;
             switch (dp) {
                 case dataPoints.tshpsPresenceState:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {presence: {0: false, 1: true}[value]};
                     break;
                 case dataPoints.tshpscSensitivity:
@@ -4618,7 +2916,7 @@ const fromZigbee1 = {
                     result = {fading_time: value / 10};
                     break;
                 case dataPoints.tshpsIlluminanceLux:
-                    result = {illuminance_lux: value};
+                    result = {illuminance: value};
                     break;
                 case dataPoints.tshpsCLI: // not recognize
                     result = {cli: value};
@@ -4648,11 +2946,11 @@ const fromZigbee1 = {
                         result.battery = value;
                         break;
                     case dataPoints.lmsSensitivity:
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.sensitivity = {'0': 'low', '1': 'medium', '2': 'high'}[value];
                         break;
                     case dataPoints.lmsKeepTime:
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.keep_time = {'0': '10', '1': '30', '2': '60', '3': '120'}[value];
                         break;
                     case dataPoints.lmsIlluminance:
@@ -4682,19 +2980,18 @@ const fromZigbee1 = {
                     break;
                 }
                 case dataPoints.state:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {state: {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value], running: {0: true, 1: false, 2: true}[value]};
                     break;
                 case dataPoints.moesCoverBacklight:
-                    // @ts-ignore
                     result = {backlight: value ? 'ON' : 'OFF'};
                     break;
                 case dataPoints.moesCoverCalibration:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {calibration: {0: 'ON', 1: 'OFF'}[value]};
                     break;
                 case dataPoints.moesCoverMotorReversal:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     result = {motor_reversal: {0: 'OFF', 1: 'ON'}[value]};
                     break;
                 default:
@@ -4717,7 +3014,7 @@ const fromZigbee1 = {
                     return {humidity: value / (['_TZE200_bjawzodf', '_TZE200_zl1kmjqx'].includes(meta.device.manufacturerName) ? 10 : 1)};
                 case dataPoints.tthBatteryLevel:
                     return {
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         battery_level: {0: 'low', 1: 'middle', 2: 'high'}[value],
                         battery_low: value === 0 ? true : false,
                     };
@@ -4747,7 +3044,7 @@ const fromZigbee1 = {
                         result.battery = value;
                         break;
                     case dataPoints.nousTempUnitConvert:
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.temperature_unit_convert = {0x00: 'celsius', 0x01: 'fahrenheit'}[value];
                         break;
                     case dataPoints.nousMaxTemp:
@@ -4763,11 +3060,11 @@ const fromZigbee1 = {
                         result.min_humidity = value;
                         break;
                     case dataPoints.nousTempAlarm:
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.temperature_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                         break;
                     case dataPoints.nousHumiAlarm:
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         result.humidity_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                         break;
                     case dataPoints.nousTempSensitivity:
@@ -4807,7 +3104,7 @@ const fromZigbee1 = {
                 case dataPoints.thitBatteryPercentage:
                     return {battery: value};
                 case dataPoints.thitIlluminanceLux:
-                    return {illuminance_lux: value};
+                    return {illuminance: value};
                 default:
                     logger.debug(
                         `Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`,
@@ -4834,7 +3131,7 @@ const fromZigbee1 = {
                     case dataPoints.state:
                         return {brightness_state: brightnessState[value]};
                     case dataPoints.tIlluminanceLux:
-                        return {illuminance_lux: value};
+                        return {illuminance: value};
                     default:
                         logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_illuminance_sensor');
                 }
@@ -4921,15 +3218,15 @@ const fromZigbee1 = {
                 case dataPoints.hyLocalTemp: // 0x027F MCU reporting room temperature
                     return {local_temperature: (value / 10).toFixed(1)};
                 case dataPoints.hySensor: // Sensor type
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {sensor_type: {0: 'internal', 1: 'external', 2: 'both'}[value]};
                 case dataPoints.hyPowerOnBehavior: // 0x0475 State after power on
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {power_on_behavior: {0: 'restore', 1: 'off', 2: 'on'}[value]};
                 case dataPoints.hyWeekFormat: // 0x0476 Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
                     return {week: thermostatWeekFormat[value]};
                 case dataPoints.hyMode: // 0x0480 mode
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {system_mode: {0: 'manual', 1: 'auto', 2: 'away'}[value]};
                 case dataPoints.hyAlarm: // [16] [0]
                     return {alarm: value > 0 ? true : false};
@@ -4950,7 +3247,7 @@ const fromZigbee1 = {
                     return {occupancy: value > 0 ? true : false};
                 case 102:
                     return {
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
                         battery_low: value === 3,
                     };
@@ -4975,7 +3272,7 @@ const fromZigbee1 = {
                 case 112:
                     return {unknown_112: value ? 'ON' : 'OFF'};
                 case dataPoints.neoTempHumidityAlarm:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {alarm: {0: 'over_temperature', 1: 'over_humidity', 2: 'below_min_temperature', 3: 'below_min_humdity', 4: 'off'}[value]};
                 default: // Unknown code
                     logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:neo_nas_pd07');
@@ -5014,7 +3311,7 @@ const fromZigbee1 = {
                     return {humidity_max: value};
                 case dataPoints.neoPowerType: // 0x0465 [4]
                     return {
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
                         battery_low: value === 3,
                     };
@@ -5023,7 +3320,7 @@ const fromZigbee1 = {
                 case dataPoints.neoUnknown3: // 0x0473 [0]
                     break;
                 case dataPoints.neoVolume: // 0x0474 [0]/[1]/[2] Volume 0-max, 2-low
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
                 default: // Unknown code
                     logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:neo_t_h_alarm');
@@ -5048,7 +3345,7 @@ const fromZigbee1 = {
                 case dataPoints.neoAOMelody: // 0x21 [5] Melody
                     return {melody: value};
                 case dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-low, 2-max
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {volume: {0: 'low', 1: 'medium', 2: 'high'}[value]};
                 default: // Unknown code
                     logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(msg.data)}`, 'zhc:legacy:fz:neo_alarm');
@@ -5064,18 +3361,18 @@ const fromZigbee1 = {
             const value = getDataValue(dpValue);
             switch (dp) {
                 case dataPoints.fantemPowerSupplyMode:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {power_supply_mode: {0: 'unknown', 1: 'no_neutral', 2: 'with_neutral'}[value]};
                 case dataPoints.fantemExtSwitchType:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {switch_type: {0: 'unknown', 1: 'toggle', 2: 'momentary', 3: 'rotary', 4: 'auto_config'}[value]};
                 case dataPoints.fantemLoadDetectionMode:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {load_detection_mode: {0: 'none', 1: 'first_power_on', 2: 'every_power_on'}[value]};
                 case dataPoints.fantemExtSwitchStatus:
                     return {switch_status: value};
                 case dataPoints.fantemControlMode:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {control_mode: {0: 'ext_switch', 1: 'remote', 2: 'both'}[value]};
                 case 111:
                     // Value 0 is received after each device power-on. No idea what it means.
@@ -5083,10 +3380,10 @@ const fromZigbee1 = {
                 case dataPoints.fantemLoadType:
                     // Not sure if 0 is 'resistive' and 2 is 'resistive_inductive'.
                     // If you see 'unknown', pls. check with Tuya gateway and app and update with label shown in Tuya app.
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {load_type: {0: 'unknown', 1: 'resistive_capacitive', 2: 'unknown', 3: 'detecting'}[value]};
                 case dataPoints.fantemLoadDimmable:
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     return {load_dimmable: {0: 'unknown', 1: 'dimmable', 2: 'not_dimmable'}[value]};
                 default:
                     logger.debug(`Unrecognized DP|Value [${dp}|${value}][${JSON.stringify(dpValue)}]`, 'zhc:legacy:fz:zb006x_settings');
@@ -5513,7 +3810,7 @@ const fromZigbee1 = {
                 return result;
             }
 
-            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
+            if (thermostatMeta.weeklyScheduleConversion !== undefined) {
                 conversion = thermostatMeta.weeklyScheduleConversion;
             }
             if (conversion == 'saswell') {
@@ -5525,7 +3822,6 @@ const fromZigbee1 = {
                 return {
                     // Same as in hvacThermostat:getWeeklyScheduleRsp hvacThermostat:setWeeklySchedule cluster format
                     weekly_schedule: {
-                        // @ts-ignore
                         days: [constants.thermostatDayOfWeek[dayOfWeek]],
                         transitions: dataToTransitions(value, maxTransitions, dataOffset),
                     },
@@ -5601,7 +3897,7 @@ const fromZigbee1 = {
                     };
                 case 101:
                     return {
-                        illuminance_lux: value,
+                        illuminance: value,
                     };
                 case 102:
                     if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
@@ -5618,7 +3914,7 @@ const fromZigbee1 = {
                         led_enable: value == 1 ? true : false,
                     };
                 case 104:
-                    return {illuminance_lux: value};
+                    return {illuminance: value};
                 case 105:
                     return {
                         illuminance_calibration: value,
@@ -5654,76 +3950,13 @@ const fromZigbee1 = {
             const brightnesStateLookup: KeyValueAny = {'0': 'low', '1': 'middle', '2': 'high'};
             switch (dp) {
                 case 2:
-                    return {illuminance_lux: value};
+                    return {illuminance: value};
                 case 4:
                     return {battery: value};
                 case 1:
                     return {brightness_level: brightnesStateLookup[value]};
                 default:
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:s_lux_zb');
-            }
-        },
-    } satisfies Fz.Converter,
-};
-
-const fromZigbee2 = {
-    tuya_thermostat_weekly_schedule_1: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                // @ts-ignore
-                return fromZigbee1.tuya_thermostat_weekly_schedule_2.convert(model, msg, publish, options, meta);
-            }
-
-            const dpValue = firstDpValue(msg, meta, 'tuya_thermostat_weekly_schedule');
-            const dp = dpValue.dp;
-            const value = tuyaGetDataValue(dpValue.datatype, dpValue.data);
-
-            const thermostatMeta = getMetaValue(msg.endpoint, model, 'thermostat');
-            const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
-            const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
-            let dataOffset = 0;
-            let conversion = 'generic';
-
-            function dataToTransitions(data: any, maxTransitions: any, offset: any) {
-                // Later it is possible to move converter to meta or to other place outside if other type of converter
-                // will be needed for other device. Currently this converter is based on ETOP HT-08 thermostat.
-                // see also toZigbee.tuya_thermostat_weekly_schedule()
-                function dataToTransition(data: any, index: any) {
-                    return {
-                        transitionTime: (data[index + 0] << 8) + data[index + 1],
-                        heatSetpoint: (parseFloat((data[index + 2] << 8) + data[index + 3]) / 10.0).toFixed(1),
-                    };
-                }
-                const result = [];
-                for (let i = 0; i < maxTransitions; i++) {
-                    result.push(dataToTransition(data, i * 4 + offset));
-                }
-                return result;
-            }
-
-            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
-                conversion = thermostatMeta.weeklyScheduleConversion;
-            }
-            if (conversion == 'saswell') {
-                // Saswell has scheduling mode in the first byte
-                dataOffset = 1;
-            }
-            if (dp >= firstDayDpId && dp < firstDayDpId + 7) {
-                const dayOfWeek = dp - firstDayDpId + 1;
-                return {
-                    // Same as in hvacThermostat:getWeeklyScheduleRsp hvacThermostat:setWeeklySchedule cluster format
-                    weekly_schedule: {
-                        [dayOfWeek]: {
-                            dayofweek: dayOfWeek,
-                            numoftrans: maxTransitions,
-                            mode: 1, // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                            transitions: dataToTransitions(value, maxTransitions, dataOffset),
-                        },
-                    },
-                };
             }
         },
     } satisfies Fz.Converter,
@@ -5739,7 +3972,6 @@ const toZigbee1 = {
     SA12IZL_alarm: {
         key: ['alarm'],
         convertSet: async (entity, key, value: any, meta) => {
-            // @ts-ignore
             await sendDataPointEnum(entity, 20, value ? 0 : 1);
         },
     } satisfies Tz.Converter,
@@ -5868,12 +4100,12 @@ const toZigbee2 = {
                     break;
                 }
                 case 'top_limit': {
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, 104, {SET: 0, CLEAR: 1}[value]);
                     break;
                 }
                 case 'bottom_limit': {
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, 103, {SET: 0, CLEAR: 1}[value]);
                     break;
                 }
@@ -5887,7 +4119,7 @@ const toZigbee2 = {
                     } else {
                         value = parseInt(value);
                     }
-                    return toZigbee1.tuya_cover_control.convertSet(entity, 'position', value, meta);
+                    return await toZigbee1.tuya_cover_control.convertSet(entity, 'position', value, meta);
                 }
                 case 'report': {
                     await sendDataPointBool(entity, 116, 0);
@@ -6156,10 +4388,10 @@ const toZigbee2 = {
                 'away_preset_days',
             ]) {
                 let v = 0;
-                if (value.hasOwnProperty(attrName)) {
+                if (value[attrName] !== undefined) {
                     v = value[attrName];
-                } else if (meta.state.hasOwnProperty(attrName)) {
-                    // @ts-expect-error
+                } else if (meta.state[attrName] !== undefined) {
+                    // @ts-expect-error ignore
                     v = meta.state[attrName];
                 }
                 switch (attrName) {
@@ -6213,10 +4445,10 @@ const toZigbee2 = {
                 // temperature
                 const attrName = `${key}_temp_${i}`;
                 let v = 17;
-                if (value.hasOwnProperty(attrName)) {
+                if (value[attrName] !== undefined) {
                     v = value[attrName];
-                } else if (meta.state.hasOwnProperty(attrName)) {
-                    // @ts-expect-error
+                } else if (meta.state[attrName] !== undefined) {
+                    // @ts-expect-error ignore
                     v = meta.state[attrName];
                 }
                 if (v < 0.5 || v > 29.5) v = 17;
@@ -6225,19 +4457,19 @@ const toZigbee2 = {
                     // hour
                     let attrName = `${key}_hour_${i}`;
                     let h = 0;
-                    if (value.hasOwnProperty(attrName)) {
+                    if (value[attrName] !== undefined) {
                         h = value[attrName];
-                    } else if (meta.state.hasOwnProperty(attrName)) {
-                        // @ts-expect-error
+                    } else if (meta.state[attrName] !== undefined) {
+                        // @ts-expect-error ignore
                         h = meta.state[attrName];
                     }
                     // minute
                     attrName = `${key}_minute_${i}`;
                     let m = 0;
-                    if (value.hasOwnProperty(attrName)) {
+                    if (value[attrName] !== undefined) {
                         m = value[attrName];
-                    } else if (meta.state.hasOwnProperty(attrName)) {
-                        // @ts-expect-error
+                    } else if (meta.state[attrName] !== undefined) {
+                        // @ts-expect-error ignore
                         m = meta.state[attrName];
                     }
                     let rt = h * 4 + m / 15;
@@ -6307,8 +4539,8 @@ const toZigbee2 = {
     matsee_garage_door_opener: {
         key: ['trigger'],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.hasOwnProperty('trigger') ? meta.message.trigger : true;
-            // @ts-expect-error
+            const state = meta.message.trigger !== undefined ? meta.message.trigger : true;
+            // @ts-expect-error ignore
             await sendDataPointBool(entity, dataPoints.garageDoorTrigger, state);
             return {state: {trigger: state}};
         },
@@ -6335,7 +4567,7 @@ const toZigbee2 = {
                     await sendDataPointBool(entity, dataPoints.connecteChildLock, value === 'LOCK');
                     break;
                 case 'local_temperature_calibration':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     if (value < 0) value = 0xffffffff + value + 1;
                     await sendDataPointValue(entity, dataPoints.connecteTempCalibration, value);
                     break;
@@ -6344,7 +4576,7 @@ const toZigbee2 = {
                     await sendDataPointValue(entity, dataPoints.connecteHysteresis, value);
                     break;
                 case 'max_temperature_protection':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointValue(entity, dataPoints.connecteMaxProtectTemp, Math.round(value));
                     break;
                 case 'current_heating_setpoint':
@@ -6354,7 +4586,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.connecteSensorType,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {internal: 0, external: 1, both: 2}[value],
                     );
                     break;
@@ -6492,7 +4724,7 @@ const toZigbee2 = {
 
             /* Merge modified value into existing state and send all over in one go */
             const newProgram = {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 ...meta.state.program,
                 ...value,
             };
@@ -6654,7 +4886,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.moesSwitchPowerOnBehavior,
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         utils.getKey(moesSwitch.powerOnBehavior, value),
                     );
                     break;
@@ -6662,7 +4894,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.moesSwitchIndicateLight,
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         utils.getKey(moesSwitch.indicateLight, value),
                     );
                     break;
@@ -6809,7 +5041,7 @@ const toZigbee2 = {
                 ret['state'][key] = value;
                 return ret;
             } else {
-                if ((meta.state.hasOwnProperty(key) && meta.state[key] == '') || !meta.state.hasOwnProperty(key)) {
+                if ((meta.state[key] !== undefined && meta.state[key] == '') || meta.state[key] === undefined) {
                     data.push(0x03);
                 } else {
                     data.push(0x02);
@@ -6871,7 +5103,7 @@ const toZigbee2 = {
                 ret['state'][key] = value;
                 return ret;
             } else {
-                if ((meta.state.hasOwnProperty(key) && meta.state[key] == '') || !meta.state.hasOwnProperty(key)) {
+                if ((meta.state[key] !== undefined && meta.state[key] == '') || meta.state[key] === undefined) {
                     data.push(0x03);
                 } else {
                     data.push(0x02);
@@ -6954,15 +5186,14 @@ const toZigbee2 = {
         key: ['weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {
             const thermostatMeta = utils.getMetaValue(entity, meta.mapped, 'thermostat');
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const supportedModes = thermostatMeta.weeklyScheduleSupportedModes;
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
             let conversion = 'generic';
-            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
-                // @ts-expect-error
+            if (utils.isObject(thermostatMeta) && thermostatMeta.weeklyScheduleConversion !== undefined) {
                 conversion = thermostatMeta.weeklyScheduleConversion;
             }
 
@@ -7068,7 +5299,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
             if (modeId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.mode, parseInt(modeId));
             } else {
                 throw new Error(`TRV system mode ${value} is not recognized.`);
@@ -7080,7 +5311,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const presetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null, Number);
             if (presetId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.mode, parseInt(presetId));
             } else {
                 throw new Error(`TRV preset ${value} is not recognized.`);
@@ -7091,13 +5322,13 @@ const toZigbee2 = {
         key: ['away_mode'],
         convertSet: async (entity, key, value, meta) => {
             // HA has special behavior for the away mode
-            // @ts-expect-error
+            // @ts-expect-error ignore
             const awayPresetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null, Number);
             const schedulePresetId = utils.getKey(
                 utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'),
                 'schedule',
                 null,
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 Number,
             );
             if (awayPresetId !== null) {
@@ -7117,7 +5348,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(fanModes, value, null, Number);
             if (modeId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.fanMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV fan mode ${value} is not recognized.`);
@@ -7129,7 +5360,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(fanModes, value, null, Number);
             if (modeId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.bacFanMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV fan mode ${value} is not recognized.`);
@@ -7187,7 +5418,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(thermostatForceMode, value, null, Number);
             if (modeId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.forceMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV force mode ${value} is not recognized.`);
@@ -7199,7 +5430,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
             if (modeId !== null) {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 await sendDataPointEnum(entity, dataPoints.forceMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV system mode ${value} is not recognized.`);
@@ -7363,7 +5594,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.neoVolume,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {low: 2, medium: 1, high: 0}[value],
                     );
                     break;
@@ -7407,7 +5638,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.neoAOVolume,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {low: 0, medium: 1, high: 2}[value],
                     );
                     break;
@@ -7582,9 +5813,9 @@ const toZigbee2 = {
 
                 data = data.concat(convertStringToHexArray(speedString));
                 let colors = value.colors;
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 if (!colors && meta.state && meta.state.effect && meta.state.effect.colors) {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     colors = meta.state.effect.colors;
                 }
 
@@ -7685,7 +5916,7 @@ const toZigbee2 = {
 
                 let hsb: KeyValueAny = {};
 
-                if (value.hasOwnProperty('hsb')) {
+                if (value.hsb !== undefined) {
                     const split = value.hsb.split(',').map((i: string) => parseInt(i));
                     hsb = fillInHSB(split[0], split[1], split[2], meta.state);
                 } else {
@@ -7812,7 +6043,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.hySensor,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {internal: 0, external: 1, both: 2}[value],
                     );
                     break;
@@ -7820,7 +6051,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.hyPowerOnBehavior,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {restore: 0, off: 1, on: 2}[value],
                     );
                     break;
@@ -7831,7 +6062,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.hyMode,
-                        // @ts-ignore
+                        // @ts-expect-error ignore
                         {manual: 0, auto: 1, away: 2}[value],
                     );
                     break;
@@ -7880,11 +6111,11 @@ const toZigbee2 = {
                     await sendDataPointBool(entity, dataPoints.fantemReportingEnable, value, 'sendData');
                     break;
                 case 'sensitivity':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await entity.write('ssIasZone', {currentZoneSensitivityLevel: {low: 0, medium: 1, high: 2}[value]});
                     break;
                 case 'keep_time':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await entity.write('ssIasZone', {61441: {value: {'0': 0, '30': 1, '60': 2, '120': 3, '240': 4, '480': 5}[value], type: 0x20}});
                     break;
                 default: // Unknown key
@@ -7900,7 +6131,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.fantemExtSwitchType,
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         {unknown: 0, toggle: 1, momentary: 2, rotary: 3, auto_config: 4}[value],
                         'sendData',
                     );
@@ -7909,13 +6140,13 @@ const toZigbee2 = {
                     await sendDataPointEnum(
                         entity,
                         dataPoints.fantemLoadDetectionMode,
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         {none: 0, first_power_on: 1, every_power_on: 2}[value],
                         'sendData',
                     );
                     break;
                 case 'control_mode':
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, dataPoints.fantemControlMode, {ext_switch: 0, remote: 1, both: 2}[value], 'sendData');
                     break;
                 default: // Unknown key
@@ -7934,7 +6165,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(entity, dataPoints.msVSensitivity, utils.getKey(msLookups.VSensitivity, value));
                     break;
                 case 'led_status':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, dataPoints.msLedStatus, {on: 0, off: 1}[value.toLowerCase()]);
                     break;
                 case 'vacancy_delay':
@@ -8109,7 +6340,7 @@ const toZigbee2 = {
                     cool: 250,
                     coolest: colorTempMin,
                 };
-                // @ts-ignore
+                // @ts-expect-error ignore
                 if (typeof value === 'string' && isNaN(value)) {
                     const presetName = value.toLowerCase();
                     if (presetName in preset) {
@@ -8289,11 +6520,11 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
                 case 'sensitivity':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, dataPoints.lmsSensitivity, {low: 0, medium: 1, high: 2}[value]);
                     break;
                 case 'keep_time':
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     await sendDataPointEnum(entity, dataPoints.lmsKeepTime, {'10': 0, '30': 1, '60': 2, '120': 3}[value]);
                     break;
                 default: // Unknown key
@@ -8327,7 +6558,7 @@ const toZigbee2 = {
                     }
                     break;
                 case 'state': {
-                    // @ts-ignore
+                    // @ts-expect-error ignore
                     const state = {OPEN: 0, STOP: 1, CLOSE: 2}[value.toUpperCase()];
                     await sendDataPointEnum(entity, dataPoints.state, state);
                     break;
@@ -8406,7 +6637,7 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
 };
 
-const thermostatControlSequenceOfOperations = {
+const thermostatControlSequenceOfOperations: {[s: number]: string} = {
     0: 'cooling only',
     1: 'cooling with reheat',
     2: 'heating only',
@@ -8415,7 +6646,7 @@ const thermostatControlSequenceOfOperations = {
     5: 'cooling and heating 4-pipes with reheat',
 };
 
-const thermostatSystemModes = {
+const thermostatSystemModes: {[s: number]: string} = {
     0: 'off',
     1: 'auto',
     3: 'cool',
@@ -8427,7 +6658,6 @@ const thermostatSystemModes = {
     9: 'Sleep',
 };
 
-const fromZigbee = {...fromZigbee1, ...fromZigbee2};
 const toZigbee = {...toZigbee1, ...toZigbee2};
 
 export {
@@ -8480,5 +6710,4 @@ export {
     convertTimeTo2ByteHexArray,
     getMetaValue,
     tuyaGetDataValue,
-    ictcg1,
 };

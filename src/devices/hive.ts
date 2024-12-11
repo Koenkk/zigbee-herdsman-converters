@@ -4,12 +4,12 @@ import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['FWGU10Bulb02UK'],
         model: 'FWGU10Bulb02UK',
@@ -334,10 +334,50 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['SLR1d'],
+        model: 'SLR1d',
+        vendor: 'Hive',
+        description: 'Single channel receiver',
+        fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_temperature_setpoint_hold,
+            tz.thermostat_temperature_setpoint_hold_duration,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 32, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat'])
+                .withRunningState(['idle', 'heat']),
+            e
+                .binary('temperature_setpoint_hold', ea.ALL, true, false)
+                .withDescription(
+                    'Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
+                        ' Must be set to `false` when system_mode = off or `true` for heat',
+                ),
+            e
+                .numeric('temperature_setpoint_hold_duration', ea.ALL)
+                .withValueMin(0)
+                .withValueMax(65535)
+                .withDescription(
+                    'Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
+                        ' used. 0 to 360 to match the remote display',
+                ),
+        ],
+    },
+    {
         zigbeeModel: ['SLR2'],
         model: 'SLR2',
         vendor: 'Hive',
-        description: 'Dual channel heating and hot water thermostat',
+        description: 'Dual channel heating and hot water receiver',
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -701,7 +741,7 @@ const definitions: Definition[] = [
                     async () => {
                         try {
                             await device.endpoints[0].read('genBasic', ['zclVersion']);
-                        } catch (error) {
+                        } catch {
                             // Do nothing
                         }
                     },

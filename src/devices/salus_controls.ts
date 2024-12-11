@@ -1,48 +1,27 @@
 import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {electricityMeter, onOff} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SPE600'],
         model: 'SPE600',
         vendor: 'Salus Controls',
         description: 'Smart plug (EU socket)',
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(9);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, change: 10});
-            await reporting.currentSummDelivered(endpoint, {min: 5, change: [0, 10]});
-            await endpoint.read('seMetering', ['multiplier', 'divisor']);
-        },
-        ota: ota.salus,
-        exposes: [e.switch(), e.power(), e.energy()],
+        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['SP600'],
         model: 'SP600',
         vendor: 'Salus Controls',
         description: 'Smart plug (UK socket)',
-        fromZigbee: [fz.on_off, fz.SP600_power],
-        exposes: [e.switch(), e.power(), e.energy()],
-        toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(9);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, change: 10});
-            await reporting.currentSummDelivered(endpoint, {min: 5, change: [0, 10]});
-            await endpoint.read('seMetering', ['multiplier', 'divisor']);
-        },
-        ota: ota.salus,
+        extend: [onOff(), electricityMeter({cluster: 'metering', fzMetering: fz.SP600_power})],
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['SX885ZB'],
@@ -50,14 +29,14 @@ const definitions: Definition[] = [
         vendor: 'Salus Controls',
         description: 'miniSmartPlug',
         extend: [onOff(), electricityMeter({cluster: 'metering'})],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['SR600'],
         model: 'SR600',
         vendor: 'Salus Controls',
         description: 'Relay switch',
-        extend: [onOff({ota: ota.salus})],
+        extend: [onOff({ota: {manufacturerName: 'SalusControls'}})],
     },
     {
         zigbeeModel: ['SW600'],
@@ -67,7 +46,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['WLS600'],
@@ -77,7 +56,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['OS600'],
@@ -87,7 +66,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['SS909ZB', 'PS600'],
@@ -104,7 +83,7 @@ const definitions: Definition[] = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
     {
         zigbeeModel: ['RE600'],
@@ -114,7 +93,7 @@ const definitions: Definition[] = [
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
-        ota: ota.salus,
+        ota: {manufacturerName: 'SalusControls'},
     },
 ];
 

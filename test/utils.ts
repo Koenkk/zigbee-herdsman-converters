@@ -1,9 +1,10 @@
-import {findByDevice} from '../src/index';
-import * as utils from '../src/lib/utils';
-import {Zh, DefinitionMeta, Fz, Definition} from '../src/lib/types';
-import tz from '../src/converters/toZigbee';
 import {Device} from 'zigbee-herdsman/dist/controller/model';
 import {Clusters} from 'zigbee-herdsman/dist/zspec/zcl/definition/cluster';
+
+import tz from '../src/converters/toZigbee';
+import {findByDevice} from '../src/index';
+import {Definition, DefinitionMeta, Fz, Zh} from '../src/lib/types';
+import * as utils from '../src/lib/utils';
 
 interface MockEndpointArgs {
     ID?: number;
@@ -12,14 +13,14 @@ interface MockEndpointArgs {
     attributes?: {[s: string]: {[s: string]: unknown}};
 }
 
-export function reportingItem(attribute: string, min: number, max: number, change: number | [number, number]) {
+export function reportingItem(attribute: string, min: number, max: number, change: number) {
     return {attribute: attribute, minimumReportInterval: min, maximumReportInterval: max, reportableChange: change};
 }
 
 export function mockDevice(args: {modelID: string; manufacturerID?: number; manufacturerName?: string; endpoints: MockEndpointArgs[]}): Zh.Device {
     const ieeeAddr = '0x12345678';
     const device: Zh.Device = {
-        // @ts-expect-error
+        // @ts-expect-error ignore
         constructor: {name: 'Device'},
         ieeeAddr,
         save: jest.fn(),
@@ -27,7 +28,7 @@ export function mockDevice(args: {modelID: string; manufacturerID?: number; manu
     };
 
     const endpoints = args.endpoints.map((e) => mockEndpoint(e, device));
-    // @ts-expect-error
+    // @ts-expect-error ignore
     device.endpoints = endpoints;
     device.getEndpoint = (ID: number) => {
         const endpoint = endpoints.find((e) => e.ID === ID);
@@ -49,7 +50,7 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
     const outputClusters = (args.outputClusters ?? []).map((c) => getCluster(c).ID);
     return {
         ID: args?.ID ?? 1,
-        // @ts-expect-error
+        // @ts-expect-error ignore
         constructor: {name: 'Endpoint'},
         bind: jest.fn(),
         configureReporting: jest.fn(),
@@ -57,9 +58,9 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         getDevice: () => device,
         inputClusters,
         outputClusters,
-        // @ts-expect-error
+        // @ts-expect-error ignore
         getInputClusters: () => inputClusters.map((c) => getCluster(c)),
-        // @ts-expect-error
+        // @ts-expect-error ignore
         getOutputClusters: () => outputClusters.map((c) => getCluster(c)),
         supportsInputCluster: (key) => !!inputClusters.find((ID) => ID === getCluster(key).ID),
         saveClusterAttributeKeyValue: jest.fn().mockImplementation((cluster, values) => (attributes[cluster] = {...attributes[cluster], ...values})),
@@ -142,7 +143,7 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
     }
 
     if (definition.endpoint) {
-        // @ts-expect-error
+        // @ts-expect-error ignore
         expect(definition.endpoint()).toStrictEqual(args.endpoints);
     }
 }

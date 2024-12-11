@@ -30,7 +30,7 @@ describe('index.js', () => {
         expect(() => utils.toNumber('')).toThrowError('Value is not a number, got string ()');
     });
 
-    it('Find by device where modelID is null', async () => {
+    it('Find by device where modelID is undefined', async () => {
         const endpoints = [
             {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
             {ID: 232, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
@@ -47,7 +47,7 @@ describe('index.js', () => {
         expect(definition.model).toBe('XBee');
     });
 
-    it("Find by device shouldn't match when modelID is null and there is no fingerprint match", async () => {
+    it("Find by device shouldn't match when modelID is undefined and there is no fingerprint match", async () => {
         const endpoints = [{ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}];
         const device = {
             type: undefined,
@@ -58,7 +58,7 @@ describe('index.js', () => {
         };
 
         const definition = await index.findByDevice(device);
-        expect(definition).toBeNull();
+        expect(definition).toBeUndefined();
     });
 
     it('Find by device should generate for unknown', async () => {
@@ -132,6 +132,36 @@ describe('index.js', () => {
         expect((await index.findByDevice(TS011F_plug_1)).model).toBe('TS011F_plug_1');
     });
 
+    it('finds router builds with priority from manufacturer', async () => {
+        const customSLZB06M = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-06M',
+            applicationVersion: 200,
+        };
+        const fromManufSLZB06M = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-06M',
+        };
+        const customSLZB07 = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-07',
+            applicationVersion: 200,
+        };
+        const fromManufSLZB07 = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-07',
+        };
+
+        expect((await index.findByDevice(customSLZB06M)).model).toBe('Silabs series 2 router');
+        expect((await index.findByDevice(fromManufSLZB06M)).model).toBe('SLZB-06M');
+        expect((await index.findByDevice(customSLZB07)).model).toBe('Silabs series 2 router');
+        expect((await index.findByDevice(fromManufSLZB07)).model).toBe('SLZB-07');
+    });
+
     it('Find by device should prefer fingerprint match over zigbeeModel', async () => {
         const mullerEndpoints = [
             {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
@@ -197,67 +227,13 @@ describe('index.js', () => {
     });
 
     it('Verify definitions', () => {
-        function verifyKeys(expected, actual, id) {
-            expected.forEach((key) => {
-                if (!actual.includes(key)) {
-                    throw new Error(`${id}: missing key '${key}'`);
-                }
-            });
-        }
-
         let foundZigbeeModels = [];
         let foundModels = [];
         let foundFingerprints = [];
 
         index.definitions.forEach((device) => {
-            // Verify device attributes.
-            verifyKeys(['model', 'vendor', 'description', 'fromZigbee', 'toZigbee', 'exposes'], Object.keys(device), device.model);
-
-            if (!device.hasOwnProperty('zigbeeModel') && !device.hasOwnProperty('fingerprint')) {
-                throw new Error(`'${device.model}' has no zigbeeModel or fingerprint`);
-            }
-
-            if (device.fromZigbee.includes(undefined)) {
-                console.log(device.model);
-            }
-
-            expect(device.fromZigbee).not.toContain(undefined);
-
-            // Verify fromConverters
-            Object.keys(device.fromZigbee).forEach((converterKey) => {
-                const converter = device.fromZigbee[converterKey];
-
-                if (!converter) {
-                    throw new Error(`fromZigbee[${converterKey}] not defined on device ${device.model}.`);
-                }
-
-                const keys = Object.keys(converter);
-                verifyKeys(['cluster', 'type', 'convert'], keys, converterKey);
-
-                if (5 != converter.convert.length) {
-                    throw new Error(`${converterKey}: convert() invalid arguments length`);
-                }
-            });
-
-            // Verify toConverters
-            Object.keys(device.toZigbee).forEach((converterKey) => {
-                const converter = device.toZigbee[converterKey];
-
-                if (!converter) {
-                    throw new Error(`toZigbee[${converterKey}] not defined on device ${device.model}.`);
-                }
-
-                verifyKeys(['key'], Object.keys(converter), converterKey);
-
-                expect(Array.isArray(converter.key)).toBe(true);
-
-                if (converter.convertSet && 4 != converter.convertSet.length) {
-                    throw new Error(`${converterKey}: convert() invalid arguments length`);
-                }
-            });
-
             // Check for duplicate zigbee model ids
-            if (device.hasOwnProperty('zigbeeModel')) {
+            if (device.zigbeeModel !== undefined) {
                 device.zigbeeModel.forEach((m) => {
                     if (foundZigbeeModels.includes(m.toLowerCase())) {
                         throw new Error(`Duplicate zigbee model ${m}`);
@@ -285,8 +261,6 @@ describe('index.js', () => {
 
             if (device.whiteLabel) {
                 for (const whiteLabel of device.whiteLabel) {
-                    verifyKeys(['vendor', 'model'], Object.keys(whiteLabel), `whitelabel-of-${device.model}`);
-                    containsOnly(['vendor', 'model', 'description', 'fingerprint'], Object.keys(whiteLabel));
                     if (whiteLabel.fingerprint && foundModels.includes(whiteLabel.model.toLowerCase())) {
                         throw new Error(`Duplicate whitelabel zigbee model ${whiteLabel.model}`);
                     }
@@ -300,47 +274,15 @@ describe('index.js', () => {
                 foundModels.push(...device.whiteLabel.filter((w) => w.fingerprint).map((w) => w.model.toLowerCase()));
             }
 
-            if (device.meta) {
-                containsOnly(
-                    [
-                        'disableActionGroup',
-                        'multiEndpoint',
-                        'multiEndpointSkip',
-                        'multiEndpointEnforce',
-                        'applyRedFix',
-                        'disableDefaultResponse',
-                        'supportsEnhancedHue',
-                        'timeout',
-                        'supportsHueAndSaturation',
-                        'battery',
-                        'coverInverted',
-                        'turnsOffAtBrightness1',
-                        'coverStateFromTilt',
-                        'pinCodeCount',
-                        'tuyaThermostatSystemMode',
-                        'tuyaThermostatPreset',
-                        'tuyaDatapoints',
-                        'tuyaThermostatPresetToSystemMode',
-                        'thermostat',
-                        'separateWhite',
-                        'publishDuplicateTransaction',
-                        'tuyaSendCommand',
-                        'coverPositionTiltDisableReport',
-                        'overrideHaDiscoveryPayload',
-                    ],
-                    Object.keys(device.meta),
-                );
-            }
-
             if (device.zigbeeModel) {
                 foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
             }
         });
     });
 
-    it('Verify addDefinition', () => {
+    it('Verify addDefinition for external converters', () => {
         const mockZigbeeModel = 'my-mock-device';
-        let mockDevice = {toZigbee: []};
+        let mockDevice = {toZigbee: [], externalConverterName: 'mock-model.js'};
         const undefinedDevice = index.findByModel('mock-model');
         expect(undefinedDevice).toBeUndefined();
         const beforeAdditionDeviceCount = index.definitions.length;
@@ -377,6 +319,33 @@ describe('index.js', () => {
         };
         index.addDefinition(overwriteDefinition);
         expect((await index.findByDevice(device)).vendor).toBe('other-vendor');
+    });
+
+    it('Handles external converter definition addition/removal', async () => {
+        const converterDef = {
+            mock: true,
+            zigbeeModel: ['external_converter_device'],
+            vendor: 'external',
+            model: 'external_converter_device',
+            description: 'external',
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: [],
+            externalConverterName: 'foo.js',
+        };
+
+        const count = index.definitions.length;
+
+        index.addDefinition(converterDef);
+
+        expect(index.definitions.length).toStrictEqual(count + 1);
+        expect(index.definitions[0].zigbeeModel[0]).toStrictEqual(converterDef.zigbeeModel[0]);
+        expect(index.findByModel('external_converter_device')).toBeDefined();
+
+        index.removeExternalDefinitions(converterDef.externalConverterName);
+
+        expect(index.definitions.length).toStrictEqual(count);
+        expect(index.findByModel('external_converter_device')).toBeUndefined();
     });
 
     it('Exposes light with endpoint', () => {
@@ -440,36 +409,47 @@ describe('index.js', () => {
 
     it('Exposes access matches toZigbee', () => {
         index.definitions.forEach((device) => {
-            if (device.exposes) {
-                // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
-                if (device.toZigbee.includes(tuya.tz.datapoints)) return;
+            // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
+            if (device.toZigbee.includes(tuya.tz.datapoints)) return;
 
-                const toCheck = [];
-                const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
-                for (const expose of expss) {
-                    if (expose.access !== undefined) {
-                        toCheck.push(expose);
-                    } else if (expose.features) {
-                        toCheck.push(...expose.features.filter((e) => e.access !== undefined));
-                    }
+            const toCheck = [];
+            const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+            for (const expose of expss) {
+                if (expose.access !== undefined) {
+                    toCheck.push(expose);
+                } else if (expose.features) {
+                    toCheck.push(...expose.features.filter((e) => e.access !== undefined));
+                }
+            }
+
+            for (const expose of toCheck) {
+                let property = expose.property;
+                if (expose.endpoint && expose.property.length > expose.endpoint.length) {
+                    property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
                 }
 
-                for (const expose of toCheck) {
-                    let property = expose.property;
-                    if (expose.endpoint && expose.property.length > expose.endpoint.length) {
-                        property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
-                    }
+                const toZigbee = device.toZigbee.find((item) => item.key.includes(property));
 
-                    const toZigbee = device.toZigbee.find((item) => item.key.includes(property));
-
-                    if ((expose.access & exposes.access.SET) != (toZigbee && toZigbee.convertSet ? exposes.access.SET : 0)) {
-                        throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
-                    }
-
-                    if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
-                        throw new Error(`${device.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
-                    }
+                if ((expose.access & exposes.access.SET) != (toZigbee && toZigbee.convertSet ? exposes.access.SET : 0)) {
+                    throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
                 }
+
+                if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
+                    throw new Error(`${device.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
+                }
+            }
+        });
+    });
+
+    it('Exposes properties are unique', () => {
+        index.definitions.forEach((device) => {
+            const exposes = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+            const found = [];
+            for (const expose of exposes) {
+                if (expose.property && found.includes(expose.property)) {
+                    throw new Error(`Duplicate expose property found: '${expose.property}' for '${device.model}'`);
+                }
+                found.push(expose.property);
             }
         });
     });
@@ -489,8 +469,8 @@ describe('index.js', () => {
         };
 
         const HG06492B_match = await index.findByDevice(HG06492B);
-        expect(HG06492B_match.model).toBe('HG06492B');
-        expect(HG06492B_match.description).toBe('Livarno Lux E14 candle CCT');
+        expect(HG06492B_match.model).toBe('HG06492B/HG08130B');
+        expect(HG06492B_match.description).toBe('Livarno Home E14 candle CCT');
         expect(HG06492B_match.vendor).toBe('Lidl');
 
         const TS0502A_match = await index.findByDevice(TS0502A);
@@ -643,7 +623,6 @@ describe('index.js', () => {
             'battery_low',
             'linkquality',
             'temperature',
-            'illuminance_lux',
             'illuminance',
             'battery',
             'voltage',

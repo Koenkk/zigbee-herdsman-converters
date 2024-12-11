@@ -1,11 +1,12 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['JAVISLOCK'],
         fingerprint: [
@@ -33,7 +34,7 @@ const definitions: Definition[] = [
         toZigbee: [legacy.tz.javis_microwave_sensor],
         exposes: [
             e.occupancy(),
-            e.illuminance_lux(),
+            e.illuminance(),
             e.binary('led_enable', ea.STATE_SET, true, false).withDescription('Enabled LED'),
             e
                 .enum('keep_time', ea.STATE_SET, ['0', '1', '2', '3', '4', '5', '6', '7'])

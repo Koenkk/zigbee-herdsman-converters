@@ -1,16 +1,17 @@
 import {Zcl} from 'zigbee-herdsman';
 
+import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {ColorXY, ColorRGB} from './color';
+import * as reporting from '../lib/reporting';
+import {ColorRGB, ColorXY} from './color';
 import * as libColor from './color';
 import * as exposes from './exposes';
 import {logger} from './logger';
 import * as modernExtend from './modernExtend';
-import * as ota from './ota';
 import * as globalStore from './store';
-import {Fz, KeyValue, KeyValueAny, Tz} from './types';
+import {Configure, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from './types';
 import * as utils from './utils';
-import {isObject} from './utils';
+import {exposeEndpoints, isObject} from './utils';
 
 const NS = 'zhc:philips';
 const ea = exposes.access;
@@ -20,8 +21,8 @@ const encodeRGBToScaledGradient = (hex: string) => {
     const xy = ColorRGB.fromHex(hex).toXY();
     const x = (xy.x * 4095) / 0.7347;
     const y = (xy.y * 4095) / 0.8413;
-    const xx = Math.round(x).toString(16);
-    const yy = Math.round(y).toString(16);
+    const xx = Math.round(x).toString(16).padStart(3, '0');
+    const yy = Math.round(y).toString(16).padStart(3, '0');
 
     return [xx[1], xx[2], yy[2], xx[0], yy[0], yy[1]].join('');
 };
@@ -53,7 +54,7 @@ const knownEffects = {
 };
 
 export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolean; gradient?: true | {extraEffects: string[]}}) {
-    args = {hueEffect: true, turnsOffAtBrightness1: true, ota: ota.zigbeeOTA, ...args};
+    args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
     if (args.hueEffect || args.gradient) args.effect = false;
     if (args.color) args.color = {modes: ['xy', 'hs'], ...(isObject(args.color) ? args.color : {})};
     const result = modernExtend.light(args);
@@ -71,29 +72,57 @@ export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolea
             }
             result.exposes.push(
                 // gradient_scene is deprecated, use gradient instead
-                e.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
-                e
-                    .list('gradient', ea.ALL, e.text('hex', ea.ALL).withDescription('Color in RGB HEX format (eg #663399)'))
-                    .withLengthMin(1)
-                    .withLengthMax(9)
-                    .withDescription('List of RGB HEX colors'),
+                ...exposeEndpoints(e.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)), args.endpointNames),
+                ...exposeEndpoints(
+                    e
+                        .list('gradient', ea.ALL, e.text('hex', ea.ALL).withDescription('Color in RGB HEX format (eg #663399)'))
+                        .withLengthMin(1)
+                        .withLengthMax(9)
+                        .withDescription('List of RGB HEX colors'),
+                    args.endpointNames,
+                ),
             );
             result.configure.push(async (device, coordinatorEndpoint, definition) => {
-                for (const ep of device.endpoints) {
+                for (const ep of device.endpoints.filter((ep) => ep.supportsInputCluster('manuSpecificPhilips2'))) {
                     await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
                 }
             });
         }
         effects.push('finish_effect', 'stop_effect', 'stop_hue_effect');
-        result.exposes.push(e.enum('effect', ea.SET, effects));
+        result.exposes.push(...exposeEndpoints(e.enum('effect', ea.SET, effects), args.endpointNames));
     }
     return result;
 }
 
 export function philipsOnOff(args?: modernExtend.OnOffArgs) {
-    args = {powerOnBehavior: false, ota: ota.zigbeeOTA, ...args};
+    args = {powerOnBehavior: false, ota: true, ...args};
     const result = modernExtend.onOff(args);
     result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+    return result;
+}
+
+export function philipsTwilightOnOff() {
+    const fromZigbee = [fz.ignore_command_on, fz.ignore_command_off, fz.hue_twilight];
+    const exposes = [
+        e.action([
+            'dot_press',
+            'dot_hold',
+            'dot_press_release',
+            'dot_hold_release',
+            'hue_press',
+            'hue_hold',
+            'hue_press_release',
+            'hue_hold_release',
+        ]),
+    ];
+    const toZigbee: Tz.Converter[] = [];
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'manuSpecificPhilips']);
+        },
+    ];
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
     return result;
 }
 
@@ -111,7 +140,7 @@ export const philipsTz = {
         return {
             key: ['gradient'],
             convertSet: async (entity, key, value, meta) => {
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 const scene = encodeGradientColors(value, opts);
                 const payload = {data: Buffer.from(scene, 'hex')};
                 await entity.command('manuSpecificPhilips2', 'multiColor', payload);
@@ -167,7 +196,7 @@ export const philipsTz = {
             } else if (value === 'on') {
                 await entity.write('genOnOff', {0x4003: {value: 0x01, type: 0x30}});
 
-                let brightness = meta.message.hasOwnProperty('hue_power_on_brightness') ? meta.message.hue_power_on_brightness : 0xfe;
+                let brightness = meta.message.hue_power_on_brightness !== undefined ? meta.message.hue_power_on_brightness : 0xfe;
                 if (brightness === 255) {
                     // 255 (0xFF) is the value for recover, therefore set it to 254 (0xFE)
                     brightness = 254;
@@ -176,9 +205,9 @@ export const philipsTz = {
 
                 utils.assertEndpoint(entity);
                 if (entity.supportsInputCluster('lightingColorCtrl')) {
-                    if (meta.message.hasOwnProperty('hue_power_on_color_temperature') && meta.message.hasOwnProperty('hue_power_on_color')) {
+                    if (meta.message.hue_power_on_color_temperature !== undefined && meta.message.hue_power_on_color !== undefined) {
                         logger.error(`Provide either color temperature or color, not both`, NS);
-                    } else if (meta.message.hasOwnProperty('hue_power_on_color_temperature')) {
+                    } else if (meta.message.hue_power_on_color_temperature !== undefined) {
                         const colortemp = meta.message.hue_power_on_color_temperature;
                         await entity.write('lightingColorCtrl', {0x4010: {value: colortemp, type: 0x21}});
                         // Set color to default
@@ -186,8 +215,8 @@ export const philipsTz = {
                             await entity.write('lightingColorCtrl', {0x0003: {value: 0xffff, type: 0x21}}, manufacturerOptions);
                             await entity.write('lightingColorCtrl', {0x0004: {value: 0xffff, type: 0x21}}, manufacturerOptions);
                         }
-                    } else if (meta.message.hasOwnProperty('hue_power_on_color')) {
-                        // @ts-expect-error
+                    } else if (meta.message.hue_power_on_color !== undefined) {
+                        // @ts-expect-error ignore
                         const colorXY = libColor.ColorRGB.fromHex(meta.message.hue_power_on_color).toXY();
                         const xy = {x: utils.mapNumberRange(colorXY.x, 0, 1, 0, 65535), y: utils.mapNumberRange(colorXY.y, 0, 1, 0, 65535)};
                         value = xy;
@@ -218,7 +247,7 @@ export const philipsTz = {
     hue_power_on_error: {
         key: ['hue_power_on_brightness', 'hue_power_on_color_temperature', 'hue_power_on_color'],
         convertSet: async (entity, key, value, meta) => {
-            if (!meta.message.hasOwnProperty('hue_power_on_behavior')) {
+            if (meta.message.hue_power_on_behavior === undefined) {
                 throw new Error(`Provide a value for 'hue_power_on_behavior'`);
             }
         },
@@ -349,7 +378,7 @@ export const philipsFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.type === 'commandOff' || msg.type === 'commandOn') {
                 return {contact: msg.type === 'commandOff'};
-            } else if (msg.data.hasOwnProperty('onOff')) {
+            } else if (msg.data.onOff !== undefined) {
                 return {contact: msg.data['onOff'] === 0};
             }
         },
@@ -381,8 +410,8 @@ export const philipsFz = {
                 // simulated brightness
                 if (options.simulated_brightness) {
                     const opts = options.simulated_brightness;
-                    // @ts-expect-error
-                    const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 35;
+                    // @ts-expect-error ignore
+                    const deltaOpts = typeof opts === 'object' && opts.delta !== undefined ? opts.delta : 35;
                     const delta = direction === 'right' ? deltaOpts : deltaOpts * -1;
                     const brightness = globalStore.getValue(msg.endpoint, 'brightness', 255) + delta;
                     payload.brightness = utils.numberWithinRange(brightness, 0, 255);
@@ -405,7 +434,7 @@ export const philipsFz = {
         cluster: 'manuSpecificPhilips2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data && msg.data.hasOwnProperty('state')) {
+            if (msg.data && msg.data.state !== undefined) {
                 const input = msg.data['state'].toString('hex');
                 const decoded = decodeGradientColors(input, {reverse: true});
                 if (decoded.color_mode === 'gradient') {
@@ -538,7 +567,7 @@ function decodeGradientColors(input: string, opts: KeyValue) {
 
         // Effect mode
         const effect = input.slice(0, 4);
-        // @ts-expect-error
+        // @ts-expect-error ignore
         const name = knownEffects[effect] || `unknown_${effect}`;
         return {
             color_mode: 'xy',

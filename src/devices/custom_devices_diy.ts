@@ -4,25 +4,27 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import * as ota from '../lib/ota';
+import {
+    battery,
+    binary,
+    commandsOnOff,
+    deviceEndpoints,
+    enumLookup,
+    forcePowerSource,
+    humidity,
+    light,
+    linkQuality,
+    numeric,
+    onOff,
+    quirkAddEndpointCluster,
+    temperature,
+} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Tz, Fz, KeyValue, KeyValueAny, Zh, Expose} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from '../lib/types';
+import {getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {
-    light,
-    onOff,
-    battery,
-    temperature,
-    humidity,
-    enumLookup,
-    binary,
-    numeric,
-    quirkAddEndpointCluster,
-    deviceEndpoints,
-    commandsOnOff,
-} from '../lib/modernExtend';
-import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib/utils';
 
 const switchTypesList = {
     switch: 0x00,
@@ -88,7 +90,7 @@ const fzLocal = {
             // Sometimes the sensor publishes non-realistic vales, it should only publish message
             // in the 0 - 100 range, don't produce messages beyond these values.
             if (humidity >= 0 && humidity <= 100) {
-                const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+                const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
                 const property = multiEndpoint ? postfixWithEndpointName('humidity', msg, model, meta) : 'humidity';
                 return {[property]: humidity};
             }
@@ -99,13 +101,11 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.illuminance'
-            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
-            const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+            const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property1 = multiEndpoint ? postfixWithEndpointName('illuminance', msg, model, meta) : 'illuminance';
-            const property2 = multiEndpoint ? postfixWithEndpointName('illuminance_lux', msg, model, meta) : 'illuminance_lux';
-            return {[property1]: illuminance, [property2]: illuminanceLux};
+            return {[property1]: illuminanceLux};
         },
     } satisfies Fz.Converter,
     pressure2: {
@@ -114,13 +114,13 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.pressure'
             let pressure = 0;
-            if (msg.data.hasOwnProperty('scaledValue')) {
+            if (msg.data.scaledValue !== undefined) {
                 const scale = msg.endpoint.getClusterAttributeValue('msPressureMeasurement', 'scale') as number;
                 pressure = msg.data['scaledValue'] / Math.pow(10, scale) / 100.0; // convert to hPa
             } else {
                 pressure = parseFloat(msg.data['measuredValue']);
             }
-            const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+            const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property = multiEndpoint ? postfixWithEndpointName('pressure', msg, model, meta) : 'pressure';
             return {[property]: pressure};
         },
@@ -239,7 +239,39 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     }
 }
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
+    {
+        /** @see https://github.com/Nerivec/silabs-firmware-builder/releases */
+        fingerprint: [
+            {modelID: 'ZGA008', manufacturerName: 'Aeotec', applicationVersion: 200},
+            {modelID: 'ZB-GW04', manufacturerName: 'easyiot', applicationVersion: 200},
+            {modelID: 'ZB-GW04-1v1', manufacturerName: 'easyiot', applicationVersion: 200},
+            {modelID: 'ZB-GW04-1v2', manufacturerName: 'easyiot', applicationVersion: 200},
+            {modelID: 'SkyConnect', manufacturerName: 'NabuCasa', applicationVersion: 200},
+            {modelID: 'SLZB-06M', manufacturerName: 'SMLIGHT', applicationVersion: 200},
+            {modelID: 'SLZB-07', manufacturerName: 'SMLIGHT', applicationVersion: 200},
+            {modelID: 'SLZB-07MG24', manufacturerName: 'SMLIGHT', applicationVersion: 200},
+            {modelID: 'DONGLE-E', manufacturerName: 'SONOFF', applicationVersion: 200},
+            {modelID: 'MGM240P', manufacturerName: 'SparkFun', applicationVersion: 200},
+            {modelID: 'MGM24', manufacturerName: 'TubesZB', applicationVersion: 200},
+            {modelID: 'MGM24PB', manufacturerName: 'TubesZB', applicationVersion: 200},
+        ],
+        model: 'Silabs series 2 router',
+        vendor: 'Silabs',
+        description: 'Silabs series 2 adapter with router firmware',
+        toZigbee: [tz.factory_reset],
+        exposes: [
+            e
+                .enum('reset', ea.SET, ['reset'])
+                .withDescription(
+                    'Resets and launches the bootloader for flashing. If USB, ensure the device is already connected to the machine where you intend to flash it before triggering this.',
+                ),
+        ],
+        extend: [linkQuality({reporting: true})],
+        // prevent timeout with tz.factory_reset (reboots adapter into bootloader, hence disconnected)
+        // since this is the only tz, it's not a problem to disable this globally
+        meta: {disableDefaultResponse: true},
+    },
     {
         zigbeeModel: ['ti.router'],
         model: 'ti.router',
@@ -261,22 +293,6 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
-            const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-            await endpoint.configureReporting('genBasic', payload);
-        },
-    },
-    {
-        zigbeeModel: ['SLZB-06p7', 'SLZB-07'],
-        model: 'SLZB-06p7',
-        vendor: 'SMLIGHT',
-        description: 'Router',
-        fromZigbee: [fz.linkquality_from_basic],
-        toZigbee: [],
-        exposes: [],
-        whiteLabel: [{vendor: 'SMLIGHT', model: 'SLZB-07', description: 'Router', fingerprint: [{modelID: 'SLZB-07'}]}],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
             const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
             await endpoint.configureReporting('genBasic', payload);
@@ -318,7 +334,6 @@ const definitions: Definition[] = [
             fz.battery,
             fz.on_off,
             fz.ptvo_multistate_action,
-            legacy.fz.ptvo_switch_buttons,
             fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input,
             fz.brightness,
@@ -358,19 +373,19 @@ const definitions: Definition[] = [
                 let epConfig;
                 for (let i = 0; i < deviceConfigArray.length; i++) {
                     epConfig = deviceConfigArray[i];
-                    const epId = parseInt(epConfig.substr(0, 1), 16);
-                    if (epId <= 0) {
+                    const matches = epConfig.match(/^([0-9A-F]+)/);
+                    if (!matches || matches.length == 0) {
                         continue;
                     }
-                    if (epId < 10) {
-                        epConfig = '0' + epConfig;
-                    }
+                    const epId = parseInt(matches[0], 16);
+                    const epId2 = epId < 10 ? '0' + epId : epId;
+                    epConfig = epConfig.replace(/^[0-9A-F]+/, epId2);
                     allEndpoints[epId] = '1';
                     allEndpointsSorted.push(epConfig);
                 }
 
                 for (const endpoint of device.endpoints) {
-                    if (allEndpoints.hasOwnProperty(endpoint.ID)) {
+                    if (allEndpoints[endpoint.ID] !== undefined) {
                         continue;
                     }
                     epConfig = endpoint.ID.toString();
@@ -393,7 +408,7 @@ const definitions: Definition[] = [
                     let valueId = valueConfigItems[0] ? valueConfigItems[0] : '';
                     let valueDescription = valueConfigItems[1] ? valueConfigItems[1] : '';
                     let valueUnit = valueConfigItems[2] !== undefined ? valueConfigItems[2] : '';
-                    if (!exposeDeviceOptions.hasOwnProperty(epName)) {
+                    if (exposeDeviceOptions[epName] === undefined) {
                         exposeDeviceOptions[epName] = {};
                     }
                     const exposeEpOptions: KeyValueAny = exposeDeviceOptions[epName];
@@ -466,7 +481,7 @@ const definitions: Definition[] = [
                             W: 'power',
                             Hz: 'frequency',
                             pf: 'power_factor',
-                            lx: 'illuminance_lux',
+                            lx: 'illuminance',
                         };
                         valueName = valueName !== undefined ? valueName : infoLookup[valueId];
 
@@ -573,7 +588,7 @@ const definitions: Definition[] = [
                             ptvoSetMetaOption(device, 'device_config', deviceConfig);
                             device.save();
                         }
-                    } catch (err) {
+                    } catch {
                         /* do nothing */
                     }
                 }
@@ -700,8 +715,15 @@ const definitions: Definition[] = [
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature()],
     },
     {
+        zigbeeModel: ['UT-01'],
+        model: 'EFR32MG21.Router.1',
+        vendor: 'Custom devices (DiY)',
+        description: 'EFR32MG21 Zigbee bridge router',
+        extend: [forcePowerSource({powerSource: 'Mains (single phase)'})],
+    },
+    {
         zigbeeModel: ['UT-02'],
-        model: 'EFR32MG21.Router',
+        model: 'EFR32MG21.Router.2',
         vendor: 'Custom devices (DiY)',
         description: 'EFR32MG21 router',
         fromZigbee: [],
@@ -715,7 +737,7 @@ const definitions: Definition[] = [
         description: 'b-parasite open source soil moisture sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture, fz.illuminance],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance_lux()],
+        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -858,7 +880,7 @@ const definitions: Definition[] = [
                 description: 'Comfort parameters/Humidity maximum, in 0.01% steps.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
@@ -870,7 +892,7 @@ const definitions: Definition[] = [
                 await endpoint.read('hvacThermostat', [0x0010, 0x0011, 0x0102, 0x0103, 0x0104, 0x0105]);
                 await endpoint.read('msTemperatureMeasurement', [0x0010]);
                 await endpoint.read('msRelativeHumidity', [0x0010]);
-            } catch (e) {
+            } catch {
                 /* backward compatibility */
             }
         },
@@ -969,7 +991,7 @@ const definitions: Definition[] = [
                 description: 'Comfort parameters/Humidity maximum, in 1% steps. Requires v0.1.1.7 or newer.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['MHO-C401N-z'],
@@ -1072,7 +1094,7 @@ const definitions: Definition[] = [
                 description: 'Measurement interval, default 10 seconds.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
@@ -1084,7 +1106,7 @@ const definitions: Definition[] = [
                 await endpoint.read('hvacThermostat', [0x0010, 0x0011, 0x0102, 0x0103, 0x0104, 0x0105, 0x0107]);
                 await endpoint.read('msTemperatureMeasurement', [0x0010]);
                 await endpoint.read('msRelativeHumidity', [0x0010]);
-            } catch (e) {
+            } catch {
                 /* backward compatibility */
             }
         },
@@ -1124,15 +1146,19 @@ const definitions: Definition[] = [
         exposes: [
             e.battery(),
             e
-                .enum('l3', ea.ALL, ['set'])
+                .numeric('l3', ea.ALL)
+                .withValueMin(-999999999)
+                .withValueMax(999999999)
                 .withDescription(
-                    'Counter value. Write zero or positive value to set a counter value. ' +
+                    'Counter 1 value. Write zero or positive value to set a counter value. ' +
                         'Write a negative value to set a wakeup interval in minutes',
                 ),
             e
-                .enum('l5', ea.ALL, ['set'])
+                .numeric('l5', ea.ALL)
+                .withValueMin(-999999999)
+                .withValueMax(999999999)
                 .withDescription(
-                    'Counter value. Write zero or positive value to set a counter value. ' +
+                    'Counter 2 value. Write zero or positive value to set a counter value. ' +
                         'Write a negative value to set a wakeup interval in minutes',
                 ),
             e.switch().withEndpoint('l6'),
