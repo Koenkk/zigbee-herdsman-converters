@@ -13419,7 +13419,7 @@ const definitions: DefinitionWithExtend[] = [
                 [103, 'illuminance', tuya.valueConverter.divideBy10],
                 [105, 'far_mov_sensitivity', tuya.valueConverter.raw],
                 [110, 'near_mov_sensitivity', tuya.valueConverter.raw],
-                [109, 'near_occ_sensitivity', tuya.valueConverter.raw],
+                [109, 'near_occupancy_sensitivity', tuya.valueConverter.raw],
                 [111, 'far_occ_sensitivity', tuya.valueConverter.raw],
                 [3, 'near_detection', tuya.valueConverter.divideBy100],
                 [4, 'far_detection', tuya.valueConverter.divideBy100],
