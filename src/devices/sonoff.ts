@@ -1012,7 +1012,7 @@ const definitions: DefinitionWithExtend[] = [
                 name: 'motion_timeout',
                 cluster: 0x0406,
                 attribute: {ID: 0x0020, type: 0x21},
-                description: 'Unoccupied to occupied delay',
+                description: 'Occupied to unoccupied delay',
                 valueMin: 5,
                 valueMax: 60,
             }),
