@@ -1,5 +1,24 @@
 # Changelog
 
+## [21.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.3.0...v21.4.0) (2024-12-11)
+
+
+### Features
+
+* **add:** Powerswitch-ZK(W) ([#8460](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8460)) ([a291886](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a291886566ce85c92c2fe757ed4bf1c612356a13))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_shopg9ss` as Tuya TS0207_repeater https://github.com/Koenkk/zigbee2mqtt/issues/25150 ([49be0f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/49be0f25d1161db867d11aac3045a4357c9cf983))
+* **detect:** Detect `_TZE204_p1qrtljn` as TECH VNTH-T2 ([#8461](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8461)) ([2e4b3b0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2e4b3b0ac559cba174673fb9e69b3169d9b327a2))
+* **detect:** Detect `_TZE204_z7a2jmyy` as Neo NAS-WV03B https://github.com/Koenkk/zigbee2mqtt/issues/22813 ([989f2d9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/989f2d91a4c3328d6eb90d254593bb7a4b6b76ca))
+* **detect:** Detect `TRADFRI bulb E17 CWS globe 810lm` as IKEA LED2111G6 ([#8468](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8468)) ([7c85824](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7c85824a122aacd2e8ce49bf0e73f4c07d61e683))
+* Fix Giex GX03 battery value ([#8464](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8464)) ([ea9f815](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ea9f81597f6863d41a55f36653cc7f17fb2c9abb))
+* Fix ZNQBKG26LM not supported power_outage_memory and led_disabled_night ([#8466](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8466)) ([e27d004](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e27d004bc371113c454402bfd03d5123e423649a))
+* Minor SNZB-03P documentation fix ([#8467](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8467)) ([9f17ff9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9f17ff9a3f57e29b7bd4b22a757ed618fccccf55))
+* Update 3r virate xyz axis ([#8462](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8462)) ([6e3c0e3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e3c0e3ed47184800542509227db3d518cf471dc))
+
 ## [21.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.2.1...v21.3.0) (2024-12-09)
 
 
