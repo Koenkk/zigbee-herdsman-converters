@@ -1325,8 +1325,16 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [],
         extend: [
             commandsOnOff({commands: ['toggle']}),
-            onOff(),
+            onOff({configureReporting: false}),
             sonoffExtend.addCustomClusterEwelink(),
+            binary({
+                name: 'network_indicator',
+                cluster: 'customClusterEwelink',
+                attribute: 'networkLed',
+                description: 'Network indicator Settings, turn off/turn on the online network indicator.',
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
             binary({
                 name: 'turbo_mode',
                 cluster: 'customClusterEwelink',
@@ -1370,7 +1378,7 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'customClusterEwelink']);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read('customClusterEwelink', ['radioPower', 0x0014, 0x0015, 0x0016, 0x0017], defaultResponseOptions);
+            await endpoint.read('customClusterEwelink', ['radioPower', 0x0001, 0x0014, 0x0015, 0x0016, 0x0017], defaultResponseOptions);
         },
     },
     {
