@@ -266,14 +266,17 @@ type DefinitionBase = {
     vendor: string;
     description: string;
     whiteLabel?: WhiteLabel[];
+    generated?: true;
+    externalConverterName?: string;
+};
+
+type DefinitionConfig = {
     endpoint?: (device: Zh.Device) => {[s: string]: number};
     configure?: Configure;
     options?: Option[];
     meta?: DefinitionMeta;
     onEvent?: OnEvent;
     ota?: true | Ota.ExtraMetas;
-    generated?: true;
-    externalConverterName?: string;
 };
 
 type DefinitionFeatures = {
@@ -282,11 +285,15 @@ type DefinitionFeatures = {
     exposes: DefinitionExposes;
 };
 
-export type Definition = DefinitionMatcher & DefinitionBase & DefinitionFeatures;
+export type ResolvedDefinition = DefinitionConfig & DefinitionFeatures;
 
-export type DefinitionWithExtend = DefinitionMatcher &
-    DefinitionBase &
-    (({extend: ModernExtend[]} & Partial<DefinitionFeatures>) | DefinitionFeatures);
+export type Definition = DefinitionMatcher & DefinitionBase & ResolvedDefinition;
+
+export type ResolvedDefinitionWithExtend = DefinitionConfig & (({extend: ModernExtend[]} & Partial<DefinitionFeatures>) | DefinitionFeatures);
+
+export type DefinitionWithExtend = DefinitionMatcher & DefinitionBase & ResolvedDefinitionWithExtend;
+
+export type IndexedDefinition = DefinitionMatcher & DefinitionBase & {resolve: () => ResolvedDefinitionWithExtend};
 
 export namespace Fz {
     export interface Message {
