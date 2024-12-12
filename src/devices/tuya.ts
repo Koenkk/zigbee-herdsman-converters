@@ -13362,7 +13362,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(43200)
                 .withValueStep(1)
-                .withDescription('Timeout until the presence is reset when no further presence is detected (the time from present -> None)')
+                .withDescription('Timeout until the presence is reset when no further presence is detected (Presence -> None)')
                 .withUnit('s'),
             e.illuminance(),
             e
