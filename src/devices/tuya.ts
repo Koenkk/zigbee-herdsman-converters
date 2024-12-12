@@ -13343,64 +13343,68 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.presence(),
-            e.occupancy(),
-            e.numeric('target_dis_closest', ea.STATE).withDescription('the target distance away from the sensor').withUnit('m'),
+            e.presence().withDescription('Indicates whether the device detected presence. Will be true also when movement (occupancy) is detected.'),
             e
-                .numeric('mov_delay', ea.STATE_SET)
+                .occupancy()
+                .withDescription(
+                    'Indicates whether the device detected movement. Will be true when movement. Can remain true even if the target left the detection range. In this case presence will be reset to false reliably.',
+                ),
+            e.numeric('closest_target_distance', ea.STATE).withDescription('the target distance away from the sensor').withUnit('m'),
+            e
+                .numeric('movement_timeout', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(43200)
                 .withValueStep(1)
-                .withDescription('setting the delay time to keep moving status  (the time from moving -> None)')
+                .withDescription('Timeout until the movement (occupancy) is reset when no further movement is detected. (Occupancy -> None)')
                 .withUnit('s'),
             e
-                .numeric('none_delay', ea.STATE_SET)
+                .numeric('idle_timeout', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(43200)
                 .withValueStep(1)
-                .withDescription('setting the delay time to keep present status (the time from present -> None)')
+                .withDescription('Timeout until the presence is reset when no further presence is detected (the time from present -> None)')
                 .withUnit('s'),
             e.illuminance(),
             e
-                .numeric('far_mov_sensitivity', ea.STATE_SET)
+                .numeric('far_movement_sensitivity', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(10)
                 .withValueStep(1)
                 .withDescription('the moving detecting sensitivity 1 meter away'),
             e
-                .numeric('near_mov_sensitivity', ea.STATE_SET)
+                .numeric('near_movement_sensitivity', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(10)
                 .withValueStep(1)
                 .withDescription('the moving detecting sensitivity  within 1 meter'),
             e
-                .numeric('near_occ_sensitivity', ea.STATE_SET)
+                .numeric('near_presence_sensitivity', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(10)
                 .withValueStep(1)
                 .withDescription('the presence detecting sensitivity  within 1 meter'),
             e
-                .numeric('far_occ_sensitivity', ea.STATE_SET)
+                .numeric('far_presence_sensitivity', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(10)
                 .withValueStep(1)
                 .withDescription('the presence detecting sensitivity  1 meter away'),
             e
-                .numeric('near_detection', ea.STATE_SET)
+                .numeric('closest_detection_distance', ea.STATE_SET)
                 .withValueMin(0.1)
                 .withValueMax(7)
                 .withValueStep(0.1)
                 .withDescription('The closest distance that can be detected')
                 .withUnit('m'),
             e
-                .numeric('far_detection', ea.STATE_SET)
+                .numeric('largest_movement_detection_distance', ea.STATE_SET)
                 .withValueMin(0.1)
                 .withValueMax(7)
                 .withValueStep(0.1)
                 .withDescription('The farest distance that can be detected (moving)')
                 .withUnit('m'),
             e
-                .numeric('occ_detection', ea.STATE_SET)
+                .numeric('largest_presence_detection_distance', ea.STATE_SET)
                 .withValueMin(0.1)
                 .withValueMax(7)
                 .withValueStep(0.1)
@@ -13413,17 +13417,17 @@ const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [104, 'presence', tuya.valueConverter.trueFalse1],
                 [112, 'occupancy', tuya.valueConverter.trueFalseInvert],
-                [9, 'target_distance_closest', tuya.valueConverter.divideBy100],
-                [101, 'mov_delay', tuya.valueConverter.raw],
-                [102, 'none_delay', tuya.valueConverter.raw],
+                [9, 'closest_target_distance', tuya.valueConverter.divideBy100],
+                [101, 'movement_timeout', tuya.valueConverter.raw],
+                [102, 'idle_timeout', tuya.valueConverter.raw],
                 [103, 'illuminance', tuya.valueConverter.divideBy10],
-                [105, 'far_move_sensitivity', tuya.valueConverter.raw],
-                [110, 'near_mov_sensitivity', tuya.valueConverter.raw],
-                [109, 'near_occupancy_sensitivity', tuya.valueConverter.raw],
-                [111, 'far_occ_sensitivity', tuya.valueConverter.raw],
-                [3, 'near_detection', tuya.valueConverter.divideBy100],
-                [4, 'far_detection', tuya.valueConverter.divideBy100],
-                [108, 'occ_detection', tuya.valueConverter.divideBy100],
+                [105, 'far_movement_sensitivity', tuya.valueConverter.raw],
+                [110, 'near_movement_sensitivity', tuya.valueConverter.raw],
+                [109, 'near_presence_sensitivity', tuya.valueConverter.raw],
+                [111, 'far_presence_sensitivity', tuya.valueConverter.raw],
+                [3, 'closest_detection_distance', tuya.valueConverter.divideBy100],
+                [4, 'largest_movement_detection_distance', tuya.valueConverter.divideBy100],
+                [108, 'largest_presence_detection_distance', tuya.valueConverter.divideBy100],
                 [106, 'restore_factory', tuya.valueConverterBasic.lookup({ON: false, OFF: true})],
                 [107, 'led_indicator', tuya.valueConverterBasic.lookup({ON: false, OFF: true})],
             ],
