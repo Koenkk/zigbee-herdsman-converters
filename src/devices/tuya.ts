@@ -30,7 +30,7 @@ import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} fro
 import * as zosung from '../lib/zosung';
 
 const NS = 'zhc:tuya';
-const {tuyaLight, tuyaBase} = tuya.modernExtend;
+const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup} = tuya.modernExtend;
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -1617,6 +1617,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Moes', 'ZB-LZD10-RCW', '10W RGB+CCT Smart Downlight', ['_TZ3210_s9lumfhn', '_TZ3210_jjqdqxfq']),
             tuya.whitelabel('Moes', 'ZB-TDC6-RCW-E14', 'RGB+CCT 5W E14 LED bulb', ['_TZ3210_ifga63rg']),
             tuya.whitelabel('MiBoxer', 'FUT106ZR', 'GU10 bulb', ['_TZB210_rwy5hexp', '_TZB210_lnnkh3f9']),
+            tuya.whitelabel('MiBoxer', 'E3-ZR', '3 in 1 LED Controller', ['_TZB210_wy1pyu1q']),
             tuya.whitelabel('Tuya', 'TS0505B_1_1', 'Zigbee 3.0 18W led light bulb E27 RGBCW', [
                 '_TZ3210_jd3z4yig',
                 '_TZ3210_r5afgmkl',
@@ -1905,6 +1906,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0207', manufacturerName: '_TZ3000_5k5vh43t'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_kxlmv9ag'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_wmlc9p9z'},
+            {modelID: 'TS0207', manufacturerName: '_TZ3000_shopg9ss'},
         ],
         model: 'TS0207_repeater',
         vendor: 'Tuya',
@@ -2109,7 +2111,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_aao3yzhs', '_TZE284_nhgdf6qr']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_aao3yzhs', '_TZE284_nhgdf6qr', '_TZE284_ap9owrsa']),
         model: 'TS0601_soil_3',
         vendor: 'Tuya',
         description: 'Soil sensor',
@@ -2123,7 +2125,7 @@ const definitions: DefinitionWithExtend[] = [
                 [5, 'temperature', tuya.valueConverter.divideBy10],
                 [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
                 [14, 'battery_state', tuya.valueConverter.batteryState],
-                [15, 'battery', tuya.valueConverter.raw],
+                [15, 'battery', tuya.valueConverterBasic.scale(6, 60, 0, 100)], //device reports back false scaling
             ],
         },
         whiteLabel: [tuya.whitelabel('GIEX', 'GX04', 'Soil Moisture Sensor', ['_TZE284_nhgdf6qr'])],
@@ -3017,7 +3019,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Light controller',
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}})],
         whiteLabel: [
-            tuya.whitelabel('Lidl', 'HG06492B', 'Livarno Lux E14 candle CCT', ['_TZ3000_oborybow']),
+            tuya.whitelabel('Lidl', 'HG06492B/HG08130B', 'Livarno Home E14 candle CCT', ['_TZ3000_oborybow']),
             tuya.whitelabel('Lidl', 'HG06492A/HG08130A', 'Livarno Lux GU10 spot CCT', ['_TZ3000_el5kt5im']),
             tuya.whitelabel('Lidl', 'HG06492C/HG08130C/HG09154C', 'Livarno Lux E27 bulb CCT', ['_TZ3000_49qchf10']),
             tuya.whitelabel('Lidl', '14147206L', 'Livarno Lux ceiling light', ['_TZ3000_rylaozuc', '_TZ3000_5fkufhn1']),
@@ -3081,7 +3083,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Lidl', '14148906L', 'Livarno Lux mood light RGB+CCT', ['_TZ3000_9cpuaca6']),
             tuya.whitelabel('Lidl', '14149505L/14149506L_1', 'Livarno Lux light bar RGB+CCT (black/white)', ['_TZ3000_gek6snaj']),
             tuya.whitelabel('Mycket', 'MS-SP-LE27WRGB', 'E27 RGBW bulb', ['_TZ3000_evag0pvn']),
-            tuya.whitelabel('Lidl', 'HG06104A', 'Livarno Lux smart LED light strip 2.5m', ['_TZ3000_riwp3k79', '_TZ3000_riwp3k79']),
+            tuya.whitelabel('Lidl', 'HG06104A', 'Livarno Home RGB+CCT LED light strip 2m', ['_TZ3000_riwp3k79', '_TZ3000_riwp3k79']),
         ],
         configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -3103,6 +3105,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Tuya', 'TS0201_1', 'Zigbee 3.0 temperature humidity sensor with display', ['_TZ3210_alxkwn0h']),
             tuya.whitelabel('Tuya', 'ZTH01/ZTH02', 'Temperature and humidity sensor', ['_TZ3000_0s1izerx']),
             tuya.whitelabel('SEDEA', 'eTH730', 'Temperature and humidity sensor', ['_TZ3000_lqmvrwa2']),
+            tuya.whitelabel('Danfoss', '014G2480', 'Temperature and humidity sensor', ['_TZ3000_mxzo5rhf']),
         ],
     },
     {
@@ -5125,11 +5128,11 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_9mjy74mp', '_TZE200_rtrmfadk']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_9mjy74mp', '_TZE200_rtrmfadk', '_TZE200_9mjy74mp']),
         model: 'TRV602',
         vendor: 'Tuya',
         description: 'Thermostatic radiator valve.',
-        whiteLabel: [tuya.whitelabel('Moes', 'TRV801', 'Thermostatic radiator valve', ['_TZE204_9mjy74mp'])],
+        whiteLabel: [tuya.whitelabel('Moes', 'TRV801', 'Thermostatic radiator valve', ['_TZE204_9mjy74mp', '_TZE200_9mjy74mp'])],
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -5208,10 +5211,11 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ltwbm23f'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_qyr2m29i', '_TZE204_ltwbm23f']),
         model: 'TRV602Z',
         vendor: 'Tuya',
         description: 'Thermostatic radiator valve.',
+        whiteLabel: [tuya.whitelabel('Moes', 'TRV801Z', 'Thermostatic radiator valve', ['_TZE204_qyr2m29i'])],
         extend: [tuyaBase({dp: true})],
         exposes: [
             e.battery(),
@@ -5330,6 +5334,100 @@ const definitions: DefinitionWithExtend[] = [
                         eco: tuya.enum(1),
                     }),
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE284_ymldrmzx'}],
+        model: 'TRV603-WZ',
+        vendor: 'Tuya',
+        description: 'Thermostatic radiator valve.',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.battery(),
+            e.child_lock(),
+            e.window_detection(),
+            e.binary('window', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status closed or open '),
+            e.enum('mode', ea.STATE_SET, ['auto', 'manual']).withDescription('Mode'),
+            e.binary('holiday_mode', ea.STATE_SET, 'ON', 'OFF'),
+            e.binary('heating_stop', ea.STATE_SET, 'ON', 'OFF'),
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET),
+            e.comfort_temperature().withValueMin(5).withValueMax(30).withDescription('Comfort mode temperature'),
+            e.eco_temperature().withValueMin(5).withValueMax(30).withDescription('Eco mode temperature'),
+            e.enum('screen_orientation', ea.STATE_SET, ['up', 'right', 'down', 'left']).withDescription('Screen orientation'),
+            tuya.exposes.frostProtection(),
+            e.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF'),
+            e.numeric('boost_time', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes').withValueMin(0).withValueMax(1000),
+            e.numeric('fault_code', ea.STATE).withDescription('Raw fault code'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    'mode',
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                    }),
+                ],
+                [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [5, 'local_temperature', tuya.valueConverter.divideBy10],
+                [6, 'battery', tuya.valueConverter.raw],
+                [
+                    7,
+                    'child_lock',
+                    tuya.valueConverterBasic.lookup({
+                        LOCK: true,
+                        UNLOCK: false,
+                    }),
+                ],
+                [14, 'window_detection', tuya.valueConverter.onOff],
+                [
+                    15,
+                    'window',
+                    tuya.valueConverterBasic.lookup({
+                        CLOSE: tuya.enum(0),
+                        OPEN: tuya.enum(1),
+                    }),
+                ],
+                [21, 'holiday_temperature', tuya.valueConverter.divideBy10],
+                [36, 'frost_protection', tuya.valueConverter.onOff],
+                [39, 'switch_scale', tuya.valueConverter.raw],
+                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [101, 'boost_heating', tuya.valueConverter.onOff],
+                [102, 'boost_time', tuya.valueConverter.countdown],
+                [103, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(1)],
+                [104, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(2)],
+                [105, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(3)],
+                [106, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(4)],
+                [107, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(5)],
+                [108, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(6)],
+                [109, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(7)],
+                [110, 'holiday_mode', tuya.valueConverter.onOff],
+                [
+                    111,
+                    'screen_orientation',
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        right: tuya.enum(1),
+                        down: tuya.enum(2),
+                        left: tuya.enum(3),
+                    }),
+                ],
+                [112, 'antifrost_temperature', tuya.valueConverter.divideBy10],
+                [113, 'heating_stop', tuya.valueConverter.onOff],
+                [114, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [115, 'programming_mode', tuya.valueConverter.raw],
+                [116, 'eco_temperature', tuya.valueConverter.divideBy10],
+                [117, 'comfort_temperature', tuya.valueConverter.divideBy10],
+                [118, 'fault_code', tuya.valueConverter.raw],
             ],
         },
     },
@@ -6938,7 +7036,7 @@ const definitions: DefinitionWithExtend[] = [
                         if (device.manufacturerName === '_TZE200_viy9ihs7') {
                             return {auto: tuya.enum(0), manual: tuya.enum(1), temporary_manual: tuya.enum(2)};
                         } else {
-                            return {auto: tuya.enum(0), manual: tuya.enum(1), temporary_manual: tuya.enum(2)};
+                            return {auto: tuya.enum(1), manual: tuya.enum(0), temporary_manual: tuya.enum(2)};
                         }
                     }),
                 ],
@@ -7255,17 +7353,62 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PJ-ZGD01',
         vendor: 'Tuya',
         description: 'Garage door opener',
-        fromZigbee: [legacy.fromZigbee.matsee_garage_door_opener, fz.ignore_basic_report],
-        toZigbee: [legacy.toZigbee.matsee_garage_door_opener, legacy.toZigbee.tuya_data_point_test],
         whiteLabel: [{vendor: 'MatSee Plus', model: 'PJ-ZGD01'}],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
-        exposes: [
-            e.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
-            e.binary('garage_door_contact', ea.STATE, true, false),
+        extend: [
+            tuyaMagicPacket(),
+            dpBinary({
+                name: 'trigger',
+                dp: 1,
+                type: tuya.dataTypes.bool,
+                valueOn: [true, true],
+                valueOff: [false, false],
+                description:
+                    'Request door to close (= false) or open (= true), will not pulse output if contact shows door is already in requested state',
+            }),
+            dpNumeric({
+                name: 'countdown',
+                dp: 2,
+                type: tuya.dataTypes.number,
+                description: 'Countdown to trigger door movement after a certain time, will pulse output in all cases',
+                unit: 's',
+                valueMin: 0,
+                valueMax: 43200,
+            }),
+            dpBinary({
+                name: 'garage_door_contact',
+                dp: 3,
+                type: tuya.dataTypes.bool,
+                valueOn: [true, false],
+                valueOff: [false, true],
+                description: 'Indicates if the garage door contact is closed (= true) or open (= false)',
+                readOnly: true,
+            }),
+            dpNumeric({
+                name: 'run_time',
+                dp: 4,
+                type: tuya.dataTypes.number,
+                description: 'Configure the time to wait for the door contact status to change before triggering a run time alarm',
+                unit: 's',
+                valueMin: 0,
+                valueMax: 120,
+            }),
+            dpNumeric({
+                name: 'open_alarm_time',
+                dp: 5,
+                type: tuya.dataTypes.number,
+                description: 'Configure the amount of time the door may be open before an open time alarm is triggered',
+                unit: 's',
+                valueMin: 0,
+                valueMax: 86400,
+            }),
+            dpEnumLookup({
+                name: 'status',
+                dp: 12,
+                type: tuya.dataTypes.enum,
+                description: 'Indicates run time alarm, door open alarm or noraml status, will not retunr to normal until door is triggered again',
+                lookup: {'Open Time Alarm': 0, 'Run Time Alarm': 1, Normal: 2},
+                readOnly: true,
+            }),
         ],
     },
     {
@@ -13188,7 +13331,6 @@ const definitions: DefinitionWithExtend[] = [
                 [105, 'valve_1', tuya.valueConverterBasic.lookup({OFF: tuya.enum(2), ON: tuya.enum(0)})],
                 [13, 'countdown_1', tuya.valueConverter.raw],
                 [14, 'countdown_2', tuya.valueConverter.raw],
-                [15, 'battery', tuya.valueConverter.raw],
             ],
         },
     },

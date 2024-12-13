@@ -1891,21 +1891,6 @@ const converters2 = {
     // #endregion
 
     // #region Non-generic converters
-    elko_display_text: {
-        key: ['display_text'],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
-            if (value.length <= 14) {
-                await entity.write('hvacThermostat', {elkoDisplayText: value});
-                return {state: {display_text: value}};
-            } else {
-                throw new Error('Length of text is greater than 14');
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoDisplayText']);
-        },
-    } satisfies Tz.Converter,
     elko_power_status: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {

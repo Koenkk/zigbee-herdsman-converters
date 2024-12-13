@@ -104,6 +104,7 @@ const definitions: DefinitionWithExtend[] = [
             'c3442b4ac59b4ba1a83119d938f283ab',
             'SmokeSensor-EF-3.0',
             'SMOK_HV14',
+            'HK-SENSOR-SMO',
         ],
         model: 'HS1SA',
         vendor: 'HEIMAN',

@@ -2160,6 +2160,65 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'ELKO', model: 'EKO06986', description: 'SmartPir with push dimmer'},
         ],
     },
+    {
+        zigbeeModel: ['S520619'],
+        model: 'S520619',
+        vendor: 'Schneider Electric',
+        description: 'Wiser Odace Smart thermostat',
+        fromZigbee: [
+            fz.stelpro_thermostat,
+            fz.metering,
+            fz.schneider_pilot_mode,
+            fz.wiser_device_info,
+            fz.hvac_user_interface,
+            fz.temperature,
+            fz.occupancy,
+        ],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_system_mode,
+            tz.thermostat_local_temperature,
+            tz.thermostat_control_sequence_of_operation,
+            tz.schneider_pilot_mode,
+            tz.schneider_thermostat_keypad_lockout,
+            tz.thermostat_temperature_display_mode,
+        ],
+        exposes: [
+            e.binary('keypad_lockout', ea.STATE_SET, 'lock1', 'unlock').withDescription('Enables/disables physical input on the device'),
+            e.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
+            e
+                .enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the thermostat screen'),
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 4, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'heat', 'cool'])
+                .withPiHeatingDemand(),
+            e.temperature(),
+            e.occupancy(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            const endpoint4 = device.getEndpoint(4);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['hvacThermostat']);
+            await reporting.thermostatPIHeatingDemand(endpoint1);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
+            await reporting.temperature(endpoint2);
+            await endpoint1.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
+            await reporting.bind(endpoint4, coordinatorEndpoint, ['msOccupancySensing']);
+            await reporting.thermostatOccupancy(endpoint4);
+        },
+        options: [exposes.options.measurement_poll_interval()],
+        onEvent: async (type, data, device, options) => {
+            const endpoint = device.getEndpoint(1);
+            const poll = async () => {
+                await endpoint.read('hvacThermostat', ['occupiedHeatingSetpoint']);
+            };
+            utils.onEventPoll(type, data, device, options, 'measurement', 20, poll);
+        },
+    },
 ];
 
 export default definitions;

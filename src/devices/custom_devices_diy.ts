@@ -13,6 +13,7 @@ import {
     forcePowerSource,
     humidity,
     light,
+    linkQuality,
     numeric,
     onOff,
     quirkAddEndpointCluster,
@@ -240,6 +241,38 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
 
 const definitions: DefinitionWithExtend[] = [
     {
+        /** @see https://github.com/Nerivec/silabs-firmware-builder/releases */
+        fingerprint: [
+            {modelID: 'ZGA008', manufacturerName: 'Aeotec', applicationVersion: 200},
+            {modelID: 'ZB-GW04', manufacturerName: 'easyiot', applicationVersion: 200},
+            {modelID: 'ZB-GW04-1v1', manufacturerName: 'easyiot', applicationVersion: 200},
+            {modelID: 'ZB-GW04-1v2', manufacturerName: 'easyiot', applicationVersion: 200},
+            {modelID: 'SkyConnect', manufacturerName: 'NabuCasa', applicationVersion: 200},
+            {modelID: 'SLZB-06M', manufacturerName: 'SMLIGHT', applicationVersion: 200},
+            {modelID: 'SLZB-07', manufacturerName: 'SMLIGHT', applicationVersion: 200},
+            {modelID: 'SLZB-07MG24', manufacturerName: 'SMLIGHT', applicationVersion: 200},
+            {modelID: 'DONGLE-E', manufacturerName: 'SONOFF', applicationVersion: 200},
+            {modelID: 'MGM240P', manufacturerName: 'SparkFun', applicationVersion: 200},
+            {modelID: 'MGM24', manufacturerName: 'TubesZB', applicationVersion: 200},
+            {modelID: 'MGM24PB', manufacturerName: 'TubesZB', applicationVersion: 200},
+        ],
+        model: 'Silabs series 2 router',
+        vendor: 'Silabs',
+        description: 'Silabs series 2 adapter with router firmware',
+        toZigbee: [tz.factory_reset],
+        exposes: [
+            e
+                .enum('reset', ea.SET, ['reset'])
+                .withDescription(
+                    'Resets and launches the bootloader for flashing. If USB, ensure the device is already connected to the machine where you intend to flash it before triggering this.',
+                ),
+        ],
+        extend: [linkQuality({reporting: true})],
+        // prevent timeout with tz.factory_reset (reboots adapter into bootloader, hence disconnected)
+        // since this is the only tz, it's not a problem to disable this globally
+        meta: {disableDefaultResponse: true},
+    },
+    {
         zigbeeModel: ['ti.router'],
         model: 'ti.router',
         vendor: 'Custom devices (DiY)',
@@ -260,25 +293,6 @@ const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
-            const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-            await endpoint.configureReporting('genBasic', payload);
-        },
-    },
-    {
-        zigbeeModel: ['SLZB-06p7', 'SLZB-07', 'SLZB-0xp7'],
-        model: 'SLZB-06p7',
-        vendor: 'SMLIGHT',
-        description: 'Router',
-        fromZigbee: [fz.linkquality_from_basic],
-        toZigbee: [],
-        exposes: [],
-        whiteLabel: [
-            {vendor: 'SMLIGHT', model: 'SLZB-07', description: 'Router', fingerprint: [{modelID: 'SLZB-07'}]},
-            {vendor: 'SMLIGHT', model: 'SLZB-0xp7', description: 'Router', fingerprint: [{modelID: 'SLZB-0xp7'}]},
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.endpoints[0];
             const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
             await endpoint.configureReporting('genBasic', payload);
