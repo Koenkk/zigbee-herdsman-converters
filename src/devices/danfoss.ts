@@ -336,7 +336,7 @@ const definitions: DefinitionWithExtend[] = [
             // So, we need to write time during configure (same as for HEIMAN devices)
             const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
             // Time-master + synchronised
-            const values = {timeStatus: 3, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
+            const values = {timeStatus: 1, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
             await endpoint.write('genTime', values);
         },
     },
