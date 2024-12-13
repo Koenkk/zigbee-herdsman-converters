@@ -25,13 +25,14 @@ const definitions: DefinitionWithExtend[] = [
             fz.command_move_to_level,
             fz.command_move_to_color_temp,
             fz.command_move_to_hue_and_saturation,
+            fz.tuya_switch_scene,
         ],
         toZigbee: [],
         whiteLabel: [tuya.whitelabel('Ledron', 'YK-16', 'RGB+CCT Remote', ['_TZ3000_zwszqdpy'])],
         exposes: [
             e.battery(),
             e.battery_voltage(),
-            e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move', 'move_to_hue_and_saturation']),
+            e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move', 'move_to_hue_and_saturation', 'tuya_switch_scene']),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
