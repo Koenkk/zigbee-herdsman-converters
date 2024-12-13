@@ -135,13 +135,13 @@ export function removeExternalDefinitions(converterName?: string): void {
             continue;
         }
 
-        if ('zigbeeModel' in definition && definition.zigbeeModel) {
+        if (definition.zigbeeModel) {
             for (const zigbeeModel of definition.zigbeeModel) {
                 removeFromExternalConvertersLookup(zigbeeModel, definition);
             }
         }
 
-        if ('fingerprint' in definition && definition.fingerprint) {
+        if (definition.fingerprint) {
             for (const fingerprint of definition.fingerprint) {
                 removeFromExternalConvertersLookup(fingerprint.modelID, definition);
             }
@@ -161,13 +161,13 @@ export function addDefinition(definition: IndexedDefinition): void {
         externalDefinitionsCount++;
     }
 
-    if ('fingerprint' in definition && definition.fingerprint) {
+    if (definition.fingerprint) {
         for (const fingerprint of definition.fingerprint) {
             addToExternalConvertersLookup(fingerprint.modelID, definition);
         }
     }
 
-    if ('zigbeeModel' in definition && definition.zigbeeModel) {
+    if (definition.zigbeeModel) {
         for (const zigbeeModel of definition.zigbeeModel) {
             addToExternalConvertersLookup(zigbeeModel, definition);
         }
