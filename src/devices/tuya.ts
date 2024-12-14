@@ -1312,7 +1312,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ogkdpgy2', '_TZE200_3ejwxpmu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ogkdpgy2', '_TZE200_3ejwxpmu', '_TZE204_3ejwxpmu']),
         model: 'TS0601_temperature_humidity_co2_sensor',
         vendor: 'Tuya',
         description: 'NDIR co2 sensor',
