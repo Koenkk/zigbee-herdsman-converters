@@ -1542,7 +1542,8 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                         // each time we receive one, in case the clearance message gets lost. Normally, these kinds of sensors
                         // send a clearance message, so this is an additional safety measure.
                         clearTimeout(globalStore.getValue(msg.endpoint, 'timeout'));
-                        if (addTimeout) { // At least one zone active
+                        if (addTimeout) {
+                            // At least one zone active
                             const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), args.keepAliveTimeout * 1000);
                             globalStore.putValue(msg.endpoint, 'timeout', timer);
                         } else {
