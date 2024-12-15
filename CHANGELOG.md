@@ -1,5 +1,24 @@
 # Changelog
 
+## [21.5.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.4.0...v21.5.0) (2024-12-15)
+
+
+### Features
+
+* **add:** ZBDS10WT https://github.com/Koenkk/zigbee2mqtt/issues/23607 ([7a6fc6f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7a6fc6f0214d4dd531df7173c7b46deef12164e5))
+
+
+### Bug Fixes
+
+* Add occupancy timeout for Tuya IH012-RT01/ZMS-102 ([#8333](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8333)) ([7a14d5b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7a14d5b044b5047ae50dcd1726a40d9241c086a5))
+* Danfoss: Update time regularly to account for loss and drift ([#8479](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8479)) ([fdde721](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fdde7217a1e7350b7b4b482ca393e0d8ac81f9b4))
+* **detect:** Detect `_TZ3000_hojntt34` as Nous L13Z https://github.com/Koenkk/zigbee2mqtt/discussions/25201 ([246002e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/246002e06f67d271649020bd49e7e8474f67cb5d))
+* **detect:** Detect `_TZE200_p3dbf6qs` as AVATTO ME167 https://github.com/Koenkk/zigbee-herdsman-converters/issues/8474 ([3b081b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3b081b742fd3c81eef34efe9b369f6e8d30464b7))
+* **detect:** Detect `_TZE204_3ejwxpmu` as Tuya TS0601_temperature_humidity_co2_sensor ([#8478](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8478)) ([fdca712](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fdca7126b7744964b201d3023ee8a40516b2d9d4))
+* Disable unsupported power on behaviour for Cando C202.1 https://github.com/Koenkk/zigbee2mqtt/issues/24328 ([6e822be](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e822be6f389f5d16050c806904801bb3af1f4c2))
+* Fix inverted `state` on Tuya motorized blinds ([#8481](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8481)) ([6ed8eb3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6ed8eb3e948d394148025e5090690b5d128b88b8))
+* **ignore:** update dependencies ([#8480](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8480)) ([3da7ee6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3da7ee69d41dc687c15220ef8f8466f2f11e0f30))
+
 ## [21.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.3.0...v21.4.0) (2024-12-13)
 
 
