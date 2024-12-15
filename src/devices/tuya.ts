@@ -1851,12 +1851,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'IH012-RT01',
         vendor: 'Tuya',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ignore_basic_report, fz.ZM35HQ_attr, fz.battery],
+        fromZigbee: [fz.ignore_basic_report, fz.ZM35HQ_attr, fz.battery],
         toZigbee: [tz.ZM35HQ_attr],
-        extend: [quirkCheckinInterval(15000)],
+        extend: [
+            quirkCheckinInterval(15000),
+            // Occupancy reporting interval is 60s, so allow for one dropped update plus a small safety margin of 5s
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low'], keepAliveTimeout: 125}),
+        ],
         exposes: [
-            e.occupancy(),
-            e.battery_low(),
             e.battery(),
             e.battery_voltage(),
             e.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
