@@ -5,10 +5,19 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
+import * as globalStore from '../lib/store';
+import {DefinitionWithExtend, Zh} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const setTime = async (device: Zh.Device) => {
+    const endpoint = device.getEndpoint(1);
+    const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
+    // Time-master + synchronised
+    const values = {timeStatus: 1, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
+    await endpoint.write('genTime', values);
+};
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -334,10 +343,27 @@ const definitions: DefinitionWithExtend[] = [
 
             // Seems that it is bug in Danfoss, device does not asks for the time with binding
             // So, we need to write time during configure (same as for HEIMAN devices)
-            const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
-            // Time-master + synchronised
-            const values = {timeStatus: 1, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
-            await endpoint.write('genTime', values);
+            await setTime(device);
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
+            } else if (['deviceAnnounce', 'start'].includes(type)) {
+                // The device might have lost its time, so reset it. It would be more proper to check if
+                // the danfossSystemStatusCode has bit 10 of the SW error code attribute (0x4000) in the
+                // diagnostics cluster (0x0b05) is set to indicate time lost, but setting it once too many
+                // times shouldn't hurt.
+                await setTime(device);
+
+                if (!globalStore.hasValue(device, 'interval')) {
+                    // Set up a timer to refresh the time once a week to mitigate timer drift, as described
+                    // in the Danfoss documentation. Be careful to not bump this timer past the signed 32-bit
+                    // integer limit of setInterval, which is roughly 24.8 days.
+                    const interval = setInterval(async () => await setTime(device), 10080000);
+                    globalStore.putValue(device, 'interval', interval);
+                }
+            }
         },
     },
     {
