@@ -585,8 +585,7 @@ export const valueConverter = {
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
             const position = options.invert_cover ? 100 - v : v;
-            const closed = options.invert_cover ? position === 100 : position === 0;
-            publish({state: closed ? 'CLOSE' : 'OPEN'});
+            publish({state: position === 0 ? 'CLOSE' : 'OPEN'});
             return position;
         },
     },
@@ -596,8 +595,7 @@ export const valueConverter = {
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
             const position = options.invert_cover ? v : 100 - v;
-            const closed = options.invert_cover ? position === 100 : position === 0;
-            publish({state: closed ? 'CLOSE' : 'OPEN'});
+            publish({state: position === 0 ? 'CLOSE' : 'OPEN'});
             return position;
         },
     },
