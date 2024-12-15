@@ -825,6 +825,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'},
             {vendor: 'Dongguan Daying Electornics Technology', model: 'YG400A'},
             tuya.whitelabel('Tuya', 'TS0205_smoke_2', 'Smoke sensor', ['_TZ3210_up3pngle']),
+            tuya.whitelabel('Nedis', 'ZBDS10WT', 'Smoke sensor', ['_TYZB01_wqcac7lo']),
         ],
         // Configure battery % fails
         // https://github.com/Koenkk/zigbee2mqtt/issues/22421
