@@ -56,6 +56,7 @@ import datek from './datek';
 import dawon_dns from './dawon_dns';
 import develco from './develco';
 import digi from './digi';
+import digilux from './digilux';
 import diyruz from './diyruz';
 import dlink from './dlink';
 import dnake from './dnake';
@@ -373,6 +374,7 @@ export default [
     ...dawon_dns,
     ...develco,
     ...digi,
+    ...digilux,
     ...diyruz,
     ...dlink,
     ...dnake,
