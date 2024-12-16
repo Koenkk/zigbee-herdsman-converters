@@ -63,7 +63,6 @@ const definitions: DefinitionWithExtend[] = [
                         comfort: tuya.enum(3),
                         frost_protection: tuya.enum(4),
                         holiday: tuya.enum(5),
-                        off: tuya.enum(6),
                     }),
                 ],
                 [
@@ -74,8 +73,7 @@ const definitions: DefinitionWithExtend[] = [
                             return v === tuya.enum(6) ? 'off' : 'heat';
                         },
                         to: (v) => {
-                            // By default switching to "heat" will activate schedule mode on Homeassistant
-                            return v === 'off' ? tuya.enum(6) : tuya.enum(1);
+                            return v === 'off' ? tuya.enum(6) : tuya.enum(0);
                         },
                     },
                 ],
