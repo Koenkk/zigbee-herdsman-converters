@@ -343,7 +343,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LED2111G6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E17, color/white spectrum, globe, opal, 800/806/810 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: true}), identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: {modes: ['xy', 'hs']}}), identify()],
     },
     // #endregion E12/E14/E17
     // #region GU10
