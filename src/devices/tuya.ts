@@ -825,6 +825,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'},
             {vendor: 'Dongguan Daying Electornics Technology', model: 'YG400A'},
             tuya.whitelabel('Tuya', 'TS0205_smoke_2', 'Smoke sensor', ['_TZ3210_up3pngle']),
+            tuya.whitelabel('Nedis', 'ZBDS10WT', 'Smoke sensor', ['_TYZB01_wqcac7lo']),
         ],
         // Configure battery % fails
         // https://github.com/Koenkk/zigbee2mqtt/issues/22421
@@ -1312,7 +1313,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ogkdpgy2', '_TZE200_3ejwxpmu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ogkdpgy2', '_TZE200_3ejwxpmu', '_TZE204_3ejwxpmu']),
         model: 'TS0601_temperature_humidity_co2_sensor',
         vendor: 'Tuya',
         description: 'NDIR co2 sensor',
@@ -1851,12 +1852,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'IH012-RT01',
         vendor: 'Tuya',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ignore_basic_report, fz.ZM35HQ_attr, fz.battery],
+        fromZigbee: [fz.ignore_basic_report, fz.ZM35HQ_attr, fz.battery],
         toZigbee: [tz.ZM35HQ_attr],
-        extend: [quirkCheckinInterval(15000)],
+        extend: [
+            quirkCheckinInterval(15000),
+            // Occupancy reporting interval is 60s, so allow for one dropped update plus a small safety margin of 5s
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low'], keepAliveTimeout: 125}),
+        ],
         exposes: [
-            e.occupancy(),
-            e.battery_low(),
             e.battery(),
             e.battery_voltage(),
             e.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
@@ -1906,6 +1909,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0207', manufacturerName: '_TZ3000_5k5vh43t'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_kxlmv9ag'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_wmlc9p9z'},
+            {modelID: 'TS0207', manufacturerName: '_TZ3000_shopg9ss'},
         ],
         model: 'TS0207_repeater',
         vendor: 'Tuya',
@@ -3789,6 +3793,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZ3000_zmy4lslw',
             '_TZ3000_ruxexjfz',
             '_TZ3000_4xfqlgqo',
+            '_TZ3000_hojntt34',
             '_TZ3000_eei0ubpy',
             '_TZ3000_qaa59zqd',
             '_TZ3000_lmlsduws',
@@ -3802,7 +3807,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'OXT', model: 'SWTZ22'},
             {vendor: 'Moes', model: 'ZM-104B-M'},
             tuya.whitelabel('pcblab.io', 'RR620ZB', '2 gang Zigbee switch module', ['_TZ3000_4xfqlgqo']),
-            tuya.whitelabel('Nous', 'L13Z', '2 gang switch', ['_TZ3000_ruxexjfz']),
+            tuya.whitelabel('Nous', 'L13Z', '2 gang switch', ['_TZ3000_ruxexjfz', '_TZ3000_hojntt34']),
             tuya.whitelabel('Tuya', 'ZG-2002-RF', 'Three mode Zigbee Switch', ['_TZ3000_lugaswf8']),
             tuya.whitelabel('Mercator Ikuü', 'SSW02', '2 gang switch', ['_TZ3000_fbjdkph9']),
         ],
@@ -4762,8 +4767,13 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         whiteLabel: [
-            tuya.whitelabel('AVATTO', 'ME167', 'Thermostatic radiator valve', ['_TZE200_bvu2wnxz', '_TZE200_6rdj8dzm', '_TZE200_9xfjixap']),
-            tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_p3dbf6qs', '_TZE200_rxntag7i']),
+            tuya.whitelabel('AVATTO', 'ME167', 'Thermostatic radiator valve', [
+                '_TZE200_p3dbf6qs',
+                '_TZE200_bvu2wnxz',
+                '_TZE200_6rdj8dzm',
+                '_TZE200_9xfjixap',
+            ]),
+            tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_rxntag7i']),
             tuya.whitelabel('AVATTO', 'TRV06_1', 'Thermostatic radiator valve', ['_TZE200_hvaxb2tc', '_TZE284_o3x45p96']),
             tuya.whitelabel('EARU', 'TRV06', 'Smart thermostat module', ['_TZE200_yqgbrdyo', '_TZE200_rxq4iti9']),
             tuya.whitelabel('AVATTO', 'AVATTO_TRV06', 'Thermostatic radiator valve', ['_TZE284_c6wv4xyo', '_TZE204_o3x45p96']),
@@ -7164,7 +7174,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
     },
     {
-        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_8uxxzz4b', '_TZ3000_hy6ncvmw', '_TZ3000_9kbbfeho']),
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_8uxxzz4b', '_TZ3000_hy6ncvmw', '_TZ3000_9kbbfeho', '_TZ3000_l6rsaipj']),
         model: 'TS0222_light',
         vendor: 'Tuya',
         description: 'Light sensor',
@@ -13330,7 +13340,105 @@ const definitions: DefinitionWithExtend[] = [
                 [105, 'valve_1', tuya.valueConverterBasic.lookup({OFF: tuya.enum(2), ON: tuya.enum(0)})],
                 [13, 'countdown_1', tuya.valueConverter.raw],
                 [14, 'countdown_2', tuya.valueConverter.raw],
-                [15, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_eaulras5']),
+        model: 'PJ3201A',
+        vendor: 'Dongguan Pinjia Technology Co.,LTD.',
+        description: 'Human Presence Sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.presence().withDescription('Indicates whether the device detected presence. Will be true also when movement (occupancy) is detected.'),
+            e
+                .occupancy()
+                .withDescription(
+                    'Indicates whether the device detected movement. Will be true when movement. Can remain true even if the target left the detection range. In this case presence will be reset to false reliably.',
+                ),
+            e.numeric('closest_target_distance', ea.STATE).withDescription('the target distance away from the sensor').withUnit('m'),
+            e
+                .numeric('movement_timeout', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withDescription('Timeout until the movement (occupancy) is reset when no further movement is detected. (Occupancy -> None)')
+                .withUnit('s'),
+            e
+                .numeric('idle_timeout', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withDescription('Timeout until the presence is reset when no further presence is detected (Presence -> None)')
+                .withUnit('s'),
+            e.illuminance(),
+            e
+                .numeric('far_movement_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('the moving detecting sensitivity 1 meter away'),
+            e
+                .numeric('near_movement_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('the moving detecting sensitivity  within 1 meter'),
+            e
+                .numeric('near_presence_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('the presence detecting sensitivity  within 1 meter'),
+            e
+                .numeric('far_presence_sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('the presence detecting sensitivity  1 meter away'),
+            e
+                .numeric('closest_detection_distance', ea.STATE_SET)
+                .withValueMin(0.1)
+                .withValueMax(7)
+                .withValueStep(0.1)
+                .withDescription('The closest distance that can be detected')
+                .withUnit('m'),
+            e
+                .numeric('largest_movement_detection_distance', ea.STATE_SET)
+                .withValueMin(0.1)
+                .withValueMax(7)
+                .withValueStep(0.1)
+                .withDescription('The farest distance that can be detected (moving)')
+                .withUnit('m'),
+            e
+                .numeric('largest_presence_detection_distance', ea.STATE_SET)
+                .withValueMin(0.1)
+                .withValueMax(7)
+                .withValueStep(0.1)
+                .withDescription('The farest distance that can be detected (present)')
+                .withUnit('m'),
+            e.binary('restore_factory', ea.STATE_SET, 'ON', 'OFF').withDescription('restore_factory'),
+            e.binary('led_indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('turn on or off the led '),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [104, 'presence', tuya.valueConverter.trueFalse1],
+                [112, 'occupancy', tuya.valueConverter.trueFalseInvert],
+                [9, 'closest_target_distance', tuya.valueConverter.divideBy100],
+                [101, 'movement_timeout', tuya.valueConverter.raw],
+                [102, 'idle_timeout', tuya.valueConverter.raw],
+                [103, 'illuminance', tuya.valueConverter.divideBy10],
+                [105, 'far_movement_sensitivity', tuya.valueConverter.raw],
+                [110, 'near_movement_sensitivity', tuya.valueConverter.raw],
+                [109, 'near_presence_sensitivity', tuya.valueConverter.raw],
+                [111, 'far_presence_sensitivity', tuya.valueConverter.raw],
+                [3, 'closest_detection_distance', tuya.valueConverter.divideBy100],
+                [4, 'largest_movement_detection_distance', tuya.valueConverter.divideBy100],
+                [108, 'largest_presence_detection_distance', tuya.valueConverter.divideBy100],
+                [106, 'restore_factory', tuya.valueConverterBasic.lookup({ON: false, OFF: true})],
+                [107, 'led_indicator', tuya.valueConverterBasic.lookup({ON: false, OFF: true})],
             ],
         },
     },
