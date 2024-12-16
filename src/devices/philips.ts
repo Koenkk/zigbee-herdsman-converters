@@ -3835,7 +3835,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '915005988201',
         vendor: 'Philips',
         description: 'Hue Gradient light tube large black EU',
-        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}})],
     },
     {
         zigbeeModel: ['929003597701'],
