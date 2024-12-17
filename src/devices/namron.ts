@@ -1376,6 +1376,13 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {},
     },
+    {
+        zigbeeModel: ['4512788'],
+        model: '4512788',
+        vendor: 'Namron',
+        description: 'Zigbee smart plug dimmer 150W',
+        extend: [light(), electricityMeter({cluster: 'electrical'})],
+    },
 ];
 
 export default definitions;

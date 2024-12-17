@@ -1141,6 +1141,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
     },
     {
+        zigbeeModel: ['LCO001'],
+        model: '8719514419155',
+        vendor: 'Philips',
+        description: 'Hue G95 smart lamp E27',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['LCL008'],
         model: '929003816901',
         vendor: 'Philips',
@@ -3934,6 +3941,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Philips',
         description: 'Hue Tento color 42,1cm',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ['929003822801'],
+        model: '929003822801',
+        vendor: 'Philips',
+        description: 'Hue Tento white 29,1cm',
+        extend: [philipsLight()],
     },
     {
         zigbeeModel: ['929003736201_01', '929003736201_02'],
