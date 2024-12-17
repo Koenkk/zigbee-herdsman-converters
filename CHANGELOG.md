@@ -1,5 +1,23 @@
 # Changelog
 
+## [21.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.5.0...v21.6.0) (2024-12-17)
+
+
+### Features
+
+* Add supported effects to Hue Gradient Tube Large ([#8483](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8483)) ([0e3e33a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0e3e33a770a2c8f388c5747492f534eaea309ebc))
+* **add:** 4512788 ([#8488](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8488)) ([3a7c23f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a7c23f33b707fbcbfb92ca9d774461cadbaae2b))
+* **add:** 8719514419155 https://github.com/Koenkk/zigbee2mqtt/issues/25230 ([e34f35c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e34f35cfc3d1a180bc741c012e0b8da7ef20b63d))
+* **add:** 929003822801 ([#8485](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8485)) ([0214e48](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0214e48369bcc93c55faa1494197a85e664f1c25))
+* **add:** GL-D-008P ([#8486](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8486)) ([83615e6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/83615e64263b818bd0db11d98849f830f1d730a1))
+* **add:** TS0726_2_gang https://github.com/Koenkk/zigbee2mqtt/issues/25180 ([6049904](https://github.com/Koenkk/zigbee-herdsman-converters/commit/60499040155a04a7db608cbce3f425472068fadb))
+* **add:** ZSS-QY-WL-C-MS https://github.com/Koenkk/zigbee2mqtt/issues/25238 ([425b994](https://github.com/Koenkk/zigbee-herdsman-converters/commit/425b99412a1344fb6ac4b677bb474cbc7e319ea4))
+
+
+### Bug Fixes
+
+* ELKO: Resolve order of magnitude issue with floor_temp ([#8482](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8482)) ([460d07b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/460d07b43998a3bc0438f845f438683082115657))
+
 ## [21.5.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.4.0...v21.5.0) (2024-12-15)
 
 
