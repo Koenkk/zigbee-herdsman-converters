@@ -1933,6 +1933,7 @@ const definitions: DefinitionWithExtend[] = [
                 '_TZ3000_upgcbody',
             ]),
             tuya.whitelabel('Tuya', 'TS0207_water_leak_detector_3', 'Zigbee water leak sensor', ['_TYZB01_sqmd19i1']),
+            tuya.whitelabel('Moes', 'ZSS-QY-WL-C-MS', 'Zigbee water leak sensor', ['_TZ3000_t6jriawg']),
             tuya.whitelabel('Tuya', '899WZ', 'Water leak detector with 80DB Alarm', ['_TZ3000_mugyhz0q']),
             tuya.whitelabel('Niceboy', 'ORBIS Water Sensor', 'Water leak sensor', ['_TZ3000_awvmkayh']),
             tuya.whitelabel('Nous', 'E4', 'Water Leakage Sensor)', ['_TZ3000_0s9gukzt']),
