@@ -6682,8 +6682,32 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0726', ['_TZ3002_1s0vfmtv']),
+        model: 'TS0726_2_gang',
+        vendor: 'Tuya',
+        description: '2 gang switch with neutral wire',
+        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fz.ignore_basic_report, fzLocal.TS0726_action],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
+        exposes: [
+            ...[1, 2].map((ep) => e.switch().withEndpoint(`l${ep}`)),
+            ...[1, 2].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
+            ...[1, 2].map((ep) => e.enum('switch_mode', ea.STATE_SET, ['switch', 'scene']).withEndpoint(`l${ep}`)),
+            e.action(['scene_1', 'scene_2']),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
+            }
+        },
+    },
+    {
         zigbeeModel: ['TS0726'],
-        model: 'TS0726',
+        model: 'TS0726_4_gang',
         vendor: 'Tuya',
         description: '4 gang switch with neutral wire',
         fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fz.ignore_basic_report, fzLocal.TS0726_action],
