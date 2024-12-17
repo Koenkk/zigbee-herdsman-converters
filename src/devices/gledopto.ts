@@ -821,7 +821,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['GL-D-008P'],
         model: 'GL-D-008P',
         vendor: 'Gledopto',
-        description: 'Na Versiion Smart Led 9w downlight',
+        description: 'Na Versiion smart led 9w downlight',
         ota: true,
         extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true})],
     },
