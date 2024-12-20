@@ -1924,16 +1924,15 @@ const converters1 = {
             const result = converters1.thermostat.convert(model, msg, publish, options, meta) as KeyValue;
             const data = msg.data;
             if (data.localTemp !== undefined) {
-                const value = precisionRound(msg.data['localTemp'], 2) / 100;
+                let value = precisionRound(msg.data['localTemp'], 2) / 100;
                 const valuesFloorSensor = ['floor', 'supervisor_floor'];
                 const sensorType = meta.state.sensor as string;
                 const floorTemperature = meta.state.floor_temp as number;
                 if (valuesFloorSensor.includes(sensorType) && options.local_temperature_based_on_sensor) {
-                    result[postfixWithEndpointName('local_temperature', msg, model, meta)] = floorTemperature / 100;
-                } else {
-                    if (value >= -273.15) {
-                        result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
-                    }
+                    value = floorTemperature;
+                }
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
                 }
             }
             if (data.elkoDisplayText !== undefined) {
