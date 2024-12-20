@@ -13468,19 +13468,11 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['TS0601'],
-        model: 'TS0601',
-        vendor: 'Tuya',
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_d6i25bwg']),
-        whiteLabel: [
-            tuya.whitelabel('Powernity', 'PO-BOCO-ELEC', 'Pilot wire', ['_TZE204_d6i25bwg']),
-            // tuya.whitelabel('Xanlite', 'KZBOTHELEPA', 'Pilot wire', [""]),
-        ],
+        model: 'PO-BOCO-ELEC',
+        vendor: 'Powernity',
         description: 'Pilot wire heating module',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuyaBase({dp: true})],
         exposes: [
             e
                 .climate()
