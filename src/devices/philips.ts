@@ -13,6 +13,13 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['929002297503'],
+        model: '929002297503',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance E17 40W',
+        extend: [philipsLight({colorTemp: {range: [153,454]}, color: true})],
+    },
+    {
         zigbeeModel: ['929003598001'],
         model: '929003598001',
         vendor: 'Philips',
