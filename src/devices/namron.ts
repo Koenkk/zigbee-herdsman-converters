@@ -1115,7 +1115,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['4512758'],
         model: '4512758',
         vendor: 'Namron AS',
-        description: 'Namron Zigbee Termostat 16A',
+        description: 'Zigbee thermostat 16A',
         fromZigbee: [fzLocal.namron_thermostat2, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
         toZigbee: [
             {
