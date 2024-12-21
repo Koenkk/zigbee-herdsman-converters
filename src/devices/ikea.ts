@@ -64,7 +64,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LED2109G6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, color/white spectrum, globe, opal, 800/806/810 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: true}), identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: {modes: ['xy', 'hs']}}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm', 'TRADFRI bulb E27 WS\uFFFDclear 950lm'],
