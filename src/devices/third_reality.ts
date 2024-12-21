@@ -407,6 +407,74 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ['3RDP01072Z'],
+        model: '3RDP01072Z',
+        vendor: 'Third Reality',
+        description: 'Zigbee / BLE dual plug with power',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        ota: true,
+        meta: {multiEndpoint: true},
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.power_on_behavior().withEndpoint('left'),
+            e.ac_frequency().withEndpoint('left'),
+            e.power().withEndpoint('left'),
+            e.power_factor().withEndpoint('left'),
+            e.energy().withEndpoint('left'),
+            e.current().withEndpoint('left'),
+            e.voltage().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            e.power_on_behavior().withEndpoint('right'),
+            e.ac_frequency().withEndpoint('right'),
+            e.power().withEndpoint('right'),
+            e.power_factor().withEndpoint('right'),
+            e.energy().withEndpoint('right'),
+            e.current().withEndpoint('right'),
+            e.voltage().withEndpoint('right'),
+        ],
+        endpoint: (device) => {
+            return {left: 1, right: 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 3600000, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 10,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: 1000,
+                acPowerMultiplier: 1,
+                acPowerDivisor: 10,
+            });
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await endpoint2.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.onOff(endpoint2);
+            await reporting.activePower(endpoint2, {change: 10});
+            await reporting.rmsCurrent(endpoint2, {change: 50});
+            await reporting.rmsVoltage(endpoint2, {change: 5});
+            await reporting.readMeteringMultiplierDivisor(endpoint2);
+            endpoint2.saveClusterAttributeKeyValue('seMetering', {divisor: 3600000, multiplier: 1});
+            endpoint2.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 10,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: 1000,
+                acPowerMultiplier: 1,
+                acPowerDivisor: 10,
+            });
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['3RVS01031Z'],
         model: '3RVS01031Z',
         vendor: 'Third Reality',
