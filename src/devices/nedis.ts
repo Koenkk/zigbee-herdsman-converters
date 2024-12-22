@@ -7,8 +7,9 @@ const e = exposes.presets;
 const ea = exposes.access;
 const tuya = require('zigbee-herdsman-converters/lib/tuya');
 
+import { DefinitionWithExtend } from '../lib/types';
 
-const definitions = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TS0601'],
         model: 'ZBTHR20WT',
