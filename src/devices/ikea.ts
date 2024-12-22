@@ -64,7 +64,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LED2109G6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, color/white spectrum, globe, opal, 800/806/810 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: true}), identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: {modes: ['xy', 'hs']}}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm', 'TRADFRI bulb E27 WS\uFFFDclear 950lm'],
@@ -339,11 +339,11 @@ const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm', 'TRADFRI bulb E12 CWS globe 800lm'],
+        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm', 'TRADFRI bulb E12 CWS globe 800lm', 'TRADFRI bulb E17 CWS globe 810lm'],
         model: 'LED2111G6',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E14, color/white spectrum, globe, opal, 806 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: true}), identify()],
+        description: 'TRADFRI bulb E12/E14/E17, color/white spectrum, globe, opal, 800/806/810 lm',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: {modes: ['xy', 'hs']}}), identify()],
     },
     // #endregion E12/E14/E17
     // #region GU10
