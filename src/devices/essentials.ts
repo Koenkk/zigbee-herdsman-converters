@@ -15,7 +15,7 @@ const essentialsValueConverter = {
             return value > 130 ? 100 : value < 70 ? 0 : ((value - 70) * 1.7).toFixed(1);
         },
     },
-    faultCode: {
+    fault_code: {
         from: (value: string, meta: Fz.Meta) => {
             logger.warning(`zigbee-herdsman-converters:essentialsThermostat: ERROR CODE received: ${JSON.stringify(value)}`, NS);
             return value;
@@ -94,7 +94,7 @@ const essentialsThermostat: Definition = {
         e.open_window_temperature().withDescription('open winow detection temperature'),
         e.binary('window_open', ea.STATE, 'YES', 'NO').withDescription('Open window detected'),
         e
-            .numeric('detectwindow_timeminute', ea.STATE_SET)
+            .numeric('detect_window_timeminute', ea.STATE_SET)
             .withUnit('min')
             .withDescription('Open window time in minutes')
             .withValueMin(0)
@@ -116,7 +116,7 @@ const essentialsThermostat: Definition = {
             [24, 'local_temperature', tuya.valueConverter.divideBy10],
             [30, 'child_lock', tuya.valueConverter.lockUnlock],
             [34, 'battery', essentialsValueConverter.battery],
-            [45, 'fault_code', essentialsValueConverter.faultCode],
+            [45, 'fault_code', essentialsValueConverter.fault_code],
             [101, 'comfort_temperature', tuya.valueConverter.divideBy10],
             [102, 'eco_temperature', tuya.valueConverter.divideBy10],
             [103, 'away_setting', essentialsValueConverter.away_setting],
