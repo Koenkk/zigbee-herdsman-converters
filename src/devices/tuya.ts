@@ -5240,9 +5240,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET),
-                .withPreset(                                                                                                                                     
-                      ['OFF', 'Anti-frost', 'Eco', 'Comfort', 'Auto', 'ON'],                                                                                                             
-                  )
+                .withPreset(['OFF', 'Anti-frost', 'Eco', 'Comfort', 'Auto', 'ON'])
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withSystemMode(['auto', 'heat', 'off'], ea.STATE),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
