@@ -3,24 +3,23 @@ const tz = require('zigbee-herdsman-converters/converters/toZigbee');
 const legacy = require('zigbee-herdsman-converters/lib/legacy');
 const exposes = require('zigbee-herdsman-converters/lib/exposes');
 const reporting = require('zigbee-herdsman-converters/lib/reporting');
-const extend = require('zigbee-herdsman-converters/lib/extend');
+//const extend = require('zigbee-herdsman-converters/lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
-const tuya = require("zigbee-herdsman-converters/lib/tuya");
+const tuya = require('zigbee-herdsman-converters/lib/tuya');
 
 
 const definitions = [
     {
-        fingerprint: tuya.fingerprint('TS0601', [
-            '_TZE200_ne4pikwm', /* modell: 'ZBHTR20WT', vendor: 'Nedis' */
-        ]),
+        zigbeeModel: ['TS0601'],
         model: 'ZBTHR20WT',
-        vendor: 'Nedis',
+        vendor: '_TZE200_ne4pikwm',
         description: '(TESTING) Thermostat radiator valve',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
+        extend: [],
         exposes: [
             e.battery_low(),
             e.child_lock(),
@@ -34,6 +33,7 @@ const definitions = [
                 'at 8 °C, the device display "AF".press the pair button to cancel.'),
             // what about anti scale?
             e.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('The current data request from the device.'),
+            e.binary('schedule_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Should the device be on the heating schedule'),
             tuya.exposes.errorStatus(),
         ],
         meta: {
@@ -52,6 +52,7 @@ const definitions = [
                 [103, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [107, 'system_mode', tuya.valueConverter.TV02SystemMode],
                 [107, 'heating_stop', tuya.valueConverter.TV02SystemMode],
+                [108, 'schedule_mode', tuya.valueConverter.onOff],//
                 //Datapoint 110 not defined for '_TZE200_ne4pikwm' with value 
                 //"dpValues":[{"data":{"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,21,15,0,0,0,0,0],"type":"Buffer"},"datatype":0,"dp":110}],"seq":3328}
                 [115, 'online', tuya.valueConverter.onOffNotStrict],
