@@ -505,6 +505,7 @@ export default [
     ...namron,
     ...nanoleaf,
     ...neo,
+    ...nedis,
     ...net2grid,
     ...netvox,
     ...nexelec,
