@@ -116,7 +116,7 @@ const essentialsThermostat: Definition = {
             [24, 'local_temperature', tuya.valueConverter.divideBy10],
             [30, 'child_lock', tuya.valueConverter.lockUnlock],
             [34, 'battery', essentialsValueConverter.battery],
-            [45, 'faultCode', essentialsValueConverter.faultCode],
+            [45, 'fault_code', essentialsValueConverter.faultCode],
             [101, 'comfort_temperature', tuya.valueConverter.divideBy10],
             [102, 'eco_temperature', tuya.valueConverter.divideBy10],
             [103, 'away_setting', essentialsValueConverter.away_setting],
@@ -126,7 +126,7 @@ const essentialsThermostat: Definition = {
             [107, 'window_open', tuya.valueConverterBasic.lookup({YES: true, NO: false})],
             [108, null, null], // TODO hibernate
             [116, 'open_window_temperature', tuya.valueConverterBasic.divideBy(2)],
-            [117, 'detectwindow_timeminute', tuya.valueConverterBasic.raw()],
+            [117, 'detect_window_timeminute', tuya.valueConverterBasic.raw()],
             [118, null, null], // TODO rapidHeatCntdownTimer
             [119, null, null], // TODO tempControl
         ],
