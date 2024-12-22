@@ -11,10 +11,12 @@ import { DefinitionWithExtend } from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['TS0601'],
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_ne4pikwm'
+        ]),
         model: 'ZBTHR20WT',
-        vendor: '_TZE200_ne4pikwm',
-        description: '(TESTING) Thermostat radiator valve',
+        vendor: 'Nedis',
+        description: 'Nedis Thermostat radiator valve',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
