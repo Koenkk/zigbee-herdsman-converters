@@ -121,7 +121,7 @@ const storeLocal = {
                             result['power_ab'] = Math.round(10 * this.pub_power_a + 10 * this.pub_power_b) / 10;
                         }
                     }
-                },
+                
 
                 flush: function (result: KeyValueAny, channel: string, options: KeyValue) {
                     const sign = this['sign_' + channel];
@@ -5290,6 +5290,7 @@ const definitions: DefinitionWithExtend[] = [
 		[127, 'hysteresis', tuya.valueConverterBasic.lookup({ comfort: tuya.enum(0), eco: tuya.enum(1)})],
             ],
         },
+    },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE284_ymldrmzx'}],
         model: 'TRV603-WZ',
