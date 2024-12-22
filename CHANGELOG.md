@@ -1,5 +1,20 @@
 # Changelog
 
+## [21.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.7.0...v21.8.0) (2024-12-22)
+
+
+### Features
+
+* **add:** 9290035842 https://github.com/Koenkk/zigbee2mqtt/issues/25290 ([fbe8d70](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fbe8d70a9513110c30da5ee530d702e7123d923d))
+* **add:** ZBTHR20WT ([#8504](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8504)) ([163c429](https://github.com/Koenkk/zigbee-herdsman-converters/commit/163c42937c92cf53ec4b9880f9014b5742cfe3c2))
+
+
+### Bug Fixes
+
+* Added references to Legrand 199142 (same as 064888) and BTicino 3577C (same as Legrand 067694) ([#7823](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7823)) ([0615d3c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0615d3c9a0b44a5660d74745f29d9cb95c49c4a2))
+* **detect:** Detect `ROB_200-040-0` as SR-ZG9092A https://github.com/Koenkk/zigbee2mqtt/issues/25281 ([6f8ab95](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f8ab959be503c6a65e8040db592b439eb0d925a))
+* Fix Tuya TS011F_2_gang_power not controllable https://github.com/Koenkk/zigbee2mqtt/issues/23402 ([5140e0d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5140e0deb81ec35b03cf7c93edc51160ed2fff0c))
+
 ## [21.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.6.0...v21.7.0) (2024-12-21)
 
 
