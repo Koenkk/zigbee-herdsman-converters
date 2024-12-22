@@ -68,9 +68,9 @@ const essentialsValueConverter = {
 
 const essentialsThermostat: Definition = {
     fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_i48qyn9s'}],
-    model: 'Essentials Zigbee Radiator Thermostat',
+    model: '_TZE200_i48qyn9s',
     vendor: 'TuYa',
-    description: 'Thermostat radiator valve',
+    description: 'essentials Heizkörperthermostat Zigbee Smart Home',
     ota: true,
     fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, tuya.fz.datapoints],
     toZigbee: [tuya.tz.datapoints],
