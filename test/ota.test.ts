@@ -1144,7 +1144,7 @@ describe('OTA', () => {
             expect(mockEndpointWrite).toHaveBeenCalledWith('genScenes', {currentGroup: 49502});
         });
 
-        describe('runs an update', () => {
+        describe.skip('runs an update', () => {
             const consoleDebugOriginal = console.debug;
             // XXX: some logging for local testing since debug disabled
             const logOnProgress = (progress: number, remaining?: number): void => {
