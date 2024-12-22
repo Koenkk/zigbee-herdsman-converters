@@ -445,7 +445,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '5110131H5',
         vendor: 'Philips',
         description: 'Garnea downlight',
-        extend: [philipsLight({colorTemp: {range: undefined}})],
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['LTD021'],
+        model: '9290035842',
+        vendor: 'Philips',
+        description: 'Garnea downlight',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['LTD012'],

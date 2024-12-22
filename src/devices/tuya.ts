@@ -3191,7 +3191,7 @@ const definitions: DefinitionWithExtend[] = [
         description: '2 gang socket with power monitoring and USB',
         extend: [
             deviceEndpoints({endpoints: {left: 1, right: 2}, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']}),
-            onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2']}),
+            onOff({powerOnBehavior: false, endpointNames: ['left', 'right']}),
             identify(),
             electricityMeter(),
         ],
