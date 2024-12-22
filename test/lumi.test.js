@@ -1,4 +1,4 @@
-const {trv, fromZigbee} = require('../src/lib/lumi');
+import {fromZigbee, trv} from '../src/lib/lumi';
 
 describe('lib/lumi', () => {
     describe('trv', () => {

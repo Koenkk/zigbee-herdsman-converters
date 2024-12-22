@@ -1,3 +1,5 @@
+import type {Mock} from 'vitest';
+
 import {Endpoint, Entity} from 'zigbee-herdsman/dist/controller/model';
 
 import * as index from '../src/index';
@@ -146,7 +148,7 @@ describe('Sonoff TRVZB', () => {
         describe('toZigbee', () => {
             let tzConverter: Tz.Converter;
             let meta: Tz.Meta;
-            let commandFn: jest.Mock;
+            let commandFn: Mock;
             let endpoint: Endpoint;
 
             const invalidTransitions = [
@@ -174,7 +176,7 @@ describe('Sonoff TRVZB', () => {
                     endpoint_name: null,
                 };
 
-                commandFn = jest.fn();
+                commandFn = vi.fn();
 
                 endpoint = {
                     command: commandFn,
