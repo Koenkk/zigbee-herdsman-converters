@@ -5235,15 +5235,15 @@ const definitions: DefinitionWithExtend[] = [
             e.window_detection(),
             e.binary('window', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status closed or open '),
             e                                                                                                                                                    
-                  .climate()                                                                                                                                       
-                  .withLocalTemperature(ea.STATE)
-                  .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
-                  .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET)  
-                  .withPreset(                                                                                                                                     
+                .climate()                                                                                                                                       
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET)  
+                .withPreset(                                                                                                                                     
                       ['OFF', 'Anti-frost', 'Eco', 'Comfort', 'Auto', 'ON'],                                                                                                             
                   )
-                  .withRunningState(['idle', 'heat'], ea.STATE)
-                  .withSystemMode(['auto', 'heat', 'off'], ea.STATE),
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withSystemMode(['auto', 'heat', 'off'], ea.STATE),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
             e.comfort_temperature().withValueMin(5).withValueMax(30).withDescription('Comfort mode temperature'),
             e.eco_temperature().withValueMin(5).withValueMax(30).withDescription('Eco mode temperature'),
@@ -5262,8 +5262,8 @@ const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [2, 'preset', tuya.valueConverterBasic.lookup({ 'OFF': tuya.enum(0), 'Anti-frost': tuya.enum(1), 'Eco': tuya.enum(2), 'Comfort': tuya.enum(3), 'Auto': tuya.enum(4), 'ON': tuya.enum(5)})],
-				[2, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset('system_mode')],
-				[3, 'running_state', tuya.valueConverterBasic.lookup({heat: 1, idle: 0})],
+		[2, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset('system_mode')],
+		[3, 'running_state', tuya.valueConverterBasic.lookup({heat: 1, idle: 0})],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [6, 'battery', tuya.valueConverter.raw],
@@ -5287,7 +5287,7 @@ const definitions: DefinitionWithExtend[] = [
                 [119, 'comfort_temperature', tuya.valueConverter.divideBy10],
                 [120, 'eco_temperature', tuya.valueConverter.divideBy10],
                 [121, 'holiday_temperature', tuya.valueConverter.divideBy10],
-				[127, 'hysteresis', tuya.valueConverterBasic.lookup({ comfort: tuya.enum(0), eco: tuya.enum(1)})],
+		[127, 'hysteresis', tuya.valueConverterBasic.lookup({ comfort: tuya.enum(0), eco: tuya.enum(1)})],
             ],
         },
     {
