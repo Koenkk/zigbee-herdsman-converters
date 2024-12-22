@@ -3,7 +3,6 @@ const tz = require('zigbee-herdsman-converters/converters/toZigbee');
 const legacy = require('zigbee-herdsman-converters/lib/legacy');
 const exposes = require('zigbee-herdsman-converters/lib/exposes');
 const reporting = require('zigbee-herdsman-converters/lib/reporting');
-//const extend = require('zigbee-herdsman-converters/lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const tuya = require('zigbee-herdsman-converters/lib/tuya');
@@ -25,12 +24,12 @@ const definitions = [
             e.child_lock(),
             e.open_window(),
             e.climate()
-                .withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-6, 6, 1, ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET),
-            tuya.exposes.frostProtection('This function prevents freezing of the radiator. It automatically switches on the thermostat between 5°C and 8°C.'),
+            e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('This function prevents freezing of the radiator. It automatically switches on the thermostat between 5°C and 8°C.'),
             e.binary('schedule_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Should the device be on the heating schedule'),
             e.binary('scale_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('The radiator can scale and become clogged if the valve is not opened regularly. This function opens the valve for 30 seconds every two weeks. The display shows “Rd” during this procedure.'),
             e.binary('leave_home', ea.STATE_SET, 'ON', 'OFF').withDescription('Temperature drops to 16°C when activated and restores when off'),
@@ -41,8 +40,8 @@ const definitions = [
             tuyaDatapoints: [
                 [3, 'running_state', tuya.valueConverterBasic.lookup({ 'heat': tuya.enum(1), 'idle': tuya.enum(0) })],
                 [8, 'open_window', tuya.valueConverter.onOff],
-                [10, 'frost_protection', tuya.valueConverter.TV02FrostProtection],
-                [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [10, 'frost_protection', tuya.valueConverter.onOff],
+                [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration2],
                 [40, 'child_lock', tuya.valueConverter.lockUnlock],
                 [101, 'system_mode', tuya.valueConverterBasic.lookup({ 'heat': true, 'off': false })],
                 [102, 'local_temperature', tuya.valueConverter.divideBy10],
