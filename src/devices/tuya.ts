@@ -5259,7 +5259,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                 [
+                [
                     2,
                     'preset',
                     tuya.valueConverterBasic.lookup({
@@ -5328,7 +5328,7 @@ const definitions: DefinitionWithExtend[] = [
                         low: tuya.enum(2),
                     }),
                 ],
-                [113, 'screen_orientation', tuya.valueConverterBasic.lookup({'up': tuya.enum(0), 'down': tuya.enum(1)})],
+                [113, 'screen_orientation', tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(1)})],
                 [114, 'position', tuya.valueConverter.divideBy10],
                 [119, 'comfort_temperature', tuya.valueConverter.divideBy10],
                 [120, 'eco_temperature', tuya.valueConverter.divideBy10],
