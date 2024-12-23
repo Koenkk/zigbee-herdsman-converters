@@ -413,7 +413,7 @@ describe('index.js', () => {
             // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
             if (device.toZigbee.includes(tuya.tz.datapoints)) return;
 
-            // sunricher.tz.setModel is generic, keys cannot be used to determine expose access
+            // sunricher.tz.setModel is used to switch modelId for devices with conflicting modelId, skip expose access check
             if (device.toZigbee.includes(sunricher.tz.setModel)) return;
 
             const toCheck = [];
