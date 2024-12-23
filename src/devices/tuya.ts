@@ -5240,7 +5240,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET),
-                .withPreset(['OFF', 'Anti-frost', 'Eco', 'Comfort', 'Auto', 'ON'])
+                .withPreset(['OFF', 'antifrost', 'eco', 'comfort', 'auto', 'on'])
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withSystemMode(['auto', 'heat', 'off'], ea.STATE),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
@@ -5259,7 +5259,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [2, 'preset', tuya.valueConverterBasic.lookup({ 'OFF': tuya.enum(0), 'Anti-frost': tuya.enum(1), 'Eco': tuya.enum(2), 'Comfort': tuya.enum(3), 'Auto': tuya.enum(4), 'ON': tuya.enum(5)})],
+                [2, 'preset', tuya.valueConverterBasic.lookup({ 'off': tuya.enum(0), 'antifrost': tuya.enum(1), 'eco': tuya.enum(2), 'comfort': tuya.enum(3), 'auto': tuya.enum(4), 'on': tuya.enum(5)})],
                 [2, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset('system_mode')],
                 [3, 'running_state', tuya.valueConverterBasic.lookup({heat: 1, idle: 0})],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
