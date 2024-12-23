@@ -1,4 +1,4 @@
 pnpm run pretty:check
 pnpm run eslint
-pnpm run test --testPathIgnorePatterns ota.test.ts
+pnpm run test:coverage
 pnpm run build

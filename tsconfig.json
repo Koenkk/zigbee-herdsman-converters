@@ -13,9 +13,11 @@
         "declarationMap": true,
         "outDir": ".",
         "baseUrl": ".",
+        "rootDir": "src",
         "resolveJsonModule": true,
-        "incremental": true
+        "incremental": true,
+        "composite": true
     },
-    "include": ["./src/"],
+    "include": ["./src/**/*"],
     "exclude": ["node_modules"]
 }
