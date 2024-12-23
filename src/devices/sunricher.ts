@@ -24,6 +24,7 @@ import {
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
+import * as sunricher from '../lib/sunricher';
 import {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 
@@ -361,7 +362,159 @@ async function syncTime(endpoint: Zh.Endpoint) {
     }
 }
 
+function sunricherZG9030AConfig(): ModernExtend {
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: [
+                'pairing_duration',
+                'light_pwm_frequency',
+                'manufacture_id',
+                'brightness_curve',
+                'start_up_on_off',
+                'motion_sensor_light_duration',
+                'motion_sensor_light_sensitivity',
+                'motion_sensor_working_mode',
+                'motion_sensor_sensing_distance',
+                'motion_sensor_microwave_switch',
+                'motion_sensor_onoff_broadcast',
+                'motion_sensor_light_state',
+                'motion_sensor_in_pwm_brightness',
+                'motion_sensor_in_pwm_output',
+                'motion_sensor_leave_pwm_output',
+                'motion_sensor_leave_delay',
+                'motion_sensor_pwm_output_after_delay',
+                'linear_error_ratio_coefficient_of_lux_measurement',
+                'fixed_deviation_of_lux_measurement',
+            ],
+            convertSet: async (entity, key, value, meta) => {
+                const lookup = {
+                    pairing_duration: {attribute: 0x9000, type: 0x20},
+                    light_pwm_frequency: {attribute: 0x9001, type: 0x21},
+                    manufacture_id: {attribute: 0x9003, type: 0x21},
+                    brightness_curve: {attribute: 0x8806, type: 0x20},
+                    start_up_on_off: {attribute: 0x4003, type: 0x30},
+                    motion_sensor_light_duration: {attribute: 0x8902, type: 0x21},
+                    motion_sensor_light_sensitivity: {attribute: 0x8905, type: 0x20},
+                    motion_sensor_working_mode: {attribute: 0x8904, type: 0x20},
+                    motion_sensor_sensing_distance: {attribute: 0x8905, type: 0x20},
+                    motion_sensor_microwave_switch: {attribute: 0x8906, type: 0x20},
+                    motion_sensor_onoff_broadcast: {attribute: 0x8907, type: 0x20},
+                    motion_sensor_light_state: {attribute: 0x890c, type: 0x20},
+                    motion_sensor_in_pwm_brightness: {attribute: 0x8908, type: 0x21},
+                    motion_sensor_in_pwm_output: {attribute: 0x8909, type: 0x20},
+                    motion_sensor_leave_pwm_output: {attribute: 0x890a, type: 0x20},
+                    motion_sensor_leave_delay: {attribute: 0x8901, type: 0x21},
+                    motion_sensor_pwm_output_after_delay: {attribute: 0x890b, type: 0x20},
+                    linear_error_ratio_coefficient_of_lux_measurement: {attribute: 0x890d, type: 0x21},
+                    fixed_deviation_of_lux_measurement: {attribute: 0x890e, type: 0x29},
+                };
+
+                const attribute = lookup[key as keyof typeof lookup];
+                await entity.write('genBasic', {[attribute.attribute]: {value: value, type: attribute.type}}, {manufacturerCode: 0x1224});
+                return {state: {[key]: value}};
+            },
+        },
+    ];
+
+    const exposes: Expose[] = [
+        e.enum('model', ea.SET, ['HK-DIM', 'ZG9030A-MW']).withDescription('Model of the device'),
+        e
+            .numeric('pairing_duration', ea.SET)
+            .withValueMin(15)
+            .withValueMax(3810)
+            .withDescription('The time that Zigbee network pairing mode lasts (15s-63min30s, 255=Always)'),
+        e.numeric('light_pwm_frequency', ea.SET).withValueMin(0).withValueMax(65535).withDescription('Light PWM frequency (0-65535, default: 3300)'),
+        e.numeric('manufacture_id', ea.SET).withValueMin(0).withValueMax(0xffff).withDescription('Manufacturer ID (0x0000-0xFFFF, default: 0xFFFF)'),
+        e
+            .enum('brightness_curve', ea.SET, ['linear', 'gamma_logistics_1.5', 'gamma_logistics_1.8'])
+            .withDescription('Brightness curve (default: Linear)'),
+        e.enum('start_up_on_off', ea.SET, ['last_state', 'on', 'off']).withDescription('Start up on/off (default: last_state)'),
+        e
+            .numeric('motion_sensor_light_duration', ea.SET)
+            .withValueMin(0)
+            .withValueMax(65535)
+            .withUnit('s')
+            .withDescription('Motion sensor light duration (0s-65535s, default: 5s)'),
+        e
+            .numeric('motion_sensor_light_sensitivity', ea.SET)
+            .withValueMin(0)
+            .withValueMax(65535)
+            .withDescription('Motion sensor light sensitivity (0-65535, default: 0)'),
+        e.enum('motion_sensor_working_mode', ea.SET, ['automatic', 'manual']).withDescription('Motion sensor working mode (default: Automatic)'),
+        e
+            .numeric('motion_sensor_sensing_distance', ea.SET)
+            .withValueMin(0)
+            .withValueMax(15)
+            .withDescription('Motion sensor sensing distance (0-15, default: 1)'),
+        e.enum('motion_sensor_microwave_switch', ea.SET, ['on', 'off']).withDescription('Motion sensor microwave switch (default: On)'),
+        e.enum('motion_sensor_onoff_broadcast', ea.SET, ['on', 'off']).withDescription('Motion sensor on/off broadcast (default: On)'),
+        e.enum('motion_sensor_light_state', ea.SET, ['on', 'off']).withDescription('Motion sensor light state (default: On)'),
+        e
+            .numeric('motion_sensor_in_pwm_brightness', ea.SET)
+            .withValueMin(0)
+            .withValueMax(1000)
+            .withUnit('lux')
+            .withDescription('Motion sensor IN PWM brightness (0-1000 lux, default: 0)'),
+        e
+            .numeric('motion_sensor_in_pwm_output', ea.SET)
+            .withValueMin(0)
+            .withValueMax(254)
+            .withDescription('Motion sensor IN PWM output (0-254, default: 254)'),
+        e
+            .numeric('motion_sensor_leave_pwm_output', ea.SET)
+            .withValueMin(0)
+            .withValueMax(100)
+            .withUnit('%')
+            .withDescription('Motion sensor LEAVE PWM output (0%-100%, default: 0%)'),
+        e
+            .numeric('motion_sensor_leave_delay', ea.SET)
+            .withValueMin(0)
+            .withValueMax(65535)
+            .withUnit('s')
+            .withDescription('Motion sensor LEAVE delay (0s-65535s, default: 0s)'),
+        e
+            .numeric('motion_sensor_pwm_output_after_delay', ea.SET)
+            .withValueMin(0)
+            .withValueMax(100)
+            .withUnit('%')
+            .withDescription('Motion sensor PWM output after delay (0%-100%, default: 0%)'),
+        e
+            .numeric('linear_error_ratio_coefficient_of_lux_measurement', ea.SET)
+            .withValueMin(100)
+            .withValueMax(10000)
+            .withDescription('Linear error ratio coefficient of LUX measurement (100‰-10000‰, default: 1000‰)'),
+        e
+            .numeric('fixed_deviation_of_lux_measurement', ea.SET)
+            .withValueMin(-32768)
+            .withValueMax(32767)
+            .withDescription('Fixed deviation of LUX measurement (-32768~32767, default: 0)'),
+    ];
+
+    return {
+        toZigbee,
+        exposes,
+        isModernExtend: true,
+    };
+}
+
 const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['ZG9030A-MW'],
+        model: 'SR-ZG9030A-MW',
+        vendor: 'Sunricher',
+        description: 'Zigbee compatible ceiling mount occupancy sensor',
+        extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
+            light(),
+            occupancy(),
+            illuminance({endpointNames: ['3']}),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            sunricherZG9030AConfig(),
+        ],
+        meta: {multiEndpoint: true},
+        toZigbee: [sunricher.tz.setModel],
+    },
     {
         zigbeeModel: ['HK-ZRC-K5&RS-E'],
         model: 'SR-ZG2836D5-Pro',
@@ -708,6 +861,8 @@ const definitions: DefinitionWithExtend[] = [
         description: 'LED dimmable driver',
         extend: [light()],
         whiteLabel: [{vendor: 'Yphix', model: '50208702'}],
+        toZigbee: [sunricher.tz.setModel],
+        exposes: [e.enum('model', ea.SET, ['HK-DIM', 'ZG9030A-MW']).withDescription('Model of the device')],
     },
     {
         zigbeeModel: ['SR-ZG9040A-S'],

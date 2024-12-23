@@ -4,6 +4,7 @@ const index = require('../src/index');
 const exposes = require('../src/lib/exposes');
 const utils = require('../src/lib/utils');
 const tuya = require('../src/lib/tuya');
+const sunricher = require('../src/lib/sunricher');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
 const fs = require('fs');
@@ -411,6 +412,9 @@ describe('index.js', () => {
         index.definitions.forEach((device) => {
             // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
             if (device.toZigbee.includes(tuya.tz.datapoints)) return;
+
+            // sunricher.tz.setModel is generic, keys cannot be used to determine expose access
+            if (device.toZigbee.includes(sunricher.tz.setModel)) return;
 
             const toCheck = [];
             const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;

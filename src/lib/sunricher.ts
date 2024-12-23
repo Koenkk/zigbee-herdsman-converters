@@ -1,0 +1,14 @@
+import {Tz} from './types';
+
+const sunricherTz = {
+    setModel: {
+        key: ['model'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genBasic', {modelId: value});
+            return {state: {model: value}};
+        },
+    } satisfies Tz.Converter,
+};
+
+export {sunricherTz as tz};
+exports.tz = sunricherTz;
