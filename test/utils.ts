@@ -23,7 +23,7 @@ export function mockDevice(args: {modelID: string; manufacturerID?: number; manu
         // @ts-expect-error ignore
         constructor: {name: 'Device'},
         ieeeAddr,
-        save: jest.fn(),
+        save: vi.fn(),
         ...args,
     };
 
@@ -52,9 +52,9 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         ID: args?.ID ?? 1,
         // @ts-expect-error ignore
         constructor: {name: 'Endpoint'},
-        bind: jest.fn(),
-        configureReporting: jest.fn(),
-        read: jest.fn(),
+        bind: vi.fn(),
+        configureReporting: vi.fn(),
+        read: vi.fn(),
         getDevice: () => device,
         inputClusters,
         outputClusters,
@@ -63,9 +63,9 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         // @ts-expect-error ignore
         getOutputClusters: () => outputClusters.map((c) => getCluster(c)),
         supportsInputCluster: (key) => !!inputClusters.find((ID) => ID === getCluster(key).ID),
-        saveClusterAttributeKeyValue: jest.fn().mockImplementation((cluster, values) => (attributes[cluster] = {...attributes[cluster], ...values})),
-        save: jest.fn(),
-        getClusterAttributeValue: jest.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),
+        saveClusterAttributeKeyValue: vi.fn().mockImplementation((cluster, values) => (attributes[cluster] = {...attributes[cluster], ...values})),
+        save: vi.fn(),
+        getClusterAttributeValue: vi.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),
     };
 }
 
