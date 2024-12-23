@@ -5235,12 +5235,12 @@ const definitions: DefinitionWithExtend[] = [
             e.position(),
             e.window_detection(),
             e.binary('window', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status closed or open '),
-            e.enum('mode', ea.STATE_SET, ['off, 'antifrost', 'eco', 'comfort', 'auto', 'on']).withDescription('Mode'),
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET),
+                .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET)
+                .withPreset(['off', 'antifrost', 'eco', 'comfort', 'auto', 'on'])
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withSystemMode(['auto', 'heat', 'off'], ea.STATE),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
@@ -5261,7 +5261,7 @@ const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                  [
                     2,
-                    'mode',
+                    'preset',
                     tuya.valueConverterBasic.lookup({
                         off: tuya.enum(0),
                         antifrost: tuya.enum(1),
