@@ -417,7 +417,6 @@ function sunricherZG9030AConfig(): ModernExtend {
     ];
 
     const exposes: Expose[] = [
-        e.enum('model', ea.SET, ['HK-DIM', 'ZG9030A-MW']).withDescription('Model of the device'),
         e
             .numeric('pairing_duration', ea.SET)
             .withValueMin(15)
@@ -504,16 +503,17 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sunricher',
         description: 'Zigbee compatible ceiling mount occupancy sensor',
         extend: [
+            sunricherZG9030AConfig(),
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
             light(),
             occupancy(),
             illuminance({endpointNames: ['3']}),
             commandsOnOff(),
             commandsLevelCtrl(),
-            sunricherZG9030AConfig(),
         ],
         meta: {multiEndpoint: true},
         toZigbee: [sunricher.tz.setModel],
+        exposes: [e.enum('model', ea.SET, ['HK-DIM', 'ZG9030A-MW']).withDescription('Model of the device')],
     },
     {
         zigbeeModel: ['HK-ZRC-K5&RS-E'],
