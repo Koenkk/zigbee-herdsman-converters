@@ -623,7 +623,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'AE 270 T',
         vendor: 'Innr',
         description: 'E26/24 bulb 1100lm, dimmable, white spectrum',
-        extend: [light({colorTemp: {range: [154, 500]}, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: [154, 500]}, turnsOffAtBrightness1: true, powerOnBehavior: false})],
+        ota: true,
     },
     {
         zigbeeModel: ['AE 270 T-2'],

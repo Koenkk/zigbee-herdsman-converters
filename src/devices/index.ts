@@ -188,6 +188,7 @@ import muller_licht from './muller_licht';
 import multiterm from './multiterm';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
+import nedis from './nedis';
 import neo from './neo';
 import net2grid from './net2grid';
 import netvox from './netvox';
@@ -505,6 +506,7 @@ export default [
     ...namron,
     ...nanoleaf,
     ...neo,
+    ...nedis,
     ...net2grid,
     ...netvox,
     ...nexelec,
