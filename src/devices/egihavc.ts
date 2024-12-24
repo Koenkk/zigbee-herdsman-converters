@@ -139,12 +139,12 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                { dp: 1, key: 'state' },
-                { dp: 2, key: 'temperature_set' },
-                { dp: 3, key: 'temperature_current' },
-                { dp: 4, key: 'mode' },
-                { dp: 5, key: 'fan_speed' },
-                { dp: 7, key: 'set_as_slave' },
+                [1, 'state'],
+                [2, 'temperature_set'],
+                [3, 'temperature_current'],
+                [4, 'mode'],
+                [5, 'fan_speed'],
+                [7, 'set_as_slave'],
             ],
         },
         configure: async (device, coordinatorEndpoint) => {
