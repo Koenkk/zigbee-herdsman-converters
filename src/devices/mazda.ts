@@ -1,9 +1,13 @@
 import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
-import {DefinitionWithExtend} from '../lib/types';
+import {DefinitionWithExtend, KeyValueNumberString, Tz} from '../lib/types';
+import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
+interface KeyValueStringEnum {
+    [s: string]: tuya.Enum;
+}
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -56,25 +60,55 @@ const definitions: DefinitionWithExtend[] = [
                 [
                     2,
                     'preset',
-                    tuya.valueConverterBasic.lookup({
-                        manual: tuya.enum(0),
-                        schedule: tuya.enum(1),
-                        eco: tuya.enum(2),
-                        comfort: tuya.enum(3),
-                        frost_protection: tuya.enum(4),
-                        holiday: tuya.enum(5),
-                        off: tuya.enum(6),
-                    }),
+                    {
+                        from: (v: string) => {
+                            utils.assertNumber(v, 'system_mode');
+                            const presetLookup: KeyValueNumberString = {
+                                0: 'manual',
+                                1: 'schedule',
+                                2: 'eco',
+                                3: 'comfort',
+                                4: 'frost_protection',
+                                5: 'holiday',
+                                6: 'off',
+                            };
+                            return presetLookup[v];
+                        },
+                        to: (v: string, meta: Tz.Meta) => {
+                            const lookup: KeyValueStringEnum = {
+                                manual: tuya.enum(0),
+                                schedule: tuya.enum(1),
+                                eco: tuya.enum(2),
+                                comfort: tuya.enum(3),
+                                frost_protection: tuya.enum(4),
+                                holiday: tuya.enum(5),
+                            };
+                            // Update system_mode when preset changes
+                            if (meta) {
+                                meta.state['system_mode'] = v === 'off' ? 'off' : 'heat';
+                            }
+                            return utils.getFromLookup(v, lookup);
+                        },
+                    },
                 ],
                 [
                     2,
                     'system_mode',
                     {
-                        from: (v) => {
+                        from: (v: tuya.Enum) => {
                             return v === tuya.enum(6) ? 'off' : 'heat';
                         },
-                        to: (v) => {
-                            // By default switching to "heat" will activate schedule mode on Homeassistant
+                        to: (v: string, meta: Tz.Meta) => {
+                            if (meta) {
+                                const currentPreset = meta.state['preset'];
+                                if (v === 'heat' && currentPreset === 'off') {
+                                    meta.state['preset'] = 'manual';
+                                    return tuya.enum(0);
+                                } else if (v === 'off') {
+                                    meta.state['preset'] = 'off';
+                                    return tuya.enum(6);
+                                }
+                            }
                             return v === 'off' ? tuya.enum(6) : tuya.enum(1);
                         },
                     },

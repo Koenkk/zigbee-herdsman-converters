@@ -1,5 +1,27 @@
 # Changelog
 
+## [21.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.8.0...v21.9.0) (2024-12-24)
+
+
+### Features
+
+* **add:** _TZE200_i48qyn9s ([#8505](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8505)) ([3fccb35](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3fccb35678736750b8ee1511fbf200d4afc4cf2b))
+* **add:** 3RDP01072Z ([#8494](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8494)) ([223fad4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/223fad439e83893e0956688c822dda83d46210cf))
+* **add:** 929003823101, 929003822701 https://github.com/Koenkk/zigbee2mqtt/issues/25305 ([5210be7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5210be7d2c45c4d781ee42f4c6cc34b671341ca4))
+* **add:** CK-MG22-JLDJ-01(7015), MYRX25Z-1, AM25B-1-25-ES-E-Z ([#8510](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8510)) ([c146ce8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c146ce80802eb0aa6fe2f3292279acd73aa36c70))
+* **add:** SR-ZG9030A-MW ([#8509](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8509)) ([0a714e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0a714e0a2172222a67c616c2b3799334717d04f8))
+* **add:** Z111PL0H-1JX ([#8503](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8503)) ([feaf578](https://github.com/Koenkk/zigbee-herdsman-converters/commit/feaf578fa776a03e09d96149b3c00d09a390b83a))
+* Use Vitest for testing ([#8507](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8507)) ([6d740d7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6d740d7e1b15cdb5a881ef9b69914fe2650e4117))
+
+
+### Bug Fixes
+
+* Fix MAZDA MZV-T1Z `system_mode` ([#8487](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8487)) ([0f85431](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f85431313291d5fe3cf07819ce211bd79fc893a))
+* Fix mode enum values for TRV603 ([#8512](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8512)) ([ead17e1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ead17e18f26e824305face85c8b5338de11a7937))
+* Fix Tuya TS011F_2_gang_power gangs not controlled individually https://github.com/Koenkk/zigbee2mqtt/issues/23402 ([9713bfc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9713bfc592ede1babdcb0e46ec570d9860a34806))
+* **ignore:** Nedis thermostat model number typo correction ([#8508](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8508)) ([019479b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/019479b677485cfb5fcadf261e8adcd4b7f33a18))
+* Improve TRV602Z integration ([#8502](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8502)) ([9bb99f0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9bb99f0c972c5a339c846ac966bf2739d591fe42))
+
 ## [21.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.7.0...v21.8.0) (2024-12-22)
 
 

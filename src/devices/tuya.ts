@@ -3190,6 +3190,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Tuya',
         description: '2 gang socket with power monitoring and USB',
         extend: [
+            tuyaMagicPacket(),
             deviceEndpoints({endpoints: {left: 1, right: 2}, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']}),
             onOff({powerOnBehavior: false, endpointNames: ['left', 'right']}),
             identify(),
@@ -5381,7 +5382,7 @@ const definitions: DefinitionWithExtend[] = [
                     'mode',
                     tuya.valueConverterBasic.lookup({
                         auto: tuya.enum(0),
-                        manual: tuya.enum(1),
+                        manual: tuya.enum(2),
                     }),
                 ],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
