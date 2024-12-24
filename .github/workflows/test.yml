@@ -1,0 +1,39 @@
+name: Run Tests and Lint
+
+on:
+  push:
+    branches:
+      - main
+      - add-egi-hvac-adapter
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16' # Use the Node.js version Zigbee2MQTT supports
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm run eslint --fix
+
+      - name: Format Code
+        run: pnpm run pretty:write
+
+      - name: Build Project
+        run: pnpm run build
+
+      - name: Run Tests
+        run: pnpm test
