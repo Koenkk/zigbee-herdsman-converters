@@ -5381,7 +5381,7 @@ const definitions: DefinitionWithExtend[] = [
                     'mode',
                     tuya.valueConverterBasic.lookup({
                         auto: tuya.enum(0),
-                        manual: tuya.enum(1),
+                        manual: tuya.enum(2),
                     }),
                 ],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
