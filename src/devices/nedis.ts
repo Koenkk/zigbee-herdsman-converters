@@ -8,7 +8,7 @@ const ea = exposes.access;
 const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ne4pikwm']),
-        model: 'ZBTHR20WT',
+        model: 'ZBHTR20WT',
         vendor: 'Nedis',
         description: 'Thermostat radiator valve',
         extend: [tuya.modernExtend.tuyaBase({dp: true})],

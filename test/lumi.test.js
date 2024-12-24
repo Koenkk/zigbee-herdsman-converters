@@ -1,4 +1,4 @@
-const {trv, fromZigbee} = require('../src/lib/lumi');
+import {fromZigbee, trv} from '../src/lib/lumi';
 
 describe('lib/lumi', () => {
     describe('trv', () => {
@@ -293,7 +293,7 @@ describe('lib/lumi', () => {
                 const result = fromZigbee.lumi_feeder.convert(null, {data: {65521: data}}, null, null);
                 expect(result).toStrictEqual({schedule: [{days: 'everyday', hour: 1, minute: 1, size: 1}]});
             });
-            it.only('Too small frame', () => {
+            it('Too small frame', () => {
                 const data = Buffer.from([128, 2, 2, 48]);
                 const result = fromZigbee.lumi_feeder.convert(null, {data: {65521: data}}, null, null);
                 expect(result).toStrictEqual({});
