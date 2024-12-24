@@ -1,5 +1,3 @@
-import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
-
 import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend, KeyValueNumberString, Tz} from '../lib/types';
@@ -97,7 +95,7 @@ const definitions: DefinitionWithExtend[] = [
                     2,
                     'system_mode',
                     {
-                        from: (v: KeyValue) => {
+                        from: (v: tuya.Enum) => {
                             return v === tuya.enum(6) ? 'off' : 'heat';
                         },
                         to: (v: string, meta: Tz.Meta) => {
