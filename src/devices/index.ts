@@ -391,6 +391,7 @@ export default [
     ...ecozy,
     ...edp,
     ...efekta,
+    ...egihvac,
     ...eglo,
     ...elko,
     ...enbrighten,
