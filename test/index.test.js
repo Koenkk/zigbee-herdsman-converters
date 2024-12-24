@@ -13,6 +13,7 @@ import {
     removeExternalDefinitions,
 } from '../src/index';
 import {access as _access, enum as _enum, list as _list, composite, numeric, presets} from '../src/lib/exposes';
+import * as sunricher from '../src/lib/sunricher';
 import {tz} from '../src/lib/tuya';
 import {getFromLookup, toNumber} from '../src/lib/utils';
 import {COLORTEMP_RANGE_MISSING_ALLOWED} from './colortemp_range_missing_allowed';
@@ -420,6 +421,9 @@ describe('index.js', () => {
         definitions.forEach((device) => {
             // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
             if (device.toZigbee.includes(tz.datapoints)) return;
+
+            // sunricher.tz.setModel is used to switch modelId for devices with conflicting modelId, skip expose access check
+            if (device.toZigbee.includes(sunricher.tz.setModel)) return;
 
             const toCheck = [];
             const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
