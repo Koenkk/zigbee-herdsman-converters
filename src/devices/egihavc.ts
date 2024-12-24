@@ -21,7 +21,7 @@ const definitions: Definition[] = [
                     const parsedData: Record<string, any> = {};
 
                     if (msg.data && msg.data.dpValues) {
-                        msg.data.dpValues.forEach((dpValue) => {
+                        msg.data.dpValues.forEach((dpValue: { dp: number; data: Buffer }) => {
                             const dp = dpValue.dp;
                             const value = dpValue.data.readUIntBE(0, dpValue.data.length);
 
@@ -47,7 +47,7 @@ const definitions: Definition[] = [
                                     parsedData.set_as_slave = value === 1 ? 'ENABLE' : 'DISABLE';
                                     break;
                                 default:
-                                    meta.logger.warn(`Unrecognized datapoint ${dp} with value ${value}`);
+                                    console.warn(`Unrecognized datapoint ${dp} with value ${value}`);
                             }
                         });
 
@@ -64,12 +64,12 @@ const definitions: Definition[] = [
                 key: ['temperature_set'],
                 convertSet: async (entity, key, value, meta) => {
                     const data = Buffer.alloc(4);
-                    data.writeUIntBE(Math.round(value), 0, 4);
+                    data.writeUIntBE(Math.round(value as number), 0, 4);
                     await entity.command(
                         'manuSpecificTuya',
                         'dataRequest',
                         {
-                            seq: meta.seq || 0,
+                            seq: (meta as any).seq || 0,
                             dpValues: [{ dp: 2, datatype: 2, data }],
                         },
                         { disableDefaultResponse: true }
@@ -84,8 +84,8 @@ const definitions: Definition[] = [
                         'manuSpecificTuya',
                         'dataRequest',
                         {
-                            seq: meta.seq || 0,
-                            dpValues: [{ dp: 5, datatype: 4, data: Buffer.from([fanMapping[value]]) }],
+                            seq: (meta as any).seq || 0,
+                            dpValues: [{ dp: 5, datatype: 4, data: Buffer.from([fanMapping[value as string]]) }],
                         },
                         { disableDefaultResponse: true }
                     );
@@ -99,8 +99,8 @@ const definitions: Definition[] = [
                         'manuSpecificTuya',
                         'dataRequest',
                         {
-                            seq: meta.seq || 0,
-                            dpValues: [{ dp: 4, datatype: 4, data: Buffer.from([modeMapping[value]]) }],
+                            seq: (meta as any).seq || 0,
+                            dpValues: [{ dp: 4, datatype: 4, data: Buffer.from([modeMapping[value as string]]) }],
                         },
                         { disableDefaultResponse: true }
                     );
@@ -113,7 +113,7 @@ const definitions: Definition[] = [
                         'manuSpecificTuya',
                         'dataRequest',
                         {
-                            seq: meta.seq || 0,
+                            seq: (meta as any).seq || 0,
                             dpValues: [{ dp: 7, datatype: 1, data: Buffer.from([value === 'ENABLE' ? 1 : 0]) }],
                         },
                         { disableDefaultResponse: true }
