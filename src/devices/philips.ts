@@ -13,6 +13,13 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['929002297503'],
+        model: '929002297503',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance E17 40W',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}, color: true})],
+    },
+    {
         zigbeeModel: ['929003598001'],
         model: '929003598001',
         vendor: 'Philips',
@@ -438,7 +445,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '5110131H5',
         vendor: 'Philips',
         description: 'Garnea downlight',
-        extend: [philipsLight({colorTemp: {range: undefined}})],
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['LTD021'],
+        model: '9290035842',
+        vendor: 'Philips',
+        description: 'Garnea downlight',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['LTD012'],
@@ -1139,6 +1153,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
+    },
+    {
+        zigbeeModel: ['LCO001'],
+        model: '8719514419155',
+        vendor: 'Philips',
+        description: 'Hue G95 smart lamp E27',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
     {
         zigbeeModel: ['LCL008'],
@@ -2050,7 +2071,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ['929003817002'],
+        zigbeeModel: ['LCL009'],
         model: '929003817002',
         vendor: 'Philips',
         description: 'Philips Hue solo lightstrip (5 mtr.)',
@@ -3934,6 +3955,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Philips',
         description: 'Hue Tento color 42,1cm',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ['929003822801'],
+        model: '929003822801',
+        vendor: 'Philips',
+        description: 'Hue Tento white 29,1cm',
+        extend: [philipsLight()],
     },
     {
         zigbeeModel: ['929003736201_01', '929003736201_02'],
