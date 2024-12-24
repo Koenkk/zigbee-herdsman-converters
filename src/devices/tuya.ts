@@ -3190,6 +3190,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Tuya',
         description: '2 gang socket with power monitoring and USB',
         extend: [
+            tuyaMagicPacket(),
             deviceEndpoints({endpoints: {left: 1, right: 2}, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']}),
             onOff({powerOnBehavior: false, endpointNames: ['left', 'right']}),
             identify(),
