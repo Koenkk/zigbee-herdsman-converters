@@ -34,7 +34,7 @@
         "test:coverage": "vitest run --config ./test/vitest.config.mts",
         "test:watch": "vitest watch --config ./test/vitest.config.mts",
         "clean": "rimraf --glob index* devices lib converters tsconfig.tsbuildinfo",
-        "build": "pnpm run clean && tsc && mv dist/* .",
+        "build": "rimraf --glob index* devices lib converters && tsc && cp -R dist/* .",
         "build-watch": "tsc --watch",
         "prepack": "pnpm run clean && pnpm run build",
         "prepare": "husky"
