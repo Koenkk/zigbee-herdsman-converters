@@ -1,23 +1,12 @@
-// import fz from '../converters/fromZigbee';
-
-import tz from '../converters/toZigbee';
-import {access, Cover, options, presets} from './exposes';
-import {battery, setupConfigureForBinding, setupConfigureForReporting} from './modernExtend';
-import {Configure, DefinitionMeta, Expose, Fz, KeyValueAny, ModernExtend, Tz, Zh} from './types';
+import {access, options, presets} from './exposes';
+import {battery, setupConfigureForBinding} from './modernExtend';
+import {Configure, Expose, Fz, KeyValueAny, ModernExtend, Tz, Zh} from './types';
 import * as utils from './utils';
 
 const e = presets;
 const ea = access;
 
 // ====================== Type Or Interface ==============================
-interface WindowCoveringArgs {
-    controls: ('lift' | 'tilt')[];
-    coverInverted?: boolean;
-    stateSource?: 'lift' | 'tilt';
-    configureReporting?: boolean;
-    coverMode?: boolean;
-    endpointNames?: string[];
-}
 
 // ======================= Utils =========================================
 const findKeyByValue = (object: object, value: number | string) => {
@@ -26,65 +15,31 @@ const findKeyByValue = (object: object, value: number | string) => {
 };
 // ======================= Custom TZ =====================================
 export const ewelinkToZigbee = {
-    cover_state: {
-        key: ['state'],
+    motor_direction: {
+        key: ['motor_direction'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {open: 'upOpen', close: 'downClose', stop: 'stop', on: 'upOpen', off: 'downClose'};
-            utils.assertString(value, key);
-            value = value.toLowerCase();
-            await entity.command('closuresWindowCovering', utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
-            return {
-                state: {
-                    [key]:
-                        value === 'on'
-                            ? 'open'.toLocaleUpperCase()
-                            : value === 'off'
-                              ? 'close'.toLocaleUpperCase()
-                              : (value as string).toLocaleUpperCase(),
-                },
-            };
+            let windowCoveringMode;
+            if (value == 'forward') {
+                windowCoveringMode = 0x00;
+            } else if (value == 'reverse') {
+                windowCoveringMode = 0x01;
+            }
+            await entity.write('closuresWindowCovering', {windowCoveringMode}, utils.getOptions(meta.mapped, entity));
+            return {state: {motor_direction: value}};
         },
     } satisfies Tz.Converter,
 };
 
 // ======================= Custom FZ =====================================
 export const ewelinkFromZigbee = {
-    cover_position_tilt: {
+    motor_direction: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
         options: [options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
-            // HomeAssistant etc. work the other way round.
-            // For zigbee-herdsman-converters: open = 100, close = 0
-            // ubisys J1 will report 255 if lift or tilt positions are not known, so skip that.
-            const metaInvert = model.meta && model.meta.coverInverted;
-            const invert = metaInvert ? !options.invert_cover : options.invert_cover;
-            // const coverStateFromTilt = model.meta && model.meta.coverStateFromTilt;
-            if (
-                typeof msg.data === 'object' &&
-                Object.prototype.hasOwnProperty.call(msg.data, 'currentPositionLiftPercentage') &&
-                msg.data['currentPositionLiftPercentage'] <= 100
-            ) {
-                const value = msg.data['currentPositionLiftPercentage'];
-                result[utils.postfixWithEndpointName('position', msg, model, meta)] = invert ? value : 100 - value;
-            }
-            if (
-                typeof msg.data === 'object' &&
-                Object.prototype.hasOwnProperty.call(msg.data, 'currentPositionTiltPercentage') &&
-                msg.data['currentPositionTiltPercentage'] <= 100
-            ) {
-                const value = msg.data['currentPositionTiltPercentage'];
-                result[utils.postfixWithEndpointName('tilt', msg, model, meta)] = invert ? value : 100 - value;
-            }
             if (typeof msg.data === 'object' && Object.prototype.hasOwnProperty.call(msg.data, 'windowCoveringMode')) {
-                result[utils.postfixWithEndpointName('cover_mode', msg, model, meta)] = {
-                    reversed: (msg.data.windowCoveringMode & (1 << 0)) > 0,
-                    calibration: (msg.data.windowCoveringMode & (1 << 1)) > 0,
-                    maintenance: (msg.data.windowCoveringMode & (1 << 2)) > 0,
-                    led: (msg.data.windowCoveringMode & (1 << 3)) > 0,
-                };
+                result['motor_direction'] = (msg.data.windowCoveringMode & (1 << 0)) > 0 == true ? 'reverse' : 'forward';
             }
             return result;
         },
@@ -718,110 +673,32 @@ export const ewelinkModernExtend = {
         return battery({
             voltage: true,
             voltageReporting: true,
-            percentageReportingConfig: {min: 3600, max: 7200, change: 10},
-            voltageReportingConfig: {min: 3600, max: 7200, change: 10},
+            percentageReportingConfig: {min: 3600, max: 7200, change: 2},
+            voltageReportingConfig: {min: 3600, max: 7200, change: 100},
         });
     },
-    ewelinkWindowCovering(args: WindowCoveringArgs): ModernExtend {
-        args = {stateSource: 'lift', configureReporting: true, ...args};
-        let coverExpose: Cover = e.cover();
-        if (args.controls.includes('lift')) coverExpose = coverExpose.withPosition();
-        if (args.controls.includes('tilt')) coverExpose = coverExpose.withTilt();
-        const exposes: Expose[] = [coverExpose];
-
-        const fromZigbee: Fz.Converter[] = [ewelinkFromZigbee.cover_position_tilt];
-        const toZigbee: Tz.Converter[] = [ewelinkToZigbee.cover_state, tz.cover_position_tilt];
-
-        const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
-
-        if (args.configureReporting) {
-            const configure: Configure[] = [];
-            if (args.controls.includes('lift')) {
-                configure.push(
-                    setupConfigureForReporting(
-                        'closuresWindowCovering',
-                        'currentPositionLiftPercentage',
-                        {min: '1_SECOND', max: 'MAX', change: 1},
-                        ea.STATE_GET,
-                    ),
-                );
-            }
-            if (args.controls.includes('tilt')) {
-                configure.push(
-                    setupConfigureForReporting(
-                        'closuresWindowCovering',
-                        'currentPositionTiltPercentage',
-                        {min: '1_SECOND', max: 'MAX', change: 1},
-                        ea.STATE_GET,
-                    ),
-                );
-            }
-            result.configure = configure;
-        }
-
-        if (args.coverInverted || args.stateSource === 'tilt') {
-            const meta: DefinitionMeta = {};
-            if (args.coverInverted) meta.coverInverted = true;
-            if (args.stateSource === 'tilt') meta.coverStateFromTilt = true;
-            result.meta = meta;
-        }
-
-        if (args.coverMode) {
-            result.toZigbee.push(tz.cover_mode);
-            result.exposes.push(e.cover_mode());
-        }
-
-        return result;
-    },
-    ewelinkMotorReverse(): ModernExtend {
-        const expose = e.enum('motor_direction', ea.STATE_SET, ['forward', 'reverse']).withDescription('Set the motor direction');
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ['motor_direction'],
-                convertSet: async (entity, key, value, meta) => {
-                    let windowCoveringMode;
-                    if (value == 'forward') {
-                        windowCoveringMode = 0x00;
-                    } else if (value == 'reverse') {
-                        windowCoveringMode = 0x01;
-                    }
-                    await entity.write('closuresWindowCovering', {windowCoveringMode}, utils.getOptions(meta.mapped, entity));
-                    return {state: {motor_direction: value}};
-                },
-            },
-        ];
-        const fromZigbee: Fz.Converter[] = [
-            {
-                cluster: 'closuresWindowCovering',
-                type: ['attributeReport', 'readResponse'],
-                options: [options.invert_cover()],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValueAny = {};
-                    if (typeof msg.data === 'object' && Object.prototype.hasOwnProperty.call(msg.data, 'windowCoveringMode')) {
-                        result['motor_direction'] = (msg.data.windowCoveringMode & (1 << 0)) > 0 == true ? 'reverse' : 'forward';
-                    }
-                    return result;
-                },
-            },
-        ];
+    ewelinkMotorReverse: (): ModernExtend => {
+        const exposes = [e.enum('motor_direction', ea.STATE_SET, ['forward', 'reverse']).withDescription('Set the motor direction')];
+        const toZigbee: Tz.Converter[] = [ewelinkToZigbee.motor_direction];
+        const fromZigbee: Fz.Converter[] = [ewelinkFromZigbee.motor_direction];
 
         return {
-            exposes: [expose],
+            exposes,
             fromZigbee,
             toZigbee,
             isModernExtend: true,
         };
     },
-    ewelinkMotorClbByPosition(clusterName: string, writeCommand: string): ModernExtend {
+    ewelinkMotorClbByPosition: (clusterName: string, writeCommand: string): ModernExtend => {
         return privateMotorClbByPosition(clusterName, writeCommand);
     },
-    ewelinkMotorMode(clusterName: string, writeCommand: string): ModernExtend {
+    ewelinkMotorMode: (clusterName: string, writeCommand: string): ModernExtend => {
         return privateMotorMode(clusterName, writeCommand);
     },
-    ewelinkReportMotorInfo(clusterName: string): ModernExtend {
+    ewelinkReportMotorInfo: (clusterName: string): ModernExtend => {
         return privateReportMotorInfo(clusterName);
     },
-    ewelinkMotorSpeed(clusterName: string, writeCommand: string, min: number, max: number): ModernExtend {
+    ewelinkMotorSpeed: (clusterName: string, writeCommand: string, min: number, max: number): ModernExtend => {
         return privateMotorSpeed(clusterName, writeCommand, min, max);
     },
 };

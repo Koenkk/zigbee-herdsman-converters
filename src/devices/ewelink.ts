@@ -4,7 +4,16 @@ import fz from '../converters/fromZigbee';
 import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {battery, deviceAddCustomCluster, deviceEndpoints, forcePowerSource, iasZoneAlarm, onOff, setupAttributes} from '../lib/modernExtend';
+import {
+    battery,
+    deviceAddCustomCluster,
+    deviceEndpoints,
+    forcePowerSource,
+    iasZoneAlarm,
+    onOff,
+    setupAttributes,
+    windowCovering,
+} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 
@@ -191,9 +200,9 @@ const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             forcePowerSource({powerSource: 'Battery'}),
-            battery({percentage: true}),
-            ewelinkModernExtend.ewelinkWindowCovering({
-                controls: ['lift', 'tilt'],
+            ewelinkModernExtend.ewelinkBattery(),
+            windowCovering({
+                controls: ['lift'],
                 configureReporting: false,
                 coverMode: false,
                 coverInverted: true,
@@ -205,10 +214,6 @@ const definitions: DefinitionWithExtend[] = [
             ewelinkModernExtend.ewelinkMotorSpeed('customClusterEwelink', 'protocolData', 0x00, 0x0e),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200, change: 10});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200, change: 1});
-
             const windowCoveringAttributes = [{attribute: 'currentPositionLiftPercentage', min: 0, max: 3600, change: 10}];
             await setupAttributes(device, coordinatorEndpoint, 'closuresWindowCovering', windowCoveringAttributes);
         },
@@ -246,10 +251,9 @@ const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             forcePowerSource({powerSource: 'Battery'}),
-            battery({percentage: true}),
-            // sonoffExtend.onOff(),
-            ewelinkModernExtend.ewelinkWindowCovering({
-                controls: ['lift', 'tilt'],
+            ewelinkModernExtend.ewelinkBattery(),
+            windowCovering({
+                controls: ['lift'],
                 configureReporting: false,
                 coverMode: false,
                 coverInverted: true,
@@ -261,8 +265,6 @@ const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200, change: 10});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200, change: 1});
             await reporting.bind(endpoint, coordinatorEndpoint, ['customClusterEwelink']);
 
             const windowCoveringAttributes = [{attribute: 'currentPositionLiftPercentage', min: 0, max: 3600, change: 10}];
@@ -293,9 +295,9 @@ const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             forcePowerSource({powerSource: 'Battery'}),
-            battery({percentage: true}),
-            ewelinkModernExtend.ewelinkWindowCovering({
-                controls: ['lift', 'tilt'],
+            ewelinkModernExtend.ewelinkBattery(),
+            windowCovering({
+                controls: ['lift'],
                 configureReporting: false,
                 coverMode: false,
                 coverInverted: true,
@@ -305,10 +307,6 @@ const definitions: DefinitionWithExtend[] = [
             ewelinkModernExtend.ewelinkMotorClbByPosition('customClusterEwelink', 'protocolData'),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200, change: 10});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200, change: 1});
-
             const windowCoveringAttributes = [{attribute: 'currentPositionLiftPercentage', min: 0, max: 3600, change: 10}];
             await setupAttributes(device, coordinatorEndpoint, 'closuresWindowCovering', windowCoveringAttributes);
         },
