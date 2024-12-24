@@ -71,6 +71,7 @@ import ecosmart from './ecosmart';
 import ecozy from './ecozy';
 import edp from './edp';
 import efekta from './efekta';
+import egihvac from './devices/egihvac';
 import eglo from './eglo';
 import elko from './elko';
 import enbrighten from './enbrighten';
