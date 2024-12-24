@@ -901,6 +901,8 @@ const definitions: DefinitionWithExtend[] = [
         extend: [light()],
         whiteLabel: [{vendor: 'Yphix', model: '50208702'}],
         toZigbee: [sunricher.tz.setModel],
+        // Some ZG9030A-MW devices were mistakenly set with the modelId HK-DIM during manufacturing.
+        // This allows users to update the modelId from HK-DIM to ZG9030A-MW to ensure proper device functionality.
         exposes: [e.enum('model', ea.SET, ['HK-DIM', 'ZG9030A-MW']).withDescription('Model of the device')],
     },
     {
