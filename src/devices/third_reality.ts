@@ -421,10 +421,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RDP01072Z',
         vendor: 'Third Reality',
         description: 'Zigbee / BLE dual plug with power',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
         ota: true,
-        exposes: [],
         extend: [
             deviceEndpoints({endpoints: {left: 1, right: 2}}),
             onOff({endpointNames: ['left', 'right']}),
