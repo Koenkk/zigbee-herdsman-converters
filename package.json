@@ -34,9 +34,9 @@
         "test:coverage": "vitest run --config ./test/vitest.config.mts",
         "test:watch": "vitest watch --config ./test/vitest.config.mts",
         "clean": "rimraf --glob index* devices lib converters tsconfig.tsbuildinfo",
-        "build": "tsc",
+        "build": "pnpm run clean && tsc && mv dist/* .",
         "build-watch": "tsc --watch",
-        "prepack": "pnpm run clean && pnpm run build && rimraf devices lib converters && mv dist/* .",
+        "prepack": "pnpm run clean && pnpm run build",
         "prepare": "husky"
     },
     "author": "Koen Kanters",
