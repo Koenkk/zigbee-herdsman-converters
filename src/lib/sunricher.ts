@@ -1,6 +1,6 @@
 import {Tz} from './types';
 
-const sunricherTz = {
+const tz = {
     setModel: {
         key: ['model'],
         convertSet: async (entity, key, value, meta) => {
@@ -10,5 +10,4 @@ const sunricherTz = {
     } satisfies Tz.Converter,
 };
 
-export {sunricherTz as tz};
-exports.tz = sunricherTz;
+export {tz};

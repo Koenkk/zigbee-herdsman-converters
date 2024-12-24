@@ -13,8 +13,8 @@ import {
     removeExternalDefinitions,
 } from '../src/index';
 import {access as _access, enum as _enum, list as _list, composite, numeric, presets} from '../src/lib/exposes';
+import * as sunricher from '../src/lib/sunricher';
 import {tz} from '../src/lib/tuya';
-const sunricher = require('../src/lib/sunricher');
 import {getFromLookup, toNumber} from '../src/lib/utils';
 import {COLORTEMP_RANGE_MISSING_ALLOWED} from './colortemp_range_missing_allowed';
 
