@@ -959,7 +959,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['Z111PL0H-1JX'],
-        model: 'SA-028/SA-029',
+        model: 'Z111PL0H-1JX',
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-028-1'}],
         description: 'Smart Plug',
