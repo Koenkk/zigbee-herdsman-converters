@@ -1,5 +1,14 @@
 # Changelog
 
+## [21.9.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.9.0...v21.9.1) (2024-12-24)
+
+
+### Bug Fixes
+
+* **ignore:** fix build ([653e698](https://github.com/Koenkk/zigbee-herdsman-converters/commit/653e698bfd57d0a465a6326d1cf97a9204d4acd0))
+* **ignore:** fix build ([562915b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/562915b279935188e8404c4aa9b82de64fc054d5))
+* **ignore:** improve build ([7330742](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7330742bde70c7020652aa2f8f70090f04ca978a))
+
 ## [21.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.8.0...v21.9.0) (2024-12-24)
 
 
