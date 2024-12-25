@@ -326,6 +326,66 @@ function sunricherSRZG2836D5Pro(): ModernExtend {
     };
 }
 
+function sunricherSRZG9002K16Pro(): ModernExtend {
+    const cluster = 0xff03;
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 0xff03,
+            type: ['raw'],
+            convert: (model, msg, publish, options, meta) => {
+                const bytes = [...msg.data];
+                const messageType = bytes[3];
+                let action = 'unknown';
+
+                if (messageType === 0x01) {
+                    const pressTypeMask: number = bytes[6];
+                    const pressTypeLookup: {[key: number]: string} = {
+                        0x01: 'short_press',
+                        0x02: 'double_press',
+                        0x03: 'hold',
+                        0x04: 'hold_released',
+                    };
+                    action = pressTypeLookup[pressTypeMask] || 'unknown';
+
+                    const buttonMask = (bytes[4] << 8) | bytes[5];
+                    const getButtonNumber = (input: number) => {
+                        const row = Math.floor((input - 1) / 4);
+                        const col = (input - 1) % 4;
+                        return col * 4 + row + 1;
+                    };
+
+                    const actionButtons: string[] = [];
+                    for (let i = 0; i < 16; i++) {
+                        if ((buttonMask >> i) & 1) {
+                            const button = i + 1;
+                            actionButtons.push(`k${getButtonNumber(button)}`);
+                        }
+                    }
+                    return {action, action_buttons: actionButtons};
+                }
+                return {action};
+            },
+        },
+    ];
+
+    const exposes: Expose[] = [e.action(['short_press', 'double_press', 'hold', 'hold_released'])];
+
+    const configure: [Configure] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind(cluster, coordinatorEndpoint);
+        },
+    ];
+
+    return {
+        fromZigbee,
+        exposes,
+        configure,
+        isModernExtend: true,
+    };
+}
+
 const fzLocal = {
     sunricher_SRZGP2801K45C: {
         cluster: 'greenPower',
@@ -365,6 +425,13 @@ async function syncTime(endpoint: Zh.Endpoint) {
 }
 
 const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['HK-ZRC-K16N-E'],
+        model: 'SR-ZG9002K16-Pro',
+        vendor: 'Sunricher',
+        description: 'Zigbee smart wall panel remote',
+        extend: [battery(), sunricherSRZG9002K16Pro()],
+    },
     {
         zigbeeModel: ['ZG9030A-MW'],
         model: 'SR-ZG9030A-MW',
