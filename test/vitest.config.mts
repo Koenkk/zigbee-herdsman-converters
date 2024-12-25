@@ -4,6 +4,9 @@ export default defineConfig({
     test: {
         globals: true,
         clearMocks: true,
+        env: {
+            VITEST_ZHC_TEST: 'true',
+        },
         exclude: [
             './node_modules/**', // TODO: why is this being included?
         ],
