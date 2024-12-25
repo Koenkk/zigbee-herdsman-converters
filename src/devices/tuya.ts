@@ -5841,7 +5841,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.current(), e.power(), e.voltage(), e.energy()],
+        exposes: [e.current().withoutCategory(), e.power().withoutCategory(), e.voltage().withoutCategory(), e.energy()],
         meta: {
             tuyaDatapoints: [
                 [18, 'current', tuya.valueConverter.divideBy1000],
