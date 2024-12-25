@@ -1,5 +1,12 @@
 # Changelog
 
+## [21.9.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.9.1...v21.9.2) (2024-12-25)
+
+
+### Bug Fixes
+
+* **ignore:** fix `_colorTempRangeProvided` added to exposes ([53830e7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/53830e71fe3f5b3e407b34cb93f76ac529e9f8e0))
+
 ## [21.9.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.9.0...v21.9.1) (2024-12-24)
 
 
