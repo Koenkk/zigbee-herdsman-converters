@@ -1050,7 +1050,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Zigbee occupancy sensor',
         extend: [
-            occupancy({ reporting: false }),
+            occupancy({reporting: false}),
             numeric({
                 name: 'occupancy_timeout',
                 cluster: 0x0406,
