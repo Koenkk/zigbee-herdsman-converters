@@ -2092,6 +2092,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ['LCL008'],
+        model: '929003816902',
+        vendor: 'Philips',
+        description: 'Philips Hue solo lightstrip (3 mtr.)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['929003621101_01', '929003621101_02', '929003621101_03', '929003621101_04', '929003621101_05'],
         model: '929003621101',
         vendor: 'Philips',
