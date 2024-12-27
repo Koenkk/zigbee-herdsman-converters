@@ -1159,7 +1159,7 @@ const yokisCommandsExtend = {
     pulse: (): ModernExtend => {
         const exposes = e
             .composite('pulseCommand', 'pulseProp', ea.SET)
-            .withDescription('This command allows the relay to be controlled with an impulse. The pulse time is defined by PulseLength.')
+            .withDescription('This command allows the relay to be controlled with an impulse. The pulse time is defined by PulseLength')
             .withFeature(e.numeric('pulseLength', ea.SET).withValueMax(65535).withUnit('ms').withDescription('Pulse length'))
             .withCategory('config');
 
@@ -1196,13 +1196,13 @@ const yokisCommandsExtend = {
     deafBlink: (): ModernExtend => {
         const exposes = e
             .composite('deafBlinkCommand', 'deafBlinkProp', ea.SET)
-            .withDescription('Start a deaf sequene on a device only if the attribute “eDeaf” is set to Enable.')
+            .withDescription('Start a deaf sequene on a device only if the attribute “eDeaf” is set to Enable')
             .withFeature(
                 e
                     .numeric('uc_BlinkAmount', ea.SET)
                     .withDescription(
                         'If defined will force the number of blink to be done during one sequence (only for this order).' +
-                            'if not the device will use its own value.',
+                            'if not the device will use its own value',
                     ),
             )
             .withFeature(
@@ -1229,7 +1229,7 @@ const yokisCommandsExtend = {
                     )
                     .withLengthMin(0)
                     .withLengthMax(6)
-                    .withDescription('Array with the number of blink to be done for each sequence. Will override “uc_BlinkAmount“.'),
+                    .withDescription('Array with the number of blink to be done for each sequence. Will override “uc_BlinkAmount“'),
             )
             .withCategory('config');
 
@@ -1373,14 +1373,14 @@ const yokisCommandsExtend = {
                     .numeric('ul_RampContinuousDuration', ea.SET)
                     .withUnit('ms')
                     .withDescription(
-                        'Set the duration of the ramp for the continuous variation, otherwise use 0xFFFFFFFF to use the one configured in the product.',
+                        'Set the duration of the ramp for the continuous variation, otherwise use 0xFFFFFFFF to use the one configured in the product',
                     ),
             )
             .withFeature(
                 e
                     .numeric('uc_StepContinuous', ea.SET)
                     .withUnit('s')
-                    .withDescription('Set the step size, otherwise use 0xFF to use the one configured in the product.. Value is in %.'),
+                    .withDescription('Set the step size, otherwise use 0xFF to use the one configured in the product. Value is in %'),
             )
             .withCategory('config');
 
@@ -1427,7 +1427,7 @@ const yokisCommandsExtend = {
                     .numeric('ul_TransitionTime', ea.SET)
                     .withUnit('ms')
                     .withDescription(
-                        'Set the transition time to the selected value, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.',
+                        'Set the transition time to the selected value, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms',
                     ),
             )
             .withFeature(e.enum('action', ea.SET, ['dimToMin', 'dimToMax']))
@@ -1539,7 +1539,7 @@ const yokisCommandsExtend = {
                     .numeric('ul_ChildModeStartingDelay', ea.SET)
                     .withUnit('ms')
                     .withDescription(
-                        'Set the starting delay value, used before the start of the nightlight, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.',
+                        'Set the starting delay value, used before the start of the nightlight, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms',
                     ),
             )
             .withFeature(
@@ -1547,7 +1547,7 @@ const yokisCommandsExtend = {
                     .numeric('uc_ChildModeBrightnessStart', ea.SET)
                     .withUnit('%')
                     .withDescription(
-                        'Set the brightness at the beginning of the ramp, otherwise use 0xFF to use the one configured in the product. Value is in %.',
+                        'Set the brightness at the beginning of the ramp, otherwise use 0xFF to use the one configured in the product. Value is in %',
                     ),
             )
             .withFeature(
@@ -1555,21 +1555,21 @@ const yokisCommandsExtend = {
                     .numeric('uc_ChildModeBrightnessEnd', ea.SET)
                     .withUnit('%')
                     .withDescription(
-                        'Set the brightness at the end of the ramp, otherwise use 0xFF to use the one configured in the product. Value is in %.',
+                        'Set the brightness at the end of the ramp, otherwise use 0xFF to use the one configured in the product. Value is in %',
                     ),
             )
             .withFeature(
                 e
                     .numeric('ul_ChildModeRampDuration', ea.SET)
                     .withUnit('ms')
-                    .withDescription('Set the ramp duration, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.'),
+                    .withDescription('Set the ramp duration, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms'),
             )
             .withFeature(
                 e
                     .numeric('ul_ChildModeOnDuration', ea.SET)
                     .withUnit('ms')
                     .withDescription(
-                        'Set the total duration of the nightlight, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.',
+                        'Set the total duration of the nightlight, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms',
                     ),
             )
             .withFeature(
@@ -1577,7 +1577,7 @@ const yokisCommandsExtend = {
                     .numeric('uc_ChildStep', ea.SET)
                     .withUnit('%')
                     .withDescription(
-                        'Set the step size between each dim, otherwise use 0xFF to use the one configured in the product. Value is in %.',
+                        'Set the step size between each dim, otherwise use 0xFF to use the one configured in the product. Value is in %',
                     ),
             )
             .withCategory('config');
@@ -1616,21 +1616,30 @@ const yokisCommandsExtend = {
 
 // Custom cluster exposition
 const YokisDeviceExtend: ModernExtend[] = [
-    numeric({
-        name: 'ConfigurationChanged',
-        cluster: 'manuSpecificYokisDevice',
-        attribute: 'configurationChanged',
-        description: 'Indicate if the device configuration has changed. 0 to 0xFFFE -> No Change, 0xFFFF -> Change have been detected',
-        access: 'STATE_SET',
-        valueMin: 0,
-        valueMax: 3600,
-        reporting: {min: 0, max: repInterval.HOUR, change: 1},
-        entityCategory: 'config',
-    }),
+    // ConfigurationChanged => This attribute is used by Yokis-based controller and probably not very useful at the moment, as we don't know which configuration was changed.
+    // Leaving it here for future evaluation
+    //
+    // numeric({
+    //     name: 'ConfigurationChanged',
+    //     cluster: 'manuSpecificYokisDevice',
+    //     attribute: 'configurationChanged',
+    //     description: `Indicate if the device configuration has changed:
+    //     - 0 to 0xFFFE -> No Change
+    //     - 0xFFFF -> Change have been detected`,
+    //     access: 'STATE_SET',
+    //     valueMin: 0,
+    //     valueMax: 3600,
+    //     reporting: {min: 0, max: repInterval.HOUR, change: 1},
+    //     entityCategory: 'config',
+    // }),
 
     yokisCommandsExtend.resetToFactorySettings(),
     yokisCommandsExtend.relaunchBleAdvert(),
-    yokisCommandsExtend.openNetwork(),
+
+    // openNetwork command : very specific case where the Yokis devices can create their own Zigbee network without the need of a coordinator
+    // Leaving it here for future evaluation
+    //
+    // yokisCommandsExtend.openNetwork(),
 ];
 
 const YokisInputExtend: ModernExtend[] = [
@@ -1667,8 +1676,8 @@ const YokisInputExtend: ModernExtend[] = [
         cluster: 'manuSpecificYokisInput',
         attribute: 'lastLocalCommandState',
         description: 'Indicate the last known state of the local BP',
-        valueOn: ['ON', 0x01],
-        valueOff: ['OFF', 0x00],
+        valueOn: ['PRESSED', 0x01],
+        valueOff: ['RELEASED', 0x00],
         access: 'STATE_GET',
         entityCategory: 'diagnostic',
     }),
@@ -1679,12 +1688,18 @@ const YokisInputExtend: ModernExtend[] = [
         cluster: 'manuSpecificYokisInput',
         attribute: 'lastBPConnectState',
         description: 'Indicate the last known state of the Bp connect',
-        valueOn: ['ON', 0x01],
-        valueOff: ['OFF', 0x00],
+        valueOn: ['PRESSED', 0x01],
+        valueOff: ['RELEASED', 0x00],
         access: 'STATE_GET',
         entityCategory: 'diagnostic',
     }),
 
+    yokisCommandsExtend.sendPress(),
+    yokisCommandsExtend.sendRelease(),
+    yokisCommandsExtend.selectInputMode(),
+];
+
+const YokisInputExtendWithBacklight: ModernExtend[] = [
     // BacklightIntensity
     numeric({
         name: 'BacklightIntensity',
@@ -1696,9 +1711,7 @@ const YokisInputExtend: ModernExtend[] = [
         entityCategory: 'config',
     }),
 
-    yokisCommandsExtend.sendPress(),
-    yokisCommandsExtend.sendRelease(),
-    yokisCommandsExtend.selectInputMode(),
+    ...YokisInputExtend,
 ];
 
 const YokisEntryExtend: ModernExtend[] = [
@@ -1779,7 +1792,7 @@ const YokisSubSystemExtend: ModernExtend[] = [
         lookup: powerFailureModeEnum,
         cluster: 'manuSpecificYokisSubSystem',
         attribute: 'powerFailureMode',
-        description: 'Define the device behavior after power failure ',
+        description: 'Define the device behavior after power failure',
         entityCategory: 'config',
         // zigbeeCommandOptions: manufacturerOptions,
     }),
@@ -1787,6 +1800,8 @@ const YokisSubSystemExtend: ModernExtend[] = [
 
 const yokisLightControlExtend: ModernExtend[] = [
     // OnOff => this is redundant from the GenOnOff state
+    // Leaving it here for future evaluation
+    //
     // binary({
     //     name: 'OnOff',
     //     cluster: 'manuSpecificYokisLightControl',
@@ -1812,20 +1827,23 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // onTimer
-    binary({
-        name: 'eOnTimer',
-        cluster: 'manuSpecificYokisLightControl',
-        attribute: 'eOnTimer',
-        description: 'Enable (0x01) / Disable (0x00) use of onTimer.',
-        valueOn: ['ON', 0x01],
-        valueOff: ['OFF', 0x00],
-        entityCategory: 'config',
-    }),
+    // eOnTimer => This attribute has been superseded by just using onTimer (a "0" onTimer will deactivate it)
+    // Leaving it here for future evaluation
+    //
+    // binary({
+    //     name: 'eOnTimer',
+    //     cluster: 'manuSpecificYokisLightControl',
+    //     attribute: 'eOnTimer',
+    //     description: 'Enable (0x01) / Disable (0x00) use of onTimer',
+    //     valueOn: ['ON', 0x01],
+    //     valueOff: ['OFF', 0x00],
+    //     entityCategory: 'config',
+    // }),
     numeric({
         name: 'onTimer',
         cluster: 'manuSpecificYokisLightControl',
         attribute: 'onTimer',
-        description: 'Define the ON embedded timer duration in seconds.',
+        description: 'Define the ON embedded timer duration in seconds. A `0` value will deactivate the timer',
         valueMin: 0,
         valueMax: 3600,
         valueStep: 1,
@@ -1838,7 +1856,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: 'ePreOnDelay',
         cluster: 'manuSpecificYokisLightControl',
         attribute: 'ePreOnDelay',
-        description: 'Enable (0x01) / Disable (0x00) PreOn delay.',
+        description: 'Enable (`0x01`) / Disable (`0x00`) PreOn delay',
         valueOn: ['ON', 0x01],
         valueOff: ['OFF', 0x00],
         entityCategory: 'config',
@@ -1847,7 +1865,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: 'PreOnDelay',
         cluster: 'manuSpecificYokisLightControl',
         attribute: 'preOnDelay',
-        description: 'Define the PreOn embedded delay in seconds.',
+        description: 'Define the PreOn embedded delay in seconds',
         valueMin: 0,
         valueMax: 3600,
         valueStep: 1,
@@ -1860,7 +1878,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: 'ePreOffDelay',
         cluster: 'manuSpecificYokisLightControl',
         attribute: 'ePreOffDelay',
-        description: 'Enable (0x01) / Disable (0x00) PreOff delay.',
+        description: 'Enable (`0x01`) / Disable (`0x00`) PreOff delay',
         valueOn: ['ON', 0x01],
         valueOff: ['OFF', 0x00],
         entityCategory: 'config',
@@ -1869,7 +1887,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: 'PreOffDelay',
         cluster: 'manuSpecificYokisLightControl',
         attribute: 'preOffDelay',
-        description: 'Define the PreOff embedded delay in seconds.',
+        description: 'Define the PreOff embedded delay in seconds',
         valueMin: 0,
         valueMax: 3600,
         valueStep: 1,
@@ -1882,7 +1900,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: 'PulseDuration',
         cluster: 'manuSpecificYokisLightControl',
         attribute: 'pulseDuration',
-        description: 'Set the value of ON pulse length.',
+        description: 'Set the value of ON pulse length',
         valueMin: 0x0014,
         valueMax: 0xfffe,
         valueStep: 1,
@@ -1933,7 +1951,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: 'eStopAnnounce',
         cluster: 'manuSpecificYokisLightControl',
         attribute: 'eStopAnnounce',
-        description: 'Enable (0x01) / Disable (0x00) the announcement before turning OFF',
+        description: 'Enable (`0x01`) / Disable (`0x00`) the announcement before turning OFF',
         valueOn: ['ON', 0x01],
         valueOff: ['OFF', 0x00],
         entityCategory: 'config',
@@ -1955,7 +1973,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: 'eDeaf',
         cluster: 'manuSpecificYokisLightControl',
         attribute: 'eDeaf',
-        description: 'Enable (0x01) / Disable (0x00) Deaf Actions',
+        description: 'Enable (`0x01`) / Disable (`0x00`) Deaf Actions',
         valueOn: ['ON', 0x01],
         valueOff: ['OFF', 0x00],
         entityCategory: 'config',
@@ -1964,7 +1982,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: 'DeafBlinkAmount',
         cluster: 'manuSpecificYokisLightControl',
         attribute: 'deafBlinkAmount',
-        description: 'Define number of blink to do when receiving the DEAF action. One blink is considered as one ON step followed by one OFF step.',
+        description: 'Define number of blink to do when receiving the DEAF action. One blink is considered as one ON step followed by one OFF step',
         valueMin: 0x00,
         valueMax: 0x14,
         valueStep: 1,
@@ -1986,7 +2004,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: 'eBlink',
         cluster: 'manuSpecificYokisLightControl',
         attribute: 'eBlink',
-        description: 'Enable (0x01) / Disable (0x00) Blink  Actions',
+        description: 'Enable (`0x01`) / Disable (`0x00`) Blink  Actions',
         valueOn: ['ON', 0x01],
         valueOff: ['OFF', 0x00],
         entityCategory: 'config',
@@ -1995,7 +2013,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: 'BlinkAmount',
         cluster: 'manuSpecificYokisLightControl',
         attribute: 'blinkAmount',
-        description: 'Number of blinks done when receiving the corresponding order. One blink is considered as one ON step followed by one OFF step.',
+        description: 'Number of blinks done when receiving the corresponding order. One blink is considered as one ON step followed by one OFF step',
         valueMin: 0x00,
         valueMax: 0x14,
         valueStep: 1,
@@ -2080,7 +2098,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'eRampUp',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'eRampUp',
-        description: 'This attribute defines if a ramp up should be used or not.',
+        description: 'This attribute defines if a ramp up should be used or not',
         valueOn: ['ON', 0x01],
         valueOff: ['OFF', 0x00],
         entityCategory: 'config',
@@ -2089,7 +2107,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'RampUp',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'rampUp',
-        description: 'This attribute defines the time taken during the ramp up in ms.',
+        description: 'This attribute defines the time taken during the ramp up in ms',
         valueMin: 0x00000000,
         valueMax: 0x05265c00,
         valueStep: 1000,
@@ -2101,7 +2119,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'eRampDown',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'eRampDown',
-        description: 'This attribute defines if a ramp down should be used or not.',
+        description: 'This attribute defines if a ramp down should be used or not',
         valueOn: ['ON', 0x01],
         valueOff: ['OFF', 0x00],
         entityCategory: 'config',
@@ -2110,7 +2128,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'RampDown',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'rampDown',
-        description: 'This attribute defines the time taken during the ramp down in ms.',
+        description: 'This attribute defines the time taken during the ramp down in ms',
         valueMin: 0x00000000,
         valueMax: 0x05265c00,
         valueStep: 1000,
@@ -2122,7 +2140,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'RampContinuousTime',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'rampContinuousTime',
-        description: 'This attribute defines the time taken during the ramp loop in ms.',
+        description: 'This attribute defines the time taken during the ramp loop in ms',
         valueMin: 0x00000000,
         valueMax: 0x05265c00,
         valueStep: 1000,
@@ -2134,7 +2152,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'StepUp',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'stepUp',
-        description: 'This attribute defines the value of each step during a dimming up. This value is set in %.',
+        description: 'This attribute defines the value of each step during a dimming up. This value is set in %',
         valueMin: 0x00,
         valueMax: 0x64,
         valueStep: 1,
@@ -2172,7 +2190,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'NightLightStartingDelay',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'nightLightStartingDelay',
-        description: 'This attribute defines the time before the nightlight begin. This value is set in seconds.',
+        description: 'This attribute defines the time before the nightlight begin. This value is set in seconds',
         valueMin: 0x00000000,
         valueMax: 0xfffffffe,
         valueStep: 10,
@@ -2184,7 +2202,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'NightLightStartingBrightness',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'nightLightStartingBrightness',
-        description: 'This attribute defines the dimming value at the start of the nightlight. This value is set in %.',
+        description: 'This attribute defines the dimming value at the start of the nightlight. This value is set in %',
         valueMin: 0x00,
         valueMax: 0x64,
         valueStep: 1,
@@ -2197,7 +2215,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'nightLightEndingBrightness',
         description:
-            'This attribute defines the dimming value at the last step of the nightlight. This attribute must be lower than 0x000D : Nightlight starting brightness. This value is set in %.',
+            'This attribute defines the dimming value at the last step of the nightlight. This attribute must be lower than 0x000D : Nightlight starting brightness. This value is set in %',
         valueMin: 0x00,
         valueMax: 0x64,
         valueStep: 1,
@@ -2210,7 +2228,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'nightLightRampTime',
         description:
-            'This attribute defines the ramp duration of the nightlight. The ramp is running after the end of the starting delay and until the ending bright is reached. This value is set in seconds.',
+            'This attribute defines the ramp duration of the nightlight. The ramp is running after the end of the starting delay and until the ending bright is reached. This value is set in seconds',
         valueMin: 0x00000000,
         valueMax: 0x05265c00,
         valueStep: 10,
@@ -2223,7 +2241,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'nightLightOnTime',
         description:
-            'This attribute defines the total duration of the nightlight. It must not be lower than 0x000F : Nightlight ramp time. This value is set in seconds.',
+            'This attribute defines the total duration of the nightlight. It must not be lower than 0x000F : Nightlight ramp time. This value is set in seconds',
         valueMin: 0x00000000,
         valueMax: 0x00409980,
         valueStep: 10,
@@ -2235,7 +2253,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'FavoritePosition1',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'favoritePosition1',
-        description: 'This attribute defines the value of the favorite position 1. This value is set in %.',
+        description: 'This attribute defines the value of the favorite position 1. This value is set in %',
         valueMin: 0x00,
         valueMax: 0x64,
         valueStep: 1,
@@ -2247,7 +2265,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'FavoritePosition2',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'favoritePosition2',
-        description: 'This attribute defines the value of the favorite position 2. This value is set in %.',
+        description: 'This attribute defines the value of the favorite position 2. This value is set in %',
         valueMin: 0x00,
         valueMax: 0x64,
         valueStep: 1,
@@ -2259,7 +2277,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'FavoritePosition3',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'favoritePosition3',
-        description: 'This attribute defines the value of the favorite position 3. This value is set in %.',
+        description: 'This attribute defines the value of the favorite position 3. This value is set in %',
         valueMin: 0x00,
         valueMax: 0x64,
         valueStep: 1,
@@ -2272,7 +2290,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'stepControllerMode',
         description:
-            'This attribute enables or disables the 2-step controller mode. This mode enable product to run without any ramp before and after ON or OFF. It acts like a relay.',
+            'This attribute enables or disables the 2-step controller mode. This mode enable product to run without any ramp before and after ON or OFF. It acts like a relay',
         valueOn: ['ON', 0x01],
         valueOff: ['OFF', 0x00],
         entityCategory: 'config',
@@ -2283,7 +2301,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'MemoryPositionMode',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'memoryPositionMode',
-        description: 'This attribute enables or disables the memory position mode at first push button release. ',
+        description: 'This attribute enables or disables the memory position mode at first push button release',
         valueOn: ['ON', 0x01],
         valueOff: ['OFF', 0x00],
         entityCategory: 'config',
@@ -2294,7 +2312,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'StepDown',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'stepDown',
-        description: 'This attribute defines the value of each step during a dimming down. This value is set in %.',
+        description: 'This attribute defines the value of each step during a dimming down. This value is set in %',
         valueMin: 0x00,
         valueMax: 0x64,
         valueStep: 1,
@@ -2306,7 +2324,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'StepContinuous',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'stepContinuous',
-        description: 'This attribute defines the value of each step during a dimming loop. This value is set in %.',
+        description: 'This attribute defines the value of each step during a dimming loop. This value is set in %',
         valueMin: 0x00,
         valueMax: 0x64,
         valueStep: 1,
@@ -2318,7 +2336,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         name: 'StepNightLigth',
         cluster: 'manuSpecificYokisDimmer',
         attribute: 'stepNightLigth',
-        description: 'This attribute defines the value of each step during the ramp down of the nightlight mode. This value is set in %.',
+        description: 'This attribute defines the value of each step during the ramp down of the nightlight mode. This value is set in %',
         valueMin: 0x00,
         valueMax: 0x64,
         valueStep: 1,
@@ -2486,14 +2504,15 @@ const definitions: DefinitionWithExtend[] = [
                 'manuSpecificYokisLightControl',
                 'manuSpecificYokisStats',
             ]),
-            onOff({powerOnBehavior: false}),
+            onOff({powerOnBehavior: false}), // StartupOnOff is not supported
             identify(),
             ...yokisLightControlExtend,
             ...YokisDeviceExtend,
-            ...YokisInputExtend,
+            // ...YokisInputExtend,
             ...YokisEntryExtend,
             ...YokisSubSystemExtend,
-            ...YokisStatsExtend,
+            // ...YokisLoadManagerExtend, // Pending implementation
+            // ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2512,14 +2531,15 @@ const definitions: DefinitionWithExtend[] = [
                 'manuSpecificYokisLightControl',
                 'manuSpecificYokisStats',
             ]),
-            onOff({powerOnBehavior: false}),
+            onOff({powerOnBehavior: false}), // StartupOnOff is not supported
             identify(),
             ...yokisLightControlExtend,
-            // ...YokisDeviceExtend,
+            ...YokisDeviceExtend,
             // ...YokisInputExtend,
-            // ...YokisEntryExtend,
-            // ...YokisSubSystemExtend,
-            // ...YokisStatsExtend,
+            ...YokisEntryExtend,
+            ...YokisSubSystemExtend,
+            // ...YokisLoadManagerExtend, // Pending implementation
+            // ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2538,14 +2558,15 @@ const definitions: DefinitionWithExtend[] = [
                 'manuSpecificYokisLightControl',
                 'manuSpecificYokisStats',
             ]),
-            onOff({powerOnBehavior: false}),
+            onOff({powerOnBehavior: false}), // StartupOnOff is not supported
             identify(),
             ...yokisLightControlExtend,
-            // ...YokisDeviceExtend,
+            ...YokisDeviceExtend,
             // ...YokisInputExtend,
-            // ...YokisEntryExtend,
-            // ...YokisSubSystemExtend,
-            // ...YokisStatsExtend,
+            ...YokisEntryExtend,
+            ...YokisSubSystemExtend,
+            // ...YokisLoadManagerExtend, // Pending implementation
+            // ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2565,15 +2586,16 @@ const definitions: DefinitionWithExtend[] = [
                 'manuSpecificYokisDimmer',
                 'manuSpecificYokisStats',
             ]),
-            light({configureReporting: true, powerOnBehavior: false}), // TODO: review dimmer cluster instead
+            light({configureReporting: true, powerOnBehavior: false}), // StartupOnOff is not supported, TODO: review dimmer cluster instead
             identify(),
             ...yokisLightControlExtend,
-            // ...YokisDeviceExtend,
+            ...YokisDeviceExtend,
             // ...YokisInputExtend,
-            // ...YokisEntryExtend,
-            // ...YokisSubSystemExtend,
+            ...YokisEntryExtend,
+            ...YokisSubSystemExtend,
             ...YokisDimmerExtend,
-            // ...YokisStatsExtend,
+            // ...YokisLoadManagerExtend, // Pending implementation
+            // ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2595,12 +2617,13 @@ const definitions: DefinitionWithExtend[] = [
             identify(),
             windowCovering({controls: ['lift']}),
             commandsWindowCovering(),
-            // ...YokisDeviceExtend,
+            ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisEntryExtend,
             // ...YokisSubSystemExtend,
             ...YokisWindowCoveringExtend,
-            // ...YokisStatsExtend
+            // ...YokisLoadManagerExtend, // Pending implementation
+            // ...YokisStatsExtend // Pending implementation
         ],
     },
     {
@@ -2617,16 +2640,13 @@ const definitions: DefinitionWithExtend[] = [
                 'manuSpecificYokisDimmer',
                 'manuSpecificYokisWindowCovering',
                 'manuSpecificYokisChannel',
-                'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
-                'manuSpecificYokisStats',
             ]),
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             identify(),
-            commandsOnOff({endpointNames: ['1', '2']}),
-            // commandsLevelCtrl(),
-            // commandsWindowCovering(),
-            // ...yokisLightControlExtend,
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
         ],
@@ -2645,16 +2665,13 @@ const definitions: DefinitionWithExtend[] = [
                 'manuSpecificYokisDimmer',
                 'manuSpecificYokisWindowCovering',
                 'manuSpecificYokisChannel',
-                'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
-                'manuSpecificYokisStats',
             ]),
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
             identify(),
             commandsOnOff(),
             commandsLevelCtrl(),
             commandsWindowCovering(),
-            // ...yokisLightControlExtend,
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
         ],
@@ -2676,10 +2693,12 @@ const definitions: DefinitionWithExtend[] = [
                 'manuSpecificYokisPilotWire',
                 'manuSpecificYokisTemperatureMeasurement',
             ]),
-            //identify(),
+            identify(),
             commandsOnOff(),
-            //commandsLevelCtrl(),
-            //commandsWindowCovering(),
+            commandsLevelCtrl(),
+            commandsWindowCovering(),
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
         ],
     },
     {
@@ -2703,6 +2722,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsOnOff(),
             commandsLevelCtrl(),
             commandsWindowCovering(),
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
         ],
     },
     {
@@ -2726,6 +2747,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsOnOff(),
             commandsLevelCtrl(),
             commandsWindowCovering(),
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
         ],
     },
     {
@@ -2749,12 +2772,13 @@ const definitions: DefinitionWithExtend[] = [
             commandsOnOff(),
             commandsLevelCtrl(),
             commandsWindowCovering(),
-            ...YokisDeviceExtend,
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
         ],
     },
     {
         // TLM1-UP
-        zigbeeModel: ['TLM1-UP'],
+        zigbeeModel: ['TLM1-UP', 'TLM503-UP'],
         model: 'TLM1-UP',
         vendor: 'YOKIS',
         description: 'Wall-mounted 1-button transmitter',
@@ -2767,16 +2791,19 @@ const definitions: DefinitionWithExtend[] = [
                 'manuSpecificYokisWindowCovering',
                 'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
+                'manuSpecificYokisTemperatureMeasurement',
             ]),
             identify(),
             commandsOnOff(),
             commandsLevelCtrl(),
             commandsWindowCovering(),
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
         ],
     },
     {
         // TLM2-UP
-        zigbeeModel: ['TLM2-UP'],
+        zigbeeModel: ['TLM2-UP', 'TLM2_503-UP'],
         model: 'TLM2-UP',
         vendor: 'YOKIS',
         description: 'Wall-mounted 2-button transmitter',
@@ -2789,17 +2816,20 @@ const definitions: DefinitionWithExtend[] = [
                 'manuSpecificYokisWindowCovering',
                 'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
+                'manuSpecificYokisTemperatureMeasurement',
             ]),
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             identify(),
             commandsOnOff(),
             commandsLevelCtrl(),
             commandsWindowCovering(),
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
         ],
     },
     {
         // TLM4-UP
-        zigbeeModel: ['TLM4-UP'],
+        zigbeeModel: ['TLM4-UP', 'TLM4_503-UP'],
         model: 'TLM4-UP',
         vendor: 'YOKIS',
         description: 'Wall-mounted 4-button transmitter',
@@ -2812,12 +2842,41 @@ const definitions: DefinitionWithExtend[] = [
                 'manuSpecificYokisWindowCovering',
                 'manuSpecificYokisChannel',
                 'manuSpecificYokisPilotWire',
+                'manuSpecificYokisTemperatureMeasurement',
             ]),
             deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
             identify(),
             commandsOnOff(),
             commandsLevelCtrl(),
             commandsWindowCovering(),
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
+        ],
+    },
+    {
+        // GALET4-UP
+        zigbeeModel: ['GALET4-UP'],
+        model: 'GALET4-UP',
+        vendor: 'YOKIS',
+        description: '4-button remote control',
+        extend: [
+            deviceAddCustomClusters([
+                'manuSpecificYokisDevice',
+                'manuSpecificYokisInput',
+                'manuSpecificYokisLightControl',
+                'manuSpecificYokisDimmer',
+                'manuSpecificYokisWindowCovering',
+                'manuSpecificYokisChannel',
+                'manuSpecificYokisPilotWire',
+                'manuSpecificYokisTemperatureMeasurement',
+            ]),
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            identify(),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            commandsWindowCovering(),
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
         ],
     },
 ];
