@@ -1,4 +1,4 @@
-const {light} = require('zigbee-herdsman-converters/lib/modernExtend');
+import {light} from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -16,7 +16,6 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Just 45 LIGHT opal floodlight',
         extend: [light()],
     },
-
 ];
 
 export default definitions;
