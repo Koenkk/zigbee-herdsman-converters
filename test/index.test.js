@@ -441,7 +441,9 @@ describe('index.js', () => {
                     property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
                 }
 
-                const toZigbee = device.toZigbee.find((item) => item.key.includes(property));
+                const toZigbee = device.toZigbee.find(
+                    (item) => item.key.includes(property) && (!item.endpoints || (expose.endpoint && item.endpoints.includes(expose.endpoint))),
+                );
 
                 if ((expose.access & _access.SET) != (toZigbee && toZigbee.convertSet ? _access.SET : 0)) {
                     throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
