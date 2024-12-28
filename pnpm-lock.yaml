@@ -18,8 +18,8 @@ importers:
         specifier: ^7.6.3
         version: 7.6.3
       zigbee-herdsman:
-        specifier: ^3.0.4
-        version: 3.0.4
+        specifier: ^3.2.0
+        version: 3.2.0
     devDependencies:
       '@eslint/core':
         specifier: ^0.9.1
@@ -1359,8 +1359,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zigbee-herdsman@3.0.4:
-    resolution: {integrity: sha512-HhC1yqbP/HY2akNH+K4bF6Wu4rAR/OXJhT8L1XBQPkUgAM14hknCEVbFWYF6PKxaLvPTuCB265W5lcUy/ZaryQ==}
+  zigbee-herdsman@3.2.0:
+    resolution: {integrity: sha512-riF+sptb6PP33oeNer8P+KXK1b5cQh1EvsvZd0hqxCX/6uCZ5wFFCjqnsbixG2rXwxYGXmGb/QqYW45a1+qQPw==}
 
 snapshots:
 
@@ -2584,7 +2584,7 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zigbee-herdsman@3.0.4:
+  zigbee-herdsman@3.2.0:
     dependencies:
       '@serialport/bindings-cpp': 12.0.1
       '@serialport/parser-delimiter': 12.0.0
