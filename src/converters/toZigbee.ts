@@ -332,8 +332,20 @@ const converters2 = {
     lock: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value, key);
-            await entity.command('closuresDoorLock', `${value.toLowerCase()}Door`, {pincodevalue: ''}, utils.getOptions(meta.mapped, entity));
+            // If no pin code is provided, value is a only string. Ex: "UNLOCK"
+            let state = utils.isString(value) ? value.toUpperCase() : null;
+            let pincode = '';
+            // If pin code is provided, value is an object including command and code. Ex: {command: "UNLOCK", code: "1234"}
+            if (utils.isObject(value)) {
+                if (value.code) {
+                    pincode = utils.isString(value.code) ? value.code : '';
+                }
+                if (value.command) {
+                    state = utils.isString(value.command) ? value.command.toUpperCase() : null;
+                }
+            }
+            utils.validateValue(state, ['LOCK', 'UNLOCK', 'TOGGLE']);
+            await entity.command('closuresDoorLock', `${state.toLowerCase()}Door`, {pincodevalue: pincode}, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresDoorLock', ['lockState']);
