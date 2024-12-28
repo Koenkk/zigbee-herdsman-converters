@@ -294,17 +294,17 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.lockState !== undefined) {
-                result.state = msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK';
+                result[postfixWithEndpointName('state', msg, model, meta)] = msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK';
                 const lookup = ['not_fully_locked', 'locked', 'unlocked'];
-                result.lock_state = lookup[msg.data['lockState']];
+                result[postfixWithEndpointName('lock_state', msg, model, meta)] = lookup[msg.data['lockState']];
             }
 
             if (msg.data.autoRelockTime !== undefined) {
-                result.auto_relock_time = msg.data.autoRelockTime;
+                result[postfixWithEndpointName('auto_relock_time', msg, model, meta)] = msg.data.autoRelockTime;
             }
 
             if (msg.data.soundVolume !== undefined) {
-                result.sound_volume = constants.lockSoundVolume[msg.data.soundVolume];
+                result[postfixWithEndpointName('sound_volume', msg, model, meta)] = constants.lockSoundVolume[msg.data.soundVolume];
             }
 
             if (msg.data.doorState !== undefined) {
@@ -316,7 +316,7 @@ const converters1 = {
                     4: 'error_unspecified',
                     0xff: 'undefined',
                 };
-                result.door_state = lookup[msg.data['doorState']];
+                result[postfixWithEndpointName('door_state', msg, model, meta)] = lookup[msg.data['doorState']];
             }
             return result;
         },
