@@ -22,7 +22,6 @@ const manufacturerOptions = {
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
     legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
     viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH},
-    nodon: {manufacturerCode: Zcl.ManufacturerCode.NODON},
 };
 
 const converters1 = {
@@ -4321,25 +4320,6 @@ const converters2 = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('ssIasZone', [0x4000], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
-        },
-    } satisfies Tz.Converter,
-    nodon_pilot_wire_mode: {
-        key: ['pilot_wire_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const mode = utils.getFromLookup(value, {
-                off: 0x00,
-                comfort: 0x01,
-                eco: 0x02,
-                frost_protection: 0x03,
-                'comfort_-1': 0x04,
-                'comfort_-2': 0x05,
-            });
-            const payload = {mode: mode};
-            await entity.command('manuSpecificNodOnPilotWire', 'setMode', payload);
-            return {state: {pilot_wire_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificNodOnPilotWire', [0x0000], manufacturerOptions.nodon);
         },
     } satisfies Tz.Converter,
     // #endregion
