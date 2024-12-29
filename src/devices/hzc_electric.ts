@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, light, electricityMeter} from '../lib/modernExtend';
+import {deviceEndpoints, electricityMeter, light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
