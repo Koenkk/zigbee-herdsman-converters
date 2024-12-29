@@ -21,6 +21,63 @@ const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['ROB_200-081-0'], '
+        model: 'ROB_200-081-0', 
+        vendor: 'ROBB smarrt', 
+        description: '4-button wireless Zigbee switch',
+        extend: [
+            deviceEndpoints({
+                endpoints: {
+                    "1": 1,
+                    "2": 2,
+                    "3": 3,
+                    "4": 4 
+                }
+            }),
+            battery(),
+            commandsOnOff({
+                endpointNames: ["1", "2", "3", "4"]
+            }),
+            commandsLevelCtrl({
+                endpointNames: ["1", "2", "3", "4"]
+            })
+        ],
+        meta: {
+            multiEndpoint: true
+        },
+        exposes: [
+            {
+                type: 'action', 
+                features: [
+                    { name: 'on_1', description: 'Button 1 On (short press)' },
+                    { name: 'off_1', description: 'Button 1 Off (short press)' },
+                    { name: 'brightness_move_up_1', description: 'Button 1 Brightness Up (hold)' },
+                    { name: 'brightness_move_down_1', description: 'Button 1 Brightness Down (hold)' },
+                    { name: 'brightness_stop_1', description: 'Button 1 Release' },
+                    { name: 'on_2', description: 'Button 2 On (short press)' },
+                    { name: 'off_2', description: 'Button 2 Off (short press)' },
+                    { name: 'brightness_move_up_2', description: 'Button 2 Brightness Up (hold)' },
+                    { name: 'brightness_move_down_2', description: 'Button 2 Brightness Down (hold)' },
+                    { name: 'brightness_stop_2', description: 'Button 2 Release' },
+                    { name: 'on_3', description: 'Button 3 On (short press)' },
+                    { name: 'off_3', description: 'Button 3 Off (short press)' },
+                    { name: 'brightness_move_up_3', description: 'Button 3 Brightness Up (hold)' },
+                    { name: 'brightness_move_down_3', description: 'Button 3 Brightness Down (hold)' },
+                    { name: 'brightness_stop_3', description: 'Button 3 Release' },
+                    { name: 'on_4', description: 'Button 4 On (short press)' },
+                    { name: 'off_4', description: 'Button 4 Off (short press)' },
+                    { name: 'brightness_move_up_4', description: 'Button 4 Brightness Up (hold)' },
+                    { name: 'brightness_move_down_4', description: 'Button 4 Brightness Down (hold)' },
+                    { name: 'brightness_stop_4', description: 'Button 4 Release' }
+                ]
+            },
+            {
+                type: 'battery',
+                description: 'Battery percentage'
+            }
+        ]
+    },
+    {
         zigbeeModel: ['ROB_200-004-1'],
         model: 'ROB_200-004-1',
         vendor: 'ROBB',
