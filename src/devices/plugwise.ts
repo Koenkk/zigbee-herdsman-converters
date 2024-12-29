@@ -1,4 +1,4 @@
-import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
+import {Zcl} from 'zigbee-herdsman';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -10,7 +10,7 @@ import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.PLUGWISE_B_V};
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V};
 
 const plugwisePushForce = {
     0: 'standard',
