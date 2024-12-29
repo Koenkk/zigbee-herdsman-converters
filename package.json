@@ -49,7 +49,7 @@
         "buffer-crc32": "^1.0.0",
         "iconv-lite": "^0.6.3",
         "semver": "^7.6.3",
-        "zigbee-herdsman": "^3.0.4"
+        "zigbee-herdsman": "^3.2.0"
     },
     "devDependencies": {
         "@eslint/core": "^0.9.1",

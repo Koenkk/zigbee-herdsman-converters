@@ -7,7 +7,7 @@ import {EventEmitter} from 'stream';
 
 import {Zcl} from 'zigbee-herdsman';
 import ZclTransactionSequenceNumber from 'zigbee-herdsman/dist/controller/helpers/zclTransactionSequenceNumber';
-import Waitress from 'zigbee-herdsman/dist/utils/waitress';
+import {Waitress} from 'zigbee-herdsman/dist/utils/waitress';
 
 import {
     DEFAULT_IMAGE_BLOCK_RESPONSE_DELAY,
