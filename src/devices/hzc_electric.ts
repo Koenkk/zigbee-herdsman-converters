@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, light} from '../lib/modernExtend';
+import {deviceEndpoints, light, electricityMeter} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -52,6 +52,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'HZC Electric',
         description: 'Zigbee dimmer',
         extend: [light({configureReporting: true})],
+    },
+    {
+        zigbeeModel: ['Meter-Dimmer-Switch-ZB3.0'],
+        model: 'Meter-Dimmer-Switch-ZB3.0',
+        vendor: 'HZC Electric',
+        description: 'Rotary dimmer with screen',
+        extend: [light({effect: false, configureReporting: true, powerOnBehavior: false}), electricityMeter({voltage: false, current: false, configureReporting: true})],
+        meta: {},
     },
 ];
 
