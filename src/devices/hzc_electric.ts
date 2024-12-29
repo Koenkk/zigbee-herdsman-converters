@@ -58,7 +58,10 @@ const definitions: DefinitionWithExtend[] = [
         model: 'Meter-Dimmer-Switch-ZB3.0',
         vendor: 'HZC Electric',
         description: 'Rotary dimmer with screen',
-        extend: [light({effect: false, configureReporting: true, powerOnBehavior: false}), electricityMeter({voltage: false, current: false, configureReporting: true})],
+        extend: [
+            light({effect: false, configureReporting: true, powerOnBehavior: false}),
+            electricityMeter({voltage: false, current: false, configureReporting: true}),
+        ],
         meta: {},
     },
 ];
