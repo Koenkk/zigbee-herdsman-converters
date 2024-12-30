@@ -1,7 +1,7 @@
 import assert from 'assert';
 
-import { Access, Expose, Range } from './types';
-import { getLabelFromName } from './utils';
+import {Access, Expose, Range} from './types';
+import {getLabelFromName} from './utils';
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
 
@@ -242,7 +242,7 @@ export class Numeric extends Base {
     value_max?: number;
     value_min?: number;
     value_step?: number;
-    presets?: { name: string; value: number | string; description: string }[];
+    presets?: {name: string; value: number | string; description: string}[];
 
     constructor(name: string, access: number) {
         super();
@@ -275,7 +275,7 @@ export class Numeric extends Base {
 
     withPreset(name: string, value: number | string, description: string) {
         if (!this.presets) this.presets = [];
-        this.presets.push({ name, value, description });
+        this.presets.push({name, value, description});
         return this;
     }
 
@@ -287,7 +287,7 @@ export class Numeric extends Base {
         clone.value_min = this.value_min;
         clone.value_step = this.value_step;
         if (this.presets) {
-            clone.presets = { ...this.presets };
+            clone.presets = {...this.presets};
         }
         return clone;
     }
@@ -462,11 +462,11 @@ export class Light extends Base {
         }
 
         [
-            { name: 'coolest', value: range[0], description: 'Coolest temperature supported' },
-            { name: 'cool', value: 250, description: 'Cool temperature (250 mireds / 4000 Kelvin)' },
-            { name: 'neutral', value: 370, description: 'Neutral temperature (370 mireds / 2700 Kelvin)' },
-            { name: 'warm', value: 454, description: 'Warm temperature (454 mireds / 2200 Kelvin)' },
-            { name: 'warmest', value: range[1], description: 'Warmest temperature supported' },
+            {name: 'coolest', value: range[0], description: 'Coolest temperature supported'},
+            {name: 'cool', value: 250, description: 'Cool temperature (250 mireds / 4000 Kelvin)'},
+            {name: 'neutral', value: 370, description: 'Neutral temperature (370 mireds / 2700 Kelvin)'},
+            {name: 'warm', value: 454, description: 'Warm temperature (454 mireds / 2200 Kelvin)'},
+            {name: 'warmest', value: range[1], description: 'Warmest temperature supported'},
         ]
             .filter((p) => p.value >= range[0] && p.value <= range[1])
             .forEach((p) => feature.withPreset(p.name, p.value, p.description));
@@ -487,11 +487,11 @@ export class Light extends Base {
             .withDescription('Color temperature after cold power on of this light');
 
         [
-            { name: 'coolest', value: range[0], description: 'Coolest temperature supported' },
-            { name: 'cool', value: 250, description: 'Cool temperature (250 mireds / 4000 Kelvin)' },
-            { name: 'neutral', value: 370, description: 'Neutral temperature (370 mireds / 2700 Kelvin)' },
-            { name: 'warm', value: 454, description: 'Warm temperature (454 mireds / 2200 Kelvin)' },
-            { name: 'warmest', value: range[1], description: 'Warmest temperature supported' },
+            {name: 'coolest', value: range[0], description: 'Coolest temperature supported'},
+            {name: 'cool', value: 250, description: 'Cool temperature (250 mireds / 4000 Kelvin)'},
+            {name: 'neutral', value: 370, description: 'Neutral temperature (370 mireds / 2700 Kelvin)'},
+            {name: 'warm', value: 454, description: 'Warm temperature (454 mireds / 2200 Kelvin)'},
+            {name: 'warmest', value: range[1], description: 'Warmest temperature supported'},
         ]
             .filter((p) => p.value >= range[0] && p.value <= range[1])
             .forEach((p) => feature.withPreset(p.name, p.value, p.description));
@@ -851,7 +851,9 @@ export const options = {
             )
             .withAdditionalExposes([
                 new Numeric('color_temperature', access.STATE).withUnit('midred').withDescription('Current simulated midred value.'),
-                new Numeric('action_color_temperature_delta', access.STATE).withUnit('midred').withDescription('Action step size for color temperature.'),
+                new Numeric('action_color_temperature_delta', access.STATE)
+                    .withUnit('midred')
+                    .withDescription('Action step size for color temperature.'),
             ])
             .withDescription('Simulate a color temperature in midred with minimum and maximum value and a delta value '),
     no_occupancy_since_true: () =>

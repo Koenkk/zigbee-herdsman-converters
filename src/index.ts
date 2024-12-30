@@ -1,16 +1,16 @@
-import type { Binary, Climate, Composite, Cover, Enum, Fan, Feature, Light, List, Lock, Numeric, Switch, Text } from './lib/exposes';
+import type {Binary, Climate, Composite, Cover, Enum, Fan, Feature, Light, List, Lock, Numeric, Switch, Text} from './lib/exposes';
 
 import assert from 'assert';
 
-import { Zcl } from 'zigbee-herdsman';
+import {Zcl} from 'zigbee-herdsman';
 
 import fromZigbee from './converters/fromZigbee';
 import toZigbee from './converters/toZigbee';
 import allDefinitions from './devices';
 import * as configureKey from './lib/configureKey';
 import * as exposesLib from './lib/exposes';
-import { Enum as EnumClass } from './lib/exposes';
-import { generateDefinition } from './lib/generateDefinition';
+import {Enum as EnumClass} from './lib/exposes';
+import {generateDefinition} from './lib/generateDefinition';
 import * as logger from './lib/logger';
 import {
     Configure,
@@ -290,7 +290,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             };
         }
 
-        definition = { toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend };
+        definition = {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
     }
 
     return definition;
@@ -588,7 +588,6 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
     // 23 works, 200 doesn't
     if (device.manufacturerID === Zcl.ManufacturerCode.LEGRAND_GROUP && !device.customReadResponse) {
         device.customReadResponse = (frame, endpoint) => {
-
             if (frame.isCluster('genBasic') && frame.payload.find((i: {attrId: number}) => i.attrId === 61440)) {
                 const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
                 const payload = {0xf000: {value: 23, type: 35}};
