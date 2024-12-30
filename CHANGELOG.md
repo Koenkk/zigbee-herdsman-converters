@@ -1,5 +1,27 @@
 # Changelog
 
+## [21.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.10.0...v21.11.0) (2024-12-30)
+
+
+### Features
+
+* **add:** 050-0131558M, 050-1212558H ([#8523](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8523)) ([042c4bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/042c4bc731ab549fd11ac2b29517f2e9d4c5b431))
+* **add:** FC600 ([#8528](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8528)) ([54d802e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/54d802eb41f1635a066d868604f8ebfefae0d434))
+* **add:** ROB_200-081-0 ([#8539](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8539)) ([867d9a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/867d9a4380017e43328907bab3630d53e0faf300))
+* **add:** SR-ZG2835RAC-NK4 ([#8540](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8540)) ([484ade6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/484ade6ee994da1f20e8025e5898edb957c16be8))
+* **add:** SR-ZG2836D5 ([#8541](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8541)) ([0062a4f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0062a4f04f9fb8d0d14493a890e1d58cddbee7da))
+* **add:** TH01 https://github.com/Koenkk/zigbee2mqtt/issues/25365 ([c5041a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c5041a2ea4cc6b1b21c0060790b06ba76eec55b2))
+* **add:** TR-M3Z ([#8542](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8542)) ([e5c89cb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e5c89cbf16430bc36fd71896aca54cccd5743e6a))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_locansqn` as Nous SZ-T04 ([#8536](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8536)) ([23b81a3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/23b81a3a365d4b6be94d97962d27ba164a0ae2c7))
+* **detect:** Detect `RBSH-SWD2-ZB` as Bosch BSEN-C2 ([#8530](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8530)) ([bcfb7f7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bcfb7f728969e804c06e48a5c555250ba50afe1d))
+* Fix read pilot wire mode for Nodon and Equation modules ([#8535](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8535)) ([6c75e42](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6c75e42ac377957f5ca660697c16daa541a7ecb4))
+* **ignore:** update dependencies ([#8531](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8531)) ([786c59b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/786c59b5d7d0b9f1b1022b8919455a205d20b9d5))
+* Update zigbee-herdsman and use new exports ([#8527](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8527)) ([b8a076e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b8a076e30515399ba2f1caaa38cf93d51b2e073a))
+
 ## [21.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.9.2...v21.10.0) (2024-12-28)
 
 
