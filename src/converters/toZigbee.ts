@@ -335,13 +335,13 @@ const converters2 = {
             // If no pin code is provided, value is a only string. Ex: "UNLOCK"
             let state = utils.isString(value) ? value.toUpperCase() : null;
             let pincode = '';
-            // If pin code is provided, value is an object including command and code. Ex: {command: "UNLOCK", code: "1234"}
+            // If pin code is provided, value is an object including new state and code. Ex: {state: "UNLOCK", code: "1234"}
             if (utils.isObject(value)) {
                 if (value.code) {
                     pincode = utils.isString(value.code) ? value.code : '';
                 }
-                if (value.command) {
-                    state = utils.isString(value.command) ? value.command.toUpperCase() : null;
+                if (value.state) {
+                    state = utils.isString(value.state) ? value.state.toUpperCase() : null;
                 }
             }
             utils.validateValue(state, ['LOCK', 'UNLOCK', 'TOGGLE']);
