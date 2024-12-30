@@ -1,10 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* TODO : remove eslint-disable when dev is done */
-
 import {Zcl} from 'zigbee-herdsman';
 import {ClusterDefinition} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
 
-import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import {
@@ -15,14 +11,14 @@ import {
     deviceAddCustomCluster,
     deviceEndpoints,
     enumLookup,
-    forcePowerSource,
+    // forcePowerSource,
     identify,
     light,
     numeric,
     onOff,
     windowCovering,
 } from '../lib/modernExtend';
-import {DefinitionWithExtend, KeyValue, KeyValueAny, ModernExtend, OnEvent, Tz} from '../lib/types';
+import {DefinitionWithExtend, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 // #region Constants
@@ -30,7 +26,7 @@ import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.YOKIS};
+// const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.YOKIS};
 const NS = 'zhc:yokis';
 
 // stateAfterBlinkEnum (manuSpecificYokisLightControl)
@@ -547,13 +543,13 @@ const yokisExtendChecks = {
             throw new Error(`NOT_OBJECT`);
         }
 
-        if (!('uc_OpeningTime' in input) || !utils.isNumber(input.uc_OpeningTime)) {
+        if (!('opening_time' in input) || !utils.isNumber(input.opening_time)) {
             throw new Error(`INVALID_OPENNETWORK_OPENINGTIME`);
         }
 
         return {
             payload: {
-                uc_OpeningTime: input.uc_OpeningTime,
+                uc_OpeningTime: input.opening_time,
             },
         };
     },
@@ -562,13 +558,13 @@ const yokisExtendChecks = {
             throw new Error(`NOT_OBJECT`);
         }
 
-        if (!('uc_InputMode' in input) || !Object.keys(inputModeEnum).includes(input.uc_InputMode)) {
+        if (!('select_input_mode' in input) || !Object.keys(inputModeEnum).includes(input.select_input_mode)) {
             throw new Error(`INVALID_INPUTMODE`);
         }
 
         return {
             payload: {
-                uc_InputMode: utils.getFromLookup(input.uc_InputMode, inputModeEnum),
+                uc_InputMode: utils.getFromLookup(input.select_input_mode, inputModeEnum),
             },
         };
     },
@@ -577,43 +573,43 @@ const yokisExtendChecks = {
             throw new Error(`NOT_OBJECT`);
         }
 
-        if (!('uc_BrightnessStart' in input) || !utils.isNumber(input.uc_BrightnessStart)) {
+        if (!('brightness_start' in input) || !utils.isNumber(input.brightness_start)) {
             throw new Error(`INVALID_MOVE_BRIGHTNESSSTART`);
         }
 
-        if (!('uc_BrightnessEnd' in input) || !utils.isNumber(input.uc_BrightnessEnd)) {
+        if (!('brightness_end' in input) || !utils.isNumber(input.brightness_end)) {
             throw new Error(`INVALID_MOVE_BRIGHTNESSEND`);
         }
 
-        if (!('ul_PreTimerValue' in input) || !utils.isNumber(input.ul_PreTimerValue)) {
+        if (!('pre_timer_value' in input) || !utils.isNumber(input.pre_timer_value)) {
             throw new Error(`INVALID_MOVE_PRETIMERVALUE`);
         }
 
-        if (!('b_PreTimerEnable' in input) || !utils.isBoolean(input.b_PreTimerEnable)) {
+        if (!('enable_pre_timer' in input) || !utils.isBoolean(input.enable_pre_timer)) {
             throw new Error(`INVALID_MOVE_PRETIMERENABLE`);
         }
 
-        if (!('ul_TimerValue' in input) || !utils.isNumber(input.ul_TimerValue)) {
+        if (!('timer_value' in input) || !utils.isNumber(input.timer_value)) {
             throw new Error(`INVALID_MOVE_TIMERVALUE`);
         }
 
-        if (!('b_TimerEnable' in input) || !utils.isBoolean(input.b_TimerEnable)) {
+        if (!('enable_timer' in input) || !utils.isBoolean(input.enable_timer)) {
             throw new Error(`INVALID_MOVE_TIMERENABLE`);
         }
 
-        if (!('ul_TransitionTime' in input) || !utils.isNumber(input.ul_TransitionTime)) {
+        if (!('transition_time' in input) || !utils.isNumber(input.transition_time)) {
             throw new Error(`INVALID_MOVE_TRANSITIONTIME`);
         }
 
         return {
             payload: {
-                uc_BrightnessStart: input.uc_BrightnessStart,
-                uc_BrightnessEnd: input.uc_BrightnessEnd,
-                ul_PreTimerValue: input.ul_PreTimerValue,
-                b_PreTimerEnable: input.b_PreTimerEnable ? 1 : 0,
-                ul_TimerValue: input.ul_TimerValue,
-                b_TimerEnable: input.b_TimerEnable ? 1 : 0,
-                ul_TransitionTime: input.ul_TransitionTime,
+                uc_BrightnessStart: input.brightness_start,
+                uc_BrightnessEnd: input.brightness_end,
+                ul_PreTimerValue: input.pre_timer_value,
+                b_PreTimerEnable: input.enable_pre_timer ? 1 : 0,
+                ul_TimerValue: input.timer_value,
+                b_TimerEnable: input.enable_timer ? 1 : 0,
+                ul_TransitionTime: input.transition_time,
             },
         };
     },
@@ -622,33 +618,33 @@ const yokisExtendChecks = {
             throw new Error(`NOT_OBJECT`);
         }
 
-        if (!('uc_BlinkAmount' in input) || !utils.isNumber(input.uc_BlinkAmount)) {
+        if (!('blink_amount' in input) || !utils.isNumber(input.blink_amount)) {
             throw new Error(`INVALID_BLINK_BLINKAMOUNT`);
         }
 
-        if (!('ul_BlinkOnPeriod' in input) || !utils.isNumber(input.ul_BlinkOnPeriod)) {
+        if (!('blink_on_period' in input) || !utils.isNumber(input.blink_on_period)) {
             throw new Error(`INVALID_BLINK_BLINKONPERIOD`);
         }
 
-        if (!('ul_BlinkOffPeriod' in input) || !utils.isNumber(input.ul_BlinkOffPeriod)) {
+        if (!('blink_off_period' in input) || !utils.isNumber(input.blink_off_period)) {
             throw new Error(`INVALID_BLINK_BLINKOFFPERIOD`);
         }
 
-        if (!('uc_StateAfterSequence' in input)) {
+        if (!('state_after_sequence' in input) || !Object.keys(stateAfterBlinkEnum).includes(input.state_after_sequence)) {
             throw new Error(`MISSING_BLINK_STATEAFTERSEQUENCE`);
         }
 
-        if (!('b_DoPeriodicCycle' in input) || !utils.isBoolean(input.b_DoPeriodicCycle)) {
+        if (!('do_periodic_cycle' in input) || !utils.isBoolean(input.do_periodic_cycle)) {
             throw new Error(`INVALID_BLINK_DOPERIODICYCLE`);
         }
 
         return {
             payload: {
-                uc_BlinkAmount: input.uc_BlinkAmount,
-                ul_BlinkOnPeriod: input.ul_BlinkOnPeriod,
-                ul_BlinkOffPeriod: input.ul_BlinkOffPeriod,
-                uc_StateAfterSequence: utils.getFromLookup(input.uc_StateAfterSequence, stateAfterBlinkEnum),
-                b_DoPeriodicCycle: input.b_DoPeriodicCycle ? 1 : 0,
+                uc_BlinkAmount: input.blink_amount,
+                ul_BlinkOnPeriod: input.blink_on_period,
+                ul_BlinkOffPeriod: input.blink_off_period,
+                uc_StateAfterSequence: utils.getFromLookup(input.state_after_sequence, stateAfterBlinkEnum),
+                b_DoPeriodicCycle: input.do_periodic_cycle ? 1 : 0,
             },
         };
     },
@@ -657,13 +653,13 @@ const yokisExtendChecks = {
             throw new Error(`NOT_OBJECT`);
         }
 
-        if (!('pulseLength' in input) || !utils.isNumber(input.pulseLength)) {
+        if (!('pulse_length' in input) || !utils.isNumber(input.pulse_length)) {
             throw new Error(`INVALID_PULSE_PULSELENGTH`);
         }
 
         return {
             payload: {
-                PulseLength: input.pulseLength,
+                PulseLength: input.pulse_length,
             },
         };
     },
@@ -672,19 +668,19 @@ const yokisExtendChecks = {
             throw new Error(`NOT_OBJECT`);
         }
 
-        if (!('uc_BlinkAmount' in input) || !utils.isNumber(input.uc_BlinkAmount)) {
+        if (!('blink_amount' in input) || !utils.isNumber(input.blink_amount)) {
             throw new Error(`INVALID_BLINK_AMOUNT`);
         }
 
-        if (!('uc_BlinkAmount' in input) || !utils.isNumber(input.ul_BlinkOnTime)) {
+        if (!('blink_on_time' in input) || !utils.isNumber(input.blink_on_time)) {
             throw new Error(`INVALID_BLINK_ONTIME`);
         }
 
-        if (!('uc_BlinkAmount' in input) || !utils.isNumber(input.uc_SequenceAmount)) {
+        if (!('sequence_amount' in input) || !utils.isNumber(input.sequence_amount)) {
             throw new Error(`INVALID_SEQUENCE_AMOUNT`);
         }
 
-        if (input.tuc_BlinkAmount && Array.isArray(input.tuc_BlinkAmount)) {
+        if (input.sequence_of_blinks && Array.isArray(input.sequence_of_blinks)) {
             // if (input.uc_SequenceAmount < input.tuc_BlinkAmount.length) {
             //     // more sequences configured than expected, pop extragenous
             //     for(let i = 0; i < input.tuc_BlinkAmount.length - input.uc_SequenceAmount; i++) {
@@ -700,7 +696,7 @@ const yokisExtendChecks = {
             // }
 
             // Updating number of elements
-            input.uc_SequenceAmount = input.tuc_BlinkAmount.length;
+            input.sequence_amount = input.sequence_of_blinks.length;
         } else {
             throw new Error(`INVALID_TUC_BLINKAMOUNT`);
         }
@@ -711,11 +707,10 @@ const yokisExtendChecks = {
 
         return {
             payload: {
-                uc_BlinkAmount: input.uc_BlinkAmount,
-                ul_BlinkOnTime: input.ul_BlinkOnTime,
-                uc_SequenceAmount: input.tuc_BlinkAmount.length,
-                // [{"undefined":1},{"undefined":1}] > [1,1]
-                tuc_BlinkAmount: input.tuc_BlinkAmount.map((elem) => (typeof elem === 'object' ? Object.values(elem).shift() : elem)),
+                uc_BlinkAmount: input.blink_amount,
+                ul_BlinkOnTime: input.blink_on_time,
+                uc_SequenceAmount: input.sequence_of_blinks.length,
+                tuc_BlinkAmount: input.sequence_of_blinks.map((elem) => (typeof elem === 'object' ? Object.values(elem).shift() : elem)), // [{"undefined":1},{"undefined":1}] > [1,1]
             },
         };
     },
@@ -726,13 +721,13 @@ const yokisExtendChecks = {
             throw new Error(`NOT_OBJECT`);
         }
 
-        if (!('ul_RampContinuousDuration' in input) || !utils.isNumber(input.ul_RampContinuousDuration)) {
+        if (!('ramp_continuous_duration' in input) || !utils.isNumber(input.ramp_continuous_duration)) {
             _ul_RampContinuousDuration = 0xffffffff; // use default value
-        } else _ul_RampContinuousDuration = input.ul_RampContinuousDuration;
+        } else _ul_RampContinuousDuration = input.ramp_continuous_duration;
 
-        if (!('uc_StepContinuous' in input) || !utils.isNumber(input.uc_StepContinuous)) {
+        if (!('step_continuous' in input) || !utils.isNumber(input.step_continuous)) {
             _uc_StepContinuous = 0xff; // use default value
-        } else _uc_StepContinuous = input.uc_StepContinuous;
+        } else _uc_StepContinuous = input.step_continuous;
 
         return {
             payload: {
@@ -748,9 +743,9 @@ const yokisExtendChecks = {
             throw new Error(`NOT_OBJECT`);
         }
 
-        if (!('ul_TransitionTime' in input) || !utils.isNumber(input.ul_TransitionTime)) {
+        if (!('transition_time' in input) || !utils.isNumber(input.transition_time)) {
             _ul_TransitionTime = 0xffffffff; // use default value
-        } else _ul_TransitionTime = input.ul_TransitionTime;
+        } else _ul_TransitionTime = input.transition_time;
 
         if (!('action' in input)) {
             throw new Error(`MISSING_ACTION`);
@@ -777,29 +772,29 @@ const yokisExtendChecks = {
             throw new Error(`NOT_OBJECT`);
         }
 
-        if (!('ul_ChildModeStartingDelay' in input) || !utils.isNumber(input.ul_ChildModeStartingDelay)) {
+        if (!('childmode_starting_delay' in input) || !utils.isNumber(input.childmode_starting_delay)) {
             _ul_ChildModeStartingDelay = 0xffffffff; // use default value
-        } else _ul_ChildModeStartingDelay = input.ul_ChildModeStartingDelay;
+        } else _ul_ChildModeStartingDelay = input.childmode_starting_delay;
 
-        if (!('uc_ChildModeBrightnessStart' in input) || !utils.isNumber(input.uc_ChildModeBrightnessStart)) {
+        if (!('childmode_brightness_start' in input) || !utils.isNumber(input.childmode_brightness_start)) {
             _uc_ChildModeBrightnessStart = 0xff; // use default value
-        } else _uc_ChildModeBrightnessStart = input.uc_ChildModeBrightnessStart;
+        } else _uc_ChildModeBrightnessStart = input.childmode_brightness_start;
 
-        if (!('uc_ChildModeBrightnessEnd' in input) || !utils.isNumber(input.uc_ChildModeBrightnessEnd)) {
+        if (!('childmode_brightness_end' in input) || !utils.isNumber(input.childmode_brightness_end)) {
             _uc_ChildModeBrightnessEnd = 0xff; // use default value
-        } else _uc_ChildModeBrightnessEnd = input.uc_ChildModeBrightnessEnd;
+        } else _uc_ChildModeBrightnessEnd = input.childmode_brightness_end;
 
-        if (!('ul_ChildModeRampDuration' in input) || !utils.isNumber(input.ul_ChildModeRampDuration)) {
+        if (!('childmode_ramp_duration' in input) || !utils.isNumber(input.childmode_ramp_duration)) {
             _ul_ChildModeRampDuration = 0xffffffff; // use default value
-        } else _ul_ChildModeRampDuration = input.ul_ChildModeRampDuration;
+        } else _ul_ChildModeRampDuration = input.childmode_ramp_duration;
 
-        if (!('ul_ChildModeOnDuration' in input) || !utils.isNumber(input.ul_ChildModeOnDuration)) {
+        if (!('childmode_on_duration' in input) || !utils.isNumber(input.childmode_on_duration)) {
             _ul_ChildModeOnDuration = 0xffffffff; // use default value
-        } else _ul_ChildModeOnDuration = input.ul_ChildModeOnDuration;
+        } else _ul_ChildModeOnDuration = input.childmode_on_duration;
 
-        if (!('uc_ChildStep' in input) || !utils.isNumber(input.uc_ChildStep)) {
+        if (!('childmode_step' in input) || !utils.isNumber(input.childmode_step)) {
             _uc_ChildStep = 0xff; // use default value
-        } else _uc_ChildStep = input.uc_ChildStep;
+        } else _uc_ChildStep = input.childmode_step;
 
         return {
             payload: {
@@ -823,13 +818,13 @@ const yokisExtendChecks = {
 const yokisCommandsExtend = {
     resetToFactorySettings: (): ModernExtend => {
         const exposes = e
-            .enum('uc_ResetAction', ea.SET, Object.keys(resetActionEnum))
-            .withDescription('Ititiate long duration on')
+            .enum('reset_to_factory_settings', ea.SET, Object.keys(resetActionEnum))
+            .withDescription('Reset setting depending on RESET ACTION value')
             .withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['uc_ResetAction'],
+                key: ['reset_to_factory_settings'],
                 convertSet: async (entity, key, value: string, meta) => {
                     const commandWrapper = yokisExtendChecks.parseResetInput(value);
 
@@ -848,13 +843,13 @@ const yokisCommandsExtend = {
     },
     relaunchBleAdvert: (): ModernExtend => {
         const exposes = e
-            .enum('RelaunchBleAdvert', ea.SET, ['RelaunchBle'])
+            .enum('relaunch_ble_advert', ea.SET, ['relaunch_ble_advert'])
             .withDescription('Relaunch BLE advertising for 15 minutes')
             .withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['RelaunchBleAdvert'],
+                key: ['relaunch_ble_advert'],
                 convertSet: async (entity, key, value, meta) => {
                     yokisExtendChecks.log(key, value);
                     await entity.command('manuSpecificYokisDevice', 'relaunchBleAdvert', {});
@@ -870,11 +865,11 @@ const yokisCommandsExtend = {
     },
     openNetwork: (): ModernExtend => {
         const exposes = e
-            .composite('OpenNetworkCommand', 'OpenNetworkProp', ea.SET)
+            .composite('open_network_command', 'open_network_prop', ea.SET)
             .withDescription('Open ZigBee network')
             .withFeature(
                 e
-                    .numeric('uc_OpeningTime', ea.SET)
+                    .numeric('opening_time', ea.SET) //uc_OpeningTime
                     .withValueMin(0)
                     .withValueMax(255)
                     .withUnit('s')
@@ -884,7 +879,7 @@ const yokisCommandsExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['OpenNetworkProp'],
+                key: ['open_network_prop'],
                 convertSet: async (entity, key, value, meta) => {
                     const commandWrapper = yokisExtendChecks.parseOpenNetworkInput(value);
 
@@ -903,41 +898,53 @@ const yokisCommandsExtend = {
     },
     moveToPosition: (): ModernExtend => {
         const exposes = e
-            .composite('move_to_position_command', 'moveToPositionProp', ea.SET)
+            .composite('move_to_position_command', 'move_to_position_prop', ea.SET)
             .withDescription(
                 'Move to position specified in uc_BrightnessEnd parameter.' +
                     'If TOR mode is set (no dimming) or MTR : if uc_BrightnessEnd under 50% will set to OFF else will be set to ON',
             )
-            .withFeature(e.numeric('uc_BrightnessStart', ea.SET).withDescription(''))
-            .withFeature(e.numeric('uc_BrightnessEnd', ea.SET).withDescription(''))
             .withFeature(
                 e
-                    .numeric('ul_PreTimerValue', ea.SET)
+                    .numeric('brightness_start', ea.SET) // uc_BrightnessStart
+                    .withDescription('Define the brightness at the beginning of the transition, in %'),
+            )
+            .withFeature(
+                e
+                    .numeric('brightness_end', ea.SET) // uc_BrightnessEnd
+                    .withDescription('Define the brightness at the end of the transition, in %'),
+            )
+            .withFeature(
+                e
+                    .numeric('pre_timer_value', ea.SET) // ul_PreTimerValue
                     .withUnit('s')
-                    .withDescription('If defined will force the pretimer value (only for this order) if not the device will use its own value.'),
+                    .withDescription('Define the pre timer value, otherwise use 0xFFFFFFFF to use the one configured in the product'),
             )
             .withFeature(
                 e
-                    .binary('b_PreTimerEnable', ea.SET, true, false)
-                    .withDescription('If defined will force the pretimer use (only for this order) if not the device will use its own value.'),
+                    .binary('enable_pre_timer', ea.SET, true, false) // b_PreTimerEnable
+                    .withDescription('Define whether the device should use the pre timer or not, if 0xFF then use the one configured in product'),
             )
             .withFeature(
                 e
-                    .numeric('ul_TimerValue', ea.SET)
+                    .numeric('timer_value', ea.SET) // ul_TimerValue
                     .withUnit('s')
-                    .withDescription('If defined will force the OnTimer value (only for this order) if not the device will use its own value.'),
+                    .withDescription('Define the timer ON value, otherwise use 0xFFFFFFFF to use the one configured in the product'),
             )
             .withFeature(
                 e
-                    .binary('b_TimerEnable', ea.SET, true, false)
-                    .withDescription('If defined will force the OnTimer use (only for this order) if not the device will use its own value.'),
+                    .binary('enable_timer', ea.SET, true, false) // b_TimerEnable
+                    .withDescription('Define whether the device should use the timer ON or not, if 0xFF then use the one configured in product'),
             )
-            .withFeature(e.numeric('ul_TransitionTime', ea.SET).withDescription(''))
+            .withFeature(
+                e
+                    .numeric('transition_time', ea.SET) // ul_TransitionTime
+                    .withDescription('Define the transition time from the brightness start to the brightness end, in ms'),
+            )
             .withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['moveToPositionProp'],
+                key: ['move_to_position_prop'],
                 convertSet: async (entity, key, value, meta) => {
                     // const options = utils.getOptions(meta.mapped, entity);
                     // logger.debug('Invoked converter with options:' + JSON.stringify(options));
@@ -946,7 +953,6 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                    // NB: we are using the Cluster name defined in ZH over Cluster hexcode (due to conflict on cluster ID)
                     await entity.command('manuSpecificYokisLightControl', 'moveToPosition', commandWrapper.payload);
                 },
             },
@@ -960,38 +966,42 @@ const yokisCommandsExtend = {
     },
     blink: (): ModernExtend => {
         const exposes = e
-            .composite('blink_command', 'blinkProp', ea.SET)
+            .composite('blink_command', 'blink_prop', ea.SET)
             .withDescription('With this command, the module is asked to perform a blinking sequence.')
             .withFeature(
                 e
-                    .numeric('uc_BlinkAmount', ea.SET)
+                    .numeric('blink_amount', ea.SET) // uc_BlinkAmount
                     .withDescription(
-                        'If defined will force the number of blink to be done (only for this order).' + 'if not the device will use its own value.',
+                        'If defined will force the number of blink to be done (only for this order) if not the device will use its own value.',
                     ),
             )
             .withFeature(
                 e
-                    .numeric('ul_BlinkOnPeriod', ea.SET)
+                    .numeric('blink_on_period', ea.SET) // ul_BlinkOnPeriod
                     .withDescription('If defined will force the blink’s “on time” (only for this order) if not the device will use its own value.'),
             )
             .withFeature(
                 e
-                    .numeric('ul_BlinkOffPeriod', ea.SET)
+                    .numeric('blink_off_period', ea.SET) // ul_BlinkOffPeriod
                     .withDescription('If defined will force the blink’s “off time” (only for this order) if not the device will use its own value.'),
             )
             .withFeature(
                 e
-                    .enum('uc_StateAfterSequence', ea.SET, Object.keys(stateAfterBlinkEnum))
+                    .enum('state_after_sequence', ea.SET, Object.keys(stateAfterBlinkEnum)) // uc_StateAfterSequence
                     .withDescription(
-                        'If defined will force the state after the sequence (only for this order).' + 'if not the device will use its own value-',
+                        'If defined will force the state after the sequence (only for this order). if not the device will use its own value-',
                     ),
             )
-            .withFeature(e.binary('b_DoPeriodicCycle', ea.SET, true, false).withDescription('If set to true the blinking will be “infinite”'))
+            .withFeature(
+                e
+                    .binary('do_periodic_cycle', ea.SET, true, false) // b_DoPeriodicCycle
+                    .withDescription('If set to true the blinking will be “infinite”'),
+            )
             .withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['blinkProp'],
+                key: ['blink_prop'],
                 convertSet: async (entity, key, value, meta) => {
                     const commandWrapper = yokisExtendChecks.parseBlinkInput(value);
 
@@ -1010,14 +1020,20 @@ const yokisCommandsExtend = {
     },
     pulse: (): ModernExtend => {
         const exposes = e
-            .composite('pulse_command', 'pulseProp', ea.SET)
+            .composite('pulse_command', 'pulse_prop', ea.SET)
             .withDescription('This command allows the relay to be controlled with an impulse. The pulse time is defined by PulseLength')
-            .withFeature(e.numeric('pulseLength', ea.SET).withValueMax(65535).withUnit('ms').withDescription('Pulse length'))
+            .withFeature(
+                e
+                    .numeric('pulse_length', ea.SET) // pulseLength
+                    .withValueMax(65535)
+                    .withUnit('ms')
+                    .withDescription('Pulse length'),
+            )
             .withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['pulseProp'],
+                key: ['pulse_prop'],
                 convertSet: async (entity, key, value, meta) => {
                     const commandWrapper = yokisExtendChecks.parsePulseInput(value);
 
@@ -1036,24 +1052,23 @@ const yokisCommandsExtend = {
     },
     deafBlink: (): ModernExtend => {
         const exposes = e
-            .composite('deaf_blink_command', 'deafBlinkProp', ea.SET)
+            .composite('deaf_blink_command', 'deaf_blink_prop', ea.SET)
             .withDescription('Start a deaf sequene on a device only if the attribute “eDeaf” is set to Enable')
             .withFeature(
                 e
-                    .numeric('uc_BlinkAmount', ea.SET)
+                    .numeric('blink_amount', ea.SET) // uc_BlinkAmount
                     .withDescription(
-                        'If defined will force the number of blink to be done during one sequence (only for this order).' +
-                            'if not the device will use its own value',
+                        'If defined will force the number of blink to be done during one sequence (only for this order) if not the device will use its own value',
                     ),
             )
             .withFeature(
                 e
-                    .numeric('ul_BlinkOnTime', ea.SET)
+                    .numeric('blink_on_time', ea.SET) // ul_BlinkOnTime
                     .withDescription('If defined will force the blink’s “on time” (only for this order) if not the device will use its own value'),
             )
             .withFeature(
                 e
-                    .numeric('uc_SequenceAmount', ea.STATE)
+                    .numeric('sequence_amount', ea.STATE) // uc_SequenceAmount
                     .withValueMin(0)
                     .withValueMax(6)
                     .withDescription('If defined will set the number of sequence to be done. Each sequence is spaced by 1 second. (Max 6)'),
@@ -1061,11 +1076,11 @@ const yokisCommandsExtend = {
             .withFeature(
                 e
                     .list(
-                        'tuc_BlinkAmount',
+                        'sequence_of_blinks', // tuc_BlinkAmount
                         ea.SET,
                         e
                             .composite('uc_BlinkAmountItems', 'uc_BlinkAmountItems', ea.SET)
-                            .withLabel('')
+                            .withLabel('Number of blink items for the sequence')
                             .withFeature(e.numeric('uc_BlinkAmountItem', ea.SET).withLabel('Blinks')),
                     )
                     .withLengthMin(0)
@@ -1076,15 +1091,13 @@ const yokisCommandsExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['deafBlinkProp'],
+                key: ['deaf_blink_prop'],
                 convertSet: async (entity, key, value, meta) => {
                     const commandWrapper = yokisExtendChecks.parseDeafBlinkPropInput(value);
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);
 
                     await entity.command('manuSpecificYokisLightControl', 'deafBlink', commandWrapper.payload);
-
-                    // return {state: {deafBlinkProp: commandWrapper.value}};
                 },
             },
         ];
@@ -1096,11 +1109,14 @@ const yokisCommandsExtend = {
         };
     },
     longOnCommand: (): ModernExtend => {
-        const exposes = e.enum('longOnCommand', ea.SET, ['longOnAction']).withDescription('Ititiate long duration on').withCategory('config');
+        const exposes = e
+            .enum('long_on_command', ea.SET, ['longOnAction'])
+            .withDescription('Switch output ON for LONG ON DURATION time')
+            .withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['longOnCommand'],
+                key: ['long_on_command'],
                 convertSet: async (entity, key, value, meta) => {
                     yokisExtendChecks.log(key, value);
                     await entity.command('manuSpecificYokisLightControl', 'longOn', {});
@@ -1116,13 +1132,13 @@ const yokisCommandsExtend = {
     },
     sendPress: (): ModernExtend => {
         const exposes = e
-            .enum('SendPress', ea.SET, ['SendPress'])
+            .enum('send_press', ea.SET, ['SendPress'])
             .withDescription('Send to the server cluster a button press')
             .withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['SendPress'],
+                key: ['send_press'],
                 convertSet: async (entity, key, value, meta) => {
                     yokisExtendChecks.log(key, value);
                     await entity.command('manuSpecificYokisDevice', 'sendPress', {});
@@ -1138,13 +1154,13 @@ const yokisCommandsExtend = {
     },
     sendRelease: (): ModernExtend => {
         const exposes = e
-            .enum('SendRelease', ea.SET, ['SendRelease'])
+            .enum('send_release', ea.SET, ['SendRelease'])
             .withDescription('Send to the server cluster a button release')
             .withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['SendRelease'],
+                key: ['send_release'],
                 convertSet: async (entity, key, value, meta) => {
                     yokisExtendChecks.log(key, value);
                     await entity.command('manuSpecificYokisDevice', 'sendRelease', {});
@@ -1160,13 +1176,13 @@ const yokisCommandsExtend = {
     },
     selectInputMode: (): ModernExtend => {
         const exposes = e
-            .enum('uc_InputMode', ea.SET, Object.keys(inputModeEnum))
+            .enum('select_input_mode', ea.SET, Object.keys(inputModeEnum))
             .withDescription('Change the Input mode to use switch input, wired relay or simple push button')
             .withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['uc_InputMode'],
+                key: ['select_input_mode'],
                 convertSet: async (entity, key, value, meta) => {
                     const commandWrapper = yokisExtendChecks.parseInputModeInput(value);
 
@@ -1185,11 +1201,11 @@ const yokisCommandsExtend = {
     },
     dimmerDim: (): ModernExtend => {
         const exposes = e
-            .composite('dimmer_dim_command', 'dimProp', ea.SET)
+            .composite('dimmer_loop_command', 'dimmer_prop', ea.SET)
             .withDescription('Start the dimming loop process for the selected duration.')
             .withFeature(
                 e
-                    .numeric('ul_RampContinuousDuration', ea.SET)
+                    .numeric('ramp_continuous_duration', ea.SET) // ul_RampContinuousDuration
                     .withUnit('ms')
                     .withDescription(
                         'Set the duration of the ramp for the continuous variation, otherwise use 0xFFFFFFFF to use the one configured in the product',
@@ -1197,7 +1213,7 @@ const yokisCommandsExtend = {
             )
             .withFeature(
                 e
-                    .numeric('uc_StepContinuous', ea.SET)
+                    .numeric('step_continuous', ea.SET) // uc_StepContinuous
                     .withUnit('s')
                     .withDescription('Set the step size, otherwise use 0xFF to use the one configured in the product. Value is in %'),
             )
@@ -1205,7 +1221,7 @@ const yokisCommandsExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['dimProp'],
+                key: ['dimmer_prop'],
                 convertSet: async (entity, key, value, meta) => {
                     // const options = utils.getOptions(meta.mapped, entity);
                     // logger.debug('Invoked converter with options:' + JSON.stringify(options));
@@ -1214,7 +1230,6 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                    // NB: we are using the Cluster name defined in ZH over Cluster hexcode (due to conflict on cluster ID)
                     await entity.command('manuSpecificYokisDimmer', 'dim', commandWrapper.payload);
                 },
             },
@@ -1228,11 +1243,11 @@ const yokisCommandsExtend = {
     },
     dimmerDimMinMax: (): ModernExtend => {
         const exposes = e
-            .composite('dimmer_dim_min_max_command', 'dimMinMaxProp', ea.SET)
+            .composite('dimmer_min_max_command', 'dimmer_min_max_prop', ea.SET)
             .withDescription('Start dimming to the min or max value set in the device')
             .withFeature(
                 e
-                    .numeric('ul_TransitionTime', ea.SET)
+                    .numeric('transition_time', ea.SET) // ul_TransitionTime
                     .withUnit('ms')
                     .withDescription(
                         'Set the transition time to the selected value, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms',
@@ -1243,7 +1258,7 @@ const yokisCommandsExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['dimMinMaxProp'],
+                key: ['dimmer_min_max_prop'],
                 convertSet: async (entity, key, value, meta) => {
                     // const options = utils.getOptions(meta.mapped, entity);
                     // logger.debug('Invoked converter with options:' + JSON.stringify(options));
@@ -1252,7 +1267,6 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                    // NB: we are using the Cluster name defined in ZH over Cluster hexcode (due to conflict on cluster ID)
                     await entity.command('manuSpecificYokisDimmer', commandWrapper.action, commandWrapper.payload);
                 },
             },
@@ -1265,11 +1279,11 @@ const yokisCommandsExtend = {
         };
     },
     dimmerUpDown: (): ModernExtend => {
-        const exposes = e.enum('DimmerUpDown', ea.SET, ['dimUp', 'dimDown']).withDescription('Dim up or Down').withCategory('config');
+        const exposes = e.enum('dimmer_Up_down_command', ea.SET, ['dimUp', 'dimDown']).withDescription('Dim up or Down').withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['DimmerUpDown'],
+                key: ['dimmer_Up_down_command'],
                 convertSet: async (entity, key, value: string, meta) => {
                     yokisExtendChecks.log(key, value);
                     await entity.command('manuSpecificYokisDimmer', value, {});
@@ -1285,13 +1299,13 @@ const yokisCommandsExtend = {
     },
     dimmerMoveToFavorite: (): ModernExtend => {
         const exposes = e
-            .enum('DimmerMoveToFavorite1', ea.SET, ['moveToFavorite1', 'moveToFavorite2', 'moveToFavorite3'])
+            .enum('dimmer_move_to_favorite', ea.SET, ['moveToFavorite1', 'moveToFavorite2', 'moveToFavorite3'])
             .withDescription('Start dimming to the favorite position 1, 2 or 3')
             .withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['DimmerMoveToFavorite1'],
+                key: ['dimmer_move_to_favorite'],
                 convertSet: async (entity, key, value: string, meta) => {
                     yokisExtendChecks.log(key, value);
                     await entity.command('manuSpecificYokisDimmer', value, {});
@@ -1307,13 +1321,13 @@ const yokisCommandsExtend = {
     },
     dimmerStartNightLightModeCurrent: (): ModernExtend => {
         const exposes = e
-            .enum('DimmerStarnightModeCurrent', ea.SET, ['startNightLightModeCurrent'])
+            .enum('dimmer_start_nightlight_command', ea.SET, ['startNightLightModeCurrent'])
             .withDescription('Trigger Starnight mode from the current diming value')
             .withCategory('config');
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['DimmerStarnightModeCurrent'],
+                key: ['dimmer_start_nightlight_command'],
                 convertSet: async (entity, key, value: string, meta) => {
                     yokisExtendChecks.log(key, value);
                     await entity.command('manuSpecificYokisDimmer', value, {});
@@ -1329,11 +1343,11 @@ const yokisCommandsExtend = {
     },
     dimmerStartNightLightMode: (): ModernExtend => {
         const exposes = e
-            .composite('dimmer_start_nightlight_mode_command', 'dimmerStartNightLightModeProp', ea.SET)
+            .composite('dimmer_start_nightlight_custom_command', 'dimmer_start_nightlight_custom_prop', ea.SET)
             .withDescription('Start the nightlight mode with the given parameters')
             .withFeature(
                 e
-                    .numeric('ul_ChildModeStartingDelay', ea.SET)
+                    .numeric('childmode_starting_delay', ea.SET) // ul_ChildModeStartingDelay
                     .withUnit('ms')
                     .withDescription(
                         'Set the starting delay value, used before the start of the nightlight, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms',
@@ -1341,7 +1355,7 @@ const yokisCommandsExtend = {
             )
             .withFeature(
                 e
-                    .numeric('uc_ChildModeBrightnessStart', ea.SET)
+                    .numeric('childmode_brightness_start', ea.SET) // uc_ChildModeBrightnessStart
                     .withUnit('%')
                     .withDescription(
                         'Set the brightness at the beginning of the ramp, otherwise use 0xFF to use the one configured in the product. Value is in %',
@@ -1349,7 +1363,7 @@ const yokisCommandsExtend = {
             )
             .withFeature(
                 e
-                    .numeric('uc_ChildModeBrightnessEnd', ea.SET)
+                    .numeric('childmode_brightness_end', ea.SET) // uc_ChildModeBrightnessEnd
                     .withUnit('%')
                     .withDescription(
                         'Set the brightness at the end of the ramp, otherwise use 0xFF to use the one configured in the product. Value is in %',
@@ -1357,13 +1371,13 @@ const yokisCommandsExtend = {
             )
             .withFeature(
                 e
-                    .numeric('ul_ChildModeRampDuration', ea.SET)
+                    .numeric('childmode_ramp_duration', ea.SET) // ul_ChildModeRampDuration
                     .withUnit('ms')
                     .withDescription('Set the ramp duration, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms'),
             )
             .withFeature(
                 e
-                    .numeric('ul_ChildModeOnDuration', ea.SET)
+                    .numeric('childmode_on_duration', ea.SET) // ul_ChildModeOnDuration
                     .withUnit('ms')
                     .withDescription(
                         'Set the total duration of the nightlight, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms',
@@ -1371,7 +1385,7 @@ const yokisCommandsExtend = {
             )
             .withFeature(
                 e
-                    .numeric('uc_ChildStep', ea.SET)
+                    .numeric('childmode_step', ea.SET) // uc_ChildStep
                     .withUnit('%')
                     .withDescription(
                         'Set the step size between each dim, otherwise use 0xFF to use the one configured in the product. Value is in %',
@@ -1381,7 +1395,7 @@ const yokisCommandsExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ['dimmerStartNightLightModeProp'],
+                key: ['dimmer_start_nightlight_custom_prop'],
                 convertSet: async (entity, key, value, meta) => {
                     const commandWrapper = yokisExtendChecks.parseStartNightLightMode(value);
 
@@ -1485,6 +1499,7 @@ const YokisInputExtend: ModernExtend[] = [
     yokisCommandsExtend.selectInputMode(),
 ];
 
+/* Pending checks for a specific device
 const YokisInputExtendWithBacklight: ModernExtend[] = [
     // BacklightIntensity
     numeric({
@@ -1499,6 +1514,7 @@ const YokisInputExtendWithBacklight: ModernExtend[] = [
 
     ...YokisInputExtend,
 ];
+*/
 
 const YokisEntryExtend: ModernExtend[] = [
     // eShortPress
@@ -2141,6 +2157,7 @@ const YokisWindowCoveringExtend: ModernExtend[] = [
     // TODO : Placeholder - pending documentation
 ];
 
+/* Pending checks for a specific device
 const YokisChannelExtend: ModernExtend[] = [
     // On/Off cluster mode
     enumLookup({
@@ -2262,6 +2279,11 @@ When a cluster is specified, the channel will only “control” the device bind
         entityCategory: 'config',
     }),
 ];
+*/
+
+const YokisLoadManagerExtend: ModernExtend[] = [
+    // TODO : Placeholder - pending documentation
+];
 
 const YokisPilotWireExtend: ModernExtend[] = [
     // TODO : Placeholder - pending documentation
@@ -2290,13 +2312,13 @@ const definitions: DefinitionWithExtend[] = [
             deviceAddCustomCluster('manuSpecificYokisStats', YokisClustersDefinition['manuSpecificYokisStats']), // Pending implementation
             onOff({powerOnBehavior: false}), // StartupOnOff is not supported
             identify(),
+            ...YokisSubSystemExtend,
             ...yokisLightControlExtend,
             ...YokisDeviceExtend,
-            // ...YokisInputExtend,
+            ...YokisInputExtend,
             ...YokisEntryExtend,
-            ...YokisSubSystemExtend,
-            // ...YokisLoadManagerExtend, // Pending implementation
-            // ...YokisStatsExtend, // Pending implementation
+            ...YokisLoadManagerExtend, // Pending implementation
+            ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2315,13 +2337,13 @@ const definitions: DefinitionWithExtend[] = [
             deviceAddCustomCluster('manuSpecificYokisStats', YokisClustersDefinition['manuSpecificYokisStats']), // Pending implementation
             onOff({powerOnBehavior: false}), // StartupOnOff is not supported
             identify(),
+            ...YokisSubSystemExtend,
             ...yokisLightControlExtend,
             ...YokisDeviceExtend,
-            // ...YokisInputExtend,
+            ...YokisInputExtend,
             ...YokisEntryExtend,
-            ...YokisSubSystemExtend,
-            // ...YokisLoadManagerExtend, // Pending implementation
-            // ...YokisStatsExtend, // Pending implementation
+            ...YokisLoadManagerExtend, // Pending implementation
+            ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2340,13 +2362,13 @@ const definitions: DefinitionWithExtend[] = [
             deviceAddCustomCluster('manuSpecificYokisStats', YokisClustersDefinition['manuSpecificYokisStats']), // Pending implementation
             onOff({powerOnBehavior: false}), // StartupOnOff is not supported
             identify(),
+            ...YokisSubSystemExtend,
             ...yokisLightControlExtend,
             ...YokisDeviceExtend,
-            // ...YokisInputExtend,
+            ...YokisInputExtend,
             ...YokisEntryExtend,
-            ...YokisSubSystemExtend,
-            // ...YokisLoadManagerExtend, // Pending implementation
-            // ...YokisStatsExtend, // Pending implementation
+            ...YokisLoadManagerExtend, // Pending implementation
+            ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2367,13 +2389,13 @@ const definitions: DefinitionWithExtend[] = [
             light({configureReporting: true, powerOnBehavior: false}), // StartupOnOff is not supported, TODO: review dimmer cluster instead
             identify(),
             ...yokisLightControlExtend,
-            ...YokisDeviceExtend,
-            // ...YokisInputExtend,
-            ...YokisEntryExtend,
             ...YokisSubSystemExtend,
             ...YokisDimmerExtend,
-            // ...YokisLoadManagerExtend, // Pending implementation
-            // ...YokisStatsExtend, // Pending implementation
+            ...YokisDeviceExtend,
+            ...YokisInputExtend,
+            ...YokisEntryExtend,
+            ...YokisLoadManagerExtend, // Pending implementation
+            ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2393,13 +2415,13 @@ const definitions: DefinitionWithExtend[] = [
             identify(),
             windowCovering({controls: ['lift']}),
             commandsWindowCovering(),
-            ...YokisDeviceExtend,
-            // ...YokisInputExtend,
-            // ...YokisEntryExtend,
-            // ...YokisSubSystemExtend,
+            ...YokisSubSystemExtend,
             ...YokisWindowCoveringExtend,
-            // ...YokisLoadManagerExtend, // Pending implementation
-            // ...YokisStatsExtend // Pending implementation
+            ...YokisDeviceExtend,
+            ...YokisInputExtend,
+            ...YokisEntryExtend,
+            ...YokisLoadManagerExtend, // Pending implementation
+            ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2424,6 +2446,7 @@ const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -2447,6 +2470,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -2470,6 +2495,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -2493,6 +2520,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -2516,6 +2545,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -2539,6 +2570,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -2562,6 +2595,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -2586,6 +2621,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -2610,6 +2647,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -2634,6 +2673,8 @@ const definitions: DefinitionWithExtend[] = [
             commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
         ],
     },
 ];
