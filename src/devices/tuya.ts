@@ -13746,15 +13746,10 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_eekpf0ft']),
-        zigbeeModel: ['TS0601'],
         model: 'TR-M3Z',
         vendor: 'Tuya',
-        description: 'Tuya ZigBee3.0 Thermostatic Radiator Valve Actuator',
-        extend: [],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        description: 'Thermostatic radiator valve actuator',
+        extend: [tuyaBase({dp: true})],
         exposes: [
             e.child_lock(),
             e.battery(),
