@@ -304,6 +304,7 @@ import wisdom from './wisdom';
 import woolley from './woolley';
 import woox from './woox';
 import wyze from './wyze';
+import xal from './xal';
 import xinghuoyuan from './xinghuoyuan';
 import xyzroe from './xyzroe';
 import yale from './yale';
@@ -622,6 +623,7 @@ export default [
     ...woolley,
     ...woox,
     ...wyze,
+    ...xal,
     ...xinghuoyuan,
     ...xyzroe,
     ...yale,
