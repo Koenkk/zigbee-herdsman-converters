@@ -5311,26 +5311,6 @@ const converters2 = {
             }
         },
     } satisfies Fz.Converter,
-    nodon_pilot_wire_mode: {
-        cluster: 'manuSpecificNodOnPilotWire',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload: KeyValueAny = {};
-            const mode = msg.data['mode'];
-
-            if (mode === 0x00) payload.pilot_wire_mode = 'off';
-            else if (mode === 0x01) payload.pilot_wire_mode = 'comfort';
-            else if (mode === 0x02) payload.pilot_wire_mode = 'eco';
-            else if (mode === 0x03) payload.pilot_wire_mode = 'frost_protection';
-            else if (mode === 0x04) payload.pilot_wire_mode = 'comfort_-1';
-            else if (mode === 0x05) payload.pilot_wire_mode = 'comfort_-2';
-            else {
-                logger.warning(`wrong mode : ${mode}`, NS);
-                payload.pilot_wire_mode = 'unknown';
-            }
-            return payload;
-        },
-    } satisfies Fz.Converter,
     TS110E: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
