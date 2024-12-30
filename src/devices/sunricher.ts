@@ -426,6 +426,13 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['ZG2837RAC-K4'],
+        model: 'SR-ZG2835RAC-NK4',
+        vendor: 'Sunricher',
+        description: '4-Key zigbee rotary & push button smart dimmer',
+        extend: [light(), electricityMeter()],
+    },
+    {
         zigbeeModel: ['ZG9032B'],
         model: 'SR-ZG9033TH',
         vendor: 'Sunricher',
