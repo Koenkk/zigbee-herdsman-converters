@@ -13744,6 +13744,113 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_eekpf0ft']),
+        zigbeeModel: ['TS0601'],
+        model: 'TR-M3Z',
+        vendor: 'Tuya',
+        description: 'Tuya ZigBee3.0 Thermostatic Radiator Valve Actuator',
+        extend: [],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.child_lock(),
+            e.battery(),
+            e.battery_low(),
+            e
+                .climate()
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withPreset(['manual', 'schedule', 'eco', 'comfort', 'frost_protection', 'holiday', 'off'])
+                .withSystemMode(['off', 'heat'], ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withLocalTemperatureCalibration(-9.5, 9.5, 0.5, ea.STATE_SET),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            e.eco_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e.comfort_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e.holiday_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e
+                .binary('window_detection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'Startup: when room temperature decreases by 3°C within 5 minutes, stop heating. ' +
+                        'Close: when room temperature rises by 3 degrees / 48 minutes later / manual (three ways). ' +
+                        'After the window opening mode is turned on, one of these three conditions can trigger to exit the window opening mode.',
+                ),
+            e.binary('window_open', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status CLOSE or OPEN '),
+            e
+                .binary('scale_protection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'If the heat sink is not fully opened within ' +
+                        'two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be ' +
+                        'able to be used. To ensure normal use of the heat sink, the controller will automatically open the valve fully every ' +
+                        'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
+                        'again.',
+                ),
+            e
+                .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
+                ),
+            e
+                .numeric('frost_protection_temperature', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withDescription(''),
+            e
+                .numeric('temperature_accuracy', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5)
+                .withDescription('The difference required between local temperature and set point to trigger the valve.'),
+            e.numeric('error', ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    'preset',
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        schedule: tuya.enum(1),
+                        eco: tuya.enum(2),
+                        comfort: tuya.enum(3),
+                        frost_protection: tuya.enum(4),
+                        holiday: tuya.enum(5),
+                        off: tuya.enum(6),
+                    }),
+                ],
+                [3, 'running_state', tuya.valueConverterBasic.lookup({idle: tuya.enum(0), heat: tuya.enum(1)})],
+                [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [5, 'local_temperature', tuya.valueConverter.divideBy10],
+                [6, 'battery', tuya.valueConverter.raw],
+                [7, 'child_lock', tuya.valueConverter.lockUnlock],
+                [14, 'window_detection', tuya.valueConverter.onOff],
+                [15, 'window_open', tuya.valueConverterBasic.lookup({CLOSE: tuya.enum(0), OPEN: tuya.enum(1)})],
+                [21, 'holiday_temperature', tuya.valueConverter.divideBy10],
+                [28, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 6)],
+                [29, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2, 6)],
+                [30, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3, 6)],
+                [31, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4, 6)],
+                [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5, 6)],
+                [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6, 6)],
+                [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 6)],
+                [35, 'fault_alarm', tuya.valueConverter.errorOrBatteryLow],
+                [36, 'frost_protection', tuya.valueConverter.onOff],
+                [39, 'scale_protection', tuya.valueConverter.onOff],
+                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration3],
+                [101, 'system_mode', tuya.valueConverterBasic.lookup({off: false, heat: true})],
+                [102, 'temperature_accuracy', tuya.valueConverter.divideBy10],
+                [103, 'eco_temperature', tuya.valueConverter.divideBy10],
+                [104, 'comfort_temperature', tuya.valueConverter.divideBy10],
+                [105, 'frost_protection_temperature', tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
 ];
 
 export default definitions;
