@@ -1,16 +1,16 @@
-import type { Binary, Climate, Composite, Cover, Enum, Fan, Feature, Light, List, Lock, Numeric, Switch, Text } from './lib/exposes';
+import type {Binary, Climate, Composite, Cover, Enum, Fan, Feature, Light, List, Lock, Numeric, Switch, Text} from './lib/exposes';
 
 import assert from 'assert';
 
-import { Zcl } from 'zigbee-herdsman';
+import {Zcl} from 'zigbee-herdsman';
 
 import fromZigbee from './converters/fromZigbee';
 import toZigbee from './converters/toZigbee';
 import allDefinitions from './devices';
 import * as configureKey from './lib/configureKey';
 import * as exposesLib from './lib/exposes';
-import { Enum as EnumClass } from './lib/exposes';
-import { generateDefinition } from './lib/generateDefinition';
+import {Enum as EnumClass} from './lib/exposes';
+import {generateDefinition} from './lib/generateDefinition';
 import * as logger from './lib/logger';
 import {
     Configure,
@@ -33,7 +33,7 @@ import * as utils from './lib/utils';
 
 const NS = 'zhc';
 
-export type { Ota } from './lib/types';
+export type {Ota} from './lib/types';
 export {
     Definition as Definition,
     OnEventType as OnEventType,
@@ -290,7 +290,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             };
         }
 
-        definition = { toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend };
+        definition = {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
     }
 
     return definition;
@@ -490,7 +490,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown: bool
     } else {
         // First try to match based on fingerprint, return the first matching one.
 
-        const fingerprintMatch: { priority?: number; definition?: Definition } = { priority: undefined, definition: undefined };
+        const fingerprintMatch: {priority?: number; definition?: Definition} = {priority: undefined, definition: undefined};
 
         for (const candidate of candidates) {
             if (candidate.fingerprint) {
@@ -588,9 +588,9 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
     // 23 works, 200 doesn't
     if (device.manufacturerID === Zcl.ManufacturerCode.LEGRAND_GROUP && !device.customReadResponse) {
         device.customReadResponse = (frame, endpoint) => {
-            if (frame.isCluster('genBasic') && frame.payload.find((i: { attrId: number }) => i.attrId === 61440)) {
-                const options = { manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true };
-                const payload = { 0xf000: { value: 23, type: 35 } };
+            if (frame.isCluster('genBasic') && frame.payload.find((i: {attrId: number}) => i.attrId === 61440)) {
+                const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
+                const payload = {0xf000: {value: 23, type: 35}};
 
                 endpoint.readResponse('genBasic', frame.header.transactionSequenceNumber, payload, options).catch((e) => {
                     logger.logger.warning(`Legrand security read response failed: ${e}`, NS);
@@ -612,7 +612,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
                 const secondsUTC = Math.round((new Date().getTime() - oneJanuary2000) / 1000);
                 const secondsLocal = secondsUTC - new Date().getTimezoneOffset() * 60;
 
-                endpoint.readResponse('genTime', frame.header.transactionSequenceNumber, { time: secondsLocal }).catch((e) => {
+                endpoint.readResponse('genTime', frame.header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
                     logger.logger.warning(`ZNCWWSQ01LM custom time response failed: ${e}`, NS);
                 });
 
