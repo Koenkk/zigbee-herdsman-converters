@@ -430,7 +430,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG2835RAC-NK4',
         vendor: 'Sunricher',
         description: '4-Key zigbee rotary & push button smart dimmer',
-        extend: [light(), electricityMeter()],
+        extend: [light(), electricityMeter(), commandsScenes()],
     },
     {
         zigbeeModel: ['ZG9032B'],
