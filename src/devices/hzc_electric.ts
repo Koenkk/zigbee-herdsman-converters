@@ -55,7 +55,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['Meter-Dimmer-Switch-ZB3.0'],
-        model: 'Meter-Dimmer-Switch-ZB3.0',
+        model: 'D692-ZG',
         vendor: 'HZC Electric',
         description: 'Rotary dimmer with screen',
         extend: [
