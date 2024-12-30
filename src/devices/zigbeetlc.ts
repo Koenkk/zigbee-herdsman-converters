@@ -1,6 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {battery, binary, enumLookup, humidity, numeric, ota, temperature} from '../lib/modernExtend';
+import {battery, binary, enumLookup, humidity, numeric, temperature} from '../lib/modernExtend';
 
 const extend = {
     comfortDisplay: binary({
@@ -115,6 +115,8 @@ const definitions = [
             {modelID: 'LYWSD03MMC-bz', manufacturerName: 'Xiaomi'},
             {modelID: 'MHO-C122-z', manufacturerName: 'MiaoMiaoCe'},
             {modelID: 'MHO-C122-bz', manufacturerName: 'MiaoMiaoCe'},
+            {modelID: 'MHO-C401-z', manufacturerName: 'MiaoMiaoCe'},
+            {modelID: 'MHO-C401-bz', manufacturerName: 'MiaoMiaoCe'},
             {modelID: 'MHO-C401N-z', manufacturerName: 'MiaoMiaoCe'},
             {modelID: 'MHO-C401N-bz', manufacturerName: 'MiaoMiaoCe'},
         ],
@@ -136,8 +138,8 @@ const definitions = [
             extend.humidityCalibration,
             extend.measurementInterval,
             battery(),
-            ota(),
         ],
+        ota: true,
     },
     /*
         ZigbeeTLc devices supporting:
@@ -163,8 +165,8 @@ const definitions = [
             extend.humidityCalibration,
             extend.measurementInterval,
             battery(),
-            ota(),
         ],
+        ota: true,
     },
     /*
         ZigbeeTLc devices supporting:
@@ -193,8 +195,8 @@ const definitions = [
             extend.humidityCalibration,
             extend.measurementInterval,
             battery(),
-            ota(),
         ],
+        ota: true,
     },
 ];
 

@@ -1,4 +1,6 @@
-import {Endpoint, Entity} from 'zigbee-herdsman/dist/controller/model';
+import type {Mock} from 'vitest';
+
+import {Models as ZHModels} from 'zigbee-herdsman';
 
 import * as index from '../src/index';
 import {Definition, Fz, KeyValueAny, Tz, Zh} from '../src/lib/types';
@@ -146,8 +148,8 @@ describe('Sonoff TRVZB', () => {
         describe('toZigbee', () => {
             let tzConverter: Tz.Converter;
             let meta: Tz.Meta;
-            let commandFn: jest.Mock;
-            let endpoint: Endpoint;
+            let commandFn: Mock;
+            let endpoint: ZHModels.Endpoint;
 
             const invalidTransitions = [
                 {transition: '', description: 'empty string'},
@@ -174,11 +176,11 @@ describe('Sonoff TRVZB', () => {
                     endpoint_name: null,
                 };
 
-                commandFn = jest.fn();
+                commandFn = vi.fn();
 
                 endpoint = {
                     command: commandFn,
-                } as unknown as Endpoint;
+                } as unknown as ZHModels.Endpoint;
             });
 
             it.each(invalidTransitions)('should throw error if transition format is invalid ($description)', async ({transition, description}) => {

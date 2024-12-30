@@ -1,5 +1,4 @@
 import * as exposes from '../lib/exposes';
-import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -8,11 +7,14 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_r7brscr6'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE204_r7brscr6'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_p1qrtljn'},
+        ],
         model: 'VNTH-T2',
         vendor: 'TECH',
         description: 'Smart radiator valve',
-        ota: ota.zigbeeOTA,
+        ota: true,
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],

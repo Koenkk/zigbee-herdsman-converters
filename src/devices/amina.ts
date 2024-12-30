@@ -3,7 +3,6 @@ import {Zcl} from 'zigbee-herdsman';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {binary, deviceAddCustomCluster, electricityMeter, numeric, onOff} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -131,7 +130,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'amina S',
         vendor: 'Amina Distribution AS',
         description: 'Amina S EV Charger',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fzLocal.ev_status, fzLocal.alarms],
         toZigbee: [tzLocal.ev_status, tzLocal.alarms, tzLocal.charge_limit],
         exposes: [
@@ -216,8 +215,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'evConnected',
                 description: 'An EV is connected to the charger',
-                valueOn: ['true', 1],
-                valueOff: ['false', 0],
+                valueOn: [true, 1],
+                valueOff: [false, 0],
                 access: 'STATE',
             }),
 
@@ -226,8 +225,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'charging',
                 description: 'Power is being delivered to the EV',
-                valueOn: ['true', 1],
-                valueOff: ['false', 0],
+                valueOn: [true, 1],
+                valueOff: [false, 0],
                 access: 'STATE',
             }),
 
@@ -236,8 +235,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'derated',
                 description: 'Charging derated due to high temperature',
-                valueOn: ['true', 1],
-                valueOff: ['false', 0],
+                valueOn: [true, 1],
+                valueOff: [false, 0],
                 access: 'STATE',
             }),
 
@@ -246,8 +245,8 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'aminaControlCluster',
                 attribute: 'alarmActive',
                 description: 'An active alarm is present',
-                valueOn: ['true', 1],
-                valueOff: ['false', 0],
+                valueOn: [true, 1],
+                valueOff: [false, 0],
                 access: 'STATE',
             }),
 

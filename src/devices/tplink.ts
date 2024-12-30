@@ -13,7 +13,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.illuminance],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.illuminance()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);

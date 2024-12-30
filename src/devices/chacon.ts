@@ -9,7 +9,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Roller shutter module',
         extend: [
             windowCovering({controls: ['lift'], coverInverted: true, coverMode: true}),
-            commandsWindowCovering({commands: ['open', 'close', 'stop'], legacyAction: false}),
+            commandsWindowCovering({commands: ['open', 'close', 'stop']}),
         ],
     },
 ];

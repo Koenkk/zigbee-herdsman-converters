@@ -1,14 +1,24 @@
-const process = require('process');
-process.env['ZHC_TEST'] = true;
-const index = require('../src/index');
-const exposes = require('../src/lib/exposes');
-const utils = require('../src/lib/utils');
-const tuya = require('../src/lib/tuya');
+import {readdirSync, readFileSync} from 'fs';
+import path from 'path';
+
+import equals from 'fast-deep-equal/es6';
+
+import {
+    addDefinition,
+    definitions,
+    findByDevice,
+    findByModel,
+    getConfigureKey,
+    postProcessConvertedFromZigbeeMessage,
+    removeExternalDefinitions,
+} from '../src/index';
+import {access as _access, enum as _enum, list as _list, composite, numeric, presets} from '../src/lib/exposes';
+import * as sunricher from '../src/lib/sunricher';
+import {tz} from '../src/lib/tuya';
+import {getFromLookup, toNumber} from '../src/lib/utils';
+import {COLORTEMP_RANGE_MISSING_ALLOWED} from './colortemp_range_missing_allowed';
+
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
-const equals = require('fast-deep-equal/es6');
-const fs = require('fs');
-const path = require('path');
-const {COLORTEMP_RANGE_MISSING_ALLOWED} = require('./colortemp_range_missing_allowed');
 
 function containsOnly(array1, array2) {
     for (const elem of array2) {
@@ -22,15 +32,15 @@ function containsOnly(array1, array2) {
 
 describe('index.js', () => {
     it('Test utils.toNumber', () => {
-        expect(utils.toNumber('1')).toBe(1);
-        expect(utils.toNumber(5)).toBe(5);
-        expect(() => utils.toNumber('notanumber')).toThrowError('Value is not a number, got string (notanumber)');
-        expect(utils.toNumber('0')).toBe(0);
-        expect(utils.toNumber(0)).toBe(0);
-        expect(() => utils.toNumber('')).toThrowError('Value is not a number, got string ()');
+        expect(toNumber('1')).toBe(1);
+        expect(toNumber(5)).toBe(5);
+        expect(() => toNumber('notanumber')).toThrowError('Value is not a number, got string (notanumber)');
+        expect(toNumber('0')).toBe(0);
+        expect(toNumber(0)).toBe(0);
+        expect(() => toNumber('')).toThrowError('Value is not a number, got string ()');
     });
 
-    it('Find by device where modelID is null', async () => {
+    it('Find by device where modelID is undefined', async () => {
         const endpoints = [
             {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
             {ID: 232, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
@@ -43,11 +53,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = await index.findByDevice(device);
+        const definition = await findByDevice(device);
         expect(definition.model).toBe('XBee');
     });
 
-    it("Find by device shouldn't match when modelID is null and there is no fingerprint match", async () => {
+    it("Find by device shouldn't match when modelID is undefined and there is no fingerprint match", async () => {
         const endpoints = [{ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}];
         const device = {
             type: undefined,
@@ -57,8 +67,8 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = await index.findByDevice(device);
-        expect(definition).toBeNull();
+        const definition = await findByDevice(device);
+        expect(definition).toBeUndefined();
     });
 
     it('Find by device should generate for unknown', async () => {
@@ -83,7 +93,7 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = await index.findByDevice(device, true);
+        const definition = await findByDevice(device, true);
         expect(definition.model).toBe('test_generate');
         expect(definition.vendor).toBe('');
         expect(definition.description).toBe('Automatically generated definition');
@@ -104,7 +114,7 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = await index.findByDevice(device);
+        const definition = await findByDevice(device);
         expect(definition.model).toBe('RTCGQ01LM');
     });
 
@@ -127,9 +137,39 @@ describe('index.js', () => {
             modelID: 'TS011F',
             applicationVersion: 1,
         };
-        expect((await index.findByDevice(HG06338)).model).toBe('HG06338');
-        expect((await index.findByDevice(TS011F_plug_3)).model).toBe('TS011F_plug_3');
-        expect((await index.findByDevice(TS011F_plug_1)).model).toBe('TS011F_plug_1');
+        expect((await findByDevice(HG06338)).model).toBe('HG06338');
+        expect((await findByDevice(TS011F_plug_3)).model).toBe('TS011F_plug_3');
+        expect((await findByDevice(TS011F_plug_1)).model).toBe('TS011F_plug_1');
+    });
+
+    it('finds router builds with priority from manufacturer', async () => {
+        const customSLZB06M = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-06M',
+            applicationVersion: 200,
+        };
+        const fromManufSLZB06M = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-06M',
+        };
+        const customSLZB07 = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-07',
+            applicationVersion: 200,
+        };
+        const fromManufSLZB07 = {
+            type: 'Router',
+            manufacturerName: 'SMLIGHT',
+            modelID: 'SLZB-07',
+        };
+
+        expect((await findByDevice(customSLZB06M)).model).toBe('Silabs series 2 router');
+        expect((await findByDevice(fromManufSLZB06M)).model).toBe('SLZB-06M');
+        expect((await findByDevice(customSLZB07)).model).toBe('Silabs series 2 router');
+        expect((await findByDevice(fromManufSLZB07)).model).toBe('SLZB-07');
     });
 
     it('Find by device should prefer fingerprint match over zigbeeModel', async () => {
@@ -158,8 +198,8 @@ describe('index.js', () => {
             getEndpoint: (ID) => null,
         };
 
-        expect((await index.findByDevice(sunricher)).model).toBe('ZG192910-4');
-        expect((await index.findByDevice(muller)).model).toBe('404031');
+        expect((await findByDevice(sunricher)).model).toBe('ZG192910-4');
+        expect((await findByDevice(muller)).model).toBe('404031');
     });
 
     it('Find by device when fingerprint has zigbeeModel of other definition', async () => {
@@ -175,7 +215,7 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = await index.findByDevice(device);
+        const definition = await findByDevice(device);
         expect(definition.model).toBe('SNZB-04');
     });
 
@@ -192,7 +232,7 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = await index.findByDevice(device);
+        const definition = await findByDevice(device);
         expect(definition.model).toBe('SNZB-02');
     });
 
@@ -201,7 +241,7 @@ describe('index.js', () => {
         let foundModels = [];
         let foundFingerprints = [];
 
-        index.definitions.forEach((device) => {
+        definitions.forEach((device) => {
             // Check for duplicate zigbee model ids
             if (device.zigbeeModel !== undefined) {
                 device.zigbeeModel.forEach((m) => {
@@ -250,15 +290,15 @@ describe('index.js', () => {
         });
     });
 
-    it('Verify addDefinition', () => {
+    it('Verify addDefinition for external converters', () => {
         const mockZigbeeModel = 'my-mock-device';
-        let mockDevice = {toZigbee: []};
-        const undefinedDevice = index.findByModel('mock-model');
+        let mockDevice = {toZigbee: [], externalConverterName: 'mock-model.js'};
+        const undefinedDevice = findByModel('mock-model');
         expect(undefinedDevice).toBeUndefined();
-        const beforeAdditionDeviceCount = index.definitions.length;
-        expect(() => index.addDefinition(mockDevice)).toThrow('Converter field model is undefined');
+        const beforeAdditionDeviceCount = definitions.length;
+        expect(() => addDefinition(mockDevice)).toThrow('Converter field model is undefined');
         mockDevice.model = 'mock-model';
-        expect(() => index.addDefinition(mockDevice)).toThrow('Converter field vendor is undefined');
+        expect(() => addDefinition(mockDevice)).toThrow('Converter field vendor is undefined');
         mockDevice = {
             model: 'mock-model',
             vendor: 'dummy',
@@ -268,15 +308,15 @@ describe('index.js', () => {
             toZigbee: [],
             exposes: [],
         };
-        index.addDefinition(mockDevice);
-        expect(beforeAdditionDeviceCount + 1).toBe(index.definitions.length);
-        const device = index.findByModel('mock-model');
+        addDefinition(mockDevice);
+        expect(beforeAdditionDeviceCount + 1).toBe(definitions.length);
+        const device = findByModel('mock-model');
         expect(device.model).toBe(mockDevice.model);
     });
 
     it('Verify addDefinition overwrite existing', async () => {
         const device = {type: 'Router', modelID: 'lumi.light.aqcn02'};
-        expect((await index.findByDevice(device)).vendor).toBe('Aqara');
+        expect((await findByDevice(device)).vendor).toBe('Aqara');
 
         const overwriteDefinition = {
             model: 'mock-model',
@@ -287,8 +327,35 @@ describe('index.js', () => {
             toZigbee: [],
             exposes: [],
         };
-        index.addDefinition(overwriteDefinition);
-        expect((await index.findByDevice(device)).vendor).toBe('other-vendor');
+        addDefinition(overwriteDefinition);
+        expect((await findByDevice(device)).vendor).toBe('other-vendor');
+    });
+
+    it('Handles external converter definition addition/removal', async () => {
+        const converterDef = {
+            mock: true,
+            zigbeeModel: ['external_converter_device'],
+            vendor: 'external',
+            model: 'external_converter_device',
+            description: 'external',
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: [],
+            externalConverterName: 'foo.js',
+        };
+
+        const count = definitions.length;
+
+        addDefinition(converterDef);
+
+        expect(definitions.length).toStrictEqual(count + 1);
+        expect(definitions[0].zigbeeModel[0]).toStrictEqual(converterDef.zigbeeModel[0]);
+        expect(findByModel('external_converter_device')).toBeDefined();
+
+        removeExternalDefinitions(converterDef.externalConverterName);
+
+        expect(definitions.length).toStrictEqual(count);
+        expect(findByModel('external_converter_device')).toBeUndefined();
     });
 
     it('Exposes light with endpoint', () => {
@@ -346,42 +413,56 @@ describe('index.js', () => {
             ],
             endpoint: 'rgb',
         };
-        const actual = exposes.presets.light_brightness_colorxy().withEndpoint('rgb');
+        const actual = presets.light_brightness_colorxy().withEndpoint('rgb');
         expect(expected).toStrictEqual(deepClone(actual));
     });
 
     it('Exposes access matches toZigbee', () => {
-        index.definitions.forEach((device) => {
-            if (device.exposes) {
-                // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
-                if (device.toZigbee.includes(tuya.tz.datapoints)) return;
+        definitions.forEach((device) => {
+            // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
+            if (device.toZigbee.includes(tz.datapoints)) return;
 
-                const toCheck = [];
-                const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
-                for (const expose of expss) {
-                    if (expose.access !== undefined) {
-                        toCheck.push(expose);
-                    } else if (expose.features) {
-                        toCheck.push(...expose.features.filter((e) => e.access !== undefined));
-                    }
+            // sunricher.tz.setModel is used to switch modelId for devices with conflicting modelId, skip expose access check
+            if (device.toZigbee.includes(sunricher.tz.setModel)) return;
+
+            const toCheck = [];
+            const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+            for (const expose of expss) {
+                if (expose.access !== undefined) {
+                    toCheck.push(expose);
+                } else if (expose.features) {
+                    toCheck.push(...expose.features.filter((e) => e.access !== undefined));
+                }
+            }
+
+            for (const expose of toCheck) {
+                let property = expose.property;
+                if (expose.endpoint && expose.property.length > expose.endpoint.length) {
+                    property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
                 }
 
-                for (const expose of toCheck) {
-                    let property = expose.property;
-                    if (expose.endpoint && expose.property.length > expose.endpoint.length) {
-                        property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
-                    }
+                const toZigbee = device.toZigbee.find((item) => item.key.includes(property));
 
-                    const toZigbee = device.toZigbee.find((item) => item.key.includes(property));
-
-                    if ((expose.access & exposes.access.SET) != (toZigbee && toZigbee.convertSet ? exposes.access.SET : 0)) {
-                        throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
-                    }
-
-                    if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
-                        throw new Error(`${device.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
-                    }
+                if ((expose.access & _access.SET) != (toZigbee && toZigbee.convertSet ? _access.SET : 0)) {
+                    throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
                 }
+
+                if ((expose.access & _access.GET) != (toZigbee && toZigbee.convertGet ? _access.GET : 0)) {
+                    throw new Error(`${device.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
+                }
+            }
+        });
+    });
+
+    it('Exposes properties are unique', () => {
+        definitions.forEach((device) => {
+            const exposes = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+            const found = [];
+            for (const expose of exposes) {
+                if (expose.property && found.includes(expose.property)) {
+                    throw new Error(`Duplicate expose property found: '${expose.property}' for '${device.model}'`);
+                }
+                found.push(expose.property);
             }
         });
     });
@@ -400,19 +481,19 @@ describe('index.js', () => {
             endpoints: [],
         };
 
-        const HG06492B_match = await index.findByDevice(HG06492B);
-        expect(HG06492B_match.model).toBe('HG06492B');
-        expect(HG06492B_match.description).toBe('Livarno Lux E14 candle CCT');
+        const HG06492B_match = await findByDevice(HG06492B);
+        expect(HG06492B_match.model).toBe('HG06492B/HG08130B');
+        expect(HG06492B_match.description).toBe('Livarno Home E14 candle CCT');
         expect(HG06492B_match.vendor).toBe('Lidl');
 
-        const TS0502A_match = await index.findByDevice(TS0502A);
+        const TS0502A_match = await findByDevice(TS0502A);
         expect(TS0502A_match.model).toBe('TS0502A');
         expect(TS0502A_match.description).toBe('Light controller');
         expect(TS0502A_match.vendor).toBe('Tuya');
     });
 
     it('Check if all exposes have a color temp range', () => {
-        for (const definition of index.definitions) {
+        for (const definition of definitions) {
             const exposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes();
             for (const expose of exposes.filter((e) => e.type === 'light')) {
                 const colorTemp = expose.features.find((f) => f.name === 'color_temp');
@@ -432,7 +513,7 @@ describe('index.js', () => {
                 console.log('bye world');
             },
         };
-        expect(index.getConfigureKey(definition)).toBe(-1738355762);
+        expect(getConfigureKey(definition)).toBe(-1738355762);
     });
 
     it('Calculate configure key whitespace shouldnt matter', () => {
@@ -449,7 +530,7 @@ describe('index.js', () => {
                 console.log('bye world');
             },
         };
-        expect(index.getConfigureKey(definition1)).toBe(index.getConfigureKey(definition2));
+        expect(getConfigureKey(definition1)).toBe(getConfigureKey(definition2));
     });
 
     it('Calculate configure diff', () => {
@@ -466,15 +547,15 @@ describe('index.js', () => {
                 console.log('bye mars');
             },
         };
-        expect(index.getConfigureKey(definition1)).not.toBe(index.getConfigureKey(definition2));
+        expect(getConfigureKey(definition1)).not.toBe(getConfigureKey(definition2));
     });
 
     it('Number exposes with set access should have a range', () => {
-        index.definitions.forEach((device) => {
+        definitions.forEach((device) => {
             if (device.exposes) {
                 const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
                 for (const expose of expss) {
-                    if (expose.type == 'numeric' && expose.access & exposes.access.SET) {
+                    if (expose.type == 'numeric' && expose.access & _access.SET) {
                         if (expose.value_min == null || expose.value_max == null) {
                             throw new Error(`Value min or max unknown for ${expose.property}`);
                         }
@@ -485,7 +566,7 @@ describe('index.js', () => {
     });
 
     it('Function exposes should have linkquality sensor', () => {
-        index.definitions.forEach((definition) => {
+        definitions.forEach((definition) => {
             if (typeof definition.exposes == 'function') {
                 expect(definition.exposes().find((e) => e.property === 'linkquality')).not.toBeUndefined();
             }
@@ -493,22 +574,22 @@ describe('index.js', () => {
     });
 
     it('Verify options filter', () => {
-        const ZNCLDJ12LM = index.definitions.find((d) => d.model == 'ZNCLDJ12LM');
+        const ZNCLDJ12LM = definitions.find((d) => d.model == 'ZNCLDJ12LM');
         expect(ZNCLDJ12LM.options.length).toBe(1);
-        const ZNCZ04LM = index.definitions.find((d) => d.model == 'ZNCZ04LM');
+        const ZNCZ04LM = definitions.find((d) => d.model == 'ZNCZ04LM');
         expect(ZNCZ04LM.options.length).toBe(10);
     });
 
     it('Verify imports', () => {
-        const files = fs.readdirSync('src/devices');
+        const files = readdirSync('src/devices');
         for (const file of files) {
-            const content = fs.readFileSync(`src/devices/${file}`, {encoding: 'utf-8'});
+            const content = readFileSync(`src/devices/${file}`, {encoding: 'utf-8'});
             expect(content).not.toContain(`require('zigbee-herdsman-converters`);
         }
     });
 
     it('Calibration/precision', () => {
-        const TS0601_soil = index.definitions.find((d) => d.model == 'TS0601_soil');
+        const TS0601_soil = definitions.find((d) => d.model == 'TS0601_soil');
         expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual([
             'temperature_calibration',
             'temperature_precision',
@@ -517,18 +598,18 @@ describe('index.js', () => {
         ]);
         let payload = {temperature: 1.193};
         let options = {temperature_calibration: 2.5, temperature_precision: 1};
-        index.postProcessConvertedFromZigbeeMessage(TS0601_soil, payload, options);
+        postProcessConvertedFromZigbeeMessage(TS0601_soil, payload, options);
         expect(payload).toStrictEqual({temperature: 3.7});
 
         // For multi endpoint property
-        const AUA1ZBDSS = index.findByModel('AU-A1ZBDSS');
+        const AUA1ZBDSS = findByModel('AU-A1ZBDSS');
         expect(AUA1ZBDSS.options.map((t) => t.name)).toStrictEqual(['power_calibration', 'power_precision', 'transition', 'state_action']);
         payload = {power_left: 5.31};
         options = {power_calibration: 100, power_precision: 0}; // calibration for power is percentual
-        index.postProcessConvertedFromZigbeeMessage(AUA1ZBDSS, payload, options);
+        postProcessConvertedFromZigbeeMessage(AUA1ZBDSS, payload, options);
         expect(payload).toStrictEqual({power_left: 11});
 
-        const TS011F_plug_1 = index.definitions.find((d) => d.model == 'TS011F_plug_1');
+        const TS011F_plug_1 = definitions.find((d) => d.model == 'TS011F_plug_1');
         expect(TS011F_plug_1.options.map((t) => t.name)).toStrictEqual([
             'power_calibration',
             'power_precision',
@@ -542,12 +623,12 @@ describe('index.js', () => {
         ]);
         payload = {current: 0.0585};
         options = {current_calibration: -50};
-        index.postProcessConvertedFromZigbeeMessage(TS011F_plug_1, payload, options);
+        postProcessConvertedFromZigbeeMessage(TS011F_plug_1, payload, options);
         expect(payload).toStrictEqual({current: 0.03});
     });
 
     it('Should allow definition with both modern extend and exposes as function', () => {
-        const MOSZB140 = index.findByModel('MOSZB-140');
+        const MOSZB140 = findByModel('MOSZB-140');
         const exposes = MOSZB140.exposes();
         expect(exposes.map((e) => e.name)).toStrictEqual([
             'occupancy',
@@ -555,7 +636,6 @@ describe('index.js', () => {
             'battery_low',
             'linkquality',
             'temperature',
-            'illuminance_lux',
             'illuminance',
             'battery',
             'voltage',
@@ -563,17 +643,17 @@ describe('index.js', () => {
     });
 
     it('Check getFromLookup', () => {
-        expect(utils.getFromLookup('OFF', {off: 0, on: 1, previous: 2})).toStrictEqual(0);
-        expect(utils.getFromLookup('On', {off: 0, on: 1, previous: 2})).toStrictEqual(1);
-        expect(utils.getFromLookup('previous', {OFF: 0, ON: 1, PREVIOUS: 2})).toStrictEqual(2);
-        expect(utils.getFromLookup(1, {0: 'OFF', 1: 'on'})).toStrictEqual('on');
+        expect(getFromLookup('OFF', {off: 0, on: 1, previous: 2})).toStrictEqual(0);
+        expect(getFromLookup('On', {off: 0, on: 1, previous: 2})).toStrictEqual(1);
+        expect(getFromLookup('previous', {OFF: 0, ON: 1, PREVIOUS: 2})).toStrictEqual(2);
+        expect(getFromLookup(1, {0: 'OFF', 1: 'on'})).toStrictEqual('on');
     });
 
     it('List expose number', () => {
         // Example payload:
         // {"temperatures": [19,21,30]}
-        const itemType = exposes.numeric('temperature', exposes.access.STATE_SET);
-        const list = exposes.list('temperatures', exposes.access.STATE_SET, itemType);
+        const itemType = numeric('temperature', _access.STATE_SET);
+        const list = _list('temperatures', _access.STATE_SET, itemType);
         expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
             access: 3,
             item_type: {access: 3, name: 'temperature', label: 'Temperature', type: 'numeric'},
@@ -588,13 +668,12 @@ describe('index.js', () => {
         // Example payload:
         // {"schedule": [{"day":"monday","hour":13,"minute":37}, {"day":"tuesday","hour":14,"minute":59}]}
 
-        const itemType = exposes
-            .composite('dayTime', exposes.access.STATE_SET)
-            .withFeature(exposes.enum('day', exposes.access.STATE_SET, ['monday', 'tuesday', 'wednesday']))
-            .withFeature(exposes.numeric('hour', exposes.access.STATE_SET))
-            .withFeature(exposes.numeric('minute', exposes.access.STATE_SET));
+        const itemType = composite('dayTime', _access.STATE_SET)
+            .withFeature(_enum('day', _access.STATE_SET, ['monday', 'tuesday', 'wednesday']))
+            .withFeature(numeric('hour', _access.STATE_SET))
+            .withFeature(numeric('minute', _access.STATE_SET));
 
-        const list = exposes.list('schedule', exposes.access.STATE_SET, itemType);
+        const list = _list('schedule', _access.STATE_SET, itemType);
         expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
             type: 'list',
             name: 'schedule',

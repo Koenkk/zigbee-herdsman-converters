@@ -13,12 +13,12 @@ import {
     forcePowerSource,
     humidity,
     light,
+    linkQuality,
     numeric,
     onOff,
     quirkAddEndpointCluster,
     temperature,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from '../lib/types';
 import {getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from '../lib/utils';
@@ -101,13 +101,11 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.illuminance'
-            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
             const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property1 = multiEndpoint ? postfixWithEndpointName('illuminance', msg, model, meta) : 'illuminance';
-            const property2 = multiEndpoint ? postfixWithEndpointName('illuminance_lux', msg, model, meta) : 'illuminance_lux';
-            return {[property1]: illuminance, [property2]: illuminanceLux};
+            return {[property1]: illuminanceLux};
         },
     } satisfies Fz.Converter,
     pressure2: {
@@ -243,6 +241,38 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
 
 const definitions: DefinitionWithExtend[] = [
     {
+        /** @see https://github.com/Nerivec/silabs-firmware-builder/releases */
+        fingerprint: [
+            {modelID: 'ZGA008', manufacturerName: 'Aeotec', applicationVersion: 200},
+            {modelID: 'ZB-GW04', manufacturerName: 'easyiot', applicationVersion: 200},
+            {modelID: 'ZB-GW04-1v1', manufacturerName: 'easyiot', applicationVersion: 200},
+            {modelID: 'ZB-GW04-1v2', manufacturerName: 'easyiot', applicationVersion: 200},
+            {modelID: 'SkyConnect', manufacturerName: 'NabuCasa', applicationVersion: 200},
+            {modelID: 'SLZB-06M', manufacturerName: 'SMLIGHT', applicationVersion: 200},
+            {modelID: 'SLZB-07', manufacturerName: 'SMLIGHT', applicationVersion: 200},
+            {modelID: 'SLZB-07MG24', manufacturerName: 'SMLIGHT', applicationVersion: 200},
+            {modelID: 'DONGLE-E', manufacturerName: 'SONOFF', applicationVersion: 200},
+            {modelID: 'MGM240P', manufacturerName: 'SparkFun', applicationVersion: 200},
+            {modelID: 'MGM24', manufacturerName: 'TubesZB', applicationVersion: 200},
+            {modelID: 'MGM24PB', manufacturerName: 'TubesZB', applicationVersion: 200},
+        ],
+        model: 'Silabs series 2 router',
+        vendor: 'Silabs',
+        description: 'Silabs series 2 adapter with router firmware',
+        toZigbee: [tz.factory_reset],
+        exposes: [
+            e
+                .enum('reset', ea.SET, ['reset'])
+                .withDescription(
+                    'Resets and launches the bootloader for flashing. If USB, ensure the device is already connected to the machine where you intend to flash it before triggering this.',
+                ),
+        ],
+        extend: [linkQuality({reporting: true})],
+        // prevent timeout with tz.factory_reset (reboots adapter into bootloader, hence disconnected)
+        // since this is the only tz, it's not a problem to disable this globally
+        meta: {disableDefaultResponse: true},
+    },
+    {
         zigbeeModel: ['ti.router'],
         model: 'ti.router',
         vendor: 'Custom devices (DiY)',
@@ -263,25 +293,6 @@ const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
-            const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-            await endpoint.configureReporting('genBasic', payload);
-        },
-    },
-    {
-        zigbeeModel: ['SLZB-06p7', 'SLZB-07', 'SLZB-0xp7'],
-        model: 'SLZB-06p7',
-        vendor: 'SMLIGHT',
-        description: 'Router',
-        fromZigbee: [fz.linkquality_from_basic],
-        toZigbee: [],
-        exposes: [],
-        whiteLabel: [
-            {vendor: 'SMLIGHT', model: 'SLZB-07', description: 'Router', fingerprint: [{modelID: 'SLZB-07'}]},
-            {vendor: 'SMLIGHT', model: 'SLZB-0xp7', description: 'Router', fingerprint: [{modelID: 'SLZB-0xp7'}]},
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.endpoints[0];
             const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
             await endpoint.configureReporting('genBasic', payload);
@@ -323,7 +334,6 @@ const definitions: DefinitionWithExtend[] = [
             fz.battery,
             fz.on_off,
             fz.ptvo_multistate_action,
-            legacy.fz.ptvo_switch_buttons,
             fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input,
             fz.brightness,
@@ -471,7 +481,7 @@ const definitions: DefinitionWithExtend[] = [
                             W: 'power',
                             Hz: 'frequency',
                             pf: 'power_factor',
-                            lx: 'illuminance_lux',
+                            lx: 'illuminance',
                         };
                         valueName = valueName !== undefined ? valueName : infoLookup[valueId];
 
@@ -727,7 +737,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'b-parasite open source soil moisture sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture, fz.illuminance],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance_lux()],
+        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -870,7 +880,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Comfort parameters/Humidity maximum, in 0.01% steps.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
@@ -981,7 +991,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Comfort parameters/Humidity maximum, in 1% steps. Requires v0.1.1.7 or newer.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['MHO-C401N-z'],
@@ -1084,7 +1094,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Measurement interval, default 10 seconds.',
             }),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];

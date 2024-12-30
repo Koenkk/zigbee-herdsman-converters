@@ -1,3 +1,5 @@
+import type {Models as ZHModels} from 'zigbee-herdsman';
+
 import {Zcl} from 'zigbee-herdsman';
 
 import {access as ea} from '../lib/exposes';
@@ -13,7 +15,7 @@ import {
     EnumLookupArgs,
     onOff,
 } from '../lib/modernExtend';
-import {DefinitionWithExtend, ModernExtend, OnEvent, Tz} from '../lib/types';
+import {Configure, DefinitionWithExtend, ModernExtend, OnEvent, Tz} from '../lib/types';
 import {getFromLookup, isString} from '../lib/utils';
 
 const NS = 'zhc:yandex';
@@ -126,23 +128,35 @@ function YandexCluster(): ModernExtend {
     });
 }
 
-const reinterview: OnEvent = async (type, data, device, settings, state) => {
-    if (type == 'deviceAnnounce') {
-        // reinterview
-        try {
-            await device.interview(true);
-            logger.info(`Succesfully interviewed '${device.ieeeAddr}'`, NS);
-            // bind extended endpoint to coordinator
-            for (const endpoint of device.endpoints) {
-                if (endpoint.supportsOutputCluster('genOnOff')) {
-                    await endpoint.bind('genOnOff', 1);
+function reinterview(): ModernExtend {
+    let coordEnd: ZHModels.Endpoint | number = 1;
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            coordEnd = coordinatorEndpoint;
+        },
+    ];
+    const onEvent: OnEvent = async (type, data, device, settings, state, meta) => {
+        if (type == 'deviceAnnounce') {
+            // reinterview
+            try {
+                await device.interview(true);
+                logger.info(`Succesfully interviewed '${device.ieeeAddr}'`, NS);
+                // bind extended endpoint to coordinator
+                for (const endpoint of device.endpoints) {
+                    if (endpoint.supportsOutputCluster('genOnOff')) {
+                        await endpoint.bind('genOnOff', coordEnd);
+                    }
                 }
+                // send updates to clients
+                if (meta) meta.deviceExposesChanged();
+            } catch (error) {
+                logger.error(`Reinterview failed for '${device.ieeeAddr} with error '${error}'`, NS);
             }
-        } catch (error) {
-            logger.error(`Interview failed for '${device.ieeeAddr} with error '${error}'`, NS);
         }
-    }
-};
+    };
+
+    return {onEvent, configure, isModernExtend: true};
+}
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -150,8 +164,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'YNDX_00537',
         vendor: 'Yandex',
         description: 'Single relay',
-        onEvent: reinterview,
         extend: [
+            reinterview(),
             YandexCluster(),
             deviceEndpoints({
                 endpoints: {'1': 1, '': 2},
@@ -197,8 +211,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'YNDX_00538',
         vendor: 'Yandex',
         description: 'Double relay',
-        onEvent: reinterview,
         extend: [
+            reinterview(),
             YandexCluster(),
             deviceEndpoints({
                 endpoints: {'1': 1, '2': 2, b1: 3, b2: 4},
@@ -273,7 +287,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {up: 1, down: 2},
+                endpoints: {down: 1, up: 2},
             }),
             commandsOnOff({endpointNames: ['up', 'down']}),
         ],
@@ -296,11 +310,11 @@ const definitions: DefinitionWithExtend[] = [
         model: 'YNDX_00531',
         vendor: 'Yandex',
         description: 'Single gang switch',
-        onEvent: reinterview,
         extend: [
+            reinterview(),
             YandexCluster(),
             deviceEndpoints({
-                endpoints: {'1': 1, up: 2, down: 3},
+                endpoints: {'1': 1, down: 2, up: 3},
             }),
             onOff({
                 endpointNames: ['1'],
@@ -355,8 +369,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'YNDX_00532',
         vendor: 'Yandex',
         description: 'Double gang switch',
-        onEvent: reinterview,
         extend: [
+            reinterview(),
             YandexCluster(),
             deviceEndpoints({
                 endpoints: {'1': 1, '2': 2, b1_down: 3, b2_down: 4, b1_up: 5, b2_up: 6},

@@ -1,9 +1,9 @@
-const libColor = require('../src/lib/color');
+import {Color, ColorHSV, ColorRGB, ColorXY} from '../src/lib/color';
 
 describe('lib/color.js', () => {
     describe('ColorRGB', () => {
         test.each([[{red: 0.5, green: 0.5, blue: 0.5}]])('.{from,to}Object() - %j', (color) => {
-            expect(libColor.ColorRGB.fromObject(color).toObject()).toEqual(color);
+            expect(ColorRGB.fromObject(color).toObject()).toEqual(color);
         });
 
         test.each([
@@ -13,7 +13,7 @@ describe('lib/color.js', () => {
             ['white', {red: 1.0, green: 1.0, blue: 1.0}, {hue: 0, saturation: 0, value: 100}],
             ['black', {red: 0, green: 0, blue: 0}, {hue: 0, saturation: 0, value: 0}],
         ])('.toHSV() - %s', (_name, rgb, hsv) => {
-            expect(libColor.ColorRGB.fromObject(rgb).toHSV().toObject()).toStrictEqual(hsv);
+            expect(ColorRGB.fromObject(rgb).toHSV().toObject()).toStrictEqual(hsv);
         });
 
         test.each([
@@ -23,7 +23,7 @@ describe('lib/color.js', () => {
             ['white', {red: 1.0, green: 1.0, blue: 1.0}, {x: 0.3227, y: 0.329}],
             ['black', {red: 0, green: 0, blue: 0}, {x: 0, y: 0}],
         ])('.toXY() - %s', (_name, rgb, xy) => {
-            expect(libColor.ColorRGB.fromObject(rgb).toXY().rounded(4).toObject()).toStrictEqual(xy);
+            expect(ColorRGB.fromObject(rgb).toXY().rounded(4).toObject()).toStrictEqual(xy);
         });
 
         test.each([
@@ -40,11 +40,11 @@ describe('lib/color.js', () => {
                 {red: 0.0, green: 0.0, blue: 0.0},
             ],
         ])('.gammaCorrected - %j', (input, output) => {
-            expect(libColor.ColorRGB.fromObject(input).gammaCorrected().rounded(4).toObject()).toStrictEqual(output);
+            expect(ColorRGB.fromObject(input).gammaCorrected().rounded(4).toObject()).toStrictEqual(output);
         });
 
-        expect(libColor.ColorRGB.fromHex('#663399').toHEX()).toBe('#663399');
-        expect(libColor.ColorRGB.fromHex('#020202').toHEX()).toBe('#020202');
+        expect(ColorRGB.fromHex('#663399').toHEX()).toBe('#663399');
+        expect(ColorRGB.fromHex('#020202').toHEX()).toBe('#020202');
     });
 
     describe('ColorHSV', () => {
@@ -56,7 +56,7 @@ describe('lib/color.js', () => {
         ];
 
         test.each(cases)('.{from,to}Object() - %j', (input, output) => {
-            expect(libColor.ColorHSV.fromObject(input).toObject()).toStrictEqual(output || input);
+            expect(ColorHSV.fromObject(input).toObject()).toStrictEqual(output || input);
         });
 
         test.each([
@@ -66,7 +66,7 @@ describe('lib/color.js', () => {
                 {hue: 359.3, saturation: 100, value: 100},
             ],
         ])('.{from,to}Object(), rounded - %j', (input, output) => {
-            expect(libColor.ColorHSV.fromObject(input).rounded(1).toObject()).toStrictEqual(output || input);
+            expect(ColorHSV.fromObject(input).rounded(1).toObject()).toStrictEqual(output || input);
         });
 
         test.each([
@@ -81,7 +81,7 @@ describe('lib/color.js', () => {
             [{hue: 0}, {h: 0}],
             [{saturation: 100}, {s: 100}],
         ])('.toObject() short - %j', (input, output) => {
-            expect(libColor.ColorHSV.fromObject(input).toObject(true)).toStrictEqual(output);
+            expect(ColorHSV.fromObject(input).toObject(true)).toStrictEqual(output);
         });
 
         test.each([
@@ -95,7 +95,7 @@ describe('lib/color.js', () => {
             ['white (only saturation)', {saturation: 0}, {red: 1.0, green: 1.0, blue: 1.0}],
             ['black', {hue: 0, saturation: 0, value: 0}, {red: 0, green: 0, blue: 0}],
         ])('.toRGB() - %s', (_name, hsv, rgb) => {
-            expect(libColor.ColorHSV.fromObject(hsv).toRGB().toObject()).toStrictEqual(rgb);
+            expect(ColorHSV.fromObject(hsv).toRGB().toObject()).toStrictEqual(rgb);
         });
 
         test.each([
@@ -109,13 +109,13 @@ describe('lib/color.js', () => {
             ['white (only saturation)', {saturation: 0}, {x: 0.3227, y: 0.329}],
             ['black', {hue: 0, saturation: 0, value: 0}, {x: 0, y: 0}],
         ])('.toXY() - %s', (_name, hsv, xy) => {
-            expect(libColor.ColorHSV.fromObject(hsv).toXY().rounded(4).toObject()).toStrictEqual(xy);
+            expect(ColorHSV.fromObject(hsv).toXY().rounded(4).toObject()).toStrictEqual(xy);
         });
     });
 
     describe('ColorXY', () => {
         test.each([[{x: 5, y: 0.5}]])('.{from,to}Object() - %j', (color) => {
-            expect(libColor.ColorXY.fromObject(color).toObject()).toStrictEqual(color);
+            expect(ColorXY.fromObject(color).toObject()).toStrictEqual(color);
         });
 
         test.each([
@@ -123,11 +123,11 @@ describe('lib/color.js', () => {
             ['green', {x: 0.1724, y: 0.7468}, {red: 0, green: 1.0, blue: 0}],
             ['blue', {x: 0.1355, y: 0.0399}, {red: 0, green: 0, blue: 1.0}],
         ])('.toRGB() - %s', (_name, xy, rgb) => {
-            expect(libColor.ColorXY.fromObject(xy).toRGB().rounded(4).toObject()).toStrictEqual(rgb, 4);
+            expect(ColorXY.fromObject(xy).toRGB().rounded(4).toObject()).toStrictEqual(rgb, 4);
         });
 
         test.each([[500], [370], [150]])('.{to,from}Mireds() - %j', (mireds) => {
-            const asXY = libColor.ColorXY.fromMireds(mireds);
+            const asXY = ColorXY.fromMireds(mireds);
             const backConv = asXY.toMireds();
             const error = Math.abs(backConv - mireds);
             // better precision would require better lookup table or continuous conversion function
@@ -156,7 +156,7 @@ describe('lib/color.js', () => {
             [{saturation: 100}, {hsv: {saturation: 100}}],
         ])('.fromConverterArg() - %j', (value, expected) => {
             // conversions reference: https://colordesigner.io/convert/hsltohsv
-            const extracted = libColor.Color.fromConverterArg(value);
+            const extracted = Color.fromConverterArg(value);
 
             if (expected.hsv === undefined) {
                 expect(extracted.isHSV()).toBe(false);
@@ -181,7 +181,7 @@ describe('lib/color.js', () => {
         });
 
         test.each([[{}], [{v: 100}], [{unknown_property: 42}]])('.fromConverterArg() invalid - %j', (value) => {
-            expect(() => libColor.Color.fromConverterArg(value)).toThrow();
+            expect(() => Color.fromConverterArg(value)).toThrow();
         });
     });
 });

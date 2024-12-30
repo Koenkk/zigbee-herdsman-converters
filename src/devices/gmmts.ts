@@ -1,13 +1,13 @@
+import type {Models as ZHModels} from 'zigbee-herdsman';
+
 import {Buffer} from 'buffer';
 
 import {Zcl} from 'zigbee-herdsman';
-import {Device} from 'zigbee-herdsman/dist/controller/model';
 
 import fz from '../converters/fromZigbee';
 import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Expose, Fz, KeyValue, Tz, Zh} from '../lib/types';
@@ -1905,7 +1905,7 @@ function splitTab(tab: string[], size: number): string[][] {
     return result;
 }
 
-async function poll(endpoint: Zh.Endpoint, device: Device) {
+async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
     const currentContract = globalStore.getValue(device, 'contract_type');
     const currentElec = globalStore.getValue(device, 'elec_mode');
     const currentTIC = globalStore.getValue(device, 'tic_mode');
@@ -1965,7 +1965,7 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
     logger.debug(`Polling Duration: ${end.getTime() - start.getTime()} ms`, 'TICMeter');
 }
 
-function initConfig(device: Device, name: string, value: unknown) {
+function initConfig(device: ZHModels.Device, name: string, value: unknown) {
     if (!globalStore.hasValue(device, name)) {
         globalStore.putValue(device, name, value);
     }
@@ -2330,7 +2330,7 @@ const definitions: DefinitionWithExtend[] = [
                 }
             }
         },
-        ota: ota.gmmts,
+        ota: {manufacturerName: 'GammaTroniques'}, // TODO: not sure if it's set properly in device
     },
 ];
 

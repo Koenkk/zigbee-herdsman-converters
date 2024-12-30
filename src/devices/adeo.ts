@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, light, onOff, quirkCheckinInterval, temperature} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 
@@ -327,7 +326,10 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.warning(), e.battery(), e.battery_low(), e.tamper()],
         extend: [quirkCheckinInterval(0)],
         configure: async (device, coordinatorEndpoint) => {
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            }
         },
     },
     {
@@ -397,7 +399,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SIN-4-FP-21_EQU',
         vendor: 'ADEO',
         description: 'Equation pilot wire heating module',
-        ota: ota.zigbeeOTA,
+        ota: true,
         fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
         toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [e.switch(), e.power(), e.energy(), e.pilot_wire_mode()],
@@ -438,6 +440,13 @@ const definitions: DefinitionWithExtend[] = [
             humidity(),
             iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
         ],
+    },
+    {
+        zigbeeModel: ['ZB-DoorSensor-D0007'],
+        model: 'ZB-DoorSensor-D0007',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN wireless smart door window sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
     },
 ];
 

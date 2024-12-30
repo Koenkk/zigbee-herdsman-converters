@@ -1,7 +1,20 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
+import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {
+    battery,
+    deviceAddCustomCluster,
+    deviceEndpoints,
+    forcePowerSource,
+    iasZoneAlarm,
+    onOff,
+    setupAttributes,
+    windowCovering,
+} from '../lib/modernExtend';
+import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 
 const e = exposes.presets;
@@ -155,6 +168,149 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.WS01_rain],
         toZigbee: [],
         exposes: [e.rain()],
+    },
+    {
+        zigbeeModel: ['SNZB-05'],
+        model: 'SNZB-05',
+        vendor: 'eWeLink',
+        description: 'Zigbee water sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']})],
+    },
+    {
+        zigbeeModel: ['CK-MG22-JLDJ-01(7015)', 'CK-MG22-Z310EE07DOOYA-01(7015)', 'MYDY25Z-1', 'Grandekor Smart Curtain Grandekor'],
+        model: 'CK-MG22-JLDJ-01(7015)',
+        vendor: 'eWeLink',
+        whiteLabel: [
+            {fingerprint: [{modelID: 'CK-MG22-JLDJ-01(7015)'}], vendor: 'eWeLink', model: 'CK-MG22-JLDJ-01(7015)'},
+            {fingerprint: [{modelID: 'CK-MG22-Z310EE07DOOYA-01(7015)'}], vendor: 'eWeLink', model: 'CK-MG22-Z310EE07DOOYA-01(7015)'},
+            {fingerprint: [{modelID: 'MYDY25Z-1'}], vendor: 'eWeLink', model: 'MYDY25Z-1'},
+            {fingerprint: [{modelID: 'Grandekor Smart Curtain Grandekor'}], vendor: 'eWeLink', model: 'Grandekor Smart Curtain Grandekor'},
+        ],
+        description: 'Dooya Curtain',
+        extend: [
+            deviceAddCustomCluster('customClusterEwelink', {
+                ID: 0xef00,
+                attributes: {},
+                commands: {
+                    protocolData: {
+                        ID: 0,
+                        parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            forcePowerSource({powerSource: 'Battery'}),
+            ewelinkModernExtend.ewelinkBattery(),
+            windowCovering({
+                controls: ['lift'],
+                configureReporting: false,
+                coverMode: false,
+                coverInverted: true,
+            }),
+            ewelinkModernExtend.ewelinkMotorReverse(),
+            ewelinkModernExtend.ewelinkMotorMode('customClusterEwelink', 'protocolData'),
+            ewelinkModernExtend.ewelinkMotorClbByPosition('customClusterEwelink', 'protocolData'),
+            ewelinkModernExtend.ewelinkReportMotorInfo('customClusterEwelink'),
+            ewelinkModernExtend.ewelinkMotorSpeed('customClusterEwelink', 'protocolData', 0x00, 0x0e),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const windowCoveringAttributes = [{attribute: 'currentPositionLiftPercentage', min: 0, max: 3600, change: 10}];
+            await setupAttributes(device, coordinatorEndpoint, 'closuresWindowCovering', windowCoveringAttributes);
+        },
+        onEvent: async (type, data, device, settings, state) => {
+            if (type === 'deviceInterview') {
+                const endpoint = device.getEndpoint(1);
+                const payloadValue = [];
+                payloadValue[0] = 0x02;
+                payloadValue[1] = 0x0e;
+                payloadValue[2] = 0x00;
+                // Query the maximum level supported for speed adjustment.
+                await endpoint.command('customClusterEwelink', 'protocolData', {
+                    data: payloadValue,
+                });
+            }
+        },
+        ota: true,
+    },
+    {
+        zigbeeModel: ['MYRX25Z-1'],
+        model: 'MYRX25Z-1',
+        vendor: 'eWeLink',
+        whiteLabel: [{fingerprint: [{modelID: 'MYRX25Z-1'}], vendor: 'eWeLink', model: 'MYRX25Z-1'}],
+        description: 'Reax Curtain',
+        extend: [
+            deviceAddCustomCluster('customClusterEwelink', {
+                ID: 0xef00,
+                attributes: {},
+                commands: {
+                    protocolData: {
+                        ID: 0,
+                        parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            forcePowerSource({powerSource: 'Battery'}),
+            ewelinkModernExtend.ewelinkBattery(),
+            windowCovering({
+                controls: ['lift'],
+                configureReporting: false,
+                coverMode: false,
+                coverInverted: true,
+            }),
+            ewelinkModernExtend.ewelinkMotorMode('customClusterEwelink', 'protocolData'),
+            ewelinkModernExtend.ewelinkMotorClbByPosition('customClusterEwelink', 'protocolData'),
+            ewelinkModernExtend.ewelinkReportMotorInfo('customClusterEwelink'),
+            ewelinkModernExtend.ewelinkMotorSpeed('customClusterEwelink', 'protocolData', 0x01, 0x03),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['customClusterEwelink']);
+
+            const windowCoveringAttributes = [{attribute: 'currentPositionLiftPercentage', min: 0, max: 3600, change: 10}];
+            await setupAttributes(device, coordinatorEndpoint, 'closuresWindowCovering', windowCoveringAttributes);
+        },
+        ota: true,
+    },
+    {
+        zigbeeModel: ['AM25B-1-25-ES-E-Z', 'ZM25-EAZ', 'AM25C-1-25-ES-E-Z'],
+        model: 'AM25B-1-25-ES-E-Z',
+        vendor: 'eWeLink',
+        whiteLabel: [
+            {fingerprint: [{modelID: 'AM25B-1-25-ES-E-Z'}], vendor: 'eWeLink', model: 'AM25B-1-25-ES-E-Z'},
+            {fingerprint: [{modelID: 'ZM25-EAZ'}], vendor: 'eWeLink', model: 'ZM25-EAZ'},
+            {fingerprint: [{modelID: 'AM25C-1-25-ES-E-Z'}], vendor: 'eWeLink', model: 'AM25C-1-25-ES-E-Z'},
+        ],
+        description: 'AK Curtain',
+        extend: [
+            deviceAddCustomCluster('customClusterEwelink', {
+                ID: 0xef00,
+                attributes: {},
+                commands: {
+                    protocolData: {
+                        ID: 0,
+                        parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            forcePowerSource({powerSource: 'Battery'}),
+            ewelinkModernExtend.ewelinkBattery(),
+            windowCovering({
+                controls: ['lift'],
+                configureReporting: false,
+                coverMode: false,
+                coverInverted: true,
+            }),
+            ewelinkModernExtend.ewelinkMotorReverse(),
+            ewelinkModernExtend.ewelinkMotorMode('customClusterEwelink', 'protocolData'),
+            ewelinkModernExtend.ewelinkMotorClbByPosition('customClusterEwelink', 'protocolData'),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const windowCoveringAttributes = [{attribute: 'currentPositionLiftPercentage', min: 0, max: 3600, change: 10}];
+            await setupAttributes(device, coordinatorEndpoint, 'closuresWindowCovering', windowCoveringAttributes);
+        },
+        ota: true,
     },
 ];
 

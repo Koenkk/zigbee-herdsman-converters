@@ -59,6 +59,7 @@ import digi from './digi';
 import diyruz from './diyruz';
 import dlink from './dlink';
 import dnake from './dnake';
+import dowsing_reynolds from './dowsing_reynolds';
 import dresden_elektronik from './dresden_elektronik';
 import easyaccess from './easyaccess';
 import easyiot from './easyiot';
@@ -76,6 +77,7 @@ import enbrighten from './enbrighten';
 import enocean from './enocean';
 import envilar from './envilar';
 import essentialb from './essentialb';
+import essentials from './essentials';
 import eucontrols from './eucontrols';
 import eurotronic from './eurotronic';
 import evanell from './evanell';
@@ -176,6 +178,7 @@ import lytko from './lytko';
 import m_elec from './m_elec';
 import makegood from './makegood';
 import matcall_bv from './matcall_bv';
+import mazda from './mazda';
 import meazon from './meazon';
 import mercator from './mercator';
 import miboxer from './miboxer';
@@ -186,6 +189,7 @@ import muller_licht from './muller_licht';
 import multiterm from './multiterm';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
+import nedis from './nedis';
 import neo from './neo';
 import net2grid from './net2grid';
 import netvox from './netvox';
@@ -243,6 +247,7 @@ import sercomm from './sercomm';
 import shade_control from './shade_control';
 import shenzhen_homa from './shenzhen_homa';
 import shinasystem from './shinasystem';
+import shyugj from './shyugj';
 import siglis from './siglis';
 import sikom from './sikom';
 import sinope from './sinope';
@@ -373,6 +378,7 @@ export default [
     ...diyruz,
     ...dlink,
     ...dnake,
+    ...dowsing_reynolds,
     ...dresden_elektronik,
     ...easyaccess,
     ...easyiot,
@@ -390,6 +396,7 @@ export default [
     ...enocean,
     ...envilar,
     ...essentialb,
+    ...essentials,
     ...eucontrols,
     ...eurotronic,
     ...evanell,
@@ -489,6 +496,7 @@ export default [
     ...m_elec,
     ...makegood,
     ...matcall_bv,
+    ...mazda,
     ...meazon,
     ...mercator,
     ...miboxer,
@@ -500,6 +508,7 @@ export default [
     ...namron,
     ...nanoleaf,
     ...neo,
+    ...nedis,
     ...net2grid,
     ...netvox,
     ...nexelec,
@@ -555,6 +564,7 @@ export default [
     ...shade_control,
     ...shenzhen_homa,
     ...shinasystem,
+    ...shyugj,
     ...siglis,
     ...sikom,
     ...sinope,

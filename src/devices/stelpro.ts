@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 
@@ -77,7 +76,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ST218',
         vendor: 'Stelpro',
         description: 'Ki convector, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface],
+        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -126,7 +125,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'STZB402',
         vendor: 'Stelpro',
         description: 'Ki, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
+        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -175,7 +174,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SMT402',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
+        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -279,7 +278,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SMT402AD',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
-        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
+        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,

@@ -315,14 +315,18 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart temperature and humidity meter with display',
         fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
+        exposes: [e.battery(), e.illuminance(), e.humidity(), e.temperature()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_qsoecqlk'},
+        ],
         model: 'BRT-100-TRV',
         vendor: 'Moes',
         description: 'Thermostatic radiator valve',
-        // ota: ota.zigbeeOTA,
+        whiteLabel: [tuya.whitelabel('Sibling', 'Powerswitch-ZK(W)', 'Thermostatic radiator valve', ['_TZE200_qsoecqlk'])],
+        // ota: true,
         // OTA available but bricks device https://github.com/Koenkk/zigbee2mqtt/issues/18840
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, legacy.fz.moesS_thermostat],
@@ -465,7 +469,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hr0tdd47', '_TZE200_rjxqso4a']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hr0tdd47', '_TZE200_rjxqso4a', '_TZE284_rjxqso4a']),
         model: 'ZC-HM',
         vendor: 'Moes',
         description: 'Carbon monoxide alarm',
