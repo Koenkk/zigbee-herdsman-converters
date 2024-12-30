@@ -14,12 +14,10 @@ import {
     humidity,
     light,
     linkQuality,
-    lock,
     numeric,
     onOff,
     quirkAddEndpointCluster,
     temperature,
-    windowCovering,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from '../lib/types';
@@ -1193,18 +1191,6 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Input state',
                 endpointNames: ['in1', 'in2', 'in3', 'in4'],
             }),
-        ],
-    },
-    {
-        zigbeeModel: ['GADOLOCK'],
-        model: 'GADOLOCK',
-        vendor: 'Custom devices (DiY)',
-        description: 'Garage door with lock',
-        extend: [
-            deviceEndpoints({endpoints: {relay: 1, door: 2, latch: 3}}),
-            onOff({powerOnBehavior: false, endpointNames: ['relay']}),
-            windowCovering({controls: ['lift'], coverInverted: true, stateSource: 'lift', coverMode: false, endpointNames: ['door']}),
-            lock({pinCodeCount: 10, endpointNames: ['latch']}),
         ],
     },
 ];
