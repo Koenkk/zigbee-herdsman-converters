@@ -1,4 +1,5 @@
 import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {electricityMeter, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
@@ -94,6 +95,55 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [],
         ota: {manufacturerName: 'SalusControls'},
+    },
+    {
+        zigbeeModel: ['FC600'],
+        model: 'FC600',
+        vendor: 'Salus Controls',
+        description: 'Fan coil thermostat',
+        extend: [],
+        fromZigbee: [fz.thermostat, fz.fan],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_mode,
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_relay_status_log,
+            tz.thermostat_running_state,
+            tz.thermostat_keypad_lockout,
+            tz.fan_mode,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 40, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'heat', 'cool', 'auto'])
+                .withRunningMode(['off', 'cool', 'heat'])
+                .withRunningState(['idle', 'heat', 'cool'])
+                .withLocalTemperatureCalibration(-3, 3, 0.5)
+                .withFanMode(['off', 'low', 'medium', 'high', 'auto']),
+            e.keypad_lockout(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(9);
+            const binds = ['genBasic', 'genIdentify', 'genTime', 'hvacThermostat', 'hvacFanCtrl', 'hvacUserInterfaceCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.fanMode(endpoint);
+            await reporting.thermostatRunningMode(endpoint);
+            await reporting.thermostatRunningState(endpoint);
+        },
+        ota: true,
     },
 ];
 
