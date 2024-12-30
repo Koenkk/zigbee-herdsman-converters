@@ -1,16 +1,16 @@
-import type {Binary, Climate, Composite, Cover, Enum, Fan, Feature, Light, List, Lock, Numeric, Switch, Text} from './lib/exposes';
+import type { Binary, Climate, Composite, Cover, Enum, Fan, Feature, Light, List, Lock, Numeric, Switch, Text } from './lib/exposes';
 
 import assert from 'assert';
 
-import {Zcl} from 'zigbee-herdsman';
+import { Zcl } from 'zigbee-herdsman';
 
 import fromZigbee from './converters/fromZigbee';
 import toZigbee from './converters/toZigbee';
 import allDefinitions from './devices';
 import * as configureKey from './lib/configureKey';
 import * as exposesLib from './lib/exposes';
-import {Enum as EnumClass} from './lib/exposes';
-import {generateDefinition} from './lib/generateDefinition';
+import { Enum as EnumClass } from './lib/exposes';
+import { generateDefinition } from './lib/generateDefinition';
 import * as logger from './lib/logger';
 import * as ota from './lib/ota';
 import {
@@ -164,7 +164,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
             if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
             if (ext.exposes) allExposes.push(...ext.exposes);
-            if (ext.meta) meta = {...ext.meta, ...meta};
+            if (ext.meta) meta = { ...ext.meta, ...meta };
             // Filter `undefined` configures, e.g. returned by setupConfigureForReporting.
             if (ext.configure) configures.push(...ext.configure.filter((c) => c));
             if (ext.onEvent) onEvents.push(ext.onEvent);
@@ -233,10 +233,20 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             };
         }
 
-        definition = {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
+        definition = { toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend };
     }
 
     return definition;
+}
+
+function retrieveAdditionalExposesFromOptions(definition: DefinitionWithExtend): Expose[] {
+    const additionalExposes: Expose[] = [];
+    for (const option of definition.options) {
+        if (option.exposes) {
+            additionalExposes.push(...option.exposes);
+        }
+    }
+    return additionalExposes;
 }
 
 function prepareDefinition(definition: DefinitionWithExtend): Definition {
@@ -258,6 +268,10 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
 
     if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
         definition.exposes = definition.exposes.concat([exposesLib.presets.linkquality()]);
+    }
+
+    if (definition.exposes && Array.isArray(definition.exposes)) {
+        definition.exposes.push(...retrieveAdditionalExposesFromOptions(definition));
     }
 
     validateDefinition(definition);
@@ -371,7 +385,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown: bool
         return candidates[0];
     } else {
         // First try to match based on fingerprint, return the first matching one.
-        const fingerprintMatch: {priority: number; definition: Definition} = {priority: null, definition: null};
+        const fingerprintMatch: { priority: number; definition: Definition } = { priority: null, definition: null };
 
         for (const candidate of candidates) {
             if (candidate.fingerprint) {
@@ -461,9 +475,9 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
     // 23 works, 200 doesn't
     if (device.manufacturerID === Zcl.ManufacturerCode.LEGRAND_GROUP && !device.customReadResponse) {
         device.customReadResponse = (frame, endpoint) => {
-            if (frame.isCluster('genBasic') && frame.payload.find((i: {attrId: number}) => i.attrId === 61440)) {
-                const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
-                const payload = {0xf000: {value: 23, type: 35}};
+            if (frame.isCluster('genBasic') && frame.payload.find((i: { attrId: number }) => i.attrId === 61440)) {
+                const options = { manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true };
+                const payload = { 0xf000: { value: 23, type: 35 } };
                 endpoint.readResponse('genBasic', frame.header.transactionSequenceNumber, payload, options).catch((e) => {
                     logger.logger.warning(`Legrand security read response failed: ${e}`, NS);
                 });
@@ -481,7 +495,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
                 const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
                 const secondsUTC = Math.round((new Date().getTime() - oneJanuary2000) / 1000);
                 const secondsLocal = secondsUTC - new Date().getTimezoneOffset() * 60;
-                endpoint.readResponse('genTime', frame.header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
+                endpoint.readResponse('genTime', frame.header.transactionSequenceNumber, { time: secondsLocal }).catch((e) => {
                     logger.logger.warning(`ZNCWWSQ01LM custom time response failed: ${e}`, NS);
                 });
                 return true;
