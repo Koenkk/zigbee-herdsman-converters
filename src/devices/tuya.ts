@@ -13524,7 +13524,7 @@ const definitions: DefinitionWithExtend[] = [
     			[103, 'departure_delay', tuya.valueConverter.raw],
     			[104, 'entry_filter_time', tuya.valueConverter.divideBy100],
     			[105, 'block_time', tuya.valueConverter.divideBy10],
-    			[107, 'illuminance_lux', tuya.valueConverter.divideBy10],
+    			[107, 'illuminance', tuya.valueConverter.divideBy10],
     			[108, 'debug_mode', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
     			[109, 'debug_distance', tuya.valueConverter.divideBy100],
     			[110, 'debug_countdown', tuya.valueConverter.raw],
