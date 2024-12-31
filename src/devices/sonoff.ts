@@ -758,6 +758,11 @@ const definitions: DefinitionWithExtend[] = [
                 model: 'SNZB-04',
                 fingerprint: [{modelID: 'SNZB-04', manufacturerName: 'eWeLink'}],
             },
+            {
+                vendor: 'Zbeacon',
+                model: 'TH01',
+                fingerprint: [{modelID: 'TH01', manufacturerName: 'Zbeacon'}],
+            },
             tuya.whitelabel('Tuya', 'WL-19DWZ', 'Contact sensor', ['_TZ3000_n2egfsli']),
         ],
         description: 'Contact sensor',
@@ -950,12 +955,20 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position(), e.battery()],
     },
     {
-        zigbeeModel: ['Z111PL0H-1JX', 'SA-029-1', 'SA-028-1'],
+        zigbeeModel: ['SA-029-1', 'SA-028-1'],
         model: 'SA-028/SA-029',
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
         extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
+    },
+    {
+        zigbeeModel: ['Z111PL0H-1JX'],
+        model: 'Z111PL0H-1JX',
+        vendor: 'SONOFF',
+        whiteLabel: [{vendor: 'Woolley', model: 'SA-028-1'}],
+        description: 'Smart Plug',
+        extend: [onOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['SNZB-01P'],
@@ -1042,7 +1055,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Zigbee occupancy sensor',
         extend: [
-            occupancy(),
+            occupancy({reporting: false}),
             numeric({
                 name: 'occupancy_timeout',
                 cluster: 0x0406,

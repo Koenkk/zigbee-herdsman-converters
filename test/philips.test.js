@@ -1,4 +1,4 @@
-const philips = require('../src/lib/philips');
+import {decodeGradientColors, encodeGradientColors} from '../src/lib/philips';
 
 describe('lib/philips.js', () => {
     describe('decodeGradientColors', () => {
@@ -8,7 +8,7 @@ describe('lib/philips.js', () => {
             ['4b010164fb74346b1350000000f3297fda7d55da7d55f3297fda7d552800', true, ['#ff0517', '#ffa52c', '#ff0517', '#ff0517', '#ffa52c']],
             ['4b010127a0526f5410400000000727640e9f5d0727640e9f5d2000', true, ['#ff0500', '#ffffff', '#ff0500', '#ffffff']],
         ])('colors(%s) should be %s', (input, opts_reverse, expected) => {
-            const ret = philips.decodeGradientColors(input, {reverse: opts_reverse});
+            const ret = decodeGradientColors(input, {reverse: opts_reverse});
             expect(ret.colors).toStrictEqual(expected);
         });
 
@@ -18,7 +18,7 @@ describe('lib/philips.js', () => {
             ['0b00015c842b32b3', [0.17, 0.7]], // Green (#00ff0e)
             ['0b00011d37272c0c', [0.1532, 0.0475]], // Blue (#0a00ff)
         ])(`xy(%s) should be %s`, (input, expected) => {
-            const ret = philips.decodeGradientColors(input);
+            const ret = decodeGradientColors(input);
             expect([ret.x, ret.y]).toStrictEqual(expected);
         });
 
@@ -35,7 +35,7 @@ describe('lib/philips.js', () => {
             ['03000164', 100],
             ['030001fe', 254],
         ])('brightness(%s) should be %s', (input, expected) => {
-            const ret = philips.decodeGradientColors(input);
+            const ret = decodeGradientColors(input);
             expect(ret.brightness).toBe(expected);
         });
 
@@ -51,7 +51,7 @@ describe('lib/philips.js', () => {
             ['03000164', true],
             ['0300004f', false],
         ])('power(%s) should be %s', (input, expected) => {
-            const ret = philips.decodeGradientColors(input);
+            const ret = decodeGradientColors(input);
             expect(ret.on).toBe(expected);
         });
 
@@ -59,7 +59,7 @@ describe('lib/philips.js', () => {
             ['4b010164ee2df18f1350000000e8b3aac7589f2dba903f4a7720ba602800', 0],
             ['4b01012701b1ea4e13500000000e9f5d0727640e9f5d0727640e9f5d2810', 2],
         ])('offset(%s) should be %s', (input, expected) => {
-            const ret = philips.decodeGradientColors(input);
+            const ret = decodeGradientColors(input);
             expect(ret.offset).toBe(expected);
         });
 
@@ -68,7 +68,7 @@ describe('lib/philips.js', () => {
             ['0f00011d7201ab751969', 370],
             ['0f00015cf401d486ce69', 500],
         ])(`colorTemperature(%s) should be %s`, (input, expected) => {
-            const ret = philips.decodeGradientColors(input);
+            const ret = decodeGradientColors(input);
             expect(ret.color_temp).toBe(expected);
         });
 
@@ -78,7 +78,7 @@ describe('lib/philips.js', () => {
             ['4b010164ee2df18f1350000000e8b3aac7589f2dba903f4a7720ba602800', 'gradient'],
             ['ab000153df7e446a0180', 'xy'],
         ])(`color_mode(%s) should be %s`, (input, expected) => {
-            const ret = philips.decodeGradientColors(input);
+            const ret = decodeGradientColors(input);
             expect(ret.color_mode).toBe(expected);
         });
 
@@ -88,7 +88,7 @@ describe('lib/philips.js', () => {
             ['ab0001febe92ab650380', 'colorloop'],
             ['ab0001febe92ab659999', 'unknown_9999'],
         ])('effect(%s) should be %s', (input, expected) => {
-            const ret = philips.decodeGradientColors(input);
+            const ret = decodeGradientColors(input);
             expect(ret.name).toBe(expected);
         });
     });
@@ -106,7 +106,7 @@ describe('lib/philips.js', () => {
             [['#ffffff'], {reverse: true}, '5001040007100000000727640800'],
             [['#ffffff'], {reverse: false}, '5001040007100000000727640800'],
         ])('colors(%s) opts(%s) should be %s', (colors, opts, expected) => {
-            const ret = philips.encodeGradientColors(colors, opts);
+            const ret = encodeGradientColors(colors, opts);
             expect(ret).toStrictEqual(expected);
         });
     });

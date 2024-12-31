@@ -3,7 +3,17 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {battery, deviceAddCustomCluster, humidity, iasZoneAlarm, light, onOff, temperature} from '../lib/modernExtend';
+import {
+    battery,
+    deviceAddCustomCluster,
+    deviceEndpoints,
+    electricityMeter,
+    humidity,
+    iasZoneAlarm,
+    light,
+    onOff,
+    temperature,
+} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
 
@@ -404,6 +414,18 @@ const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+        ],
+    },
+    {
+        zigbeeModel: ['3RDP01072Z'],
+        model: '3RDP01072Z',
+        vendor: 'Third Reality',
+        description: 'Zigbee / BLE dual plug with power',
+        ota: true,
+        extend: [
+            deviceEndpoints({endpoints: {left: 1, right: 2}}),
+            onOff({endpointNames: ['left', 'right']}),
+            electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ['left', 'right']}),
         ],
     },
     {

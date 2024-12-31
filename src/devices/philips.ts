@@ -13,6 +13,13 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['929002297503'],
+        model: '929002297503',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance E17 40W',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}, color: true})],
+    },
+    {
         zigbeeModel: ['929003598001'],
         model: '929003598001',
         vendor: 'Philips',
@@ -434,11 +441,32 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight()],
     },
     {
+        zigbeeModel: ['929003823101'],
+        model: '929003823101',
+        vendor: 'Philips',
+        description: 'Hue Tento White 42.1 cm',
+        extend: [philipsLight({colorTemp: {range: [153, 438]}})],
+    },
+    {
+        zigbeeModel: ['929003822701'],
+        model: '929003822701',
+        vendor: 'Philips',
+        description: 'Hue Tento White 29.1 cm',
+        extend: [philipsLight()],
+    },
+    {
         zigbeeModel: ['LTD011'],
         model: '5110131H5',
         vendor: 'Philips',
         description: 'Garnea downlight',
-        extend: [philipsLight({colorTemp: {range: undefined}})],
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['LTD021'],
+        model: '9290035842',
+        vendor: 'Philips',
+        description: 'Garnea downlight',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['LTD012'],
@@ -2057,7 +2085,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ['929003817002'],
+        zigbeeModel: ['LCL009'],
         model: '929003817002',
         vendor: 'Philips',
         description: 'Philips Hue solo lightstrip (5 mtr.)',

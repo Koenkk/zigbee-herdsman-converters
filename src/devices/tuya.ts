@@ -3190,8 +3190,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Tuya',
         description: '2 gang socket with power monitoring and USB',
         extend: [
+            tuyaMagicPacket(),
             deviceEndpoints({endpoints: {left: 1, right: 2}, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']}),
-            onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2']}),
+            onOff({powerOnBehavior: false, endpointNames: ['left', 'right']}),
             identify(),
             electricityMeter(),
         ],
@@ -4815,13 +4816,13 @@ const definitions: DefinitionWithExtend[] = [
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [7, 'child_lock', tuya.valueConverter.lockUnlock],
-                [28, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
-                [29, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
-                [30, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
-                [31, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
-                [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
-                [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [28, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 6)],
+                [29, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2, 6)],
+                [30, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3, 6)],
+                [31, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4, 6)],
+                [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5, 6)],
+                [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6, 6)],
+                [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 6)],
                 [35, null, tuya.valueConverter.errorOrBatteryLow],
                 [36, 'frost_protection', tuya.valueConverter.onOff],
                 [39, 'scale_protection', tuya.valueConverter.onOff],
@@ -5235,19 +5236,22 @@ const definitions: DefinitionWithExtend[] = [
             e.position(),
             e.window_detection(),
             e.binary('window', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status closed or open '),
-            e.enum('mode', ea.STATE_SET, ['standby', 'antifrost', 'eco', 'comfort', 'auto', 'on']).withDescription('Mode'),
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET),
+                .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET)
+                .withPreset(['off', 'antifrost', 'eco', 'comfort', 'auto', 'on'])
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withSystemMode(['auto', 'heat', 'off'], ea.STATE),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
             e.comfort_temperature().withValueMin(5).withValueMax(30).withDescription('Comfort mode temperature'),
             e.eco_temperature().withValueMin(5).withValueMax(30).withDescription('Eco mode temperature'),
+            e.holiday_temperature().withValueMin(5).withValueMax(30).withDescription('Antifreeze mode temperature'),
             e.enum('display_brightness', ea.STATE_SET, ['high', 'medium', 'low']).withDescription('Display brightness'),
-            e.enum('screen_orientation', ea.STATE_SET, ['up', 'right', 'down', 'left']).withDescription('Screen orientation'),
+            e.enum('screen_orientation', ea.STATE_SET, ['up', 'down']).withDescription('Screen orientation'),
             e
-                .enum('system_mode', ea.STATE_SET, ['comfort', 'eco'])
+                .enum('hysteresis', ea.STATE_SET, ['comfort', 'eco'])
                 .withDescription(
                     'Hysteresis - comfort > switches off/on exactly at reached ' +
                         'temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%',
@@ -5258,9 +5262,9 @@ const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [
                     2,
-                    'mode',
+                    'preset',
                     tuya.valueConverterBasic.lookup({
-                        standby: tuya.enum(0),
+                        off: tuya.enum(0),
                         antifrost: tuya.enum(1),
                         eco: tuya.enum(2),
                         comfort: tuya.enum(3),
@@ -5268,6 +5272,8 @@ const definitions: DefinitionWithExtend[] = [
                         on: tuya.enum(5),
                     }),
                 ],
+                [2, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset('system_mode')],
+                [3, 'running_state', tuya.valueConverterBasic.lookup({heat: 1, idle: 0})],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [6, 'battery', tuya.valueConverter.raw],
@@ -5323,22 +5329,14 @@ const definitions: DefinitionWithExtend[] = [
                         low: tuya.enum(2),
                     }),
                 ],
-                [
-                    113,
-                    'screen_orientation',
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        right: tuya.enum(1),
-                        down: tuya.enum(2),
-                        left: tuya.enum(3),
-                    }),
-                ],
+                [113, 'screen_orientation', tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(1)})],
                 [114, 'position', tuya.valueConverter.divideBy10],
                 [119, 'comfort_temperature', tuya.valueConverter.divideBy10],
                 [120, 'eco_temperature', tuya.valueConverter.divideBy10],
+                [121, 'holiday_temperature', tuya.valueConverter.divideBy10],
                 [
                     127,
-                    'system_mode',
+                    'hysteresis',
                     tuya.valueConverterBasic.lookup({
                         comfort: tuya.enum(0),
                         eco: tuya.enum(1),
@@ -5384,7 +5382,7 @@ const definitions: DefinitionWithExtend[] = [
                     'mode',
                     tuya.valueConverterBasic.lookup({
                         auto: tuya.enum(0),
-                        manual: tuya.enum(1),
+                        manual: tuya.enum(2),
                     }),
                 ],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
@@ -8435,7 +8433,7 @@ const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
                 [2, 'humidity', tuya.valueConverter.raw],
-                [4, 'battery', tuya.valueConverter.raw],
+                [4, 'battery', tuya.valueConverter.divideBy2],
                 [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
                 [23, 'temperature_calibration', tuya.valueConverter.divideBy10],
                 [24, 'humidity_calibration', tuya.valueConverter.raw],
@@ -13543,6 +13541,386 @@ const definitions: DefinitionWithExtend[] = [
     		],
     	},
 }
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_d6i25bwg']),
+        model: 'PO-BOCO-ELEC',
+        vendor: 'Powernity',
+        description: 'Pilot wire heating module',
+        extend: [tuyaBase({dp: true})],
+        exposes: [
+            e
+                .climate()
+                .withPreset(['manual', 'auto', 'holiday'])
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint('occupied_heating_setpoint', 0, 20, 1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-5.5, 5.5, 0.5, ea.STATE_SET)
+                .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET, 'Only for Homeassistant'),
+            e.enum('auto_mode', ea.STATE_SET, ['off', 'antifrost', 'eco', 'comfort_-2', 'comfort_-1', 'comfort']).withDescription('Auto Mode'),
+            e.enum('manual_mode', ea.STATE_SET, ['off', 'antifrost', 'eco', 'comfort_-2', 'comfort_-1', 'comfort']).withDescription('Manual Mode'),
+            tuya.exposes.frostProtection(),
+            // e.text("antifrost_mode", ea.STATE),
+            e.humidity(),
+            e.child_lock(),
+            e.window_detection(),
+            e
+                .enum('window_opening_mode', ea.STATE_SET, ['off', 'antifrost', 'eco', 'comfort_-2', 'comfort_-1', 'comfort'])
+                .withDescription('Window Opening Mode'),
+            e
+                .numeric('window_opening_mode_duration', ea.STATE_SET)
+                .withUnit('min')
+                .withDescription('Duration of the window opening mode')
+                .withValueMin(1)
+                .withValueMax(90),
+            tuya.exposes.temperatureUnit(),
+            e
+                .binary('boost_heating', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Boost Heating: the device will enter the boost heating mode.')
+                .withCategory('config'),
+            e
+                .numeric('boost_timeset_countdown', ea.STATE)
+                .withUnit('s')
+                .withDescription(
+                    'The remaining ' + 'time for the function will be counted down in seconds ( 900 to 0 ) when the boost heating is activated.',
+                )
+                .withValueMin(0)
+                .withValueMax(900),
+            e
+                .numeric('power_rating', ea.STATE_SET)
+                .withDescription(
+                    'How much power is the heater rated to. Entering a value will allow the Thermostat to record a value of power usage that can be checked under settings on the physical Thermostat',
+                )
+                .withUnit('kWh')
+                .withValueMin(10)
+                .withValueMax(10000)
+                .withValueStep(10)
+                .withCategory('config'),
+            e.numeric('energy_consumed', ea.STATE).withUnit('kWh').withDescription('Consumed energy'),
+            e
+                .enum('mode_switching', ea.STATE_SET, ['four_modes', 'six_modes'])
+                .withDescription('Choose the number of mode your heater supports.')
+                .withCategory('config'),
+            e
+                .text('schedule_monday', ea.STATE_SET)
+                .withDescription(
+                    'Schedule for the auto mode. Can be defined in the following format: ' +
+                        '`mode / hours:minutes / mode`. ' +
+                        'For example: `comfort / 06:00 / eco / 12:00 / off`. ' +
+                        'Note: Minutes can only be set by multiple of 5. Your limited to 9 modes max.',
+                ),
+            e
+                .text('schedule_tuesday', ea.STATE_SET)
+                .withDescription(
+                    'Schedule for the auto mode. Can be defined in the following format: ' +
+                        '`mode / hours:minutes / mode`. ' +
+                        'For example: `comfort / 06:00 / eco / 12:00 / off`. ' +
+                        'Note: Minutes can only be set by multiple of 5. Your limited to 9 modes max.',
+                ),
+            e
+                .text('schedule_wednesday', ea.STATE_SET)
+                .withDescription(
+                    'Schedule for the auto mode. Can be defined in the following format: ' +
+                        '`mode / hours:minutes / mode`. ' +
+                        'For example: `comfort / 06:00 / eco / 12:00 / off`. ' +
+                        'Note: Minutes can only be set by multiple of 5. Your limited to 9 modes max.',
+                ),
+            e
+                .text('schedule_thursday', ea.STATE_SET)
+                .withDescription(
+                    'Schedule for the auto mode. Can be defined in the following format: ' +
+                        '`mode / hours:minutes / mode`. ' +
+                        'For example: `comfort / 06:00 / eco / 12:00 / off`. ' +
+                        'Note: Minutes can only be set by multiple of 5. Your limited to 9 modes max.',
+                ),
+            e
+                .text('schedule_friday', ea.STATE_SET)
+                .withDescription(
+                    'Schedule for the auto mode. Can be defined in the following format: ' +
+                        '`mode / hours:minutes / mode`. ' +
+                        'For example: `comfort / 06:00 / eco / 12:00 / off`. ' +
+                        'Note: Minutes can only be set by multiple of 5. Your limited to 9 modes max.',
+                ),
+            e
+                .text('schedule_saturday', ea.STATE_SET)
+                .withDescription(
+                    'Schedule for the auto mode. Can be defined in the following format: ' +
+                        '`mode / hours:minutes / mode`. ' +
+                        'For example: `comfort / 06:00 / eco / 12:00 / off`. ' +
+                        'Note: Minutes can only be set by multiple of 5. Your limited to 9 modes max.',
+                ),
+            e
+                .text('schedule_sunday', ea.STATE_SET)
+                .withDescription(
+                    'Schedule for the auto mode. Can be defined in the following format: ' +
+                        '`mode / hours:minutes / mode`. ' +
+                        'For example: `comfort / 06:00 / eco / 12:00 / off`. ' +
+                        'Note: Minutes can only be set by multiple of 5. Your limited to 9 modes max.',
+                ),
+            e
+                .text('holiday_start_stop', ea.STATE_SET)
+                .withDescription(
+                    'The holiday mode will automatically start ' +
+                        'at the set time starting point and run the holiday mode. Can be defined in the following format: ' +
+                        '`startYear/startMonth/startDay startHours:startMinutes | endYear/endMonth/endDay endHours:endMinutes  | mode`. ' +
+                        'For example: `2024/12/12 09:00 | 2024/12/14 10:00 | comfort`' +
+                        'Note: You cannot set an interval superior at 255 hours. The end date minutes will be ignore.',
+                ),
+            e.binary('reset_consumption', ea.STATE_SET, 'ON', 'OFF').withDescription('Reset energy consumption to zero').withCategory('config'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    null,
+                    'occupied_heating_setpoint',
+                    {
+                        to: async (v: number, meta) => {
+                            const entity = meta.device.endpoints[0];
+                            const mode = meta.state.mode_switching;
+                            let temp = v;
+                            if (meta.state.temperature_unit === 'fahrenheit') temp = ((temp - 32) * 5) / 9;
+
+                            await tuya.sendDataPointEnum(entity, 2, 1, 'dataRequest', 1); // manual
+                            if (temp === 0) {
+                                await tuya.sendDataPointEnum(entity, 127, 5, 'dataRequest', 3); //off
+                            } else if (temp < 16) {
+                                await tuya.sendDataPointEnum(entity, 127, 4, 'dataRequest', 3); //antifrost
+                            } else if (temp >= 19) {
+                                await tuya.sendDataPointEnum(entity, 127, 0, 'dataRequest', 1); //comfort
+                            } else if (mode === 1) {
+                                if (temp === 17) {
+                                    await tuya.sendDataPointEnum(entity, 127, 2, 'dataRequest', 1); // comfort-2
+                                } else if (temp === 18) {
+                                    await tuya.sendDataPointEnum(entity, 127, 1, 'dataRequest', 1); // comfort-1
+                                }
+                            } else {
+                                await tuya.sendDataPointEnum(entity, 127, 3, 'dataRequest', 1); // eco
+                            }
+
+                            return v;
+                        },
+                    },
+                ],
+                [
+                    2,
+                    'preset',
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                        holiday: tuya.enum(2),
+                    }),
+                ],
+                [
+                    null,
+                    'system_mode',
+                    {
+                        // Extend system_mode to support 'off' in addition to 'heat' and 'auto'
+                        to: async (v, meta) => {
+                            const entity = meta.device.endpoints[0];
+                            let temp = meta.state.occupied_heating_setpoint as number;
+                            if (meta.state.temperature_unit === 'fahrenheit') temp = ((temp - 32) * 5) / 9;
+                            const mode = meta.state.mode_switching;
+
+                            switch (v) {
+                                case 'off':
+                                    await tuya.sendDataPointEnum(entity, 2, 1, 'dataRequest', 1); // manual
+                                    await tuya.sendDataPointEnum(entity, 127, 5, 'dataRequest', 1); // off
+                                    break;
+                                case 'heat':
+                                    await tuya.sendDataPointEnum(entity, 2, 1, 'dataRequest', 1); // manual
+                                    if (temp === 0) {
+                                        await tuya.sendDataPointEnum(entity, 127, 5, 'dataRequest', 3); //off
+                                    } else if (temp < 16) {
+                                        await tuya.sendDataPointEnum(entity, 127, 4, 'dataRequest', 3); //antifrost
+                                    } else if (temp >= 19) {
+                                        await tuya.sendDataPointEnum(entity, 127, 0, 'dataRequest', 1); //comfort
+                                    } else if (mode === 1) {
+                                        if (temp === 17) {
+                                            await tuya.sendDataPointEnum(entity, 127, 2, 'dataRequest', 1); // comfort-2
+                                        } else if (temp === 18) {
+                                            await tuya.sendDataPointEnum(entity, 127, 1, 'dataRequest', 1); // comfort-1
+                                        }
+                                    } else {
+                                        await tuya.sendDataPointEnum(entity, 127, 3, 'dataRequest', 1); // eco
+                                    }
+                                    break;
+                                case 'auto':
+                                    await tuya.sendDataPointEnum(entity, 2, 0, 'dataRequest', 1); // auto
+                                    break;
+                            }
+                        },
+                    },
+                ],
+                [8, 'humidity', tuya.valueConverter.raw],
+                [11, 'energy_consumed', tuya.valueConverter.raw],
+                [16, 'local_temperature', tuya.valueConverter.divideBy10],
+                [39, 'child_lock', tuya.valueConverter.lockUnlock],
+                [46, 'temperature_unit', tuya.valueConverter.temperatureUnitEnum],
+                [101, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [108, 'boost_heating', tuya.valueConverter.onOff],
+                [114, 'schedule_monday', tuya.valueConverter.PO_BOCO_ELEC_schedule(1)],
+                [115, 'schedule_tuesday', tuya.valueConverter.PO_BOCO_ELEC_schedule(2)],
+                [116, 'schedule_wednesday', tuya.valueConverter.PO_BOCO_ELEC_schedule(3)],
+                [117, 'schedule_thursday', tuya.valueConverter.PO_BOCO_ELEC_schedule(4)],
+                [118, 'schedule_friday', tuya.valueConverter.PO_BOCO_ELEC_schedule(5)],
+                [119, 'schedule_saturday', tuya.valueConverter.PO_BOCO_ELEC_schedule(6)],
+                [120, 'schedule_sunday', tuya.valueConverter.PO_BOCO_ELEC_schedule(7)],
+                [123, 'boost_timeset_countdown', tuya.valueConverter.raw],
+                // [125, "temperature_antifreeze", tuya.valueConverterBasic.raw],
+                [
+                    126,
+                    'auto_mode',
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(5),
+                        antifrost: tuya.enum(4),
+                        eco: tuya.enum(3),
+                        'comfort_-2': tuya.enum(2),
+                        'comfort_-1': tuya.enum(1),
+                        comfort: tuya.enum(0),
+                    }),
+                ],
+                [
+                    127,
+                    'manual_mode',
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(5),
+                        antifrost: tuya.enum(4),
+                        eco: tuya.enum(3),
+                        'comfort_-2': tuya.enum(2),
+                        'comfort_-1': tuya.enum(1),
+                        comfort: tuya.enum(0),
+                    }),
+                ],
+                [136, 'frost_protection', tuya.valueConverter.onOff],
+                // [137, "antifrost", tuya.valueConverterBasic.raw],
+                [138, 'window_detection', tuya.valueConverter.onOff],
+                [
+                    139,
+                    'window_opening_mode',
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(5),
+                        antifrost: tuya.enum(4),
+                        eco: tuya.enum(3),
+                        'comfort_-2': tuya.enum(2),
+                        'comfort_-1': tuya.enum(1),
+                        comfort: tuya.enum(0),
+                    }),
+                ],
+                [140, 'window_opening_mode_duration', tuya.valueConverter.raw],
+                [141, 'reset_consumption', tuya.valueConverter.onOff],
+                [142, 'power_rating', tuya.valueConverter.raw],
+                [143, 'holiday_start_stop', tuya.valueConverter.PO_BOCO_ELEC_holiday],
+                [
+                    144,
+                    'mode_switching',
+                    tuya.valueConverterBasic.lookup({
+                        four_modes: tuya.enum(0),
+                        six_modes: tuya.enum(1),
+                    }),
+                ],
+                // [145, "weekly temperature replication function", ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_eekpf0ft']),
+        model: 'TR-M3Z',
+        vendor: 'Tuya',
+        description: 'Thermostatic radiator valve actuator',
+        extend: [tuyaBase({dp: true})],
+        exposes: [
+            e.child_lock(),
+            e.battery(),
+            e.battery_low(),
+            e
+                .climate()
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withPreset(['manual', 'schedule', 'eco', 'comfort', 'frost_protection', 'holiday', 'off'])
+                .withSystemMode(['off', 'heat'], ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withLocalTemperatureCalibration(-9.5, 9.5, 0.5, ea.STATE_SET),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            e.eco_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e.comfort_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e.holiday_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e
+                .binary('window_detection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'Startup: when room temperature decreases by 3°C within 5 minutes, stop heating. ' +
+                        'Close: when room temperature rises by 3 degrees / 48 minutes later / manual (three ways). ' +
+                        'After the window opening mode is turned on, one of these three conditions can trigger to exit the window opening mode.',
+                ),
+            e.binary('window_open', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status CLOSE or OPEN '),
+            e
+                .binary('scale_protection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'If the heat sink is not fully opened within ' +
+                        'two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be ' +
+                        'able to be used. To ensure normal use of the heat sink, the controller will automatically open the valve fully every ' +
+                        'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
+                        'again.',
+                ),
+            e
+                .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
+                ),
+            e
+                .numeric('frost_protection_temperature', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withDescription(''),
+            e
+                .numeric('temperature_accuracy', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5)
+                .withDescription('The difference required between local temperature and set point to trigger the valve.'),
+            e.numeric('error', ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    'preset',
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        schedule: tuya.enum(1),
+                        eco: tuya.enum(2),
+                        comfort: tuya.enum(3),
+                        frost_protection: tuya.enum(4),
+                        holiday: tuya.enum(5),
+                        off: tuya.enum(6),
+                    }),
+                ],
+                [3, 'running_state', tuya.valueConverterBasic.lookup({idle: tuya.enum(0), heat: tuya.enum(1)})],
+                [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [5, 'local_temperature', tuya.valueConverter.divideBy10],
+                [6, 'battery', tuya.valueConverter.raw],
+                [7, 'child_lock', tuya.valueConverter.lockUnlock],
+                [14, 'window_detection', tuya.valueConverter.onOff],
+                [15, 'window_open', tuya.valueConverterBasic.lookup({CLOSE: tuya.enum(0), OPEN: tuya.enum(1)})],
+                [21, 'holiday_temperature', tuya.valueConverter.divideBy10],
+                [28, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 6)],
+                [29, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2, 6)],
+                [30, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3, 6)],
+                [31, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4, 6)],
+                [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5, 6)],
+                [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6, 6)],
+                [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 6)],
+                [35, 'fault_alarm', tuya.valueConverter.errorOrBatteryLow],
+                [36, 'frost_protection', tuya.valueConverter.onOff],
+                [39, 'scale_protection', tuya.valueConverter.onOff],
+                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration3],
+                [101, 'system_mode', tuya.valueConverterBasic.lookup({off: false, heat: true})],
+                [102, 'temperature_accuracy', tuya.valueConverter.divideBy10],
+                [103, 'eco_temperature', tuya.valueConverter.divideBy10],
+                [104, 'comfort_temperature', tuya.valueConverter.divideBy10],
+                [105, 'frost_protection_temperature', tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
 ];
 
 export default definitions;
