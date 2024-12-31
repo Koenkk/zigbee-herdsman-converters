@@ -616,6 +616,15 @@ const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaLedIndicator(),
         ],
     },
+    {
+        fingerprint: [{modelID: 'TS0222_light', manufacturerName: '_TZ3000_9kbbfeho'}],
+        model: 'ZSS-QY-LS-C',
+        vendor: 'Moes',
+        description: 'Light intensity sensor',
+        fromZigbee: [fz.battery, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
+    },
 ];
 
 export default definitions;
