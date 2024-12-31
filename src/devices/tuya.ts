@@ -13476,7 +13476,7 @@ const definitions: DefinitionWithExtend[] = [
     	],
         description: 'Human presence sensor',
         fromZigbee: [tuya.fz.datapoints, fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report],
-        toZigbee: [tuya.tz.datapoints, tzDatapoints],
+        toZigbee: [tuya.tz.datapoints],
     	configure: async (device, coordinatorEndpoint) => {
     		await tuya.configureMagicPacket(device, coordinatorEndpoint);
     	},
