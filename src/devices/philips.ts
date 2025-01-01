@@ -147,6 +147,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['LCO001'],
+        model: '8719514419155',
+        vendor: 'Philips',
+        description: 'Hue Globe E27 smart bulb',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ['929003056701'],
         model: '929003056701',
         vendor: 'Philips',
