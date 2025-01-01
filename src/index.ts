@@ -296,6 +296,16 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
     return definition;
 }
 
+function retrieveAdditionalExposesFromOptions(definition: DefinitionWithExtend): Expose[] {
+    const additionalExposes: Expose[] = [];
+    for (const option of definition.options) {
+        if (option.exposes) {
+            additionalExposes.push(...option.exposes);
+        }
+    }
+    return additionalExposes;
+}
+
 function prepareDefinition(definition: DefinitionWithExtend): Definition {
     definition = processExtensions(definition);
 
@@ -315,6 +325,10 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
 
     if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
         definition.exposes = definition.exposes.concat([exposesLib.presets.linkquality()]);
+    }
+
+    if (definition.exposes && Array.isArray(definition.exposes) && definition.options) {
+        definition.exposes.push(...retrieveAdditionalExposesFromOptions(definition));
     }
 
     if (definition.externalConverterName) {
@@ -475,6 +489,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown: bool
         return candidates[0];
     } else {
         // First try to match based on fingerprint, return the first matching one.
+
         const fingerprintMatch: {priority?: number; definition?: Definition} = {priority: undefined, definition: undefined};
 
         for (const candidate of candidates) {
