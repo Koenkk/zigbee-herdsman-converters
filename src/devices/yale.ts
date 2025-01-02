@@ -1,6 +1,6 @@
-import {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
+import type {Types as ZHTypes} from 'zigbee-herdsman';
 
-import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
+import {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -61,7 +61,7 @@ const fzLocal = {
         cluster: 'genAlarms',
         type: ['commandAlarm'],
         convert: async (model, msg, publish, options, meta) => {
-            let result: KeyValue = {};
+            let result: ZHTypes.KeyValue = {};
             if (msg.data.clusterid == 64512) {
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
@@ -110,7 +110,7 @@ const fzLocal = {
         type: ['readResponse'],
         convert: async (model, msg, publish, options, meta) => {
             const data = msg.data;
-            const result: KeyValue = {};
+            const result: ZHTypes.KeyValue = {};
             if (data['18']) {
                 const lookup = {
                     0: 'off',
@@ -186,7 +186,7 @@ const fzLocal = {
         cluster: 'genAlarms',
         type: ['commandAlarm'],
         convert: async (model, msg, publish, options, meta) => {
-            let result: KeyValue = {};
+            let result: ZHTypes.KeyValue = {};
             if (msg.data.clusterid == 64512) {
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {

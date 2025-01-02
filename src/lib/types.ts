@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
-import type {Device as ZHDevice, Endpoint as ZHEndpoint, Group as ZHGroup} from 'zigbee-herdsman/dist/controller/model';
+import type {Models as ZHModels} from 'zigbee-herdsman';
 import type {Header as ZHZclHeader} from 'zigbee-herdsman/dist/zspec/zcl';
 import type {FrameControl} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
 
@@ -341,9 +341,9 @@ export namespace Tz {
 }
 
 export namespace Zh {
-    export type Endpoint = ZHEndpoint;
-    export type Device = ZHDevice;
-    export type Group = ZHGroup;
+    export type Endpoint = ZHModels.Endpoint;
+    export type Device = ZHModels.Device;
+    export type Group = ZHModels.Group;
     export type ZclHeader = ZHZclHeader;
 }
 

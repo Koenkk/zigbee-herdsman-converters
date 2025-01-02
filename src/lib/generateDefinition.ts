@@ -1,5 +1,6 @@
-import * as zh from 'zigbee-herdsman/dist';
-import {Endpoint} from 'zigbee-herdsman/dist/controller/model';
+import type {Models as ZHModels} from 'zigbee-herdsman';
+
+import {Zcl} from 'zigbee-herdsman';
 import {Cluster} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
 
 import {logger} from './logger';
@@ -94,7 +95,7 @@ module.exports = definition;`;
 
 export async function generateDefinition(device: Zh.Device): Promise<{externalDefinitionSource: string; definition: IndexedDefinition}> {
     // Map cluster to all endpoints that have this cluster.
-    const mapClusters = (endpoint: Endpoint, clusters: Cluster[], clusterMap: Map<string, Endpoint[]>) => {
+    const mapClusters = (endpoint: ZHModels.Endpoint, clusters: Cluster[], clusterMap: Map<string, ZHModels.Endpoint[]>) => {
         for (const cluster of clusters) {
             if (!clusterMap.has(cluster.name)) {
                 clusterMap.set(cluster.name, []);
@@ -108,8 +109,8 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
     const knownInputClusters = inputExtenders.map((ext) => ext[0]).flat(1);
     const knownOutputClusters = outputExtenders.map((ext) => ext[0]).flat(1);
 
-    const inputClusterMap = new Map<string, Endpoint[]>();
-    const outputClusterMap = new Map<string, Endpoint[]>();
+    const inputClusterMap = new Map<string, ZHModels.Endpoint[]>();
+    const outputClusterMap = new Map<string, ZHModels.Endpoint[]>();
 
     for (const endpoint of device.endpoints) {
         // Filter clusters to leave only the ones that we can generate extenders for.
@@ -184,13 +185,13 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
     return {externalDefinitionSource, definition};
 }
 
-function stringifyEps(endpoints: Endpoint[]): string[] {
+function stringifyEps(endpoints: ZHModels.Endpoint[]): string[] {
     return endpoints.map((e) => e.ID.toString());
 }
 
 // This function checks if provided array of endpoints contain
 // only first device endpoint, which is passed in as `firstEndpoint`.
-function onlyFirstDeviceEnpoint(device: Zh.Device, endpoints: Endpoint[]): boolean {
+function onlyFirstDeviceEnpoint(device: Zh.Device, endpoints: ZHModels.Endpoint[]): boolean {
     return endpoints.length === 1 && endpoints[0].ID === device.endpoints[0].ID;
 }
 
@@ -326,7 +327,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
             }
         }
 
-        if (endpoint.getDevice().manufacturerID === zh.Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V) {
+        if (endpoint.getDevice().manufacturerID === Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V) {
             generated.push(new ExtendGenerator({extend: philipsLight, args, source: `philipsLight`, lib: 'philips'}));
         } else {
             generated.push(new ExtendGenerator({extend: m.light, args, source: `light`}));

@@ -1772,7 +1772,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['RBSH-SWD-ZB'],
+        zigbeeModel: ['RBSH-SWD-ZB', 'RBSH-SWD2-ZB'],
         model: 'BSEN-C2',
         vendor: 'Bosch',
         description: 'Door/window contact II',
