@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {electricityMeter, onOff, deviceAddCustomCluster, enumLookup} from '../lib/modernExtend';
+import {deviceAddCustomCluster, electricityMeter, enumLookup, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -139,7 +139,7 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'manuSpecificSalus',
                 attribute: 'holdType',
                 description: 'Operation mode',
-                reporting:  {min: 0, max: 3600, change: 0},
+                reporting: {min: 0, max: 3600, change: 0},
             }),
         ],
         fromZigbee: [fz.thermostat, fz.fan],
