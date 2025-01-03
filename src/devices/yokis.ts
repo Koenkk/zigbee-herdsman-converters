@@ -2411,8 +2411,8 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        // E2BPA-UP
-        zigbeeModel: ['E2BPA-UP', 'E2BP-UP'],
+        // E2BP-UP
+        zigbeeModel: ['E2BP-UP'],
         model: 'E2BP-UP',
         vendor: 'YOKIS',
         description: 'Flush-mounted independent 2-channel transmitter',
@@ -2436,8 +2436,33 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        // E4BPA-UP
-        zigbeeModel: ['E4BPA-UP', 'E4BP-UP', 'E4BPX-UP'],
+        // E2BPA-UP
+        zigbeeModel: ['E2BPA-UP'],
+        model: 'E2BPA-UP',
+        vendor: 'YOKIS',
+        description: 'Flush-mounted independent 2-channel transmitter (main powered)',
+        extend: [
+            deviceAddCustomCluster('manuSpecificYokisDevice', YokisClustersDefinition['manuSpecificYokisDevice']),
+            deviceAddCustomCluster('manuSpecificYokisInput', YokisClustersDefinition['manuSpecificYokisInput']),
+            deviceAddCustomCluster('manuSpecificYokisLightControl', YokisClustersDefinition['manuSpecificYokisLightControl']),
+            deviceAddCustomCluster('manuSpecificYokisDimmer', YokisClustersDefinition['manuSpecificYokisDimmer']),
+            deviceAddCustomCluster('manuSpecificYokisWindowCovering', YokisClustersDefinition['manuSpecificYokisWindowCovering']), // Pending implementation
+            deviceAddCustomCluster('manuSpecificYokisChannel', YokisClustersDefinition['manuSpecificYokisChannel']),
+            deviceAddCustomCluster('manuSpecificYokisPilotWire', YokisClustersDefinition['manuSpecificYokisPilotWire']), // Pending implementation
+            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            identify(),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            commandsWindowCovering(),
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
+        ],
+    },
+    {
+        // E4BP-UP
+        zigbeeModel: ['E4BP-UP'],
         model: 'E4BP-UP',
         vendor: 'YOKIS',
         description: 'Flush-mounted independent 4-channel transmitter',
@@ -2454,6 +2479,31 @@ const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff(),
             m.commandsLevelCtrl(),
             m.commandsWindowCovering(),
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
+        ],
+    },
+    {
+        // E4BPX-UP
+        zigbeeModel: ['E4BPX-UP'],
+        model: 'E4BPX-UP',
+        vendor: 'YOKIS',
+        description: 'Flush-mounted independent 4-channel transmitter (with antenna)',
+        extend: [
+            deviceAddCustomCluster('manuSpecificYokisDevice', YokisClustersDefinition['manuSpecificYokisDevice']),
+            deviceAddCustomCluster('manuSpecificYokisInput', YokisClustersDefinition['manuSpecificYokisInput']),
+            deviceAddCustomCluster('manuSpecificYokisLightControl', YokisClustersDefinition['manuSpecificYokisLightControl']),
+            deviceAddCustomCluster('manuSpecificYokisDimmer', YokisClustersDefinition['manuSpecificYokisDimmer']),
+            deviceAddCustomCluster('manuSpecificYokisWindowCovering', YokisClustersDefinition['manuSpecificYokisWindowCovering']), // Pending implementation
+            deviceAddCustomCluster('manuSpecificYokisChannel', YokisClustersDefinition['manuSpecificYokisChannel']),
+            deviceAddCustomCluster('manuSpecificYokisPilotWire', YokisClustersDefinition['manuSpecificYokisPilotWire']), // Pending implementation
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            identify(),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            commandsWindowCovering(),
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
