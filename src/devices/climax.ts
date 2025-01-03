@@ -49,6 +49,7 @@ const definitions: DefinitionWithExtend[] = [
             'PSMP5_00.00.02.02TC',
             'PSMP5_00.00.05.01TC',
             'PSMP5_00.00.05.10TC',
+            'PSMP5_00.00.03.12TC',
             'PSMP5_00.00.03.15TC',
             'PSMP5_00.00.03.16TC',
             'PSMP5_00.00.03.19TC',
@@ -140,6 +141,14 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee 12-24V relay controller',
         extend: [identify(), onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
+    {
+        zigbeeModel: ['RC_ARM_00.00.02.11TC'],
+        model: 'RC-15ZBC',
+        vendor: 'ClimaxTechnology',
+        description: '4 button Zigbee remote control',
+        extend: [identify(), iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
+        meta: {},
+   }
 ];
 
 export default definitions;
