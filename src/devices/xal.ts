@@ -6,14 +6,21 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['050-0131558M'],
         model: '050-0131558M',
         vendor: 'XAL',
-        description: 'Just 45 MOVE IT 25 spotlight',
+        description: 'Spotlight for Just MOVE IT 25 track',
         extend: [light()],
     },
     {
         zigbeeModel: ['050-1212558H'],
         model: '050-1212558H',
         vendor: 'XAL',
-        description: 'Just 45 LIGHT opal floodlight',
+        description: 'Opal floodlight for Just MOVE IT 25 track',
+        extend: [light()],
+    },
+    {
+        zigbeeModel: ['050-0511558F'],
+        model: '050-0511558F',
+        vendor: 'XAL',
+        description: 'Cable suspended spotlight for Just MOVE IT 25 track',
         extend: [light()],
     },
 ];
