@@ -1,5 +1,25 @@
 # Changelog
 
+## [21.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.11.0...v21.12.0) (2025-01-03)
+
+
+### Features
+
+* Add preset for Salus FC600 ([#8551](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8551)) ([c45179c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c45179c1e7c82731f46c33f84c340f03522130fe))
+* **add:** 050-0511558F ([#8549](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8549)) ([897380f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/897380fca445f24a1716795cbcf8e3529a6407f0))
+* **add:** D692-ZG ([#8534](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8534)) ([d65fcf7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d65fcf7963e2dec53fb507f8d75cae3c5ea0855d))
+* **add:** MTD085-ZB ([#8490](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8490)) ([35f89fb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/35f89fb594c4d12ca7ec058e009346a4ac7d8301))
+* **add:** MTR500E-UP, MTR1300E-UP, MTR2000E-UP, MTV300E-UP, MVR500E-UP, E2BP-UP, E4BP-UP, TLC1-UP, TLC2-UP, TLC4-UP, TLC8-UP, TLM1-UP, TLM2-UP, TLM4-UP, GALET4-UP ([#8537](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8537)) ([099eb66](https://github.com/Koenkk/zigbee-herdsman-converters/commit/099eb666505c4f8796c3ba0d4e5277201610c3b6))
+* Implement PowerOnBehaviour for Aqara T1M lamp (CL-L02D) ([#8550](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8550)) ([e2ae7d6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e2ae7d685ced88b7a1cfa42a785175e49a71f37c))
+
+
+### Bug Fixes
+
+* Add endpoint capability to lock type ([#8529](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8529)) ([8f0f023](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8f0f023df4d10477aed23e1b16c335a2d3c9d38a))
+* **detect:** Detect `FLS-PP3\u0000` as Mega23M12 https://github.com/Koenkk/zigbee2mqtt/issues/25382 ([5be3337](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5be3337374c8ee4120966e8cb30b8a80f624391f))
+* Fix configure failure for Datek HSE2905E ([#8546](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8546)) ([979ac52](https://github.com/Koenkk/zigbee-herdsman-converters/commit/979ac527def1e8a5e443004dd2bbffd80aebc019))
+* **ignore:** update dependencies ([#8555](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8555)) ([6214cc0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6214cc084e5137528ec328b23205e2b2d9b0f0e0))
+
 ## [21.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.10.0...v21.11.0) (2024-12-30)
 
 
