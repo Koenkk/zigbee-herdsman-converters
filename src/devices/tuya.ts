@@ -12668,7 +12668,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TS0105'],
         model: 'TS0105',
-        vendor: 'TuYa',
+        vendor: 'Tuya',
         description: '3 gang switch',
         extend: [tuyaBase({dp: true}), deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1}})],
         exposes: [
@@ -12967,7 +12967,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ha0vwoew']),
         model: 'TS0601_thermostat_thermosphere',
-        vendor: 'TuYa',
+        vendor: 'Tuya',
         description: 'ThermoSphere thermostat',
         extend: [tuyaBase({dp: true})],
         exposes: [
