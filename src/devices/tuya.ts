@@ -1331,7 +1331,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.co2()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7bztmfm1'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_7bztmfm1', '_TZE204_7bztmfm1']),
         model: 'TS0601_smart_CO_air_box',
         vendor: 'Tuya',
         description: 'Smart air box (carbon monoxide)',
