@@ -5593,6 +5593,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'AVATTO', model: 'MIUCOT10Z'},
             {vendor: 'Neo', model: 'NAS-WR01B'},
             {vendor: 'Neo', model: 'PLUG-001SPB2'},
+            {vendor: 'Girier', model: 'JR-ZPM03', fingerprint: [{manufacturerName: '_TZ3000_okaz9tjs', manufacturerID: 4660}]},
             tuya.whitelabel('Tuya', 'BSD29_1', 'Smart plug (with power monitoring by polling)', ['_TZ3000_okaz9tjs']),
         ],
         ota: true,
