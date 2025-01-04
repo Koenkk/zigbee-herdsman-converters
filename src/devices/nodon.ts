@@ -16,6 +16,7 @@ import {
     temperature,
     windowCovering,
 } from '../lib/modernExtend';
+import {nodonPilotWire} from '../lib/nodon';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -278,18 +279,18 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'NodOn',
         description: 'Pilot wire heating module',
         ota: true,
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
-        toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
-        exposes: [e.power(), e.energy(), e.pilot_wire_mode()],
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
             await reporting.readMeteringMultiplierDivisor(ep);
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
-            await ep.read('manuSpecificNodOnPilotWire', ['mode']);
         },
+        extend: [...nodonPilotWire(true)],
     },
     {
         zigbeeModel: ['SIN-4-FP-21'],
@@ -297,18 +298,18 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'NodOn',
         description: 'Pilot wire heating module',
         ota: true,
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
-        toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
-        exposes: [e.power(), e.energy(), e.pilot_wire_mode()],
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
             await reporting.readMeteringMultiplierDivisor(ep);
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
-            await ep.read('manuSpecificNodOnPilotWire', ['mode']);
         },
+        extend: [...nodonPilotWire(true)],
     },
     {
         zigbeeModel: ['STPH-4-1-00'],

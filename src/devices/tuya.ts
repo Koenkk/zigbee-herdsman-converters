@@ -3649,6 +3649,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZ3000_qaabwu5c',
             '_TZ3000_ikuxinvo',
             '_TZ3000_hzlsaltw',
+            '_TZ3000_jsfzkftc',
         ]),
         model: 'TS0001_power',
         description: 'Switch with power monitoring',
@@ -5522,6 +5523,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Elivco', 'LSPA9', 'Smart plug (with power monitoring)', ['_TZ3000_okaz9tjs']),
             tuya.whitelabel('PSMART', 'T440', 'Smart wallsocket (with power monitoring)', ['_TZ3000_y4ona9me']),
             tuya.whitelabel('Nous', 'A6Z', 'Outdoor smart socket', ['_TZ3000_266azbg3']),
+            tuya.whitelabel('Nedis', 'ZBPO130FWT', 'Outdoor smart plug (with power monitoring)', ['_TZ3000_3ias4w4o']),
         ],
         ota: true,
         extend: [
@@ -12666,7 +12668,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TS0105'],
         model: 'TS0105',
-        vendor: 'TuYa',
+        vendor: 'Tuya',
         description: '3 gang switch',
         extend: [tuyaBase({dp: true}), deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1}})],
         exposes: [
@@ -12965,7 +12967,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ha0vwoew']),
         model: 'TS0601_thermostat_thermosphere',
-        vendor: 'TuYa',
+        vendor: 'Tuya',
         description: 'ThermoSphere thermostat',
         extend: [tuyaBase({dp: true})],
         exposes: [
@@ -13466,6 +13468,149 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0225', ['_TZ321C_fkzihax8', '_TZ321C_4slreunp']),
+        model: 'MTD085-ZB',
+        vendor: 'LeapMMW',
+        description: 'Human presence sensor',
+        extend: [tuyaBase({dp: true})],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report],
+        exposes: [
+            e.occupancy(),
+            e.illuminance(),
+            e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
+            e
+                .numeric('radar_sensitivity', ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withUnit('%')
+                .withDescription('Detection threshold for the strength of object energy'),
+            e
+                .numeric('detection_range', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(8)
+                .withValueStep(0.1)
+                .withUnit('m')
+                .withDescription('Maximum distance detected by the sensor'),
+            e
+                .numeric('shield_range', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(8)
+                .withValueStep(0.1)
+                .withUnit('m')
+                .withDescription('Nearest distance detected by the sensor'),
+            e
+                .numeric('entry_sensitivity', ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withUnit('%')
+                .withDescription('Sensitivity threshold triggered for the first time when the target enters the detection range'),
+            e
+                .numeric('entry_distance', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(8)
+                .withValueStep(0.1)
+                .withUnit('m')
+                .withDescription('Dectection distance when unoccupied'),
+            e
+                .numeric('entry_filter_time', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(0.5)
+                .withValueStep(0.05)
+                .withUnit('s')
+                .withDescription('Sensitivity threshold triggered for the first time when the target enters the detection range '),
+            e
+                .numeric('departure_delay', ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(7200)
+                .withValueStep(1)
+                .withUnit('s')
+                .withDescription('Confirmation time after the target disappears'),
+            e
+                .numeric('block_time', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.1)
+                .withUnit('s')
+                .withDescription('Time for the target to be detected again after switching from manned(occupy) to unmanned(unoccupy) mode'),
+            e.enum('status_indication', ea.STATE_SET, ['OFF', 'ON']).withDescription('Indicator light will turn on when human presence is detected'),
+            e
+                .enum('sensor', ea.STATE_SET, ['on', 'occupied', 'unoccupied'])
+                .withDescription(
+                    `The radar sensor can be set in three states: on, occupied and unoccupied. For example, if set to occupied, ` +
+                        `it will continue to maintain presence regardless of whether someone is present or not. If set to unoccupied, the unoccupied ` +
+                        `state will be maintained permanently.`,
+                ),
+            e
+                .enum('scene_preset', ea.STATE_SET, [
+                    'Custom',
+                    'Toilet',
+                    'Kitchen',
+                    'Hallway',
+                    'Bedroom',
+                    'Livingroom',
+                    'Meetingroom',
+                    'Factory default',
+                ])
+                .withDescription(`Presets`),
+            e
+                .enum('distance_report_mode', ea.STATE_SET, ['Normal', 'Occupancy detection'])
+                .withDescription('Indicator light will turn on when human presence is detected'),
+            e
+                .enum('debug_mode', ea.STATE_SET, ['OFF', 'ON'])
+                .withDescription(`In debug mode, radar will report more information, can be used to identify interference`),
+            e.numeric('debug_distance', ea.STATE).withDescription('Real time distance to target').withUnit('m'),
+            e.numeric('debug_countdown', ea.STATE).withDescription('Time before the target disappears').withUnit('s'),
+        ],
+        meta: {
+            tuyaSendCommand: 'sendData',
+            tuyaDatapoints: [
+                //			[1, 'presence', tuya.valueConverter.trueFalse1],
+                [101, 'entry_sensitivity', tuya.valueConverter.raw],
+                [102, 'entry_distance', tuya.valueConverter.divideBy100],
+                [103, 'departure_delay', tuya.valueConverter.raw],
+                [104, 'entry_filter_time', tuya.valueConverter.divideBy100],
+                [105, 'block_time', tuya.valueConverter.divideBy10],
+                [107, 'illuminance', tuya.valueConverter.divideBy10],
+                [108, 'debug_mode', tuya.valueConverterBasic.lookup({OFF: tuya.enum(0), ON: tuya.enum(1)})],
+                [109, 'debug_distance', tuya.valueConverter.divideBy100],
+                [110, 'debug_countdown', tuya.valueConverter.raw],
+                [
+                    111,
+                    'scene_preset',
+                    tuya.valueConverterBasic.lookup({
+                        Custom: tuya.enum(0),
+                        Toilet: tuya.enum(1),
+                        Kitchen: tuya.enum(2),
+                        Hallway: tuya.enum(3),
+                        Bedroom: tuya.enum(4),
+                        Livingroom: tuya.enum(5),
+                        Meetingroom: tuya.enum(6),
+                        Default: tuya.enum(7),
+                    }),
+                ],
+                [
+                    112,
+                    'sensor',
+                    tuya.valueConverterBasic.lookup({
+                        on: tuya.enum(0),
+                        occupied: tuya.enum(1),
+                        unoccupied: tuya.enum(2),
+                    }),
+                ],
+                [113, 'cline', tuya.valueConverter.raw],
+                [114, 'status_indication', tuya.valueConverterBasic.lookup({OFF: tuya.enum(0), ON: tuya.enum(1)})],
+                [115, 'radar_sensitivity', tuya.valueConverter.raw],
+                [116, 'shield_range', tuya.valueConverter.divideBy100],
+                [117, 'detection_range', tuya.valueConverter.divideBy100],
+                [118, 'equipment_status', tuya.valueConverter.raw],
+                [119, 'target_distance', tuya.valueConverter.divideBy100],
+                [120, 'distance_report_mode', tuya.valueConverterBasic.lookup({Normal: tuya.enum(0), 'Occupancy detection': tuya.enum(1)})],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_d6i25bwg']),
         model: 'PO-BOCO-ELEC',
         vendor: 'Powernity',
@@ -13741,6 +13886,108 @@ const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 // [145, "weekly temperature replication function", ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_eekpf0ft']),
+        model: 'TR-M3Z',
+        vendor: 'Tuya',
+        description: 'Thermostatic radiator valve actuator',
+        extend: [tuyaBase({dp: true})],
+        exposes: [
+            e.child_lock(),
+            e.battery(),
+            e.battery_low(),
+            e
+                .climate()
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withPreset(['manual', 'schedule', 'eco', 'comfort', 'frost_protection', 'holiday', 'off'])
+                .withSystemMode(['off', 'heat'], ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withLocalTemperatureCalibration(-9.5, 9.5, 0.5, ea.STATE_SET),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            e.eco_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e.comfort_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e.holiday_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e
+                .binary('window_detection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'Startup: when room temperature decreases by 3°C within 5 minutes, stop heating. ' +
+                        'Close: when room temperature rises by 3 degrees / 48 minutes later / manual (three ways). ' +
+                        'After the window opening mode is turned on, one of these three conditions can trigger to exit the window opening mode.',
+                ),
+            e.binary('window_open', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status CLOSE or OPEN '),
+            e
+                .binary('scale_protection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'If the heat sink is not fully opened within ' +
+                        'two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be ' +
+                        'able to be used. To ensure normal use of the heat sink, the controller will automatically open the valve fully every ' +
+                        'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
+                        'again.',
+                ),
+            e
+                .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
+                ),
+            e
+                .numeric('frost_protection_temperature', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withDescription(''),
+            e
+                .numeric('temperature_accuracy', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5)
+                .withDescription('The difference required between local temperature and set point to trigger the valve.'),
+            e.numeric('error', ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    'preset',
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        schedule: tuya.enum(1),
+                        eco: tuya.enum(2),
+                        comfort: tuya.enum(3),
+                        frost_protection: tuya.enum(4),
+                        holiday: tuya.enum(5),
+                        off: tuya.enum(6),
+                    }),
+                ],
+                [3, 'running_state', tuya.valueConverterBasic.lookup({idle: tuya.enum(0), heat: tuya.enum(1)})],
+                [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [5, 'local_temperature', tuya.valueConverter.divideBy10],
+                [6, 'battery', tuya.valueConverter.raw],
+                [7, 'child_lock', tuya.valueConverter.lockUnlock],
+                [14, 'window_detection', tuya.valueConverter.onOff],
+                [15, 'window_open', tuya.valueConverterBasic.lookup({CLOSE: tuya.enum(0), OPEN: tuya.enum(1)})],
+                [21, 'holiday_temperature', tuya.valueConverter.divideBy10],
+                [28, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 6)],
+                [29, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2, 6)],
+                [30, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3, 6)],
+                [31, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4, 6)],
+                [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5, 6)],
+                [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6, 6)],
+                [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 6)],
+                [35, 'fault_alarm', tuya.valueConverter.errorOrBatteryLow],
+                [36, 'frost_protection', tuya.valueConverter.onOff],
+                [39, 'scale_protection', tuya.valueConverter.onOff],
+                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration3],
+                [101, 'system_mode', tuya.valueConverterBasic.lookup({off: false, heat: true})],
+                [102, 'temperature_accuracy', tuya.valueConverter.divideBy10],
+                [103, 'eco_temperature', tuya.valueConverter.divideBy10],
+                [104, 'comfort_temperature', tuya.valueConverter.divideBy10],
+                [105, 'frost_protection_temperature', tuya.valueConverter.divideBy10],
             ],
         },
     },

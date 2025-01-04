@@ -11,6 +11,7 @@ import {
     commandsLevelCtrl,
     commandsOnOff,
     commandsScenes,
+    commandsWindowCovering,
     deviceEndpoints,
     electricityMeter,
     enumLookup,
@@ -425,6 +426,20 @@ async function syncTime(endpoint: Zh.Endpoint) {
 }
 
 const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['ZG2837RAC-K4'],
+        model: 'SR-ZG2835RAC-NK4',
+        vendor: 'Sunricher',
+        description: '4-Key zigbee rotary & push button smart dimmer',
+        extend: [light(), electricityMeter(), commandsScenes()],
+    },
+    {
+        zigbeeModel: ['HK-ZRC-K5&RS-TL'],
+        model: 'SR-ZG2836D5',
+        vendor: 'Sunricher',
+        description: 'Zigbee smart remote',
+        extend: [battery(), commandsOnOff(), commandsLevelCtrl(), commandsWindowCovering(), commandsColorCtrl()],
+    },
     {
         zigbeeModel: ['ZG9032B'],
         model: 'SR-ZG9033TH',
