@@ -1,5 +1,25 @@
 # Changelog
 
+## [21.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.12.0...v21.13.0) (2025-01-05)
+
+
+### Features
+
+* **add:** TS0726_3_gang ([#8563](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8563)) ([fcb6184](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fcb6184bffecffbd26713388a1a8b5c444a46d79))
+* Expose battery % for Lutron Z3-1BRL https://github.com/Koenkk/zigbee2mqtt/issues/25361 ([4d72d7b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d72d7bf1b984e8d3781748cd1893efe9d8f240f))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_3ias4w4oz` as Nedis ZBPO130FWT ([#8552](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8552)) ([7e7e28a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7e7e28affbbd423bd5c6b1a20372c27cfc1066cc))
+* **detect:** Detect `_TZ3000_jsfzkftc` as Tuya TS0001_power https://github.com/Koenkk/zigbee2mqtt/issues/25426 ([9ee4e02](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9ee4e02bb23fe60e731d1d1fd7e243c57466084f))
+* **detect:** Detect `_TZE204_7bztmfm1` as Tuya TS0601_smart_CO_air_box ([#8559](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8559)) ([07a87da](https://github.com/Koenkk/zigbee-herdsman-converters/commit/07a87da72e71b6fe3327ff01318944296235b947))
+* **detect:** Detect `_TZE204_tzreobvu` as Tuya TOQCB2-80 ([#8562](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8562)) ([18a95b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/18a95b73f166670618d2680adc29a870cd484546))
+* **detect:** Detect `_TZE284_rccxox8pz` as Tuya PA-44Z ([#8558](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8558)) ([6f44769](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f4476944b3c3a252cbb4771fa89b6e789d3223f))
+* **detect:** Detect `TH01` as Zbeacon TH01 https://github.com/Koenkk/zigbee2mqtt/issues/25365 ([576ec47](https://github.com/Koenkk/zigbee-herdsman-converters/commit/576ec476a91f96884fe7d05ec8b240e1d9354c07))
+* Fix duplicated Tuya vendor  ([#8557](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8557)) ([d031c2b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d031c2b49d27d450e37e830eef82dd55be08842b))
+* Increase BRT-100-TRV step accuracy ([#8561](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8561)) ([bdbd922](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bdbd922e39f19e4103b210ea46ed522d5cac42ea))
+
 ## [21.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.11.0...v21.12.0) (2025-01-03)
 
 
