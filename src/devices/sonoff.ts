@@ -747,6 +747,11 @@ const definitions: DefinitionWithExtend[] = [
                 modelID: 'TH01',
                 endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]}],
             },
+            {
+                type: 'EndDevice',
+                manufacturerName: 'Zbeacon',
+                modelID: 'TH01',
+            },
         ],
         zigbeeModel: ['DS01', 'SNZB-04'],
         model: 'SNZB-04',
