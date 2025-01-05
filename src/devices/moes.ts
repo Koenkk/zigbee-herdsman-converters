@@ -359,8 +359,8 @@ const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
-                .withSetpoint('current_heating_setpoint', 0, 35, 1, ea.STATE_SET)
-                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 0, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET)
                 .withSystemMode(['heat'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(
