@@ -12335,14 +12335,14 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_q22avxbv', '_TZE204_mrffaamu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_q22avxbv', '_TZE204_mrffaamu', '_TZE204_tzreobvu']),
         model: 'TOQCB2-80',
         vendor: 'Tuya',
         description: 'Smart circuit breaker',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        // Important: respondToMcuVersionResponse should be false otherweise there are an avalanche of commandMcuVersionResponse messages every second.
-        // queryIntervalSeconds: is doing a pooling to update device's parameters, now define to update data every 3 minutes.
+        // Important: respondToMcuVersionResponse should be false otherwise there is an avalanche of commandMcuVersionResponse messages every second.
+        // queryIntervalSeconds: is doing a pooling to update the device's parameters, now defined to update data every 3 minutes.
         onEvent: tuya.onEvent({respondToMcuVersionResponse: false, queryIntervalSeconds: 3 * 60}),
         configure: tuya.configureMagicPacket,
         exposes: [
