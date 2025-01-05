@@ -130,6 +130,7 @@ import innr from './innr';
 import inovelli from './inovelli';
 import insta from './insta';
 import iolloi from './iolloi';
+import ionindustries from './ionindustries';
 import iotperfect from './iotperfect';
 import iris from './iris';
 import istar from './istar';
@@ -451,6 +452,7 @@ export default [
     ...inovelli,
     ...insta,
     ...iolloi,
+    ...ionindustries,
     ...iotperfect,
     ...iris,
     ...istar,
