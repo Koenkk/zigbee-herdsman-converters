@@ -174,7 +174,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GL-SD-003P',
         vendor: 'Gledopto',
         description: 'Zigbee DIN Rail triac AC dimmer',
-        extend: [light()],
+        extend: [light({configureReporting: true})],
         meta: {disableDefaultResponse: true},
     },
     {
