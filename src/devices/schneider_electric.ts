@@ -682,7 +682,7 @@ const definitions: DefinitionWithExtend[] = [
                 .enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
                 .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)'),
         ],
-        whiteLabel: [{vendor: 'Elko', model: 'EKO07090'}],
+        whiteLabel: [{vendor: 'Elko', model: 'EKO07090'}, {vendor: 'Schneider Electric', model: '550B1012'}],
     },
     {
         zigbeeModel: ['PUCK/SWITCH/1'],
