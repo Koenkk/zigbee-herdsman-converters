@@ -2495,6 +2495,48 @@ const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 1};
         },
     },
+
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_sdykkwsu',
+            },
+
+        ],
+        model: 'ZDMS16-US',
+        vendor: 'Avatto',
+        description: 'Zigbee 2 Channel Dimmer Switch',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l1'),
+            tuya.exposes.countdown().withEndpoint('l1'),
+            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l2'),
+            tuya.exposes.countdown().withEndpoint('l2'),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, 'brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [3, 'min_brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [5, 'max_brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [6, 'countdown_l1', tuya.valueConverter.countdown],
+                [7, 'state_l2', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [8, 'brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [9, 'min_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [11, 'max_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [12, 'countdown_l2', tuya.valueConverter.countdown],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
+            ],
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 1};
+        },
+    },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_p0gzbqct']),
         model: 'TS0601_dimmer_knob',
