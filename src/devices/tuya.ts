@@ -2176,6 +2176,8 @@ const definitions: DefinitionWithExtend[] = [
                 exps.push(tuya.exposes.lightType(), tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET));
             }
 
+            exps.push(e.linkquality());
+
             return exps;
         },
         meta: {
