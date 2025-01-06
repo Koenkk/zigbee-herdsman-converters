@@ -1,5 +1,22 @@
 # Changelog
 
+## [21.14.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.13.0...v21.14.0) (2025-01-06)
+
+
+### Features
+
+* **add:** 511.020 ([#8567](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8567)) ([72f75b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/72f75b61ab65242b70e3247cdf0bea09c59b6c1f))
+* **add:** 929003823201 ([#8568](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8568)) ([ff52cc1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ff52cc16fc976d4570a78436b51a87bce3b9d399))
+
+
+### Bug Fixes
+
+* Add 550B1012 whitelabel  ([#8569](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8569)) ([bec15f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bec15f2c43241bf10f71765c3a271ba9e0562a1f))
+* **detect:** Detect `_TZ3000_x3ewpzyr` as Tuya XSH01A https://github.com/Koenkk/zigbee2mqtt/issues/23155 ([633b76c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/633b76c68ff1b68b96cd577f980bdda03a0ba0ca))
+* Fix configure of some IKEA remotes failing https://github.com/Koenkk/zigbee2mqtt/discussions/25613 ([2e97241](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2e972417d72407a5a936ae4abd4864a47601a7bd))
+* Fix no state reported for GL-SD-003P https://github.com/Koenkk/zigbee2mqtt/issues/23661 ([4560ac5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4560ac5adab11cc78b02ad092e9ff133d8a1e981))
+* Fix ZWT198/ZWT100-BH preset modes ([#8565](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8565)) ([33b785a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/33b785a628589e07a42a9b8cfa3254cf56c20b3f))
+
 ## [21.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.12.0...v21.13.0) (2025-01-05)
 
 
