@@ -2157,6 +2157,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_ebwgzdqq',
             '_TZE204_vevc4c6g',
             '_TZE200_0nauxa0p',
+            '_TZE200_ykgar0ow',
         ]),
         model: 'TS0601_dimmer_1_gang_1',
         vendor: 'Tuya',
@@ -2164,13 +2165,21 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [
-            tuya.exposes.lightBrightnessWithMinMax(),
-            tuya.exposes.countdown(),
-            tuya.exposes.lightType(),
-            e.power_on_behavior().withAccess(ea.STATE_SET),
-            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET),
-        ],
+        exposes: (device, options) => {
+            const exps: Expose[] = [
+                tuya.exposes.lightBrightnessWithMinMax(),
+                tuya.exposes.countdown(),
+                e.power_on_behavior().withAccess(ea.STATE_SET),
+            ];
+
+            if (!device || !['_TZE200_ykgar0ow'].includes(device.manufacturerName)) {
+                exps.push(tuya.exposes.lightType(), tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET));
+            }
+
+            exps.push(e.linkquality());
+
+            return exps;
+        },
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
@@ -2198,6 +2207,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Mercator Ikuü', 'SSWM-DIMZ', 'Switch Mechanism', ['_TZE200_9cxuhakf']),
             tuya.whitelabel('Mercator Ikuü', 'SSWRM-ZB', 'Rotary dimmer mechanism', ['_TZE200_a0syesf5']),
             tuya.whitelabel('Lonsonho', 'EDM-1ZBB-EU', 'Smart Dimmer Switch', ['_TZE200_0nauxa0p']),
+            tuya.whitelabel('ION Industries', 'ID200W-ZIGB', 'LED Zigbee Dimmer', ['_TZE200_ykgar0ow']),
         ],
     },
     {
