@@ -111,6 +111,53 @@ const definitions: DefinitionWithExtend[] = [
                 .withDescription('Temperature sensitivity'),
         ],
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_wtikaxzs']),
+        model: 'E6-10-24',
+        vendor: 'Nous',
+        description: 'Temperature & humidity LCD sensor',
+        fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
+        toZigbee: [legacy.tz.nous_lcd_temperature_humidity_sensor],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [
+            e.temperature(),
+            e.humidity(),
+            e.battery(),
+            e.battery_low(),
+            e.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit AMA'),
+            e.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm']).withDescription('Temperature alarm status'),
+            e.numeric('max_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60).withDescription('Alarm temperature max'),
+            e.numeric('min_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60).withDescription('Alarm temperature min'),
+            e.enum('humidity_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm']).withDescription('Humidity alarm status'),
+            e.numeric('max_humidity', ea.STATE_SET).withUnit('%').withValueMin(1).withValueMax(100).withDescription('Alarm humidity max'),
+            e.numeric('min_humidity', ea.STATE_SET).withUnit('%').withValueMin(1).withValueMax(100).withDescription('Alarm humidity min'),
+            e
+                .numeric('temperature_sensitivity', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(0.1)
+                .withValueMax(50)
+                .withValueStep(0.1)
+                .withDescription('Temperature sensitivity'),
+            e
+                .numeric('temperature_report_interval', ea.STATE_SET)
+                .withUnit('min')
+                .withValueMin(1)
+                .withValueMax(120)
+                .withValueStep(1)
+                .withDescription('Temperature Report interval'),
+            e
+                .numeric('humidity_sensitivity', ea.STATE_SET)
+                .withUnit('%')
+                .withValueMin(1)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withDescription('Humidity sensitivity'),
+        ],
+    },
 ];
 
 export default definitions;
