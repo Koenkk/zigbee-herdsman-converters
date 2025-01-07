@@ -183,7 +183,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatRunningMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
         },
-        ota: true,
+        ota: {manufacturerName: 'SalusControls'},
     },
 ];
 
