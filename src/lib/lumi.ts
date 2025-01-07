@@ -2744,7 +2744,7 @@ export const fromZigbee = {
                         result['window_open'] = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x0275:
-                        result['valve_alarm'] = getFromLookup(value, {1: true, 0: false});
+                        result['valve_alarm'] = getFromLookup(value, {1: true, 0: false, 4: true});
                         break;
                     case 247: {
                         // @ts-expect-error ignore
