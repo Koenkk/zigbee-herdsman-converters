@@ -10336,7 +10336,8 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_0j5jma9b'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_0j5jma9b'},
+                      {modelID: 'TS0601', manufacturerName: '_TZE200_h2rctifa'}],
         model: 'ZS-TYG3-SM-61Z',
         vendor: 'Tuya',
         description: 'Smart switch (4 gang + 2 scene) with backlight and neutral wire',
