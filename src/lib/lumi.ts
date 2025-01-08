@@ -3893,7 +3893,7 @@ export const toZigbee = {
                     await entity.write(
                         'manuSpecificLumi',
                         {
-                            0x0277: {value: getFromLookup(value, {false: 0, true: 1}, undefined, true), type: 0x20},
+                            0x0277: {value: getFromLookup(value, {UNLOCK: 0, LOCK: 1}), type: 0x20},
                         },
                         {manufacturerCode: manufacturerCode},
                     );
