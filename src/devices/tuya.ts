@@ -11235,7 +11235,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_81yrt3lo']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_81yrt3lo', '_TZE284_81yrt3lo']),
         model: 'PJ-1203A',
         vendor: 'Tuya',
         description: 'Bidirectional energy meter with 80A current clamp',
