@@ -5452,6 +5452,88 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE284_ltwbm23f' }],
+        model: 'TRV-706Z',
+        vendor: 'Tuya',
+        description: 'Thermostat Radiator Valve', fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.battery(),
+            e.child_lock(),
+            e.position(),
+            e.window_detection(),
+            e.binary('window', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status closed or open '),
+            e.binary('valve_state', ea.STATE, 'OPEN', 'CLOSE').withDescription('Valve status closed or opened '),
+            e.climate()
+                .withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
+                .withPreset( ['off', 'antifrost', 'eco', 'comfort', 'program', 'valve_open'],
+                    'Off deactivates valve operation, ' +
+                    'the other modes presets when setting on 5º (antifrost), from 15º (eco) and from 20º (comfort). ' +
+                    'It is better to set directly the temperature to deactivate off mode.'),
+            e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('Antifreeze function'),
+            e.enum('valve_status', ea.STATE_SET, ['valve_closed', 'valve_open']).withDescription('Off deactivates valve operation, '
+                + 'the other modes presets when setting on 5º (antifrost), from 15º (eco) and from 20º (comfort). ' +
+                'It is better to set directly the temperature to deactivate off mode.'),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            e.comfort_temperature().withValueMin(15.5).withValueMax(30.0).withValueStep(0.5).withDescription('Comfort mode temperature'),
+            e.eco_temperature().withValueMin(5.5).withValueMax(20).withValueStep(0.5).withDescription('Eco mode temperature'),
+            e.holiday_temperature().withValueMin(5).withValueMax(15).withValueStep(0.5).withDescription('Antifreeze mode temperature'),
+            e.enum('display_brightness', ea.STATE_SET, ['high', 'medium', 'low']).withDescription('Display brightness'),
+            e.enum('screen_orientation', ea.STATE_SET, ['up', 'down']).withDescription('Screen orientation'),
+            e.enum('mode', ea.STATE_SET, ['comfort', 'eco']).withDescription(
+                'Hysteresis - comfort > switches off/on exactly at reached ' +
+                    'temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%',
+            ),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [2, 'preset', tuya.valueConverterBasic.lookup({
+                    'off': tuya.enum(0),
+                    'antifrost': tuya.enum(1),
+                    'eco': tuya.enum(2),
+                    'comfort': tuya.enum(3),
+                    'program': tuya.enum(4),
+                    'valve_open': tuya.enum(5),
+                })],
+                [2, 'valve_status', tuya.valueConverterBasic.lookup({
+                    'valve_closed': tuya.enum(0),
+                    'auto': tuya.enum(1),
+                    'auto': tuya.enum(2),
+                    'auto': tuya.enum(4),
+                    'auto': tuya.enum(3),
+                    'valve_open': tuya.enum(5),
+                }, 'auto')],
+                [3, 'valve_state', tuya.valueConverterBasic.lookup({ CLOSE: tuya.enum(0), OPEN: tuya.enum(1) })],
+                [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [5, 'local_temperature', tuya.valueConverter.divideBy10],
+                [6, 'battery', tuya.valueConverter.raw],
+                [7, 'child_lock', tuya.valueConverter.lockUnlock],
+                [14, 'window_detection', tuya.valueConverter.onOff],
+                [15, 'window', tuya.valueConverterBasic.lookup({ CLOSE: tuya.enum(0), OPEN: tuya.enum(1) })],
+                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [102, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV706Z_WithDayNumber(1)],
+                [103, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV706Z_WithDayNumber(2)],
+                [104, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV706Z_WithDayNumber(3)],
+                [105, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV706Z_WithDayNumber(4)],
+                [106, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV706Z_WithDayNumber(5)],
+                [107, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV706Z_WithDayNumber(6)],
+                [108, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDP_TRV706Z_WithDayNumber(7)],
+                [111, 'display_brightness', tuya.valueConverterBasic.lookup({high: tuya.enum(0), medium: tuya.enum(1), low: tuya.enum(2)})],
+                [113, 'screen_orientation', tuya.valueConverterBasic.lookup({ up: tuya.enum(0), down: tuya.enum(1) })],
+                [114, 'position', tuya.valueConverter.divideBy10],
+                [119, 'comfort_temperature', tuya.valueConverter.divideBy10], //--
+                [120, 'eco_temperature', tuya.valueConverter.divideBy10], //--
+                [121, 'holiday_temperature', tuya.valueConverter.divideBy10], //--
+                [122, 'frost_protection', tuya.valueConverter.onOff], //--
+                [127, 'mode', tuya.valueConverterBasic.lookup({comfort: tuya.enum(0), eco: tuya.enum(1)})],
+            ],
+        },
+    },
+    {
         zigbeeModel: ['TS0121'],
         model: 'TS0121_plug',
         description: '10A UK or 16A EU smart plug',

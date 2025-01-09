@@ -1106,6 +1106,69 @@ export const valueConverter = {
             },
         };
     },
+    thermostatScheduleDayMultiDP_TRV706Z: {
+        from: (v: string) => {
+            const schedule = [];
+            for (let index = 1; index < 24; index = index + 4) {
+                const firstMinutesByte = (parseInt(v[index]) & 0x0f) << 8;
+                const secondMinutesByte = parseInt(v[index + 1]);
+                const minutesSinceMidnight = firstMinutesByte | secondMinutesByte;
+
+                const firstTemperatureByte = (parseInt(v[index + 2]) & 0x0f) << 8;
+                const secondTemperatureByte = parseInt(v[index + 3]);
+                const temperature = (firstTemperatureByte | secondTemperatureByte) / 10.0;
+
+                const hour = Math.floor(minutesSinceMidnight / 60);
+                const minutes = minutesSinceMidnight % 60;
+
+                schedule.push(
+                    String(hour).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + '/' + temperature.toFixed(1),
+                );
+            }
+            return schedule.join(' ');
+        },
+        to: (v: string) => {
+            const payload = [];
+            const transitions = v.split(' ');
+            if (transitions.length != 6) {
+                throw new Error('Invalid schedule: there should be 6 transitions');
+            }
+            for (const transition of transitions) {
+                const timeTemp = transition.split('/');
+                if (timeTemp.length != 2) {
+                    throw new Error('Invalid schedule: wrong transition format: ' + transition);
+                }
+                const hourMin = timeTemp[0].split(':');
+                const hour = parseInt(hourMin[0]);
+                const min = parseInt(hourMin[1]);
+                const temperature = Math.floor(parseFloat(timeTemp[1]) * 10);
+                if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
+                    throw new Error('Invalid hour, minute or temperature of: ' + transition);
+                }
+
+                const minutesSinceMidnight = hour * 60 + min;
+
+                const firstByte = 0xa0 | (minutesSinceMidnight >> 8);
+                const secondByte = minutesSinceMidnight & 0xff;
+                const thirdByte = 0x40 | (temperature >> 8);
+                const fourthByte = temperature & 0xff;
+
+                payload.push(firstByte, secondByte, thirdByte, fourthByte);
+            }
+            return payload;
+        },
+    },
+    thermostatScheduleDayMultiDP_TRV706Z_WithDayNumber: (dayNum: number) => {
+        return {
+            from: (v: string) => valueConverter.thermostatScheduleDayMultiDP_TRV706Z.from(v),
+            to: (v: string) => {
+                const data = valueConverter.thermostatScheduleDayMultiDP_TRV706Z.to(v);
+                data.unshift(dayNum);
+                return data;
+            },
+        };
+    },
+
     tv02Preset: () => {
         return {
             from: (v: number) => {
