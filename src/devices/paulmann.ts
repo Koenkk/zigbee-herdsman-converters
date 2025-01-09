@@ -289,6 +289,13 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart Home Zigbee LED bulb 4,9W Matt E14 RGBW',
         extend: [light({colorTemp: {range: [153, 454]}, color: {modes: ['xy', 'hs']}})],
     },
+    {
+        zigbeeModel: ['TS000F', '501.39'],
+        model: 'TS000F',
+        vendor: 'Paulmann Licht GmbH',
+        description: '50139 SH ZB Paulmann Home Universal-Switch White',
+        extend: [onOff({"powerOnBehavior":false})],
+    }
 ];
 
 export default definitions;
