@@ -9689,6 +9689,99 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_dhotiauw'}],
+        model: '2CT',
+        vendor: 'Tuya',
+        description: 'Bidirectional energy meter with 80A current clamp',
+        extend: [tuyaBase({dp: true})],
+        exposes: [
+            e.ac_frequency(),
+            e.voltage(),
+            tuya.exposes.powerWithPhase('a'),
+            tuya.exposes.powerWithPhase('b'),
+            tuya.exposes.currentWithPhase('a'),
+            tuya.exposes.currentWithPhase('b'),
+            tuya.exposes.powerFactorWithPhase('a'),
+            tuya.exposes.powerFactorWithPhase('b'),
+            tuya.exposes.energyWithPhase('a'),
+            tuya.exposes.energyWithPhase('b'),
+            e
+                .numeric('update_frequency', ea.STATE_SET)
+                .withUnit('s')
+                .withDescription('Update frequency')
+                .withValueMin(3)
+                .withValueMax(60)
+                .withPreset('default', 10, 'Default value'),
+            e.numeric('timestamp_a', ea.STATE).withDescription('Timestamp at power measure (phase a)'),
+            e.numeric('timestamp_b', ea.STATE).withDescription('Timestamp at power measure (phase b)'),
+            e
+                .numeric('calibration_ac_frequency', ea.STATE_SET)
+                .withDescription('Calibration AC frequency')
+                .withValueMin(0.5)
+                .withValueMax(1.5)
+                .withValueStep(0.01)
+                .withPreset('default', 1.0, 'Default value'),
+            e
+                .numeric('calibration_voltage', ea.STATE_SET)
+                .withDescription('Calibration voltage')
+                .withValueMin(0.5)
+                .withValueMax(1.5)
+                .withValueStep(0.01)
+                .withPreset('default', 1.0, 'Default value'),
+            e
+                .numeric('calibration_power_a', ea.STATE_SET)
+                .withDescription('Calibration power A')
+                .withValueMin(0.5)
+                .withValueMax(1.5)
+                .withValueStep(0.01)
+                .withPreset('default', 1.0, 'Default value'),
+            e
+                .numeric('calibration_current_a', ea.STATE_SET)
+                .withDescription('Calibration current A')
+                .withValueMin(0.5)
+                .withValueMax(1.5)
+                .withValueStep(0.01)
+                .withPreset('default', 1.0, 'Default value'),
+            e
+                .numeric('calibration_power_b', ea.STATE_SET)
+                .withDescription('Calibration power B')
+                .withValueMin(0.5)
+                .withValueMax(1.5)
+                .withValueStep(0.01)
+                .withPreset('default', 1.0, 'Default value'),
+            e
+                .numeric('calibration_current_b', ea.STATE_SET)
+                .withDescription('Calibration current B')
+                .withValueMin(0.5)
+                .withValueMax(1.5)
+                .withValueStep(0.01)
+                .withPreset('default', 1.0, 'Default value'),
+        ],
+        meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_a', 'power_factor_phase_b', 'energy'],
+            tuyaDatapoints: [
+                [105, 'ac_frequency', tuya.valueConverter.divideBy100],
+                [103, 'power_a', tuya.valueConverter.divideBy10],
+                [104, 'power_b', tuya.valueConverter.divideBy10],
+                [19, 'power', tuya.valueConverter.divideBy10],
+                [20, 'voltage', tuya.valueConverter.divideBy10],
+                [101, 'current_a', tuya.valueConverter.divideBy1000],
+                [102, 'current_b', tuya.valueConverter.divideBy1000],
+                [120, 'power_factor_a', tuya.valueConverter.raw],
+                [121, 'power_factor_b', tuya.valueConverter.raw],
+                [115, 'energy_a', tuya.valueConverter.divideBy100],
+                [117, 'energy_b', tuya.valueConverter.divideBy100],
+                [122, 'update_frequency', tuya.valueConverter.raw],
+                [123, 'calibration_voltage', tuya.valueConverter.divideBy1000],
+                [125, 'calibration_current_a', tuya.valueConverter.divideBy1000],
+                [126, 'calibration_power_a', tuya.valueConverter.divideBy1000],
+                [130, 'calibration_current_b', tuya.valueConverter.divideBy1000],
+                [131, 'calibration_power_b', tuya.valueConverter.divideBy1000],
+                [124, 'calibration_ac_frequency', tuya.valueConverter.divideBy1000],
+            ],
+        },
+    },
+    {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_iwn0gpzz'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_iwn0gpzz'},
