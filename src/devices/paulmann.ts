@@ -294,8 +294,8 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS000F',
         vendor: 'Paulmann Licht GmbH',
         description: '50139 SH ZB Paulmann Home Universal-Switch White',
-        extend: [onOff({"powerOnBehavior":false})],
-    }
+        extend: [onOff({powerOnBehavior: false})],
+    },
 ];
 
 export default definitions;
