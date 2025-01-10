@@ -789,6 +789,7 @@ export const options = {
         new Binary(`invert_cover`, access.SET, true, false).withDescription(
             `Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).`,
         ),
+    illuminance_raw: () => new Binary(`illuminance_raw`, access.SET, true, false).withDescription(`Expose the raw illuminance value.`),
     color_sync: () =>
         new Binary(`color_sync`, access.SET, true, false).withDescription(
             `When enabled colors will be synced, e.g. if the light supports both color x/y and color temperature a conversion from color x/y to color temperature will be done when setting the x/y color (default true).`,

@@ -488,10 +488,11 @@ const converters1 = {
     illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.illuminance_raw()],
         convert: (model, msg, publish, options, meta) => {
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
-            return {illuminance: illuminanceLux};
+            return {illuminance: illuminanceLux, ...(options.illuminance_raw ? {illuminance_raw: illuminance} : {})};
         },
     } satisfies Fz.Converter,
     pressure: {

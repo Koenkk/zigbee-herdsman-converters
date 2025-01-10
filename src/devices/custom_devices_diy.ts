@@ -99,13 +99,15 @@ const fzLocal = {
     illuminance2: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.illuminance_raw()],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.illuminance'
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
             const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property1 = multiEndpoint ? postfixWithEndpointName('illuminance', msg, model, meta) : 'illuminance';
-            return {[property1]: illuminanceLux};
+            const property2 = multiEndpoint ? postfixWithEndpointName('illuminance_raw', msg, model, meta) : 'illuminance_raw';
+            return {[property1]: illuminanceLux, ...(options.illuminance_raw ? {[property2]: illuminance} : {})};
         },
     } satisfies Fz.Converter,
     pressure2: {
