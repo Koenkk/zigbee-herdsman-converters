@@ -1,6 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {battery, commandsColorCtrl, commandsLevelCtrl, commandsOnOff, commandsScenes, deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -290,10 +291,10 @@ const definitions: DefinitionWithExtend[] = [
         extend: [light({colorTemp: {range: [153, 454]}, color: {modes: ['xy', 'hs']}})],
     },
     {
-        zigbeeModel: ['TS000F', '501.39'],
-        model: 'TS000F',
-        vendor: 'Paulmann Licht GmbH',
-        description: '50139 SH ZB Paulmann Home Universal-Switch White',
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3210_hjxqqofs']),
+        model: '501.39',
+        vendor: 'Paulmann',
+        description: 'Universal-switch white',
         extend: [onOff({powerOnBehavior: false})],
     },
 ];
