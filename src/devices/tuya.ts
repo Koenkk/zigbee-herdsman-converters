@@ -8156,7 +8156,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('iHseno', 'TY_24G_Sensor_V2', 'Human presence sensor 24G', ['_TZE204_ztqnh5cg'])],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_laokfqwu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_laokfqwu', '_TZE200_clrdrnya']),
         model: 'WZ-M100',
         vendor: 'Wenzhi',
         description: 'Human presence sensor',
