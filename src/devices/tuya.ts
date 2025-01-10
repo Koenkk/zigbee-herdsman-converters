@@ -4096,6 +4096,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE204_lh3arisb'},
             {modelID: 'TS0601', manufacturerName: '_TZE284_udank5zs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_7shyddj3'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_a2jcoyuk'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'Tuya',
