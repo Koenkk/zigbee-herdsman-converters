@@ -2210,7 +2210,7 @@ export interface BinaryArgs {
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: ReportingConfig;
+    reporting?: false | ReportingConfig;
     access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     entityCategory?: 'config' | 'diagnostic';
 }
@@ -2258,7 +2258,10 @@ export function binary(args: BinaryArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [];
+    if (reporting) {
+        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access));
+    }
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }

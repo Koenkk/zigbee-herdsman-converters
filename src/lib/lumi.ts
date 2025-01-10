@@ -1906,6 +1906,7 @@ export const lumiModernExtend = {
             access: 'ALL',
             entityCategory: 'config',
             zigbeeCommandOptions: {manufacturerCode},
+            reporting: false,
             ...args,
         }),
     lumiButtonLock: (args?: Partial<modernExtend.BinaryArgs>) =>
@@ -1932,6 +1933,7 @@ export const lumiModernExtend = {
             access: 'ALL',
             entityCategory: 'config',
             zigbeeCommandOptions: {manufacturerCode},
+            reporting: false,
             ...args,
         }),
     lumiPreventReset: (): ModernExtend => {
