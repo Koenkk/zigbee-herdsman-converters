@@ -1,6 +1,6 @@
 import type {Mock} from 'vitest';
 
-import {Endpoint, Entity} from 'zigbee-herdsman/dist/controller/model';
+import {Models as ZHModels} from 'zigbee-herdsman';
 
 import * as index from '../src/index';
 import {Definition, Fz, KeyValueAny, Tz, Zh} from '../src/lib/types';
@@ -149,7 +149,7 @@ describe('Sonoff TRVZB', () => {
             let tzConverter: Tz.Converter;
             let meta: Tz.Meta;
             let commandFn: Mock;
-            let endpoint: Endpoint;
+            let endpoint: ZHModels.Endpoint;
 
             const invalidTransitions = [
                 {transition: '', description: 'empty string'},
@@ -180,7 +180,7 @@ describe('Sonoff TRVZB', () => {
 
                 endpoint = {
                     command: commandFn,
-                } as unknown as Endpoint;
+                } as unknown as ZHModels.Endpoint;
             });
 
             it.each(invalidTransitions)('should throw error if transition format is invalid ($description)', async ({transition, description}) => {

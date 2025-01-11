@@ -304,11 +304,13 @@ import wisdom from './wisdom';
 import woolley from './woolley';
 import woox from './woox';
 import wyze from './wyze';
+import xal from './xal';
 import xinghuoyuan from './xinghuoyuan';
 import xyzroe from './xyzroe';
 import yale from './yale';
 import yandex from './yandex';
 import ynoa from './ynoa';
+import yokis from './yokis';
 import yookee from './yookee';
 import ysrsai from './ysrsai';
 import zemismart from './zemismart';
@@ -622,11 +624,13 @@ export default [
     ...woolley,
     ...woox,
     ...wyze,
+    ...xal,
     ...xinghuoyuan,
     ...xyzroe,
     ...yale,
     ...yandex,
     ...ynoa,
+    ...yokis,
     ...yookee,
     ...ysrsai,
     ...zemismart,

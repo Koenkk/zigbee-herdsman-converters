@@ -11,19 +11,23 @@ import {
     commandsLevelCtrl,
     commandsOnOff,
     commandsScenes,
+    commandsWindowCovering,
     deviceEndpoints,
     electricityMeter,
+    enumLookup,
     humidity,
     iasZoneAlarm,
     identify,
     illuminance,
     light,
+    numeric,
     occupancy,
     onOff,
     temperature,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
+import * as sunricher from '../lib/sunricher';
 import {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 
@@ -323,6 +327,66 @@ function sunricherSRZG2836D5Pro(): ModernExtend {
     };
 }
 
+function sunricherSRZG9002K16Pro(): ModernExtend {
+    const cluster = 0xff03;
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 0xff03,
+            type: ['raw'],
+            convert: (model, msg, publish, options, meta) => {
+                const bytes = [...msg.data];
+                const messageType = bytes[3];
+                let action = 'unknown';
+
+                if (messageType === 0x01) {
+                    const pressTypeMask: number = bytes[6];
+                    const pressTypeLookup: {[key: number]: string} = {
+                        0x01: 'short_press',
+                        0x02: 'double_press',
+                        0x03: 'hold',
+                        0x04: 'hold_released',
+                    };
+                    action = pressTypeLookup[pressTypeMask] || 'unknown';
+
+                    const buttonMask = (bytes[4] << 8) | bytes[5];
+                    const getButtonNumber = (input: number) => {
+                        const row = Math.floor((input - 1) / 4);
+                        const col = (input - 1) % 4;
+                        return col * 4 + row + 1;
+                    };
+
+                    const actionButtons: string[] = [];
+                    for (let i = 0; i < 16; i++) {
+                        if ((buttonMask >> i) & 1) {
+                            const button = i + 1;
+                            actionButtons.push(`k${getButtonNumber(button)}`);
+                        }
+                    }
+                    return {action, action_buttons: actionButtons};
+                }
+                return {action};
+            },
+        },
+    ];
+
+    const exposes: Expose[] = [e.action(['short_press', 'double_press', 'hold', 'hold_released'])];
+
+    const configure: [Configure] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind(cluster, coordinatorEndpoint);
+        },
+    ];
+
+    return {
+        fromZigbee,
+        exposes,
+        configure,
+        isModernExtend: true,
+    };
+}
+
 const fzLocal = {
     sunricher_SRZGP2801K45C: {
         cluster: 'greenPower',
@@ -362,6 +426,268 @@ async function syncTime(endpoint: Zh.Endpoint) {
 }
 
 const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['ZG2837RAC-K4'],
+        model: 'SR-ZG2835RAC-NK4',
+        vendor: 'Sunricher',
+        description: '4-Key zigbee rotary & push button smart dimmer',
+        extend: [light(), electricityMeter(), commandsScenes()],
+    },
+    {
+        zigbeeModel: ['HK-ZRC-K5&RS-TL'],
+        model: 'SR-ZG2836D5',
+        vendor: 'Sunricher',
+        description: 'Zigbee smart remote',
+        extend: [battery(), commandsOnOff(), commandsLevelCtrl(), commandsWindowCovering(), commandsColorCtrl()],
+    },
+    {
+        zigbeeModel: ['ZG9032B'],
+        model: 'SR-ZG9033TH',
+        vendor: 'Sunricher',
+        description: 'Zigbee temperature and humidity sensor',
+        extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            battery(),
+            temperature(),
+            humidity({endpointNames: ['2']}),
+            numeric({
+                name: 'temperature_sensor_compensation',
+                cluster: 0x0402,
+                attribute: {ID: 0x1000, type: 0x28},
+                valueMin: -5,
+                valueMax: 5,
+                valueStep: 1,
+                unit: '°C',
+                description: 'Temperature sensor compensation (-5~+5°C)',
+                access: 'ALL',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+                endpointNames: ['1'],
+            }),
+            enumLookup({
+                name: 'temperature_display_unit',
+                cluster: 0x0402,
+                attribute: {ID: 0x1001, type: 0x30},
+                lookup: {
+                    celsius: 0,
+                    fahrenheit: 1,
+                },
+                description: 'Temperature display unit',
+                access: 'ALL',
+                endpointName: '1',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            numeric({
+                name: 'humidity_sensor_compensation',
+                cluster: 0x0405,
+                attribute: {ID: 0x1000, type: 0x28},
+                valueMin: -5,
+                valueMax: 5,
+                valueStep: 1,
+                unit: '%',
+                description: 'Humidity sensor compensation (-5~+5%)',
+                access: 'ALL',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+                endpointNames: ['2'],
+            }),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
+        zigbeeModel: ['HK-ZRC-K16N-E'],
+        model: 'SR-ZG9002K16-Pro',
+        vendor: 'Sunricher',
+        description: 'Zigbee smart wall panel remote',
+        extend: [battery(), sunricherSRZG9002K16Pro()],
+    },
+    {
+        zigbeeModel: ['ZG9030A-MW'],
+        model: 'SR-ZG9030A-MW',
+        vendor: 'Sunricher',
+        description: 'Zigbee compatible ceiling mount occupancy sensor',
+        extend: [
+            numeric({
+                name: 'light_pwm_frequency',
+                cluster: 'genBasic',
+                attribute: {ID: 0x9001, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                description: 'Light PWM frequency (0-65535, default: 3300)',
+                access: 'ALL',
+            }),
+            enumLookup({
+                name: 'brightness_curve',
+                cluster: 'genBasic',
+                attribute: {ID: 0x8806, type: 0x20},
+                lookup: {
+                    linear: 0,
+                    gamma_logistics_1_5: 0x0f,
+                    gamma_logistics_1_8: 0x12,
+                },
+                description: 'Brightness curve (default: Linear)',
+                access: 'ALL',
+            }),
+            enumLookup({
+                name: 'start_up_on_off',
+                cluster: 'genOnOff',
+                attribute: {ID: 0x4003, type: 0x30},
+                lookup: {
+                    last_state: 0xff,
+                    on: 1,
+                    off: 0,
+                },
+                description: 'Start up on/off (default: last_state)',
+                access: 'ALL',
+            }),
+            numeric({
+                name: 'motion_sensor_light_duration',
+                cluster: 'genBasic',
+                attribute: {ID: 0x8902, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                unit: 's',
+                description: 'Motion sensor light duration (0s-65535s, default: 5s)',
+                access: 'ALL',
+            }),
+            numeric({
+                name: 'motion_sensor_light_sensitivity',
+                cluster: 'genBasic',
+                attribute: {ID: 0x8903, type: 0x21},
+                valueMin: 0,
+                valueMax: 255,
+                description: 'Motion sensor light sensitivity (0-255, default: 0)',
+                access: 'ALL',
+            }),
+            enumLookup({
+                name: 'motion_sensor_working_mode',
+                cluster: 'genBasic',
+                attribute: {ID: 0x8904, type: 0x20},
+                lookup: {
+                    automatic: 0,
+                    manual: 1,
+                },
+                description: 'Motion sensor working mode (default: Automatic)',
+                access: 'ALL',
+            }),
+            numeric({
+                name: 'motion_sensor_sensing_distance',
+                cluster: 'genBasic',
+                attribute: {ID: 0x8905, type: 0x20},
+                valueMin: 0,
+                valueMax: 15,
+                description: 'Motion sensor sensing distance (0-15, default: 1)',
+                access: 'ALL',
+            }),
+            enumLookup({
+                name: 'motion_sensor_microwave_switch',
+                cluster: 'genBasic',
+                attribute: {ID: 0x8906, type: 0x20},
+                lookup: {
+                    on: 1,
+                    off: 0,
+                },
+                description: 'Motion sensor microwave switch (default: On)',
+                access: 'ALL',
+            }),
+            enumLookup({
+                name: 'motion_sensor_onoff_broadcast',
+                cluster: 'genBasic',
+                attribute: {ID: 0x8907, type: 0x20},
+                lookup: {
+                    on: 1,
+                    off: 0,
+                },
+                description: 'Motion sensor on/off broadcast (default: On)',
+                access: 'ALL',
+            }),
+            enumLookup({
+                name: 'motion_sensor_light_state',
+                cluster: 'genBasic',
+                attribute: {ID: 0x890c, type: 0x20},
+                lookup: {
+                    on: 1,
+                    off: 0,
+                },
+                description: 'Motion sensor light state (default: On)',
+                access: 'ALL',
+            }),
+            numeric({
+                name: 'motion_sensor_in_pwm_brightness',
+                cluster: 'genBasic',
+                attribute: {ID: 0x8908, type: 0x21},
+                valueMin: 0,
+                valueMax: 1000,
+                unit: 'lux',
+                description: 'Motion sensor IN PWM brightness (0-1000 lux, default: 0)',
+                access: 'ALL',
+            }),
+            numeric({
+                name: 'motion_sensor_in_pwm_output',
+                cluster: 'genBasic',
+                attribute: {ID: 0x8909, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                description: 'Motion sensor IN PWM output (0-254, default: 254)',
+                access: 'ALL',
+            }),
+            numeric({
+                name: 'motion_sensor_leave_pwm_output',
+                cluster: 'genBasic',
+                attribute: {ID: 0x890a, type: 0x20},
+                valueMin: 0,
+                valueMax: 100,
+                unit: '%',
+                description: 'Motion sensor LEAVE PWM output (0%-100%, default: 0%)',
+                access: 'ALL',
+            }),
+            numeric({
+                name: 'motion_sensor_leave_delay',
+                cluster: 'genBasic',
+                attribute: {ID: 0x8901, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                unit: 's',
+                description: 'Motion sensor LEAVE delay (0s-65535s, default: 0s)',
+                access: 'ALL',
+            }),
+            numeric({
+                name: 'motion_sensor_pwm_output_after_delay',
+                cluster: 'genBasic',
+                attribute: {ID: 0x890b, type: 0x20},
+                valueMin: 0,
+                valueMax: 100,
+                unit: '%',
+                description: 'Motion sensor PWM output after delay (0%-100%, default: 0%)',
+                access: 'ALL',
+            }),
+            numeric({
+                name: 'linear_error_ratio_coefficient_of_lux_measurement',
+                cluster: 'genBasic',
+                attribute: {ID: 0x890d, type: 0x21},
+                valueMin: 100,
+                valueMax: 10000,
+                description: 'Linear error ratio coefficient of LUX measurement (100‰-10000‰, default: 1000‰)',
+                access: 'ALL',
+            }),
+            numeric({
+                name: 'fixed_deviation_of_lux_measurement',
+                cluster: 'genBasic',
+                attribute: {ID: 0x890e, type: 0x29},
+                valueMin: -100,
+                valueMax: 100,
+                description: 'Fixed deviation of LUX measurement (-100~100, default: 0)',
+                access: 'ALL',
+            }),
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
+            light(),
+            occupancy(),
+            illuminance({endpointNames: ['3']}),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+        ],
+        meta: {multiEndpoint: true},
+        toZigbee: [sunricher.tz.setModel],
+        exposes: [e.enum('model', ea.SET, ['HK-DIM', 'ZG9030A-MW']).withDescription('Model of the device')],
+    },
     {
         zigbeeModel: ['HK-ZRC-K5&RS-E'],
         model: 'SR-ZG2836D5-Pro',
@@ -708,6 +1034,10 @@ const definitions: DefinitionWithExtend[] = [
         description: 'LED dimmable driver',
         extend: [light()],
         whiteLabel: [{vendor: 'Yphix', model: '50208702'}],
+        toZigbee: [sunricher.tz.setModel],
+        // Some ZG9030A-MW devices were mistakenly set with the modelId HK-DIM during manufacturing.
+        // This allows users to update the modelId from HK-DIM to ZG9030A-MW to ensure proper device functionality.
+        exposes: [e.enum('model', ea.SET, ['HK-DIM', 'ZG9030A-MW']).withDescription('Model of the device')],
     },
     {
         zigbeeModel: ['SR-ZG9040A-S'],

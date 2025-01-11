@@ -4460,6 +4460,14 @@ const definitions: DefinitionWithExtend[] = [
             lumiLight({colorTemp: true, endpointNames: ['white']}),
             lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ['xy', 'hs']}, endpointNames: ['rgb']}),
             lumiZigbeeOTA(),
+            enumLookup({
+                name: 'power_on_behaviour',
+                lookup: {on: 0, previous: 1, off: 2},
+                cluster: 'manuSpecificLumi',
+                attribute: {ID: 0x0517, type: 0x20},
+                description: 'Controls the behavior when the device is powered on after power loss',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
         ],
     },
     {

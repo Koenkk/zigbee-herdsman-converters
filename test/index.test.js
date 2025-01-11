@@ -13,6 +13,7 @@ import {
     removeExternalDefinitions,
 } from '../src/index';
 import {access as _access, enum as _enum, list as _list, composite, numeric, presets} from '../src/lib/exposes';
+import * as sunricher from '../src/lib/sunricher';
 import {tz} from '../src/lib/tuya';
 import {getFromLookup, toNumber} from '../src/lib/utils';
 import {COLORTEMP_RANGE_MISSING_ALLOWED} from './colortemp_range_missing_allowed';
@@ -421,6 +422,9 @@ describe('index.js', () => {
             // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
             if (device.toZigbee.includes(tz.datapoints)) return;
 
+            // sunricher.tz.setModel is used to switch modelId for devices with conflicting modelId, skip expose access check
+            if (device.toZigbee.includes(sunricher.tz.setModel)) return;
+
             const toCheck = [];
             const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
             for (const expose of expss) {
@@ -437,7 +441,9 @@ describe('index.js', () => {
                     property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
                 }
 
-                const toZigbee = device.toZigbee.find((item) => item.key.includes(property));
+                const toZigbee = device.toZigbee.find(
+                    (item) => item.key.includes(property) && (!item.endpoints || (expose.endpoint && item.endpoints.includes(expose.endpoint))),
+                );
 
                 if ((expose.access & _access.SET) != (toZigbee && toZigbee.convertSet ? _access.SET : 0)) {
                     throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);

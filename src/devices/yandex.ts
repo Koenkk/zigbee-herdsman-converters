@@ -1,5 +1,6 @@
+import type {Models as ZHModels} from 'zigbee-herdsman';
+
 import {Zcl} from 'zigbee-herdsman';
-import {Endpoint} from 'zigbee-herdsman/dist/controller/model';
 
 import {access as ea} from '../lib/exposes';
 import {logger} from '../lib/logger';
@@ -128,7 +129,7 @@ function YandexCluster(): ModernExtend {
 }
 
 function reinterview(): ModernExtend {
-    let coordEnd: Endpoint | number = 1;
+    let coordEnd: ZHModels.Endpoint | number = 1;
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
             coordEnd = coordinatorEndpoint;

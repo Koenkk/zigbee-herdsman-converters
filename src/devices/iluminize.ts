@@ -78,6 +78,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [light({configureReporting: true})],
     },
     {
+        zigbeeModel: ['511.020'],
+        model: '511.020',
+        vendor: 'iluminize',
+        description: 'Zigbee 3.0 LED controller multi 4 - 5A, CCT WW/CW LED',
+        extend: [light({colorTemp: {range: [155, 450]}})],
+    },
+    {
         zigbeeModel: ['5120.1100'],
         model: '5120.1100',
         vendor: 'Iluminize',
