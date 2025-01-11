@@ -102,7 +102,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Centralite',
         description: '3-Series smart dimming outlet',
         fromZigbee: [fz.restorable_brightness, fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.light_onoff_restorable_brightness],
+        toZigbee: [tz.light_onoff_restorable_brightness, tz.ignore_transition],
         exposes: [e.light_brightness(), e.power(), e.voltage(), e.current()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

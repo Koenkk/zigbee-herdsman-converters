@@ -441,6 +441,27 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight()],
     },
     {
+        zigbeeModel: ['929003823101'],
+        model: '929003823101',
+        vendor: 'Philips',
+        description: 'Hue Tento White 42.1 cm',
+        extend: [philipsLight({colorTemp: {range: [153, 438]}})],
+    },
+    {
+        zigbeeModel: ['929003823201'],
+        model: '929003823201',
+        vendor: 'Philips',
+        description: 'Hue Tento Black 42.1 cm',
+        extend: [philipsLight({colorTemp: {range: [153, 438]}})],
+    },
+    {
+        zigbeeModel: ['929003822701'],
+        model: '929003822701',
+        vendor: 'Philips',
+        description: 'Hue Tento White 29.1 cm',
+        extend: [philipsLight()],
+    },
+    {
         zigbeeModel: ['LTD011'],
         model: '5110131H5',
         vendor: 'Philips',
@@ -1115,6 +1136,13 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['LWG005'],
         model: '929003666901',
+        vendor: 'Philips',
+        description: 'Hue white GU10 bluetooth',
+        extend: [philipsLight()],
+    },
+    {
+        zigbeeModel: ['LWG006'],
+        model: '929003667001',
         vendor: 'Philips',
         description: 'Hue white GU10 bluetooth',
         extend: [philipsLight()],

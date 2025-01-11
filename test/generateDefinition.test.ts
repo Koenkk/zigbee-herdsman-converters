@@ -1,5 +1,6 @@
-import * as zh from 'zigbee-herdsman/dist';
-import Device from 'zigbee-herdsman/dist/controller/model/device';
+import type {Models as ZHModels} from 'zigbee-herdsman';
+
+import {Zcl} from 'zigbee-herdsman';
 
 import {findByDevice, generateExternalDefinitionSource} from '../src';
 import fz from '../src/converters/fromZigbee';
@@ -8,7 +9,7 @@ import {Definition} from '../src/lib/types';
 import {AssertDefinitionArgs, assertDefintion, mockDevice, reportingItem} from './utils';
 
 const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalDefintionSource?: string}) => {
-    const getDefinition = async (device: Device): Promise<Definition> => findByDevice(device, true);
+    const getDefinition = async (device: ZHModels.Device): Promise<Definition> => findByDevice(device, true);
     const definition = await getDefinition(args.device);
     expect(definition.model).toEqual(args.device.modelID);
     if (args.externalDefintionSource) {
@@ -356,7 +357,7 @@ module.exports = definition;
         await assertGeneratedDefinition({
             device: mockDevice({
                 modelID: 'combo',
-                manufacturerID: zh.Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+                manufacturerID: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
                 endpoints: [{inputClusters: ['genOnOff', 'lightingColorCtrl'], outputClusters: [], attributes}],
             }),
             meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},

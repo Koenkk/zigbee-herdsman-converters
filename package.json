@@ -1,6 +1,6 @@
 {
     "name": "zigbee-herdsman-converters",
-    "version": "21.8.0",
+    "version": "21.16.0",
     "description": "Collection of device converters to be used with zigbee-herdsman",
     "main": "index.js",
     "types": "index.d.ts",
@@ -34,7 +34,7 @@
         "test:coverage": "vitest run --config ./test/vitest.config.mts",
         "test:watch": "vitest watch --config ./test/vitest.config.mts",
         "clean": "rimraf --glob index* devices lib converters tsconfig.tsbuildinfo",
-        "build": "tsc",
+        "build": "rimraf --glob index* devices lib converters && tsc && cp -R dist/* .",
         "build-watch": "tsc --watch",
         "prepack": "pnpm run clean && pnpm run build",
         "prepare": "husky"
@@ -49,7 +49,7 @@
         "buffer-crc32": "^1.0.0",
         "iconv-lite": "^0.6.3",
         "semver": "^7.6.3",
-        "zigbee-herdsman": "^3.0.4"
+        "zigbee-herdsman": "^3.2.1"
     },
     "devDependencies": {
         "@eslint/core": "^0.9.1",
@@ -57,7 +57,7 @@
         "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
         "@types/buffer-crc32": "^0.2.4",
         "@types/eslint__js": "^8.42.3",
-        "@types/node": "^22.10.2",
+        "@types/node": "^22.10.5",
         "@types/semver": "^7.5.8",
         "@vitest/coverage-v8": "2.1.8",
         "eslint": "^9.17.0",
@@ -66,9 +66,9 @@
         "husky": "^9.1.7",
         "prettier": "^3.4.2",
         "rimraf": "^6.0.1",
-        "ts-morph": "^24.0.0",
+        "ts-morph": "^25.0.0",
         "typescript": "^5.7.2",
-        "typescript-eslint": "^8.18.0",
+        "typescript-eslint": "^8.19.0",
         "vitest": "^2.1.8"
     }
 }

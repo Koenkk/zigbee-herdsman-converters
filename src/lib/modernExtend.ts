@@ -1267,8 +1267,11 @@ export function lock(args?: LockArgs): ModernExtend {
         setupConfigureForReporting('closuresDoorLock', 'lockState', {min: 'MIN', max: '1_HOUR', change: 0}, ea.STATE_GET),
     ];
     const meta: DefinitionMeta = {pinCodeCount: args.pinCodeCount};
-
-    return {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
+    const result: ModernExtend = {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
+    if (args.endpointNames) {
+        result.exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
+    }
+    return result;
 }
 
 export interface WindowCoveringArgs {
@@ -2207,7 +2210,7 @@ export interface BinaryArgs {
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: ReportingConfig;
+    reporting?: false | ReportingConfig;
     access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     entityCategory?: 'config' | 'diagnostic';
 }
@@ -2255,7 +2258,10 @@ export function binary(args: BinaryArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [];
+    if (reporting) {
+        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access));
+    }
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }

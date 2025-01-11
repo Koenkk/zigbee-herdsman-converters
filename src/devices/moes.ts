@@ -359,8 +359,8 @@ const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
-                .withSetpoint('current_heating_setpoint', 0, 35, 1, ea.STATE_SET)
-                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 0, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET)
                 .withSystemMode(['heat'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(
@@ -397,7 +397,10 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nhyj64w2'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nhyj64w2'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_127x7wnl'},
+        ],
         model: 'ZTS-EUR-C',
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch',

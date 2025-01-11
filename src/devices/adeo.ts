@@ -2,6 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, light, onOff, quirkCheckinInterval, temperature} from '../lib/modernExtend';
+import {nodonPilotWire} from '../lib/nodon';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 
@@ -400,19 +401,18 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ADEO',
         description: 'Equation pilot wire heating module',
         ota: true,
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
-        toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
-        exposes: [e.switch(), e.power(), e.energy(), e.pilot_wire_mode()],
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
             await reporting.readMeteringMultiplierDivisor(ep);
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
-            const p = reporting.payload('mode', 0, 120, 0, {min: 1, max: 3600, change: 0});
-            await ep.configureReporting('manuSpecificNodOnPilotWire', p);
         },
+        extend: [...nodonPilotWire(true)],
     },
     {
         zigbeeModel: ['ZB-Remote-D0001'],

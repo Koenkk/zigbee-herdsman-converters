@@ -1,6 +1,9 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {electricityMeter, onOff} from '../lib/modernExtend';
+import {deviceAddCustomCluster, electricityMeter, enumLookup, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -93,6 +96,93 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
+        ota: {manufacturerName: 'SalusControls'},
+    },
+    {
+        zigbeeModel: ['FC600'],
+        model: 'FC600',
+        vendor: 'Salus Controls',
+        description: 'Fan coil thermostat',
+        extend: [
+            deviceAddCustomCluster('manuSpecificSalus', {
+                ID: 0xfc04,
+                manufacturerCode: Zcl.ManufacturerCode.COMPUTIME,
+                attributes: {
+                    frostSetpoint: {ID: 0x0000, type: Zcl.DataType.INT16},
+                    minFrostSetpoint: {ID: 0x0001, type: Zcl.DataType.INT16},
+                    maxFrostSetpoint: {ID: 0x0002, type: Zcl.DataType.INT16},
+                    timeDisplayFormat: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
+                    attr4: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                    attr5: {ID: 0x0005, type: Zcl.DataType.UINT8},
+                    attr6: {ID: 0x0006, type: Zcl.DataType.UINT16},
+                    attr7: {ID: 0x0007, type: Zcl.DataType.UINT8},
+                    autoCoolingSetpoint: {ID: 0x0008, type: Zcl.DataType.INT16},
+                    autoHeatingSetpoint: {ID: 0x0009, type: Zcl.DataType.INT16},
+                    holdType: {ID: 0x000a, type: Zcl.DataType.UINT8},
+                    shortCycleProtection: {ID: 0x000b, type: Zcl.DataType.UINT16},
+                    coolingFanDelay: {ID: 0x000c, type: Zcl.DataType.UINT16},
+                    ruleCoolingSetpoint: {ID: 0x000d, type: Zcl.DataType.INT16},
+                    ruleHeatingSetpoint: {ID: 0x000e, type: Zcl.DataType.INT16},
+                    attr15: {ID: 0x000f, type: Zcl.DataType.BOOLEAN},
+                },
+                commands: {
+                    resetDevice: {
+                        ID: 0x01,
+                        parameters: [],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            enumLookup({
+                name: 'preset',
+                lookup: {schedule: 0, temporary_override: 1, permanent_override: 2, standby: 7, eco: 10},
+                cluster: 'manuSpecificSalus',
+                attribute: 'holdType',
+                description: 'Operation mode',
+                reporting: {min: 0, max: 3600, change: 0},
+            }),
+        ],
+        fromZigbee: [fz.thermostat, fz.fan],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupancy,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_setpoint_raise_lower,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_mode,
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_relay_status_log,
+            tz.thermostat_running_state,
+            tz.thermostat_keypad_lockout,
+            tz.fan_mode,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 40, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'heat', 'cool', 'auto'])
+                .withRunningMode(['off', 'cool', 'heat'])
+                .withRunningState(['idle', 'heat', 'cool'])
+                .withLocalTemperatureCalibration(-3, 3, 0.5)
+                .withFanMode(['off', 'low', 'medium', 'high', 'auto']),
+            e.keypad_lockout(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(9);
+            const binds = ['genBasic', 'genTime', 'hvacThermostat', 'hvacFanCtrl', 'hvacUserInterfaceCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.fanMode(endpoint);
+            await reporting.thermostatRunningMode(endpoint);
+            await reporting.thermostatRunningState(endpoint);
+        },
         ota: {manufacturerName: 'SalusControls'},
     },
 ];
