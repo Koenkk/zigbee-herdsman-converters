@@ -12198,7 +12198,6 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit('°C')
                 .withDescription('Max temperature in ECO mode. Default: 20'),
-            e.binary('valve_state', ea.STATE, false, true).withLabel('Heating in process'),
             e
                 .climate()
                 .withSystemMode(['off', 'heat'], ea.STATE_SET)
@@ -12206,7 +12205,8 @@ const definitions: DefinitionWithExtend[] = [
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
-                .withDescription('Default: -3'),
+                .withDescription('Default: -3')
+                .withRunningState(['idle', 'heat'], ea.STATE),
             e
                 .numeric('deadzone_temperature', ea.STATE_SET)
                 .withValueMin(1)
@@ -12298,7 +12298,7 @@ const definitions: DefinitionWithExtend[] = [
                 [26, 'min_temperature', tuya.valueConverter.divideBy10],
                 [27, 'local_temperature_calibration', tuya.valueConverter.raw],
                 [28, 'factory_reset', tuya.valueConverterBasic.lookup({factory_reset: true})],
-                [36, 'valve_state', tuya.valueConverter.trueFalseInvert],
+                [36, 'running_state', tuya.valueConverterBasic.lookup({idle: tuya.enum(1), heat: tuya.enum(0)})],
                 [39, 'child_lock', tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
                 [40, 'eco_mode', tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
                 [43, 'sensor', tuya.valueConverterBasic.lookup({IN: tuya.enum(0), OU: tuya.enum(2), AL: tuya.enum(1)})],
