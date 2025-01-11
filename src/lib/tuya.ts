@@ -1106,7 +1106,7 @@ export const valueConverter = {
             },
         };
     },
-    thermostatScheduleDayMultiDP_TRV706Z: {
+    thermostatScheduleDayMultiDP_TRV705ZB: {
         from: (v: string) => {
             const schedule = [];
             for (let index = 1; index < 24; index = index + 4) {
@@ -1158,11 +1158,11 @@ export const valueConverter = {
             return payload;
         },
     },
-    thermostatScheduleDayMultiDP_TRV706Z_WithDayNumber: (dayNum: number) => {
+    thermostatScheduleDayMultiDP_TRV705ZB_WithDayNumber: (dayNum: number) => {
         return {
-            from: (v: string) => valueConverter.thermostatScheduleDayMultiDP_TRV706Z.from(v),
+            from: (v: string) => valueConverter.thermostatScheduleDayMultiDP_TRV705ZB.from(v),
             to: (v: string) => {
-                const data = valueConverter.thermostatScheduleDayMultiDP_TRV706Z.to(v);
+                const data = valueConverter.thermostatScheduleDayMultiDP_TRV705ZB.to(v);
                 data.unshift(dayNum);
                 return data;
             },
