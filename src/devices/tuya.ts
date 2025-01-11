@@ -12297,7 +12297,7 @@ const definitions: DefinitionWithExtend[] = [
                 [26, 'min_temperature', tuya.valueConverter.divideBy10],
                 [27, 'local_temperature_calibration', tuya.valueConverter.raw],
                 [28, 'factory_reset', tuya.valueConverterBasic.lookup({factory_reset: true})],
-                [36, 'running_state', tuya.valueConverterBasic.lookup({ idle: tuya.enum(1), heat: tuya.enum(0), }),],
+                [36, 'running_state', tuya.valueConverterBasic.lookup({idle: tuya.enum(1), heat: tuya.enum(0)})],
                 [39, 'child_lock', tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
                 [40, 'eco_mode', tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
                 [43, 'sensor', tuya.valueConverterBasic.lookup({IN: tuya.enum(0), OU: tuya.enum(2), AL: tuya.enum(1)})],
