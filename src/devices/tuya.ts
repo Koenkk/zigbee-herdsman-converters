@@ -4095,6 +4095,8 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_2odrmqwq'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_lh3arisb'},
             {modelID: 'TS0601', manufacturerName: '_TZE284_udank5zs'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_7shyddj3'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_a2jcoyuk'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'Tuya',
@@ -7258,6 +7260,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: 'TS0222', manufacturerName: '_TYZB01_4mdqxxnn'},
             {modelID: 'TS0222', manufacturerName: '_TYZB01_m6ec2pgj'},
+            {modelID: 'TS0222', manufacturerName: '_TZ3000_do6txrcw'},
         ],
         model: 'TS0222',
         vendor: 'Tuya',
@@ -8154,7 +8157,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('iHseno', 'TY_24G_Sensor_V2', 'Human presence sensor 24G', ['_TZE204_ztqnh5cg'])],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_laokfqwu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_laokfqwu', '_TZE200_clrdrnya']),
         model: 'WZ-M100',
         vendor: 'Wenzhi',
         description: 'Human presence sensor',
@@ -8730,7 +8733,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.01)
                 .withUnit('m')
                 .withDescription('Motion detection distance'),
-            e.enum('motion_state', ea.STATE, ['none', 'small', 'medium', 'large']).withDescription('State of the motion'),
+            e.enum('motion_state', ea.STATE, ['none', 'small', 'medium', 'large', 'mini', 'micro']).withDescription('State of the motion'),
             e
                 .numeric('fading_time', ea.STATE_SET)
                 .withValueMin(0)
@@ -8776,7 +8779,14 @@ const definitions: DefinitionWithExtend[] = [
                 [
                     101,
                     'motion_state',
-                    tuya.valueConverterBasic.lookup({none: tuya.enum(0), large: tuya.enum(1), medium: tuya.enum(2), small: tuya.enum(3)}),
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        large: tuya.enum(1),
+                        medium: tuya.enum(2),
+                        small: tuya.enum(3),
+                        mini: tuya.enum(4),
+                        micro: tuya.enum(5),
+                    }),
                 ],
                 [102, 'fading_time', tuya.valueConverter.raw],
                 [104, 'medium_motion_detection_distance', tuya.valueConverter.divideBy100],
@@ -12195,7 +12205,6 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit('°C')
                 .withDescription('Max temperature in ECO mode. Default: 20'),
-            e.binary('valve_state', ea.STATE, false, true).withLabel('Heating in process'),
             e
                 .climate()
                 .withSystemMode(['off', 'heat'], ea.STATE_SET)
@@ -12203,7 +12212,8 @@ const definitions: DefinitionWithExtend[] = [
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
-                .withDescription('Default: -3'),
+                .withDescription('Default: -3')
+                .withRunningState(['idle', 'heat'], ea.STATE),
             e
                 .numeric('deadzone_temperature', ea.STATE_SET)
                 .withValueMin(1)
@@ -12295,7 +12305,7 @@ const definitions: DefinitionWithExtend[] = [
                 [26, 'min_temperature', tuya.valueConverter.divideBy10],
                 [27, 'local_temperature_calibration', tuya.valueConverter.raw],
                 [28, 'factory_reset', tuya.valueConverterBasic.lookup({factory_reset: true})],
-                [36, 'valve_state', tuya.valueConverter.trueFalseInvert],
+                [36, 'running_state', tuya.valueConverterBasic.lookup({idle: tuya.enum(1), heat: tuya.enum(0)})],
                 [39, 'child_lock', tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
                 [40, 'eco_mode', tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
                 [43, 'sensor', tuya.valueConverterBasic.lookup({IN: tuya.enum(0), OU: tuya.enum(2), AL: tuya.enum(1)})],

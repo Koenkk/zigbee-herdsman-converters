@@ -397,7 +397,10 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nhyj64w2'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nhyj64w2'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_127x7wnl'},
+        ],
         model: 'ZTS-EUR-C',
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch',
