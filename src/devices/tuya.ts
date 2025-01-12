@@ -901,7 +901,7 @@ const definitions: DefinitionWithExtend[] = [
             if (!device || !noBatteryLowModels.includes(device.manufacturerName)) {
                 exps.push(e.battery_low());
             }
-            exps.push(e.linkquality());
+
             return exps;
         },
         meta: {
@@ -1005,7 +1005,7 @@ const definitions: DefinitionWithExtend[] = [
                 exps.push(e.battery_low());
                 exps.push(e.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'));
             }
-            exps.push(e.linkquality());
+
             return exps;
         },
     },
@@ -1782,7 +1782,7 @@ const definitions: DefinitionWithExtend[] = [
         // Requires alarm_1_with_timeout https://github.com/Koenkk/zigbee2mqtt/issues/2818#issuecomment-776119586
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.linkquality(), e.battery(), e.battery_voltage()],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -1816,7 +1816,7 @@ const definitions: DefinitionWithExtend[] = [
             if (!device || !['_TZ3000_bsvqrxru', '_TZ3000_nss8amz9'].includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
-            exps.push(e.linkquality());
+
             return exps;
         },
         configure: async (device, coordinatorEndpoint) => {
@@ -1957,7 +1957,7 @@ const definitions: DefinitionWithExtend[] = [
             if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
-            exps.push(e.linkquality());
+
             return exps;
         },
     },
@@ -2176,8 +2176,6 @@ const definitions: DefinitionWithExtend[] = [
             if (!device || !['_TZE200_ykgar0ow'].includes(device.manufacturerName)) {
                 exps.push(tuya.exposes.lightType(), tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET));
             }
-
-            exps.push(e.linkquality());
 
             return exps;
         },
@@ -2605,7 +2603,7 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
-        exposes: [e.battery(), e.illuminance(), e.linkquality(), e.enum('brightness_level', ea.STATE, ['LOW', 'MEDIUM', 'HIGH'])],
+        exposes: [e.battery(), e.illuminance(), e.enum('brightness_level', ea.STATE, ['LOW', 'MEDIUM', 'HIGH'])],
     },
     {
         zigbeeModel: ['TS130F'],
@@ -2652,7 +2650,7 @@ const definitions: DefinitionWithExtend[] = [
             if (device?.manufacturerName !== '_TZ3210_xbpt8ewc' && device?.manufacturerName !== '_TZ3000_e3vhyirx') {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
-            exps.push(e.linkquality());
+
             return exps;
         },
     },
@@ -9244,7 +9242,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
         toZigbee: [tzLocal.TS011F_threshold],
         exposes: (device, options) => {
-            const exposes: Expose[] = [e.linkquality()];
+            const exposes: Expose[] = [];
             if (!['_TZ3000_303avxxt', '_TZ3000_zjchz7pd'].includes(device?.manufacturerName)) {
                 exposes.push(
                     e.temperature(),
@@ -10365,7 +10363,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.linkquality(), e.battery(), e.battery_voltage()],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);

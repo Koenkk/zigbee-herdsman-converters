@@ -1983,7 +1983,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             let endpoint: Zh.Endpoint;
             const exposes: Expose[] = [];
-            exposes.push(e.linkquality());
 
             let currentContract: string = '';
             let currentElec: string = '';

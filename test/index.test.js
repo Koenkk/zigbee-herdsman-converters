@@ -100,7 +100,7 @@ describe('index.js', () => {
         expect(definition.extend).toBeUndefined();
         expect(definition.fromZigbee).toHaveLength(0);
         expect(definition.toZigbee).toHaveLength(11);
-        expect(definition.exposes).toHaveLength(1);
+        expect(definition.exposes).toHaveLength(0);
         expect(definition.options).toHaveLength(0);
     });
 
@@ -567,14 +567,6 @@ describe('index.js', () => {
         });
     });
 
-    it('Function exposes should have linkquality sensor', () => {
-        definitions.forEach((definition) => {
-            if (typeof definition.exposes == 'function') {
-                expect(definition.exposes().find((e) => e.property === 'linkquality')).not.toBeUndefined();
-            }
-        });
-    });
-
     it('Verify options filter', () => {
         const ZNCLDJ12LM = definitions.find((d) => d.model == 'ZNCLDJ12LM');
         expect(ZNCLDJ12LM.options.length).toBe(1);
@@ -632,16 +624,7 @@ describe('index.js', () => {
     it('Should allow definition with both modern extend and exposes as function', () => {
         const MOSZB140 = findByModel('MOSZB-140');
         const exposes = MOSZB140.exposes();
-        expect(exposes.map((e) => e.name)).toStrictEqual([
-            'occupancy',
-            'tamper',
-            'battery_low',
-            'linkquality',
-            'temperature',
-            'illuminance',
-            'battery',
-            'voltage',
-        ]);
+        expect(exposes.map((e) => e.name)).toStrictEqual(['occupancy', 'tamper', 'battery_low', 'temperature', 'illuminance', 'battery', 'voltage']);
     });
 
     it('Check getFromLookup', () => {

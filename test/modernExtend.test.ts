@@ -29,7 +29,7 @@ describe('ModernExtend', () => {
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness)', 'power_on_behavior'],
             bind: [],
             read: [],
             configureReporting: [],
@@ -67,7 +67,7 @@ describe('ModernExtend', () => {
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup)', 'power_on_behavior'],
             bind: [],
             read: {
                 1: [
@@ -114,7 +114,7 @@ describe('ModernExtend', () => {
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_xy,color_hs)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_xy,color_hs)', 'power_on_behavior'],
             bind: [],
             read: {
                 1: [
@@ -162,7 +162,7 @@ describe('ModernExtend', () => {
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'power_on_behavior'],
             bind: [],
             read: {
                 1: [
@@ -191,7 +191,7 @@ describe('ModernExtend', () => {
                 'ac_frequency',
                 'power_factor',
             ],
-            exposes: ['current', 'energy', 'linkquality', 'power', 'switch(state)', 'voltage'],
+            exposes: ['current', 'energy', 'power', 'switch(state)', 'voltage'],
             bind: {1: ['genOnOff', 'haElectricalMeasurement', 'seMetering']},
             read: {
                 1: [
@@ -273,7 +273,7 @@ describe('ModernExtend', () => {
                 'gradient',
                 'gradient_scene',
                 'light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)',
-                'linkquality',
+
                 'power_on_behavior',
             ],
             bind: {1: ['manuSpecificPhilips2']},
@@ -329,7 +329,6 @@ describe('ModernExtend', () => {
                 'light_l1(state,brightness)',
                 'light_l2(state,brightness)',
                 'light_s1(state,brightness)',
-                'linkquality',
             ],
             bind: {
                 10: ['genOnOff', 'genLevelCtrl'],
@@ -380,7 +379,7 @@ describe('ModernExtend', () => {
             meta: {multiEndpoint: true},
             fromZigbee: [fz.on_off],
             toZigbee: ['state', 'on_time', 'off_wait_time'],
-            exposes: ['linkquality', 'switch_bottom(state)', 'switch_top(state)'],
+            exposes: ['switch_bottom(state)', 'switch_top(state)'],
             bind: {
                 1: ['genOnOff'],
                 2: ['genOnOff'],
@@ -412,7 +411,7 @@ describe('ModernExtend', () => {
                 expect.objectContaining({cluster: 'manuSpecificLumi'}),
             ],
             toZigbee: ['air_quality', 'voc', 'temperature', 'humidity', 'display_unit'],
-            exposes: ['air_quality', 'battery', 'device_temperature', 'display_unit', 'humidity', 'linkquality', 'temperature', 'voc', 'voltage'],
+            exposes: ['air_quality', 'battery', 'device_temperature', 'display_unit', 'humidity', 'temperature', 'voc', 'voltage'],
             bind: {
                 1: ['genPowerCfg', 'genAnalogInput', 'msTemperatureMeasurement', 'msRelativeHumidity'],
             },

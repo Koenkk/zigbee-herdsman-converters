@@ -76,7 +76,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             const maxSetpoint = ['TRV001', 'TRV003'].includes(device?.modelID) ? 32 : 35;
             return [
-                e.linkquality(),
                 e.battery(),
                 e.keypad_lockout(),
                 e.programming_operation_mode(),

@@ -56,9 +56,9 @@ const definitions: DefinitionWithExtend[] = [
             //  2: soft cover (aka store)     : 2xF Stop + Down
 
             if ((device == null && options == null) || endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType') == 1) {
-                return [e.cover_position_tilt(), e.linkquality()];
+                return [e.cover_position_tilt()];
             } else {
-                return [e.cover_position(), e.linkquality()];
+                return [e.cover_position()];
             }
         },
         configure: async (device, coordinatorEndpoint) => {
