@@ -1,5 +1,19 @@
 # Changelog
 
+## [21.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.17.0...v21.18.0) (2025-01-12)
+
+
+### Features
+
+* Add `illuminance_raw` ([#8592](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8592)) ([3d98d3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3d98d3f54bc63a720111f58194269250f5fb324a))
+* **add:** 929003151601, 929003151701 ([#8598](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8598)) ([9193662](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9193662502a3eb32a56bf78ad6f0a5a41bf304b9))
+
+
+### Bug Fixes
+
+* Fix inverted `position` for Tuya TS0601_cover_3 ([#8595](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8595)) ([0b74e57](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0b74e5798955a52c9dbbbed84b1262825471cd70))
+* **ignore:** Remove linkquality expose ([#8599](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8599)) ([f913273](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f913273750f220c680c1d66d4b64971443a7d161))
+
 ## [21.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.16.0...v21.17.0) (2025-01-12)
 
 
