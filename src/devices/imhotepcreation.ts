@@ -178,8 +178,6 @@ const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            features.push(e.linkquality());
-
             return features;
         },
         configure: async (device, coordinatorEndpoint) => {

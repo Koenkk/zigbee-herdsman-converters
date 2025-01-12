@@ -128,7 +128,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === '_TZE204_5toc8efa' ? 0.5 : 1;
             return [
-                e.linkquality(),
                 e.child_lock(),
                 e.deadzone_temperature(),
                 e.max_temperature_limit().withValueMax(45),
@@ -435,7 +434,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: (device, options) => {
-            const exposes = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.linkquality()];
+            const exposes = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
             if (device?.manufacturerName !== '') {
                 exposes.push(e.battery(), e.battery_voltage());
             }

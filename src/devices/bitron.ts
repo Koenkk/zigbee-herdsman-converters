@@ -279,7 +279,6 @@ const definitions: DefinitionWithExtend[] = [
             dynExposes.push(hysteresisExposes);
             dynExposes.push(e.battery().withAccess(ea.STATE_GET));
             dynExposes.push(e.battery_low());
-            dynExposes.push(e.linkquality());
 
             return dynExposes;
         },

@@ -1081,7 +1081,7 @@ const definitions: DefinitionWithExtend[] = [
                     coverExpose.withPosition().withTilt();
                     break;
             }
-            return [coverExpose, e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET), e.linkquality()];
+            return [coverExpose, e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET)];
         },
         extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(), ubisysModernExtend.addCustomClusterClosuresWindowCovering()],
         configure: async (device, coordinatorEndpoint) => {
