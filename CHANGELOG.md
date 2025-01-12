@@ -1,5 +1,23 @@
 # Changelog
 
+## [21.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.16.0...v21.17.0) (2025-01-12)
+
+
+### Features
+
+* **add:** Add thermostat endpoints to Ubisys H10 ([#8589](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8589)) ([05865e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/05865e983e39ce03578a6bfdb40099dffe041537))
+
+
+### Bug Fixes
+
+* Add additional `motion_state` to Tuya ZG-205Z/A https://github.com/Koenkk/zigbee2mqtt/issues/25682 ([8b0ccfe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8b0ccfe23ef88569e0d6edaf6941193f2e540c3b))
+* **detect:** Detect `_TZ3000_v1w2k9dd` as Tuya ZY-ZTH02 ([#8591](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8591)) ([b2316dc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2316dc792a0e8511cbc396c903ff165580d947f))
+* **detect:** Detect `_TZE204_jygvp6fk` as Tuya TS0601_temperature_humidity_sensor_2 https://github.com/Koenkk/zigbee2mqtt/issues/25753 ([9605278](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9605278fd0603f744373bc5f56d6a015e5a320d2))
+* **ignore:** update dependencies ([#8594](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8594)) ([38d3c7d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/38d3c7d66630dcba3aab1f76ecc248925445a2a1))
+* MAZDA TR-M2Z Remove 'temperature' exposes ([#8593](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8593)) ([1875596](https://github.com/Koenkk/zigbee-herdsman-converters/commit/187559687cd8046417125806453319ac5605c18c))
+* PRO-900Z: Removed `valve_state` and added climate `running_state` ([#8588](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8588)) ([e8b0a37](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8b0a37195c2b330b5e531b7a7ffd55a3fa2bc0b))
+* Rename `Avatto` to `AVATTO` https://github.com/Koenkk/zigbee2mqtt/discussions/25763 ([3e1ddcd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e1ddcd94db6c72ee9370666398ddb08511c7e72))
+
 ## [21.16.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.15.0...v21.16.0) (2025-01-10)
 
 
