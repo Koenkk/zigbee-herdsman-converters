@@ -158,7 +158,6 @@ const definitions: DefinitionWithExtend[] = [
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
                 eLegrand.getCalibrationModes(false),
-                e.linkquality(),
             ];
         },
         configure: async (device, coordinatorEndpoint) => {
@@ -230,7 +229,6 @@ const definitions: DefinitionWithExtend[] = [
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
                 eLegrand.getCalibrationModes(true),
-                e.linkquality(),
             ];
         },
         configure: async (device, coordinatorEndpoint) => {

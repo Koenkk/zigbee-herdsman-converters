@@ -544,7 +544,7 @@ const definitions: DefinitionWithExtend[] = [
             if (exposeDeviceOptions['expose_battery']) {
                 expose.push(e.battery());
             }
-            expose.push(e.linkquality());
+
             return expose;
         },
         meta: {multiEndpoint: true, tuyaThermostatPreset: legacy.fz /* for subclassed custom converters */},

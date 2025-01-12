@@ -1897,7 +1897,6 @@ const definitions: DefinitionWithExtend[] = [
             };
             const commonExposes = [
                 e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType)).withDescription('Module controlled by a rocker switch or a button'),
-                e.linkquality(),
             ];
             const lightExposes = [
                 e.switch().withEndpoint('left'),
@@ -1951,7 +1950,7 @@ const definitions: DefinitionWithExtend[] = [
                     return [...commonExposes, ...coverExposes];
                 }
             }
-            return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'), e.linkquality()];
+            return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode')];
         },
     },
     {

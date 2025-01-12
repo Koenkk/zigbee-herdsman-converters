@@ -1057,13 +1057,6 @@ export const presets = {
                 ),
             )
             .withCategory('config'),
-    linkquality: () =>
-        new Numeric('linkquality', access.STATE)
-            .withUnit('lqi')
-            .withDescription('Link quality (signal strength)')
-            .withValueMin(0)
-            .withValueMax(255)
-            .withCategory('diagnostic'),
     local_temperature: () =>
         new Numeric('local_temperature', access.STATE_GET).withUnit('°C').withDescription('Current temperature measured on the device'),
     lock: () => new Lock().withState('state', 'LOCK', 'UNLOCK', 'State of the lock').withLockState('lock_state', 'Actual state of the lock'),

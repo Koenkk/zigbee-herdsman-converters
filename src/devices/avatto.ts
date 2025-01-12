@@ -8,7 +8,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_s139roas'}],
         model: 'ZWSH16',
-        vendor: 'Avatto',
+        vendor: 'AVATTO',
         description: 'Smart Temperature and Humidity Detector',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],

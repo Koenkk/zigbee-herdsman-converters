@@ -72,7 +72,6 @@ const definitions: DefinitionWithExtend[] = [
                     'brightness_stop_row_4',
                 ]),
             );
-            expose.push(e.linkquality());
 
             return expose;
         },

@@ -902,7 +902,7 @@ const definitions: DefinitionWithExtend[] = [
             if (!device || !noBatteryLowModels.includes(device.manufacturerName)) {
                 exps.push(e.battery_low());
             }
-            exps.push(e.linkquality());
+
             return exps;
         },
         meta: {
@@ -1006,7 +1006,7 @@ const definitions: DefinitionWithExtend[] = [
                 exps.push(e.battery_low());
                 exps.push(e.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'));
             }
-            exps.push(e.linkquality());
+
             return exps;
         },
     },
@@ -1097,6 +1097,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_cirvgep4',
             '_TZE200_upagmta9',
             '_TZE204_yjjdcqsq',
+            '_TZE204_jygvp6fk',
             '_TZE204_cirvgep4',
         ]),
         model: 'TS0601_temperature_humidity_sensor_2',
@@ -1783,7 +1784,7 @@ const definitions: DefinitionWithExtend[] = [
         // Requires alarm_1_with_timeout https://github.com/Koenkk/zigbee2mqtt/issues/2818#issuecomment-776119586
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.linkquality(), e.battery(), e.battery_voltage()],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -1817,7 +1818,7 @@ const definitions: DefinitionWithExtend[] = [
             if (!device || !['_TZ3000_bsvqrxru', '_TZ3000_nss8amz9'].includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
-            exps.push(e.linkquality());
+
             return exps;
         },
         configure: async (device, coordinatorEndpoint) => {
@@ -1958,7 +1959,7 @@ const definitions: DefinitionWithExtend[] = [
             if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
-            exps.push(e.linkquality());
+
             return exps;
         },
     },
@@ -2177,8 +2178,6 @@ const definitions: DefinitionWithExtend[] = [
             if (!device || !['_TZE200_ykgar0ow'].includes(device.manufacturerName)) {
                 exps.push(tuya.exposes.lightType(), tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET));
             }
-
-            exps.push(e.linkquality());
 
             return exps;
         },
@@ -2436,7 +2435,7 @@ const definitions: DefinitionWithExtend[] = [
             },
         ],
         model: 'ZDMS16-1',
-        vendor: 'Avatto',
+        vendor: 'AVATTO',
         description: 'Zigbee 1 channel Dimmer',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -2471,7 +2470,7 @@ const definitions: DefinitionWithExtend[] = [
             },
         ],
         model: 'ZDMS16-2',
-        vendor: 'Avatto',
+        vendor: 'AVATTO',
         description: 'Zigbee 2 channels Dimmer',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -2606,7 +2605,7 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
-        exposes: [e.battery(), e.illuminance(), e.linkquality(), e.enum('brightness_level', ea.STATE, ['LOW', 'MEDIUM', 'HIGH'])],
+        exposes: [e.battery(), e.illuminance(), e.enum('brightness_level', ea.STATE, ['LOW', 'MEDIUM', 'HIGH'])],
     },
     {
         zigbeeModel: ['TS130F'],
@@ -2653,7 +2652,7 @@ const definitions: DefinitionWithExtend[] = [
             if (device?.manufacturerName !== '_TZ3210_xbpt8ewc' && device?.manufacturerName !== '_TZ3000_e3vhyirx') {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
-            exps.push(e.linkquality());
+
             return exps;
         },
     },
@@ -3120,6 +3119,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'BlitzWolf', model: 'BW-IS4'},
             tuya.whitelabel('Tuya', 'TS0201_1', 'Zigbee 3.0 temperature humidity sensor with display', ['_TZ3210_alxkwn0h']),
             tuya.whitelabel('Tuya', 'ZTH01/ZTH02', 'Temperature and humidity sensor', ['_TZ3000_0s1izerx']),
+            tuya.whitelabel('Tuya', 'ZY-ZTH02', 'Temperature and humidity sensor', ['_TZ3000_v1w2k9dd']),
             tuya.whitelabel('SEDEA', 'eTH730', 'Temperature and humidity sensor', ['_TZ3000_lqmvrwa2']),
             tuya.whitelabel('Danfoss', '014G2480', 'Temperature and humidity sensor', ['_TZ3000_mxzo5rhf']),
         ],
@@ -5017,7 +5017,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Thermostatic radiator valve',
         whiteLabel: [
             tuya.whitelabel('id3', 'GTZ06', 'Thermostatic radiator valve', ['_TZE200_z1tyspqw']),
-            tuya.whitelabel('Avatto', 'TRV07', 'Thermostatic radiator valve', ['_TZE200_bvrlmajk']),
+            tuya.whitelabel('AVATTO', 'TRV07', 'Thermostatic radiator valve', ['_TZE200_bvrlmajk']),
         ],
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
@@ -6686,7 +6686,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('Tuya', 'DS-111', 'Smart light switch - 4 gang with neutral wire', ['_TZ3000_mdj7kra9']),
             tuya.whitelabel('MHCOZY', 'TYWB 4ch-RF', '4 channel relay', ['_TZ3000_u3oupgdy', '_TZ3000_imaccztn']),
-            tuya.whitelabel('Avatto', 'TS0004_1', 'Smart light switch - 4 gang with neutral wire', ['_TZ3000_nivavasg', '_TZ3000_gexniqbq']),
+            tuya.whitelabel('AVATTO', 'TS0004_1', 'Smart light switch - 4 gang with neutral wire', ['_TZ3000_nivavasg', '_TZ3000_gexniqbq']),
         ],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -7042,7 +7042,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7', '_TZE204_lzriup1j', '_TZE204_xnbkhhdr']),
         model: 'ZWT198/ZWT100-BH',
         vendor: 'Tuya',
-        description: 'Avatto wall thermostat',
+        description: 'Wall thermostat',
         onEvent: tuya.onEvent({timeStart: '1970', respondToMcuVersionResponse: false}),
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -9247,7 +9247,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
         toZigbee: [tzLocal.TS011F_threshold],
         exposes: (device, options) => {
-            const exposes: Expose[] = [e.linkquality()];
+            const exposes: Expose[] = [];
             if (!['_TZ3000_303avxxt', '_TZ3000_zjchz7pd'].includes(device?.manufacturerName)) {
                 exposes.push(
                     e.temperature(),
@@ -10368,7 +10368,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.linkquality(), e.battery(), e.battery_voltage()],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
