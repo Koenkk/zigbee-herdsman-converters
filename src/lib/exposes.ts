@@ -789,6 +789,7 @@ export const options = {
         new Binary(`invert_cover`, access.SET, true, false).withDescription(
             `Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).`,
         ),
+    illuminance_raw: () => new Binary(`illuminance_raw`, access.SET, true, false).withDescription(`Expose the raw illuminance value.`),
     color_sync: () =>
         new Binary(`color_sync`, access.SET, true, false).withDescription(
             `When enabled colors will be synced, e.g. if the light supports both color x/y and color temperature a conversion from color x/y to color temperature will be done when setting the x/y color (default true).`,
@@ -1020,6 +1021,7 @@ export const presets = {
         new Numeric('holiday_temperature', access.STATE_SET).withUnit('°C').withDescription('Holiday temperature').withValueMin(0).withValueMax(30),
     humidity: () => new Numeric('humidity', access.STATE).withUnit('%').withDescription('Measured relative humidity'),
     illuminance: () => new Numeric('illuminance', access.STATE).withDescription('Measured illuminance').withUnit('lx'),
+    illuminance_raw: () => new Numeric('illuminance_raw', access.STATE).withDescription('Raw measured illuminance'),
     brightness_state: () => new Enum('brightness_state', access.STATE, ['low', 'middle', 'high', 'strong']).withDescription('Brightness state'),
     keypad_lockout: () =>
         new Enum('keypad_lockout', access.ALL, ['unlock', 'lock1', 'lock2']).withDescription('Enables/disables physical input on the device'),

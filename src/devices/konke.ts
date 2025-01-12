@@ -1,6 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -101,9 +102,10 @@ const definitions: DefinitionWithExtend[] = [
         model: 'KK-ES-J01W',
         vendor: 'Konke',
         description: 'Temperature, relative humidity and illuminance sensor',
-        fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
+        fromZigbee: [fz.battery, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.humidity(), e.temperature()],
+        exposes: [e.battery(), e.battery_voltage(), e.humidity(), e.temperature()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['3AFE241000040002'],

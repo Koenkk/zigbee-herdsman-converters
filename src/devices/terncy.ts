@@ -2,6 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -38,10 +39,11 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TERNCY-PP01',
         vendor: 'TERNCY',
         description: 'Awareness switch',
-        fromZigbee: [fz.terncy_temperature, fz.occupancy_with_timeout, fz.illuminance, fz.terncy_raw, fz.battery],
-        exposes: [e.temperature(), e.occupancy(), e.illuminance(), e.action(['single', 'double', 'triple', 'quadruple'])],
+        fromZigbee: [fz.terncy_temperature, fz.occupancy_with_timeout, fz.terncy_raw, fz.battery],
+        exposes: [e.temperature(), e.occupancy(), e.action(['single', 'double', 'triple', 'quadruple'])],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['TERNCY-SD01'],

@@ -2,6 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {battery, electricityMeter, forcePowerSource, iasZoneAlarm, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 
@@ -162,22 +163,21 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PIR313-E',
         vendor: 'OWON',
         description: 'Motion sensor',
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout, fz.illuminance],
+        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
-        exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.illuminance(), e.temperature(), e.humidity()],
+        exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
             if (device.modelID == 'PIR313') {
-                await reporting.bind(endpoint2, coordinatorEndpoint, ['msIlluminanceMeasurement']);
                 await reporting.bind(endpoint3, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             } else {
-                await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
                 await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             }
             device.powerSource = 'Battery';
             device.save();
         },
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['AC201'],

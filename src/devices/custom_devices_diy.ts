@@ -19,6 +19,7 @@ import {
     quirkAddEndpointCluster,
     temperature,
 } from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from '../lib/types';
 import {getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from '../lib/utils';
@@ -694,25 +695,20 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZeeFlora',
         vendor: 'Custom devices (DiY)',
         description: 'Flower sensor with rechargeable battery',
-        fromZigbee: [fz.temperature, fz.illuminance, fz.soil_moisture, fz.battery],
+        fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
         toZigbee: [],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const firstEndpoint = device.getEndpoint(1);
-            await reporting.bind(firstEndpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'msTemperatureMeasurement',
-                'msIlluminanceMeasurement',
-                'msSoilMoisture',
-            ]);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
             const overrides = {min: 0, max: 3600, change: 0};
             await reporting.batteryVoltage(firstEndpoint, overrides);
             await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
             await reporting.temperature(firstEndpoint, overrides);
-            await reporting.illuminance(firstEndpoint, overrides);
             await reporting.soil_moisture(firstEndpoint, overrides);
         },
-        exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature()],
+        exposes: [e.soil_moisture(), e.battery(), e.temperature()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['UT-01'],
@@ -735,24 +731,18 @@ const definitions: DefinitionWithExtend[] = [
         model: 'b-parasite',
         vendor: 'Custom devices (DiY)',
         description: 'b-parasite open source soil moisture sensor',
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture, fz.illuminance],
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance()],
+        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'msTemperatureMeasurement',
-                'msRelativeHumidity',
-                'msSoilMoisture',
-                'msIlluminanceMeasurement',
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msSoilMoisture']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.temperature(endpoint);
             await reporting.humidity(endpoint);
             await reporting.soil_moisture(endpoint);
-            await reporting.illuminance(endpoint);
         },
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['MULTI-ZIG-SW'],

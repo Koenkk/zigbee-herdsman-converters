@@ -2,6 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {identify, light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Configure, DefinitionWithExtend, Fz, OnEvent, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -176,14 +177,9 @@ const definitions: DefinitionWithExtend[] = [
         model: 'AU-A1ZBPIRS',
         vendor: 'Aurora Lighting',
         description: 'AOne PIR sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(39);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint);
-        },
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.illuminance()],
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['SingleSocket50AU'],
