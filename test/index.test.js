@@ -570,7 +570,9 @@ describe('index.js', () => {
     it('Function exposes should have linkquality sensor', () => {
         definitions.forEach((definition) => {
             if (typeof definition.exposes == 'function') {
-                expect(definition.exposes().find((e) => e.property === 'linkquality')).not.toBeUndefined();
+                if (!definition.exposes().find((e) => e.property === 'linkquality')) {
+                    throw new Error(`e.linkquality() is missing for '${definition.model}'`);
+                }
             }
         });
     });

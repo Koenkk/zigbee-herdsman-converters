@@ -12,6 +12,7 @@ import {
     BatteryLinearVoltage,
     BatteryNonLinearVoltage,
     Configure,
+    DefinitionExposes,
     DefinitionExposesFunction,
     DefinitionMeta,
     Expose,
@@ -651,7 +652,7 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
         return result;
     };
 
-    return numeric({
+    const result = numeric({
         name: 'illuminance',
         cluster: 'msIlluminanceMeasurement',
         attribute: 'measuredValue',
@@ -662,6 +663,24 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
         access: 'STATE_GET',
         ...args,
     });
+
+    const fzIlluminanceRaw = {
+        cluster: 'msIlluminanceMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        options: [opt.illuminance_raw()],
+        convert: (model, msg, publish, options, meta) => {
+            if (options.illuminance_raw) {
+                return {illuminance_raw: msg.data['measuredValue']};
+            }
+        },
+    } satisfies Fz.Converter;
+    result.fromZigbee.push(fzIlluminanceRaw);
+    const exposeIlluminanceRaw: DefinitionExposes = (device, options) => {
+        return options?.illuminance_raw ? [e.illuminance_raw()] : [];
+    };
+    result.exposes.push(exposeIlluminanceRaw);
+
+    return result;
 }
 
 export function temperature(args?: Partial<NumericArgs>) {
