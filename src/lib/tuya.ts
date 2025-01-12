@@ -557,11 +557,12 @@ export const valueConverter = {
     countdown: valueConverterBasic.raw(),
     scale0_254to0_1000: valueConverterBasic.scale(0, 254, 0, 1000),
     scale0_1to0_1000: valueConverterBasic.scale(0, 1, 0, 1000),
-    divideBy100: valueConverterBasic.divideBy(100),
     temperatureUnit: valueConverterBasic.lookup({celsius: 0, fahrenheit: 1}),
     temperatureUnitEnum: valueConverterBasic.lookup({celsius: new Enum(0), fahrenheit: new Enum(1)}),
     batteryState: valueConverterBasic.lookup({low: 0, medium: 1, high: 2}),
+    divideBy2: valueConverterBasic.divideBy(2),
     divideBy10: valueConverterBasic.divideBy(10),
+    divideBy100: valueConverterBasic.divideBy(100),
     divideBy1000: valueConverterBasic.divideBy(1000),
     divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
     switchMode: valueConverterBasic.lookup({switch: new Enum(0), scene: new Enum(1)}),
@@ -585,8 +586,7 @@ export const valueConverter = {
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
             const position = options.invert_cover ? 100 - v : v;
-            const closed = options.invert_cover ? position === 100 : position === 0;
-            publish({state: closed ? 'CLOSE' : 'OPEN'});
+            publish({state: position === 0 ? 'CLOSE' : 'OPEN'});
             return position;
         },
     },
@@ -596,8 +596,7 @@ export const valueConverter = {
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
             const position = options.invert_cover ? v : 100 - v;
-            const closed = options.invert_cover ? position === 100 : position === 0;
-            publish({state: closed ? 'CLOSE' : 'OPEN'});
+            publish({state: position === 0 ? 'CLOSE' : 'OPEN'});
             return position;
         },
     },
@@ -1259,6 +1258,146 @@ export const valueConverter = {
             const entity = meta.device.endpoints[0];
             const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
             await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
+        },
+    },
+    PO_BOCO_ELEC_schedule: (day: number) => ({
+        to: (v: string) => {
+            const payload = [80 + day];
+            const modeMapping: Record<string, number> = {
+                off: 5,
+                antifrost: 4,
+                eco: 3,
+                'comfort_-2': 2,
+                'comfort_-1': 1,
+                comfort: 0,
+            };
+
+            const items = v.split(' / ');
+            items.forEach((item) => {
+                if (Object.keys(modeMapping).includes(item)) {
+                    payload.push(modeMapping[item]);
+                } else {
+                    const time = item.split(':');
+                    const hours = parseInt(time[0]);
+                    const minutes = Math.floor(parseInt(time[1]) / 5);
+                    const total = hours * 12 + minutes;
+                    if (total > 0) payload.push(total);
+                }
+            });
+
+            return payload;
+        },
+        from: (v: number[]) => {
+            const payload = [];
+            const modeMapping: Record<number, string> = {
+                5: 'off',
+                4: 'antifrost',
+                3: 'eco',
+                2: 'comfort_-2',
+                1: 'comfort_-1',
+                0: 'comfort',
+            };
+
+            for (let index = 1; index < v.length; index++) {
+                const item = v[index];
+                if (index % 2) {
+                    if (item > 5) break;
+
+                    const mode = modeMapping[item];
+                    payload.push(mode);
+                } else {
+                    const nextItem = v[index + 1];
+                    if (nextItem > 5) break;
+
+                    const date = new Date();
+                    date.setHours(0, item * 5);
+                    const hours = date.getHours().toString().padStart(2, '0');
+                    const minutes = date.getMinutes().toString().padStart(2, '0');
+                    payload.push(`${hours}:${minutes}`);
+                }
+            }
+            return payload.join(' / ');
+        },
+    }),
+    PO_BOCO_ELEC_holiday: {
+        to: (v: string) => {
+            const payload = [];
+            const regex =
+                /(?<startYear>\d{4})\/(?<startMonth>\d{2})\/(?<startDay>\d{2})\s(?<startHours>\d{2}):(?<startMinutes>\d{2}) \| (?<endYear>\d{4})\/(?<endMonth>\d{2})\/(?<endDay>\d{2})\s(?<endHours>\d{2}):(?<endMinutes>\d{2}) \| (?<mode>off|antifrost|eco|comfort_-2|comfort_-1|comfort)$/g;
+            const regexResult = regex.exec(v);
+
+            if (!regexResult)
+                throw new Error(
+                    'Invalid syntax. Should be' +
+                        '`startYear/startMonth/startDay startHours:startMinutes | endYear/endMonth/endDay endHours:endMinutes  | mode`. ' +
+                        'For example: `2024/12/12 09:00 | 2024/12/14 10:00 | comfort`',
+                );
+
+            const {startYear, startMonth, startDay, startHours, startMinutes, endYear, endMonth, endDay, endHours, endMin, mode} = regexResult.groups;
+            const startDate = new Date(
+                parseInt(startYear),
+                parseInt(startMonth) - 1,
+                parseInt(startDay),
+                parseInt(startHours),
+                parseInt(startMinutes),
+            );
+            const endDate = new Date(parseInt(endYear), parseInt(endMonth) - 1, parseInt(endDay), parseInt(endHours), parseInt(startMinutes));
+            const diffHours = Math.abs(startDate.getTime() - endDate.getTime()) / 36e5;
+            const modeMapping: Record<string, number> = {
+                off: 5,
+                antifrost: 4,
+                eco: 3,
+                'comfort_-2': 2,
+                'comfort_-1': 1,
+                comfort: 0,
+            };
+
+            if (endMin) logger.warning('The end date minutes will be ignore.', NS);
+
+            if (diffHours > 255) throw new Error('You cannot set an interval superior at 255 hours.');
+            else if (startDate.getTime() > endDate.getTime()) throw new Error('You cannot set a negative interval.');
+
+            payload.push(
+                parseInt(startYear.slice(2)),
+                parseInt(startMonth),
+                parseInt(startDay),
+                parseInt(startHours),
+                parseInt(startMinutes),
+                modeMapping[mode],
+                0,
+                diffHours,
+            );
+
+            return payload;
+        },
+        from: (v: number[]) => {
+            const startYear = '2' + v[0].toString().padStart(3, '0');
+            const startMonth = v[1].toString().padStart(2, '0');
+            const startDay = v[2].toString().padStart(2, '0');
+            const startHours = v[3].toString().padStart(2, '0');
+            const startMinutes = v[4].toString().padStart(2, '0');
+            const mode = v[5];
+            const diffHours = v[7];
+            const modeMapping: Record<number, string> = {
+                5: 'off',
+                4: 'antifrost',
+                3: 'eco',
+                2: 'comfort_-2',
+                1: 'comfort_-1',
+                0: 'comfort',
+            };
+            const endDate = new Date(parseInt(startYear), parseInt(startMonth) - 1, parseInt(startDay), parseInt(startHours), parseInt(startMinutes));
+            endDate.setHours(endDate.getHours() + diffHours);
+            const endYear = endDate.getFullYear().toString();
+            const endMonth = (endDate.getMonth() + 1).toString().padStart(2, '0');
+            const endDay = endDate.getDate().toString().padStart(2, '0');
+            const endHours = endDate.getHours().toString().padStart(2, '0');
+
+            return (
+                `${startYear}/${startMonth}/${startDay} ${startHours}:${startMinutes}` +
+                ` | ${endYear}/${endMonth}/${endDay} ${endHours}:${startMinutes}` +
+                ` | ${modeMapping[mode]}`
+            );
         },
     },
     TV02SystemMode: {

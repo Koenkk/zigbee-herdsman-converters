@@ -298,6 +298,7 @@ const definitions: DefinitionWithExtend[] = [
             fz.command_off,
             fz.battery,
             fz.command_move_to_level,
+            fz.command_move_hue,
         ],
         exposes: [
             e.battery(),

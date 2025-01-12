@@ -17,3 +17,4 @@ tmp
 tsconfig.tsbuildinfo
 coverage/
 .jest-tmp/
+dist/

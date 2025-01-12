@@ -115,6 +115,8 @@ const definitions = [
             {modelID: 'LYWSD03MMC-bz', manufacturerName: 'Xiaomi'},
             {modelID: 'MHO-C122-z', manufacturerName: 'MiaoMiaoCe'},
             {modelID: 'MHO-C122-bz', manufacturerName: 'MiaoMiaoCe'},
+            {modelID: 'MHO-C401-z', manufacturerName: 'MiaoMiaoCe'},
+            {modelID: 'MHO-C401-bz', manufacturerName: 'MiaoMiaoCe'},
             {modelID: 'MHO-C401N-z', manufacturerName: 'MiaoMiaoCe'},
             {modelID: 'MHO-C401N-bz', manufacturerName: 'MiaoMiaoCe'},
         ],

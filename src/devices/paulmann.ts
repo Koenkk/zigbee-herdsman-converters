@@ -1,6 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {battery, commandsColorCtrl, commandsLevelCtrl, commandsOnOff, commandsScenes, deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -288,6 +289,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee LED bulb 4,9W Matt E14 RGBW',
         extend: [light({colorTemp: {range: [153, 454]}, color: {modes: ['xy', 'hs']}})],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3210_hjxqqofs']),
+        model: '501.39',
+        vendor: 'Paulmann',
+        description: 'Universal-switch white',
+        extend: [onOff({powerOnBehavior: false})],
     },
 ];
 

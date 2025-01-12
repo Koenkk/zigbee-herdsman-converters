@@ -174,7 +174,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GL-SD-003P',
         vendor: 'Gledopto',
         description: 'Zigbee DIN Rail triac AC dimmer',
-        extend: [light()],
+        extend: [light({configureReporting: true})],
         meta: {disableDefaultResponse: true},
     },
     {
@@ -814,6 +814,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GL-D-007P',
         vendor: 'Gledopto',
         description: 'Zigbee 12W anti-glare downlight RGB+CCT (pro)',
+        ota: true,
+        extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true})],
+    },
+    {
+        zigbeeModel: ['GL-D-008P'],
+        model: 'GL-D-008P',
+        vendor: 'Gledopto',
+        description: 'Na Versiion smart led 9w downlight',
         ota: true,
         extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true})],
     },
