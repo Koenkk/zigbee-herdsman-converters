@@ -4030,6 +4030,20 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Hue Lightguide E27 Edison ST72 500lm',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
+    {
+        zigbeeModel: ['LCO003'],
+        model: '929003151601',
+        vendor: 'Philips',
+        description: 'Hue Lightguide E26 Globe G30 500lm',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ['LCO006'],
+        model: '929003151701',
+        vendor: 'Philips',
+        description: 'Hue Lightguide E26 Globe Large G40 500lm',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
 ];
 
 export default definitions;
