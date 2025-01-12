@@ -1096,6 +1096,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_cirvgep4',
             '_TZE200_upagmta9',
             '_TZE204_yjjdcqsq',
+            '_TZE204_jygvp6fk',
             '_TZE204_cirvgep4',
         ]),
         model: 'TS0601_temperature_humidity_sensor_2',
