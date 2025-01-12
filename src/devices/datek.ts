@@ -6,6 +6,7 @@ import * as constants from '../lib/constants';
 import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {electricityMeter, temperature} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -74,7 +75,6 @@ const definitions: DefinitionWithExtend[] = [
             fz.battery,
             fz.occupancy,
             fz.occupancy_timeout,
-            fz.illuminance,
             fz.temperature,
             fz.ias_enroll,
             fz.ias_occupancy_alarm_1,
@@ -85,11 +85,10 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const options = {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS};
             const endpoint = device.getEndpoint(1);
-            const binds = ['msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing', 'ssIasZone'];
+            const binds = ['msTemperatureMeasurement', 'msOccupancySensing', 'ssIasZone'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.occupancy(endpoint);
             await reporting.temperature(endpoint);
-            await reporting.illuminance(endpoint);
             const payload = [
                 {
                     attribute: {ID: 0x4000, type: 0x10},
@@ -105,10 +104,10 @@ const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.occupancy(),
             e.battery_low(),
-            e.illuminance(),
             e.binary('led_on_motion', ea.ALL, true, false).withDescription('Enable/disable LED on motion'),
             e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535),
         ],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['ID Lock 150', 'ID Lock 202'],

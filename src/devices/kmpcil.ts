@@ -4,6 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Fz, KeyValue, Publish} from '../lib/types';
@@ -84,9 +85,9 @@ const definitions: DefinitionWithExtend[] = [
         model: 'KMPCIL_RES005',
         vendor: 'KMPCIL',
         description: 'Environment sensor',
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.illuminance().withAccess(ea.STATE_GET), e.occupancy(), e.switch()],
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pressure, fz.illuminance, fz.kmpcil_res005_occupancy, fz.kmpcil_res005_on_off],
-        toZigbee: [tz.kmpcil_res005_on_off, tz.illuminance],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.occupancy(), e.switch()],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pressure, fz.kmpcil_res005_occupancy, fz.kmpcil_res005_on_off],
+        toZigbee: [tz.kmpcil_res005_on_off],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
             const binds = [
@@ -94,7 +95,6 @@ const definitions: DefinitionWithExtend[] = [
                 'msTemperatureMeasurement',
                 'msRelativeHumidity',
                 'msPressureMeasurement',
-                'msIlluminanceMeasurement',
                 'genBinaryInput',
                 'genBinaryOutput',
             ];
@@ -110,10 +110,6 @@ const definitions: DefinitionWithExtend[] = [
                 },
             ];
             await endpoint.configureReporting('genPowerCfg', payloadBattery);
-            const payload = [
-                {attribute: 'measuredValue', minimumReportInterval: 5, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 200},
-            ];
-            await endpoint.configureReporting('msIlluminanceMeasurement', payload);
             const payloadPressure = [
                 {
                     // 0 = measuredValue, override dataType from int16 to uint16
@@ -148,6 +144,7 @@ const definitions: DefinitionWithExtend[] = [
             ];
             await endpoint.configureReporting('genBinaryOutput', payloadBinaryOutput);
         },
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['tagv1'],

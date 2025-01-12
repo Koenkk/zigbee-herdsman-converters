@@ -21,6 +21,7 @@ import {
     temperature,
     windowCovering,
 } from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
@@ -1733,11 +1734,12 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0202_3',
         vendor: 'Tuya',
         description: 'Motion detector with illuminance',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report, fz.illuminance],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
-        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.tamper(), e.illuminance()],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.tamper()],
+        extend: [m.illuminance()],
     },
     {
         fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_cwamkvua']),
@@ -7229,32 +7231,35 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0222_temperature_humidity',
         vendor: 'Tuya',
         description: 'Temperature & humidity sensor',
-        fromZigbee: [fzLocal.TS0222_humidity, fz.battery, fz.temperature, fz.illuminance],
+        fromZigbee: [fzLocal.TS0222_humidity, fz.battery, fz.temperature],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
         whiteLabel: [tuya.whitelabel('Tuya', 'QT-07S', 'Soil sensor', ['_TZE204_myd45weu'])],
+        extend: [m.illuminance()],
     },
     {
         fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_8uxxzz4b', '_TZ3000_hy6ncvmw', '_TZ3000_9kbbfeho', '_TZ3000_l6rsaipj']),
         model: 'TS0222_light',
         vendor: 'Tuya',
         description: 'Light sensor',
-        fromZigbee: [fz.battery, fz.illuminance],
+        fromZigbee: [fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         whiteLabel: [tuya.whitelabel('Moes', 'ZSS-QT-LS-C', 'Light sensor', ['_TZ3000_9kbbfeho'])],
-        exposes: [e.battery(), e.illuminance()],
+        exposes: [e.battery()],
+        extend: [m.illuminance()],
     },
     {
         fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_t9qqxn70']),
         model: 'THE01860A',
         vendor: 'Tuya',
         description: 'Temp & humidity flower sensor with illuminance',
-        fromZigbee: [fz.humidity, fz.battery, fz.temperature, fz.illuminance],
+        fromZigbee: [fz.humidity, fz.battery, fz.temperature],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+        extend: [m.illuminance()],
     },
     {
         fingerprint: [
@@ -7265,10 +7270,11 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0222',
         vendor: 'Tuya',
         description: 'Light intensity sensor',
-        fromZigbee: [fz.battery, fz.illuminance, legacy.fromZigbee.TS0222],
+        fromZigbee: [fz.battery, legacy.fromZigbee.TS0222],
         toZigbee: [],
-        exposes: [e.battery(), e.illuminance()],
+        exposes: [e.battery()],
         configure: tuya.configureMagicPacket,
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['TS0210'],
@@ -7537,7 +7543,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LCZ030',
         vendor: 'Tuya',
         description: 'Temperature & humidity & illuminance sensor with display',
-        fromZigbee: [fz.battery, fz.illuminance, fz.temperature, fz.humidity, fz.ts0201_temperature_humidity_alarm],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.ts0201_temperature_humidity_alarm],
         toZigbee: [tz.ts0201_temperature_humidity_alarm],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -7547,7 +7553,6 @@ const definitions: DefinitionWithExtend[] = [
                 'genBasic',
                 'genPowerCfg',
                 'msTemperatureMeasurement',
-                'msIlluminanceMeasurement',
                 'msRelativeHumidity',
                 'manuSpecificTuya_2',
             ]);
@@ -7556,7 +7561,6 @@ const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.humidity(),
             e.battery(),
-            e.illuminance(),
             e
                 .numeric('alarm_temperature_max', ea.STATE_SET)
                 .withUnit('°C')
@@ -7574,6 +7578,7 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('alarm_humidity', ea.STATE, ['below_min_humdity', 'over_humidity', 'off']).withDescription('Alarm humidity status'),
             e.enum('alarm_temperature', ea.STATE, ['below_min_temperature', 'over_temperature', 'off']).withDescription('Alarm temperature status'),
         ],
+        extend: [m.illuminance()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_auin8mzr'}],

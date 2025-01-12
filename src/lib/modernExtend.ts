@@ -2082,7 +2082,7 @@ export interface NumericArgs {
     access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     unit?: string;
     endpointNames?: string[];
-    reporting?: ReportingConfigWithoutAttribute;
+    reporting?: false | ReportingConfigWithoutAttribute;
     valueMin?: number;
     valueMax?: number;
     valueStep?: number;
@@ -2196,7 +2196,10 @@ export function numeric(args: NumericArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access, endpoints)];
+    const configure: Configure[] = [];
+    if (reporting) {
+        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access, endpoints));
+    }
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }

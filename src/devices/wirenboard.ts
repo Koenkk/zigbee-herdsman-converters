@@ -3,6 +3,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as modernExtend from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Configure, DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
@@ -462,7 +463,6 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Wall-mounted multi sensor',
         fromZigbee: [
             fzLocal.temperature,
-            fz.illuminance,
             fz.humidity,
             fz.occupancy,
             fzLocal.occupancy_level,
@@ -491,7 +491,6 @@ const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e.temperature(),
-            e.illuminance(),
             e.humidity(),
             e.occupancy(),
             e.occupancy_level(),
@@ -561,7 +560,6 @@ const definitions: DefinitionWithExtend[] = [
             const binds = [
                 'genBasic',
                 'msTemperatureMeasurement',
-                'msIlluminanceMeasurement',
                 'msRelativeHumidity',
                 'msOccupancySensing',
                 'msCO2',
@@ -574,7 +572,6 @@ const definitions: DefinitionWithExtend[] = [
 
             // report configuration
             await reporting.temperature(endpoint1);
-            await reporting.illuminance(endpoint1);
             await reporting.humidity(endpoint1);
             await reporting.occupancy(endpoint1);
 
@@ -598,6 +595,7 @@ const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
         ota: true,
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['WBMSW4'],

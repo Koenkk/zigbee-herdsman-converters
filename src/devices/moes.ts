@@ -3,6 +3,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {actionEnumLookup, battery, deviceEndpoints, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
@@ -313,9 +314,10 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZSS-ZK-THL',
         vendor: 'Moes',
         description: 'Smart temperature and humidity meter with display',
-        fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
+        fromZigbee: [fz.battery, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.illuminance(), e.humidity(), e.temperature()],
+        exposes: [e.battery(), e.humidity(), e.temperature()],
+        extend: [m.illuminance()],
     },
     {
         fingerprint: [
