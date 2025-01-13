@@ -1,5 +1,20 @@
 # Changelog
 
+## [21.19.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.18.0...v21.19.0) (2025-01-13)
+
+
+### Features
+
+* **add:** GWA1201_TWO_WAY_SWITCH ([#8601](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8601)) ([26b2a0e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/26b2a0ef4015686d255a123a1abd2750ad2c3aa1))
+* **add:** SR-ZG2835RAC-UK ([#8602](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8602)) ([bae1461](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bae1461cbd3878f78a48d0fbe76ad54adbdf8645))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_2cyb66xl` as AVATTO ZDMS16-1 https://github.com/Koenkk/zigbee-herdsman-converters/pull/8436 ([50f1453](https://github.com/Koenkk/zigbee-herdsman-converters/commit/50f14531cb149cfe63eabe485eb4026a3415798c))
+* Fix duplicate publish for some Tuya devics https://github.com/Koenkk/zigbee2mqtt/issues/25605 ([d7f9a3c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d7f9a3c1aeccd1cd3e912ebe07fa8b337fbcda3d))
+* Fix Tuya ZG-227ZL batterty % https://github.com/Koenkk/zigbee2mqtt/issues/25581 ([ab83fc5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab83fc5c791dc59f78b1fa596bb1fbf65ffbf8c4))
+
 ## [21.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.17.0...v21.18.0) (2025-01-12)
 
 
