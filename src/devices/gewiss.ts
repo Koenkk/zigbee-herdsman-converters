@@ -1,13 +1,21 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, electricityMeter, identify, onOff} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['GWA1201_TWO_WAY_SWITCH'],
+        model: 'GWA1201_TWO_WAY_SWITCH',
+        vendor: 'Gewiss',
+        description: 'GWA1201',
+        extend: [onOff(), electricityMeter(), identify()],
+        ota: true,
+    },
     {
         zigbeeModel: ['GWA1521_Actuator_1_CH_PF'],
         model: 'GWA1521',
