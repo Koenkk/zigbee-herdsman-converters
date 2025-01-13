@@ -28,6 +28,10 @@ const local = {
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
+                if (msg.data.switchActionReporting !== undefined) {
+                    const actionReportingMap: KeyValue = {0x00: false, 0x1F: true};
+                    state['action_reporting'] = utils.getFromLookup(msg.data.switchActionReporting, actionReportingMap);
+                }
                 if (msg.data.switchAction !== undefined) {
                     // NOTE: a single press = two separate values reported, 16 followed by 64
                     //       a hold/release cycle = three separate values, 16, 32, and 48
@@ -120,6 +124,27 @@ const local = {
             convertGet: async (entity, key, meta) => {
                 utils.assertEndpoint(entity);
                 await utils.enforceEndpoint(entity, key, meta).read('manuSpecificNiko1', ['switchOperationMode']);
+            },
+        } satisfies Tz.Converter,
+        switch_action_reporting: {
+            key: ['action_reporting'],
+            convertSet: async (entity, key, value, meta) => {
+                const actionReportingMap: KeyValue = {false: 0x00, true: 0x1F};
+                // @ts-expect-error ignore
+                if (actionReportingMap[value] === undefined) {
+                    throw new Error(`action_reporting was called with an invalid value (${value})`);
+                } else {
+                    await entity.write(
+                        'manuSpecificNiko2',
+                        // @ts-expect-error ignore
+                        {switchActionReporting: actionReportingMap[value]},
+                    );
+                    await entity.read('manuSpecificNiko2', ['switchActionReporting']);
+                    return {state: {action_reporting: value}};
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNiko2', ['switchActionReporting']);
             },
         } satisfies Tz.Converter,
         switch_led_enable: {
@@ -276,17 +301,19 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Niko',
         description: 'Single connectable switch',
         fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action, local.fz.switch_status_led],
-        toZigbee: [tz.on_off, local.tz.switch_operation_mode, local.tz.switch_led_enable, local.tz.switch_led_state],
+        toZigbee: [tz.on_off, local.tz.switch_operation_mode, local.tz.switch_action_reporting, local.tz.switch_led_enable, local.tz.switch_led_state],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
             await endpoint.read('manuSpecificNiko1', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
+            await endpoint.read('manuSpecificNiko2', ['switchActionReporting']);
         },
         exposes: [
             e.switch(),
             e.action(['single', 'hold', 'release', 'single_ext', 'hold_ext', 'release_ext']),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
+            e.binary('action_reporting', ea.ALL, true, false),
             e.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
             e.binary('led_state', ea.ALL, 'ON', 'OFF').withDescription('LED State'),
         ],
@@ -297,7 +324,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Niko',
         description: 'Double connectable switch',
         fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action, local.fz.switch_status_led],
-        toZigbee: [tz.on_off, local.tz.switch_operation_mode, local.tz.switch_led_enable, local.tz.switch_led_state],
+        toZigbee: [tz.on_off, local.tz.switch_operation_mode, local.tz.switch_action_reporting, local.tz.switch_led_enable, local.tz.switch_led_state],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
@@ -311,6 +338,8 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(ep2);
             await ep1.read('manuSpecificNiko1', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
             await ep2.read('manuSpecificNiko1', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
+            await ep1.read('manuSpecificNiko2', ['switchActionReporting']);
+            await ep2.read('manuSpecificNiko2', ['switchActionReporting']);
         },
         exposes: [
             e.switch().withEndpoint('l1'),
@@ -330,6 +359,7 @@ const definitions: DefinitionWithExtend[] = [
                 'release_right_ext',
             ]),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
+            e.binary('action_reporting', ea.ALL, true, false),
             e.binary('led_enable', ea.ALL, true, false).withEndpoint('l1').withDescription('Enable LED'),
             e.binary('led_enable', ea.ALL, true, false).withEndpoint('l2').withDescription('Enable LED'),
             e.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l1').withDescription('LED State'),
