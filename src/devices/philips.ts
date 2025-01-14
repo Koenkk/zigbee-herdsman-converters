@@ -3214,11 +3214,6 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(255),
             e
-                .numeric('brightness', ea.STATE)
-                .withDescription('Raw rotation state value of the dial which represents brightness from 0-255')
-                .withValueMin(0)
-                .withValueMax(255),
-            e
                 .numeric('action_step_size', ea.STATE)
                 .withDescription('amount of steps the last action took on the dial exposed as a posive value from 0-255')
                 .withValueMin(0)

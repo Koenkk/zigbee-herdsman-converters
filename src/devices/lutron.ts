@@ -4,7 +4,6 @@ import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
-const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -23,7 +22,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Aurora smart bulb dimmer',
         fromZigbee: [fz.command_move_to_level],
         toZigbee: [],
-        exposes: [e.action(['brightness']), e.numeric('brightness', ea.STATE)],
+        exposes: [e.action(['brightness'])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);

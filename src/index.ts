@@ -296,11 +296,11 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
     return definition;
 }
 
-function retrieveAdditionalExposesFromOptions(definition: DefinitionWithExtend): Expose[] {
+function additionalExposesFromOptions(definition: DefinitionWithExtend): Expose[] {
     const additionalExposes: Expose[] = [];
     for (const option of definition.options) {
-        if (option.exposes) {
-            additionalExposes.push(...option.exposes);
+        if (option.features?.find((e) => e.exposed)?.exposed) {
+            additionalExposes.push(...option.features.filter((e) => e.exposed));
         }
     }
     return additionalExposes;
@@ -308,7 +308,6 @@ function retrieveAdditionalExposesFromOptions(definition: DefinitionWithExtend):
 
 function prepareDefinition(definition: DefinitionWithExtend): Definition {
     definition = processExtensions(definition);
-
     definition.toZigbee.push(
         toZigbee.scene_store,
         toZigbee.scene_recall,
@@ -327,10 +326,6 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
         definition.exposes = definition.exposes.concat([exposesLib.presets.linkquality()]);
     }
 
-    if (definition.exposes && Array.isArray(definition.exposes) && definition.options) {
-        definition.exposes.push(...retrieveAdditionalExposesFromOptions(definition));
-    }
-
     if (definition.externalConverterName) {
         validateDefinition(definition);
     }
@@ -339,7 +334,6 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
     if (!definition.options) {
         definition.options = [];
     }
-
     const optionKeys = definition.options.map((o) => o.name);
 
     // Add calibration/precision options based on expose
@@ -377,6 +371,42 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
                 }
             }
         }
+    }
+
+    //if options are defined, add them to the exposes
+    if (definition.exposes && Array.isArray(definition.exposes) && definition.options) {
+        const existingExposes = definition.exposes.flatMap((e) => {
+            return [e, ...(e.features ?? [])];
+        });
+        const existingExposesNames = existingExposes.flatMap((e) => {
+            return [e.name];
+        });
+
+        const additionalExposes = additionalExposesFromOptions(definition);
+
+        const newExposes = additionalExposes.map((additionalExpose) => {
+            if (!existingExposesNames.includes(additionalExpose.name)) {
+                return additionalExpose;
+            }
+
+            const existingExpose = existingExposes.find((expose) => expose.name == additionalExpose.name);
+            const converter = definition.toZigbee.find(
+                (item) =>
+                    item.key.includes(additionalExpose.property) &&
+                    (!item.endpoints || (additionalExpose.endpoint && item.endpoints.includes(additionalExpose.endpoint))),
+            );
+            // If the converter does not support SET or GET, remove the access afterwards
+            let access = additionalExpose.access | existingExpose.access;
+            if (!converter?.convertSet) {
+                access &= ~exposesLib.access.SET;
+            }
+            if (!converter?.convertGet) {
+                access &= ~exposesLib.access.GET;
+            }
+            return {...additionalExpose, access: access} as Expose;
+        });
+
+        definition.exposes = definition.exposes.concat(newExposes);
     }
 
     return definition;

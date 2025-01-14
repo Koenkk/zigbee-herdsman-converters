@@ -323,6 +323,8 @@ describe('ModernExtend', () => {
             ],
             exposes: [
                 'action',
+                'action_brightness_delta',
+                'brightness',
                 'effect',
                 'effect',
                 'effect',
