@@ -375,12 +375,18 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
 
     //if options are defined, add them to the exposes
     if (definition.exposes && Array.isArray(definition.exposes) && definition.options) {
-        const existingExposes = definition.exposes.flatMap((e) => {
-            return [e, ...(e.features ?? [])];
-        });
-        const existingExposesNames = existingExposes.flatMap((e) => {
-            return [e.name];
-        });
+        const existingExposes = definition.exposes
+            .flatMap((e) => {
+                return [e, ...(e.features ?? [])];
+            })
+            .reduce(
+                (acc, expose) => {
+                    acc[expose.name] = expose;
+                    return acc;
+                },
+                {} as Record<string, Expose>,
+            );
+        const existingExposesNames = Object.keys(existingExposes);
 
         const additionalExposes = additionalExposesFromOptions(definition);
 
@@ -389,7 +395,7 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
                 return additionalExpose;
             }
 
-            const existingExpose = existingExposes.find((expose) => expose.name == additionalExpose.name);
+            const existingExpose = existingExposes[additionalExpose.name];
             const converter = definition.toZigbee.find(
                 (item) =>
                     item.key.includes(additionalExpose.property) &&
