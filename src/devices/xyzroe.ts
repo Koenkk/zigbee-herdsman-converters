@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, electricityMeter, iasZoneAlarm, identify, onOff, temperature} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 
@@ -480,9 +480,9 @@ const definitions: DefinitionWithExtend[] = [
                 .withUnit('seconds'),
         ],
         extend: [
-            deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3, 4: 4}}),
-            identify(),
-            electricityMeter({
+            m.deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3, 4: 4}}),
+            m.identify(),
+            m.electricityMeter({
                 cluster: 'electrical',
                 electricalMeasurementType: 'both',
                 // Since this device measures lower voltage devices, lower the change value.
@@ -491,11 +491,11 @@ const definitions: DefinitionWithExtend[] = [
                 voltage: {change: 100},
                 endpointNames: ['1'],
             }),
-            temperature(),
-            onOff({endpointNames: ['1'], description: 'Controls the USB port'}),
-            onOff({powerOnBehavior: false, endpointNames: ['2'], description: 'LED indicates the Zigbee status'}),
-            onOff({powerOnBehavior: false, endpointNames: ['3'], description: 'LED indicates the USB state'}),
-            iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1'], description: 'Over current alarm'}),
+            m.temperature(),
+            m.onOff({endpointNames: ['1'], description: 'Controls the USB port'}),
+            m.onOff({powerOnBehavior: false, endpointNames: ['2'], description: 'LED indicates the Zigbee status'}),
+            m.onOff({powerOnBehavior: false, endpointNames: ['3'], description: 'LED indicates the USB state'}),
+            m.iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1'], description: 'Over current alarm'}),
         ],
         meta: {multiEndpoint: true},
     },

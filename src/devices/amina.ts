@@ -2,7 +2,7 @@ import {Zcl} from 'zigbee-herdsman';
 
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {binary, deviceAddCustomCluster, electricityMeter, numeric, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -138,7 +138,7 @@ const definitions: DefinitionWithExtend[] = [
             e.list('alarms', ea.STATE_GET, aminaAlarmsEnum).withDescription('List of active alarms'),
         ],
         extend: [
-            deviceAddCustomCluster('aminaControlCluster', {
+            m.deviceAddCustomCluster('aminaControlCluster', {
                 ID: aminaControlAttributes.cluster,
                 manufacturerCode: manufacturerOptions.manufacturerCode,
                 attributes: {
@@ -157,11 +157,11 @@ const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
 
-            onOff({
+            m.onOff({
                 powerOnBehavior: false,
             }),
 
-            numeric({
+            m.numeric({
                 name: 'charge_limit',
                 cluster: 'genLevelCtrl',
                 attribute: 'currentLevel',
@@ -174,7 +174,7 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'ALL',
             }),
 
-            numeric({
+            m.numeric({
                 name: 'total_active_power',
                 cluster: 'haElectricalMeasurement',
                 attribute: 'totalActivePower',
@@ -186,7 +186,7 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE_GET',
             }),
 
-            numeric({
+            m.numeric({
                 name: 'total_active_energy',
                 cluster: 'aminaControlCluster',
                 attribute: 'totalActiveEnergy',
@@ -198,7 +198,7 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE_GET',
             }),
 
-            numeric({
+            m.numeric({
                 name: 'last_session_energy',
                 cluster: 'aminaControlCluster',
                 attribute: 'lastSessionEnergy',
@@ -210,7 +210,7 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE_GET',
             }),
 
-            binary({
+            m.binary({
                 name: 'ev_connected',
                 cluster: 'aminaControlCluster',
                 attribute: 'evConnected',
@@ -220,7 +220,7 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
 
-            binary({
+            m.binary({
                 name: 'charging',
                 cluster: 'aminaControlCluster',
                 attribute: 'charging',
@@ -230,7 +230,7 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
 
-            binary({
+            m.binary({
                 name: 'derated',
                 cluster: 'aminaControlCluster',
                 attribute: 'derated',
@@ -240,7 +240,7 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
 
-            binary({
+            m.binary({
                 name: 'alarm_active',
                 cluster: 'aminaControlCluster',
                 attribute: 'alarmActive',
@@ -250,13 +250,13 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
 
-            electricityMeter({
+            m.electricityMeter({
                 cluster: 'electrical',
                 acFrequency: true,
                 threePhase: true,
             }),
 
-            binary({
+            m.binary({
                 name: 'single_phase',
                 cluster: 'aminaControlCluster',
                 attribute: 'singlePhase',
@@ -266,7 +266,7 @@ const definitions: DefinitionWithExtend[] = [
                 entityCategory: 'config',
             }),
 
-            binary({
+            m.binary({
                 name: 'enable_offline',
                 cluster: 'aminaControlCluster',
                 attribute: 'enableOffline',
@@ -276,7 +276,7 @@ const definitions: DefinitionWithExtend[] = [
                 entityCategory: 'config',
             }),
 
-            numeric({
+            m.numeric({
                 name: 'time_to_offline',
                 cluster: 'aminaControlCluster',
                 attribute: 'timeToOffline',
@@ -288,7 +288,7 @@ const definitions: DefinitionWithExtend[] = [
                 entityCategory: 'config',
             }),
 
-            numeric({
+            m.numeric({
                 name: 'offline_current',
                 cluster: 'aminaControlCluster',
                 attribute: 'offlineCurrent',
@@ -300,7 +300,7 @@ const definitions: DefinitionWithExtend[] = [
                 entityCategory: 'config',
             }),
 
-            binary({
+            m.binary({
                 name: 'offline_single_phase',
                 cluster: 'aminaControlCluster',
                 attribute: 'offlineSinglePhase',

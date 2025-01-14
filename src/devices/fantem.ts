@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {light} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
@@ -18,7 +17,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZB006-X',
         vendor: 'Fantem',
         description: 'Smart dimmer module',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, legacy.fz.ZB006X_settings],
         toZigbee: [legacy.tz.ZB006X_settings],
         exposes: [

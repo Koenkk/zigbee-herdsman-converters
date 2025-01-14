@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,14 +7,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'K2RGBW01',
         vendor: 'JIAWEN',
         description: 'Wireless Bulb E27 9W RGBW',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['FB56-ZBW02KU1.5'],
         model: 'JW-A04-CT',
         vendor: 'JIAWEN',
         description: 'LED strip light controller',
-        extend: [light()],
+        extend: [m.light()],
     },
 ];
 

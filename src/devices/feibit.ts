@@ -1,17 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {
-    battery,
-    commandsLevelCtrl,
-    commandsOnOff,
-    deviceEndpoints,
-    electricityMeter,
-    identify,
-    light,
-    onOff,
-    windowCovering,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {philipsLight} from '../lib/philips';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -24,14 +14,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TZSW22FW-L4',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
-        extend: [deviceEndpoints({endpoints: {top: 16, bottom: 17}}), onOff({endpointNames: ['top', 'bottom']})],
+        extend: [m.deviceEndpoints({endpoints: {top: 16, bottom: 17}}), m.onOff({endpointNames: ['top', 'bottom']})],
     },
     {
         zigbeeModel: ['FB56+ZSW1GKJ2.3'],
         model: 'SKY01-TS1-101',
         vendor: 'Feibit',
         description: 'Smart light switch - 1 gang',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['FNB56-SOS03FB1.5'],
@@ -129,21 +119,21 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SFS01ZB',
         vendor: 'Feibit',
         description: 'Power plug',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FB56+ZSW1HKJ2.2', 'FB56+ZSW1HKJ1.1'],
         model: 'SLS301ZB_2',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
-        extend: [deviceEndpoints({endpoints: {left: 16, right: 17}}), onOff({endpointNames: ['left', 'right']})],
+        extend: [m.deviceEndpoints({endpoints: {left: 16, right: 17}}), m.onOff({endpointNames: ['left', 'right']})],
     },
     {
         zigbeeModel: ['FB56+ZSW1IKJ2.2', 'FB56+ZSW1IKJ1.1'],
         model: 'SLS301ZB_3',
         vendor: 'Feibit',
         description: 'Smart light switch - 3 gang',
-        extend: [deviceEndpoints({endpoints: {left: 16, center: 17, right: 18}}), onOff({endpointNames: ['left', 'center', 'right']})],
+        extend: [m.deviceEndpoints({endpoints: {left: 16, center: 17, right: 18}}), m.onOff({endpointNames: ['left', 'center', 'right']})],
     },
     {
         zigbeeModel: ['FB56+ZSN08KJ2.2'],
@@ -159,7 +149,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TSKT106W-M1',
         vendor: 'Feibit',
         description: 'Portable Smart Socket',
-        extend: [deviceEndpoints({endpoints: {holes: 16, usb: 17}}), onOff({powerOnBehavior: false, endpointNames: ['holes', 'usb']})],
+        extend: [m.deviceEndpoints({endpoints: {holes: 16, usb: 17}}), m.onOff({powerOnBehavior: false, endpointNames: ['holes', 'usb']})],
     },
     {
         zigbeeModel: ['FEB56-ZSN25YS1.3'],
@@ -175,7 +165,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TZSN408W-V1',
         vendor: 'Feibit',
         description: 'Four-Gang Scene Switch',
-        extend: [deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}), commandsOnOff({endpointNames: ['1', '2', '3', '4']})],
+        extend: [m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}), m.commandsOnOff({endpointNames: ['1', '2', '3', '4']})],
     },
     {
         zigbeeModel: ['FNB56-ZRC06FB2.0'],
@@ -201,7 +191,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SZT211_AW-P1',
         vendor: 'Feibit',
         description: 'Curtain Motor',
-        extend: [windowCovering({controls: ['lift', 'tilt']})],
+        extend: [m.windowCovering({controls: ['lift', 'tilt']})],
     },
     {
         zigbeeModel: ['FB56+TMT01ZY1.6'],
@@ -241,14 +231,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TZSC302W-V1',
         vendor: 'Feibit',
         description: 'Dimmer Switch',
-        extend: [light({powerOnBehavior: false})],
+        extend: [m.light({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FTB56+SKT22HY1.1'],
         model: 'TSKT222W-H4',
         vendor: 'Feibit',
         description: 'Power Socket with Metering',
-        extend: [onOff(), electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter()],
     },
     {
         zigbeeModel: ['FB56+CUR18SB2.0'],
@@ -256,9 +246,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Feibit',
         description: 'Dual Track Curtain Panel',
         extend: [
-            deviceEndpoints({endpoints: {top: 15, bottom: 14}}),
-            identify(),
-            windowCovering({controls: ['lift', 'tilt'], endpointNames: ['top', 'bottom']}),
+            m.deviceEndpoints({endpoints: {top: 15, bottom: 14}}),
+            m.identify(),
+            m.windowCovering({controls: ['lift', 'tilt'], endpointNames: ['top', 'bottom']}),
         ],
     },
     {
@@ -266,42 +256,46 @@ const definitions: DefinitionWithExtend[] = [
         model: 'FMRC209W',
         vendor: 'Feibit',
         description: '2-Button Dimmer Switch',
-        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl()],
+        extend: [m.battery(), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl()],
     },
     {
         zigbeeModel: ['FZT56-ZCW2LBW1.2'],
         model: 'FZCWF2LW-BW',
         vendor: 'Feibit',
         description: 'Smart LED Retrofit Light',
-        extend: [identify(), philipsLight({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+        extend: [m.identify(), philipsLight({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
     {
         zigbeeModel: ['FZT56-ZCW2HYH1.3'],
         model: 'FZCWD2HW-YH',
         vendor: 'Feibit',
         description: 'Smart LED Recessed Light',
-        extend: [identify(), philipsLight({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+        extend: [m.identify(), philipsLight({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
     {
         zigbeeModel: ['FNB56-ZSN21YM1.0'],
         model: 'NZSN421W-Q',
         vendor: 'Feibit',
         description: 'Four-Gang Battery-Powered Scene Switch',
-        extend: [deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}), battery(), commandsOnOff({endpointNames: ['1', '2', '3', '4']})],
+        extend: [
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ['1', '2', '3', '4']}),
+        ],
     },
     {
         zigbeeModel: ['FEB56-STK2AYS1.1'],
         model: 'TSKT113W-H4',
         vendor: 'Feibit',
         description: 'In-wall Power plug',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FEB61-SKT1IFB1.2'],
         model: 'SSKT11IW-F1',
         vendor: 'Feibit',
         description: 'Power plug',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
 ];
 

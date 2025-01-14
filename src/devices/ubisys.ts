@@ -8,7 +8,7 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 //import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
-import {commandsColorCtrl, commandsLevelCtrl, commandsOnOff, deviceEndpoints, electricityMeter, identify, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, OnEventData, OnEventType, Tz, Zh} from '../lib/types';
 import {ubisysModernExtend} from '../lib/ubisys';
@@ -754,13 +754,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Ubisys',
         description: 'Power switch S1-R (Series 2)',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '232': 232}, multiEndpointSkip: ['state', 'power', 'energy']}),
-            identify(),
-            onOff({powerOnBehavior: false}),
-            electricityMeter({cluster: 'metering', configureReporting: false}),
-            commandsOnOff({endpointNames: ['2', '3']}),
-            commandsLevelCtrl({endpointNames: ['2', '3']}),
-            commandsColorCtrl({endpointNames: ['2', '3']}),
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '232': 232}, multiEndpointSkip: ['state', 'power', 'energy']}),
+            m.identify(),
+            m.onOff({powerOnBehavior: false}),
+            m.electricityMeter({cluster: 'metering', configureReporting: false}),
+            m.commandsOnOff({endpointNames: ['2', '3']}),
+            m.commandsLevelCtrl({endpointNames: ['2', '3']}),
+            m.commandsColorCtrl({endpointNames: ['2', '3']}),
         ],
         options: [exposes.options.measurement_poll_interval()],
         configure: async (device, coordinatorEndpoint) => {

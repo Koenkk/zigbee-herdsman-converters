@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {actionEnumLookup, battery, deviceEndpoints, onOff} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
@@ -91,7 +90,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZK-EU-2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
-        extend: [onOff({endpointNames: ['l1', 'l2']})],
+        extend: [m.onOff({endpointNames: ['l1', 'l2']})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             const hasEndpoint2 = !!device.getEndpoint(2);
@@ -458,7 +457,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZWV-YC',
         vendor: 'Moes',
         description: 'Water valve',
-        extend: [battery(), onOff({powerOnBehavior: false})],
+        extend: [m.battery(), m.onOff({powerOnBehavior: false})],
     },
     {
         fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_hhiodade'}],
@@ -601,9 +600,9 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart switch (light + sence)',
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3'], powerOnBehavior2: true, switchMode: true}),
-            actionEnumLookup({
+            m.actionEnumLookup({
                 cluster: 'genOnOff',
                 commands: ['commandTuyaAction'],
                 attribute: 'value',

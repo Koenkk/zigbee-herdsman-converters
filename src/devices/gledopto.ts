@@ -2,7 +2,7 @@ import tz from '../converters/toZigbee';
 import * as libColor from '../lib/color';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {identify, light, LightArgs, onOff, OnOffArgs} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as globalStore from '../lib/store';
 import {Configure, DefinitionWithExtend, KeyValue, ModernExtend, OnEventType, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -112,10 +112,10 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-function gledoptoLight(args?: LightArgs) {
+function gledoptoLight(args?: m.LightArgs) {
     args = {powerOnBehavior: false, ...args};
     if (args.color) args.color = {modes: ['xy', 'hs'], ...(utils.isObject(args.color) ? args.color : {})};
-    const result = light(args);
+    const result = m.light(args);
     result.toZigbee = utils.replaceToZigbeeConvertersInArray(
         result.toZigbee,
         [tz.light_onoff_brightness, tz.light_colortemp, tz.light_color, tz.light_color_colortemp],
@@ -130,8 +130,8 @@ function gledoptoLight(args?: LightArgs) {
     return result;
 }
 
-function gledoptoOnOff(args?: OnOffArgs) {
-    const result = onOff({powerOnBehavior: false, ...args});
+function gledoptoOnOff(args?: m.OnOffArgs) {
+    const result = m.onOff({powerOnBehavior: false, ...args});
     result.onEvent = async (type: OnEventType, data: KeyValue, device: Zh.Device) => {
         // This device doesn't support reporting.
         // Therefore we read the on/off state every 5 seconds.
@@ -174,7 +174,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GL-SD-003P',
         vendor: 'Gledopto',
         description: 'Zigbee DIN Rail triac AC dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
         meta: {disableDefaultResponse: true},
     },
     {
@@ -245,7 +245,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Gledopto', model: 'GL-C-003P_1', description: 'Zigbee 2in1 LED Controller CCT/DIM (pro)'},
             {vendor: 'Gledopto', model: 'GL-C-203P', description: 'Zigbee 2in1 LED Controller CCT/DIM (pro+)'},
         ],
-        extend: [light({colorTemp: {range: [158, 500]}}), identify(), gledoptoConfigureReadModelID()],
+        extend: [m.light({colorTemp: {range: [158, 500]}}), m.identify(), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-G-003P'],
@@ -357,8 +357,8 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee LED Controller RGBW (pro)',
         whiteLabel: [{vendor: 'Gledopto', model: 'GL-C-007P_mini', description: 'Zigbee LED Controller RGBW (pro) (mini)'}],
         extend: [
-            light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}),
-            identify(),
+            m.light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}),
+            m.identify(),
             gledoptoConfigureReadModelID(),
         ],
     },
@@ -434,7 +434,7 @@ const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: 'Zigbee LED Controller RGB (pro)',
         // Supports color: https://github.com/Koenkk/zigbee2mqtt/issues/24091
-        extend: [light({color: {modes: ['xy', 'hs'], enhancedHue: true}}), identify(), gledoptoConfigureReadModelID()],
+        extend: [m.light({color: {modes: ['xy', 'hs'], enhancedHue: true}}), m.identify(), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-C-008P'],
@@ -453,8 +453,8 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Gledopto', model: 'GL-C-301P', description: 'Zigbee 5in1 LED Controller (pro+) (ultra-mini)'},
         ],
         extend: [
-            light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}),
-            identify(),
+            m.light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}),
+            m.identify(),
             gledoptoConfigureReadModelID(),
         ],
         meta: {disableDefaultResponse: true},
@@ -484,7 +484,7 @@ const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: 'Zigbee LED Controller W (pro)',
         whiteLabel: [{vendor: 'Gledopto', model: 'GL-C-009P_mini', description: 'Zigbee LED Controller W (pro) (mini)'}],
-        extend: [light(), identify(), gledoptoConfigureReadModelID()],
+        extend: [m.light(), m.identify(), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-C-009S'],
@@ -649,7 +649,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GL-C-103P',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller (pro)',
-        extend: [light({colorTemp: {range: [158, 495]}, color: true})],
+        extend: [m.light({colorTemp: {range: [158, 495]}, color: true})],
     },
     {
         zigbeeModel: ['GL-G-004P'],
@@ -799,7 +799,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Gledopto',
         ota: true,
         description: 'Zigbee 6W Downlight RGB+CCT (pro)',
-        extend: [light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}), identify()],
+        extend: [m.light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}}), m.identify()],
     },
     {
         zigbeeModel: ['GL-D-006P'],
@@ -881,7 +881,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GL-SD-001P',
         vendor: 'Gledopto',
         description: 'Triac-dimmer',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['GL-FL-005TZS'],
@@ -1012,7 +1012,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GL-C-310P',
         vendor: 'Gledopto',
         description: 'Zigbee relay switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
 ];
 

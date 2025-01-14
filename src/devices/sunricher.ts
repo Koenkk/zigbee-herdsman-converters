@@ -5,26 +5,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {
-    battery,
-    commandsColorCtrl,
-    commandsLevelCtrl,
-    commandsOnOff,
-    commandsScenes,
-    commandsWindowCovering,
-    deviceEndpoints,
-    electricityMeter,
-    enumLookup,
-    humidity,
-    iasZoneAlarm,
-    identify,
-    illuminance,
-    light,
-    numeric,
-    occupancy,
-    onOff,
-    temperature,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as sunricher from '../lib/sunricher';
@@ -431,21 +412,21 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG2835RAC-UK',
         vendor: 'Sunricher',
         description: 'Push compatible zigBee knob smart dimmer',
-        extend: [light(), electricityMeter(), sunricherExternalSwitchType()],
+        extend: [m.light(), m.electricityMeter(), sunricherExternalSwitchType()],
     },
     {
         zigbeeModel: ['ZG2837RAC-K4'],
         model: 'SR-ZG2835RAC-NK4',
         vendor: 'Sunricher',
         description: '4-Key zigbee rotary & push button smart dimmer',
-        extend: [light(), electricityMeter(), commandsScenes()],
+        extend: [m.light(), m.electricityMeter(), m.commandsScenes()],
     },
     {
         zigbeeModel: ['HK-ZRC-K5&RS-TL'],
         model: 'SR-ZG2836D5',
         vendor: 'Sunricher',
         description: 'Zigbee smart remote',
-        extend: [battery(), commandsOnOff(), commandsLevelCtrl(), commandsWindowCovering(), commandsColorCtrl()],
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsWindowCovering(), m.commandsColorCtrl()],
     },
     {
         zigbeeModel: ['ZG9032B'],
@@ -453,11 +434,11 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sunricher',
         description: 'Zigbee temperature and humidity sensor',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
-            battery(),
-            temperature(),
-            humidity({endpointNames: ['2']}),
-            numeric({
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            m.battery(),
+            m.temperature(),
+            m.humidity({endpointNames: ['2']}),
+            m.numeric({
                 name: 'temperature_sensor_compensation',
                 cluster: 0x0402,
                 attribute: {ID: 0x1000, type: 0x28},
@@ -470,7 +451,7 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: 0x1224},
                 endpointNames: ['1'],
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'temperature_display_unit',
                 cluster: 0x0402,
                 attribute: {ID: 0x1001, type: 0x30},
@@ -483,7 +464,7 @@ const definitions: DefinitionWithExtend[] = [
                 endpointName: '1',
                 zigbeeCommandOptions: {manufacturerCode: 0x1224},
             }),
-            numeric({
+            m.numeric({
                 name: 'humidity_sensor_compensation',
                 cluster: 0x0405,
                 attribute: {ID: 0x1000, type: 0x28},
@@ -504,7 +485,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG9002K16-Pro',
         vendor: 'Sunricher',
         description: 'Zigbee smart wall panel remote',
-        extend: [battery(), sunricherSRZG9002K16Pro()],
+        extend: [m.battery(), sunricherSRZG9002K16Pro()],
     },
     {
         zigbeeModel: ['ZG9030A-MW'],
@@ -512,7 +493,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sunricher',
         description: 'Zigbee compatible ceiling mount occupancy sensor',
         extend: [
-            numeric({
+            m.numeric({
                 name: 'light_pwm_frequency',
                 cluster: 'genBasic',
                 attribute: {ID: 0x9001, type: 0x21},
@@ -521,7 +502,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Light PWM frequency (0-65535, default: 3300)',
                 access: 'ALL',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'brightness_curve',
                 cluster: 'genBasic',
                 attribute: {ID: 0x8806, type: 0x20},
@@ -533,7 +514,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Brightness curve (default: Linear)',
                 access: 'ALL',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'start_up_on_off',
                 cluster: 'genOnOff',
                 attribute: {ID: 0x4003, type: 0x30},
@@ -545,7 +526,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Start up on/off (default: last_state)',
                 access: 'ALL',
             }),
-            numeric({
+            m.numeric({
                 name: 'motion_sensor_light_duration',
                 cluster: 'genBasic',
                 attribute: {ID: 0x8902, type: 0x21},
@@ -555,7 +536,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor light duration (0s-65535s, default: 5s)',
                 access: 'ALL',
             }),
-            numeric({
+            m.numeric({
                 name: 'motion_sensor_light_sensitivity',
                 cluster: 'genBasic',
                 attribute: {ID: 0x8903, type: 0x21},
@@ -564,7 +545,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor light sensitivity (0-255, default: 0)',
                 access: 'ALL',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'motion_sensor_working_mode',
                 cluster: 'genBasic',
                 attribute: {ID: 0x8904, type: 0x20},
@@ -575,7 +556,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor working mode (default: Automatic)',
                 access: 'ALL',
             }),
-            numeric({
+            m.numeric({
                 name: 'motion_sensor_sensing_distance',
                 cluster: 'genBasic',
                 attribute: {ID: 0x8905, type: 0x20},
@@ -584,7 +565,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor sensing distance (0-15, default: 1)',
                 access: 'ALL',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'motion_sensor_microwave_switch',
                 cluster: 'genBasic',
                 attribute: {ID: 0x8906, type: 0x20},
@@ -595,7 +576,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor microwave switch (default: On)',
                 access: 'ALL',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'motion_sensor_onoff_broadcast',
                 cluster: 'genBasic',
                 attribute: {ID: 0x8907, type: 0x20},
@@ -606,7 +587,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor on/off broadcast (default: On)',
                 access: 'ALL',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'motion_sensor_light_state',
                 cluster: 'genBasic',
                 attribute: {ID: 0x890c, type: 0x20},
@@ -617,7 +598,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor light state (default: On)',
                 access: 'ALL',
             }),
-            numeric({
+            m.numeric({
                 name: 'motion_sensor_in_pwm_brightness',
                 cluster: 'genBasic',
                 attribute: {ID: 0x8908, type: 0x21},
@@ -627,7 +608,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor IN PWM brightness (0-1000 lux, default: 0)',
                 access: 'ALL',
             }),
-            numeric({
+            m.numeric({
                 name: 'motion_sensor_in_pwm_output',
                 cluster: 'genBasic',
                 attribute: {ID: 0x8909, type: 0x20},
@@ -636,7 +617,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor IN PWM output (0-254, default: 254)',
                 access: 'ALL',
             }),
-            numeric({
+            m.numeric({
                 name: 'motion_sensor_leave_pwm_output',
                 cluster: 'genBasic',
                 attribute: {ID: 0x890a, type: 0x20},
@@ -646,7 +627,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor LEAVE PWM output (0%-100%, default: 0%)',
                 access: 'ALL',
             }),
-            numeric({
+            m.numeric({
                 name: 'motion_sensor_leave_delay',
                 cluster: 'genBasic',
                 attribute: {ID: 0x8901, type: 0x21},
@@ -656,7 +637,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor LEAVE delay (0s-65535s, default: 0s)',
                 access: 'ALL',
             }),
-            numeric({
+            m.numeric({
                 name: 'motion_sensor_pwm_output_after_delay',
                 cluster: 'genBasic',
                 attribute: {ID: 0x890b, type: 0x20},
@@ -666,7 +647,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Motion sensor PWM output after delay (0%-100%, default: 0%)',
                 access: 'ALL',
             }),
-            numeric({
+            m.numeric({
                 name: 'linear_error_ratio_coefficient_of_lux_measurement',
                 cluster: 'genBasic',
                 attribute: {ID: 0x890d, type: 0x21},
@@ -675,7 +656,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Linear error ratio coefficient of LUX measurement (100‰-10000‰, default: 1000‰)',
                 access: 'ALL',
             }),
-            numeric({
+            m.numeric({
                 name: 'fixed_deviation_of_lux_measurement',
                 cluster: 'genBasic',
                 attribute: {ID: 0x890e, type: 0x29},
@@ -684,12 +665,12 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Fixed deviation of LUX measurement (-100~100, default: 0)',
                 access: 'ALL',
             }),
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
-            light(),
-            occupancy(),
-            illuminance({endpointNames: ['3']}),
-            commandsOnOff(),
-            commandsLevelCtrl(),
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
+            m.light(),
+            m.occupancy(),
+            m.illuminance({endpointNames: ['3']}),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
         ],
         meta: {multiEndpoint: true},
         toZigbee: [sunricher.tz.setModel],
@@ -700,42 +681,42 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG2836D5-Pro',
         vendor: 'Sunricher',
         description: 'Zigbee smart remote',
-        extend: [battery(), sunricherSRZG2836D5Pro()],
+        extend: [m.battery(), sunricherSRZG2836D5Pro()],
     },
     {
         zigbeeModel: ['HK-ZRC-K12&RS-E'],
         model: 'SR-ZG9002KR12-Pro',
         vendor: 'Sunricher',
         description: 'Zigbee smart wall panel remote',
-        extend: [battery(), sunricherSRZG9002KR12Pro()],
+        extend: [m.battery(), sunricherSRZG9002KR12Pro()],
     },
     {
         zigbeeModel: ['ZV9380A', 'ZG9380A'],
         model: 'SR-ZG9042MP',
         vendor: 'Sunricher',
         description: 'Zigbee three phase power meter',
-        extend: [electricityMeter()],
+        extend: [m.electricityMeter()],
     },
     {
         zigbeeModel: ['HK-SL-DIM-AU-K-A'],
         model: 'SR-ZG2835PAC-AU',
         vendor: 'Sunricher',
         description: 'Zigbee push button smart dimmer',
-        extend: [light({configureReporting: true}), sunricherExternalSwitchType(), electricityMeter()],
+        extend: [m.light({configureReporting: true}), sunricherExternalSwitchType(), m.electricityMeter()],
     },
     {
         zigbeeModel: ['HK-SL-DIM-CLN'],
         model: 'SR-ZG9101SAC-HP-CLN',
         vendor: 'Sunricher',
         description: 'Zigbee micro smart dimmer',
-        extend: [light({configureReporting: true}), sunricherExternalSwitchType(), sunricherMinimumPWM()],
+        extend: [m.light({configureReporting: true}), sunricherExternalSwitchType(), sunricherMinimumPWM()],
     },
     {
         zigbeeModel: ['HK-SENSOR-CT-MINI'],
         model: 'SR-ZG9011A-DS',
         vendor: 'Sunricher',
         description: 'Door/window sensor',
-        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
     {
         zigbeeModel: ['ZG2858A'],
@@ -743,13 +724,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sunricher',
         description: 'Zigbee handheld remote RGBCCT 3 channels',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
-            battery(),
-            identify(),
-            commandsOnOff(),
-            commandsLevelCtrl(),
-            commandsColorCtrl(),
-            commandsScenes(),
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
+            m.battery(),
+            m.identify(),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+            m.commandsColorCtrl(),
+            m.commandsScenes(),
         ],
     },
     {
@@ -757,28 +738,28 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HK-SL-DIM-US-A',
         vendor: 'Sunricher',
         description: 'Keypad smart dimmer',
-        extend: [light({configureReporting: true}), electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
     {
         zigbeeModel: ['HK-SENSOR-4IN1-A'],
         model: 'HK-SENSOR-4IN1-A',
         vendor: 'Sunricher',
         description: '4IN1 Sensor',
-        extend: [battery(), identify(), occupancy(), temperature(), humidity(), illuminance()],
+        extend: [m.battery(), m.identify(), m.occupancy(), m.temperature(), m.humidity(), m.illuminance()],
     },
     {
         zigbeeModel: ['SR-ZG9023A-EU'],
         model: 'SR-ZG9023A-EU',
         vendor: 'Sunricher',
         description: '4 ports switch with 2 usb ports (no metering)',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), m.onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']})],
     },
     {
         zigbeeModel: ['ON/OFF(2CH)'],
         model: 'UP-SA-9127D',
         vendor: 'Sunricher',
         description: 'LED-Trading 2 channel AC switch',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r54'}],
@@ -820,7 +801,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HK-ZD-CCT-A',
         vendor: 'Sunricher',
         description: '50W Zigbee CCT LED driver (constant current)',
-        extend: [light({colorTemp: {range: [160, 450]}})],
+        extend: [m.light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['ZGRC-KEY-004'],
@@ -977,28 +958,28 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZG192910-4',
         vendor: 'Sunricher',
         description: 'Zigbee LED-controller',
-        extend: [light({colorTemp: {range: undefined}})],
+        extend: [m.light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZG9101SAC-HP'],
         model: 'ZG9101SAC-HP',
         vendor: 'Sunricher',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ON/OFF -M', 'ON/OFF', 'ZIGBEE-SWITCH'],
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch',
-        extend: [onOff({powerOnBehavior: false}), sunricherExternalSwitchType()],
+        extend: [m.onOff({powerOnBehavior: false}), sunricherExternalSwitchType()],
     },
     {
         zigbeeModel: ['Micro Smart Dimmer', 'SM311', 'HK-SL-RDIM-A', 'HK-SL-DIM-EU-A'],
         model: 'ZG2835RAC',
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
-        extend: [light({configureReporting: true}), electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
         whiteLabel: [
             {vendor: 'YPHIX', model: '50208695'},
             {vendor: 'Samotech', model: 'SM311'},
@@ -1009,7 +990,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HK-SL-DIM-AU-R-A',
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
-        extend: [identify(), electricityMeter(), light({configureReporting: true})],
+        extend: [m.identify(), m.electricityMeter(), m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ZG2835'],
@@ -1025,21 +1006,21 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG9040A/ZG9041A-D',
         vendor: 'Sunricher',
         description: 'Zigbee micro smart dimmer',
-        extend: [light({configureReporting: true}), electricityMeter(), sunricherExternalSwitchType(), sunricherMinimumPWM()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricherExternalSwitchType(), sunricherMinimumPWM()],
     },
     {
         zigbeeModel: ['HK-ZD-DIM-A'],
         model: 'SRP-ZG9105-CC',
         vendor: 'Sunricher',
         description: 'Constant Current Zigbee LED dimmable driver',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['HK-DIM'],
         model: '50208702',
         vendor: 'Sunricher',
         description: 'LED dimmable driver',
-        extend: [light()],
+        extend: [m.light()],
         whiteLabel: [{vendor: 'Yphix', model: '50208702'}],
         toZigbee: [sunricher.tz.setModel],
         // Some ZG9030A-MW devices were mistakenly set with the modelId HK-DIM during manufacturing.
@@ -1051,14 +1032,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG9040A-S',
         vendor: 'Sunricher',
         description: 'ZigBee AC phase-cut dimmer single-line',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['Micro Smart OnOff', 'HK-SL-RELAY-A'],
         model: 'SR-ZG9100A-S',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch single-line',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['ZG2819S-CCT'],

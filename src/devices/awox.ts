@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -11,14 +11,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '12226',
         vendor: 'AwoX',
         description: 'Dimmable filament lamp',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['TLSR82xx'],
         model: '33951/33948',
         vendor: 'AwoX',
         description: 'LED white',
-        extend: [light()],
+        extend: [m.light()],
         whiteLabel: [{vendor: 'EGLO', model: '12229'}],
     },
     {
@@ -126,7 +126,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '33943/33944/33946',
         vendor: 'AwoX',
         description: 'LED RGB & brightness',
-        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         fingerprint: [
@@ -173,7 +173,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '33957',
         vendor: 'AwoX',
         description: 'LED light with color temperature',
-        extend: [light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
         whiteLabel: [{vendor: 'EGLO', model: '12239'}],
     },
     {
@@ -192,7 +192,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '33955',
         vendor: 'AwoX',
         description: 'LED light with color temperature',
-        extend: [light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
         whiteLabel: [
             {vendor: 'EGLO', model: '900316'},
             {vendor: 'EGLO', model: '900317'},

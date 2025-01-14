@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceAddCustomCluster, electricityMeter, enumLookup, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -15,7 +15,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SPE600',
         vendor: 'Salus Controls',
         description: 'Smart plug (EU socket)',
-        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        extend: [m.onOff(), m.electricityMeter({cluster: 'metering'})],
         ota: {manufacturerName: 'SalusControls'},
     },
     {
@@ -23,7 +23,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SP600',
         vendor: 'Salus Controls',
         description: 'Smart plug (UK socket)',
-        extend: [onOff(), electricityMeter({cluster: 'metering', fzMetering: fz.SP600_power})],
+        extend: [m.onOff(), m.electricityMeter({cluster: 'metering', fzMetering: fz.SP600_power})],
         ota: {manufacturerName: 'SalusControls'},
     },
     {
@@ -31,7 +31,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SX885ZB',
         vendor: 'Salus Controls',
         description: 'miniSmartPlug',
-        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        extend: [m.onOff(), m.electricityMeter({cluster: 'metering'})],
         ota: {manufacturerName: 'SalusControls'},
     },
     {
@@ -39,7 +39,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR600',
         vendor: 'Salus Controls',
         description: 'Relay switch',
-        extend: [onOff({ota: {manufacturerName: 'SalusControls'}})],
+        extend: [m.onOff({ota: {manufacturerName: 'SalusControls'}})],
     },
     {
         zigbeeModel: ['SW600'],
@@ -104,7 +104,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Salus Controls',
         description: 'Fan coil thermostat',
         extend: [
-            deviceAddCustomCluster('manuSpecificSalus', {
+            m.deviceAddCustomCluster('manuSpecificSalus', {
                 ID: 0xfc04,
                 manufacturerCode: Zcl.ManufacturerCode.COMPUTIME,
                 attributes: {
@@ -133,7 +133,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'preset',
                 lookup: {schedule: 0, temporary_override: 1, permanent_override: 2, standby: 7, eco: 10},
                 cluster: 'manuSpecificSalus',

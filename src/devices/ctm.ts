@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {battery, identify, light, temperature} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
@@ -1030,7 +1029,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'mKomfy_Tak',
         vendor: 'CTM Lyng',
         description: 'Temperature sensor',
-        extend: [battery(), temperature()],
+        extend: [m.battery(), m.temperature()],
     },
     {
         zigbeeModel: ['mKomfy'],
@@ -1361,7 +1360,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4503145',
         vendor: 'CTM Lyng',
         description: 'NorLum Dim OP, 2-250W rotary dimmer',
-        extend: [identify(), light({configureReporting: true, powerOnBehavior: true, effect: false})],
+        extend: [m.identify(), m.light({configureReporting: true, powerOnBehavior: true, effect: false})],
         ota: true,
         meta: {},
     },

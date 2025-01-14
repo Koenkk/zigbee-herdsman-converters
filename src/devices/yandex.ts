@@ -4,24 +4,14 @@ import {Zcl} from 'zigbee-herdsman';
 
 import {access as ea} from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {
-    binary,
-    BinaryArgs,
-    commandsOnOff,
-    determineEndpoint,
-    deviceAddCustomCluster,
-    deviceEndpoints,
-    enumLookup,
-    EnumLookupArgs,
-    onOff,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {Configure, DefinitionWithExtend, ModernExtend, OnEvent, Tz} from '../lib/types';
 import {getFromLookup, isString} from '../lib/utils';
 
 const NS = 'zhc:yandex';
 const manufacturerCode = 0x140a;
 
-interface EnumLookupWithSetCommandArgs extends EnumLookupArgs {
+interface EnumLookupWithSetCommandArgs extends m.EnumLookupArgs {
     setCommand: string;
 }
 
@@ -30,7 +20,7 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
-    const mExtend = enumLookup(args);
+    const mExtend = m.enumLookup(args);
 
     const toZigbee: Tz.Converter[] = [
         {
@@ -39,15 +29,15 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
                           const payloadValue = getFromLookup(value, lookup);
-                          await determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await m.determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
+                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -56,7 +46,7 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
     return {...mExtend, toZigbee};
 }
 
-interface BinaryWithSetCommandArgs extends BinaryArgs {
+interface BinaryWithSetCommandArgs extends m.BinaryArgs {
     setCommand: string;
 }
 
@@ -65,7 +55,7 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
-    const mExtend = binary(args);
+    const mExtend = m.binary(args);
 
     const toZigbee: Tz.Converter[] = [
         {
@@ -74,15 +64,15 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
                           const payloadValue = value === valueOn[0] ? valueOn[1] : valueOff[1];
-                          await determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await m.determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
+                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -92,7 +82,7 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
 }
 
 function YandexCluster(): ModernExtend {
-    return deviceAddCustomCluster('manuSpecificYandex', {
+    return m.deviceAddCustomCluster('manuSpecificYandex', {
         ID: 0xfc03,
         manufacturerCode,
         attributes: {
@@ -167,10 +157,10 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             reinterview(),
             YandexCluster(),
-            deviceEndpoints({
+            m.deviceEndpoints({
                 endpoints: {'1': 1, '': 2},
             }),
-            onOff({
+            m.onOff({
                 endpointNames: ['1'],
             }),
             enumLookupWithSetCommand({
@@ -203,7 +193,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 entityCategory: 'config',
             }),
-            commandsOnOff({endpointNames: ['']}),
+            m.commandsOnOff({endpointNames: ['']}),
         ],
     },
     {
@@ -214,10 +204,10 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             reinterview(),
             YandexCluster(),
-            deviceEndpoints({
+            m.deviceEndpoints({
                 endpoints: {'1': 1, '2': 2, b1: 3, b2: 4},
             }),
-            onOff({
+            m.onOff({
                 endpointNames: ['1', '2'],
             }),
             enumLookupWithSetCommand({
@@ -276,7 +266,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 entityCategory: 'config',
             }),
-            commandsOnOff({endpointNames: ['b1', 'b2']}),
+            m.commandsOnOff({endpointNames: ['b1', 'b2']}),
         ],
     },
     {
@@ -286,10 +276,10 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Single gang wireless switch',
         extend: [
             YandexCluster(),
-            deviceEndpoints({
+            m.deviceEndpoints({
                 endpoints: {down: 1, up: 2},
             }),
-            commandsOnOff({endpointNames: ['up', 'down']}),
+            m.commandsOnOff({endpointNames: ['up', 'down']}),
         ],
     },
     {
@@ -299,10 +289,10 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Double gang wireless switch',
         extend: [
             YandexCluster(),
-            deviceEndpoints({
+            m.deviceEndpoints({
                 endpoints: {b1_down: 1, b2_down: 2, b1_up: 3, b2_up: 4},
             }),
-            commandsOnOff({endpointNames: ['b1_up', 'b1_down', 'b2_up', 'b2_down']}),
+            m.commandsOnOff({endpointNames: ['b1_up', 'b1_down', 'b2_up', 'b2_down']}),
         ],
     },
     {
@@ -313,10 +303,10 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             reinterview(),
             YandexCluster(),
-            deviceEndpoints({
+            m.deviceEndpoints({
                 endpoints: {'1': 1, down: 2, up: 3},
             }),
-            onOff({
+            m.onOff({
                 endpointNames: ['1'],
             }),
             enumLookupWithSetCommand({
@@ -334,7 +324,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 entityCategory: 'config',
             }),
-            commandsOnOff({endpointNames: ['up', 'down']}),
+            m.commandsOnOff({endpointNames: ['up', 'down']}),
             enumLookupWithSetCommand({
                 name: 'operation_mode',
                 cluster: 'manuSpecificYandex',
@@ -372,10 +362,10 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             reinterview(),
             YandexCluster(),
-            deviceEndpoints({
+            m.deviceEndpoints({
                 endpoints: {'1': 1, '2': 2, b1_down: 3, b2_down: 4, b1_up: 5, b2_up: 6},
             }),
-            onOff({
+            m.onOff({
                 endpointNames: ['1', '2'],
             }),
             enumLookupWithSetCommand({
@@ -393,7 +383,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 entityCategory: 'config',
             }),
-            commandsOnOff({endpointNames: ['b1_up', 'b1_down', 'b2_up', 'b2_down']}),
+            m.commandsOnOff({endpointNames: ['b1_up', 'b1_down', 'b2_up', 'b2_down']}),
             enumLookupWithSetCommand({
                 name: 'operation_mode',
                 cluster: 'manuSpecificYandex',

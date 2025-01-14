@@ -1,4 +1,4 @@
-import {battery, iasZoneAlarm} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PAT04-A',
         vendor: 'Philio',
         description: 'Water leak detector',
-        extend: [iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), battery()],
+        extend: [m.iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), m.battery()],
         whiteLabel: [{vendor: 'Evology', model: 'PAT04-A'}],
     },
 ];

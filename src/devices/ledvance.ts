@@ -1,5 +1,5 @@
 import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
-import {electricityMeter, forcePowerSource, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -15,7 +15,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'AC26940/AC31266',
         vendor: 'LEDVANCE',
         description: 'Smart Zigbee outdoor plug',
-        extend: [ledvanceOnOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [ledvanceOnOff({powerOnBehavior: false}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['Panel TW Z3'],
@@ -43,14 +43,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '4099854295232',
         vendor: 'LEDVANCE',
         description: 'SMART+ indoor plug EU with energy meter ',
-        extend: [onOff(), electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter()],
     },
     {
         zigbeeModel: ['PLUG COMPACT OUTDOOR EU EM T', 'PLUG COMPACT EU EM T'],
         model: '4099854293276',
         vendor: 'LEDVANCE',
         description: 'SMART+ Compact outdoor plug EU with energy meter',
-        extend: [onOff(), electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter()],
     },
     {
         zigbeeModel: ['PL HCL300x1200 01'],

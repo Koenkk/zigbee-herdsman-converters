@@ -1,15 +1,5 @@
 import fz from '../converters/fromZigbee';
-import {
-    commandsLevelCtrl,
-    commandsOnOff,
-    commandsWindowCovering,
-    deviceEndpoints,
-    deviceTemperature,
-    electricityMeter,
-    identify,
-    onOff,
-    windowCovering,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -28,13 +18,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aeotec',
         description: 'Pico switch with power meter',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}, multiEndpointSkip: ['state', 'voltage', 'power', 'current', 'energy']}),
-            deviceTemperature(),
-            identify(),
-            onOff({powerOnBehavior: false}),
-            electricityMeter(),
-            commandsOnOff({endpointNames: ['2', '3']}),
-            commandsLevelCtrl({endpointNames: ['2', '3']}),
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}, multiEndpointSkip: ['state', 'voltage', 'power', 'current', 'energy']}),
+            m.deviceTemperature(),
+            m.identify(),
+            m.onOff({powerOnBehavior: false}),
+            m.electricityMeter(),
+            m.commandsOnOff({endpointNames: ['2', '3']}),
+            m.commandsLevelCtrl({endpointNames: ['2', '3']}),
         ],
     },
     {
@@ -43,13 +33,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aeotec',
         description: 'Pico switch duo with power meter',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
-            deviceTemperature(),
-            identify(),
-            onOff({powerOnBehavior: false, endpointNames: ['1', '2']}),
-            electricityMeter({endpointNames: ['1', '2']}),
-            commandsOnOff({endpointNames: ['3', '4']}),
-            commandsLevelCtrl({endpointNames: ['3', '4']}),
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            m.deviceTemperature(),
+            m.identify(),
+            m.onOff({powerOnBehavior: false, endpointNames: ['1', '2']}),
+            m.electricityMeter({endpointNames: ['1', '2']}),
+            m.commandsOnOff({endpointNames: ['3', '4']}),
+            m.commandsLevelCtrl({endpointNames: ['3', '4']}),
         ],
     },
     {
@@ -58,13 +48,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aeotec',
         description: 'Pico shutter',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}}),
-            deviceTemperature(),
-            identify(),
-            windowCovering({controls: ['lift', 'tilt']}),
-            commandsWindowCovering({endpointNames: ['3']}),
-            commandsOnOff({endpointNames: ['4', '5']}),
-            commandsLevelCtrl({endpointNames: ['4', '5']}),
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}}),
+            m.deviceTemperature(),
+            m.identify(),
+            m.windowCovering({controls: ['lift', 'tilt']}),
+            m.commandsWindowCovering({endpointNames: ['3']}),
+            m.commandsOnOff({endpointNames: ['4', '5']}),
+            m.commandsLevelCtrl({endpointNames: ['4', '5']}),
         ],
     },
 ];

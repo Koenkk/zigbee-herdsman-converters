@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {forcePowerSource, light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -17,7 +17,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.fan_mode],
         exposes: [e.fan().withModes(['low', 'medium', 'high', 'on', 'smart'])],
         meta: {disableDefaultResponse: true},
-        extend: [light({configureReporting: true}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.light({configureReporting: true}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
@@ -29,7 +29,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '54668161',
         vendor: 'Hampton Bay',
         description: '12 in. LED smart puff',
-        extend: [light({colorTemp: {range: undefined}})],
+        extend: [m.light({colorTemp: {range: undefined}})],
     },
 ];
 

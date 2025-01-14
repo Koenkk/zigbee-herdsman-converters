@@ -1,4 +1,4 @@
-import {forcePowerSource, linkQuality} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -14,7 +14,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'SMLIGHT', model: 'SLZB-0xp7', description: 'Router', fingerprint: [{modelID: 'SLZB-0xp7'}]},
             {vendor: 'SMLIGHT', model: 'SLZB-07Mg24', description: 'Router', fingerprint: [{modelID: 'SLZB-07Mg24'}]},
         ],
-        extend: [linkQuality({reporting: true}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.linkQuality({reporting: true}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
 ];
 

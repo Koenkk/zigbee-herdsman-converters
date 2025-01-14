@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -12,63 +12,63 @@ const definitions: DefinitionWithExtend[] = [
         model: 'EB-E14-P45-RGBW',
         vendor: 'EssentielB',
         description: 'Smart LED bulb',
-        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['EB-E14-FLA-CCT'],
         model: 'EB-E14-FLA-CCT',
         vendor: 'EssentielB',
         description: 'E14 flame CCT light bulb',
-        extend: [light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['EB-E27-A60-CCT-FC'],
         model: 'EB-E27-A60-CCT-FC',
         vendor: 'EssentielB',
         description: 'E27 A60 CCT filament clear light bulb',
-        extend: [light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['EB-E27-A60-CCT'],
         model: 'EB-E27-A60-CCT',
         vendor: 'EssentielB',
         description: 'E27 A60 CCT light bulb',
-        extend: [light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['EB-E27-A60-RGBW'],
         model: 'EB-E27-A60-RGBW',
         vendor: 'EssentielB',
         description: 'E27 A60 RGBW light bulb',
-        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['EB-E27-G95-CCT-FV'],
         model: 'EB-E27-G95-CCT-FV',
         vendor: 'EssentielB',
         description: 'Filament vintage globe light bulb',
-        extend: [light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['EB-E27-ST64-CCT-FV'],
         model: 'EB-E27-ST64-CCT-FV',
         vendor: 'EssentielB',
         description: 'Filament vintage edison light bulb',
-        extend: [light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['EB-GU10-MR16-CCT'],
         model: 'EB-GU10-MR16-CCT',
         vendor: 'EssentielB',
         description: 'GU10 MR16 CCT light bulb',
-        extend: [light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['EB-GU10-MR16-RGBW'],
         model: 'EB-GU10-MR16-RGBW',
         vendor: 'EssentielB',
         description: 'GU10 MR16 RGBW light bulb',
-        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['EB-SB-1B'],

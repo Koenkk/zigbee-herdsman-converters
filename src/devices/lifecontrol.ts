@@ -1,14 +1,5 @@
 import * as exposes from '../lib/exposes';
-import {
-    battery,
-    electricityMeter,
-    iasZoneAlarm,
-    light,
-    onOff,
-    setupConfigureForBinding,
-    setupConfigureForReading,
-    setupConfigureForReporting,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as globalStore from '../lib/store';
 import {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, OnEvent} from '../lib/types';
 
@@ -36,8 +27,8 @@ function airQuality(): ModernExtend {
 
 function electricityMeterPoll(): ModernExtend {
     const configure: Configure[] = [
-        setupConfigureForBinding('haElectricalMeasurement', 'input'),
-        setupConfigureForReading('haElectricalMeasurement', [
+        m.setupConfigureForBinding('haElectricalMeasurement', 'input'),
+        m.setupConfigureForReading('haElectricalMeasurement', [
             'acVoltageMultiplier',
             'acVoltageDivisor',
             'acCurrentMultiplier',
@@ -45,8 +36,8 @@ function electricityMeterPoll(): ModernExtend {
             'acPowerMultiplier',
             'acPowerDivisor',
         ]),
-        setupConfigureForReading('seMetering', ['multiplier', 'divisor']),
-        setupConfigureForReporting('seMetering', 'currentSummDelivered', {min: '5_SECONDS', max: '1_HOUR', change: 257}, exposes.access.STATE_GET),
+        m.setupConfigureForReading('seMetering', ['multiplier', 'divisor']),
+        m.setupConfigureForReporting('seMetering', 'currentSummDelivered', {min: '5_SECONDS', max: '1_HOUR', change: 257}, exposes.access.STATE_GET),
     ];
 
     const onEvent: OnEvent = async (type, data, device) => {
@@ -79,8 +70,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'LifeControl',
         description: 'Water leakage sensor',
         extend: [
-            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
-            battery({dontDividePercentage: true, percentageReporting: false}),
+            m.iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            m.battery({dontDividePercentage: true, percentageReporting: false}),
         ],
     },
     {
@@ -89,8 +80,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'LifeControl',
         description: 'Open and close sensor',
         extend: [
-            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
-            battery({dontDividePercentage: true, percentageReporting: false}),
+            m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            m.battery({dontDividePercentage: true, percentageReporting: false}),
         ],
     },
     {
@@ -98,14 +89,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MCLH-02',
         vendor: 'LifeControl',
         description: 'Smart light bulb',
-        extend: [light({colorTemp: {range: [167, 333]}, color: true})],
+        extend: [m.light({colorTemp: {range: [167, 333]}, color: true})],
     },
     {
         zigbeeModel: ['RICI01'],
         model: 'MCLH-03',
         vendor: 'LifeControl',
         description: 'Smart socket',
-        extend: [onOff({powerOnBehavior: false}), electricityMeter({configureReporting: false}), electricityMeterPoll()],
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({configureReporting: false}), electricityMeterPoll()],
     },
     {
         zigbeeModel: ['Motion_Sensor'],
@@ -113,8 +104,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'LifeControl',
         description: 'Motion sensor',
         extend: [
-            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
-            battery({dontDividePercentage: true, percentageReporting: false}),
+            m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            m.battery({dontDividePercentage: true, percentageReporting: false}),
         ],
     },
     {
@@ -122,7 +113,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MCLH-08',
         vendor: 'LifeControl',
         description: 'Air quality sensor',
-        extend: [airQuality(), battery({dontDividePercentage: true, percentageReporting: false})],
+        extend: [airQuality(), m.battery({dontDividePercentage: true, percentageReporting: false})],
     },
 ];
 

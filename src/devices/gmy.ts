@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'B07KG5KF5R',
         vendor: 'GMY Smart Bulb',
         description: 'GMY Smart bulb, 470lm, vintage dimmable, 2700-6500k, E27',
-        extend: [light({colorTemp: {range: undefined}})],
+        extend: [m.light({colorTemp: {range: undefined}})],
     },
 ];
 

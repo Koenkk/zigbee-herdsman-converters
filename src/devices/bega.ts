@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -14,14 +14,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '70049',
         vendor: 'Bega',
         description: 'Zigbee control module DALI',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['BEGA 13557 bulb E27 RGBW 805lm'],
         model: '13557',
         vendor: 'Bega',
         description: 'LED lamp with adjustable LED color temperature (Tunable White - RGBW) for use in luminaires with E27 lamp base',
-        extend: [light({colorTemp: {range: [153, 556]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: true})],
     },
 ];
 

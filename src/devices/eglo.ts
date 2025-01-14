@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -11,28 +11,28 @@ const definitions: DefinitionWithExtend[] = [
         model: '900091',
         vendor: 'EGLO',
         description: 'ROVITO-Z ceiling light',
-        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['ESMLFzm_w6_TW'],
         model: '12242',
         vendor: 'EGLO',
         description: 'ST64 adjustable white filament bulb',
-        extend: [light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['EGLO_ZM_RGB_TW'],
         model: '900024/12253',
         vendor: 'EGLO',
         description: 'RGB light',
-        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['EGLO_ZM_TW_CLP'],
         model: '98847',
         vendor: 'EGLO',
         description: 'FUEVA-Z ceiling light IP44',
-        extend: [light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['ERCU_3groups_Zm'],

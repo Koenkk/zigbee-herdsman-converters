@@ -5,7 +5,6 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {electricityMeter, temperature} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -43,17 +42,17 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Datek Eva AMS HAN power-meter sensor',
         fromZigbee: [fz.hw_version],
         extend: [
-            electricityMeter({
+            m.electricityMeter({
                 cluster: 'metering',
                 fzMetering: fz.metering_datek,
                 producedEnergy: true,
             }),
-            electricityMeter({
+            m.electricityMeter({
                 cluster: 'electrical',
                 threePhase: true,
                 power: false,
             }),
-            temperature(),
+            m.temperature(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {

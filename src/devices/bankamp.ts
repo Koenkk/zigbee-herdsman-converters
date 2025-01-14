@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '2189/1-xx',
         vendor: 'Bankamp',
         description: 'Ceiling light (e.g. Grazia, Grand)',
-        extend: [light()],
+        extend: [m.light()],
     },
 ];
 

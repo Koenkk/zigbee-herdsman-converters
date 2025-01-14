@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {deviceEndpoints, forcePowerSource, identify, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
@@ -51,14 +51,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LXZB-12A',
         vendor: 'Zemismart',
         description: 'RGB LED downlight',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['LXT56-LS27LX1.6'],
         model: 'HGZB-DLC4-N15B',
         vendor: 'Zemismart',
         description: 'RGB LED downlight',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['TS0302'],
@@ -103,7 +103,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LXN56-SS27LX1.1',
         vendor: 'Zemismart',
         description: 'Smart light switch - 2 gang with neutral wire',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zqtiam4u'}],
@@ -274,7 +274,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options, legacy.tz.tuya_data_point_test],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
-        extend: [forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         fingerprint: [
@@ -346,8 +346,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Zemismart',
         description: 'Smart 2 poles outlet (20A + 10A)',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            identify(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.identify(),
             tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true, endpoints: ['l1', 'l2']}),
         ],
     },
@@ -357,7 +357,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Zemismart',
         description: 'Smart 2 gangs switch with outlet',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3']}),
         ],
         configure: tuya.configureMagicPacket,
@@ -367,7 +367,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZMO-606-20A',
         vendor: 'Zemismart',
         description: 'Smart 20A outlet',
-        extend: [identify(), tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true})],
+        extend: [m.identify(), tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true})],
     },
 ];
 

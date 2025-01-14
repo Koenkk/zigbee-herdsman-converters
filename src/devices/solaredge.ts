@@ -1,4 +1,4 @@
-import {onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SEHAZB-DR-SWITCH-2',
         vendor: 'SolarEdge',
         description: 'Smart energy switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
 ];
 

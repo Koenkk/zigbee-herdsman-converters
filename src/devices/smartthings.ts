@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {electricityMeter, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -134,7 +134,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Outlet with power meter',
         // This plug only actively reports power. The voltage and current values are always 0, so we can ignore them.
         // https://github.com/Koenkk/zigbee2mqtt/issues/5198
-        extend: [onOff(), electricityMeter({current: false, voltage: false})],
+        extend: [m.onOff(), m.electricityMeter({current: false, voltage: false})],
     },
     {
         zigbeeModel: ['outlet'],
@@ -479,14 +479,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GP-LBU019BBAWU',
         vendor: 'SmartThings',
         description: 'Smart bulb',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['ZBT-DIMLight-GLS0044'],
         model: '7ZA-A806ST-Q1R',
         vendor: 'SmartThings',
         description: 'Smart bulb',
-        extend: [light()],
+        extend: [m.light()],
     },
 ];
 

@@ -1,18 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {
-    battery,
-    binary,
-    co2,
-    deviceEndpoints,
-    enumLookup,
-    humidity,
-    illuminance,
-    numeric,
-    pressure,
-    soilMoisture,
-    temperature,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const defaultReporting = {min: 0, max: 300, change: 0};
@@ -27,29 +15,29 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'CO2 Monitor with IPS TFT Display, outdoor temperature and humidity, date and time',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
-            co2({reporting: defaultReporting}),
-            temperature({
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            m.co2({reporting: defaultReporting}),
+            m.temperature({
                 endpointNames: ['1'],
                 description: 'Measured value of the built-in temperature sensor',
                 reporting: defaultReporting,
             }),
-            temperature({
+            m.temperature({
                 endpointNames: ['2'],
                 description: 'Measured value of the external temperature sensor',
                 reporting: defaultReporting,
             }),
-            humidity({
+            m.humidity({
                 endpointNames: ['1'],
                 description: 'Measured value of the built-in humidity sensor',
                 reporting: defaultReporting,
             }),
-            humidity({
+            m.humidity({
                 endpointNames: ['2'],
                 description: 'Measured value of the external humidity sensor',
                 reporting: defaultReporting,
             }),
-            numeric({
+            m.numeric({
                 name: 'voc_index',
                 unit: 'VOC Index points',
                 cluster: 'genAnalogInput',
@@ -58,7 +46,7 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
                 reporting: defaultReporting,
             }),
-            numeric({
+            m.numeric({
                 name: 'voc_raw_data',
                 unit: 'ticks',
                 cluster: 'genAnalogInput',
@@ -66,11 +54,11 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'SRAW_VOC, digital raw value',
                 access: 'STATE',
             }),
-            illuminance({
+            m.illuminance({
                 access: 'STATE',
                 reporting: defaultReporting,
             }),
-            binary({
+            m.binary({
                 name: 'auto_brightness',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -78,7 +66,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0203, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable or Disable Auto Brightness of the Display',
             }),
-            binary({
+            m.binary({
                 name: 'night_onoff_backlight',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -86,7 +74,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0401, type: Zcl.DataType.BOOLEAN},
                 description: 'Complete shutdown of the backlight at night mode',
             }),
-            numeric({
+            m.numeric({
                 name: 'night_on_backlight',
                 unit: 'Hr',
                 valueMin: 0,
@@ -95,7 +83,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0405, type: Zcl.DataType.UINT8},
                 description: 'Night mode activation time',
             }),
-            numeric({
+            m.numeric({
                 name: 'night_off_backlight',
                 unit: 'Hr',
                 valueMin: 0,
@@ -104,14 +92,14 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0406, type: Zcl.DataType.UINT8},
                 description: 'Night mode deactivation time',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'rotate',
                 lookup: {'0': 0, '90': 90, '180': 180, '270': 270},
                 cluster: 'msCO2',
                 attribute: {ID: 0x0285, type: Zcl.DataType.UINT16},
                 description: 'Display rotation angle',
             }),
-            binary({
+            m.binary({
                 name: 'long_chart_period',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -119,7 +107,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0204, type: Zcl.DataType.BOOLEAN},
                 description: 'The period of plotting the CO2 level(OFF - 1H | ON - 24H)',
             }),
-            binary({
+            m.binary({
                 name: 'long_chart_period2',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -127,7 +115,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0404, type: Zcl.DataType.BOOLEAN},
                 description: 'The period of plotting the VOC Index points(OFF - 1H | ON - 24H)',
             }),
-            numeric({
+            m.numeric({
                 name: 'set_altitude',
                 unit: 'meters',
                 valueMin: 0,
@@ -136,7 +124,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0205, type: Zcl.DataType.UINT16},
                 description: 'Setting the altitude above sea level (for high accuracy of the CO2 sensor)',
             }),
-            numeric({
+            m.numeric({
                 name: 'temperature_offset',
                 unit: '°C',
                 valueMin: -50,
@@ -147,7 +135,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust temperature',
             }),
-            numeric({
+            m.numeric({
                 name: 'humidity_offset',
                 unit: '%',
                 valueMin: -50,
@@ -157,7 +145,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust humidity',
             }),
-            binary({
+            m.binary({
                 name: 'internal_or_external',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -165,7 +153,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0288, type: Zcl.DataType.BOOLEAN},
                 description: 'Display data from internal or external TH sensor',
             }),
-            binary({
+            m.binary({
                 name: 'automatic_scal',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -173,7 +161,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0402, type: Zcl.DataType.BOOLEAN},
                 description: 'Automatic self calibration',
             }),
-            binary({
+            m.binary({
                 name: 'forced_recalibration',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -181,7 +169,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0202, type: Zcl.DataType.BOOLEAN},
                 description: 'Start FRC (Perform Forced Recalibration of the CO2 Sensor)',
             }),
-            binary({
+            m.binary({
                 name: 'factory_reset_co2',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -189,7 +177,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0206, type: Zcl.DataType.BOOLEAN},
                 description: 'Factory Reset CO2 sensor',
             }),
-            numeric({
+            m.numeric({
                 name: 'manual_forced_recalibration',
                 unit: 'ppm',
                 valueMin: 0,
@@ -198,7 +186,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0207, type: Zcl.DataType.UINT16},
                 description: 'Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)',
             }),
-            binary({
+            m.binary({
                 name: 'enable_gas',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -206,7 +194,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable CO2 Gas Control',
             }),
-            binary({
+            m.binary({
                 name: 'invert_logic_gas',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -214,7 +202,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable invert logic CO2 Gas Control',
             }),
-            numeric({
+            m.numeric({
                 name: 'high_gas',
                 unit: 'ppm',
                 valueMin: 400,
@@ -223,7 +211,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: 'Setting High CO2 Gas Border',
             }),
-            numeric({
+            m.numeric({
                 name: 'low_gas',
                 unit: 'ppm',
                 valueMin: 400,
@@ -240,14 +228,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: '[Plant Wattering Sensor, CR2450, CR2477 batteries, temperature ]',
         extend: [
-            soilMoisture({reporting: rareReporting}),
-            battery({
+            m.soilMoisture({reporting: rareReporting}),
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            temperature({reporting: rareReporting}),
-            numeric({
+            m.temperature({reporting: rareReporting}),
+            m.numeric({
                 name: 'report_delay',
                 unit: 'min',
                 valueMin: 1,
@@ -264,14 +252,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'DIY outdoor long-range sensor for temperature, humidity and atmospheric pressure',
         extend: [
-            battery({
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rarestReporting,
                 percentageReportingConfig: rarestReporting,
             }),
-            temperature({reporting: rarestReporting}),
-            humidity({reporting: rarestReporting}),
-            pressure({reporting: rarestReporting}),
+            m.temperature({reporting: rarestReporting}),
+            m.humidity({reporting: rarestReporting}),
+            m.pressure({reporting: rarestReporting}),
         ],
     },
     {
@@ -280,13 +268,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Plant wattering sensor with e-ink display',
         extend: [
-            battery({
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            soilMoisture({reporting: rareReporting}),
-            temperature({reporting: rareReporting}),
+            m.soilMoisture({reporting: rareReporting}),
+            m.temperature({reporting: rareReporting}),
         ],
     },
     {
@@ -295,13 +283,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Temperature and humidity sensor with e-ink2.13',
         extend: [
-            battery({
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            temperature({reporting: rareReporting}),
-            humidity({reporting: rareReporting}),
+            m.temperature({reporting: rareReporting}),
+            m.humidity({reporting: rareReporting}),
         ],
     },
     {
@@ -310,13 +298,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Mini plant wattering sensor',
         extend: [
-            soilMoisture({reporting: rareReporting}),
-            battery({
+            m.soilMoisture({reporting: rareReporting}),
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            numeric({
+            m.numeric({
                 name: 'report_delay',
                 unit: 'min',
                 valueMin: 1,
@@ -333,14 +321,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Mini weather station, digital barometer, forecast, charts, temperature, humidity',
         extend: [
-            battery({
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            temperature({reporting: rareReporting}),
-            humidity({reporting: rareReporting}),
-            pressure({reporting: rareReporting}),
+            m.temperature({reporting: rareReporting}),
+            m.humidity({reporting: rareReporting}),
+            m.pressure({reporting: rareReporting}),
         ],
     },
     {
@@ -349,14 +337,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'DIY temperature, humidity and atmospheric pressure sensor, long battery life',
         extend: [
-            battery({
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            temperature({reporting: rareReporting}),
-            humidity({reporting: rareReporting}),
-            pressure({reporting: rareReporting}),
+            m.temperature({reporting: rareReporting}),
+            m.humidity({reporting: rareReporting}),
+            m.pressure({reporting: rareReporting}),
         ],
     },
     {
@@ -365,15 +353,15 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Plant watering sensor EFEKTA PWS max',
         extend: [
-            soilMoisture({reporting: rareReporting}),
-            battery({
+            m.soilMoisture({reporting: rareReporting}),
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            illuminance({reporting: rareReporting}),
-            temperature({reporting: rareReporting}),
-            humidity({reporting: rareReporting}),
+            m.illuminance({reporting: rareReporting}),
+            m.temperature({reporting: rareReporting}),
+            m.humidity({reporting: rareReporting}),
         ],
     },
     {
@@ -382,15 +370,15 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Plant watering sensor EFEKTA PWS Max Pro,  long battery life',
         extend: [
-            soilMoisture({reporting: rareReporting}),
-            battery({
+            m.soilMoisture({reporting: rareReporting}),
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            illuminance({reporting: rareReporting}),
-            temperature({reporting: rareReporting}),
-            humidity({reporting: rareReporting}),
+            m.illuminance({reporting: rareReporting}),
+            m.temperature({reporting: rareReporting}),
+            m.humidity({reporting: rareReporting}),
         ],
     },
     {
@@ -399,15 +387,15 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Mini weather station, barometer, forecast, charts, temperature, humidity, light',
         extend: [
-            battery({
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            illuminance({reporting: rareReporting}),
-            temperature({reporting: rareReporting}),
-            humidity({reporting: rareReporting}),
-            pressure({reporting: rareReporting}),
+            m.illuminance({reporting: rareReporting}),
+            m.temperature({reporting: rareReporting}),
+            m.humidity({reporting: rareReporting}),
+            m.pressure({reporting: rareReporting}),
         ],
     },
     {
@@ -416,15 +404,15 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Plant Wattering Sensor with e-ink display 2.13',
         extend: [
-            soilMoisture({reporting: rareReporting}),
-            battery({
+            m.soilMoisture({reporting: rareReporting}),
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            illuminance({reporting: rareReporting}),
-            temperature({reporting: rareReporting}),
-            humidity({reporting: rareReporting}),
+            m.illuminance({reporting: rareReporting}),
+            m.temperature({reporting: rareReporting}),
+            m.humidity({reporting: rareReporting}),
         ],
     },
     {
@@ -433,13 +421,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Mini digital thermometer & hygrometer with e-ink1.02',
         extend: [
-            battery({
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            temperature({reporting: rareReporting}),
-            humidity({reporting: rareReporting}),
+            m.temperature({reporting: rareReporting}),
+            m.humidity({reporting: rareReporting}),
         ],
     },
     {
@@ -448,11 +436,11 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'CO2 Monitor with IPS TFT Display, outdoor temperature and humidity, date and time',
         extend: [
-            co2({reporting: normalReporting}),
-            temperature({reporting: normalReporting}),
-            humidity({reporting: normalReporting}),
-            illuminance({reporting: normalReporting}),
-            binary({
+            m.co2({reporting: normalReporting}),
+            m.temperature({reporting: normalReporting}),
+            m.humidity({reporting: normalReporting}),
+            m.illuminance({reporting: normalReporting}),
+            m.binary({
                 name: 'auto_brightness',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -460,7 +448,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0203, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable or Disable Auto Brightness of the Display',
             }),
-            binary({
+            m.binary({
                 name: 'long_chart_period',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -468,7 +456,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0204, type: Zcl.DataType.BOOLEAN},
                 description: 'The period of plotting the CO2 level(OFF - 1H | ON - 24H)',
             }),
-            numeric({
+            m.numeric({
                 name: 'set_altitude',
                 unit: 'meters',
                 valueMin: 0,
@@ -477,7 +465,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0205, type: Zcl.DataType.UINT16},
                 description: 'Setting the altitude above sea level (for high accuracy of the CO2 sensor)',
             }),
-            numeric({
+            m.numeric({
                 name: 'temperature_offset',
                 unit: '°C',
                 valueMin: -50,
@@ -488,7 +476,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust temperature',
             }),
-            numeric({
+            m.numeric({
                 name: 'humidity_offset',
                 unit: '%',
                 valueMin: -50,
@@ -498,7 +486,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust humidity',
             }),
-            binary({
+            m.binary({
                 name: 'forced_recalibration',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -506,7 +494,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0202, type: Zcl.DataType.BOOLEAN},
                 description: 'Start FRC (Perform Forced Recalibration of the CO2 Sensor)',
             }),
-            binary({
+            m.binary({
                 name: 'factory_reset_co2',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -514,7 +502,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0206, type: Zcl.DataType.BOOLEAN},
                 description: 'Factory Reset CO2 sensor',
             }),
-            numeric({
+            m.numeric({
                 name: 'manual_forced_recalibration',
                 unit: 'ppm',
                 valueMin: 0,
@@ -531,10 +519,10 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'EFEKTA CO2 Smart Monitor, ws2812b indicator, can control the relay, binding',
         extend: [
-            co2({reporting: normalReporting}),
-            temperature({reporting: normalReporting}),
-            humidity({reporting: normalReporting}),
-            binary({
+            m.co2({reporting: normalReporting}),
+            m.temperature({reporting: normalReporting}),
+            m.humidity({reporting: normalReporting}),
+            m.binary({
                 name: 'light_indicator',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -542,7 +530,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0211, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable or Disable light indicator',
             }),
-            numeric({
+            m.numeric({
                 name: 'light_indicator_level',
                 unit: '%',
                 valueMin: 0,
@@ -551,7 +539,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0209, type: Zcl.DataType.UINT8},
                 description: 'Light indicator level',
             }),
-            numeric({
+            m.numeric({
                 name: 'set_altitude',
                 unit: 'meters',
                 valueMin: 0,
@@ -560,7 +548,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0205, type: Zcl.DataType.UINT16},
                 description: 'Setting the altitude above sea level (for high accuracy of the CO2 sensor)',
             }),
-            numeric({
+            m.numeric({
                 name: 'temperature_offset',
                 unit: '°C',
                 valueMin: -50,
@@ -571,7 +559,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust temperature',
             }),
-            numeric({
+            m.numeric({
                 name: 'humidity_offset',
                 unit: '%',
                 valueMin: -50,
@@ -581,7 +569,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust humidity',
             }),
-            binary({
+            m.binary({
                 name: 'forced_recalibration',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -589,7 +577,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0202, type: Zcl.DataType.BOOLEAN},
                 description: 'Start FRC (Perform Forced Recalibration of the CO2 Sensor)',
             }),
-            binary({
+            m.binary({
                 name: 'factory_reset_co2',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -597,7 +585,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0206, type: Zcl.DataType.BOOLEAN},
                 description: 'Factory Reset CO2 sensor',
             }),
-            numeric({
+            m.numeric({
                 name: 'manual_forced_recalibration',
                 unit: 'ppm',
                 valueMin: 0,
@@ -606,7 +594,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0207, type: Zcl.DataType.UINT16},
                 description: 'Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)',
             }),
-            binary({
+            m.binary({
                 name: 'enable_gas',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -614,7 +602,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable CO2 Gas Control',
             }),
-            numeric({
+            m.numeric({
                 name: 'high_gas',
                 unit: 'ppm',
                 valueMin: 400,
@@ -623,7 +611,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: 'Setting High CO2 Gas Border',
             }),
-            numeric({
+            m.numeric({
                 name: 'low_gas',
                 unit: 'ppm',
                 valueMin: 400,
@@ -632,7 +620,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: 'Setting Low CO2 Gas Border',
             }),
-            binary({
+            m.binary({
                 name: 'enable_temperature',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -640,7 +628,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable Temperature Control',
             }),
-            numeric({
+            m.numeric({
                 name: 'high_temperature',
                 unit: '°C',
                 valueMin: -5,
@@ -649,7 +637,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: 'Setting High Temperature Border',
             }),
-            numeric({
+            m.numeric({
                 name: 'low_temperature',
                 unit: '°C',
                 valueMin: -5,
@@ -658,7 +646,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: 'Setting Low Temperature Border',
             }),
-            binary({
+            m.binary({
                 name: 'enable_humidity',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -666,7 +654,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable Humidity Control',
             }),
-            numeric({
+            m.numeric({
                 name: 'high_humidity',
                 unit: '%',
                 valueMin: 0,
@@ -675,7 +663,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: 'Setting High Humidity Border',
             }),
-            numeric({
+            m.numeric({
                 name: 'low_humidity',
                 unit: '%',
                 valueMin: 0,
@@ -692,14 +680,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Alternative firmware for the SONOFF SNZB-02 sensor from EfektaLab, DIY',
         extend: [
-            battery({
+            m.battery({
                 voltage: true,
                 voltageReportingConfig: rareReporting,
                 percentageReportingConfig: rareReporting,
             }),
-            temperature({reporting: rareReporting}),
-            humidity({reporting: rareReporting}),
-            numeric({
+            m.temperature({reporting: rareReporting}),
+            m.humidity({reporting: rareReporting}),
+            m.numeric({
                 name: 'report_delay',
                 unit: 'min',
                 valueMin: 1,
@@ -708,7 +696,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
                 description: 'Adjust Report Delay. Setting the time in minutes, by default 5 minutes',
             }),
-            binary({
+            m.binary({
                 name: 'enable_temperature',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -716,7 +704,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable Temperature Control',
             }),
-            numeric({
+            m.numeric({
                 name: 'high_temperature',
                 unit: '°C',
                 valueMin: -5,
@@ -725,7 +713,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: 'Setting High Temperature Border',
             }),
-            numeric({
+            m.numeric({
                 name: 'low_temperature',
                 unit: '°C',
                 valueMin: -5,
@@ -734,7 +722,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: 'Setting Low Temperature Border',
             }),
-            binary({
+            m.binary({
                 name: 'enable_humidity',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -742,7 +730,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable Humidity Control',
             }),
-            numeric({
+            m.numeric({
                 name: 'high_humidity',
                 unit: '%',
                 valueMin: 0,
@@ -751,7 +739,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: 'Setting High Humidity Border',
             }),
-            numeric({
+            m.numeric({
                 name: 'low_humidity',
                 unit: '%',
                 valueMin: 0,

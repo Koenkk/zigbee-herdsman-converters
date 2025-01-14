@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -36,7 +36,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZB-1026',
         vendor: 'RGB Genie',
         description: 'Zigbee LED dimmer controller',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['RGBgenie ZB-5001'],
