@@ -31,7 +31,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.temperature(),
             e.window_detection(),
             tuya.exposes.frostProtection(),
             e.binary('alarm_switch', ea.STATE, 'ON', 'OFF').withDescription('Thermostat in error state'),

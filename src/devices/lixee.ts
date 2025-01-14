@@ -1766,7 +1766,6 @@ const definitions: DefinitionWithExtend[] = [
                 exposes = getCurrentConfig(device, options).map((e) => e.exposes);
             }
 
-            exposes.push(e.linkquality());
             return exposes;
         },
         options: [

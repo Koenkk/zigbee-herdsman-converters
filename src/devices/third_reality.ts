@@ -14,6 +14,7 @@ import {
     onOff,
     temperature,
 } from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
 
@@ -477,9 +478,10 @@ const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            m.illuminance(),
         ],
-        fromZigbee: [fzLocal.thirdreality_private_motion_sensor, fz.illuminance, fz.ias_occupancy_alarm_1_report],
-        exposes: [e.occupancy(), e.illuminance()],
+        fromZigbee: [fzLocal.thirdreality_private_motion_sensor, fz.ias_occupancy_alarm_1_report],
+        exposes: [e.occupancy()],
         configure: async (device, coordinatorEndpoint) => {
             device.powerSource = 'Mains (single phase)';
             device.save();

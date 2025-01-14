@@ -48,7 +48,6 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [
             e.battery(),
-            e.linkquality(),
             e.binary('key_1', ea.STATE, 'ON', 'OFF'),
             e.binary('key_2', ea.STATE, 'ON', 'OFF'),
             e.binary('key_3', ea.STATE, 'ON', 'OFF'),

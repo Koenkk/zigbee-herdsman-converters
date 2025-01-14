@@ -1893,12 +1893,6 @@ const converters2 = {
             await entity.read('msRelativeHumidity', ['measuredValue']);
         },
     } satisfies Tz.Converter,
-    illuminance: {
-        key: ['illuminance'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('msIlluminanceMeasurement', ['measuredValue']);
-        },
-    } satisfies Tz.Converter,
     // #endregion
 
     // #region Non-generic converters

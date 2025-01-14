@@ -1081,7 +1081,7 @@ const definitions: DefinitionWithExtend[] = [
                     coverExpose.withPosition().withTilt();
                     break;
             }
-            return [coverExpose, e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET), e.linkquality()];
+            return [coverExpose, e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET)];
         },
         extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(), ubisysModernExtend.addCustomClusterClosuresWindowCovering()],
         configure: async (device, coordinatorEndpoint) => {
@@ -1284,6 +1284,16 @@ const definitions: DefinitionWithExtend[] = [
         ],
         endpoint: (device) => {
             return {
+                th1: 1,
+                th2: 2,
+                th3: 3,
+                th4: 4,
+                th5: 5,
+                th6: 6,
+                th7: 7,
+                th8: 8,
+                th9: 9,
+                th10: 10,
                 l1: 11,
                 l2: 12,
                 l3: 13,
@@ -1308,9 +1318,102 @@ const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint('l8'),
             e.switch().withEndpoint('l9'),
             e.switch().withEndpoint('l10'),
+            e
+                .climate()
+                .withEndpoint('th1')
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withRunningMode(['off', 'heat'])
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withPiHeatingDemand(ea.STATE_GET),
+            e
+                .climate()
+                .withEndpoint('th2')
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withRunningMode(['off', 'heat'])
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withPiHeatingDemand(ea.STATE_GET),
+            e
+                .climate()
+                .withEndpoint('th3')
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withRunningMode(['off', 'heat'])
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withPiHeatingDemand(ea.STATE_GET),
+            e
+                .climate()
+                .withEndpoint('th4')
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withRunningMode(['off', 'heat'])
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withPiHeatingDemand(ea.STATE_GET),
+            e
+                .climate()
+                .withEndpoint('th5')
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withRunningMode(['off', 'heat'])
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withPiHeatingDemand(ea.STATE_GET),
+            e
+                .climate()
+                .withEndpoint('th6')
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withRunningMode(['off', 'heat'])
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withPiHeatingDemand(ea.STATE_GET),
+            e
+                .climate()
+                .withEndpoint('th7')
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withRunningMode(['off', 'heat'])
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withPiHeatingDemand(ea.STATE_GET),
+            e
+                .climate()
+                .withEndpoint('th8')
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withRunningMode(['off', 'heat'])
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withPiHeatingDemand(ea.STATE_GET),
+            e
+                .climate()
+                .withEndpoint('th9')
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withRunningMode(['off', 'heat'])
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withPiHeatingDemand(ea.STATE_GET),
+            e
+                .climate()
+                .withEndpoint('th10')
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withRunningMode(['off', 'heat'])
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withPiHeatingDemand(ea.STATE_GET),
         ],
         extend: [ubisysModernExtend.addCustomClusterHvacThermostat(), ubisysModernExtend.addCustomClusterGenLevelCtrl()],
         configure: async (device, coordinatorEndpoint) => {
+            // setup ep 1-10 as thermostats
+            // NOTE: doesn't look like fz/tz.thermostat and friends support
+            //        multiEndpoint
+            const thermostatBinds = ['hvacThermostat'];
+            for (let ep = 1; ep <= 10; ep++) {
+                const endpoint = device.getEndpoint(ep);
+                await reporting.bind(endpoint, coordinatorEndpoint, thermostatBinds);
+                await reporting.thermostatSystemMode(endpoint);
+                await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
+                await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
+                await reporting.thermostatPIHeatingDemand(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 1});
+            }
+
             // setup ep 11-20 as on/off switches
             const heaterCoolerBinds = ['genOnOff'];
             for (let ep = 11; ep <= 20; ep++) {

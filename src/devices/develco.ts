@@ -629,7 +629,6 @@ const definitions: DefinitionWithExtend[] = [
                     e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
                 );
             }
-            dynExposes.push(e.linkquality());
             return dynExposes;
         },
         ota: true,
@@ -689,7 +688,6 @@ const definitions: DefinitionWithExtend[] = [
                     e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
                 );
             }
-            dynExposes.push(e.linkquality());
             return dynExposes;
         },
         ota: true,

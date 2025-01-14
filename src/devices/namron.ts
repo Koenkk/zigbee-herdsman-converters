@@ -5,6 +5,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {binary, electricityMeter, enumLookup, forcePowerSource, light, numeric, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
@@ -1383,18 +1384,17 @@ const definitions: DefinitionWithExtend[] = [
         model: '4512770',
         vendor: 'Namron',
         description: 'Zigbee multisensor (white)',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.humidity, fz.illuminance],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery(), e.battery_voltage(), e.illuminance(), e.temperature(), e.humidity()],
+        exposes: [e.occupancy(), e.battery(), e.battery_voltage(), e.temperature(), e.humidity()],
         whiteLabel: [{vendor: 'Namron', model: '4512771', description: 'Zigbee multisensor (black)', fingerprint: [{modelID: '4512771'}]}],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint3 = device.getEndpoint(3);
             const endpoint4 = device.getEndpoint(4);
-            const endpoint5 = device.getEndpoint(5);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.bind(endpoint4, coordinatorEndpoint, ['msRelativeHumidity']);
-            await reporting.bind(endpoint5, coordinatorEndpoint, ['msIlluminanceMeasurement']);
         },
+        extend: [m.illuminance()],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_p3lqqy2r']),

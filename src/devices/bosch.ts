@@ -21,6 +21,7 @@ import {
     onOff,
     quirkCheckinInterval,
 } from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from '../lib/types';
@@ -1321,17 +1322,17 @@ const definitions: DefinitionWithExtend[] = [
         model: 'RADON TriTech ZB',
         vendor: 'Bosch',
         description: 'Wireless motion detector',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.illuminance],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'msIlluminanceMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            await reporting.illuminance(endpoint);
         },
-        exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper(), e.illuminance()],
+        exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['ISW-ZPR1-WP13'],
@@ -1896,7 +1897,6 @@ const definitions: DefinitionWithExtend[] = [
             };
             const commonExposes = [
                 e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType)).withDescription('Module controlled by a rocker switch or a button'),
-                e.linkquality(),
             ];
             const lightExposes = [
                 e.switch().withEndpoint('left'),
@@ -1950,7 +1950,7 @@ const definitions: DefinitionWithExtend[] = [
                     return [...commonExposes, ...coverExposes];
                 }
             }
-            return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'), e.linkquality()];
+            return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode')];
         },
     },
     {

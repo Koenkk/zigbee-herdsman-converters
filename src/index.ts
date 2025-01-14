@@ -1,5 +1,3 @@
-import type {Binary, Climate, Composite, Cover, Enum, Fan, Feature, Light, List, Lock, Numeric, Switch, Text} from './lib/exposes';
-
 import assert from 'assert';
 
 import {Zcl} from 'zigbee-herdsman';
@@ -8,8 +6,24 @@ import fromZigbee from './converters/fromZigbee';
 import toZigbee from './converters/toZigbee';
 import allDefinitions from './devices';
 import * as configureKey from './lib/configureKey';
+import {
+    access,
+    Binary,
+    Climate,
+    Composite,
+    Cover,
+    Enum,
+    Enum as EnumClass,
+    Fan,
+    Feature,
+    Light,
+    List,
+    Lock,
+    Numeric,
+    Switch,
+    Text,
+} from './lib/exposes';
 import * as exposesLib from './lib/exposes';
-import {Enum as EnumClass} from './lib/exposes';
 import {generateDefinition} from './lib/generateDefinition';
 import * as logger from './lib/logger';
 import {
@@ -35,6 +49,7 @@ const NS = 'zhc';
 
 export type {Ota} from './lib/types';
 export {
+    access as access,
     Definition as Definition,
     OnEventType as OnEventType,
     Feature as Feature,
@@ -321,10 +336,6 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
         toZigbee.factory_reset,
         toZigbee.zcl_command,
     );
-
-    if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
-        definition.exposes = definition.exposes.concat([exposesLib.presets.linkquality()]);
-    }
 
     if (definition.externalConverterName) {
         validateDefinition(definition);

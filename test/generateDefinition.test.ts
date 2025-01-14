@@ -25,7 +25,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [],
             toZigbee: [],
-            exposes: ['linkquality'],
+            exposes: [],
             bind: [],
             read: [],
             configureReporting: [],
@@ -38,7 +38,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'})],
             toZigbee: ['temperature'],
-            exposes: ['linkquality', 'temperature'],
+            exposes: ['temperature'],
             bind: {1: ['msTemperatureMeasurement']},
             read: {1: [['msTemperatureMeasurement', ['measuredValue']]]},
             configureReporting: {
@@ -53,7 +53,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msPressureMeasurement'})],
             toZigbee: ['pressure'],
-            exposes: ['linkquality', 'pressure'],
+            exposes: ['pressure'],
             bind: {1: ['msPressureMeasurement']},
             read: {1: [['msPressureMeasurement', ['measuredValue']]]},
             configureReporting: {
@@ -68,7 +68,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msRelativeHumidity'})],
             toZigbee: ['humidity'],
-            exposes: ['humidity', 'linkquality'],
+            exposes: ['humidity'],
             bind: {1: ['msRelativeHumidity']},
             read: {1: [['msRelativeHumidity', ['measuredValue']]]},
             configureReporting: {
@@ -87,7 +87,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
             toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
-            exposes: ['linkquality', 'switch(state)', 'temperature'],
+            exposes: ['switch(state)', 'temperature'],
             bind: {1: ['msTemperatureMeasurement', 'genOnOff']},
             read: {
                 1: [
@@ -128,7 +128,7 @@ module.exports = definition;
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
             toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
-            exposes: ['linkquality', 'switch(state)', 'temperature'],
+            exposes: ['switch(state)', 'temperature'],
             bind: {2: ['msTemperatureMeasurement', 'genOnOff']},
             read: {
                 2: [
@@ -172,7 +172,7 @@ module.exports = definition;
             endpoints: {'1': 1, '2': 2},
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
             toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
-            exposes: ['linkquality', 'switch(state)', 'temperature', 'temperature'],
+            exposes: ['switch(state)', 'temperature', 'temperature'],
             bind: {1: ['msTemperatureMeasurement', 'genOnOff'], 2: ['msTemperatureMeasurement']},
             read: {
                 1: [
@@ -249,7 +249,7 @@ module.exports = definition;
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'power_on_behavior'],
             bind: {},
             read: {
                 1: [
@@ -319,7 +319,7 @@ module.exports = definition;
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'power_on_behavior'],
             bind: {},
             read: {
                 1: [
@@ -395,7 +395,7 @@ module.exports = definition;
                 'hue_power_on_color',
                 'effect',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)', 'power_on_behavior'],
             bind: {},
             read: {
                 1: [
@@ -456,7 +456,7 @@ module.exports = definition;
                 'ac_frequency',
                 'power_factor',
             ],
-            exposes: ['current', 'energy', 'linkquality', 'power', 'switch(state)', 'voltage'],
+            exposes: ['current', 'energy', 'power', 'switch(state)', 'voltage'],
             bind: {1: ['genOnOff', 'haElectricalMeasurement', 'seMetering']},
             read: {
                 1: [

@@ -485,15 +485,6 @@ const converters1 = {
             return {soil_moisture: soilMoisture};
         },
     } satisfies Fz.Converter,
-    illuminance: {
-        cluster: 'msIlluminanceMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
-            return {illuminance: illuminanceLux};
-        },
-    } satisfies Fz.Converter,
     pressure: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
