@@ -4,10 +4,12 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Fz, KeyValue, Publish} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Publish} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -26,11 +28,11 @@ const kmpcilOptions = {
     },
 };
 
-function handleKmpcilPresence(model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta): KeyValue {
-    const useOptionsTimeoutBattery = options && options.hasOwnProperty('presence_timeout_battery');
+function handleKmpcilPresence(model: DefinitionWithExtend, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta): KeyValue {
+    const useOptionsTimeoutBattery = options && options.presence_timeout_battery !== undefined;
     const timeoutBattery = useOptionsTimeoutBattery ? options.presence_timeout_battery : 420; // 100 seconds by default
 
-    const useOptionsTimeoutDc = options && options.hasOwnProperty('presence_timeout_dc');
+    const useOptionsTimeoutDc = options && options.presence_timeout_dc !== undefined;
     const timeoutDc = useOptionsTimeoutDc ? options.presence_timeout_dc : 60;
 
     const mode = meta.state ? meta.state['power_state'] : false;
@@ -50,7 +52,7 @@ const kmpcilConverters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = handleKmpcilPresence(model, msg, publish, options, meta);
-            if (msg.data.hasOwnProperty('presentValue')) {
+            if (msg.data.presentValue !== undefined) {
                 const presentValue = msg.data['presentValue'];
                 payload.power_state = (presentValue & 0x01) > 0;
                 payload.occupancy = (presentValue & 0x04) > 0;
@@ -65,10 +67,10 @@ const kmpcilConverters = {
         options: [kmpcilOptions.presence_timeout_dc(), kmpcilOptions.presence_timeout_battery()],
         convert: (model, msg, publish, options, meta) => {
             const payload = handleKmpcilPresence(model, msg, publish, options, meta);
-            if (msg.data.hasOwnProperty('batteryVoltage')) {
+            if (msg.data.batteryVoltage !== undefined) {
                 payload.voltage = msg.data['batteryVoltage'] * 100;
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     payload.battery = utils.batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
                 }
             }
@@ -77,24 +79,15 @@ const kmpcilConverters = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RES005'],
         model: 'KMPCIL_RES005',
         vendor: 'KMPCIL',
         description: 'Environment sensor',
-        exposes: [
-            e.battery(),
-            e.temperature(),
-            e.humidity(),
-            e.pressure(),
-            e.illuminance().withAccess(ea.STATE_GET),
-            e.illuminance_lux().withAccess(ea.STATE_GET),
-            e.occupancy(),
-            e.switch(),
-        ],
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pressure, fz.illuminance, fz.kmpcil_res005_occupancy, fz.kmpcil_res005_on_off],
-        toZigbee: [tz.kmpcil_res005_on_off, tz.illuminance],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.occupancy(), e.switch()],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pressure, fz.kmpcil_res005_occupancy, fz.kmpcil_res005_on_off],
+        toZigbee: [tz.kmpcil_res005_on_off],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
             const binds = [
@@ -102,7 +95,6 @@ const definitions: Definition[] = [
                 'msTemperatureMeasurement',
                 'msRelativeHumidity',
                 'msPressureMeasurement',
-                'msIlluminanceMeasurement',
                 'genBinaryInput',
                 'genBinaryOutput',
             ];
@@ -118,10 +110,6 @@ const definitions: Definition[] = [
                 },
             ];
             await endpoint.configureReporting('genPowerCfg', payloadBattery);
-            const payload = [
-                {attribute: 'measuredValue', minimumReportInterval: 5, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 200},
-            ];
-            await endpoint.configureReporting('msIlluminanceMeasurement', payload);
             const payloadPressure = [
                 {
                     // 0 = measuredValue, override dataType from int16 to uint16
@@ -156,6 +144,7 @@ const definitions: Definition[] = [
             ];
             await endpoint.configureReporting('genBinaryOutput', payloadBinaryOutput);
         },
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['tagv1'],

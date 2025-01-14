@@ -1,13 +1,15 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {Definition} from '../lib/types';
+import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
+import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {light} from '../lib/modernExtend';
-import * as tuya from '../lib/tuya';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'TS110F', manufacturerName: '_TZ3210_lfbz816s'},
@@ -39,18 +41,16 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_0aqbrnts', '_TZ3210_rxqls8v0', '_TZ3210_zmy9hjay', '_TZ3210_wuhzzfqg']),
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_0aqbrnts', '_TZ3210_rxqls8v0', '_TZ3210_zmy9hjay', '_TZ3210_wuhzzfqg', '_TZ3210_ohvnwamm']),
         model: 'ZB003-X',
         vendor: 'Fantem',
         description: '4 in 1 multi sensor',
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
+        fromZigbee: [fz.battery, fz.ignore_basic_report, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
         whiteLabel: [tuya.whitelabel('EFK', 'is-thpl-zb', '4 in 1 multi sensor', ['_TZ3210_0aqbrnts'])],
         exposes: [
             e.occupancy(),
             e.tamper(),
-            e.illuminance_lux(),
-            e.illuminance(),
             e.temperature(),
             e.humidity(),
             e.battery(),
@@ -76,6 +76,7 @@ const definitions: Definition[] = [
             e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
             e.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240', '480']).withDescription('PIR keep time in seconds'),
         ],
+        extend: [m.illuminance()],
     },
 ];
 

@@ -2,31 +2,30 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
+import {battery, iasZoneAlarm, light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Zh, Reporting} from '../lib/types';
+import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend, Reporting, Zh} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import {light, battery, iasZoneAlarm} from '../lib/modernExtend';
-import * as tuya from '../lib/tuya';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PIRILLSensor-EF-3.0'],
         model: 'HS1MIS-3.0',
         vendor: 'HEIMAN',
         description: 'Smart occupancy sensor',
-        fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery(), e.illuminance()],
+        fromZigbee: [fz.occupancy, fz.battery],
+        exposes: [e.occupancy(), e.battery()],
         configure: async (device, cordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, cordinatorEndpoint, ['msOccupancySensing', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint1);
             await reporting.occupancy(endpoint1);
-            await reporting.bind(endpoint1, cordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint1);
         },
+        extend: [m.illuminance()],
     },
     {
         fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
@@ -104,6 +103,7 @@ const definitions: Definition[] = [
             'c3442b4ac59b4ba1a83119d938f283ab',
             'SmokeSensor-EF-3.0',
             'SMOK_HV14',
+            'HK-SENSOR-SMO',
         ],
         model: 'HS1SA',
         vendor: 'HEIMAN',
@@ -115,7 +115,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery_low(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
         zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EM'],
@@ -129,7 +129,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery_low(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
         zigbeeModel: ['GASSensor-N', 'GASSensor-N-3.0', 'd90d7c61c44d468a8e906ca0841e0a0c'],
@@ -226,7 +226,7 @@ const definitions: Definition[] = [
         model: 'HS1RC-N',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [fz.battery, legacy.fz.heiman_smart_controller_armmode, fz.command_emergency],
+        fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         configure: async (device, coordinatorEndpoint) => {
@@ -263,7 +263,7 @@ const definitions: Definition[] = [
         model: 'HS1RC-EM',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [fz.battery, legacy.fz.heiman_smart_controller_armmode, fz.command_emergency],
+        fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         configure: async (device, coordinatorEndpoint) => {
@@ -373,7 +373,7 @@ const definitions: Definition[] = [
         model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
-        fromZigbee: [fz.command_status_change_notification_action, legacy.fz.st_button_state, fz.battery],
+        fromZigbee: [fz.command_status_change_notification_action, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['off', 'single', 'double', 'hold'])],
         configure: async (device, coordinatorEndpoint) => {
@@ -520,7 +520,7 @@ const definitions: Definition[] = [
                     },
                     formAldehydeMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
-                        await endpoint.configureReporting('heimanSpecificFormaldehydeMeasurement', payload);
+                        await endpoint.configureReporting('msFormaldehyde', payload);
                     },
                     batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('batteryState', 0, constants.repInterval.HOUR, 1, overrides);
@@ -548,7 +548,7 @@ const definitions: Definition[] = [
                 'msTemperatureMeasurement',
                 'msRelativeHumidity',
                 'pm25Measurement',
-                'heimanSpecificFormaldehydeMeasurement',
+                'msFormaldehyde',
                 'heimanSpecificAirQuality',
             ]);
 

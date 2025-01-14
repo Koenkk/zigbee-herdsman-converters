@@ -1,13 +1,15 @@
-import {Definition} from '../src/lib/types';
-import fz from '../src/converters/fromZigbee';
-import * as zh from 'zigbee-herdsman/dist';
-import {repInterval} from '../src/lib/constants';
-import {assertDefintion, AssertDefinitionArgs, mockDevice, reportingItem} from './utils';
+import type {Models as ZHModels} from 'zigbee-herdsman';
+
+import {Zcl} from 'zigbee-herdsman';
+
 import {findByDevice, generateExternalDefinitionSource} from '../src';
-import Device from 'zigbee-herdsman/dist/controller/model/device';
+import fz from '../src/converters/fromZigbee';
+import {repInterval} from '../src/lib/constants';
+import {Definition} from '../src/lib/types';
+import {AssertDefinitionArgs, assertDefintion, mockDevice, reportingItem} from './utils';
 
 const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalDefintionSource?: string}) => {
-    const getDefinition = async (device: Device): Promise<Definition> => findByDevice(device, true);
+    const getDefinition = async (device: ZHModels.Device): Promise<Definition> => findByDevice(device, true);
     const definition = await getDefinition(args.device);
     expect(definition.model).toEqual(args.device.modelID);
     if (args.externalDefintionSource) {
@@ -23,7 +25,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [],
             toZigbee: [],
-            exposes: ['linkquality'],
+            exposes: [],
             bind: [],
             read: [],
             configureReporting: [],
@@ -36,7 +38,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'})],
             toZigbee: ['temperature'],
-            exposes: ['linkquality', 'temperature'],
+            exposes: ['temperature'],
             bind: {1: ['msTemperatureMeasurement']},
             read: {1: [['msTemperatureMeasurement', ['measuredValue']]]},
             configureReporting: {
@@ -51,7 +53,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msPressureMeasurement'})],
             toZigbee: ['pressure'],
-            exposes: ['linkquality', 'pressure'],
+            exposes: ['pressure'],
             bind: {1: ['msPressureMeasurement']},
             read: {1: [['msPressureMeasurement', ['measuredValue']]]},
             configureReporting: {
@@ -66,7 +68,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msRelativeHumidity'})],
             toZigbee: ['humidity'],
-            exposes: ['humidity', 'linkquality'],
+            exposes: ['humidity'],
             bind: {1: ['msRelativeHumidity']},
             read: {1: [['msRelativeHumidity', ['measuredValue']]]},
             configureReporting: {
@@ -85,7 +87,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
             toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
-            exposes: ['linkquality', 'switch(state)', 'temperature'],
+            exposes: ['switch(state)', 'temperature'],
             bind: {1: ['msTemperatureMeasurement', 'genOnOff']},
             read: {
                 1: [
@@ -126,7 +128,7 @@ module.exports = definition;
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
             toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
-            exposes: ['linkquality', 'switch(state)', 'temperature'],
+            exposes: ['switch(state)', 'temperature'],
             bind: {2: ['msTemperatureMeasurement', 'genOnOff']},
             read: {
                 2: [
@@ -170,7 +172,7 @@ module.exports = definition;
             endpoints: {'1': 1, '2': 2},
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
             toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
-            exposes: ['linkquality', 'switch(state)', 'temperature', 'temperature'],
+            exposes: ['switch(state)', 'temperature', 'temperature'],
             bind: {1: ['msTemperatureMeasurement', 'genOnOff'], 2: ['msTemperatureMeasurement']},
             read: {
                 1: [
@@ -221,6 +223,7 @@ module.exports = definition;
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -246,7 +249,7 @@ module.exports = definition;
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'power_on_behavior'],
             bind: {},
             read: {
                 1: [
@@ -290,6 +293,7 @@ module.exports = definition;
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -315,7 +319,7 @@ module.exports = definition;
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'power_on_behavior'],
             bind: {},
             read: {
                 1: [
@@ -353,7 +357,7 @@ module.exports = definition;
         await assertGeneratedDefinition({
             device: mockDevice({
                 modelID: 'combo',
-                manufacturerID: zh.Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+                manufacturerID: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
                 endpoints: [{inputClusters: ['genOnOff', 'lightingColorCtrl'], outputClusters: [], attributes}],
             }),
             meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
@@ -363,6 +367,7 @@ module.exports = definition;
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -390,7 +395,7 @@ module.exports = definition;
                 'hue_power_on_color',
                 'effect',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)', 'power_on_behavior'],
             bind: {},
             read: {
                 1: [
@@ -439,8 +444,19 @@ module.exports = definition;
             }),
             meta: undefined,
             fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-            toZigbee: ['state', 'on_time', 'off_wait_time', 'power', 'voltage', 'current', 'energy'],
-            exposes: ['current', 'energy', 'linkquality', 'power', 'switch(state)', 'voltage'],
+            toZigbee: [
+                'state',
+                'on_time',
+                'off_wait_time',
+                'power',
+                'voltage',
+                'current',
+                'energy',
+                'produced_energy',
+                'ac_frequency',
+                'power_factor',
+            ],
+            exposes: ['current', 'energy', 'power', 'switch(state)', 'voltage'],
             bind: {1: ['genOnOff', 'haElectricalMeasurement', 'seMetering']},
             read: {
                 1: [
@@ -464,7 +480,7 @@ module.exports = definition;
                             reportingItem('rmsVoltage', 10, 65000, 5000),
                         ],
                     ],
-                    ['seMetering', [reportingItem('currentSummDelivered', 10, 65000, [0, 100])]],
+                    ['seMetering', [reportingItem('currentSummDelivered', 10, 65000, 100)]],
                 ],
             },
             externalDefintionSource: `

@@ -1,16 +1,32 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {deviceAddCustomCluster} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as ota from '../lib/ota';
 
 const switchTypeValues = ['maintained_state', 'maintained_toggle', 'momentary_state', 'momentary_press', 'momentary_release'];
 
 const defaultOnOffStateValues = ['on', 'off', 'previous'];
+
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.CUSTOM_PERENIO};
+
+const perenioExtend = {
+    addCustomClusterPerenio: () =>
+        deviceAddCustomCluster('perenioSpecific', {
+            ID: 64635,
+            manufacturerCode: Zcl.ManufacturerCode.CUSTOM_PERENIO,
+            attributes: {},
+            commands: {},
+            commandsResponse: {},
+        }),
+};
 
 const fzPerenio = {
     diagnostic: {
@@ -18,10 +34,10 @@ const fzPerenio = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('lastMessageLqi')) {
+            if (msg.data.lastMessageLqi !== undefined) {
                 result['last_message_lqi'] = msg.data['lastMessageLqi'];
             }
-            if (msg.data.hasOwnProperty('lastMessageRssi')) {
+            if (msg.data.lastMessageRssi !== undefined) {
                 result['last_message_rssi'] = msg.data['lastMessageRssi'];
             }
             return result;
@@ -39,7 +55,7 @@ const fzPerenio = {
                 0x00cd: 'momentary_release',
                 0x00dc: 'momentary_press',
             };
-            if (msg.data.hasOwnProperty('presentValue')) {
+            if (msg.data.presentValue !== undefined) {
                 const property = utils.postfixWithEndpointName('switch_type', msg, model, meta);
                 result[property] = switchTypeLookup[msg.data['presentValue']];
             }
@@ -47,35 +63,35 @@ const fzPerenio = {
         },
     } satisfies Fz.Converter,
     smart_plug: {
-        cluster: '64635',
+        cluster: 'perenioSpecific',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty(2)) {
+            if (msg.data[2] !== undefined) {
                 result['rms_current'] = msg.data[2];
             }
-            if (msg.data.hasOwnProperty(3)) {
+            if (msg.data[3] !== undefined) {
                 result['rms_voltage'] = msg.data[3];
             }
-            if (msg.data.hasOwnProperty(4)) {
+            if (msg.data[4] !== undefined) {
                 result['voltage_min'] = msg.data[4];
             }
-            if (msg.data.hasOwnProperty(5)) {
+            if (msg.data[5] !== undefined) {
                 result['voltage_max'] = msg.data[5];
             }
-            if (msg.data.hasOwnProperty(10)) {
+            if (msg.data[10] !== undefined) {
                 result['active_power'] = msg.data[10];
             }
-            if (msg.data.hasOwnProperty(11)) {
+            if (msg.data[11] !== undefined) {
                 result['power_max'] = msg.data[11];
             }
-            if (msg.data.hasOwnProperty(14)) {
+            if (msg.data[14] !== undefined) {
                 result['consumed_energy'] = msg.data[14];
             }
-            if (msg.data.hasOwnProperty(15)) {
+            if (msg.data[15] !== undefined) {
                 result['consumed_energy_limit'] = msg.data[15];
             }
-            if (msg.data.hasOwnProperty(24)) {
+            if (msg.data[24] !== undefined) {
                 result['rssi'] = msg.data[24];
             }
             const powerOnStateLookup = {
@@ -83,11 +99,11 @@ const fzPerenio = {
                 1: 'on',
                 2: 'previous',
             };
-            if (msg.data.hasOwnProperty(0)) {
-                // @ts-expect-error
+            if (msg.data[0] !== undefined) {
+                // @ts-expect-error ignore
                 result['default_on_off_state'] = powerOnStateLookup[msg.data[0]];
             }
-            if (msg.data.hasOwnProperty(1)) {
+            if (msg.data[1] !== undefined) {
                 if (msg.data[1] == 0) {
                     result['alarm_voltage_min'] = false;
                     result['alarm_voltage_max'] = false;
@@ -141,21 +157,21 @@ const tzPerenio = {
                 on: 1,
                 previous: 2,
             };
-            await entity.write(64635, {0: {value: powerOnStateLookup[val], type: 0x20}}, {manufacturerCode: 0x007b});
+            await entity.write('perenioSpecific', {0: {value: powerOnStateLookup[val], type: 0x20}}, manufacturerOptions);
             return {state: {default_on_off_state: val}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read(64635, [0]);
+            await entity.read('perenioSpecific', [0]);
         },
     } satisfies Tz.Converter,
     alarms_reset: {
         key: ['alarm_voltage_min', 'alarm_voltage_max', 'alarm_power_max', 'alarm_consumed_energy'],
         convertSet: async (entity, key, val, meta) => {
-            await entity.write(64635, {1: {value: 0, type: 0x20}}, {manufacturerCode: 0x007b});
+            await entity.write('perenioSpecific', {1: {value: 0, type: 0x20}}, manufacturerOptions);
             return {state: {alarm_voltage_min: false, alarm_voltage_max: false, alarm_power_max: false, alarm_consumed_energy: false}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read(64635, [1]);
+            await entity.read('perenioSpecific', [1]);
         },
     } satisfies Tz.Converter,
     alarms_limits: {
@@ -163,16 +179,16 @@ const tzPerenio = {
         convertSet: async (entity, key, val, meta) => {
             switch (key) {
                 case 'voltage_min':
-                    await entity.write(64635, {4: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    await entity.write('perenioSpecific', {4: {value: val, type: 0x21}}, manufacturerOptions);
                     break;
                 case 'voltage_max':
-                    await entity.write(64635, {5: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    await entity.write('perenioSpecific', {5: {value: val, type: 0x21}}, manufacturerOptions);
                     break;
                 case 'power_max':
-                    await entity.write(64635, {11: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    await entity.write('perenioSpecific', {11: {value: val, type: 0x21}}, manufacturerOptions);
                     break;
                 case 'consumed_energy_limit':
-                    await entity.write(64635, {15: {value: val, type: 0x21}}, {manufacturerCode: 0x007b});
+                    await entity.write('perenioSpecific', {15: {value: val, type: 0x21}}, manufacturerOptions);
                     break;
             }
             return {state: {[key]: val}};
@@ -180,16 +196,16 @@ const tzPerenio = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
                 case 'voltage_min':
-                    await entity.read(64635, [4]);
+                    await entity.read('perenioSpecific', [4]);
                     break;
                 case 'voltage_max':
-                    await entity.read(64635, [5]);
+                    await entity.read('perenioSpecific', [5]);
                     break;
                 case 'power_max':
-                    await entity.read(64635, [11]);
+                    await entity.read('perenioSpecific', [11]);
                     break;
                 case 'consumed_energy_limit':
-                    await entity.read(64635, [15]);
+                    await entity.read('perenioSpecific', [15]);
                     break;
             }
         },
@@ -197,8 +213,8 @@ const tzPerenio = {
     on_off_mod: {
         key: ['state', 'on_time', 'off_wait_time'],
         convertSet: async (entity, key, value, meta) => {
-            // @ts-expect-error
-            const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
+            // @ts-expect-error ignore
+            const state = meta.message.state !== undefined ? meta.message.state.toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
             const alarmVoltageMin = meta.state[`alarm_voltage_min${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
             const alarmVoltageMax = meta.state[`alarm_voltage_max${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
@@ -206,9 +222,9 @@ const tzPerenio = {
             if (alarmVoltageMin || alarmVoltageMax || alarmPowerMax) {
                 return {state: {state: 'OFF'}};
             }
-            if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
-                const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
+            if (state === 'on' && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
+                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== 'number') {
                     throw Error('The on_time value must be a number!');
@@ -235,7 +251,7 @@ const tzPerenio = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PECLS01'],
         model: 'PECLS01',
@@ -249,7 +265,7 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['ZHA-DoorLockSensor'],
@@ -279,7 +295,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['PEHWE20', 'PEHWE2X'],
@@ -346,11 +362,12 @@ const definitions: Definition[] = [
         model: 'PEHPL0X',
         vendor: 'Perenio',
         description: 'Power link',
+        extend: [perenioExtend.addCustomClusterPerenio()],
         fromZigbee: [fz.on_off, fzPerenio.smart_plug, fz.metering],
         toZigbee: [tzPerenio.on_off_mod, tzPerenio.default_state, tzPerenio.alarms_reset, tzPerenio.alarms_limits],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 64635]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'perenioSpecific']);
             const payload = [
                 {
                     attribute: 'onOff',
@@ -360,7 +377,7 @@ const definitions: Definition[] = [
                 },
             ];
             await endpoint.configureReporting('genOnOff', payload);
-            await endpoint.configureReporting(64635, [
+            await endpoint.configureReporting('perenioSpecific', [
                 {
                     attribute: {ID: 0x000a, type: 0x21},
                     minimumReportInterval: 5,
@@ -368,7 +385,7 @@ const definitions: Definition[] = [
                     reportableChange: 0,
                 },
             ]);
-            await endpoint.configureReporting(64635, [
+            await endpoint.configureReporting('perenioSpecific', [
                 {
                     attribute: {ID: 0x000e, type: 0x23},
                     minimumReportInterval: 5,
@@ -376,7 +393,7 @@ const definitions: Definition[] = [
                     reportableChange: 0,
                 },
             ]);
-            await endpoint.configureReporting(64635, [
+            await endpoint.configureReporting('perenioSpecific', [
                 {
                     attribute: {ID: 0x0003, type: 0x21},
                     minimumReportInterval: 5,
@@ -384,8 +401,8 @@ const definitions: Definition[] = [
                     reportableChange: 0,
                 },
             ]);
-            await endpoint.read(64635, [0, 1, 2, 3]);
-            await endpoint.read(64635, [4, 5, 11, 15]);
+            await endpoint.read('perenioSpecific', [0, 1, 2, 3]);
+            await endpoint.read('perenioSpecific', [4, 5, 11, 15]);
         },
         exposes: [
             e.switch(),
@@ -415,7 +432,7 @@ const definitions: Definition[] = [
                 .withDescription('Limit of electric energy consumption in kW*h. 0 value represents no limit'),
             e.numeric('rssi', ea.STATE).withUnit('dB').withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
         ],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
 ];
 

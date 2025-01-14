@@ -1,11 +1,12 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {light, onOff} from '../lib/modernExtend';
-import {Definition} from '../lib/types';
+import {battery, commandsColorCtrl, commandsLevelCtrl, commandsOnOff, commandsScenes, deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as tuya from '../lib/tuya';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['501.37'],
         model: '501.37',
@@ -172,6 +173,13 @@ const definitions: Definition[] = [
         extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
     },
     {
+        zigbeeModel: ['371050043'],
+        model: '371050043',
+        vendor: 'Paulmann',
+        description: 'Solar LED house number light',
+        extend: [onOff({powerOnBehavior: false})],
+    },
+    {
         zigbeeModel: ['371232040'],
         model: '371232040',
         vendor: 'Paulmann',
@@ -245,6 +253,20 @@ const definitions: Definition[] = [
         ],
     },
     {
+        zigbeeModel: ['501.40'],
+        model: '501.40',
+        vendor: 'Paulmann',
+        description: 'RGB remote control',
+        extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            battery(),
+            commandsOnOff(),
+            commandsLevelCtrl(),
+            commandsColorCtrl(),
+            commandsScenes(),
+        ],
+    },
+    {
         fingerprint: [{modelID: 'RGB', manufacturerName: 'Paulmann Licht GmbH'}],
         model: '150257',
         vendor: 'Paulmann',
@@ -267,6 +289,13 @@ const definitions: Definition[] = [
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee LED bulb 4,9W Matt E14 RGBW',
         extend: [light({colorTemp: {range: [153, 454]}, color: {modes: ['xy', 'hs']}})],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3210_hjxqqofs']),
+        model: '501.39',
+        vendor: 'Paulmann',
+        description: 'Universal-switch white',
+        extend: [onOff({powerOnBehavior: false})],
     },
 ];
 

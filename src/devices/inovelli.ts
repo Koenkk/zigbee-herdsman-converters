@@ -3,11 +3,10 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {identify, deviceAddCustomCluster} from '../lib/modernExtend';
-import * as ota from '../lib/ota';
+import {deviceAddCustomCluster, deviceEndpoints, electricityMeter, humidity, identify, temperature} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Definition, Expose, Fz, Tz, Zh} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -273,7 +272,7 @@ const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesLis
                 .binary(
                     key,
                     ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     ATTRIBUTES[key].values.Enabled,
                     ATTRIBUTES[key].values.Disabled,
                 )
@@ -392,25 +391,6 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
             "A setting of 'instant' turns the light immediately off. Increasing the value slows down the transition speed. " +
             'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnLocal setting.',
     },
-    minimumLevel: {
-        ID: 9,
-        dataType: Zcl.DataType.UINT8,
-        min: 1,
-        max: 253,
-        description:
-            'The minimum level that the dimmer allows the bulb to be dimmed to. ' +
-            'Useful when the user has an LED bulb that does not turn on or flickers at a lower level.',
-    },
-    maximumLevel: {
-        ID: 10,
-        dataType: Zcl.DataType.UINT8,
-        min: 2,
-        max: 254,
-        description:
-            'The maximum level that the dimmer allows the bulb to be dimmed to.' +
-            'Useful when the user has an LED bulb that reaches its maximum level before the ' +
-            'dimmer value of 99 or when the user wants to limit the maximum brightness.',
-    },
     invertSwitch: {
         ID: 11,
         dataType: Zcl.DataType.BOOLEAN,
@@ -482,16 +462,6 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 11,
     },
-    powerType: {
-        ID: 21,
-        dataType: Zcl.DataType.BOOLEAN,
-        displayType: 'enum',
-        values: {'Non Neutral': 0, Neutral: 1},
-        min: 0,
-        max: 1,
-        readOnly: true,
-        description: 'Set the power type for the device.',
-    },
     switchType: {
         ID: 22,
         dataType: Zcl.DataType.UINT8,
@@ -508,6 +478,8 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 127,
         readOnly: true,
         description: 'The temperature measured by the temperature sensor inside the chip, in degrees Celsius',
+        category: 'diagnostic',
+        unit: '°C',
     },
     overheat: {
         ID: 33,
@@ -941,15 +913,6 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 101,
         description: 'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
-    outputMode: {
-        ID: 258,
-        min: 0,
-        max: 1,
-        values: {Dimmer: 0, 'On/Off': 1},
-        dataType: Zcl.DataType.BOOLEAN,
-        description: 'Use device as a Dimmer or an On/Off switch.',
-        displayType: 'enum',
-    },
     doubleTapClearNotifications: {
         ID: 262,
         dataType: Zcl.DataType.BOOLEAN,
@@ -969,8 +932,56 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
 };
 
-const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
+const COMMON_DIMMER_ATTRIBUTES: {[s: string]: Attribute} = {
     ...COMMON_ATTRIBUTES,
+    minimumLevel: {
+        ID: 9,
+        dataType: Zcl.DataType.UINT8,
+        min: 1,
+        max: 254,
+        description:
+            'The minimum level that the dimmer allows the bulb to be dimmed to. ' +
+            'Useful when the user has an LED bulb that does not turn on or flickers at a lower level.',
+    },
+    maximumLevel: {
+        ID: 10,
+        dataType: Zcl.DataType.UINT8,
+        min: 2,
+        max: 255,
+        description:
+            'The maximum level that the dimmer allows the bulb to be dimmed to.' +
+            'Useful when the user has an LED bulb that reaches its maximum level before the ' +
+            'dimmer value of 99 or when the user wants to limit the maximum brightness.',
+    },
+    powerType: {
+        ID: 21,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: 'enum',
+        values: {'Non Neutral': 0, Neutral: 1},
+        min: 0,
+        max: 1,
+        readOnly: true,
+        description: 'Set the power type for the device.',
+    },
+    outputMode: {
+        ID: 258,
+        min: 0,
+        max: 1,
+        values: {Dimmer: 0, 'On/Off': 1},
+        dataType: Zcl.DataType.BOOLEAN,
+        description: 'Use device as a Dimmer or an On/Off switch.',
+        displayType: 'enum',
+    },
+};
+
+const COMMON_DIMMER_ON_OFF_ATTRIBUTES: {[s: string]: Attribute} = {
+    ledBarScaling: {
+        ID: 100,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: 'enum',
+        values: {'Gen3 method (VZM-style)': 0, 'Gen2 method (LZW-style)': 1},
+        description: 'Method used for scaling.',
+    },
     activePowerReports: {
         ID: 18,
         dataType: Zcl.DataType.UINT8,
@@ -994,6 +1005,21 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
             'Energy reports Energy level change which will result in sending a new energy report.' +
             '0 = disabled, 1-32767 = 0.01kWh-327.67kWh. Default setting: 10 (0.1 kWh)',
     },
+};
+
+const VZM30_ATTRIBUTES: {[s: string]: Attribute} = {
+    ...COMMON_ATTRIBUTES,
+    ...COMMON_DIMMER_ON_OFF_ATTRIBUTES,
+    switchType: {
+        ...COMMON_ATTRIBUTES.switchType,
+        values: {'Single Pole': 0, 'Aux Switch': 1},
+        max: 1,
+    },
+};
+
+const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
+    ...COMMON_DIMMER_ATTRIBUTES,
+    ...COMMON_DIMMER_ON_OFF_ATTRIBUTES,
     quickStartTime: {
         ID: 23,
         dataType: Zcl.DataType.UINT8,
@@ -1017,13 +1043,6 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 1,
         description: 'Increase level in non-neutral mode',
     },
-    ledBarScaling: {
-        ID: 100,
-        dataType: Zcl.DataType.BOOLEAN,
-        displayType: 'enum',
-        values: {'Gen3 method (VZM-style)': 0, 'Gen2 method (LZW-style)': 1},
-        description: 'Method used for scaling.',
-    },
     relayClick: {
         ID: 261,
         dataType: Zcl.DataType.BOOLEAN,
@@ -1039,16 +1058,16 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
 };
 
 const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
-    ...COMMON_ATTRIBUTES,
+    ...COMMON_DIMMER_ATTRIBUTES,
     minimumLevel: {
-        ...COMMON_ATTRIBUTES.minimumLevel,
+        ...COMMON_DIMMER_ATTRIBUTES.minimumLevel,
         description:
             '1-84: The level corresponding to the fan is Low, Medium, High. ' +
             '85-170: The level corresponding to the fan is Medium, Medium, High. ' +
             '170-254: The level corresponding to the fan is High, High, High ',
     },
     maximumLevel: {
-        ...COMMON_ATTRIBUTES.maximumLevel,
+        ...COMMON_DIMMER_ATTRIBUTES.maximumLevel,
         description: '2-84: The level corresponding to the fan is Low, Medium, High.',
     },
     switchType: {
@@ -1083,7 +1102,7 @@ const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
         description: 'Identification value in Non-nuetral, low gear, aux switch',
     },
     outputMode: {
-        ...COMMON_ATTRIBUTES.outputMode,
+        ...COMMON_DIMMER_ATTRIBUTES.outputMode,
         values: {'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1},
         description: 'Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.',
     },
@@ -1101,8 +1120,8 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     rampRateOffToOnRemote_1: {...COMMON_ATTRIBUTES.rampRateOffToOnRemote},
     dimmingSpeedDownRemote_1: {...COMMON_ATTRIBUTES.dimmingSpeedDownRemote},
     rampRateOnToOffRemote_1: {...COMMON_ATTRIBUTES.rampRateOnToOffRemote},
-    minimumLevel_1: {...COMMON_ATTRIBUTES.minimumLevel},
-    maximumLevel_1: {...COMMON_ATTRIBUTES.maximumLevel},
+    minimumLevel_1: {...COMMON_DIMMER_ATTRIBUTES.minimumLevel},
+    maximumLevel_1: {...COMMON_DIMMER_ATTRIBUTES.maximumLevel},
     autoTimerOff_1: {
         ...COMMON_ATTRIBUTES.autoTimerOff,
         description:
@@ -1159,7 +1178,7 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     ledColorWhenOn_1: {...COMMON_ATTRIBUTES.ledColorWhenOn},
     ledIntensityWhenOn_1: {...COMMON_ATTRIBUTES.ledIntensityWhenOn},
     // remote protection is readonly...
-    outputMode_1: {...COMMON_ATTRIBUTES.outputMode},
+    outputMode_1: {...COMMON_DIMMER_ATTRIBUTES.outputMode},
     // Endpoint 2 (Fan)
     dimmingSpeedUpRemote_2: {
         ...COMMON_ATTRIBUTES.dimmingSpeedUpRemote,
@@ -1190,11 +1209,11 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnRemote setting.',
     },
     minimumLevel_2: {
-        ...COMMON_ATTRIBUTES.minimumLevel,
+        ...COMMON_DIMMER_ATTRIBUTES.minimumLevel,
         description: 'The minimum level that the fan can be set to.',
     },
     maximumLevel_2: {
-        ...COMMON_ATTRIBUTES.maximumLevel,
+        ...COMMON_DIMMER_ATTRIBUTES.maximumLevel,
         description: 'The maximum level that the fan can be set to.',
     },
     autoTimerOff_2: {
@@ -1224,13 +1243,13 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     // internal temp readonly
     // overheat readonly
     smartBulbMode_2: {
-        ...COMMON_ATTRIBUTES.smartBulbMode,
+        ...COMMON_DIMMER_ATTRIBUTES.smartBulbMode,
         values: {Disabled: 0, 'Smart Fan Mode': 1},
         description: 'For use with Smart Fans that need constant power and are controlled via commands rather than power.',
     },
     // remote protection readonly..
     outputMode_2: {
-        ...COMMON_ATTRIBUTES.outputMode,
+        ...COMMON_DIMMER_ATTRIBUTES.outputMode,
         values: {'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1},
         description: 'Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.',
     },
@@ -1256,7 +1275,7 @@ const tzLocal = {
                     [ATTRIBUTES[key].ID]: {
                         value:
                             ATTRIBUTES[key].displayType === 'enum'
-                                ? // @ts-expect-error
+                                ? // @ts-expect-error ignore
                                   ATTRIBUTES[key].values[value]
                                 : value,
                         type: ATTRIBUTES[key].dataType,
@@ -1311,13 +1330,13 @@ const tzLocal = {
                 'manuSpecificInovelli',
                 'ledEffect',
                 {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     effect: ledEffects[values.effect],
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     color: Math.min(Math.max(0, values.color), 255),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     level: Math.min(Math.max(0, values.level), 100),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     duration: Math.min(Math.max(0, values.duration), 255),
                 },
                 {disableResponse: true, disableDefaultResponse: true},
@@ -1332,15 +1351,15 @@ const tzLocal = {
                 'manuSpecificInovelli',
                 'individualLedEffect',
                 {
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     led: Math.min(Math.max(0, parseInt(values.led)), 7),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     effect: individualLedEffects[values.effect],
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     color: Math.min(Math.max(0, values.color), 255),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     level: Math.min(Math.max(0, values.level), 100),
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     duration: Math.min(Math.max(0, values.duration), 255),
                 },
                 {disableResponse: true, disableDefaultResponse: true},
@@ -1358,14 +1377,15 @@ const tzLocal = {
             const {message} = meta;
             const transition = utils.getTransition(entity, 'brightness', meta);
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1', 'allEqual', false);
-            let state = message.hasOwnProperty('state')
-                ? // @ts-expect-error
-                  message.state.toLowerCase()
-                : undefined;
+            let state =
+                message.state !== undefined
+                    ? // @ts-expect-error ignore
+                      message.state.toLowerCase()
+                    : undefined;
             let brightness = undefined;
-            if (message.hasOwnProperty('brightness')) {
+            if (message.brightness !== undefined) {
                 brightness = Number(message.brightness);
-            } else if (message.hasOwnProperty('brightness_percent')) {
+            } else if (message.brightness_percent !== undefined) {
                 brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
             }
 
@@ -1403,22 +1423,20 @@ const tzLocal = {
                     const payload = {level, transtime: transition.time};
                     await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', payload, utils.getOptions(meta.mapped, entity));
                     const result = {state: {state: state.toUpperCase()}};
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     if (state === 'on') result.state.brightness = level;
                     return result;
                 } else {
                     // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
                     // with transition.
-                    if (meta.state.hasOwnProperty('brightness') && state === 'off') {
+                    if (meta.state.brightness !== undefined && state === 'off') {
                         globalStore.putValue(entity, 'brightness', meta.state.brightness);
                         globalStore.putValue(entity, 'turnedOffWithTransition', true);
                     }
 
                     const result = await inovelliOnOffConvertSet(entity, 'state', state, meta);
-                    // @ts-expect-error
-                    result.readAfterWriteTime = 0;
                     if (result.state && result.state.state === 'ON' && meta.state.brightness === 0) {
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         result.state.brightness = 1;
                     }
 
@@ -1441,18 +1459,11 @@ const tzLocal = {
                     utils.getOptions(meta.mapped, entity),
                 );
 
-                const defaultTransitionTime = await entity.read('manuSpecificInovelli', ['rampRateOnToOffRemote']);
-
                 return {
                     state: {
                         state: brightness === 0 ? 'OFF' : 'ON',
                         brightness: Number(brightness),
                     },
-                    readAfterWriteTime:
-                        transition.time === 0
-                            ? // @ts-expect-error
-                              defaultTransitionTime.rampRateOnToOffRemote * 100
-                            : transition.time * 100, // need on speed
                 };
             }
         },
@@ -1464,33 +1475,39 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    fan_mode: {
-        key: ['fan_mode'],
-        convertSet: async (entity, key, value: string, meta) => {
-            await entity.command(
-                'genLevelCtrl',
-                'moveToLevelWithOnOff',
-                {
-                    level: fanModes[value],
-                    transtime: 0xffff,
-                },
-                utils.getOptions(meta.mapped, entity),
-            );
-            return {
-                state: {
-                    [key]: value,
-                    state: 'ON',
-                },
-            };
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genLevelCtrl', ['currentLevel']);
-        },
-    } satisfies Tz.Converter,
+    fan_mode: (endpointId: number) =>
+        ({
+            key: ['fan_mode'],
+            convertSet: async (entity, key, value: string, meta) => {
+                const endpoint = meta.device.getEndpoint(endpointId);
+                await endpoint.command(
+                    'genLevelCtrl',
+                    'moveToLevelWithOnOff',
+                    {
+                        level: fanModes[value],
+                        transtime: 0xffff,
+                    },
+                    utils.getOptions(meta.mapped, entity),
+                );
+
+                meta.state[key] = value;
+
+                return {
+                    state: {
+                        [key]: value,
+                        state: 'ON',
+                    },
+                };
+            },
+            convertGet: async (entity, key, meta) => {
+                const endpoint = meta.device.getEndpoint(endpointId);
+                await endpoint.read('genLevelCtrl', ['currentLevel']);
+            },
+        }) satisfies Tz.Converter,
     fan_state: {
         key: ['fan_state'],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.hasOwnProperty('fan_state') ? meta.message.fan_state.toString().toLowerCase() : null;
+            const state = meta.message.fan_state !== undefined ? meta.message.fan_state.toString().toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
 
             await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
@@ -1505,35 +1522,7 @@ const tzLocal = {
             await entity.read('genOnOff', ['onOff']);
         },
     } satisfies Tz.Converter,
-    vzm36_fan_mode: {
-        key: ['fan_mode'],
-        convertSet: async (entity, key, value: string, meta) => {
-            const endpoint = meta.device.getEndpoint(2);
 
-            await endpoint.command(
-                'genLevelCtrl',
-                'moveToLevelWithOnOff',
-                {
-                    level: fanModes[value],
-                    transtime: 0xffff,
-                },
-                utils.getOptions(meta.mapped, entity),
-            );
-
-            meta.state[key] = value;
-
-            return {
-                state: {
-                    [key]: value,
-                    fan_state: 'ON',
-                },
-            };
-        },
-        convertGet: async (entity, key, meta) => {
-            const endpoint = meta.device.getEndpoint(2);
-            await endpoint.read('genLevelCtrl', ['currentLevel']);
-        },
-    } satisfies Tz.Converter,
     /**
      * On the VZM36, When turning the fan on and off, we must ensure that we are sending these
      * commands to endpoint 2 on the canopy module.
@@ -1548,9 +1537,9 @@ const tzLocal = {
             const state = typeof meta.message.fan_state === 'string' ? meta.message.fan_state.toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
 
-            if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
-                const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
+            if (state === 'on' && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
+                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== 'number') {
                     throw Error('The on_time value must be a number!');
@@ -1693,13 +1682,13 @@ const tzLocal = {
  * fallback to if a transition is not specified by passing 0xffff
  */
 const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
-    // @ts-expect-error
-    const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
+    // @ts-expect-error ignore
+    const state = meta.message.state !== undefined ? meta.message.state.toLowerCase() : null;
     utils.validateValue(state, ['toggle', 'off', 'on']);
 
-    if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
-        const onTime = meta.message.hasOwnProperty('on_time') ? meta.message.on_time : 0;
-        const offWaitTime = meta.message.hasOwnProperty('off_wait_time') ? meta.message.off_wait_time : 0;
+    if (state === 'on' && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
+        const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
+        const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
 
         if (typeof onTime !== 'number') {
             throw Error('The on_time value must be a number!');
@@ -1710,8 +1699,8 @@ const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: stri
 
         const payload = {
             ctrlbits: 0,
-            ontime: meta.message.hasOwnProperty('on_time') ? Math.round(onTime * 10) : 0xffff,
-            offwaittime: meta.message.hasOwnProperty('off_wait_time') ? Math.round(offWaitTime * 10) : 0xffff,
+            ontime: meta.message.on_time !== undefined ? Math.round(onTime * 10) : 0xffff,
+            offwaittime: meta.message.off_wait_time !== undefined ? Math.round(offWaitTime * 10) : 0xffff,
         };
         await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
     } else {
@@ -1765,39 +1754,27 @@ const fzLocal = {
                 }
             },
         }) satisfies Fz.Converter,
-    fan_mode: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentLevel')) {
-                const mode = intToFanMode(msg.data['currentLevel'] || 1);
-                return {
-                    fan_mode: mode,
-                };
-            }
-            return msg.data;
-        },
-    } satisfies Fz.Converter,
-    vzm36_fan_mode: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID == 2) {
-                if (msg.data.hasOwnProperty('currentLevel')) {
-                    const mode = intToFanMode(msg.data['currentLevel'] || 1);
-                    return {
-                        fan_mode: mode,
-                    };
+    fan_mode: (endpointId: number) =>
+        ({
+            cluster: 'genLevelCtrl',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.endpoint.ID == endpointId) {
+                    if (msg.data.currentLevel !== undefined) {
+                        const mode = intToFanMode(msg.data['currentLevel'] || 1);
+                        return {
+                            fan_mode: mode,
+                        };
+                    }
                 }
-            }
-            return msg.data;
-        },
-    } satisfies Fz.Converter,
+                return msg.data;
+            },
+        }) satisfies Fz.Converter,
     fan_state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
+            if (msg.data.onOff !== undefined) {
                 return {fan_state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
             return msg.data;
@@ -1808,7 +1785,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 1) {
-                if (msg.data.hasOwnProperty('currentLevel')) {
+                if (msg.data.currentLevel !== undefined) {
                     return {brightness: msg.data['currentLevel']};
                 }
             }
@@ -1831,7 +1808,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID == 2) {
-                if (msg.data.hasOwnProperty('breeze_mode')) {
+                if (msg.data.breeze_mode !== undefined) {
                     const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
                     const raw = msg.data['breeze_mode'];
                     const s1 = breezemodes[raw & bitmasks[0]];
@@ -1869,11 +1846,11 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID === 1) {
-                if (msg.data.hasOwnProperty('onOff')) {
+                if (msg.data.onOff !== undefined) {
                     return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
                 }
             } else if (msg.endpoint.ID === 2) {
-                if (msg.data.hasOwnProperty('onOff')) {
+                if (msg.data.onOff !== undefined) {
                     return {fan_state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
                 }
             } else {
@@ -1883,39 +1860,10 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const exposesListVZM31: Expose[] = [
-    e.light_brightness(),
-    e.power(),
-    e.energy(),
-    e
+const exposeLedEffects = () => {
+    return e
         .composite('led_effect', 'led_effect', ea.STATE_SET)
-        .withFeature(
-            e
-                .enum('effect', ea.STATE_SET, [
-                    'off',
-                    'solid',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'chase',
-                    'open_close',
-                    'small_to_big',
-                    'aurora',
-                    'slow_falling',
-                    'medium_falling',
-                    'fast_falling',
-                    'slow_rising',
-                    'medium_rising',
-                    'fast_rising',
-                    'medium_blink',
-                    'slow_chase',
-                    'fast_chase',
-                    'fast_siren',
-                    'slow_siren',
-                    'clear_effect',
-                ])
-                .withDescription('Animation Effect to use for the LEDs'),
-        )
+        .withFeature(e.enum('effect', ea.STATE_SET, Object.keys(ledEffects)).withDescription('Animation Effect to use for the LEDs'))
         .withFeature(
             e
                 .numeric('color', ea.STATE_SET)
@@ -1935,26 +1883,14 @@ const exposesListVZM31: Expose[] = [
                         'Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
                 ),
         )
-        .withCategory('config'),
-    e
+        .withCategory('config');
+};
+
+const exposeIndividualLedEffects = () => {
+    return e
         .composite('individual_led_effect', 'individual_led_effect', ea.STATE_SET)
         .withFeature(e.enum('led', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7']).withDescription('Individual LED to target.'))
-        .withFeature(
-            e
-                .enum('effect', ea.STATE_SET, [
-                    'off',
-                    'solid',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'chase',
-                    'falling',
-                    'rising',
-                    'aurora',
-                    'clear_effect',
-                ])
-                .withDescription('Animation Effect to use for the LED'),
-        )
+        .withFeature(e.enum('effect', ea.STATE_SET, Object.keys(individualLedEffects)).withDescription('Animation Effect to use for the LED'))
         .withFeature(
             e
                 .numeric('color', ea.STATE_SET)
@@ -1974,99 +1910,11 @@ const exposesListVZM31: Expose[] = [
                         ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
                 ),
         )
-        .withCategory('config'),
-];
+        .withCategory('config');
+};
 
-const exposesListVZM35: Expose[] = [
-    e.fan().withModes(Object.keys(fanModes)),
-    e
-        .composite('led_effect', 'led_effect', ea.STATE_SET)
-        .withFeature(
-            e
-                .enum('effect', ea.STATE_SET, [
-                    'off',
-                    'solid',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'chase',
-                    'open_close',
-                    'small_to_big',
-                    'aurora',
-                    'slow_falling',
-                    'medium_falling',
-                    'fast_falling',
-                    'slow_rising',
-                    'medium_rising',
-                    'fast_rising',
-                    'medium_blink',
-                    'slow_chase',
-                    'fast_chase',
-                    'fast_siren',
-                    'slow_siren',
-                    'clear_effect',
-                ])
-                .withDescription('Animation Effect to use for the LEDs'),
-        )
-        .withFeature(
-            e
-                .numeric('color', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription('Calculated by using a hue color circle(value/255*360) If color = 255 display white'),
-        )
-        .withFeature(e.numeric('level', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Brightness of the LEDs'))
-        .withFeature(
-            e
-                .numeric('duration', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription(
-                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
-                        'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
-                        'Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
-                ),
-        ),
-    e
-        .composite('individual_led_effect', 'individual_led_effect', ea.STATE_SET)
-        .withFeature(e.enum('led', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7']).withDescription('Individual LED to target.'))
-        .withFeature(
-            e
-                .enum('effect', ea.STATE_SET, [
-                    'off',
-                    'solid',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'chase',
-                    'falling',
-                    'rising',
-                    'aurora',
-                    'clear_effect',
-                ])
-                .withDescription('Animation Effect to use for the LED'),
-        )
-        .withFeature(
-            e
-                .numeric('color', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription('Calculated by using a hue color circle(value/255*360) If color = 255 display white'),
-        )
-        .withFeature(e.numeric('level', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Brightness of the LED'))
-        .withFeature(
-            e
-                .numeric('duration', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription(
-                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
-                        'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
-                        ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
-                ),
-        )
-        .withCategory('config'),
-    e
+const exposeBreezeMode = () => {
+    return e
         .composite('breeze mode', 'breezeMode', ea.STATE_SET)
         .withFeature(e.enum('speed1', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 1 Speed'))
         .withFeature(e.numeric('time1', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 1  '))
@@ -2078,95 +1926,110 @@ const exposesListVZM35: Expose[] = [
         .withFeature(e.numeric('time4', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 4  '))
         .withFeature(e.enum('speed5', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 5 Speed'))
         .withFeature(e.numeric('time5', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 5  '))
-        .withCategory('config'),
-];
+        .withCategory('config');
+};
 
-const exposesListVZM36: Expose[] = [
-    e.light_brightness(),
-    e.fan().withModes(Object.keys(fanModes)),
+const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
 
-    // Breezee
-    e
-        .composite('breeze mode', 'breezeMode', ea.STATE_SET)
-        .withFeature(e.enum('speed1', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 1 Speed'))
-        .withFeature(e.numeric('time1', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 1  '))
-        .withFeature(e.enum('speed2', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 2 Speed'))
-        .withFeature(e.numeric('time2', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 2  '))
-        .withFeature(e.enum('speed3', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 3 Speed'))
-        .withFeature(e.numeric('time3', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 3  '))
-        .withFeature(e.enum('speed4', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 4 Speed'))
-        .withFeature(e.numeric('time4', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 4  '))
-        .withFeature(e.enum('speed5', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('Step 5 Speed'))
-        .withFeature(e.numeric('time5', ea.STATE_SET).withValueMin(1).withValueMax(80).withDescription('Duration (s) for fan in Step 5  '))
-        .withCategory('config'),
-];
+const exposesListVZM31: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
+
+const exposesListVZM35: Expose[] = [e.fan().withModes(Object.keys(fanModes)), exposeLedEffects(), exposeIndividualLedEffects(), exposeBreezeMode()];
+
+const exposesListVZM36: Expose[] = [e.light_brightness(), e.fan().withModes(Object.keys(fanModes)), exposeBreezeMode()];
 
 // Populate exposes list from the attributes description
+attributesToExposeList(VZM30_ATTRIBUTES, exposesListVZM30);
 attributesToExposeList(VZM31_ATTRIBUTES, exposesListVZM31);
 attributesToExposeList(VZM35_ATTRIBUTES, exposesListVZM35);
 attributesToExposeList(VZM36_ATTRIBUTES, exposesListVZM36);
 
 // Put actions at the bottom of ui
-exposesListVZM31.push(
-    e.action([
-        'down_single',
-        'up_single',
-        'config_single',
-        'down_release',
-        'up_release',
-        'config_release',
-        'down_held',
-        'up_held',
-        'config_held',
-        'down_double',
-        'up_double',
-        'config_double',
-        'down_triple',
-        'up_triple',
-        'config_triple',
-        'down_quadruple',
-        'up_quadruple',
-        'config_quadruple',
-        'down_quintuple',
-        'up_quintuple',
-        'config_quintuple',
-    ]),
-);
+const buttonTapSequences = [
+    'down_single',
+    'up_single',
+    'config_single',
+    'down_release',
+    'up_release',
+    'config_release',
+    'down_held',
+    'up_held',
+    'config_held',
+    'down_double',
+    'up_double',
+    'config_double',
+    'down_triple',
+    'up_triple',
+    'config_triple',
+    'down_quadruple',
+    'up_quadruple',
+    'config_quadruple',
+    'down_quintuple',
+    'up_quintuple',
+    'config_quintuple',
+];
 
-exposesListVZM35.push(
-    e.action([
-        'down_single',
-        'up_single',
-        'config_single',
-        'down_release',
-        'up_release',
-        'config_release',
-        'down_held',
-        'up_held',
-        'config_held',
-        'down_double',
-        'up_double',
-        'config_double',
-        'down_triple',
-        'up_triple',
-        'config_triple',
-        'down_quadruple',
-        'up_quadruple',
-        'config_quadruple',
-        'down_quintuple',
-        'up_quintuple',
-        'config_quintuple',
-    ]),
-);
+exposesListVZM30.push(e.action(buttonTapSequences));
+exposesListVZM31.push(e.action(buttonTapSequences));
+exposesListVZM35.push(e.action(buttonTapSequences));
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['VZM30-SN'],
+        model: 'VZM30-SN',
+        vendor: 'Inovelli',
+        description: 'On/off switch',
+        exposes: exposesListVZM30.concat(identify().exposes as Expose[]),
+        extend: [
+            deviceEndpoints({
+                endpoints: {'1': 1, '2': 2, '3': 3, '4': 4},
+                multiEndpointSkip: ['state', 'voltage', 'power', 'current', 'energy', 'brightness', 'temperature', 'humidity'],
+            }),
+            inovelliExtend.addCustomClusterInovelli(),
+            temperature(),
+            humidity(),
+            electricityMeter(),
+        ],
+        toZigbee: [
+            tzLocal.light_onoff_brightness_inovelli,
+            tz.power_on_behavior,
+            tz.ignore_transition,
+            tz.identify,
+            tzLocal.inovelli_led_effect,
+            tzLocal.inovelli_individual_led_effect,
+            tzLocal.inovelli_parameters(VZM30_ATTRIBUTES),
+            tzLocal.inovelli_parameters_readOnly(VZM30_ATTRIBUTES),
+        ],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report, fzLocal.inovelli(VZM30_ATTRIBUTES)],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+
+            // Bind for Button Event Reporting
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificInovelli']);
+        },
+    },
     {
         zigbeeModel: ['VZM31-SN'],
         model: 'VZM31-SN',
         vendor: 'Inovelli',
         description: '2-in-1 switch + dimmer',
         exposes: exposesListVZM31.concat(identify().exposes as Expose[]),
-        extend: [inovelliExtend.addCustomClusterInovelli()],
+        extend: [
+            deviceEndpoints({
+                endpoints: {'1': 1, '2': 2, '3': 3},
+                multiEndpointSkip: ['state', 'power', 'energy', 'brightness'],
+            }),
+            inovelliExtend.addCustomClusterInovelli(),
+            electricityMeter({
+                current: false,
+                voltage: false,
+                power: {min: 15, max: 3600, change: 1},
+                energy: {min: 15, max: 3600, change: 0},
+            }),
+        ],
         toZigbee: [
             tzLocal.light_onoff_brightness_inovelli,
             tz.power_on_behavior,
@@ -2177,34 +2040,16 @@ const definitions: Definition[] = [
             tzLocal.inovelli_parameters(VZM31_ATTRIBUTES),
             tzLocal.inovelli_parameters_readOnly(VZM31_ATTRIBUTES),
         ],
-        fromZigbee: [
-            fz.on_off,
-            fz.brightness,
-            fz.level_config,
-            fz.power_on_behavior,
-            fz.ignore_basic_report,
-            fz.electrical_measurement,
-            fz.metering,
-            fzLocal.inovelli(VZM31_ATTRIBUTES),
-        ],
-        ota: ota.inovelli,
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report, fzLocal.inovelli(VZM31_ATTRIBUTES)],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering', 'haElectricalMeasurement', 'genOnOff', 'genLevelCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
 
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificInovelli']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-
-            await reporting.activePower(endpoint, {min: 15, max: 3600, change: 1});
-            await reporting.currentSummDelivered(endpoint, {
-                min: 15,
-                max: 3600,
-                change: 0,
-            });
         },
     },
     {
@@ -2212,11 +2057,11 @@ const definitions: Definition[] = [
         model: 'VZM35-SN',
         vendor: 'Inovelli',
         description: 'Fan controller',
-        fromZigbee: [fzLocal.fan_state, fzLocal.fan_mode, fzLocal.breeze_mode, fzLocal.inovelli(VZM35_ATTRIBUTES)],
+        fromZigbee: [fzLocal.fan_state, fzLocal.fan_mode(1), fzLocal.breeze_mode, fzLocal.inovelli(VZM35_ATTRIBUTES)],
         toZigbee: [
             tz.identify,
             tzLocal.fan_state,
-            tzLocal.fan_mode,
+            tzLocal.fan_mode(1),
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
             tzLocal.inovelli_parameters(VZM35_ATTRIBUTES),
@@ -2225,7 +2070,7 @@ const definitions: Definition[] = [
         ],
         exposes: exposesListVZM35.concat(identify().exposes as Expose[]),
         extend: [inovelliExtend.addCustomClusterInovelli()],
-        ota: ota.inovelli,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -2239,17 +2084,11 @@ const definitions: Definition[] = [
         model: 'VZM36',
         vendor: 'Inovelli',
         description: 'Fan canopy module',
-        fromZigbee: [
-            fzLocal.brightness,
-            fzLocal.vzm36_fan_light_state,
-            fzLocal.vzm36_fan_mode,
-            fzLocal.breeze_mode,
-            fzLocal.inovelli(VZM36_ATTRIBUTES),
-        ],
+        fromZigbee: [fzLocal.brightness, fzLocal.vzm36_fan_light_state, fzLocal.fan_mode(2), fzLocal.breeze_mode, fzLocal.inovelli(VZM36_ATTRIBUTES)],
         toZigbee: [
             tz.identify,
             tzLocal.vzm36_fan_on_off, // Need to use VZM36 specific converter
-            tzLocal.vzm36_fan_mode, // Need to use VZM36 specific converter
+            tzLocal.fan_mode(2),
             tzLocal.light_onoff_brightness_inovelli,
             tzLocal.inovelli_parameters(VZM36_ATTRIBUTES),
             tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES),
@@ -2257,7 +2096,7 @@ const definitions: Definition[] = [
         ],
         exposes: exposesListVZM36.concat(identify().exposes as Expose[]),
         extend: [inovelliExtend.addCustomClusterInovelli()],
-        ota: ota.inovelli,
+        ota: true,
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
         configure: async (device, coordinatorEndpoint) => {

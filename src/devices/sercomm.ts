@@ -1,11 +1,13 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SZ-ESW01'],
         model: 'SZ-ESW01',
@@ -126,17 +128,17 @@ const definitions: Definition[] = [
         model: 'SZ-PIR04N',
         vendor: 'Sercomm',
         description: 'PIR motion & temperature sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance, fz.temperature, fz.battery],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement', 'msTemperatureMeasurement', 'genPowerCfg']);
-            await reporting.illuminance(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        exposes: [e.occupancy(), e.tamper(), e.illuminance(), e.temperature(), e.battery(), e.battery_voltage()],
+        exposes: [e.occupancy(), e.tamper(), e.temperature(), e.battery(), e.battery_voltage()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['SZ-WTD03'],

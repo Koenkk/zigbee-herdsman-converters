@@ -1,51 +1,49 @@
 import {Zcl} from 'zigbee-herdsman';
 
+import {repInterval} from '../lib/constants';
 import {
-    ikeaConfigureRemote,
-    ikeaLight,
-    ikeaOta,
-    ikeaConfigureStyrbar,
-    ikeaBattery,
+    addCustomClusterManuSpecificIkeaAirPurifier,
+    addCustomClusterManuSpecificIkeaUnknown,
+    addCustomClusterManuSpecificIkeaVocIndexMeasurement,
     ikeaAirPurifier,
-    legacy as ikeaLegacy,
-    ikeaVoc,
+    ikeaArrowClick,
+    ikeaBattery,
     ikeaConfigureGenPollCtrl,
+    ikeaConfigureRemote,
+    ikeaConfigureStyrbar,
+    ikeaDotsClick,
+    ikeaLight,
+    ikeaMediaCommands,
+    ikeaVoc,
+    styrbarCommandOn,
+    tradfriCommandsLevelCtrl,
+    tradfriCommandsOnOff,
     tradfriOccupancy,
     tradfriRequestedBrightness,
-    tradfriCommandsOnOff,
-    tradfriCommandsLevelCtrl,
-    styrbarCommandOn,
-    ikeaDotsClick,
-    ikeaArrowClick,
-    ikeaMediaCommands,
-    addCustomClusterManuSpecificIkeaUnknown,
-    addCustomClusterManuSpecificIkeaAirPurifier,
-    addCustomClusterManuSpecificIkeaVocIndexMeasurement,
 } from '../lib/ikea';
 import {
-    onOff,
     battery,
+    bindCluster,
+    commandsLevelCtrl,
+    commandsOnOff,
+    commandsWindowCovering,
+    deviceAddCustomCluster,
+    deviceEndpoints,
+    electricityMeter,
+    humidity,
     iasZoneAlarm,
     identify,
-    forcePowerSource,
-    temperature,
-    humidity,
-    occupancy,
     illuminance,
-    windowCovering,
-    commandsOnOff,
-    commandsLevelCtrl,
-    commandsWindowCovering,
-    pm25,
     linkQuality,
-    deviceEndpoints,
-    deviceAddCustomCluster,
-    bindCluster,
+    occupancy,
+    onOff,
+    pm25,
+    temperature,
+    windowCovering,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     // #region light
     // lights naming convention: type, light capabilities, form, diffuser type, brightness
     // #region E26/E27/B22
@@ -57,11 +55,16 @@ const definitions: Definition[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 CWS globe 806lm', 'TRADFRI bulb E26 CWS globe 806lm'],
+        zigbeeModel: [
+            'TRADFRI bulb E26 CWS globe 800lm',
+            'TRADFRI bulb E26 CWS globe 806lm',
+            'TRADFRI bulb E26 CWS globe 810lm',
+            'TRADFRI bulb E27 CWS globe 806lm',
+        ],
         model: 'LED2109G6',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, color/white spectrum, globe, opal, 806 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: true}), identify()],
+        description: 'TRADFRI bulb E26/E27, color/white spectrum, globe, opal, 800/806/810 lm',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: {modes: ['xy', 'hs']}}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm', 'TRADFRI bulb E27 WS\uFFFDclear 950lm'],
@@ -78,11 +81,16 @@ const definitions: Definition[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WW globe 806lm', 'TRADFRI bulb E26 WW globe 800lm', 'TRADFRI bulb E26 WW globe 806lm'],
+        zigbeeModel: [
+            'TRADFRI bulb E26 WW globe 800lm',
+            'TRADFRI bulb E26 WW globe 806lm',
+            'TRADFRI bulb E26 WW globe 810lm',
+            'TRADFRI bulb E27 WW globe 806lm',
+        ],
         model: 'LED2103G5',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, warm white, globe, 806 lumen',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({noOffTransition: true}), identify()],
+        description: 'TRADFRI bulb E26/E27, warm white, globe, 806/810 lumen',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['TRADFRIbulbE26WWglobeclear250lm'],
@@ -104,10 +112,15 @@ const definitions: Definition[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), identify()],
     },
     {
-        zigbeeModel: ['TRADFRIbulbG125E27WSopal470lm', 'TRADFRIbulbG125E26WSopal450lm', 'TRADFRIbulbG125E26WSopal470lm'],
+        zigbeeModel: [
+            'TRADFRIbulbG125E27WSopal470lm',
+            'TRADFRIbulbG125E26WSopal450lm',
+            'TRADFRIbulbG125E26WSopal470lm',
+            'TRADFRIbulbG125E26WSopal440lm',
+        ],
         model: 'LED1936G5',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, white spectrum, globe, opal, 450/470 lm',
+        description: 'TRADFRI bulb E26/E27, white spectrum, globe, opal, 440/450/470 lm',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
@@ -116,7 +129,6 @@ const definitions: Definition[] = [
             'TRADFRIbulbE26WSglobeopal1100lm',
             'TRADFRIbulbE26WSglobeopal1160lm',
             'TRADFRIbulbE26WSglobeopal1055lm',
-            'TRADFRI bulb E26 WS globe 1160lm',
         ],
         model: 'LED2003G10',
         vendor: 'IKEA',
@@ -148,7 +160,7 @@ const definitions: Definition[] = [
         model: 'LED1842G3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, warm white, globe, clear, 250 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({noOffTransition: true}), identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['TRADFRIbulbE27WWclear250lm', 'TRADFRIbulbE26WWclear250lm'],
@@ -193,11 +205,16 @@ const definitions: Definition[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WS globe 1055lm', 'TRADFRI bulb E26 WS globe 1055lm', 'TRADFRI bulb E26 WS globe 1100lm'],
+        zigbeeModel: [
+            'TRADFRI bulb E27 WS globe 1055lm',
+            'TRADFRI bulb E26 WS globe 1055lm',
+            'TRADFRI bulb E26 WS globe 1100lm',
+            'TRADFRI bulb E26 WS globe 1160lm',
+        ],
         model: 'LED2201G8',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/27, white spectrum, globe, opal, 1055/1100 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, noOffTransition: true}), identify()],
+        description: 'TRADFRI bulb E26/27, white spectrum, globe, opal, 1055/1100/1160 lm',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRIbulbPAR38WS900lm'],
@@ -237,7 +254,7 @@ const definitions: Definition[] = [
         model: 'LED2107C4',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14, white spectrum, candle, opal, 470 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, noOffTransition: true}), identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 400lm', 'TRADFRI bulb E12 WS opal 400lm'],
@@ -298,11 +315,7 @@ const definitions: Definition[] = [
         model: 'LED1925G6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E17, color/white spectrum, globe, opal, 440/450/470 lm',
-        extend: [
-            addCustomClusterManuSpecificIkeaUnknown(),
-            ikeaLight({colorTemp: true, color: true, turnsOffAtBrightness1: true, noOffTransition: true}),
-            identify(),
-        ],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: true, turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRIbulbE14WWclear250lm', 'TRADFRIbulbE12WWclear250lm', 'TRADFRIbulbE17WWclear250lm'],
@@ -319,18 +332,18 @@ const definitions: Definition[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), identify()],
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm', 'TRADFRIbulbE12WScandleopal450lm'],
+        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm', 'TRADFRIbulbE12WScandleopal450lm', 'TRADFRIbulbE17WScandleopal440lm'],
         model: 'LED1949C5',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E12/E14, white spectrum, candle, opal, 450/470 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, noOffTransition: true}), identify()],
+        description: 'TRADFRI bulb E12/E14/E17, white spectrum, candle, opal, 450/470/440 lm',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm'],
+        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm', 'TRADFRI bulb E12 CWS globe 800lm', 'TRADFRI bulb E17 CWS globe 810lm'],
         model: 'LED2111G6',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E14, color/white spectrum, globe, opal, 806 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: true}), identify()],
+        description: 'TRADFRI bulb E12/E14/E17, color/white spectrum, globe, opal, 800/806/810 lm',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, color: {modes: ['xy', 'hs']}}), identify()],
     },
     // #endregion E12/E14/E17
     // #region GU10
@@ -345,7 +358,7 @@ const definitions: Definition[] = [
         model: 'LED2104R3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, warm white, 345/380 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({noOffTransition: true}), identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 WS 400lm'],
@@ -375,7 +388,7 @@ const definitions: Definition[] = [
         description: 'TRADFRI bulb GU10, color/white spectrum, 345/380 lm',
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
-            ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true, noOffTransition: true}), // light is pure RGB (XY), advertise 2000K-6500K
+            ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
             identify(),
         ],
     },
@@ -390,7 +403,7 @@ const definitions: Definition[] = [
         model: 'LED2005R5/LED2106R3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, white spectrum, 345/380 lm',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, noOffTransition: true}), identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), identify()],
     },
     // #endregion GU10
     // #region light panels
@@ -572,34 +585,48 @@ const definitions: Definition[] = [
         model: 'E1603/E1702/E1708',
         vendor: 'IKEA',
         description: 'TRADFRI control outlet',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify()],
+        ota: true,
     },
     {
         zigbeeModel: ['ASKVADER on/off switch'],
         model: 'E1836',
         vendor: 'IKEA',
         description: 'ASKVADER on/off switch',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify()],
+        ota: true,
     },
     {
         zigbeeModel: ['KNYCKLAN receiver'],
         model: 'E1842',
         vendor: 'IKEA',
         description: 'KNYCKLAN electronic dishwasher shut-off unit',
-        extend: [
-            addCustomClusterManuSpecificIkeaUnknown(),
-            onOff(),
-            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
-            identify(),
-            ikeaOta(),
-        ],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}), identify()],
+        ota: true,
     },
     {
         zigbeeModel: ['TRETAKT Smart plug'],
         model: 'E2204',
         vendor: 'IKEA',
         description: 'TRETAKT smart plug',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify()],
+        ota: true,
+    },
+    {
+        zigbeeModel: ['INSPELNING Smart plug'],
+        model: 'E2206',
+        vendor: 'IKEA',
+        description: 'INSPELNING smart plug',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), onOff(), identify(), electricityMeter()],
+        ota: true,
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            // Enable reporting of powerDivisor, needs to change dynamically with the amount of power
+            // For details, see: https://github.com/Koenkk/zigbee2mqtt/issues/23961#issuecomment-2366733453
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {attribute: 'acPowerDivisor', minimumReportInterval: 10, maximumReportInterval: repInterval.MAX, reportableChange: 1},
+            ]);
+        },
     },
     // #endregion on/off controls
     // #region blinds
@@ -614,8 +641,8 @@ const definitions: Definition[] = [
             windowCovering({controls: ['lift']}),
             identify(),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['KADRILJ roller blind'],
@@ -628,8 +655,8 @@ const definitions: Definition[] = [
             windowCovering({controls: ['lift']}),
             identify(),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['PRAKTLYSING cellular blind'],
@@ -642,8 +669,8 @@ const definitions: Definition[] = [
             windowCovering({controls: ['lift']}),
             identify(),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['TREDANSEN block-out cellul blind'],
@@ -656,8 +683,8 @@ const definitions: Definition[] = [
             windowCovering({controls: ['lift']}),
             identify(),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     // #endregion blinds
     // #region appliances
@@ -669,14 +696,16 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'IKEA', model: 'E2006', description: 'STARKVIND air purifier table', fingerprint: [{modelID: 'STARKVIND Air purifier table'}]},
         ],
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), addCustomClusterManuSpecificIkeaAirPurifier(), ikeaAirPurifier(), identify(), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), addCustomClusterManuSpecificIkeaAirPurifier(), ikeaAirPurifier(), identify()],
+        ota: true,
     },
     {
         zigbeeModel: ['TRADFRI signal repeater'],
         model: 'E1746',
         vendor: 'IKEA',
         description: 'TRADFRI signal repeater',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), identify(), linkQuality({reporting: true}), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), identify(), linkQuality({reporting: true})],
+        ota: true,
     },
     // #endregion appliances
     // #region remotes
@@ -690,11 +719,10 @@ const definitions: Definition[] = [
             identify({isSleepy: true}),
             commandsLevelCtrl({
                 commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'],
-                legacyAction: true,
             }),
             battery({dontDividePercentage: true}),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['TRADFRI remote control'],
@@ -709,8 +737,8 @@ const definitions: Definition[] = [
             tradfriCommandsLevelCtrl(),
             ikeaArrowClick(),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['Remote Control N2'],
@@ -726,30 +754,24 @@ const definitions: Definition[] = [
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop'], bind: false}),
             ikeaArrowClick({styrbar: true, bind: false}),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['TRADFRI on/off switch'],
         model: 'E1743',
         vendor: 'IKEA',
         description: 'TRADFRI on/off switch',
-        fromZigbee: [
-            // DEPRECATED
-            ikeaLegacy.fromZigbee.E1743_brightness_up,
-            ikeaLegacy.fromZigbee.E1743_brightness_down,
-            ikeaLegacy.fromZigbee.E1743_brightness_stop,
-        ],
         meta: {disableActionGroup: true},
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
-            commandsOnOff({commands: ['on', 'off'], legacyAction: true}),
+            commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['KNYCKLAN Open/Close remote'],
@@ -763,8 +785,8 @@ const definitions: Definition[] = [
             identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off']}),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['TRADFRI SHORTCUT Button'],
@@ -778,46 +800,37 @@ const definitions: Definition[] = [
             commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_stop']}),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['SYMFONISK Sound Controller'],
         model: 'E1744',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 1',
-        fromZigbee: [
-            // DEPRECATED
-            ikeaLegacy.fromZigbee.E1744_play_pause,
-            ikeaLegacy.fromZigbee.E1744_skip,
-        ],
         extend: [
             identify({isSleepy: true}),
             commandsOnOff({commands: ['toggle']}),
             commandsLevelCtrl({
                 commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down'],
-                legacyAction: true,
             }),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['TRADFRI open/close remote'],
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        extend: [ikeaConfigureRemote(), identify({isSleepy: true}), commandsWindowCovering({legacyAction: true}), ikeaBattery(), ikeaOta()],
+        extend: [ikeaConfigureRemote(), identify({isSleepy: true}), commandsWindowCovering(), ikeaBattery()],
+        ota: true,
     },
     {
         zigbeeModel: ['SYMFONISK sound remote gen2'],
         model: 'E2123',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 2',
-        fromZigbee: [
-            // DEPRECATED
-            ikeaLegacy.fromZigbee.E1744_play_pause,
-        ],
         extend: [
             bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
             deviceEndpoints({endpoints: {'1': 2, '2': 3}}),
@@ -826,8 +839,8 @@ const definitions: Definition[] = [
             ikeaMediaCommands(),
             ikeaDotsClick({endpointNames: ['1', '2'], dotsPrefix: true}),
             battery({voltage: true}),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['RODRET Dimmer'],
@@ -841,8 +854,8 @@ const definitions: Definition[] = [
             commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             battery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['SOMRIG shortcut button'],
@@ -856,8 +869,8 @@ const definitions: Definition[] = [
             identify({isSleepy: true}),
             ikeaDotsClick({endpointNames: ['1', '2']}),
             battery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     // #endregion remotes
     // #region sensors
@@ -868,20 +881,18 @@ const definitions: Definition[] = [
         description: 'TRADFRI motion sensor',
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
-            forcePowerSource({powerSource: 'Battery'}),
             tradfriOccupancy(),
             tradfriRequestedBrightness(),
             identify({isSleepy: true}),
             ikeaBattery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['VINDSTYRKA'],
         model: 'E2112',
         vendor: 'IKEA',
         description: 'VINDSTYRKA air quality and humidity sensor',
-        ota: ota.zigbeeOTA,
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
@@ -899,13 +910,15 @@ const definitions: Definition[] = [
             ikeaVoc(),
             identify(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['VALLHORN Wireless Motion Sensor'],
         model: 'E2134',
         vendor: 'IKEA',
         description: 'VALLHORN wireless motion sensor',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), occupancy(), illuminance(), identify({isSleepy: true}), battery(), ikeaOta()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), occupancy(), illuminance(), identify({isSleepy: true}), battery()],
+        ota: true,
     },
     {
         zigbeeModel: ['PARASOLL Door/Window Sensor'],
@@ -916,11 +929,16 @@ const definitions: Definition[] = [
             addCustomClusterManuSpecificIkeaUnknown(),
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             bindCluster({cluster: 'ssIasZone', clusterType: 'input', endpointNames: ['2']}),
-            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
+            iasZoneAlarm({
+                zoneType: 'contact',
+                zoneAttributes: ['alarm_1'],
+                // This is required to prevent the device's reported state being stuck after it quickly changed back and forth:
+                zoneStatusReporting: true,
+            }),
             identify({isSleepy: true}),
             battery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ['BADRING Water Leakage Sensor'],
@@ -930,11 +948,16 @@ const definitions: Definition[] = [
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             bindCluster({cluster: 'ssIasZone', clusterType: 'input'}),
-            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
+            iasZoneAlarm({
+                zoneType: 'water_leak',
+                zoneAttributes: ['alarm_1'],
+                // This is required to prevent the device's reported state being stuck after it quickly changed back and forth:
+                zoneStatusReporting: true,
+            }),
             identify({isSleepy: true}),
             battery(),
-            ikeaOta(),
         ],
+        ota: true,
     },
     // #endregion sensors
 ];

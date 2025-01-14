@@ -3,14 +3,15 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_jak16dll']),
         model: '07752L',
@@ -105,7 +106,7 @@ const definitions: Definition[] = [
         model: '07046L',
         vendor: 'Immax',
         description: '4-Touch single click buttons',
-        fromZigbee: [legacy.fz.immax_07046L_arm, fz.command_panic],
+        fromZigbee: [fz.command_arm, fz.command_panic],
         exposes: [e.action(['disarm', 'arm_stay', 'arm_away', 'panic'])],
         toZigbee: [],
     },
@@ -142,7 +143,7 @@ const definitions: Definition[] = [
         model: '07703L',
         vendor: 'Immax',
         description: 'Radiator valve',
-        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_1, legacy.fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_2, legacy.fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [
             legacy.tz.etop_thermostat_system_mode,
             legacy.tz.etop_thermostat_away_mode,
@@ -183,17 +184,17 @@ const definitions: Definition[] = [
         model: '07047L',
         vendor: 'Immax',
         description: 'Intelligent motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.illuminance, fz.humidity, fz.ignore_iaszone_report],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.humidity, fz.ignore_iaszone_report],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement'];
+            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.temperature(endpoint);
             await reporting.humidity(endpoint);
-            await reporting.illuminance(endpoint);
         },
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.temperature(), e.humidity()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['ColorTemperature'],
@@ -215,14 +216,12 @@ const definitions: Definition[] = [
         model: '07502L',
         vendor: 'Immax',
         description: '4 in 1 multi sensor',
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
+        fromZigbee: [fz.battery, fz.ignore_basic_report, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
         exposes: [
             e.occupancy(),
             e.tamper(),
             e.battery(),
-            e.illuminance(),
-            e.illuminance_lux().withUnit('lx'),
             e.temperature(),
             e.humidity(),
             e.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes').withValueMin(0).withValueMax(1440),
@@ -235,6 +234,7 @@ const definitions: Definition[] = [
             e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
             e.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds'),
         ],
+        extend: [m.illuminance()],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n9clpsht', '_TZE200_nyvavzbj', '_TZE200_moycceze']),

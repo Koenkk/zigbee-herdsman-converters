@@ -3,13 +3,13 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const NS = 'zhc:profalux';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['MAI-ZTS'],
         fingerprint: [
@@ -56,9 +56,9 @@ const definitions: Definition[] = [
             //  2: soft cover (aka store)     : 2xF Stop + Down
 
             if ((device == null && options == null) || endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType') == 1) {
-                return [e.cover_position_tilt(), e.linkquality()];
+                return [e.cover_position_tilt()];
             } else {
-                return [e.cover_position(), e.linkquality()];
+                return [e.cover_position()];
             }
         },
         configure: async (device, coordinatorEndpoint) => {

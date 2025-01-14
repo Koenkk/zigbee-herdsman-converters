@@ -2,24 +2,45 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {
+    battery,
+    commandsLevelCtrl,
+    commandsOnOff,
     deviceEndpoints,
     electricityMeter,
-    light,
-    onOff,
-    battery,
-    occupancy,
-    temperature,
-    illuminance,
     humidity,
-    identify,
     iasZoneAlarm,
+    identify,
+    illuminance,
+    light,
+    occupancy,
+    onOff,
+    temperature,
 } from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['ROB_200-081-0'],
+        model: 'ROB_200-081-0',
+        vendor: 'ROBB',
+        description: '4-button wireless Zigbee switch',
+        extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            battery(),
+            commandsOnOff({endpointNames: ['1', '2', '3', '4']}),
+            commandsLevelCtrl({endpointNames: ['1', '2', '3', '4']}),
+        ],
+    },
+    {
+        zigbeeModel: ['ROB_200-004-1'],
+        model: 'ROB_200-004-1',
+        vendor: 'ROBB',
+        description: 'ZigBee AC phase-cut dimmer',
+        extend: [light({configureReporting: true})],
+    },
     {
         zigbeeModel: ['ROB_200-060-0'],
         model: 'ROB_200-060-0',
@@ -236,7 +257,7 @@ const definitions: Definition[] = [
             ]),
         ],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K4-DIM2'}],
     },
     {

@@ -1,13 +1,13 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZBT-DIMLight-GLS0800'],
         model: 'ZBT-DIMLight-GLS0800',
@@ -69,14 +69,7 @@ const definitions: Definition[] = [
         model: '6ARCZABZH',
         vendor: 'Leedarson',
         description: '4-Key Remote Controller',
-        fromZigbee: [
-            fz.command_on,
-            fz.command_off,
-            legacy.fz.CCTSwitch_D0001_on_off,
-            fz.CCTSwitch_D0001_levelctrl,
-            fz.CCTSwitch_D0001_lighting,
-            fz.battery,
-        ],
+        fromZigbee: [fz.command_on, fz.command_off, fz.CCTSwitch_D0001_levelctrl, fz.CCTSwitch_D0001_lighting, fz.battery],
         exposes: [
             e.battery(),
             e.action([
@@ -111,18 +104,20 @@ const definitions: Definition[] = [
         model: '5AA-SS-ZA-H0',
         vendor: 'Leedarson',
         description: 'Motion sensor',
-        fromZigbee: [fz.occupancy, fz.illuminance, fz.ignore_occupancy_report],
+        fromZigbee: [fz.occupancy, fz.ignore_occupancy_report],
         toZigbee: [],
-        exposes: [e.occupancy(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.occupancy()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['ZB-SMART-PIRTH-V1'],
         model: '7A-SS-ZABC-H0',
         vendor: 'Leedarson',
         description: '4-in-1-Sensor',
-        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.illuminance, fz.temperature, fz.humidity, fz.ignore_occupancy_report],
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.ignore_occupancy_report],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity()],
+        exposes: [e.battery(), e.occupancy(), e.temperature(), e.humidity()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['ZB-MotionSensor-S0000'],

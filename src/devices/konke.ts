@@ -1,9 +1,9 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
 import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
 
 const e = exposes.presets;
@@ -24,13 +24,13 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['3AFE170100510001', '3AFE280100510001'],
         model: '2AJZ4KPKEY',
         vendor: 'Konke',
         description: 'Multi-function button',
-        fromZigbee: [fz.konke_action, fz.battery, legacy.fz.konke_click],
+        fromZigbee: [fz.konke_action, fz.battery],
         toZigbee: [],
         exposes: [e.battery_low(), e.battery(), e.action(['single', 'double', 'hold'])],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
@@ -102,9 +102,10 @@ const definitions: Definition[] = [
         model: 'KK-ES-J01W',
         vendor: 'Konke',
         description: 'Temperature, relative humidity and illuminance sensor',
-        fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
+        fromZigbee: [fz.battery, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
+        exposes: [e.battery(), e.battery_voltage(), e.humidity(), e.temperature()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['3AFE241000040002'],

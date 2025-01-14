@@ -2,3 +2,7 @@
       Since you are the file owner, could you check this @martyn-vesternet?
   pathFilter:
       - 'src/devices/vesternet.ts'
+- markdown: |
+      Since you are the file owner, could you check this @candeodevelopment / @dhc25?
+  pathFilter:
+      - 'src/devices/candeo.ts'

@@ -4,13 +4,22 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import * as globalStore from '../lib/store';
+import {DefinitionWithExtend, Zh} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const setTime = async (device: Zh.Device) => {
+    const endpoint = device.getEndpoint(1);
+    const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
+    // Time-master + synchronised
+    const values = {timeStatus: 1, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
+    await endpoint.write('genTime', values);
+};
+
+const definitions: DefinitionWithExtend[] = [
     {
         // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
         // changing those two too.
@@ -67,7 +76,6 @@ const definitions: Definition[] = [
         exposes: (device, options) => {
             const maxSetpoint = ['TRV001', 'TRV003'].includes(device?.modelID) ? 32 : 35;
             return [
-                e.linkquality(),
                 e.battery(),
                 e.keypad_lockout(),
                 e.programming_operation_mode(),
@@ -126,16 +134,17 @@ const definitions: Definition[] = [
                             'TRV is not accurate enough: If the radiator is covered behind curtains or furniture, if the room is rather big, or ' +
                             'if the radiator itself is big and the flow temperature is high, then the temperature in the room may easily diverge ' +
                             'from the `local_temperature` measured by the TRV by 5°C to 8°C. In this case you might choose to use an external ' +
-                            'room sensor and send the measured value of the external room sensor to the `External_measured_room_sensor` property.' +
+                            'room sensor and send the measured value of the external room sensor to the `External_measured_room_sensor` property. ' +
                             'The way the TRV operates on the `External_measured_room_sensor` depends on the setting of the `Radiator_covered` ' +
                             'property: If `Radiator_covered` is `false` (Auto Offset Mode): You *must* set the `External_measured_room_sensor` ' +
                             'property *at least* every 3 hours. After 3 hours the TRV disables this function and resets the value of the ' +
                             '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
-                            'property *at most* every 30 minutes or every 0.1K change in measured room temperature.' +
+                            'property *at most* every 30 minutes or every 0.1°C change in measured room temperature. ' +
                             'If `Radiator_covered` is `true` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property *at ' +
                             'least* every 30 minutes. After 35 minutes the TRV disables this function and resets the value of the ' +
                             '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
-                            'property *at most* every 5 minutes or every 0.1K change in measured room temperature.',
+                            'property *at most* every 5 minutes or every 0.1°C change in measured room temperature. ' +
+                            'The unit of this value is 0.01 `°C` (so e.g. 21°C would be represented as 2100).',
                     )
                     .withValueMin(-8000)
                     .withValueMax(3500),
@@ -208,7 +217,7 @@ const definitions: Definition[] = [
                     .withValueMax(25),
             ];
         },
-        ota: ota.zigbeeOTA,
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
@@ -295,7 +304,7 @@ const definitions: Definition[] = [
                     ],
                     options,
                 );
-            } catch (e) {
+            } catch {
                 /* not supported by all */
             }
 
@@ -321,7 +330,7 @@ const definitions: Definition[] = [
                     ],
                     options,
                 );
-            } catch (e) {
+            } catch {
                 /* not supported by all https://github.com/Koenkk/zigbee2mqtt/issues/11872 */
             }
 
@@ -333,14 +342,32 @@ const definitions: Definition[] = [
 
             // Seems that it is bug in Danfoss, device does not asks for the time with binding
             // So, we need to write time during configure (same as for HEIMAN devices)
-            const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
-            // Time-master + synchronised
-            const values = {timeStatus: 3, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
-            await endpoint.write('genTime', values);
+            await setTime(device);
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
+            } else if (['deviceAnnounce', 'start'].includes(type)) {
+                // The device might have lost its time, so reset it. It would be more proper to check if
+                // the danfossSystemStatusCode has bit 10 of the SW error code attribute (0x4000) in the
+                // diagnostics cluster (0x0b05) is set to indicate time lost, but setting it once too many
+                // times shouldn't hurt.
+                await setTime(device);
+
+                if (!globalStore.hasValue(device, 'interval')) {
+                    // Set up a timer to refresh the time once a week to mitigate timer drift, as described
+                    // in the Danfoss documentation. Be careful to not bump this timer past the signed 32-bit
+                    // integer limit of setInterval, which is roughly 24.8 days.
+                    const interval = setInterval(async () => await setTime(device), 10080000);
+                    globalStore.putValue(device, 'interval', interval);
+                }
+            }
         },
     },
     {
         fingerprint: [
+            {modelID: '0x0200', manufacturerName: 'Danfoss'}, // Icon Basic Main Controller
             {modelID: '0x8020', manufacturerName: 'Danfoss'}, // RT24V Display
             {modelID: '0x8021', manufacturerName: 'Danfoss'}, // RT24V Display  Floor sensor
             {modelID: '0x8030', manufacturerName: 'Danfoss'}, // RTbattery Display

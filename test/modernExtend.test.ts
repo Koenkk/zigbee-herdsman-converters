@@ -1,7 +1,8 @@
-import {repInterval} from '../src/lib/constants';
-import {philipsFz} from '../src/lib/philips';
-import {fromZigbee as lumiFz} from '../src/lib/lumi';
 import fz from '../src/converters/fromZigbee';
+import {repInterval} from '../src/lib/constants';
+import {fromZigbee as lumiFz} from '../src/lib/lumi';
+import {setupAttributes} from '../src/lib/modernExtend';
+import {philipsFz} from '../src/lib/philips';
 import {assertDefintion, mockDevice, reportingItem} from './utils';
 
 describe('ModernExtend', () => {
@@ -15,6 +16,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -27,7 +29,7 @@ describe('ModernExtend', () => {
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness)', 'power_on_behavior'],
             bind: [],
             read: [],
             configureReporting: [],
@@ -44,6 +46,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -64,7 +67,7 @@ describe('ModernExtend', () => {
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup)', 'power_on_behavior'],
             bind: [],
             read: {
                 1: [
@@ -86,6 +89,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -110,7 +114,7 @@ describe('ModernExtend', () => {
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_xy,color_hs)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_xy,color_hs)', 'power_on_behavior'],
             bind: [],
             read: {
                 1: [
@@ -132,6 +136,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -157,7 +162,7 @@ describe('ModernExtend', () => {
                 'flash',
                 'power_on_behavior',
             ],
-            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'power_on_behavior'],
             bind: [],
             read: {
                 1: [
@@ -174,8 +179,19 @@ describe('ModernExtend', () => {
             device: mockDevice({modelID: 'SP 120', endpoints: [{inputClusters: ['genOnOff', 'haElectricalMeasurement', 'seMetering']}]}),
             meta: undefined,
             fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-            toZigbee: ['state', 'on_time', 'off_wait_time', 'power', 'voltage', 'current', 'energy'],
-            exposes: ['current', 'energy', 'linkquality', 'power', 'switch(state)', 'voltage'],
+            toZigbee: [
+                'state',
+                'on_time',
+                'off_wait_time',
+                'power',
+                'voltage',
+                'current',
+                'energy',
+                'produced_energy',
+                'ac_frequency',
+                'power_factor',
+            ],
+            exposes: ['current', 'energy', 'power', 'switch(state)', 'voltage'],
             bind: {1: ['genOnOff', 'haElectricalMeasurement', 'seMetering']},
             read: {
                 1: [
@@ -195,7 +211,7 @@ describe('ModernExtend', () => {
                             reportingItem('rmsVoltage', 10, 65000, 5),
                         ],
                     ],
-                    ['seMetering', [reportingItem('currentSummDelivered', 10, 65000, [0, 10])]],
+                    ['seMetering', [reportingItem('currentSummDelivered', 10, 65000, 10)]],
                 ],
             },
         });
@@ -222,6 +238,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -256,7 +273,7 @@ describe('ModernExtend', () => {
                 'gradient',
                 'gradient_scene',
                 'light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)',
-                'linkquality',
+
                 'power_on_behavior',
             ],
             bind: {1: ['manuSpecificPhilips2']},
@@ -270,7 +287,7 @@ describe('ModernExtend', () => {
         });
     });
 
-    test(`ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: ota.zigbeeOTA})`, async () => {
+    test(`ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: true})`, async () => {
         await assertDefintion({
             device: mockDevice({
                 modelID: 'Zigbee 3.0 DALI CONV LI',
@@ -288,6 +305,7 @@ describe('ModernExtend', () => {
                 'brightness',
                 'brightness_percent',
                 'on_time',
+                'off_wait_time',
                 'transition',
                 'level_config',
                 'rate',
@@ -303,7 +321,15 @@ describe('ModernExtend', () => {
                 'osram_set_transition',
                 'osram_remember_state',
             ],
-            exposes: ['action', 'effect', 'light_l1(state,brightness)', 'light_l2(state,brightness)', 'light_s1(state,brightness)', 'linkquality'],
+            exposes: [
+                'action',
+                'effect',
+                'effect',
+                'effect',
+                'light_l1(state,brightness)',
+                'light_l2(state,brightness)',
+                'light_s1(state,brightness)',
+            ],
             bind: {
                 10: ['genOnOff', 'genLevelCtrl'],
                 11: ['genOnOff', 'genLevelCtrl'],
@@ -353,7 +379,7 @@ describe('ModernExtend', () => {
             meta: {multiEndpoint: true},
             fromZigbee: [fz.on_off],
             toZigbee: ['state', 'on_time', 'off_wait_time'],
-            exposes: ['linkquality', 'switch_bottom(state)', 'switch_top(state)'],
+            exposes: ['switch_bottom(state)', 'switch_top(state)'],
             bind: {
                 1: ['genOnOff'],
                 2: ['genOnOff'],
@@ -385,7 +411,7 @@ describe('ModernExtend', () => {
                 expect.objectContaining({cluster: 'manuSpecificLumi'}),
             ],
             toZigbee: ['air_quality', 'voc', 'temperature', 'humidity', 'display_unit'],
-            exposes: ['air_quality', 'battery', 'device_temperature', 'display_unit', 'humidity', 'linkquality', 'temperature', 'voc', 'voltage'],
+            exposes: ['air_quality', 'battery', 'device_temperature', 'display_unit', 'humidity', 'temperature', 'voc', 'voltage'],
             bind: {
                 1: ['genPowerCfg', 'genAnalogInput', 'msTemperatureMeasurement', 'msRelativeHumidity'],
             },
@@ -408,5 +434,42 @@ describe('ModernExtend', () => {
                 ],
             },
         });
+    });
+
+    test('Setup attributes', async () => {
+        const device = mockDevice({modelID: '', endpoints: [{inputClusters: ['haElectricalMeasurement']}]});
+        const deviceEp = device.endpoints[0];
+        const coordinator = mockDevice({modelID: '', endpoints: [{}]});
+        const coordinatorEp = coordinator.endpoints[0];
+        const config = {min: 0, max: 10, change: 1};
+        const expectedConfig = {maximumReportInterval: 10, minimumReportInterval: 0, reportableChange: 1};
+
+        await setupAttributes(deviceEp, coordinator.endpoints[0], 'haElectricalMeasurement', [
+            {attribute: '1', ...config},
+            {attribute: '2', ...config},
+            {attribute: '3', ...config},
+            {attribute: '4', ...config},
+            {attribute: '5', ...config},
+            {attribute: '6', ...config},
+        ]);
+
+        expect(deviceEp.bind).toHaveBeenCalledTimes(1);
+        expect(deviceEp.bind).toHaveBeenCalledWith('haElectricalMeasurement', coordinatorEp);
+
+        expect(deviceEp.configureReporting).toHaveBeenCalledTimes(2);
+        expect(deviceEp.configureReporting).toHaveBeenNthCalledWith(1, 'haElectricalMeasurement', [
+            {attribute: '1', ...expectedConfig},
+            {attribute: '2', ...expectedConfig},
+            {attribute: '3', ...expectedConfig},
+            {attribute: '4', ...expectedConfig},
+        ]);
+        expect(deviceEp.configureReporting).toHaveBeenNthCalledWith(2, 'haElectricalMeasurement', [
+            {attribute: '5', ...expectedConfig},
+            {attribute: '6', ...expectedConfig},
+        ]);
+
+        expect(deviceEp.read).toHaveBeenCalledTimes(2);
+        expect(deviceEp.read).toHaveBeenNthCalledWith(1, 'haElectricalMeasurement', ['1', '2', '3', '4']);
+        expect(deviceEp.read).toHaveBeenNthCalledWith(2, 'haElectricalMeasurement', ['5', '6']);
     });
 });

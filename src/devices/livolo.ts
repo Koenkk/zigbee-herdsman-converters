@@ -2,7 +2,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as globalStore from '../lib/store';
-import {Definition, Zh} from '../lib/types';
+import {DefinitionWithExtend, Zh} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -11,12 +12,12 @@ const poll = async (device: Zh.Device) => {
         const endpoint = device.getEndpoint(6);
         const options = {transactionSequenceNumber: 0, srcEndpoint: 8, disableResponse: true, disableRecovery: true};
         await endpoint.command('genOnOff', 'toggle', {}, options);
-    } catch (error) {
+    } catch {
         // device is lost, need to permit join
     }
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TI0001          '],
         model: 'TI0001',
@@ -270,7 +271,7 @@ const definitions: Definition[] = [
             if (['start', 'deviceAnnounce'].includes(type)) {
                 await poll(device);
                 if (!globalStore.hasValue(device, 'interval')) {
-                    const interval = setInterval(async () => await poll(device), 10 * 1000);
+                    const interval = setInterval(async () => await poll(device), 300 * 1000);
                     globalStore.putValue(device, 'interval', interval);
                 }
             }
@@ -311,7 +312,7 @@ const definitions: Definition[] = [
             if (['start', 'deviceAnnounce'].includes(type)) {
                 await poll(device);
                 if (!globalStore.hasValue(device, 'interval')) {
-                    const interval = setInterval(async () => await poll(device), 60 * 1000);
+                    const interval = setInterval(async () => await poll(device), 300 * 1000);
                     globalStore.putValue(device, 'interval', interval);
                 }
             }

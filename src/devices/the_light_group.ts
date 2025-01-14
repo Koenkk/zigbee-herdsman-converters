@@ -3,11 +3,11 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['S24019'],
         model: 'S24019',
@@ -81,6 +81,13 @@ const definitions: Definition[] = [
         vendor: 'The Light Group',
         description: 'SLC SmartOne CV led dimmable driver',
         extend: [light()],
+    },
+    {
+        zigbeeModel: ['S32055'],
+        model: 'S32055',
+        vendor: 'The Light Group',
+        description: 'SLC SmartOne TW led dimmable driver 24V/75W',
+        extend: [light({colorTemp: {range: [160, 450]}})],
     },
 ];
 

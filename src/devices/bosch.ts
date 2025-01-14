@@ -6,25 +6,27 @@ import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import {
-    identify,
-    light,
-    onOff,
-    quirkCheckinInterval,
-    deviceAddCustomCluster,
-    binary,
-    numeric,
-    enumLookup,
     battery,
+    binary,
+    bindCluster,
+    deviceAddCustomCluster,
+    deviceEndpoints,
+    electricityMeter,
+    enumLookup,
     humidity,
     iasZoneAlarm,
-    bindCluster,
-    ota,
-    deviceEndpoints,
+    identify,
+    light,
+    numeric,
+    onOff,
+    quirkCheckinInterval,
 } from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Tz, Fz, Definition, KeyValue, ModernExtend, Expose} from '../lib/types';
+import {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -244,7 +246,7 @@ const boschExtend = {
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
-                    if (msg.data.hasOwnProperty('valveAdaptStatus')) {
+                    if (msg.data.valveAdaptStatus !== undefined) {
                         if (msg.data['valveAdaptStatus'] === adaptationStatus.calibration_in_progress) {
                             result.valve_adapt_process = true;
                         } else {
@@ -291,7 +293,7 @@ const boschExtend = {
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
-                    if (msg.data.hasOwnProperty('heatingDemand')) {
+                    if (msg.data.heatingDemand !== undefined) {
                         const demand = msg.data['heatingDemand'] as number;
                         result.pi_heating_demand = demand;
                         result.running_state = demand > 0 ? 'heat' : 'idle';
@@ -366,7 +368,7 @@ const boschExtend = {
                 cluster: 'ssIasZone',
                 type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty('zoneStatus') || msg.data.hasOwnProperty('zonestatus')) {
+                    if (msg.data.zoneStatus !== undefined || msg.data.zonestatus !== undefined) {
                         const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
                         const lookup: KeyValue = {0x00: 'none', 0x01: 'single', 0x02: 'long'};
                         const result: KeyValue = {
@@ -417,7 +419,7 @@ const boschExtend = {
                 cluster: 'ssIasZone',
                 type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty('zoneStatus') || msg.data.hasOwnProperty('zonestatus')) {
+                    if (msg.data.zoneStatus !== undefined || msg.data.zonestatus !== undefined) {
                         const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
                         return {
                             smoke: (zoneStatus & 1) > 0,
@@ -564,7 +566,7 @@ const boschExtend = {
                 .withUnit('ppm')
                 .withDescription('The measured CO2 (carbon dioxide) value'),
             e.numeric('aqi', ea.STATE).withValueMin(0).withValueMax(500).withValueStep(1).withLabel('AQI').withDescription('Air Quality Index'),
-            e.numeric('illuminance_lux', ea.STATE).withUnit('lx').withDescription('Measured illuminance in lux'),
+            e.illuminance(),
             e
                 .numeric('battery', ea.STATE)
                 .withUnit('%')
@@ -585,7 +587,7 @@ const boschExtend = {
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
-                    if (msg.data.hasOwnProperty('sensitivity')) {
+                    if (msg.data.sensitivity !== undefined) {
                         result.sensitivity = Object.keys(smokeSensitivity)[msg.data['sensitivity']];
                     }
                     return result;
@@ -596,13 +598,13 @@ const boschExtend = {
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
-                    if (msg.data.hasOwnProperty('humidity')) {
+                    if (msg.data.humidity !== undefined) {
                         const humidity = utils.toNumber(msg.data['humidity']) / 100.0;
                         if (utils.isInRange(0, 100, humidity)) {
                             result.humidity = humidity;
                         }
                     }
-                    if (msg.data.hasOwnProperty('airpurity')) {
+                    if (msg.data.airpurity !== undefined) {
                         const iaq = utils.toNumber(msg.data['airpurity']);
                         result.aqi = iaq;
                         let factorVoc = 6;
@@ -626,13 +628,13 @@ const boschExtend = {
                         result.voc = iaq * factorVoc;
                         result.co2 = iaq * factorCo2 + 400;
                     }
-                    if (msg.data.hasOwnProperty('temperature')) {
+                    if (msg.data.temperature !== undefined) {
                         result.temperature = utils.toNumber(msg.data['temperature']) / 100.0;
                     }
-                    if (msg.data.hasOwnProperty('illuminance_lux')) {
-                        result.illuminance_lux = utils.precisionRound(msg.data['illuminance_lux'] / 2, 2);
+                    if (msg.data.illuminance !== undefined) {
+                        result.illuminance = utils.precisionRound(msg.data['illuminance'] / 2, 2);
                     }
-                    if (msg.data.hasOwnProperty('battery')) {
+                    if (msg.data.battery !== undefined) {
                         result.battery = utils.precisionRound(msg.data['battery'] / 2, 2);
                     }
                     return result;
@@ -643,7 +645,7 @@ const boschExtend = {
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
-                    if (msg.data.hasOwnProperty('pre_alarm')) {
+                    if (msg.data.pre_alarm !== undefined) {
                         result.pre_alarm = Object.keys(stateOffOn)[msg.data['pre_alarm']];
                     }
                     return result;
@@ -654,7 +656,7 @@ const boschExtend = {
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
-                    if (msg.data.hasOwnProperty('heartbeat')) {
+                    if (msg.data.heartbeat !== undefined) {
                         result.heartbeat = Object.keys(stateOffOn)[msg.data['heartbeat']];
                     }
                     return result;
@@ -673,7 +675,7 @@ const boschExtend = {
                         0x00200081: 'fire',
                         0x00200040: 'silenced',
                     };
-                    if (msg.data.hasOwnProperty('alarm_status')) {
+                    if (msg.data.alarm_status !== undefined) {
                         result.self_test = (msg.data['alarm_status'] & (1 << 24)) > 0;
                         result.smoke = (msg.data['alarm_status'] & (1 << 7)) > 0;
                         result.siren_state = lookup[msg.data['alarm_status']];
@@ -803,7 +805,7 @@ const boschExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
                     const data = msg.data;
-                    if (data.hasOwnProperty('deviceMode')) {
+                    if (data.deviceMode !== undefined) {
                         result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data['deviceMode']);
                         const deviceMode = msg.data['deviceMode'];
                         if (deviceMode !== meta.device.meta.deviceMode) {
@@ -811,26 +813,26 @@ const boschExtend = {
                             meta.deviceExposesChanged();
                         }
                     }
-                    if (data.hasOwnProperty('switchType')) {
+                    if (data.switchType !== undefined) {
                         result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data['switchType']);
                     }
-                    if (data.hasOwnProperty('calibrationOpeningTime')) {
+                    if (data.calibrationOpeningTime !== undefined) {
                         result.calibration_opening_time = msg.data['calibrationOpeningTime'] / 10;
                     }
-                    if (data.hasOwnProperty('calibrationClosingTime')) {
+                    if (data.calibrationClosingTime !== undefined) {
                         result.calibration_closing_time = msg.data['calibrationClosingTime'] / 10;
                     }
-                    if (data.hasOwnProperty('calibrationButtonHoldTime')) {
+                    if (data.calibrationButtonHoldTime !== undefined) {
                         result.calibration_button_hold_time = msg.data['calibrationButtonHoldTime'] / 10;
                     }
-                    if (data.hasOwnProperty('calibrationMotorStartDelay')) {
+                    if (data.calibrationMotorStartDelay !== undefined) {
                         result.calibration_motor_start_delay = msg.data['calibrationMotorStartDelay'] / 10;
                     }
-                    if (data.hasOwnProperty('childLock')) {
+                    if (data.childLock !== undefined) {
                         const property = utils.postfixWithEndpointName('child_lock', msg, model, meta);
                         result[property] = msg.data['childLock'] === 1 ? 'ON' : 'OFF';
                     }
-                    if (data.hasOwnProperty('motorState')) {
+                    if (data.motorState !== undefined) {
                         result.motor_state = Object.keys(stateMotor).find((key) => stateMotor[key] === msg.data['motorState']);
                     }
                     return result;
@@ -1032,13 +1034,13 @@ const tzLocal = {
     bhius_config: {
         key: Object.keys(buttonMap),
         convertGet: async (entity, key, meta) => {
-            if (!buttonMap.hasOwnProperty(key)) {
+            if (buttonMap[key] === undefined) {
                 throw new Error(`Unknown key ${key}`);
             }
             await entity.read('boschSpecific', [buttonMap[key as keyof typeof buttonMap]], manufacturerOptions);
         },
         convertSet: async (entity, key, value, meta) => {
-            if (!buttonMap.hasOwnProperty(key)) {
+            if (buttonMap[key] === undefined) {
                 return;
             }
 
@@ -1067,7 +1069,7 @@ const fzLocal = {
             const longPress = msg.data.readUInt8(5);
             const duration = msg.data.readUInt16LE(6);
             let buffer;
-            if (options.hasOwnProperty('led_response')) {
+            if (options.led_response !== undefined) {
                 buffer = Buffer.from(options.led_response as string, 'hex');
                 if (buffer.length !== 9) {
                     logger.error(`Invalid length of led_response: ${buffer.length} (should be 9)`, NS);
@@ -1103,7 +1105,7 @@ const fzLocal = {
         convert: async (model, msg, publish, options, meta) => {
             const result: {[key: number | string]: string} = {};
             for (const id of Object.values(buttonMap)) {
-                if (msg.data.hasOwnProperty(id)) {
+                if (msg.data[id] !== undefined) {
                     result[Object.keys(buttonMap).find((key) => buttonMap[key] === id)] = msg.data[id].toString('hex');
                 }
             }
@@ -1112,7 +1114,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RBSH-OS-ZB-EU'],
         model: 'BSIR-EZ',
@@ -1126,7 +1128,9 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read(0x0502, [0xa000, 0xa001, 0xa002, 0xa003, 0xa004, 0xa005], manufacturerOptions);
-            await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            }
         },
         exposes: [
             e.binary('alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Alarm turn ON/OFF'),
@@ -1318,17 +1322,17 @@ const definitions: Definition[] = [
         model: 'RADON TriTech ZB',
         vendor: 'Bosch',
         description: 'Wireless motion detector',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.illuminance],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg', 'msIlluminanceMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            await reporting.illuminance(endpoint);
         },
-        exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['ISW-ZPR1-WP13'],
@@ -1347,7 +1351,7 @@ const definitions: Definition[] = [
         exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['RBSH-TRV0-ZB-EU'],
+        zigbeeModel: ['RBSH-TRV0-ZB-EU', 'RBSH-TRV1-ZB-EU'],
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
@@ -1464,8 +1468,8 @@ const definitions: Definition[] = [
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
-            ota(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacUserInterfaceCfg']);
@@ -1552,8 +1556,8 @@ const definitions: Definition[] = [
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
-            ota(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacUserInterfaceCfg']);
@@ -1615,8 +1619,8 @@ const definitions: Definition[] = [
             boschExtend.childLock(),
             boschExtend.displayOntime(),
             boschExtend.displayBrightness(),
-            ota(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacUserInterfaceCfg']);
@@ -1669,7 +1673,7 @@ const definitions: Definition[] = [
                     unknown2: {ID: 0x4002, type: Zcl.DataType.UINT16},
                     airpurity: {ID: 0x4003, type: Zcl.DataType.UINT16},
                     temperature: {ID: 0x4004, type: Zcl.DataType.INT16},
-                    illuminance_lux: {ID: 0x4005, type: Zcl.DataType.UINT16},
+                    illuminance: {ID: 0x4005, type: Zcl.DataType.UINT16},
                     battery: {ID: 0x4006, type: Zcl.DataType.UINT16},
                     unknown3: {ID: 0x4007, type: Zcl.DataType.UINT16},
                     unknown4: {ID: 0x4008, type: Zcl.DataType.UINT16},
@@ -1761,28 +1765,15 @@ const definitions: Definition[] = [
         model: 'BSP-FZ2',
         vendor: 'Bosch',
         description: 'Plug compact EU',
-        fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        extend: [ota()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 1]});
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.activePower(endpoint);
-        },
-        exposes: [e.switch(), e.power_on_behavior(), e.power(), e.energy()],
+        extend: [onOff(), electricityMeter({voltage: false, current: false})],
+        ota: true,
         whiteLabel: [
             {vendor: 'Bosch', model: 'BSP-EZ2', description: 'Plug compact FR', fingerprint: [{modelID: 'RBSH-SP-ZB-FR'}]},
             {vendor: 'Bosch', model: 'BSP-GZ2', description: 'Plug compact UK', fingerprint: [{modelID: 'RBSH-SP-ZB-GB'}]},
         ],
     },
     {
-        zigbeeModel: ['RBSH-SWD-ZB'],
+        zigbeeModel: ['RBSH-SWD-ZB', 'RBSH-SWD2-ZB'],
         model: 'BSEN-C2',
         vendor: 'Bosch',
         description: 'Door/window contact II',
@@ -1906,7 +1897,6 @@ const definitions: Definition[] = [
             };
             const commonExposes = [
                 e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType)).withDescription('Module controlled by a rocker switch or a button'),
-                e.linkquality(),
             ];
             const lightExposes = [
                 e.switch().withEndpoint('left'),
@@ -1960,7 +1950,7 @@ const definitions: Definition[] = [
                     return [...commonExposes, ...coverExposes];
                 }
             }
-            return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'), e.linkquality()];
+            return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode')];
         },
     },
     {

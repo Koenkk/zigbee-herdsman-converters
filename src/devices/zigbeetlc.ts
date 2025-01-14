@@ -1,6 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {battery, binary, enumLookup, humidity, numeric, ota, quirkAddEndpointCluster, temperature} from '../lib/modernExtend';
+import {battery, binary, enumLookup, humidity, numeric, temperature} from '../lib/modernExtend';
 
 const extend = {
     comfortDisplay: binary({
@@ -61,11 +61,6 @@ const extend = {
         attribute: {ID: 0x0106, type: Zcl.DataType.ENUM8},
         description: 'Whether to enable the device display.',
     }),
-    endpointQuirk: quirkAddEndpointCluster({
-        endpointID: 1,
-        outputClusters: ['genOta'],
-        inputClusters: ['genBasic', 'genPowerCfg', 'genIdentify', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement', 'msRelativeHumidity'],
-    }),
     humidityCalibration: numeric({
         name: 'humidity_calibration',
         unit: '%',
@@ -120,6 +115,8 @@ const definitions = [
             {modelID: 'LYWSD03MMC-bz', manufacturerName: 'Xiaomi'},
             {modelID: 'MHO-C122-z', manufacturerName: 'MiaoMiaoCe'},
             {modelID: 'MHO-C122-bz', manufacturerName: 'MiaoMiaoCe'},
+            {modelID: 'MHO-C401-z', manufacturerName: 'MiaoMiaoCe'},
+            {modelID: 'MHO-C401-bz', manufacturerName: 'MiaoMiaoCe'},
             {modelID: 'MHO-C401N-z', manufacturerName: 'MiaoMiaoCe'},
             {modelID: 'MHO-C401N-bz', manufacturerName: 'MiaoMiaoCe'},
         ],
@@ -141,9 +138,8 @@ const definitions = [
             extend.humidityCalibration,
             extend.measurementInterval,
             battery(),
-            extend.endpointQuirk,
-            ota(),
         ],
+        ota: true,
     },
     /*
         ZigbeeTLc devices supporting:
@@ -169,9 +165,8 @@ const definitions = [
             extend.humidityCalibration,
             extend.measurementInterval,
             battery(),
-            extend.endpointQuirk,
-            ota(),
         ],
+        ota: true,
     },
     /*
         ZigbeeTLc devices supporting:
@@ -200,9 +195,8 @@ const definitions = [
             extend.humidityCalibration,
             extend.measurementInterval,
             battery(),
-            extend.endpointQuirk,
-            ota(),
         ],
+        ota: true,
     },
 ];
 

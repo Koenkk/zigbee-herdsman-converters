@@ -1,5 +1,6 @@
-import {Definition, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
-import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
+import type {Types as ZHTypes} from 'zigbee-herdsman';
+
+import {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -46,7 +47,7 @@ const lockExtend = (meta = {}, lockStateOptions: Reporting.Override | false = nu
                 await reporting.batteryPercentageRemaining(endpoint);
                 try {
                     await reporting.batteryAlarmState(endpoint);
-                } catch (e) {
+                } catch {
                     // Fails for some: https://github.com/Koenkk/zigbee-herdsman-converters/pull/5414
                 }
             },
@@ -60,7 +61,7 @@ const fzLocal = {
         cluster: 'genAlarms',
         type: ['commandAlarm'],
         convert: async (model, msg, publish, options, meta) => {
-            let result: KeyValue = {};
+            let result: ZHTypes.KeyValue = {};
             if (msg.data.clusterid == 64512) {
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
@@ -98,7 +99,7 @@ const fzLocal = {
             // We need to read the lock attributes as these are not reported by the device
             try {
                 await msg.endpoint.read('manuSpecificAssaDoorLock', ['batteryLevel']);
-            } catch (error) {
+            } catch {
                 logger.warning(`Failed to read lock attributes`, NS);
             }
             return result;
@@ -109,7 +110,7 @@ const fzLocal = {
         type: ['readResponse'],
         convert: async (model, msg, publish, options, meta) => {
             const data = msg.data;
-            const result: KeyValue = {};
+            const result: ZHTypes.KeyValue = {};
             if (data['18']) {
                 const lookup = {
                     0: 'off',
@@ -185,7 +186,7 @@ const fzLocal = {
         cluster: 'genAlarms',
         type: ['commandAlarm'],
         convert: async (model, msg, publish, options, meta) => {
-            let result: KeyValue = {};
+            let result: ZHTypes.KeyValue = {};
             if (msg.data.clusterid == 64512) {
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
@@ -202,7 +203,7 @@ const fzLocal = {
                     // We need to read the lock state as the alarm code is unknown
                     try {
                         await msg.endpoint.read('closuresDoorLock', ['lockState']);
-                    } catch (error) {
+                    } catch {
                         logger.warning(`Failed to read lock state`, NS);
                     }
                 } else {
@@ -249,7 +250,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['YRD446 BLE TSDB'],
         model: 'YRD426NRSC',
@@ -422,6 +423,13 @@ const definitions: Definition[] = [
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
         extend: [lockExtend({battery: {dontDividePercentage: true}})],
+    },
+    {
+        zigbeeModel: ['06e0152204'],
+        model: 'YMI70A',
+        vendor: 'Yale',
+        description: 'Biometric digital lock',
+        extend: [battery(), lock({pinCodeCount: 100})],
     },
     {
         fingerprint: [

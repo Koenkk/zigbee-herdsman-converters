@@ -3,11 +3,11 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SPW35Z-D0'],
         model: 'ZHS-15',
@@ -60,6 +60,13 @@ const definitions: Definition[] = [
         vendor: 'Schwaiger',
         description: 'LED candle bulb E14 470 lumen, dimmable, color, white 1800-6500K',
         extend: [light({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        zigbeeModel: ['ZBT-RGBWLight-GU100114'],
+        model: 'HAL550',
+        vendor: 'Schwaiger',
+        description: 'Smart light bulb LED RGB dimmable GU10',
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
 

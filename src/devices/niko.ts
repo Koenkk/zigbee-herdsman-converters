@@ -2,8 +2,9 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -14,7 +15,7 @@ const local = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
-                if (msg.data.hasOwnProperty('switchOperationMode')) {
+                if (msg.data.switchOperationMode !== undefined) {
                     const operationModeMap = {0x02: 'control_relay', 0x01: 'decoupled', 0x00: 'unknown'};
                     state['operation_mode'] = utils.getFromLookup(msg.data.switchOperationMode, operationModeMap);
                 }
@@ -27,7 +28,7 @@ const local = {
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
-                if (msg.data.hasOwnProperty('switchAction')) {
+                if (msg.data.switchAction !== undefined) {
                     // NOTE: a single press = two separate values reported, 16 followed by 64
                     //       a hold/release cycle = three separate values, 16, 32, and 48
                     const actionMap: KeyValue =
@@ -71,10 +72,10 @@ const local = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
-                if (msg.data.hasOwnProperty('outletLedState')) {
+                if (msg.data.outletLedState !== undefined) {
                     state['led_enable'] = msg.data['outletLedState'] == 1;
                 }
-                if (msg.data.hasOwnProperty('outletLedColor')) {
+                if (msg.data.outletLedColor !== undefined) {
                     state['led_state'] = msg.data['outletLedColor'] == 255 ? 'ON' : 'OFF';
                 }
                 return state;
@@ -85,10 +86,10 @@ const local = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
-                if (msg.data.hasOwnProperty('outletChildLock')) {
+                if (msg.data.outletChildLock !== undefined) {
                     state['child_lock'] = msg.data['outletChildLock'] == 0 ? 'LOCK' : 'UNLOCK';
                 }
-                if (msg.data.hasOwnProperty('outletLedState')) {
+                if (msg.data.outletLedState !== undefined) {
                     state['led_enable'] = msg.data['outletLedState'] == 1;
                 }
                 return state;
@@ -103,16 +104,16 @@ const local = {
                 //       this seems to brick the device and it will need to be rejoined
                 utils.assertEndpoint(entity);
                 const operationModeLookup = {control_relay: 0x02, decoupled: 0x01};
-                // @ts-expect-error
-                if (!operationModeLookup.hasOwnProperty(value)) {
+                // @ts-expect-error ignore
+                if (operationModeLookup[value] === undefined) {
                     throw new Error(`operation_mode was called with an invalid value (${value})`);
                 } else {
                     await utils.enforceEndpoint(entity, key, meta).write(
                         'manuSpecificNiko1',
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         {switchOperationMode: operationModeLookup[value]},
                     );
-                    // @ts-expect-error
+                    // @ts-expect-error ignore
                     return {state: {operation_mode: value.toLowerCase()}};
                 }
             },
@@ -167,7 +168,7 @@ const local = {
     },
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Connected socket outlet'],
         model: '170-33505/170-34605',

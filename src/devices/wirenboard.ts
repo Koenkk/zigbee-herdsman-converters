@@ -2,13 +2,16 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import * as modernExtend from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {Configure, Definition, Fz, KeyValueAny, ModernExtend, Tz} from '../lib/types';
+import {Configure, DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz} from '../lib/types';
+import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
+
 const e = exposes.presets;
 const ea = exposes.access;
-import * as modernExtend from '../lib/modernExtend';
-import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
-const {forcePowerSource, temperature, humidity, co2, deviceEndpoints, onOff, illuminance, occupancy, ota} = modernExtend;
+
+const {forcePowerSource, temperature, humidity, co2, deviceEndpoints, onOff, illuminance, occupancy} = modernExtend;
 
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -31,7 +34,7 @@ const fzLocal = {
         cluster: 'msOccupancySensing',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('sprutOccupancyLevel')) {
+            if (msg.data.sprutOccupancyLevel !== undefined) {
                 return {occupancy_level: msg.data['sprutOccupancyLevel']};
             }
         },
@@ -40,7 +43,7 @@ const fzLocal = {
         cluster: 'sprutVoc',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('voc')) {
+            if (msg.data.voc !== undefined) {
                 return {voc: msg.data['voc']};
             }
         },
@@ -49,7 +52,7 @@ const fzLocal = {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('noise')) {
+            if (msg.data.noise !== undefined) {
                 return {noise: msg.data['noise'].toFixed(2)};
             }
         },
@@ -58,7 +61,7 @@ const fzLocal = {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('noiseDetected')) {
+            if (msg.data.noiseDetected !== undefined) {
                 return {noise_detected: msg.data['noiseDetected'] === 1};
             }
         },
@@ -95,10 +98,10 @@ const fzLocal = {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('sprutCO2AutoCalibration')) {
+            if (msg.data.sprutCO2AutoCalibration !== undefined) {
                 return {co2_autocalibration: switchActionValues[msg.data['sprutCO2AutoCalibration']]};
             }
-            if (msg.data.hasOwnProperty('sprutCO2Calibration')) {
+            if (msg.data.sprutCO2Calibration !== undefined) {
                 return {co2_manual_calibration: switchActionValues[msg.data['sprutCO2Calibration']]};
             }
         },
@@ -107,7 +110,7 @@ const fzLocal = {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('sprutHeater')) {
+            if (msg.data.sprutHeater !== undefined) {
                 return {th_heater: switchActionValues[msg.data['sprutHeater']]};
             }
         },
@@ -126,7 +129,7 @@ const tzLocal = {
                 reservedBits: 0,
                 direction: 0,
                 writeUndiv: false,
-                // @ts-expect-error
+                // @ts-expect-error ignore
                 transactionSequenceNumber: null,
             };
 
@@ -402,7 +405,7 @@ const sprutModernExtend = {
                         reservedBits: 0,
                         direction: 0,
                         writeUndiv: false,
-                        // @ts-expect-error
+                        // @ts-expect-error ignore
                         transactionSequenceNumber: null,
                     };
 
@@ -452,7 +455,7 @@ const {
     sprutIrBlaster,
 } = sprutModernExtend;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['WBMSW3'],
         model: 'WB-MSW-ZIGBEE v.3',
@@ -460,7 +463,6 @@ const definitions: Definition[] = [
         description: 'Wall-mounted multi sensor',
         fromZigbee: [
             fzLocal.temperature,
-            fz.illuminance,
             fz.humidity,
             fz.occupancy,
             fzLocal.occupancy_level,
@@ -489,8 +491,6 @@ const definitions: Definition[] = [
         ],
         exposes: [
             e.temperature(),
-            e.illuminance(),
-            e.illuminance_lux(),
             e.humidity(),
             e.occupancy(),
             e.occupancy_level(),
@@ -560,7 +560,6 @@ const definitions: Definition[] = [
             const binds = [
                 'genBasic',
                 'msTemperatureMeasurement',
-                'msIlluminanceMeasurement',
                 'msRelativeHumidity',
                 'msOccupancySensing',
                 'msCO2',
@@ -573,7 +572,6 @@ const definitions: Definition[] = [
 
             // report configuration
             await reporting.temperature(endpoint1);
-            await reporting.illuminance(endpoint1);
             await reporting.humidity(endpoint1);
             await reporting.occupancy(endpoint1);
 
@@ -596,7 +594,8 @@ const definitions: Definition[] = [
             return {default: 1, l1: 2, l2: 3, l3: 4};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
-        extend: [ota()],
+        ota: true,
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['WBMSW4'],
@@ -627,8 +626,8 @@ const definitions: Definition[] = [
             sprutNoiseTimeout(),
             sprutVoc(),
             sprutIrBlaster(),
-            ota(),
         ],
+        ota: true,
     },
 ];
 

@@ -2,8 +2,9 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, light, onOff, quirkCheckinInterval, temperature} from '../lib/modernExtend';
+import {nodonPilotWire} from '../lib/nodon';
 import * as reporting from '../lib/reporting';
-import {Definition, Fz, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -34,7 +35,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['LDSENK08'],
         model: 'LDSENK08',
@@ -214,6 +215,13 @@ const definitions: Definition[] = [
         extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
+        zigbeeModel: ['ZBEK-32'],
+        model: 'ZBEK-32',
+        vendor: 'ADEO',
+        description: 'ENKI Inspire Extraflat D12',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
         zigbeeModel: ['ZBEK-34'],
         model: '84870058',
         vendor: 'ADEO',
@@ -319,7 +327,10 @@ const definitions: Definition[] = [
         exposes: [e.warning(), e.battery(), e.battery_low(), e.tamper()],
         extend: [quirkCheckinInterval(0)],
         configure: async (device, coordinatorEndpoint) => {
-            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            if (endpoint.binds.some((b) => b.cluster.name === 'genPollCtrl')) {
+                await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+            }
         },
     },
     {
@@ -389,19 +400,19 @@ const definitions: Definition[] = [
         model: 'SIN-4-FP-21_EQU',
         vendor: 'ADEO',
         description: 'Equation pilot wire heating module',
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
-        toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
-        exposes: [e.switch(), e.power(), e.energy(), e.pilot_wire_mode()],
+        ota: true,
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
             await reporting.readMeteringMultiplierDivisor(ep);
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
-            const p = reporting.payload('mode', 0, 120, 0, {min: 1, max: 3600, change: 0});
-            await ep.configureReporting('manuSpecificNodOnPilotWire', p);
         },
+        extend: [...nodonPilotWire(true)],
     },
     {
         zigbeeModel: ['ZB-Remote-D0001'],
@@ -429,6 +440,13 @@ const definitions: Definition[] = [
             humidity(),
             iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
         ],
+    },
+    {
+        zigbeeModel: ['ZB-DoorSensor-D0007'],
+        model: 'ZB-DoorSensor-D0007',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN wireless smart door window sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
     },
 ];
 

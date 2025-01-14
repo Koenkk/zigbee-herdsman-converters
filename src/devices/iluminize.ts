@@ -2,23 +2,43 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {
+    battery,
+    commandsColorCtrl,
+    commandsLevelCtrl,
+    commandsOnOff,
+    commandsScenes,
     deviceEndpoints,
+    identify,
     light,
     onOff,
-    battery,
-    identify,
-    commandsOnOff,
-    commandsLevelCtrl,
-    commandsColorCtrl,
-    commandsScenes,
 } from '../lib/modernExtend';
-import * as ota from '../lib/ota';
-import {Definition} from '../lib/types';
+import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['ZGRC-KEY-005'],
+        model: '5144.01',
+        vendor: 'Iluminize',
+        description: 'RGB CCT 3 in 1 Remote Controller',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl(), commandsColorCtrl()],
+    },
+    {
+        zigbeeModel: ['ZGRC-KEY-001'],
+        model: '5144.11',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 wall dimmer with switches',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl()],
+    },
+    {
+        zigbeeModel: ['ZGRC-KEY-002'],
+        model: '5144.21',
+        vendor: 'Iluminize',
+        description: 'Single color wall mounted push button remote',
+        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl(), commandsColorCtrl()],
+    },
     {
         zigbeeModel: ['5121.10'],
         model: '5121.10',
@@ -56,6 +76,13 @@ const definitions: Definition[] = [
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 dimming actuator mini 1x 230V',
         extend: [light({configureReporting: true})],
+    },
+    {
+        zigbeeModel: ['511.020'],
+        model: '511.020',
+        vendor: 'iluminize',
+        description: 'Zigbee 3.0 LED controller multi 4 - 5A, CCT WW/CW LED',
+        extend: [light({colorTemp: {range: [155, 450]}})],
     },
     {
         zigbeeModel: ['5120.1100'],
@@ -128,7 +155,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_via_brightness],
         exposes: [e.cover_position()],
-        ota: ota.zigbeeOTA,
+        ota: true,
     },
     {
         zigbeeModel: ['ZG2801K2-G1-RGB-CCT-LEAD'],
