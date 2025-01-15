@@ -24,6 +24,7 @@ import {
     setupConfigureForReading,
     temperature,
 } from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -682,7 +683,10 @@ const definitions: DefinitionWithExtend[] = [
                 .enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
                 .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)'),
         ],
-        whiteLabel: [{vendor: 'Elko', model: 'EKO07090'}],
+        whiteLabel: [
+            {vendor: 'Elko', model: 'EKO07090'},
+            {vendor: 'Schneider Electric', model: '550B1012'},
+        ],
     },
     {
         zigbeeModel: ['PUCK/SWITCH/1'],
@@ -1664,16 +1668,16 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CCT595011',
         vendor: 'Schneider Electric',
         description: 'Wiser motion sensor',
-        fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_occupancy_only_alarm_2, fz.illuminance],
+        fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_occupancy_only_alarm_2],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genPowerCfg', 'msIlluminanceMeasurement'];
+            const binds = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
         },
-        exposes: [e.battery(), e.illuminance(), e.occupancy()],
+        exposes: [e.battery(), e.occupancy()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['CH/Socket/2'],

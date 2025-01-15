@@ -294,17 +294,17 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.lockState !== undefined) {
-                result.state = msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK';
+                result[postfixWithEndpointName('state', msg, model, meta)] = msg.data.lockState == 1 ? 'LOCK' : 'UNLOCK';
                 const lookup = ['not_fully_locked', 'locked', 'unlocked'];
-                result.lock_state = lookup[msg.data['lockState']];
+                result[postfixWithEndpointName('lock_state', msg, model, meta)] = lookup[msg.data['lockState']];
             }
 
             if (msg.data.autoRelockTime !== undefined) {
-                result.auto_relock_time = msg.data.autoRelockTime;
+                result[postfixWithEndpointName('auto_relock_time', msg, model, meta)] = msg.data.autoRelockTime;
             }
 
             if (msg.data.soundVolume !== undefined) {
-                result.sound_volume = constants.lockSoundVolume[msg.data.soundVolume];
+                result[postfixWithEndpointName('sound_volume', msg, model, meta)] = constants.lockSoundVolume[msg.data.soundVolume];
             }
 
             if (msg.data.doorState !== undefined) {
@@ -316,7 +316,7 @@ const converters1 = {
                     4: 'error_unspecified',
                     0xff: 'undefined',
                 };
-                result.door_state = lookup[msg.data['doorState']];
+                result[postfixWithEndpointName('door_state', msg, model, meta)] = lookup[msg.data['doorState']];
             }
             return result;
         },
@@ -483,15 +483,6 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const soilMoisture = parseFloat(msg.data['measuredValue']) / 100.0;
             return {soil_moisture: soilMoisture};
-        },
-    } satisfies Fz.Converter,
-    illuminance: {
-        cluster: 'msIlluminanceMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
-            return {illuminance: illuminanceLux};
         },
     } satisfies Fz.Converter,
     pressure: {
@@ -1924,16 +1915,15 @@ const converters1 = {
             const result = converters1.thermostat.convert(model, msg, publish, options, meta) as KeyValue;
             const data = msg.data;
             if (data.localTemp !== undefined) {
-                const value = precisionRound(msg.data['localTemp'], 2) / 100;
+                let value = precisionRound(msg.data['localTemp'], 2) / 100;
                 const valuesFloorSensor = ['floor', 'supervisor_floor'];
                 const sensorType = meta.state.sensor as string;
                 const floorTemperature = meta.state.floor_temp as number;
                 if (valuesFloorSensor.includes(sensorType) && options.local_temperature_based_on_sensor) {
-                    result[postfixWithEndpointName('local_temperature', msg, model, meta)] = floorTemperature / 100;
-                } else {
-                    if (value >= -273.15) {
-                        result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
-                    }
+                    value = floorTemperature;
+                }
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
                 }
             }
             if (data.elkoDisplayText !== undefined) {
@@ -5310,26 +5300,6 @@ const converters2 = {
                     publish(result);
                 }
             }
-        },
-    } satisfies Fz.Converter,
-    nodon_pilot_wire_mode: {
-        cluster: 'manuSpecificNodOnPilotWire',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload: KeyValueAny = {};
-            const mode = msg.data['mode'];
-
-            if (mode === 0x00) payload.pilot_wire_mode = 'off';
-            else if (mode === 0x01) payload.pilot_wire_mode = 'comfort';
-            else if (mode === 0x02) payload.pilot_wire_mode = 'eco';
-            else if (mode === 0x03) payload.pilot_wire_mode = 'frost_protection';
-            else if (mode === 0x04) payload.pilot_wire_mode = 'comfort_-1';
-            else if (mode === 0x05) payload.pilot_wire_mode = 'comfort_-2';
-            else {
-                logger.warning(`wrong mode : ${mode}`, NS);
-                payload.pilot_wire_mode = 'unknown';
-            }
-            return payload;
         },
     } satisfies Fz.Converter,
     TS110E: {

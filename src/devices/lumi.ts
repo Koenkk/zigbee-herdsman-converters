@@ -1,6 +1,5 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import * as lumi from '../lib/lumi';
@@ -22,6 +21,7 @@ import {
     temperature,
     windowCovering,
 } from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend} from '../lib/types';
@@ -2994,17 +2994,10 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4043GL'}],
         description: 'Mi light sensor',
-        fromZigbee: [fz.battery, fz.illuminance, lumi.fromZigbee.lumi_specific],
-        toZigbee: [tz.illuminance],
+        fromZigbee: [fz.battery, lumi.fromZigbee.lumi_specific],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR')],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
-            await endpoint.read('genPowerCfg', ['batteryVoltage']);
-        },
-        exposes: [e.battery(), e.battery_voltage(), e.illuminance().withAccess(ea.STATE_GET)],
+        extend: [quirkCheckinInterval('1_HOUR'), m.illuminance()],
+        exposes: [e.battery(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.light.acn128'],
@@ -3530,13 +3523,12 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GZCGQ11LM',
         vendor: 'Aqara',
         description: 'Light sensor T1',
-        fromZigbee: [fz.battery, fz.illuminance, lumi.fromZigbee.lumi_specific],
+        fromZigbee: [fz.battery, lumi.fromZigbee.lumi_specific],
         toZigbee: [lumi.toZigbee.lumi_detection_period],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
         exposes: [
             e.battery(),
             e.battery_voltage(),
-            e.illuminance(),
             e
                 .numeric('detection_period', exposes.access.ALL)
                 .withValueMin(1)
@@ -3549,7 +3541,7 @@ const definitions: DefinitionWithExtend[] = [
             await device.getEndpoint(1).write('manuSpecificLumi', {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
             await endpoint.read('manuSpecificLumi', [0x0000], {manufacturerCode: manufacturerCode});
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA(), m.illuminance({reporting: false})],
     },
     {
         zigbeeModel: ['lumi.plug.sacn03'],
@@ -4460,6 +4452,14 @@ const definitions: DefinitionWithExtend[] = [
             lumiLight({colorTemp: true, endpointNames: ['white']}),
             lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ['xy', 'hs']}, endpointNames: ['rgb']}),
             lumiZigbeeOTA(),
+            enumLookup({
+                name: 'power_on_behaviour',
+                lookup: {on: 0, previous: 1, off: 2},
+                cluster: 'manuSpecificLumi',
+                attribute: {ID: 0x0517, type: 0x20},
+                description: 'Controls the behavior when the device is powered on after power loss',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
         ],
     },
     {

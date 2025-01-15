@@ -3,6 +3,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {battery, iasZoneAlarm, light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend, Reporting, Zh} from '../lib/types';
@@ -16,17 +17,15 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HS1MIS-3.0',
         vendor: 'HEIMAN',
         description: 'Smart occupancy sensor',
-        fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery(), e.illuminance()],
+        fromZigbee: [fz.occupancy, fz.battery],
+        exposes: [e.occupancy(), e.battery()],
         configure: async (device, cordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, cordinatorEndpoint, ['msOccupancySensing', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint1);
             await reporting.occupancy(endpoint1);
-            await reporting.bind(endpoint1, cordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint1);
         },
+        extend: [m.illuminance()],
     },
     {
         fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
@@ -104,6 +103,7 @@ const definitions: DefinitionWithExtend[] = [
             'c3442b4ac59b4ba1a83119d938f283ab',
             'SmokeSensor-EF-3.0',
             'SMOK_HV14',
+            'HK-SENSOR-SMO',
         ],
         model: 'HS1SA',
         vendor: 'HEIMAN',

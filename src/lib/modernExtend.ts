@@ -12,6 +12,7 @@ import {
     BatteryLinearVoltage,
     BatteryNonLinearVoltage,
     Configure,
+    DefinitionExposes,
     DefinitionExposesFunction,
     DefinitionMeta,
     Expose,
@@ -651,7 +652,7 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
         return result;
     };
 
-    return numeric({
+    const result = numeric({
         name: 'illuminance',
         cluster: 'msIlluminanceMeasurement',
         attribute: 'measuredValue',
@@ -662,6 +663,24 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
         access: 'STATE_GET',
         ...args,
     });
+
+    const fzIlluminanceRaw = {
+        cluster: 'msIlluminanceMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        options: [opt.illuminance_raw()],
+        convert: (model, msg, publish, options, meta) => {
+            if (options.illuminance_raw) {
+                return {illuminance_raw: msg.data['measuredValue']};
+            }
+        },
+    } satisfies Fz.Converter;
+    result.fromZigbee.push(fzIlluminanceRaw);
+    const exposeIlluminanceRaw: DefinitionExposes = (device, options) => {
+        return options?.illuminance_raw ? [e.illuminance_raw()] : [];
+    };
+    result.exposes.push(exposeIlluminanceRaw);
+
+    return result;
 }
 
 export function temperature(args?: Partial<NumericArgs>) {
@@ -1267,8 +1286,11 @@ export function lock(args?: LockArgs): ModernExtend {
         setupConfigureForReporting('closuresDoorLock', 'lockState', {min: 'MIN', max: '1_HOUR', change: 0}, ea.STATE_GET),
     ];
     const meta: DefinitionMeta = {pinCodeCount: args.pinCodeCount};
-
-    return {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
+    const result: ModernExtend = {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
+    if (args.endpointNames) {
+        result.exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
+    }
+    return result;
 }
 
 export interface WindowCoveringArgs {
@@ -1415,6 +1437,7 @@ export interface IasArgs {
     zoneType: iasZoneType;
     zoneAttributes: iasZoneAttribute[];
     alarmTimeout?: boolean;
+    keepAliveTimeout?: number;
     zoneStatusReporting?: boolean;
     description?: string;
     manufacturerZoneAttributes?: manufacturerZoneAttribute[];
@@ -1489,7 +1512,8 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                         globalStore.putValue(msg.endpoint, 'timer', timer);
                     }
                 }
-                const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+                const isChange = msg.type === 'commandStatusChangeNotification';
+                const zoneStatus = isChange ? msg.data.zonestatus : msg.data.zoneStatus;
                 if (zoneStatus !== undefined) {
                     let payload = {};
                     if (args.zoneAttributes.includes('tamper')) {
@@ -1525,13 +1549,28 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                         alarm2Payload = !alarm2Payload;
                     }
 
-                    if (bothAlarms) {
+                    // Can't just alarm1Payload || alarm2Payload as an unused alarm's bit might be always 1 or random in the received data
+                    let addTimeout = false;
+                    if (args.zoneAttributes.includes('alarm_1')) {
                         payload = {[alarm1Name]: alarm1Payload, ...payload};
+                        addTimeout ||= alarm1Payload;
+                    }
+                    if (args.zoneAttributes.includes('alarm_2')) {
                         payload = {[alarm2Name]: alarm2Payload, ...payload};
-                    } else if (args.zoneAttributes.includes('alarm_1')) {
-                        payload = {[alarm1Name]: alarm1Payload, ...payload};
-                    } else if (args.zoneAttributes.includes('alarm_2')) {
-                        payload = {[alarm2Name]: alarm2Payload, ...payload};
+                        addTimeout ||= alarm2Payload;
+                    }
+                    if (isChange && args.keepAliveTimeout > 0) {
+                        // This sensor continuously sends occupation updates as long as motion is detected; (re)start a timeout
+                        // each time we receive one, in case the clearance message gets lost. Normally, these kinds of sensors
+                        // send a clearance message, so this is an additional safety measure.
+                        clearTimeout(globalStore.getValue(msg.endpoint, 'timeout'));
+                        if (addTimeout) {
+                            // At least one zone active
+                            const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), args.keepAliveTimeout * 1000);
+                            globalStore.putValue(msg.endpoint, 'timeout', timer);
+                        } else {
+                            globalStore.clearValue(msg.endpoint, 'timeout');
+                        }
                     }
 
                     if (args.manufacturerZoneAttributes)
@@ -2062,7 +2101,7 @@ export interface NumericArgs {
     access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     unit?: string;
     endpointNames?: string[];
-    reporting?: ReportingConfigWithoutAttribute;
+    reporting?: false | ReportingConfigWithoutAttribute;
     valueMin?: number;
     valueMax?: number;
     valueStep?: number;
@@ -2176,7 +2215,10 @@ export function numeric(args: NumericArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access, endpoints)];
+    const configure: Configure[] = [];
+    if (reporting) {
+        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access, endpoints));
+    }
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2190,7 +2232,7 @@ export interface BinaryArgs {
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: ReportingConfig;
+    reporting?: false | ReportingConfig;
     access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     entityCategory?: 'config' | 'diagnostic';
 }
@@ -2238,7 +2280,10 @@ export function binary(args: BinaryArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [];
+    if (reporting) {
+        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access));
+    }
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }

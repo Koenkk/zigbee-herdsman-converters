@@ -31,6 +31,9 @@ import {
     precisionRound,
     replaceToZigbeeConvertersInArray,
 } from '../lib/utils';
+import {logger} from './logger';
+
+const NS = 'zhc:ikea';
 
 export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
 
@@ -198,16 +201,20 @@ export function ikeaConfigureStyrbar(): ModernExtend {
 export function ikeaConfigureRemote(): ModernExtend {
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
-            // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
-            // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-            // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
-            const endpoint = device.getEndpoint(1);
-            const version = device.softwareBuildID.split('.').map((n) => Number(n));
-            const bindTarget =
-                version[0] > 2 || (version[0] == 2 && version[1] > 3) || (version[0] == 2 && version[1] == 3 && version[2] >= 75)
-                    ? coordinatorEndpoint
-                    : constants.defaultBindGroup;
-            await endpoint.bind('genOnOff', bindTarget);
+            if (device.softwareBuildID) {
+                // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
+                // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
+                // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
+                const endpoint = device.getEndpoint(1);
+                const version = device.softwareBuildID.split('.').map((n) => Number(n));
+                const bindTarget =
+                    version[0] > 2 || (version[0] == 2 && version[1] > 3) || (version[0] == 2 && version[1] == 3 && version[2] >= 75)
+                        ? coordinatorEndpoint
+                        : constants.defaultBindGroup;
+                await endpoint.bind('genOnOff', bindTarget);
+            } else {
+                logger.warning(`Could not correctly configure '${device.softwareBuildID}' since softwareBuildID is missing, try re-pairing it`, NS);
+            }
         },
     ];
 

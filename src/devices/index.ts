@@ -77,6 +77,7 @@ import enbrighten from './enbrighten';
 import enocean from './enocean';
 import envilar from './envilar';
 import essentialb from './essentialb';
+import essentials from './essentials';
 import eucontrols from './eucontrols';
 import eurotronic from './eurotronic';
 import evanell from './evanell';
@@ -188,6 +189,7 @@ import muller_licht from './muller_licht';
 import multiterm from './multiterm';
 import namron from './namron';
 import nanoleaf from './nanoleaf';
+import nedis from './nedis';
 import neo from './neo';
 import net2grid from './net2grid';
 import netvox from './netvox';
@@ -302,11 +304,13 @@ import wisdom from './wisdom';
 import woolley from './woolley';
 import woox from './woox';
 import wyze from './wyze';
+import xal from './xal';
 import xinghuoyuan from './xinghuoyuan';
 import xyzroe from './xyzroe';
 import yale from './yale';
 import yandex from './yandex';
 import ynoa from './ynoa';
+import yokis from './yokis';
 import yookee from './yookee';
 import ysrsai from './ysrsai';
 import zemismart from './zemismart';
@@ -394,6 +398,7 @@ export default [
     ...enocean,
     ...envilar,
     ...essentialb,
+    ...essentials,
     ...eucontrols,
     ...eurotronic,
     ...evanell,
@@ -505,6 +510,7 @@ export default [
     ...namron,
     ...nanoleaf,
     ...neo,
+    ...nedis,
     ...net2grid,
     ...netvox,
     ...nexelec,
@@ -618,11 +624,13 @@ export default [
     ...woolley,
     ...woox,
     ...wyze,
+    ...xal,
     ...xinghuoyuan,
     ...xyzroe,
     ...yale,
     ...yandex,
     ...ynoa,
+    ...yokis,
     ...yookee,
     ...ysrsai,
     ...zemismart,

@@ -18,7 +18,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'C202.1',
         vendor: 'Candeo',
         description: 'Zigbee LED smart dimmer switch',
-        extend: [light({configureReporting: true})],
+        extend: [light({configureReporting: true, powerOnBehavior: false})],
     },
     {
         fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerID: 4098}],
@@ -28,8 +28,15 @@ const definitions: DefinitionWithExtend[] = [
         extend: [light({configureReporting: true})],
     },
     {
-        zigbeeModel: ['C204', 'C-ZB-DM204'],
+        zigbeeModel: ['C204'],
         model: 'C204',
+        vendor: 'Candeo',
+        description: 'Zigbee micro smart dimmer',
+        extend: [light({configureReporting: true}), electricityMeter()],
+    },
+    {
+        zigbeeModel: ['C-ZB-DM204'],
+        model: 'C-ZB-DM204',
         vendor: 'Candeo',
         description: 'Zigbee micro smart dimmer',
         extend: [light({configureReporting: true}), electricityMeter()],

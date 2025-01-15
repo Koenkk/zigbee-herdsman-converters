@@ -158,7 +158,6 @@ const definitions: DefinitionWithExtend[] = [
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
                 eLegrand.getCalibrationModes(false),
-                e.linkquality(),
             ];
         },
         configure: async (device, coordinatorEndpoint) => {
@@ -230,7 +229,6 @@ const definitions: DefinitionWithExtend[] = [
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
                 eLegrand.getCalibrationModes(true),
-                e.linkquality(),
             ];
         },
         configure: async (device, coordinatorEndpoint) => {
@@ -286,6 +284,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '067694',
         vendor: 'Legrand',
         description: 'Remote toggle switch',
+        whiteLabel: [{vendor: 'BTicino', description: 'Wireless control module for a traditional two-way switch or pushbutton', model: '3577C'}],
         ota: true,
         fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.battery],
         toZigbee: [],
@@ -388,7 +387,10 @@ const definitions: DefinitionWithExtend[] = [
         model: '064888',
         vendor: 'Legrand',
         description: 'Wired micromodule switch',
-        whiteLabel: [{vendor: 'BTicino', model: '3584C'}],
+        whiteLabel: [
+            {vendor: 'Legrand', description: 'Micromodule switch', model: '199142'},
+            {vendor: 'BTicino', description: 'Connected lighting micromodule', model: '3584C'},
+        ],
         extend: [onOff()],
         ota: true,
         fromZigbee: [fz.identify],

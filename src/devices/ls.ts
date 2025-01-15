@@ -14,9 +14,8 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: light({colorTemp: {range: [153, 454]}, color: true}).toZigbee,
         configure: light({colorTemp: {range: [153, 454]}, color: true}).configure[0],
         exposes: (device, options) => {
-            if (!device) return [e.light_brightness_colortemp_colorxy([153, 454]), e.linkquality()];
+            if (!device) return [e.light_brightness_colortemp_colorxy([153, 454])];
             return [
-                e.linkquality(),
                 ...device.endpoints
                     .filter((ep) => ep.ID !== 242)
                     .map((ep) => {

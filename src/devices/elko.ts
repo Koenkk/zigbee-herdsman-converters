@@ -104,6 +104,7 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE_GET',
                 unit: '°C',
                 reporting: {min: 0, max: constants.repInterval.HOUR, change: 10},
+                scale: 100,
             }),
             numeric({
                 name: 'max_floor_temp',

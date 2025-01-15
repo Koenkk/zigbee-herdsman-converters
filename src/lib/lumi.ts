@@ -1906,6 +1906,7 @@ export const lumiModernExtend = {
             access: 'ALL',
             entityCategory: 'config',
             zigbeeCommandOptions: {manufacturerCode},
+            reporting: false,
             ...args,
         }),
     lumiButtonLock: (args?: Partial<modernExtend.BinaryArgs>) =>
@@ -1932,6 +1933,7 @@ export const lumiModernExtend = {
             access: 'ALL',
             entityCategory: 'config',
             zigbeeCommandOptions: {manufacturerCode},
+            reporting: false,
             ...args,
         }),
     lumiPreventReset: (): ModernExtend => {
@@ -2744,7 +2746,7 @@ export const fromZigbee = {
                         result['window_open'] = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x0275:
-                        result['valve_alarm'] = getFromLookup(value, {1: true, 0: false});
+                        result['valve_alarm'] = getFromLookup(value, {1: true, 0: false, 4: true});
                         break;
                     case 247: {
                         // @ts-expect-error ignore
@@ -3669,6 +3671,7 @@ export const toZigbee = {
                     'SP-EUC01',
                     'ZNQBKG24LM',
                     'ZNQBKG25LM',
+                    'ZNQBKG26LM',
                     'ZNQBKG38LM',
                     'ZNQBKG39LM',
                     'ZNQBKG40LM',
@@ -3719,6 +3722,7 @@ export const toZigbee = {
                     'SP-EUC01',
                     'ZNQBKG24LM',
                     'ZNQBKG25LM',
+                    'ZNQBKG26LM',
                     'ZNQBKG38LM',
                     'ZNQBKG39LM',
                     'ZNQBKG40LM',
@@ -3891,7 +3895,7 @@ export const toZigbee = {
                     await entity.write(
                         'manuSpecificLumi',
                         {
-                            0x0277: {value: getFromLookup(value, {false: 0, true: 1}, undefined, true), type: 0x20},
+                            0x0277: {value: getFromLookup(value, {UNLOCK: 0, LOCK: 1}), type: 0x20},
                         },
                         {manufacturerCode: manufacturerCode},
                     );
@@ -4388,6 +4392,7 @@ export const toZigbee = {
                     'WS-USC04',
                     'ZNQBKG24LM',
                     'ZNQBKG25LM',
+                    'ZNQBKG26LM',
                     'JWDL001A',
                     'SSWQD02LM',
                     'SSWQD03LM',
@@ -4477,6 +4482,7 @@ export const toZigbee = {
                     'WS-USC04',
                     'ZNQBKG24LM',
                     'ZNQBKG25LM',
+                    'ZNQBKG26LM',
                     'JWDL001A',
                     'SSWQD02LM',
                     'SSWQD03LM',

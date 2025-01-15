@@ -696,8 +696,12 @@ export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, end
     } else if (oldState.color_mode !== undefined) {
         result.color_mode = oldState.color_mode;
     } else {
-        result.color_mode =
-            newState.color_temp !== undefined ? 'color_temp' : newState.color !== undefined && newState.color.hue !== undefined ? 'hs' : 'xy';
+        if (newState.color_temp !== undefined) {
+            result.color_mode = 'color_temp';
+        }
+        if (newState.color !== undefined) {
+            result.color_mode = newState.color.hue !== undefined ? 'hs' : 'xy';
+        }
     }
 
     // figure out target attributes

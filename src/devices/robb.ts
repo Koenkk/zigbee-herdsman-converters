@@ -3,6 +3,8 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {
     battery,
+    commandsLevelCtrl,
+    commandsOnOff,
     deviceEndpoints,
     electricityMeter,
     humidity,
@@ -20,6 +22,18 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['ROB_200-081-0'],
+        model: 'ROB_200-081-0',
+        vendor: 'ROBB',
+        description: '4-button wireless Zigbee switch',
+        extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            battery(),
+            commandsOnOff({endpointNames: ['1', '2', '3', '4']}),
+            commandsLevelCtrl({endpointNames: ['1', '2', '3', '4']}),
+        ],
+    },
     {
         zigbeeModel: ['ROB_200-004-1'],
         model: 'ROB_200-004-1',

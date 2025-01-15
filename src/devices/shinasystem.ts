@@ -2,6 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {deviceEndpoints, electricityMeter, enumLookup, numeric, onOff, temperature} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
@@ -240,19 +241,19 @@ const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: 'SiHAS multipurpose sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.occupancy, fz.illuminance],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.occupancy],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msOccupancySensing'];
+            const binds = ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
             await reporting.occupancy(endpoint, {min: 1, max: 600, change: 1});
             await reporting.temperature(endpoint, {min: 20, max: 300, change: 10});
             await reporting.humidity(endpoint, {min: 20, max: 300, change: 40});
-            await reporting.illuminance(endpoint, {min: 20, max: 3600, change: 10});
         },
-        exposes: [e.battery(), e.battery_voltage(), e.temperature(), e.humidity(), e.occupancy(), e.illuminance()],
+        exposes: [e.battery(), e.battery_voltage(), e.temperature(), e.humidity(), e.occupancy()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['SBM300Z1'],

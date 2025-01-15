@@ -821,6 +821,11 @@ const definitions: DefinitionWithExtend[] = [
                 modelID: 'DS01',
                 endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]}],
             },
+            {
+                type: 'EndDevice',
+                manufacturerName: 'Zbeacon',
+                modelID: 'TH01',
+            },
         ],
         zigbeeModel: ['TH01', 'SNZB-02'],
         model: 'SNZB-02',
@@ -831,6 +836,11 @@ const definitions: DefinitionWithExtend[] = [
                 vendor: 'eWeLink',
                 model: 'SNZB-02',
                 fingerprint: [{modelID: 'SNZB-02', manufacturerName: 'eWeLink'}],
+            },
+            {
+                vendor: 'Zbeacon',
+                model: 'TH01',
+                fingerprint: [{modelID: 'TH01', manufacturerName: 'Zbeacon'}],
             },
         ],
         description: 'Temperature and humidity sensor',
@@ -950,12 +960,20 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position(), e.battery()],
     },
     {
-        zigbeeModel: ['Z111PL0H-1JX', 'SA-029-1', 'SA-028-1'],
+        zigbeeModel: ['SA-029-1', 'SA-028-1'],
         model: 'SA-028/SA-029',
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
         extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
+    },
+    {
+        zigbeeModel: ['Z111PL0H-1JX'],
+        model: 'Z111PL0H-1JX',
+        vendor: 'SONOFF',
+        whiteLabel: [{vendor: 'Woolley', model: 'SA-028-1'}],
+        description: 'Smart Plug',
+        extend: [onOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['SNZB-01P'],
@@ -1012,7 +1030,7 @@ const definitions: DefinitionWithExtend[] = [
                 name: 'motion_timeout',
                 cluster: 0x0406,
                 attribute: {ID: 0x0020, type: 0x21},
-                description: 'Unoccupied to occupied delay',
+                description: 'Occupied to unoccupied delay',
                 valueMin: 5,
                 valueMax: 60,
             }),
@@ -1042,7 +1060,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Zigbee occupancy sensor',
         extend: [
-            occupancy(),
+            occupancy({reporting: false}),
             numeric({
                 name: 'occupancy_timeout',
                 cluster: 0x0406,
@@ -1325,8 +1343,16 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [],
         extend: [
             commandsOnOff({commands: ['toggle']}),
-            onOff(),
+            onOff({configureReporting: false}),
             sonoffExtend.addCustomClusterEwelink(),
+            binary({
+                name: 'network_indicator',
+                cluster: 'customClusterEwelink',
+                attribute: 'networkLed',
+                description: 'Network indicator Settings, turn off/turn on the online network indicator.',
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
             binary({
                 name: 'turbo_mode',
                 cluster: 'customClusterEwelink',
@@ -1370,7 +1396,7 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'customClusterEwelink']);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read('customClusterEwelink', ['radioPower', 0x0014, 0x0015, 0x0016, 0x0017], defaultResponseOptions);
+            await endpoint.read('customClusterEwelink', ['radioPower', 0x0001, 0x0014, 0x0015, 0x0016, 0x0017], defaultResponseOptions);
         },
     },
     {

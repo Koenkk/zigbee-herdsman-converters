@@ -22,7 +22,6 @@ const manufacturerOptions = {
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
     legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
     viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH},
-    nodon: {manufacturerCode: Zcl.ManufacturerCode.NODON},
 };
 
 const converters1 = {
@@ -332,8 +331,20 @@ const converters2 = {
     lock: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value, key);
-            await entity.command('closuresDoorLock', `${value.toLowerCase()}Door`, {pincodevalue: ''}, utils.getOptions(meta.mapped, entity));
+            // If no pin code is provided, value is a only string. Ex: "UNLOCK"
+            let state = utils.isString(value) ? value.toUpperCase() : null;
+            let pincode = '';
+            // If pin code is provided, value is an object including new state and code. Ex: {state: "UNLOCK", code: "1234"}
+            if (utils.isObject(value)) {
+                if (value.code) {
+                    pincode = utils.isString(value.code) ? value.code : '';
+                }
+                if (value.state) {
+                    state = utils.isString(value.state) ? value.state.toUpperCase() : null;
+                }
+            }
+            utils.validateValue(state, ['LOCK', 'UNLOCK', 'TOGGLE']);
+            await entity.command('closuresDoorLock', `${state.toLowerCase()}Door`, {pincodevalue: pincode}, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresDoorLock', ['lockState']);
@@ -1880,12 +1891,6 @@ const converters2 = {
         key: ['humidity'],
         convertGet: async (entity, key, meta) => {
             await entity.read('msRelativeHumidity', ['measuredValue']);
-        },
-    } satisfies Tz.Converter,
-    illuminance: {
-        key: ['illuminance'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('msIlluminanceMeasurement', ['measuredValue']);
         },
     } satisfies Tz.Converter,
     // #endregion
@@ -4321,25 +4326,6 @@ const converters2 = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('ssIasZone', [0x4000], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
-        },
-    } satisfies Tz.Converter,
-    nodon_pilot_wire_mode: {
-        key: ['pilot_wire_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const mode = utils.getFromLookup(value, {
-                off: 0x00,
-                comfort: 0x01,
-                eco: 0x02,
-                frost_protection: 0x03,
-                'comfort_-1': 0x04,
-                'comfort_-2': 0x05,
-            });
-            const payload = {mode: mode};
-            await entity.command('manuSpecificNodOnPilotWire', 'setMode', payload);
-            return {state: {pilot_wire_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificNodOnPilotWire', [0x0000], manufacturerOptions.nodon);
         },
     } satisfies Tz.Converter,
     // #endregion

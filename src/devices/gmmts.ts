@@ -1,7 +1,8 @@
+import type {Models as ZHModels} from 'zigbee-herdsman';
+
 import {Buffer} from 'buffer';
 
 import {Zcl} from 'zigbee-herdsman';
-import {Device} from 'zigbee-herdsman/dist/controller/model';
 
 import fz from '../converters/fromZigbee';
 import {repInterval} from '../lib/constants';
@@ -1904,7 +1905,7 @@ function splitTab(tab: string[], size: number): string[][] {
     return result;
 }
 
-async function poll(endpoint: Zh.Endpoint, device: Device) {
+async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
     const currentContract = globalStore.getValue(device, 'contract_type');
     const currentElec = globalStore.getValue(device, 'elec_mode');
     const currentTIC = globalStore.getValue(device, 'tic_mode');
@@ -1964,7 +1965,7 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
     logger.debug(`Polling Duration: ${end.getTime() - start.getTime()} ms`, 'TICMeter');
 }
 
-function initConfig(device: Device, name: string, value: unknown) {
+function initConfig(device: ZHModels.Device, name: string, value: unknown) {
     if (!globalStore.hasValue(device, name)) {
         globalStore.putValue(device, name, value);
     }
@@ -1982,7 +1983,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             let endpoint: Zh.Endpoint;
             const exposes: Expose[] = [];
-            exposes.push(e.linkquality());
 
             let currentContract: string = '';
             let currentElec: string = '';

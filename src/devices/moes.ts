@@ -3,6 +3,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {actionEnumLookup, battery, deviceEndpoints, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
@@ -128,7 +129,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === '_TZE204_5toc8efa' ? 0.5 : 1;
             return [
-                e.linkquality(),
                 e.child_lock(),
                 e.deadzone_temperature(),
                 e.max_temperature_limit().withValueMax(45),
@@ -313,15 +313,20 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZSS-ZK-THL',
         vendor: 'Moes',
         description: 'Smart temperature and humidity meter with display',
-        fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
+        fromZigbee: [fz.battery, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.illuminance(), e.humidity(), e.temperature()],
+        exposes: [e.battery(), e.humidity(), e.temperature()],
+        extend: [m.illuminance()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_qsoecqlk'},
+        ],
         model: 'BRT-100-TRV',
         vendor: 'Moes',
         description: 'Thermostatic radiator valve',
+        whiteLabel: [tuya.whitelabel('Sibling', 'Powerswitch-ZK(W)', 'Thermostatic radiator valve', ['_TZE200_qsoecqlk'])],
         // ota: true,
         // OTA available but bricks device https://github.com/Koenkk/zigbee2mqtt/issues/18840
         onEvent: tuya.onEventSetLocalTime,
@@ -355,8 +360,8 @@ const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
-                .withSetpoint('current_heating_setpoint', 0, 35, 1, ea.STATE_SET)
-                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 0, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET)
                 .withSystemMode(['heat'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(
@@ -393,7 +398,10 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nhyj64w2'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nhyj64w2'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_127x7wnl'},
+        ],
         model: 'ZTS-EUR-C',
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch',
@@ -428,7 +436,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: (device, options) => {
-            const exposes = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.linkquality()];
+            const exposes = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
             if (device?.manufacturerName !== '') {
                 exposes.push(e.battery(), e.battery_voltage());
             }
@@ -465,7 +473,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hr0tdd47', '_TZE200_rjxqso4a']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hr0tdd47', '_TZE200_rjxqso4a', '_TZE284_rjxqso4a']),
         model: 'ZC-HM',
         vendor: 'Moes',
         description: 'Carbon monoxide alarm',

@@ -4,7 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {electricityMeter, forcePowerSource, light, onOff} from '../lib/modernExtend';
+import {binary, electricityMeter, enumLookup, forcePowerSource, light, numeric, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
@@ -47,6 +48,20 @@ const fzLocal = {
                 result.hysterersis = utils.precisionRound(data[0x100a], 2) / 10;
             }
             return result;
+        },
+    } satisfies Fz.Converter,
+    namron_thermostat2: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.local_temperature_based_on_sensor()],
+        convert: (model, msg, publish, options, meta) => {
+            const runningModeStateMap: KeyValue = {0: 0, 3: 2, 4: 5};
+            // override mode "idle" - not a supported running mode
+            if (msg.data['runningMode'] == 0x10) msg.data['runningMode'] = 0;
+            // map running *mode* to *state*, as that's what used
+            // in homeAssistant climate ui card (red background)
+            if (msg.data['runningMode'] !== undefined) msg.data['runningState'] = runningModeStateMap[msg.data['runningMode']];
+            return fz.thermostat.convert(model, msg, publish, options, meta); // as KeyValue;
         },
     } satisfies Fz.Converter,
 };
@@ -1098,6 +1113,128 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ['4512758'],
+        model: '4512758',
+        vendor: 'Namron',
+        description: 'Zigbee thermostat 16A',
+        fromZigbee: [fzLocal.namron_thermostat2, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
+        toZigbee: [
+            {
+                // map running *mode* to *state*, as that's what used
+                // in homeAssistant climate ui card (red background)
+                key: ['running_state'],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read('hvacThermostat', ['runningMode']);
+                },
+            },
+            tz.thermostat_local_temperature,
+            tz.thermostat_min_heat_setpoint_limit,
+            tz.thermostat_max_heat_setpoint_limit,
+            // tz.thermostat_min_cool_setpoint_limit,
+            // tz.thermostat_max_cool_setpoint_limit,
+            // tz.thermostat_pi_heating_demand,
+            tz.thermostat_local_temperature_calibration,
+            // tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_mode,
+            tz.namron_thermostat_child_lock,
+        ],
+        extend: [
+            onOff({powerOnBehavior: false}),
+            electricityMeter({voltage: false}),
+            binary({
+                name: 'away_mode',
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x8001, type: Zcl.DataType.BOOLEAN},
+                description: 'Enable or Disable Away/Anti-freeze mode',
+            }),
+            binary({
+                name: 'window_open_check',
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x8000, type: Zcl.DataType.BOOLEAN},
+                description: 'Enable or Disable open window detection',
+                entityCategory: 'config',
+            }),
+            binary({
+                name: 'window_open',
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x8002, type: Zcl.DataType.BOOLEAN},
+                description: 'On if window is currently detected as open',
+            }),
+
+            numeric({
+                name: 'backlight_level',
+                unit: '%',
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 10,
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x8005, type: Zcl.DataType.UINT8},
+                description: 'Brightness of the display',
+                entityCategory: 'config',
+            }),
+            binary({
+                name: 'backlight_onoff',
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x8009, type: Zcl.DataType.BOOLEAN},
+                description: 'Enable or Disable display light',
+                entityCategory: 'config',
+            }),
+
+            enumLookup({
+                name: 'sensor_mode',
+                lookup: {air: 0, floor: 1, both: 2, percent: 6},
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x8004, type: Zcl.DataType.ENUM8},
+                description: 'Select which sensor the thermostat uses to control the room',
+                entityCategory: 'config',
+            }),
+        ],
+        exposes: [
+            // FUTURE: could maybe translate to a common cooling/heating setpoint depending on the mode
+            // and state.. HomeAssistant climate widget doesn't play nice with two setpoints.
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint('occupied_heating_setpoint', 0, 40, 0.5)
+                //.withSetpoint('occupied_cooling_setpoint', 0, 40, 0.5)
+                .withLocalTemperatureCalibration(-10, 10, 1)
+                //.withSystemMode(['off', 'auto', 'cool', 'heat'])
+                .withSystemMode(['off', 'heat'])
+                //.withRunningMode(['off', 'cool','heat'])
+                .withRunningState(['idle', 'cool', 'heat']),
+            //.withPiHeatingDemand()
+            e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genBasic', 'genIdentify', 'hvacThermostat', 'seMetering', 'haElectricalMeasurement', 'genAlarms', 'hvacUserInterfaceCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+
+            await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
+            // await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
+
+            // Trigger initial read
+            await endpoint.read('hvacThermostat', ['systemMode', 'runningMode', 'occupiedHeatingSetpoint']);
+            await endpoint.read('hvacThermostat', [0x8000, 0x8001, 0x8002, 0x8004]);
+
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['4512762'],
         model: '4512762',
         vendor: 'Namron',
@@ -1247,18 +1384,17 @@ const definitions: DefinitionWithExtend[] = [
         model: '4512770',
         vendor: 'Namron',
         description: 'Zigbee multisensor (white)',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.humidity, fz.illuminance],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery(), e.battery_voltage(), e.illuminance(), e.temperature(), e.humidity()],
+        exposes: [e.occupancy(), e.battery(), e.battery_voltage(), e.temperature(), e.humidity()],
         whiteLabel: [{vendor: 'Namron', model: '4512771', description: 'Zigbee multisensor (black)', fingerprint: [{modelID: '4512771'}]}],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint3 = device.getEndpoint(3);
             const endpoint4 = device.getEndpoint(4);
-            const endpoint5 = device.getEndpoint(5);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.bind(endpoint4, coordinatorEndpoint, ['msRelativeHumidity']);
-            await reporting.bind(endpoint5, coordinatorEndpoint, ['msIlluminanceMeasurement']);
         },
+        extend: [m.illuminance()],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_p3lqqy2r']),
@@ -1375,6 +1511,13 @@ const definitions: DefinitionWithExtend[] = [
             electricityMeter({voltage: false, current: false, configureReporting: true}),
         ],
         meta: {},
+    },
+    {
+        zigbeeModel: ['4512788'],
+        model: '4512788',
+        vendor: 'Namron',
+        description: 'Zigbee smart plug dimmer 150W',
+        extend: [light(), electricityMeter({cluster: 'electrical'})],
     },
 ];
 
