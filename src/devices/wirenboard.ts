@@ -276,7 +276,7 @@ const sprutModernExtend = {
             entityCategory: 'diagnostic',
         ...    args,
         }),
-    sprutUartBaudRate: ((args?: Partial<modernExtend.EnumLookupArgs>) =>
+    sprutUartBaudRate: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
             name: 'uart_baud_rate',
             lookup: { 
