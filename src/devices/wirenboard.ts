@@ -274,17 +274,17 @@ const sprutModernExtend = {
             description: 'Indicates whether the device is communicating with sensors via UART',
             access: 'STATE_GET',
             entityCategory: 'diagnostic',
-        ...    args,
+            ...args,
         }),
     sprutUartBaudRate: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
             name: 'uart_baud_rate',
-            lookup: { 
+            lookup: {
                 '9600': 9600,
                 '19200': 19200,
                 '38400': 38400,
                 '57600': 57600,
-                '115200': 115200
+                '115200': 115200,
             },
             cluster: 'sprutDevice',
             attribute: 'UartBaudRate',
