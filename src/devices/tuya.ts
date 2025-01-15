@@ -9837,6 +9837,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE204_ny94onlb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ny94onlb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE284_ny94onlb'},
         ],
         model: 'SPM02V2.5',
         vendor: 'Tuya',
