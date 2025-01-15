@@ -264,6 +264,35 @@ const sprutModernExtend = {
             entityCategory: 'config',
             ...args,
         }),
+    sprutIsConnected: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'uart_connection',
+            cluster: 'sprutDevice',
+            attribute: 'isConnected',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            description: 'Indicates whether the device is communicating with sensors via UART',
+            access: 'STATE_GET',
+            entityCategory: 'diagnostic',
+        ...    args,
+        }),
+    sprutUartBaudRate: ((args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'uart_baud_rate',
+            lookup: { 
+                '9600': 9600,
+                '19200': 19200,
+                '38400': 38400,
+                '57600': 57600,
+                '115200': 115200
+            },
+            cluster: 'sprutDevice',
+            attribute: 'UartBaudRate',
+            description: 'UART baud rate',
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
     sprutTemperatureOffset: (args?: Partial<modernExtend.NumericArgs>) =>
         modernExtend.numeric({
             name: 'temperature_offset',
@@ -442,6 +471,8 @@ const sprutModernExtend = {
 
 const {
     sprutActivityIndicator,
+    sprutIsConnected,
+    sprutUartBaudRate,
     sprutOccupancyLevel,
     sprutNoise,
     sprutVoc,
@@ -610,6 +641,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
             sprutActivityIndicator({endpointName: 'indicator'}),
+            sprutIsConnected(),
             temperature(),
             sprutTemperatureOffset(),
             humidity(),
@@ -626,6 +658,7 @@ const definitions: DefinitionWithExtend[] = [
             sprutNoiseTimeout(),
             sprutVoc(),
             sprutIrBlaster(),
+            sprutUartBaudRate(),
         ],
         ota: true,
     },
