@@ -28,8 +28,15 @@ const definitions: DefinitionWithExtend[] = [
         extend: [light({configureReporting: true})],
     },
     {
-        zigbeeModel: ['C204', 'C-ZB-DM204'],
+        zigbeeModel: ['C204'],
         model: 'C204',
+        vendor: 'Candeo',
+        description: 'Zigbee micro smart dimmer',
+        extend: [light({configureReporting: true}), electricityMeter()],
+    },
+    {
+        zigbeeModel: ['C-ZB-DM204'],
+        model: 'C-ZB-DM204',
         vendor: 'Candeo',
         description: 'Zigbee micro smart dimmer',
         extend: [light({configureReporting: true}), electricityMeter()],
