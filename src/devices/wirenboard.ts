@@ -1,3 +1,5 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
@@ -634,6 +636,23 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Wirenboard',
         description: 'Wall-mounted multi sensor',
         extend: [
+            deviceAddCustomCluster('sprutDevice', {
+                ID: 26112,
+                manufacturerCode: 26214,
+                attributes: {
+                    isConnected: {ID: 26116, type: Zcl.DataType.BOOLEAN},
+                    UartBaudRate: {ID: 26113, type: Zcl.DataType.UINT32},
+                },
+                commands: {
+                    debug: {
+                        ID: 103,
+                        parameters: [
+                            {name: 'data', type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                },
+                commandsResponse: {},
+            }),
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             deviceEndpoints({
                 endpoints: {default: 1, l1: 2, l2: 3, l3: 4, indicator: 5},
