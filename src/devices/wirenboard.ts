@@ -646,9 +646,7 @@ const definitions: DefinitionWithExtend[] = [
                 commands: {
                     debug: {
                         ID: 103,
-                        parameters: [
-                            {name: 'data', type: Zcl.DataType.UINT8},
-                        ],
+                        parameters: [{name: 'data', type: Zcl.DataType.UINT8}],
                     },
                 },
                 commandsResponse: {},
