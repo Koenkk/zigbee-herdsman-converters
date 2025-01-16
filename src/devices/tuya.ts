@@ -2433,6 +2433,10 @@ const definitions: DefinitionWithExtend[] = [
                 modelID: 'TS0601',
                 manufacturerName: '_TZE204_nqqylykc',
             },
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_2cyb66xl',
+            },
         ],
         model: 'ZDMS16-1',
         vendor: 'AVATTO',
@@ -4121,6 +4125,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'A-OK', model: 'AM25', description: 'Tubular motor'},
             {vendor: 'Alutech', model: 'AM/R-Sm', description: 'Tubular motor'},
             tuya.whitelabel('Shenzhen Golden Security Technology', 'GM46', 'Curtain motor', ['_TZE204_guvc7pdy']),
+            tuya.whitelabel('Roximo', 'CRTZ01', 'Curtain motor', ['_TZE204_57hjqelq']),
             {vendor: 'Quoya', model: 'AT8510-TY'},
             tuya.whitelabel('Somgoms', 'ZSTY-SM-1DMZG-US-W_1', 'Curtain switch', ['_TZE200_axgvo9jh']),
             tuya.whitelabel('HUARUI', 'CMD900LE', 'Lithium battery intelligent curtain opening and closing motor', ['_TZE200_zxxfv8wi']),
@@ -7039,7 +7044,7 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7', '_TZE204_lzriup1j', '_TZE204_xnbkhhdr']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7', '_TZE204_lzriup1j', '_TZE204_xnbkhhdr', '_TZE284_xnbkhhdr']),
         model: 'ZWT198/ZWT100-BH',
         vendor: 'Tuya',
         description: 'Wall thermostat',
@@ -8478,7 +8483,7 @@ const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
                 [2, 'humidity', tuya.valueConverter.raw],
-                [4, 'battery', tuya.valueConverter.divideBy2],
+                [4, 'battery', tuya.valueConverter.raw],
                 [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
                 [23, 'temperature_calibration', tuya.valueConverter.divideBy10],
                 [24, 'humidity_calibration', tuya.valueConverter.raw],
@@ -9832,6 +9837,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE204_ny94onlb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ny94onlb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE284_ny94onlb'},
         ],
         model: 'SPM02V2.5',
         vendor: 'Tuya',
