@@ -636,7 +636,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Wirenboard',
         description: 'Wall-mounted multi sensor',
         extend: [
-            deviceAddCustomCluster('sprutDevice', {
+            modernExtend.deviceAddCustomCluster('sprutDevice', {
                 ID: 26112,
                 manufacturerCode: 26214,
                 attributes: {
