@@ -8,6 +8,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_majwnphg'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_6axxqqi2'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_zw7yf6yk'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_prits6g4'},
         ],
         model: 'JR-ZDS01',
         vendor: 'Girier',
