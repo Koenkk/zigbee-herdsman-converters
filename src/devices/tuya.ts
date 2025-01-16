@@ -7044,7 +7044,7 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7', '_TZE204_lzriup1j', '_TZE204_xnbkhhdr']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7', '_TZE204_lzriup1j', '_TZE204_xnbkhhdr', '_TZE284_xnbkhhdr']),
         model: 'ZWT198/ZWT100-BH',
         vendor: 'Tuya',
         description: 'Wall thermostat',
@@ -9837,6 +9837,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE204_ny94onlb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ny94onlb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE284_ny94onlb'},
         ],
         model: 'SPM02V2.5',
         vendor: 'Tuya',
