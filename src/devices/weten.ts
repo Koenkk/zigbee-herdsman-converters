@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -13,7 +13,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '1GNNTS',
         vendor: 'WETEN',
         description: '1 gang no neutral touch wall switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
         fromZigbee: [fz.ignore_basic_report, fz.ignore_time_read],
     },
     {

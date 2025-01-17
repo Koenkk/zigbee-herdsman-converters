@@ -1,4 +1,4 @@
-import {battery, commandsColorCtrl, commandsLevelCtrl, commandsOnOff, electricityMeter, identify, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -12,28 +12,28 @@ const definitions: DefinitionWithExtend[] = [
         model: '98426061',
         vendor: 'Nordtronic',
         description: 'Remote Control',
-        extend: [battery(), identify(), commandsOnOff(), commandsLevelCtrl(), commandsColorCtrl()],
+        extend: [m.battery(), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
     },
     {
         zigbeeModel: ['BoxDIM2 98425031', '98425031', 'BoxDIMZ 98425031'],
         model: '98425031',
         vendor: 'Nordtronic',
         description: 'Box Dimmer 2.0',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['BoxRelay2 98423051', '98423051', 'BoxRelayZ 98423051'],
         model: '98423051',
         vendor: 'Nordtronic',
         description: 'Zigbee switch 400W',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['RotDIM2 98424072', '98424072', 'RotDIMZ 98424072'],
         model: '98424072',
         vendor: 'Nordtronic',
         description: 'Zigbee rotary dimmer',
-        extend: [light({configureReporting: true}), electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
 ];
 

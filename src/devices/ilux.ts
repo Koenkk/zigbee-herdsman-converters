@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '900008-WW',
         vendor: 'ilux',
         description: 'Dimmable A60 E27 LED Bulb',
-        extend: [light()],
+        extend: [m.light()],
     },
 ];
 

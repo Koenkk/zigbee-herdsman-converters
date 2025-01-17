@@ -1,6 +1,6 @@
 // In the root of this repo, execute: `npx ts-node scripts/modernExtendRefactor.ts`
 
-import {Project, QuoteKind, SyntaxKind} from 'ts-morph';
+import {ArrayLiteralExpression, Project, QuoteKind, SyntaxKind} from 'ts-morph';
 
 const project = new Project({
     manipulationSettings: {
@@ -21,56 +21,42 @@ project.getSourceFiles().forEach((sourceFile) => {
         return;
     }
 
-    let changed = true;
     let save = false;
-    while (changed) {
-        changed = false;
-        const definitions = sourceFile.getVariableStatementOrThrow('definitions').getDescendantsOfKind(SyntaxKind.ObjectLiteralExpression);
-        let localTotalDefinitionsWithModernExtend = 0;
 
-        for (const definition of definitions) {
-            const childs = definition.getChildrenOfKind(SyntaxKind.PropertyAssignment);
-            const model = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'model');
-            const extend = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'extend');
-            const extendArray = extend?.getFirstChildByKind(SyntaxKind.ArrayLiteralExpression);
-            const exposes = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'exposes');
-            const exposesArray = exposes?.getFirstChildByKind(SyntaxKind.ArrayLiteralExpression);
-            const configure = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'configure');
-            const fromZigbee = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'fromZigbee');
-            const fromZigbeeArray = fromZigbee?.getFirstChildByKind(SyntaxKind.ArrayLiteralExpression);
-            const toZigbee = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'toZigbee');
+    const modernExtendImport = sourceFile
+        .getImportDeclarations()
+        .filter((d) => d.getModuleSpecifierSourceFile()?.getBaseName() === 'modernExtend.ts');
 
-            const fzIlluminance = fromZigbeeArray?.getElements().find((el) => el.getText() === 'fz.illuminance');
-            if (fzIlluminance) {
-                fromZigbeeArray?.removeElement(fzIlluminance);
-                const exposesIlluminance = exposesArray?.getElements().find((el) => el.getText() === 'e.illuminance()');
-                if (exposesIlluminance) {
-                    exposesArray?.removeElement(exposesIlluminance);
+    for (const i of modernExtendImport) {
+        for (const n of i.getNamedImports()) {
+            const references = sourceFile.getDescendantsOfKind(SyntaxKind.Identifier).filter((identifier) => identifier.getText() === n.getText());
+            references.forEach((reference) => {
+                if (reference.getParent().getKind() == SyntaxKind.CallExpression) {
+                    reference.replaceWithText(`m.${reference.getText()}`);
                 }
-
-                if (!extend) {
-                    definition.addPropertyAssignment({
-                        name: 'extend',
-                        initializer: '[m.illuminance()]',
-                    });
-                } else {
-                    extendArray?.addElement('m.illuminance()');
-                }
-                save = true;
-            }
-        }
-
-        if (!changed) {
-            totalDefinitions += definitions.length;
-            totalDefinitionsWithModernExtend += localTotalDefinitionsWithModernExtend;
+            });
         }
     }
 
+    save = true;
+
     if (save) {
-        sourceFile.addImportDeclaration({
-            moduleSpecifier: '../lib/modernExtend',
-            namespaceImport: 'm',
-        });
+        const modernExtendImport = sourceFile
+            .getImportDeclarations()
+            .filter((d) => d.getModuleSpecifierSourceFile()?.getBaseName() === 'modernExtend.ts');
+        let match = false;
+        for (const i of modernExtendImport) {
+            match = true;
+            i.remove();
+        }
+
+        if (match) {
+            sourceFile.addImportDeclaration({
+                moduleSpecifier: '../lib/modernExtend',
+                namespaceImport: 'm',
+            });
+        }
+
         sourceFile.saveSync();
     }
 });

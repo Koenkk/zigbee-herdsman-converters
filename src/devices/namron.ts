@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {binary, electricityMeter, enumLookup, forcePowerSource, light, numeric, onOff} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -121,14 +120,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '3308431',
         vendor: 'Namron',
         description: 'Luna ceiling light',
-        extend: [light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['3802967'],
         model: '3802967',
         vendor: 'Namron',
         description: 'Led bulb 6w RGBW',
-        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
         zigbeeModel: ['4512700'],
@@ -136,7 +135,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Namron',
         description: 'Zigbee dimmer 400W',
         ota: true,
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512760'],
@@ -144,14 +143,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Namron',
         description: 'Zigbee dimmer 400W',
         ota: true,
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512708'],
         model: '4512708',
         vendor: 'Namron',
         description: 'Zigbee LED dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512766'],
@@ -159,7 +158,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Namron',
         description: 'Zigbee smart plug 16A',
         ota: true,
-        extend: [onOff(), electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter()],
     },
     {
         zigbeeModel: ['4512767'],
@@ -167,14 +166,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Namron',
         description: 'Zigbee smart plug 16A',
         ota: true,
-        extend: [onOff(), electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter()],
     },
     {
         zigbeeModel: ['1402767'],
         model: '1402767',
         vendor: 'Namron',
         description: 'Zigbee LED dimmer',
-        extend: [light({effect: false, configureReporting: true}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.light({effect: false, configureReporting: true}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
         meta: {disableDefaultResponse: true},
     },
     {
@@ -182,21 +181,21 @@ const definitions: DefinitionWithExtend[] = [
         model: '1402768',
         vendor: 'Namron',
         description: 'Zigbee LED dimmer TW 250W',
-        extend: [light({effect: false, configureReporting: true, colorTemp: {range: [250, 65279]}})],
+        extend: [m.light({effect: false, configureReporting: true, colorTemp: {range: [250, 65279]}})],
     },
     {
         zigbeeModel: ['4512733'],
         model: '4512733',
         vendor: 'Namron',
         description: 'ZigBee dimmer 2-pol 400W',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512704'],
         model: '4512704',
         vendor: 'Namron',
         description: 'Zigbee switch 400W',
-        extend: [onOff()],
+        extend: [m.onOff()],
         ota: true,
     },
     {
@@ -204,7 +203,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '1402755',
         vendor: 'Namron',
         description: 'ZigBee LED dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512703'],
@@ -305,7 +304,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '1402769',
         vendor: 'Namron',
         description: 'ZigBee LED dimmer',
-        extend: [light({configureReporting: true}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.light({configureReporting: true}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['4512702'],
@@ -352,7 +351,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4512707',
         vendor: 'Namron',
         description: 'Zigbee LED-Controller',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['4512726'],
@@ -490,56 +489,56 @@ const definitions: DefinitionWithExtend[] = [
         model: '3802960',
         vendor: 'Namron',
         description: 'LED 9W DIM E27',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['3802961'],
         model: '3802961',
         vendor: 'Namron',
         description: 'LED 9W CCT E27',
-        extend: [light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['3802962'],
         model: '3802962',
         vendor: 'Namron',
         description: 'LED 9W RGBW E27',
-        extend: [light({colorTemp: {range: undefined}, color: true, turnsOffAtBrightness1: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['3802963'],
         model: '3802963',
         vendor: 'Namron',
         description: 'LED 5,3W DIM E14',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['3802964'],
         model: '3802964',
         vendor: 'Namron',
         description: 'LED 5,3W CCT E14',
-        extend: [light({colorTemp: {range: undefined}})],
+        extend: [m.light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3802965'],
         model: '3802965',
         vendor: 'Namron',
         description: 'LED 4,8W DIM GU10',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['3802966'],
         model: '3802966',
         vendor: 'Namron',
         description: 'LED 4.8W CCT GU10',
-        extend: [light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['89665'],
         model: '89665',
         vendor: 'Namron',
         description: 'LED Strip RGB+W (5m) IP20',
-        extend: [light({colorTemp: {range: undefined}, color: true, turnsOffAtBrightness1: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['4512737', '4512738'],
@@ -1054,7 +1053,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '3802968',
         vendor: 'Namron',
         description: 'LED Filament Flex 5W CCT E27 Clear',
-        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
+        extend: [m.light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['4512749'],
@@ -1142,9 +1141,9 @@ const definitions: DefinitionWithExtend[] = [
             tz.namron_thermostat_child_lock,
         ],
         extend: [
-            onOff({powerOnBehavior: false}),
-            electricityMeter({voltage: false}),
-            binary({
+            m.onOff({powerOnBehavior: false}),
+            m.electricityMeter({voltage: false}),
+            m.binary({
                 name: 'away_mode',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1152,7 +1151,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x8001, type: Zcl.DataType.BOOLEAN},
                 description: 'Enable or Disable Away/Anti-freeze mode',
             }),
-            binary({
+            m.binary({
                 name: 'window_open_check',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1161,7 +1160,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable or Disable open window detection',
                 entityCategory: 'config',
             }),
-            binary({
+            m.binary({
                 name: 'window_open',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1170,7 +1169,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'On if window is currently detected as open',
             }),
 
-            numeric({
+            m.numeric({
                 name: 'backlight_level',
                 unit: '%',
                 valueMin: 0,
@@ -1181,7 +1180,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Brightness of the display',
                 entityCategory: 'config',
             }),
-            binary({
+            m.binary({
                 name: 'backlight_onoff',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1191,7 +1190,7 @@ const definitions: DefinitionWithExtend[] = [
                 entityCategory: 'config',
             }),
 
-            enumLookup({
+            m.enumLookup({
                 name: 'sensor_mode',
                 lookup: {air: 0, floor: 1, both: 2, percent: 6},
                 cluster: 'hvacThermostat',
@@ -1287,7 +1286,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Namron',
         description: 'Zigbee dimmer 2.0',
         ota: true,
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
         whiteLabel: [{vendor: 'Namron', model: '4512751', description: 'Zigbee dimmer 2.0', fingerprint: [{modelID: '4512751'}]}],
     },
     {
@@ -1507,8 +1506,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Namron',
         description: 'Rotary dimmer with screen',
         extend: [
-            light({effect: false, configureReporting: true, powerOnBehavior: false}),
-            electricityMeter({voltage: false, current: false, configureReporting: true}),
+            m.light({effect: false, configureReporting: true, powerOnBehavior: false}),
+            m.electricityMeter({voltage: false, current: false, configureReporting: true}),
         ],
         meta: {},
     },
@@ -1517,7 +1516,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4512788',
         vendor: 'Namron',
         description: 'Zigbee smart plug dimmer 150W',
-        extend: [light(), electricityMeter({cluster: 'electrical'})],
+        extend: [m.light(), m.electricityMeter({cluster: 'electrical'})],
     },
 ];
 

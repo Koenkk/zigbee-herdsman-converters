@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {battery, humidity, temperature} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -455,7 +455,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'NAS-TH07B2',
         vendor: 'NEO',
         description: 'Temperature & humidity sensor',
-        extend: [temperature(), humidity(), battery()],
+        extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_1youk3hj']),

@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -11,14 +11,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '421786',
         vendor: 'Calex',
         description: 'LED A60 Zigbee GLS-lamp',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['EC-Z3.0-RGBW'],
         model: '421792',
         vendor: 'Calex',
         description: 'LED A60 Zigbee RGB lamp',
-        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['Smart Wall Switch '], // Yes, it has a space at the end :(

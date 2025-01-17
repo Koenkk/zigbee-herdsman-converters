@@ -1,7 +1,7 @@
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -21,7 +21,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'BW-SS7_1gang',
         vendor: 'BlitzWolf',
         description: 'Zigbee 3.0 smart light switch module 1 gang',
-        extend: [onOff()],
+        extend: [m.onOff()],
         toZigbee: [tz.TYZB01_on_off],
     },
     {
@@ -29,7 +29,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'BW-SS7_2gang',
         vendor: 'BlitzWolf',
         description: 'Zigbee 3.0 smart light switch module 2 gang',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ['l1', 'l2']})],
         toZigbee: [tz.TYZB01_on_off],
     },
 ];

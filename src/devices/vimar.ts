@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -13,14 +13,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '03981',
         vendor: 'Vimar',
         description: 'IoT connected relay module',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['DimmerSwitch_v1.0'],
         model: '14595.0',
         vendor: 'Vimar',
         description: 'IoT connected dimmer mechanism 220-240V',
-        extend: [light({configureReporting: true, powerOnBehavior: false})],
+        extend: [m.light({configureReporting: true, powerOnBehavior: false})],
         endpoint: (device) => {
             return {default: 11};
         },
@@ -30,7 +30,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '14592.0',
         vendor: 'Vimar',
         description: '2-way switch IoT connected mechanism',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['Window_Cov_v1.0'],

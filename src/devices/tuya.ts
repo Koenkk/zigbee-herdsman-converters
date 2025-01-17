@@ -5,22 +5,6 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import {logger} from '../lib/logger';
-import {
-    actionEnumLookup,
-    battery,
-    commandsLevelCtrl,
-    commandsOnOff,
-    deviceEndpoints,
-    electricityMeter,
-    humidity,
-    iasZoneAlarm,
-    identify,
-    light,
-    onOff,
-    quirkCheckinInterval,
-    temperature,
-    windowCovering,
-} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -830,7 +814,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         // Configure battery % fails
         // https://github.com/Koenkk/zigbee2mqtt/issues/22421
-        extend: [battery({percentageReporting: false}), iasZoneAlarm({zoneType: 'smoke', zoneAttributes: ['alarm_1', 'tamper']})],
+        extend: [m.battery({percentageReporting: false}), m.iasZoneAlarm({zoneType: 'smoke', zoneAttributes: ['alarm_1', 'tamper']})],
         configure: async (device, coordinatorEndpoint) => {
             if (device?.manufacturerName === '_TZ3210_up3pngle') {
                 // Required for this version
@@ -1571,7 +1555,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0505',
         vendor: 'Tuya',
         description: ' GU10 zbeacon Zigbee LED bulb',
-        extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs']}})],
+        extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['TS0505B'],
@@ -1658,7 +1642,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel('Skydance', 'WZ5_dim_2', 'Zigbee & RF 5 in 1 LED controller (DIM mode)', ['_TZB210_3zfp8mki']),
             tuya.whitelabel('QA', 'QADZC5', '5 in 1 LED controller', ['_TZB210_gj0ccsar']),
         ],
-        extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['hs'], applyRedFix: true, enhancedHue: false}})],
+        extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ['hs'], applyRedFix: true, enhancedHue: false}})],
         configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
@@ -1839,7 +1823,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ZM35HQ_attr, legacy.fromZigbee.ZM35HQ_battery],
         toZigbee: [tz.ZM35HQ_attr],
-        extend: [quirkCheckinInterval(15000)],
+        extend: [m.quirkCheckinInterval(15000)],
         exposes: [
             e.occupancy(),
             e.battery_low(),
@@ -1858,9 +1842,9 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ignore_basic_report, fz.ZM35HQ_attr, fz.battery],
         toZigbee: [tz.ZM35HQ_attr],
         extend: [
-            quirkCheckinInterval(15000),
+            m.quirkCheckinInterval(15000),
             // Occupancy reporting interval is 60s, so allow for one dropped update plus a small safety margin of 5s
-            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low'], keepAliveTimeout: 125}),
+            m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low'], keepAliveTimeout: 125}),
         ],
         exposes: [
             e.battery(),
@@ -1883,7 +1867,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.ignore_basic_report, fz.ZM35HQ_attr, fz.battery],
         toZigbee: [tz.ZM35HQ_attr],
-        extend: [quirkCheckinInterval(15000)],
+        extend: [m.quirkCheckinInterval(15000)],
         exposes: [
             e.occupancy(),
             e.battery_low(),
@@ -1969,7 +1953,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Tuya',
         description: 'Solar rain sensor',
         fromZigbee: [tuya.fz.datapoints],
-        extend: [iasZoneAlarm({zoneType: 'rain', zoneAttributes: ['alarm_1']}), battery({percentageReporting: false})],
+        extend: [m.iasZoneAlarm({zoneType: 'rain', zoneAttributes: ['alarm_1']}), m.battery({percentageReporting: false})],
         exposes: [
             e.illuminance().withUnit('lx'),
             e.numeric('illuminance_average_20min', ea.STATE).withUnit('lx').withDescription('Illuminance average for the last 20 minutes'),
@@ -2250,7 +2234,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
-            deviceEndpoints({endpoints: {l1: 1, l2: 1}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 1}}),
             tuya.modernExtend.dpLight({
                 state: {
                     dp: 1,
@@ -2574,7 +2558,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CSP043',
         vendor: 'ClickSmart+',
         description: '1 gang switch module with neutral wire',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_biakwrag'}],
@@ -2592,7 +2576,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CSP051',
         vendor: 'ClickSmart+',
         description: '1 gang smart dimmer switch module without neutral',
-        extend: [light()],
+        extend: [m.light()],
         whiteLabel: [tuya.whitelabel('Lonsonho', 'QS-Zigbee-D02-TRIAC-L', '1 gang smart dimmer switch module without neutral', ['_TZ3000_ktuoyvt5'])],
     },
     {
@@ -2721,7 +2705,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0301',
         vendor: 'Tuya',
         description: 'Cover',
-        extend: [battery(), windowCovering({controls: ['lift', 'tilt']})],
+        extend: [m.battery(), m.windowCovering({controls: ['lift', 'tilt']})],
         whiteLabel: [tuya.whitelabel('Yookee', 'D10110_1', 'Smart blind', ['_TZE200_9caxna4s'])],
     },
     {
@@ -3207,10 +3191,10 @@ const definitions: DefinitionWithExtend[] = [
         description: '2 gang socket with power monitoring and USB',
         extend: [
             tuyaMagicPacket(),
-            deviceEndpoints({endpoints: {left: 1, right: 2}, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']}),
-            onOff({powerOnBehavior: false, endpointNames: ['left', 'right']}),
-            identify(),
-            electricityMeter(),
+            m.deviceEndpoints({endpoints: {left: 1, right: 2}, multiEndpointSkip: ['current', 'voltage', 'power', 'energy']}),
+            m.onOff({powerOnBehavior: false, endpointNames: ['left', 'right']}),
+            m.identify(),
+            m.electricityMeter(),
         ],
     },
     {
@@ -3943,8 +3927,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Tuya',
         description: '3 gang switch',
         extend: [
-            deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
-            onOff({endpointNames: ['left', 'center', 'right'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
+            m.onOff({endpointNames: ['left', 'center', 'right'], powerOnBehavior: false}),
         ],
         whiteLabel: [
             {vendor: 'BSEED', model: 'TS0003', description: 'Zigbee switch'},
@@ -6382,7 +6366,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee dimmer module 2 channel',
         whiteLabel: [{vendor: 'OXT', model: 'SWTZ25'}],
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuyaLight({minBrightness: 'attribute', endpointNames: ['l1', 'l2'], configureReporting: true}),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -7948,7 +7932,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Tuya',
         description: 'Zigbee dimmer module 2 channel',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true, minBrightness: 'attribute', endpointNames: ['l1', 'l2']}),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -8017,7 +8001,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'M8Pro',
         vendor: 'Tuya',
         description: '4 gang switch with LCD',
-        extend: [tuyaBase({dp: true}), deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}})],
+        extend: [tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}})],
         exposes: [
             tuya.exposes.switch().withEndpoint('l1'),
             tuya.exposes.switch().withEndpoint('l2'),
@@ -8906,7 +8890,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS110E_1gang_1',
         vendor: 'Tuya',
         description: '1 channel dimmer',
-        extend: [light({powerOnBehavior: false, configureReporting: true})],
+        extend: [m.light({powerOnBehavior: false, configureReporting: true})],
         fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
         toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],
@@ -8958,8 +8942,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Tuya',
         description: '2 channel dimmer',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            light({powerOnBehavior: false, endpointNames: ['l1', 'l2'], configureReporting: true}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.light({powerOnBehavior: false, endpointNames: ['l1', 'l2'], configureReporting: true}),
         ],
         fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E],
         toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
@@ -11819,7 +11803,7 @@ const definitions: DefinitionWithExtend[] = [
                 tuya.modernExtend.dpAction({dp: 26, lookup: {sos: 0}}),
                 tuya.modernExtend.dpAction({dp: 29, lookup: {emergency: 0}}),
             ]),
-            iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['battery_low']}),
+            m.iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['battery_low']}),
         ],
     },
     {
@@ -11894,17 +11878,17 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Dimmer 4 scenes',
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
-            battery({voltage: true}),
+            m.battery({voltage: true}),
             tuya.modernExtend.combineActions([
-                actionEnumLookup({
+                m.actionEnumLookup({
                     actionLookup: {scene_1: 1, scene_2: 2, scene_3: 3, scene_4: 4},
                     cluster: 'genOnOff',
                     commands: ['commandTuyaAction'],
                     attribute: 'data',
                     parse: (msg, attr) => msg.data[attr][1],
                 }),
-                commandsOnOff(),
-                commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
+                m.commandsOnOff(),
+                m.commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ]),
         ],
     },
@@ -12103,7 +12087,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SZT06 V2.0',
         vendor: 'Tuya',
         description: 'Smart mini temperature and humidity sensor',
-        extend: [temperature(), humidity(), identify({isSleepy: true}), battery({voltage: true})],
+        extend: [m.temperature(), m.humidity(), m.identify({isSleepy: true}), m.battery({voltage: true})],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_pl31aqf5']),
@@ -12822,7 +12806,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0105',
         vendor: 'Tuya',
         description: '3 gang switch',
-        extend: [tuyaBase({dp: true}), deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1}})],
+        extend: [tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1}})],
         exposes: [
             e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),

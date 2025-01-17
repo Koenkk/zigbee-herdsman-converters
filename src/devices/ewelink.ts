@@ -4,16 +4,7 @@ import fz from '../converters/fromZigbee';
 import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {
-    battery,
-    deviceAddCustomCluster,
-    deviceEndpoints,
-    forcePowerSource,
-    iasZoneAlarm,
-    onOff,
-    setupAttributes,
-    windowCovering,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 
@@ -47,7 +38,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CK-BL702-MSW-01(7010)',
         vendor: 'eWeLink',
         description: 'CMARS Zigbee smart plug',
-        extend: [onOff({skipDuplicateTransaction: true})],
+        extend: [m.onOff({skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -57,7 +48,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SA-003-Zigbee',
         vendor: 'eWeLink',
         description: 'Zigbee smart plug',
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -76,7 +67,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SA-030-1',
         vendor: 'eWeLink',
         description: 'Zigbee 3.0 smart plug 13A (3120W)(UK version)',
-        extend: [onOff({skipDuplicateTransaction: true})],
+        extend: [m.onOff({skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -86,7 +77,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SWITCH-ZR02',
         vendor: 'eWeLink',
         description: 'Zigbee smart switch',
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -96,7 +87,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SWITCH-ZR03-1',
         vendor: 'eWeLink',
         description: 'Zigbee smart switch',
-        extend: [onOff({skipDuplicateTransaction: true})],
+        extend: [m.onOff({skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -106,7 +97,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZB-SW01',
         vendor: 'eWeLink',
         description: 'Smart light switch - 1 gang',
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -116,7 +107,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZB-SW02',
         vendor: 'eWeLink',
         description: 'Smart light switch/2 gang relay',
-        extend: [deviceEndpoints({endpoints: {left: 1, right: 2}}), onOff({endpointNames: ['left', 'right'], configureReporting: false})],
+        extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ['left', 'right'], configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -127,8 +118,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'eWeLink',
         description: 'Smart light switch - 3 gang',
         extend: [
-            deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
-            onOff({endpointNames: ['left', 'center', 'right'], configureReporting: false}),
+            m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
+            m.onOff({endpointNames: ['left', 'center', 'right'], configureReporting: false}),
         ],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
@@ -140,8 +131,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'eWeLink',
         description: 'Smart light switch - 4 gang',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4'], configureReporting: false}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            m.onOff({endpointNames: ['l1', 'l2', 'l3', 'l4'], configureReporting: false}),
         ],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
@@ -153,8 +144,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'eWeLink',
         description: 'Smart light switch - 5 gang',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5'], configureReporting: false}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}),
+            m.onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5'], configureReporting: false}),
         ],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
@@ -174,7 +165,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SNZB-05',
         vendor: 'eWeLink',
         description: 'Zigbee water sensor',
-        extend: [battery(), iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']})],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
     {
         zigbeeModel: ['CK-MG22-JLDJ-01(7015)', 'CK-MG22-Z310EE07DOOYA-01(7015)', 'MYDY25Z-1', 'Grandekor Smart Curtain Grandekor'],
@@ -188,7 +179,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         description: 'Dooya Curtain',
         extend: [
-            deviceAddCustomCluster('customClusterEwelink', {
+            m.deviceAddCustomCluster('customClusterEwelink', {
                 ID: 0xef00,
                 attributes: {},
                 commands: {
@@ -199,9 +190,9 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            forcePowerSource({powerSource: 'Battery'}),
+            m.forcePowerSource({powerSource: 'Battery'}),
             ewelinkModernExtend.ewelinkBattery(),
-            windowCovering({
+            m.windowCovering({
                 controls: ['lift'],
                 configureReporting: false,
                 coverMode: false,
@@ -215,7 +206,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const windowCoveringAttributes = [{attribute: 'currentPositionLiftPercentage', min: 0, max: 3600, change: 10}];
-            await setupAttributes(device, coordinatorEndpoint, 'closuresWindowCovering', windowCoveringAttributes);
+            await m.setupAttributes(device, coordinatorEndpoint, 'closuresWindowCovering', windowCoveringAttributes);
         },
         onEvent: async (type, data, device, settings, state) => {
             if (type === 'deviceInterview') {
@@ -239,7 +230,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{fingerprint: [{modelID: 'MYRX25Z-1'}], vendor: 'eWeLink', model: 'MYRX25Z-1'}],
         description: 'Reax Curtain',
         extend: [
-            deviceAddCustomCluster('customClusterEwelink', {
+            m.deviceAddCustomCluster('customClusterEwelink', {
                 ID: 0xef00,
                 attributes: {},
                 commands: {
@@ -250,9 +241,9 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            forcePowerSource({powerSource: 'Battery'}),
+            m.forcePowerSource({powerSource: 'Battery'}),
             ewelinkModernExtend.ewelinkBattery(),
-            windowCovering({
+            m.windowCovering({
                 controls: ['lift'],
                 configureReporting: false,
                 coverMode: false,
@@ -268,7 +259,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['customClusterEwelink']);
 
             const windowCoveringAttributes = [{attribute: 'currentPositionLiftPercentage', min: 0, max: 3600, change: 10}];
-            await setupAttributes(device, coordinatorEndpoint, 'closuresWindowCovering', windowCoveringAttributes);
+            await m.setupAttributes(device, coordinatorEndpoint, 'closuresWindowCovering', windowCoveringAttributes);
         },
         ota: true,
     },
@@ -283,7 +274,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         description: 'AK Curtain',
         extend: [
-            deviceAddCustomCluster('customClusterEwelink', {
+            m.deviceAddCustomCluster('customClusterEwelink', {
                 ID: 0xef00,
                 attributes: {},
                 commands: {
@@ -294,9 +285,9 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            forcePowerSource({powerSource: 'Battery'}),
+            m.forcePowerSource({powerSource: 'Battery'}),
             ewelinkModernExtend.ewelinkBattery(),
-            windowCovering({
+            m.windowCovering({
                 controls: ['lift'],
                 configureReporting: false,
                 coverMode: false,
@@ -308,7 +299,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const windowCoveringAttributes = [{attribute: 'currentPositionLiftPercentage', min: 0, max: 3600, change: 10}];
-            await setupAttributes(device, coordinatorEndpoint, 'closuresWindowCovering', windowCoveringAttributes);
+            await m.setupAttributes(device, coordinatorEndpoint, 'closuresWindowCovering', windowCoveringAttributes);
         },
         ota: true,
     },

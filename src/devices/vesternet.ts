@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {electricityMeter, light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -17,8 +17,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Vesternet',
         description: 'Zigbee dimmer',
         extend: [
-            light({configureReporting: true, levelConfig: {disabledFeatures: ['on_transition_time', 'off_transition_time']}}),
-            electricityMeter(),
+            m.light({configureReporting: true, levelConfig: {disabledFeatures: ['on_transition_time', 'off_transition_time']}}),
+            m.electricityMeter(),
         ],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9040A'}],
     },

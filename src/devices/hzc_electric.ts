@@ -1,6 +1,5 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, electricityMeter, light} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -13,7 +12,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'D086-ZG',
         vendor: 'HZC Electric',
         description: 'Zigbee dual dimmer',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), light({endpointNames: ['l1', 'l2'], configureReporting: true})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.light({endpointNames: ['l1', 'l2'], configureReporting: true})],
     },
     {
         zigbeeModel: ['TempAndHumSensor-ZB3.0'],
@@ -53,7 +52,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'D077-ZG',
         vendor: 'HZC Electric',
         description: 'Zigbee dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['Meter-Dimmer-Switch-ZB3.0'],
@@ -61,8 +60,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'HZC Electric',
         description: 'Rotary dimmer with screen',
         extend: [
-            light({effect: false, configureReporting: true, powerOnBehavior: false}),
-            electricityMeter({voltage: false, current: false, configureReporting: true}),
+            m.light({effect: false, configureReporting: true, powerOnBehavior: false}),
+            m.electricityMeter({voltage: false, current: false, configureReporting: true}),
         ],
         meta: {},
     },

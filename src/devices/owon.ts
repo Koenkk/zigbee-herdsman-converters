@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {battery, electricityMeter, forcePowerSource, iasZoneAlarm, onOff} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
@@ -134,7 +133,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'WSP402',
         vendor: 'OWON',
         description: 'Smart plug',
-        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        extend: [m.onOff(), m.electricityMeter({cluster: 'metering'})],
     },
     {
         zigbeeModel: ['WSP403-E'],
@@ -142,21 +141,21 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'OWON',
         whiteLabel: [{vendor: 'Oz Smart Things', model: 'WSP403'}],
         description: 'Smart plug',
-        extend: [onOff(), electricityMeter({cluster: 'metering'}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.onOff(), m.electricityMeter({cluster: 'metering'}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['WSP404'],
         model: 'WSP404',
         vendor: 'OWON',
         description: 'Smart plug',
-        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        extend: [m.onOff(), m.electricityMeter({cluster: 'metering'})],
     },
     {
         zigbeeModel: ['CB432'],
         model: 'CB432',
         vendor: 'OWON',
         description: '32A/63A power circuit breaker',
-        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        extend: [m.onOff(), m.electricityMeter({cluster: 'metering'})],
     },
     {
         zigbeeModel: ['PIR313-E', 'PIR313'],
@@ -425,21 +424,21 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PIR313-P',
         vendor: 'OWON',
         description: 'Motion sensor',
-        extend: [battery(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
     },
     {
         zigbeeModel: ['DWS312'],
         model: 'DWS312',
         vendor: 'OWON',
         description: 'Door/window sensor',
-        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
     },
     {
         zigbeeModel: ['SPM915'],
         model: 'SPM915',
         vendor: 'OWON',
         description: 'Sleeping pad monitor',
-        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
     },
 ];
 

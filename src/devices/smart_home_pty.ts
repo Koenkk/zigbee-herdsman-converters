@@ -1,4 +1,4 @@
-import {light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,14 +7,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HGZB-07A',
         vendor: 'Smart Home Pty',
         description: 'RGBW Downlight',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['FNB56-SKT1EHG1.2'],
         model: 'HGZB-20-DE',
         vendor: 'Smart Home Pty',
         description: 'Power plug',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
 ];
 

@@ -1,7 +1,6 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, electricityMeter, enumLookup, numeric, onOff, temperature} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -260,14 +259,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SBM300Z1',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 1 gang',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['SBM300Z2'],
         model: 'SBM300Z2',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 2 gang',
-        extend: [deviceEndpoints({endpoints: {top: 1, bottom: 2}}), onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
+        extend: [m.deviceEndpoints({endpoints: {top: 1, bottom: 2}}), m.onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['SBM300Z3'],
@@ -275,8 +274,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 3 gang',
         extend: [
-            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
-            onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
+            m.onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
         ],
     },
     {
@@ -285,8 +284,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 4 gang',
         extend: [
-            deviceEndpoints({endpoints: {top_left: 1, bottom_left: 2, top_right: 3, bottom_right: 4}}),
-            onOff({endpointNames: ['top_left', 'bottom_left', 'top_right', 'bottom_right'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {top_left: 1, bottom_left: 2, top_right: 3, bottom_right: 4}}),
+            m.onOff({endpointNames: ['top_left', 'bottom_left', 'top_right', 'bottom_right'], powerOnBehavior: false}),
         ],
     },
     {
@@ -295,8 +294,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 5 gang',
         extend: [
-            deviceEndpoints({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, bottom_right: 5}}),
-            onOff({endpointNames: ['top_left', 'center_left', 'bottom_left', 'top_right', 'bottom_right'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, bottom_right: 5}}),
+            m.onOff({endpointNames: ['top_left', 'center_left', 'bottom_left', 'top_right', 'bottom_right'], powerOnBehavior: false}),
         ],
     },
     {
@@ -305,8 +304,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 6 gang',
         extend: [
-            deviceEndpoints({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6}}),
-            onOff({
+            m.deviceEndpoints({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6}}),
+            m.onOff({
                 endpointNames: ['top_left', 'center_left', 'bottom_left', 'top_right', 'center_right', 'bottom_right'],
                 powerOnBehavior: false,
             }),
@@ -586,7 +585,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PMM-300Z1',
         vendor: 'ShinaSystem',
         description: 'SiHAS energy monitor',
-        extend: [electricityMeter()],
+        extend: [m.electricityMeter()],
     },
     {
         zigbeeModel: ['PMM-300Z2'],
@@ -594,7 +593,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         ota: true,
         description: 'SiHAS energy monitor',
-        extend: [electricityMeter({acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), temperature()],
+        extend: [m.electricityMeter({acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
     },
     {
         zigbeeModel: ['PMM-300Z3'],
@@ -602,7 +601,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         ota: true,
         description: 'SiHAS 3phase energy monitor',
-        extend: [electricityMeter({acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), temperature()],
+        extend: [m.electricityMeter({acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
     },
     {
         zigbeeModel: ['DLM-300Z'],
@@ -677,9 +676,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart inner switch 3 gang',
         extend: [
-            onOff({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: false}),
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            enumLookup({
+            m.onOff({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            m.enumLookup({
                 name: 'operation_mode',
                 lookup: {auto: 0, push: 1, latch: 2},
                 cluster: 'genOnOff',
@@ -687,7 +686,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'switch type: "auto" - toggle by S/W, "push" - for momentary S/W, "latch" - sync S/W.',
                 endpointName: 'l1',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'rf_pairing',
                 lookup: {none: 0, l1: 1, l2: 2, l3: 3},
                 cluster: 'genOnOff',
@@ -695,7 +694,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable RF pairing mode each button l1, l2, l3. It is supported only in repeat mode.',
                 endpointName: 'l1',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'switch_3way_mode',
                 lookup: {disable: 0, enable: 1},
                 cluster: 'genOnOff',
@@ -716,7 +715,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.GCM300Z_valve_status],
         exposes: [e.binary('gas_valve_state', ea.ALL, 'OPEN', 'CLOSE').withDescription('Valve state if open or closed'), e.battery()],
         extend: [
-            numeric({
+            m.numeric({
                 name: 'close_timeout',
                 cluster: 'genOnOff',
                 attribute: {ID: 0x9006, type: 0x21},
@@ -728,7 +727,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 60,
                 reporting: {min: 0, max: '1_HOUR', change: 1},
             }),
-            numeric({
+            m.numeric({
                 name: 'close_remain_timeout',
                 cluster: 'genOnOff',
                 attribute: {ID: 0x9007, type: 0x21},
@@ -740,7 +739,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 60,
                 reporting: {min: 0, max: '30_MINUTES', change: 1},
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'volume',
                 lookup: {voice: 1, high: 2, low: 2},
                 cluster: 'genOnOff',
@@ -748,7 +747,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Values observed are `1` (voice), `2` (high) or `3` (low).',
                 reporting: {min: 0, max: '1_HOUR', change: 1},
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'overheat_mode',
                 lookup: {normal: 0, overheat: 1},
                 cluster: 'genOnOff',
@@ -777,7 +776,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.action(['single', 'double', 'long'])],
         extend: [
-            enumLookup({
+            m.enumLookup({
                 name: 'di_status',
                 lookup: {Close: 0, Open: 1},
                 cluster: 'genOnOff',
@@ -786,8 +785,8 @@ const definitions: DefinitionWithExtend[] = [
                 reporting: {min: 0, max: '1_HOUR', change: 1},
                 access: 'STATE_GET',
             }),
-            onOff({powerOnBehavior: false}),
-            enumLookup({
+            m.onOff({powerOnBehavior: false}),
+            m.enumLookup({
                 name: 'di_type',
                 lookup: {Button: 0, Door: 1},
                 cluster: 'genOnOff',
@@ -795,7 +794,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set the DI(Digital Input) type to either a button or door sensor(latch) type',
                 reporting: {min: 0, max: '1_HOUR', change: 1},
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'do_type',
                 lookup: {Pulse: 0, Latch: 1},
                 cluster: 'genOnOff',
@@ -803,7 +802,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set the DO(Digital Output) type to either a pulse or latch type',
                 reporting: {min: 0, max: '1_HOUR', change: 1},
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'di_do_link',
                 lookup: {Off: 0, On: 1},
                 cluster: 'genOnOff',
@@ -811,7 +810,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Configure DO linkage according to DI status. When set to ON, DO is output according to the DI input.',
                 reporting: {min: 0, max: '1_HOUR', change: 1},
             }),
-            numeric({
+            m.numeric({
                 name: 'do_pulse_time',
                 cluster: 'genOnOff',
                 attribute: {ID: 0x900d, type: 0x21},
@@ -872,14 +871,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SQM300Z1',
         vendor: 'ShinaSystem',
         description: 'SiHAS big button switch 1 gang',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['SQM300Z2'],
         model: 'SQM300Z2',
         vendor: 'ShinaSystem',
         description: 'SiHAS big button switch 2 gang',
-        extend: [deviceEndpoints({endpoints: {top: 1, bottom: 2}}), onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
+        extend: [m.deviceEndpoints({endpoints: {top: 1, bottom: 2}}), m.onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['SQM300Z3'],
@@ -887,8 +886,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         description: 'SiHAS big button switch 3 gang',
         extend: [
-            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
-            onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
+            m.onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
         ],
     },
     {
@@ -897,8 +896,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         description: 'SiHAS big button switch 4 gang',
         extend: [
-            deviceEndpoints({endpoints: {top_left: 1, bottom_left: 2, top_right: 3, bottom_right: 4}}),
-            onOff({endpointNames: ['top_left', 'bottom_left', 'top_right', 'bottom_right'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {top_left: 1, bottom_left: 2, top_right: 3, bottom_right: 4}}),
+            m.onOff({endpointNames: ['top_left', 'bottom_left', 'top_right', 'bottom_right'], powerOnBehavior: false}),
         ],
     },
     {
@@ -907,8 +906,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ShinaSystem',
         description: 'SiHAS big button switch 6 gang',
         extend: [
-            deviceEndpoints({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6}}),
-            onOff({
+            m.deviceEndpoints({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6}}),
+            m.onOff({
                 endpointNames: ['top_left', 'center_left', 'bottom_left', 'top_right', 'center_right', 'bottom_right'],
                 powerOnBehavior: false,
             }),

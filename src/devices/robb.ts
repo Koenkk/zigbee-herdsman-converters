@@ -1,21 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {
-    battery,
-    commandsLevelCtrl,
-    commandsOnOff,
-    deviceEndpoints,
-    electricityMeter,
-    humidity,
-    iasZoneAlarm,
-    identify,
-    illuminance,
-    light,
-    occupancy,
-    onOff,
-    temperature,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -28,10 +14,10 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ROBB',
         description: '4-button wireless Zigbee switch',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
-            battery(),
-            commandsOnOff({endpointNames: ['1', '2', '3', '4']}),
-            commandsLevelCtrl({endpointNames: ['1', '2', '3', '4']}),
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ['1', '2', '3', '4']}),
+            m.commandsLevelCtrl({endpointNames: ['1', '2', '3', '4']}),
         ],
     },
     {
@@ -39,21 +25,21 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ROB_200-004-1',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ROB_200-060-0'],
         model: 'ROB_200-060-0',
         vendor: 'ROBB',
         description: 'Zigbee LED driver',
-        extend: [light({colorTemp: {range: [160, 450]}, color: true})],
+        extend: [m.light({colorTemp: {range: [160, 450]}, color: true})],
     },
     {
         zigbeeModel: ['ROB_200-061-0'],
         model: 'ROB_200-061-0',
         vendor: 'ROBB',
         description: '50W Zigbee CCT LED driver (constant current)',
-        extend: [light({colorTemp: {range: [160, 450]}})],
+        extend: [m.light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['ROB_200-029-0'],
@@ -76,14 +62,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'ROBB',
         description: 'Battery powered PIR presence, temperature, humidity and light sensors',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}}),
-            battery(),
-            identify(),
-            occupancy(),
-            iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low']}),
-            temperature({endpointNames: ['3']}),
-            humidity({endpointNames: ['4']}),
-            illuminance({endpointNames: ['5']}),
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}}),
+            m.battery(),
+            m.identify(),
+            m.occupancy(),
+            m.iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low']}),
+            m.temperature({endpointNames: ['3']}),
+            m.humidity({endpointNames: ['4']}),
+            m.illuminance({endpointNames: ['5']}),
         ],
     },
     {
@@ -91,7 +77,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ROB_200-050-0',
         vendor: 'ROBB',
         description: '4 port switch with 2 usb ports (no metering)',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), m.onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']})],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9023A(EU)'}],
     },
     {
@@ -99,49 +85,49 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ROB_200-006-0',
         vendor: 'ROBB',
         description: 'ZigBee LED dimmer',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['ROB_200-004-0'],
         model: 'ROB_200-004-0',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ROB_200-011-0'],
         model: 'ROB_200-011-0',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: [light({configureReporting: true}), electricityMeter({current: {divisor: 1000}, voltage: {divisor: 10}, power: {divisor: 10}})],
+        extend: [m.light({configureReporting: true}), m.electricityMeter({current: {divisor: 1000}, voltage: {divisor: 10}, power: {divisor: 10}})],
     },
     {
         zigbeeModel: ['ROB_200-003-0'],
         model: 'ROB_200-003-0',
         vendor: 'ROBB',
         description: 'Zigbee AC in wall switch (push switch)',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['ROB_200-003-1'],
         model: 'ROB_200-003-1',
         vendor: 'ROBB',
         description: 'Zigbee AC in wall switch (normal switch)',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['ROB_200-030-0'],
         model: 'ROB_200-030-0',
         vendor: 'ROBB',
         description: 'Zigbee AC in wall switch 400W (2-wire)',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['ROB_200-014-0'],
         model: 'ROB_200-014-0',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut rotary dimmer',
-        extend: [light({configureReporting: true}), electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
         whiteLabel: [
             {vendor: 'YPHIX', model: '50208695'},
             {vendor: 'Samotech', model: 'SM311'},
@@ -432,7 +418,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ROB_200-063-0',
         vendor: 'ROBB',
         description: 'Zigbee 0-10V PWM dimmer',
-        extend: [light()],
+        extend: [m.light()],
     },
 ];
 

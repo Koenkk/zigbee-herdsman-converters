@@ -1,4 +1,4 @@
-import {forcePowerSource, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'RMC002',
         vendor: 'Bouffalolab',
         description: 'US plug smart socket',
-        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.onOff(), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
 ];
 

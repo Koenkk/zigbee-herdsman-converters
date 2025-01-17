@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
@@ -139,7 +139,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module with neutral',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuya.modernExtend.tuyaLight({minBrightness: 'attribute', endpointNames: ['l1', 'l2']}),
         ],
         meta: {multiEndpoint: true},
@@ -154,14 +154,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'QS-Zigbee-D02-TRIAC-2C-L',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module without neutral',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), light({endpointNames: ['l1', 'l2'], configureReporting: true})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.light({endpointNames: ['l1', 'l2'], configureReporting: true})],
     },
     {
         zigbeeModel: ['Plug_01'],
         model: '4000116784070',
         vendor: 'Lonsonho',
         description: 'Smart plug EU',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['ZB-RGBCW'],
@@ -175,7 +175,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
-        extend: [light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false})],
+        extend: [m.light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false})],
     },
     {
         fingerprint: [
@@ -202,7 +202,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'QS-Zigbee-S05-LN',
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
-        extend: [onOff({powerOnBehavior: false, configureReporting: false})],
+        extend: [m.onOff({powerOnBehavior: false, configureReporting: false})],
         toZigbee: [tz.TYZB01_on_off],
     },
     {

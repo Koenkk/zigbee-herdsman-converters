@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -12,7 +12,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4713407',
         vendor: 'Airam',
         description: 'LED OP A60 ZB 9W/827 E27',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ZBT-Remote-EU-DIMV1A2'],
@@ -63,7 +63,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4713406',
         vendor: 'Airam',
         description: 'GU10 spot 4.8W 2700K 385lm',
-        extend: [light()],
+        extend: [m.light()],
     },
 ];
 

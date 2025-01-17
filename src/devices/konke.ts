@@ -1,6 +1,5 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
@@ -149,28 +148,28 @@ const definitions: DefinitionWithExtend[] = [
         model: 'KK-LP-Q01D',
         vendor: 'Konke',
         description: 'Light years switch 1 gang',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['3AFE292000068622'],
         model: 'KK-LP-Q02D',
         vendor: 'Konke',
         description: 'Light years switch 2 gangs',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         zigbeeModel: ['3AFE292000068623'],
         model: 'KK-LP-Q03D',
         vendor: 'Konke',
         description: 'Light years switch 3 gangs',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}), onOff({endpointNames: ['l1', 'l2', 'l3']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}), m.onOff({endpointNames: ['l1', 'l2', 'l3']})],
     },
     {
         zigbeeModel: ['3AFE2610010C0021'],
         model: 'KK-QD-Y01w',
         vendor: 'Konke',
         description: 'Spotlight driver (cw mode)',
-        extend: [light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
 ];
 

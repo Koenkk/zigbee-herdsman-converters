@@ -1,4 +1,4 @@
-import {onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SRB01',
         vendor: 'Evvr',
         description: 'In-wall relay switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
 ];
 

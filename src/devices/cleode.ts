@@ -1,4 +1,4 @@
-import {electricityMeter, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZPLUG_Boost',
         vendor: 'CLEODE',
         description: 'ZPlug boost',
-        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        extend: [m.onOff(), m.electricityMeter({cluster: 'metering'})],
     },
 ];
 

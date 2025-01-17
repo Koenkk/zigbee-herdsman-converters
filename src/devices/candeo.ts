@@ -1,4 +1,4 @@
-import {deviceEndpoints, electricityMeter, identify, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'C205',
         vendor: 'Candeo',
         description: 'Switch module',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['HK-DIM-A', 'Candeo Zigbee Dimmer', 'HK_DIM_A'],
@@ -18,28 +18,28 @@ const definitions: DefinitionWithExtend[] = [
         model: 'C202.1',
         vendor: 'Candeo',
         description: 'Zigbee LED smart dimmer switch',
-        extend: [light({configureReporting: true, powerOnBehavior: false})],
+        extend: [m.light({configureReporting: true, powerOnBehavior: false})],
     },
     {
         fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerID: 4098}],
         model: 'C210',
         vendor: 'Candeo',
         description: 'Zigbee dimming smart plug',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['C204'],
         model: 'C204',
         vendor: 'Candeo',
         description: 'Zigbee micro smart dimmer',
-        extend: [light({configureReporting: true}), electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
     {
         zigbeeModel: ['C-ZB-DM204'],
         model: 'C-ZB-DM204',
         vendor: 'Candeo',
         description: 'Zigbee micro smart dimmer',
-        extend: [light({configureReporting: true}), electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
     {
         zigbeeModel: ['C202'],
@@ -51,7 +51,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Candeo',
         description: 'Smart rotary dimmer',
         extend: [
-            light({
+            m.light({
                 configureReporting: true,
                 levelConfig: {disabledFeatures: ['on_transition_time', 'off_transition_time', 'on_off_transition_time', 'execute_if_off']},
                 powerOnBehavior: true,
@@ -64,7 +64,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Candeo',
         description: 'Smart dimmer module',
         extend: [
-            light({
+            m.light({
                 configureReporting: true,
                 levelConfig: {disabledFeatures: ['on_transition_time', 'off_transition_time', 'on_off_transition_time', 'execute_if_off']},
                 powerOnBehavior: true,
@@ -77,7 +77,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Candeo',
         description: 'Smart LED controller (CCT mode)',
         extend: [
-            light({
+            m.light({
                 colorTemp: {range: [158, 500]},
                 configureReporting: true,
                 levelConfig: {
@@ -85,7 +85,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 powerOnBehavior: true,
             }),
-            identify(),
+            m.identify(),
         ],
     },
     {
@@ -94,14 +94,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Candeo',
         description: 'Smart LED controller (dimmer mode)',
         extend: [
-            light({
+            m.light({
                 configureReporting: true,
                 levelConfig: {
                     disabledFeatures: ['on_transition_time', 'off_transition_time', 'on_off_transition_time', 'on_level', 'execute_if_off'],
                 },
                 powerOnBehavior: true,
             }),
-            identify(),
+            m.identify(),
         ],
     },
     {
@@ -110,7 +110,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Candeo',
         description: 'Smart LED controller (RGB mode)',
         extend: [
-            light({
+            m.light({
                 color: {modes: ['xy', 'hs'], enhancedHue: true},
                 configureReporting: true,
                 levelConfig: {
@@ -118,7 +118,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 powerOnBehavior: true,
             }),
-            identify(),
+            m.identify(),
         ],
     },
     {
@@ -127,7 +127,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Candeo',
         description: 'Smart LED controller (RGBCCT mode)',
         extend: [
-            light({
+            m.light({
                 colorTemp: {range: [158, 500]},
                 color: {modes: ['xy', 'hs'], enhancedHue: true},
                 configureReporting: true,
@@ -136,7 +136,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 powerOnBehavior: true,
             }),
-            identify(),
+            m.identify(),
         ],
     },
     {
@@ -145,7 +145,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Candeo',
         description: 'Smart LED controller (RGBW mode)',
         extend: [
-            light({
+            m.light({
                 colorTemp: {range: [158, 500]},
                 color: {modes: ['xy', 'hs'], enhancedHue: true},
                 configureReporting: true,
@@ -154,7 +154,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 powerOnBehavior: true,
             }),
-            identify(),
+            m.identify(),
         ],
     },
     {
@@ -163,12 +163,12 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Candeo',
         description: 'Smart 2 gang switch module',
         extend: [
-            deviceEndpoints({
+            m.deviceEndpoints({
                 endpoints: {l1: 1, l2: 2},
                 multiEndpointSkip: ['power', 'current', 'voltage', 'energy'],
             }),
-            onOff({endpointNames: ['l1', 'l2']}),
-            electricityMeter(),
+            m.onOff({endpointNames: ['l1', 'l2']}),
+            m.electricityMeter(),
         ],
         meta: {},
     },
@@ -177,14 +177,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'C-RFZB-SM1',
         vendor: 'Candeo',
         description: 'Zigbee & RF Switch Module',
-        extend: [onOff({powerOnBehavior: true})],
+        extend: [m.onOff({powerOnBehavior: true})],
     },
     {
         fingerprint: [{modelID: 'C203', manufacturerName: 'Candeo'}],
         model: 'C203',
         vendor: 'Candeo',
         description: 'Zigbee micro smart dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
 ];
 

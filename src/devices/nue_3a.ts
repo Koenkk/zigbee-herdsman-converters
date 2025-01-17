@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, forcePowerSource, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -40,7 +40,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HGZB-01',
         vendor: 'Nue / 3A',
         description: 'Smart Zigbee 3.0 light controller',
-        extend: [onOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.onOff({powerOnBehavior: false}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
         whiteLabel: [
             {vendor: 'Zemismart', model: 'ZW-EU-01', description: 'Smart light relay - 1 gang'},
             {vendor: 'Moes', model: 'ZK-CH-2U', description: 'Plug with 2 USB ports'},
@@ -51,7 +51,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LXN59-2S7LX1.0',
         vendor: 'Nue / 3A',
         description: 'Smart light relay - 2 gang',
-        extend: [deviceEndpoints({endpoints: {left: 1, right: 2}}), onOff({endpointNames: ['left', 'right']})],
+        extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ['left', 'right']})],
         whiteLabel: [{vendor: 'Zemismart', model: 'ZW-EU-02'}],
     },
     {
@@ -86,28 +86,28 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LXZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
-        extend: [light({powerOnBehavior: false})],
+        extend: [m.light({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FNB56-ZSW03LX2.0', 'LXN-3S27LX1.0'],
         model: 'HGZB-43',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang v2.0',
-        extend: [deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}), onOff({endpointNames: ['top', 'center', 'bottom']})],
+        extend: [m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}), m.onOff({endpointNames: ['top', 'center', 'bottom']})],
     },
     {
         zigbeeModel: ['LXN-4S27LX1.0'],
         model: 'HGZB-4S',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 4 gang v2.0',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}), onOff({endpointNames: ['l1', 'l2', 'l3', 'l4']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}), m.onOff({endpointNames: ['l1', 'l2', 'l3', 'l4']})],
     },
     {
         zigbeeModel: ['FB56+ZSW1IKJ1.7', 'FB56+ZSW1IKJ2.5', 'FB56+ZSW1IKJ2.7'],
         model: 'HGZB-043',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 3 gang',
-        extend: [deviceEndpoints({endpoints: {top: 16, center: 17, bottom: 18}}), onOff({endpointNames: ['top', 'center', 'bottom']})],
+        extend: [m.deviceEndpoints({endpoints: {top: 16, center: 17, bottom: 18}}), m.onOff({endpointNames: ['top', 'center', 'bottom']})],
     },
     {
         zigbeeModel: ['FB56+ZSW1JKJ2.7'],
@@ -115,8 +115,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 4 gang v2.0',
         extend: [
-            deviceEndpoints({endpoints: {top_left: 16, top_right: 17, bottom_right: 18, bottom_left: 19}}),
-            onOff({endpointNames: ['top_left', 'top_right', 'bottom_right', 'bottom_left']}),
+            m.deviceEndpoints({endpoints: {top_left: 16, top_right: 17, bottom_right: 18, bottom_left: 19}}),
+            m.onOff({endpointNames: ['top_left', 'top_right', 'bottom_right', 'bottom_left']}),
         ],
     },
     {
@@ -124,7 +124,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HGZB-04D / HGZB-4D-UK',
         vendor: 'Nue / 3A',
         description: 'Smart dimmer wall switch',
-        extend: [light({effect: false, configureReporting: true})],
+        extend: [m.light({effect: false, configureReporting: true})],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
     },
     {
@@ -132,7 +132,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HGZB-042',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang',
-        extend: [deviceEndpoints({endpoints: {top: 16, bottom: 17}}), onOff({endpointNames: ['top', 'bottom']})],
+        extend: [m.deviceEndpoints({endpoints: {top: 16, bottom: 17}}), m.onOff({endpointNames: ['top', 'bottom']})],
     },
     {
         fingerprint: [
@@ -150,7 +150,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HGZB-42',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang v2.0',
-        extend: [deviceEndpoints({endpoints: {top: 11, bottom: 12}}), onOff({endpointNames: ['top', 'bottom'], configureReporting: false})],
+        extend: [m.deviceEndpoints({endpoints: {top: 11, bottom: 12}}), m.onOff({endpointNames: ['top', 'bottom'], configureReporting: false})],
         configure: async (device, coordinatorEndpoint) => {
             // ConfigureReporting for onOff fails
             // https://github.com/Koenkk/zigbee2mqtt/issues/20867
@@ -163,28 +163,28 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HGZB-20A',
         vendor: 'Nue / 3A',
         description: 'Power plug',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['FB56+ZSW1GKJ2.5', 'LXN-1S27LX1.0', 'FB56+ZSW1GKJ2.7'],
         model: 'HGZB-41',
         vendor: 'Nue / 3A',
         description: 'Smart one gang wall switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['FNB56-SKT1DHG1.4'],
         model: 'MG-AUWS01',
         vendor: 'Nue / 3A',
         description: 'Smart Double GPO',
-        extend: [deviceEndpoints({endpoints: {left: 11, right: 12}}), onOff({endpointNames: ['left', 'right']})],
+        extend: [m.deviceEndpoints({endpoints: {left: 11, right: 12}}), m.onOff({endpointNames: ['left', 'right']})],
     },
     {
         zigbeeModel: ['LXN56-TS27LX1.2'],
         model: 'LXN56-TS27LX1.2',
         vendor: 'Nue / 3A',
         description: 'Smart double GPO',
-        extend: [deviceEndpoints({endpoints: {left: 1, right: 2}}), onOff({endpointNames: ['left', 'right']})],
+        extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ['left', 'right']})],
     },
 
     {
@@ -192,35 +192,35 @@ const definitions: DefinitionWithExtend[] = [
         model: 'XY12S-15',
         vendor: 'Nue / 3A',
         description: 'Smart light controller RGBW',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['FNB56-ZSW23HG1.1', 'LXN56-LC27LX1.1', 'LXN56-LC27LX1.3'],
         model: 'HGZB-01A',
         vendor: 'Nue / 3A',
         description: 'Smart in-wall switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['FNB56-ZSC01LX1.2', 'FB56+ZSW05HG1.2', 'FB56+ZSC04HG1.0'],
         model: 'HGZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
-        extend: [light({powerOnBehavior: false})],
+        extend: [m.light({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FNB56-ZSW01LX2.0'],
         model: 'HGZB-42-UK / HGZB-41 / HGZB-41-UK',
         description: 'Smart switch 1 or 2 gang',
         vendor: 'Nue / 3A',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['FNB56-ZCW25FB1.6', 'FNB56-ZCW25FB2.1'],
         model: 'HGZB-06A',
         vendor: 'Nue / 3A',
         description: 'Smart 7W E27 light bulb',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['LXN59-CS27LX1.0'],
@@ -246,21 +246,21 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZW-EC-01',
         vendor: 'Nue / 3A',
         description: 'Zigbee smart curtain switch',
-        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.onOff(), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['LXN56-0S27LX1.1', 'LXN56-0S27LX1.2', 'LXN56-0S27LX1.3'],
         model: 'HGZB-20-UK',
         vendor: 'Nue / 3A',
         description: 'Power plug',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['NUET56-DL27LX1.2'],
         model: 'HGZB-DLC4-N12B',
         vendor: 'Nue / 3A',
         description: 'RGB LED downlight',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['FB56-WTS04HM1.1'],
@@ -285,14 +285,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '3A12S-15',
         vendor: 'Nue / 3A',
         description: 'Smart Zigbee 3.0 strip light controller',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['LXN60-LS27-Z30', 'FEB56-ZCW2CLX1.0'],
         model: 'WL-SD001-9W',
         vendor: 'Nue / 3A',
         description: '9W RGB LED downlight',
-        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         fingerprint: [
@@ -309,7 +309,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'NUE-AUWZO2',
         vendor: 'Nue / 3A',
         description: 'Smart Zigbee double power point',
-        extend: [deviceEndpoints({endpoints: {left: 1, right: 2}}), onOff({endpointNames: ['left', 'right']})],
+        extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ['left', 'right']})],
     },
     {
         zigbeeModel: ['LXN56-1S27LX1.2', 'LXX60-FN27LX1.0'],
@@ -317,9 +317,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Nue / 3A',
         description: 'Smart fan light switch',
         extend: [
-            deviceEndpoints({endpoints: {button_light: 1, button_fan_high: 2, button_fan_med: 3, button_fan_low: 4}}),
-            onOff({endpointNames: ['button_light', 'button_fan_high', 'button_fan_med', 'button_fan_low']}),
-            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            m.deviceEndpoints({endpoints: {button_light: 1, button_fan_high: 2, button_fan_med: 3, button_fan_low: 4}}),
+            m.onOff({endpointNames: ['button_light', 'button_fan_high', 'button_fan_med', 'button_fan_low']}),
+            m.forcePowerSource({powerSource: 'Mains (single phase)'}),
         ],
     },
 ];

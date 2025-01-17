@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {eLegrand, fzLegrand, tzLegrand} from '../lib/legrand';
-import {electricityMeter, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -40,14 +40,14 @@ const definitions: DefinitionWithExtend[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['Bticino Din power consumption module '],
         model: 'F20T60A',
         description: 'DIN power consumption module (same as Legrand 412015)',
         vendor: 'BTicino',
-        extend: [onOff(), electricityMeter({cluster: 'electrical'})],
+        extend: [m.onOff(), m.electricityMeter({cluster: 'electrical'})],
         fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_device_mode, tzLegrand.identify],
         exposes: [

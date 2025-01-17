@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
 
@@ -73,14 +73,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'AV2010/16',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wall-mount relay with dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['AV2010/18', '902010/18'],
         model: 'AV2010/18',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wall-mount relay',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['AV2010/21A', '902010/21A'],
@@ -194,14 +194,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'AV2010/26',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless socket with dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['AV2010/28', '902010/28'],
         model: 'AV2010/28',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless socket',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['AV2010/29', '902010/29'],

@@ -1,5 +1,5 @@
 import tz from '../converters/toZigbee';
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -8,7 +8,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZB-CL01',
         vendor: 'KURVIA',
         description: 'GU10 GRBWC built from AliExpress',
-        extend: [light({colorTemp: {range: [250, 454]}, color: {applyRedFix: true, enhancedHue: false}})],
+        extend: [m.light({colorTemp: {range: [250, 454]}, color: {applyRedFix: true, enhancedHue: false}})],
         toZigbee: [tz.on_off],
     },
 ];

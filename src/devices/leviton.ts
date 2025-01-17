@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -29,35 +29,35 @@ const definitions: DefinitionWithExtend[] = [
         model: 'DL15S-1BZ',
         vendor: 'Leviton',
         description: 'Lumina RF 15A switch, 120/277V',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['DG6HD'],
         model: 'DG6HD-1BW',
         vendor: 'Leviton',
         description: 'Zigbee in-wall smart dimmer',
-        extend: [light({effect: false, configureReporting: true})],
+        extend: [m.light({effect: false, configureReporting: true})],
     },
     {
         zigbeeModel: ['DG3HL'],
         model: 'DG3HL-1BW',
         vendor: 'Leviton',
         description: 'Indoor Decora smart Zigbee 3.0 certified plug-in dimmer',
-        extend: [light({effect: false, configureReporting: true})],
+        extend: [m.light({effect: false, configureReporting: true})],
     },
     {
         zigbeeModel: ['DG15A'],
         model: 'DG15A-1BW',
         vendor: 'Leviton',
         description: 'Indoor Decora smart Zigbee 3.0 certified plug-in outlet',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['DG15S'],
         model: 'DG15S-1BW',
         vendor: 'Leviton',
         description: 'Decora smart Zigbee 3.0 certified 15A switch',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['65A01-1'],
@@ -114,7 +114,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Leviton',
         description: 'Wall switch, 0-10V dimmer, 120-277V, Lumina™ RF',
         meta: {disableDefaultResponse: true},
-        extend: [light({effect: false, configureReporting: true})],
+        extend: [m.light({effect: false, configureReporting: true})],
         fromZigbee: [fzLocal.on_off_via_brightness, fz.lighting_ballast_configuration],
         toZigbee: [tz.ballast_config],
         exposes: [
