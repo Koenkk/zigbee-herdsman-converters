@@ -1401,6 +1401,7 @@ const converters1 = {
     command_step_color_temperature: {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
+        options: [exposes.options.simulated_color_temperature()],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
@@ -1411,6 +1412,25 @@ const converters1 = {
 
             if (msg.data.transtime !== undefined) {
                 payload.action_transition_time = msg.data.transtime / 100;
+            }
+
+            if (options.simulated_color_temperature) {
+                const SIMULATED_COLOR_TEMPERATURE_KEY = 'simulated_color_temperature_temperature';
+
+                const opts: KeyValueAny = options.simulated_color_temperature;
+                const deltaOpts: number = typeof opts === 'object' && opts.delta !== undefined ? opts.delta : 50;
+                const minimumOpts: number = typeof opts === 'object' && opts.minimum !== undefined ? opts.minimum : 153;
+                const maximumOpts: number = typeof opts === 'object' && opts.maximum !== undefined ? opts.maximum : 500;
+
+                let colorTemperature = globalStore.getValue(msg.endpoint, SIMULATED_COLOR_TEMPERATURE_KEY, 250);
+                const delta = direction === 'up' ? deltaOpts : -deltaOpts;
+                colorTemperature += delta;
+                colorTemperature = numberWithinRange(colorTemperature, minimumOpts, maximumOpts);
+                globalStore.putValue(msg.endpoint, SIMULATED_COLOR_TEMPERATURE_KEY, colorTemperature);
+                const property = postfixWithEndpointName('color_temperature', msg, model, meta);
+                payload[property] = colorTemperature;
+                const deltaProperty = postfixWithEndpointName('action_color_temperature_delta', msg, model, meta);
+                payload[deltaProperty] = delta;
             }
 
             addActionGroup(payload, msg, model);
