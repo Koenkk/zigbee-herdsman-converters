@@ -8743,7 +8743,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.01)
                 .withUnit('m')
                 .withDescription('Motion detection distance'),
-            e.enum('motion_state', ea.STATE, ['none', 'small', 'medium', 'large', 'mini', 'micro']).withDescription('State of the motion'),
+            e.enum('motion_state', ea.STATE, ['none', 'small', 'medium', 'large', 'huge', 'gigantic']).withDescription('State of the motion'),
             e
                 .numeric('fading_time', ea.STATE_SET)
                 .withValueMin(0)
@@ -8794,8 +8794,8 @@ const definitions: DefinitionWithExtend[] = [
                         large: tuya.enum(1),
                         medium: tuya.enum(2),
                         small: tuya.enum(3),
-                        mini: tuya.enum(4),
-                        micro: tuya.enum(5),
+                        huge: tuya.enum(4),
+                        gigantic: tuya.enum(5),
                     }),
                 ],
                 [102, 'fading_time', tuya.valueConverter.raw],
