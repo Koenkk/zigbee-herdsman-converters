@@ -39,15 +39,6 @@ const ubisysOnEventReadCurrentSummDelivered = async function (type: OnEventType,
     }
 };
 
-const ubisysPollCurrentSummDelivered = async (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
-    const endpoint = device.getEndpoint(endpointId);
-    const poll = async () => {
-        await endpoint.read('seMetering', ['currentSummDelivered']);
-    };
-
-    utils.onEventPoll(type, data, device, options, 'measurement', 60, poll);
-};
-
 const ubisys = {
     fz: {
         dimmer_setup: {
@@ -734,60 +725,6 @@ const definitions: DefinitionWithExtend[] = [
             }
         },
         ota: true,
-    },
-    {
-        // S1-R Series 2 uses the same modelId as the regular S1-R, but the energy clusters are located in endpoint 1 (instead of 4, like the regular S1-R).
-        fingerprint: [
-            {
-                manufacturerName: 'Ubisys',
-                modelID: 'S1-R (5601)',
-                endpoints: [
-                    {ID: 1, profileID: 260, deviceID: 266, inputClusters: [0, 3, 4, 5, 6, 1794, 2820], outputClusters: []},
-                    {ID: 2, profileID: 260, deviceID: 260, inputClusters: [0, 3], outputClusters: [3, 5, 6, 8, 768, 64514]},
-                    {ID: 3, profileID: 260, deviceID: 260, inputClusters: [0, 3], outputClusters: [3, 5, 6, 8, 768, 64514]},
-                    {ID: 232, profileID: 260, deviceID: 1287, inputClusters: [0, 61, 64512, 64599], outputClusters: [3, 25]},
-                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
-                ],
-            },
-        ],
-        model: 'S1-R-2',
-        vendor: 'Ubisys',
-        description: 'Power switch S1-R (Series 2)',
-        extend: [
-            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '232': 232}, multiEndpointSkip: ['state', 'power', 'energy']}),
-            m.identify(),
-            m.onOff({powerOnBehavior: false}),
-            m.electricityMeter({cluster: 'metering', configureReporting: false}),
-            m.commandsOnOff({endpointNames: ['2', '3']}),
-            m.commandsLevelCtrl({endpointNames: ['2', '3']}),
-            m.commandsColorCtrl({endpointNames: ['2', '3']}),
-        ],
-        options: [exposes.options.measurement_poll_interval()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-        },
-        onEvent: async (type, data, device, settings) => {
-            /*
-             * As per technical doc page 18 section 7.3.4
-             * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
-             *
-             * This cluster uses the binding table for managing command targets.
-             * When factory fresh, this cluster is bound to endpoint #1 to
-             * enable local control.
-             *
-             * We use addBinding to 'record' this default binding.
-             */
-            if (type === 'deviceInterview') {
-                const ep1 = device.getEndpoint(1);
-                const ep2 = device.getEndpoint(2);
-                ep2.addBinding('genOnOff', ep1);
-            } else {
-                await ubisysPollCurrentSummDelivered(type, data, device, 1, settings);
-            }
-        },
     },
     {
         zigbeeModel: ['S2 (5502)', 'S2-R (5602)'],
