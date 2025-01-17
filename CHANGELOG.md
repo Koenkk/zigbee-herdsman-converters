@@ -1,5 +1,22 @@
 # Changelog
 
+## [21.20.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.19.0...v21.20.0) (2025-01-15)
+
+
+### Features
+
+* **add:** C-ZB-DM204 ([#8609](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8609)) ([ef7ac30](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ef7ac30befdfa980f139249ea62c8db7a985d9a5))
+* Expose `uart_connection` and `uart_baud_rate` for WB-MSW-ZIGBEE v.4 ([#8616](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8616)) ([b33bc18](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b33bc18a0c9061f24edda3047e55d5775116ea4e))
+
+
+### Bug Fixes
+
+* Configure state reporting for Gledopto GL-SD-001 https://github.com/Koenkk/zigbee2mqtt/issues/23661 ([a5088d9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a5088d982f4705aefcf710c4b0fcb81e2563c0ef))
+* **detect:** Detect `_TZE204_57hjqelq` as Roximo CRTZ01 ([#8607](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8607)) ([341f3ef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/341f3efd3f0f03e88d032cf98e3321b146c477d7))
+* **detect:** Detect `_TZE284_ne4pikwm` as Nedis ZBHTR20WT ([#8619](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8619)) ([502b3c3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/502b3c32863d2774c9a6e223a8f06012dbf8e22f))
+* **detect:** Detect `_TZE284_ny94onlb` as Tuya SPM02V2.5 ([#8617](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8617)) ([7ce4846](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7ce48463f368b5102037e192238799072290b377))
+* **detect:** Detect `_TZE284_xnbkhhdr` as Tuya ZWT198/ZWT100-BH ([#8614](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8614)) ([6ae4e45](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6ae4e4588a35c0af61bdedbe1f5df200a2664035))
+
 ## [21.19.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.18.0...v21.19.0) (2025-01-13)
 
 

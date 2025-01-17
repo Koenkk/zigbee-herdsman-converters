@@ -38,9 +38,7 @@ const definitions: DefinitionWithExtend[] = [
             tz.thermostat_setpoint_raise_lower,
         ],
         exposes: [
-            e.enum('system_mode', ea.ALL, ['off', 'heat']).withDescription('Heater mode (Off or Heat)'),
-            e.local_temperature(),
-            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.ALL).withLocalTemperature(),
+            e.climate().withSystemMode(['off', 'heat']).withLocalTemperature().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.ALL),
             e
                 .numeric('min_heat_setpoint_limit', ea.ALL)
                 .withUnit('°C')
@@ -122,17 +120,8 @@ const definitions: DefinitionWithExtend[] = [
                     const endpoint = device?.getEndpoint(i);
                     if (endpoint !== undefined) {
                         const epName = `l${i}`;
-                        features.push(
-                            e
-                                .enum('system mode', ea.ALL, ['off', 'cool', 'heat'])
-                                .withProperty('system_mode')
-                                .withEndpoint(epName)
-                                .withDescription('Thermostat ' + i + ' mode (Off, Heating or Cooling)'),
-                        );
-                        features.push(e.local_temperature().withEndpoint(epName));
-                        features.push(
-                            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.ALL).withEndpoint(epName).withLocalTemperature(),
-                        );
+                        features.push(e.climate().withSystemMode(['off', 'cool', 'heat']).withLocalTemperature().withEndpoint(epName));
+                        features.push(e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.ALL).withEndpoint(epName));
                         features.push(
                             e
                                 .numeric('min_heat_setpoint_limit', ea.ALL)

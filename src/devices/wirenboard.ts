@@ -1,3 +1,5 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
@@ -261,6 +263,35 @@ const sprutModernExtend = {
             entityCategory: 'config',
             ...args,
         }),
+    sprutIsConnected: (args?: Partial<m.BinaryArgs>) =>
+        m.binary({
+            name: 'uart_connection',
+            cluster: 'sprutDevice',
+            attribute: 'isConnected',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            description: 'Indicates whether the device is communicating with sensors via UART',
+            access: 'STATE_GET',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    sprutUartBaudRate: (args?: Partial<m.EnumLookupArgs>) =>
+        m.enumLookup({
+            name: 'uart_baud_rate',
+            lookup: {
+                '9600': 9600,
+                '19200': 19200,
+                '38400': 38400,
+                '57600': 57600,
+                '115200': 115200,
+            },
+            cluster: 'sprutDevice',
+            attribute: 'UartBaudRate',
+            description: 'UART baud rate',
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
     sprutTemperatureOffset: (args?: Partial<m.NumericArgs>) =>
         m.numeric({
             name: 'temperature_offset',
@@ -439,6 +470,8 @@ const sprutModernExtend = {
 
 const {
     sprutActivityIndicator,
+    sprutIsConnected,
+    sprutUartBaudRate,
     sprutOccupancyLevel,
     sprutNoise,
     sprutVoc,
@@ -600,6 +633,21 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Wirenboard',
         description: 'Wall-mounted multi sensor',
         extend: [
+            m.deviceAddCustomCluster('sprutDevice', {
+                ID: 26112,
+                manufacturerCode: 26214,
+                attributes: {
+                    isConnected: {ID: 26116, type: Zcl.DataType.BOOLEAN},
+                    UartBaudRate: {ID: 26113, type: Zcl.DataType.UINT32},
+                },
+                commands: {
+                    debug: {
+                        ID: 103,
+                        parameters: [{name: 'data', type: Zcl.DataType.UINT8}],
+                    },
+                },
+                commandsResponse: {},
+            }),
             m.forcePowerSource({powerSource: 'Mains (single phase)'}),
             m.deviceEndpoints({
                 endpoints: {default: 1, l1: 2, l2: 3, l3: 4, indicator: 5},
@@ -607,6 +655,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             m.onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
             sprutActivityIndicator({endpointName: 'indicator'}),
+            sprutIsConnected(),
             m.temperature(),
             sprutTemperatureOffset(),
             m.humidity(),
@@ -623,6 +672,7 @@ const definitions: DefinitionWithExtend[] = [
             sprutNoiseTimeout(),
             sprutVoc(),
             sprutIrBlaster(),
+            sprutUartBaudRate(),
         ],
         ota: true,
     },

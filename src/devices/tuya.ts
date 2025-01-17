@@ -7028,7 +7028,7 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7', '_TZE204_lzriup1j', '_TZE204_xnbkhhdr']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7', '_TZE204_lzriup1j', '_TZE204_xnbkhhdr', '_TZE284_xnbkhhdr']),
         model: 'ZWT198/ZWT100-BH',
         vendor: 'Tuya',
         description: 'Wall thermostat',
@@ -8727,7 +8727,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.01)
                 .withUnit('m')
                 .withDescription('Motion detection distance'),
-            e.enum('motion_state', ea.STATE, ['none', 'small', 'medium', 'large', 'mini', 'micro']).withDescription('State of the motion'),
+            e.enum('motion_state', ea.STATE, ['none', 'small', 'medium', 'large', 'huge', 'gigantic']).withDescription('State of the motion'),
             e
                 .numeric('fading_time', ea.STATE_SET)
                 .withValueMin(0)
@@ -8778,8 +8778,8 @@ const definitions: DefinitionWithExtend[] = [
                         large: tuya.enum(1),
                         medium: tuya.enum(2),
                         small: tuya.enum(3),
-                        mini: tuya.enum(4),
-                        micro: tuya.enum(5),
+                        huge: tuya.enum(4),
+                        gigantic: tuya.enum(5),
                     }),
                 ],
                 [102, 'fading_time', tuya.valueConverter.raw],
@@ -9821,6 +9821,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE204_ny94onlb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ny94onlb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE284_ny94onlb'},
         ],
         model: 'SPM02V2.5',
         vendor: 'Tuya',
@@ -14123,6 +14124,82 @@ const definitions: DefinitionWithExtend[] = [
                 [103, 'eco_temperature', tuya.valueConverter.divideBy10],
                 [104, 'comfort_temperature', tuya.valueConverter.divideBy10],
                 [105, 'frost_protection_temperature', tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE200_wem3gxyx',
+            },
+        ],
+        model: 'AE-940K',
+        vendor: 'ACMELEC',
+        description: 'Compatible with Daikin vrv system',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
+            e
+                .climate()
+                .withSystemMode(['cool', 'heat', 'fan_only', 'dry'], ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 16, 32, 1, ea.STATE_SET)
+                .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
+                .withLocalTemperature(ea.STATE),
+            e.child_lock(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [
+                    2,
+                    'system_mode',
+                    tuya.valueConverterBasic.lookup({cool: tuya.enum(0), heat: tuya.enum(1), fan_only: tuya.enum(2), dry: tuya.enum(3)}),
+                ],
+                [16, 'current_heating_setpoint', tuya.valueConverter.raw],
+                [28, 'fan_mode', tuya.valueConverterBasic.lookup({low: tuya.enum(0), medium: tuya.enum(1), high: tuya.enum(2), auto: tuya.enum(3)})],
+                [40, 'child_lock', tuya.valueConverter.lockUnlock],
+            ],
+        },
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_mul9abs3',
+            },
+        ],
+        model: 'AE-669K',
+        vendor: 'ACMELEC',
+        description: 'Compatible with Mitsubishi Electric vrf system',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
+            e
+                .climate()
+                .withSystemMode(['cool', 'heat', 'fan_only', 'dry'], ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 16, 32, 1, ea.STATE_SET)
+                .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
+                .withLocalTemperature(ea.STATE),
+            e.child_lock(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [
+                    2,
+                    'system_mode',
+                    tuya.valueConverterBasic.lookup({cool: tuya.enum(0), heat: tuya.enum(1), fan_only: tuya.enum(2), dry: tuya.enum(3)}),
+                ],
+                [16, 'current_heating_setpoint', tuya.valueConverter.raw],
+                [28, 'fan_mode', tuya.valueConverterBasic.lookup({low: tuya.enum(0), medium: tuya.enum(1), high: tuya.enum(2), auto: tuya.enum(3)})],
+                [40, 'child_lock', tuya.valueConverter.lockUnlock],
             ],
         },
     },

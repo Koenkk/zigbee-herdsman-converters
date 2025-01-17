@@ -3,7 +3,6 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, identify, quirkCheckinInterval} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import {philipsFz, philipsLight, philipsOnOff, philipsTwilightOnOff, philipsTz} from '../lib/philips';
 import * as reporting from '../lib/reporting';
@@ -1217,7 +1216,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Philips',
         description: 'Hue Dymera indoor and outdoor wall light',
         extend: [
-            deviceEndpoints({endpoints: {top: 11, bottom: 12}}),
+            m.deviceEndpoints({endpoints: {top: 11, bottom: 12}}),
             philipsLight({colorTemp: {range: [153, 500]}, color: true, endpointNames: ['top', 'bottom']}),
         ],
     },
@@ -2388,7 +2387,7 @@ const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {ep1: 1, ep2: 2};
         },
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         ota: true,
     },
     {
@@ -3055,7 +3054,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '929003597901',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle round panel light',
-        extend: [identify(), philipsLight({colorTemp: {range: [153, 454]}})],
+        extend: [m.identify(), philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['3418331P6'],
@@ -3973,11 +3972,9 @@ const definitions: DefinitionWithExtend[] = [
             {model: '929003711401', vendor: 'Philips', description: 'Hue Twilight sleep and wake-up light black', fingerprint: [{modelID: 'LGT003'}]},
         ],
         extend: [
-            deviceEndpoints({endpoints: {switch: 1, back: 11, front: 12}}),
-
+            m.deviceEndpoints({endpoints: {switch: 1, back: 11, front: 12}}),
             philipsLight({colorTemp: {range: [153, 500]}, color: true, endpointNames: ['front']}),
             philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true, endpointNames: ['back']}),
-
             philipsTwilightOnOff(),
         ],
     },

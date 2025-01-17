@@ -102,14 +102,14 @@ describe('GenerateDefinition', () => {
                 ],
             },
             externalDefintionSource: `
-const {temperature, onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
+const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [temperature(), onOff({"powerOnBehavior":false})],
+    extend: [m.temperature(), m.onOff({"powerOnBehavior":false})],
     meta: {},
 };
 
@@ -143,14 +143,14 @@ module.exports = definition;
                 ],
             },
             externalDefintionSource: `
-const {temperature, onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
+const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [temperature(), onOff({"powerOnBehavior":false})],
+    extend: [m.temperature(), m.onOff({"powerOnBehavior":false})],
     meta: {},
 };
 
@@ -189,14 +189,14 @@ module.exports = definition;
                 2: [['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]]],
             },
             externalDefintionSource: `
-const {deviceEndpoints, temperature, onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
+const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [deviceEndpoints({"endpoints":{"1":1,"2":2}}), temperature({"endpointNames":["1","2"]}), onOff({"powerOnBehavior":false})],
+    extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2}}), m.temperature({"endpointNames":["1","2"]}), m.onOff({"powerOnBehavior":false})],
     meta: {"multiEndpoint":true},
 };
 
@@ -259,14 +259,14 @@ module.exports = definition;
             },
             configureReporting: {},
             externalDefintionSource: `
-const {light} = require('zigbee-herdsman-converters/lib/modernExtend');
+const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
+    extend: [m.light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
     meta: {},
 };
 
@@ -329,14 +329,14 @@ module.exports = definition;
             },
             configureReporting: {},
             externalDefintionSource: `
-const {light} = require('zigbee-herdsman-converters/lib/modernExtend');
+const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
+    extend: [m.light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
     meta: {},
 };
 
@@ -405,14 +405,14 @@ module.exports = definition;
             },
             configureReporting: [],
             externalDefintionSource: `
-const {philipsLight} = require('zigbee-herdsman-converters/lib/philips');
+const * as philips = require('zigbee-herdsman-converters/lib/philips');
 
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [philipsLight({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
+    extend: [philips.philipsLight({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
     meta: {},
 };
 
@@ -484,14 +484,14 @@ module.exports = definition;
                 ],
             },
             externalDefintionSource: `
-const {onOff, electricityMeter} = require('zigbee-herdsman-converters/lib/modernExtend');
+const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [onOff({"powerOnBehavior":false}), electricityMeter()],
+    extend: [m.onOff({"powerOnBehavior":false}), m.electricityMeter()],
     meta: {},
 };
 

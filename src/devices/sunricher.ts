@@ -408,6 +408,39 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['HK-SENSOR-GAS'],
+        model: 'SR-ZG9060A-GS',
+        vendor: 'Sunricher',
+        description: 'Smart Combustible Gas Sensor',
+        extend: [m.iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low']}), m.iasWarning()],
+    },
+    {
+        zigbeeModel: ['HK-SENSOR-CO'],
+        model: 'SR-ZG9060B-CS',
+        vendor: 'Sunricher',
+        description: 'Smart Carbon Monoxide Alarm',
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low']}), m.iasWarning()],
+    },
+    {
+        zigbeeModel: ['HK-SENSOR-WT1'],
+        model: 'SR-ZG9050C-WS',
+        vendor: 'Sunricher',
+        description: 'Smart Water Leakage Sensor',
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low']})],
+    },
+    {
+        zigbeeModel: ['HK-SENSOR-WT2'],
+        model: 'SR-ZG9050B-WS',
+        vendor: 'Sunricher',
+        description: 'Water Leakage Alarm',
+        extend: [
+            m.battery(),
+            m.temperature(),
+            m.iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low']}),
+            m.iasWarning(),
+        ],
+    },
+    {
         zigbeeModel: ['HK-SL-DIM-UK'],
         model: 'SR-ZG2835RAC-UK',
         vendor: 'Sunricher',
