@@ -674,39 +674,29 @@ const definitions: DefinitionWithExtend[] = [
         model: 'S1-R',
         vendor: 'Ubisys',
         description: 'Power switch S1-R',
-        exposes: [
-            e.switch(),
-            e.action(['toggle', 'on', 'off', 'recall_*', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
-            e.power_on_behavior(),
-            e.power().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
-        ],
-        fromZigbee: [
-            fz.on_off,
-            fz.metering,
-            fz.command_toggle,
-            fz.command_on,
-            fz.command_off,
-            fz.command_recall,
-            fz.command_move,
-            fz.command_stop,
-            fz.power_on_behavior,
-            ubisys.fz.configure_device_setup,
-        ],
-        toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered, ubisys.tz.configure_device_setup, tz.power_on_behavior],
-        meta: {multiEndpointEnforce: {power: 4, energy: 4}},
-        endpoint: (device) => {
-            const endpoints = {l1: 1, s1: 2, meter: 4};
-
-            // Series 2 (hwVer >= 16 has metering on endpoint 1)
-            if (device.hardwareVersion >= 16) {
-                endpoints.meter = 1;
-            }
-
-            return endpoints;
-        },
-        extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup()],
+        fromZigbee: [ubisys.fz.configure_device_setup],
+        toZigbee: [ubisys.tz.configure_device_setup],
+        //meta: {multiEndpointEnforce: {power: 4, energy: 4}},
+        //endpoint: (device) => {
+        //    const endpoints = {l1: 1, s1: 2, s2: 3, meter: 4};
+        //
+        //  // Series 2 (hwVer >= 16 has metering on endpoint 1)
+        //    if (device.hardwareVersion >= 16) {
+        //        endpoints.meter = 1;
+        //    }
+        //
+        //    return endpoints;
+        //},
         options: [exposes.options.measurement_poll_interval()],
+        extend: [
+            m.identify(),
+            m.onOff({powerOnBehavior: true}),
+            m.electricityMeter({cluster: 'metering', configureReporting: false}),
+            m.commandsOnOff({endpointNames: ['2', '3']}),
+            m.commandsLevelCtrl({endpointNames: ['2', '3']}),
+            m.commandsColorCtrl({endpointNames: ['2', '3']}),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             // Series 2 has metering on endpoint 1, older devices on endpoint 4
             // hardwareVersion is 16
