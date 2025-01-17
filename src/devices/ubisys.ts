@@ -616,32 +616,22 @@ const definitions: DefinitionWithExtend[] = [
         model: 'S1',
         vendor: 'Ubisys',
         description: 'Power switch S1',
-        exposes: [
-            e.switch(),
-            e.action(['toggle', 'on', 'off', 'recall_*', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
-            e.power_on_behavior(),
-            e.power().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
-        ],
-        fromZigbee: [
-            fz.on_off,
-            fz.metering,
-            fz.command_toggle,
-            fz.command_on,
-            fz.command_off,
-            fz.command_recall,
-            fz.command_move,
-            fz.command_stop,
-            fz.power_on_behavior,
-            ubisys.fz.configure_device_setup,
-        ],
-        toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered, ubisys.tz.configure_device_setup, tz.power_on_behavior],
-        endpoint: (device) => {
-            return {l1: 1, s1: 2, meter: 3};
-        },
-        meta: {multiEndpointEnforce: {power: 3, energy: 3}},
+        fromZigbee: [ubisys.fz.configure_device_setup],
+        toZigbee: [ubisys.tz.configure_device_setup],
+        //endpoint: (device) => {
+        //    return {l1: 1, s1: 2, meter: 3};
+        //},
+        //meta: {multiEndpointEnforce: {power: 3, energy: 3}},
         options: [exposes.options.measurement_poll_interval()],
-        extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup()],
+        extend: [
+            // NOTE: identify is supported but no visual indicator so omitted here
+            m.onOff({powerOnBehavior: true}),
+            m.electricityMeter({cluster: 'metering', configureReporting: false}),
+            m.commandsOnOff({endpointNames: ['2']}),
+            m.commandsLevelCtrl({endpointNames: ['2']}),
+            m.commandsColorCtrl({endpointNames: ['2']}),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
