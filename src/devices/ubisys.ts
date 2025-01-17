@@ -29,14 +29,13 @@ const manufacturerOptions = {
     ubisysNull: {manufacturerCode: null},
 };
 
-const ubisysOnEventReadCurrentSummDelivered = async function (type: OnEventType, data: OnEventData, device: Zh.Device) {
-    if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
-        try {
-            await data.endpoint.read('seMetering', ['currentSummDelivered']);
-        } catch {
-            /* Do nothing*/
-        }
-    }
+const ubisysPollCurrentSummDelivered = async (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
+    const endpoint = device.getEndpoint(endpointId);
+    const poll = async () => {
+        await endpoint.read('seMetering', ['currentSummDelivered']);
+    };
+
+    utils.onEventPoll(type, data, device, options, 'measurement', 60, poll);
 };
 
 const ubisys = {
@@ -641,6 +640,7 @@ const definitions: DefinitionWithExtend[] = [
             return {l1: 1, s1: 2, meter: 3};
         },
         meta: {multiEndpointEnforce: {power: 3, energy: 3}},
+        options: [exposes.options.measurement_poll_interval()],
         extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
@@ -648,7 +648,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        onEvent: async (type, data, device) => {
+        onEvent: async (type, data, device, settings) => {
             /*
              * As per technical doc page 18 section 7.3.4
              * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
@@ -664,7 +664,7 @@ const definitions: DefinitionWithExtend[] = [
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('genOnOff', ep1);
             } else {
-                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
+                await ubisysPollCurrentSummDelivered(type, data, device, 3, settings);
             }
         },
         ota: true,
@@ -696,16 +696,26 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         meta: {multiEndpointEnforce: {power: 4, energy: 4}},
         endpoint: (device) => {
-            return {l1: 1, s1: 2, meter: 4};
+            const endpoints = {l1: 1, s1: 2, meter: 4};
+
+            // Series 2 (hwVer >= 16 has metering on endpoint 1)
+            if (device.hardwareVersion >= 16) {
+                endpoints.meter = 1;
+            }
+
+            return endpoints;
         },
         extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup()],
+        options: [exposes.options.measurement_poll_interval()],
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(4);
+            // Series 2 has metering on endpoint 1, older devices on endpoint 4
+            // hardwareVersion is 16
+            const endpoint = device.getEndpoint(device.hardwareVersion < 16 ? 4 : 1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        onEvent: async (type, data, device) => {
+        onEvent: async (type, data, device, settings) => {
             /*
              * As per technical doc page 18 section 7.3.4
              * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
@@ -721,7 +731,7 @@ const definitions: DefinitionWithExtend[] = [
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('genOnOff', ep1);
             } else {
-                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
+                await ubisysPollCurrentSummDelivered(type, data, device, device.hardwareVersion < 16 ? 4 : 1, settings);
             }
         },
         ota: true,
@@ -772,6 +782,7 @@ const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 2, s1: 3, s2: 4, meter: 5};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy'], multiEndpointEnforce: {power: 5, energy: 5}},
+        options: [exposes.options.measurement_poll_interval()],
         extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
@@ -779,7 +790,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        onEvent: async (type, data, device) => {
+        onEvent: async (type, data, device, settings) => {
             /*
              * As per technical doc page 20 section 7.4.4 and
              *                      page 22 section 7.5.4
@@ -803,7 +814,7 @@ const definitions: DefinitionWithExtend[] = [
                 ep3.addBinding('genOnOff', ep1);
                 ep4.addBinding('genOnOff', ep2);
             } else {
-                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
+                await ubisysPollCurrentSummDelivered(type, data, device, 5, settings);
             }
         },
         ota: true,
@@ -959,10 +970,11 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.instantaneousDemand(endpoint);
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness', 'power', 'energy'], multiEndpointEnforce: {power: 4, energy: 4}},
+        options: [exposes.options.measurement_poll_interval()],
         endpoint: (device) => {
             return {default: 1, s1: 2, s2: 3, meter: 4};
         },
-        onEvent: async (type, data, device) => {
+        onEvent: async (type, data, device, settings) => {
             /*
              * As per technical doc page 23 section 7.3.4, 7.3.5
              * https://www.ubisys.de/wp-content/uploads/ubisys-d1-technical-reference.pdf
@@ -975,7 +987,7 @@ const definitions: DefinitionWithExtend[] = [
                 ep2.addBinding('genOnOff', ep1);
                 ep2.addBinding('genLevelCtrl', ep1);
             } else {
-                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
+                await ubisysPollCurrentSummDelivered(type, data, device, 4, settings);
             }
         },
         ota: true,
@@ -1034,7 +1046,8 @@ const definitions: DefinitionWithExtend[] = [
             return {default: 1, meter: 3};
         },
         meta: {multiEndpointEnforce: {power: 3, energy: 3}},
-        onEvent: async (type, data, device) => {
+        options: [exposes.options.measurement_poll_interval()],
+        onEvent: async (type, data, device, settings) => {
             /*
              * As per technical doc page 21 section 7.3.4
              * https://www.ubisys.de/wp-content/uploads/ubisys-j1-technical-reference.pdf
@@ -1046,7 +1059,7 @@ const definitions: DefinitionWithExtend[] = [
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('closuresWindowCovering', ep1);
             } else {
-                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
+                await ubisysPollCurrentSummDelivered(type, data, device, 3, settings);
             }
         },
         ota: true,
