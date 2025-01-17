@@ -2850,10 +2850,10 @@ export const fromZigbee = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65328']) {
-                const data = msg.data['65328'];
-                const state = data.substr(2, 2);
-                const action = data.substr(4, 2);
-                const keynum = data.substr(6, 2);
+                const data = `0x${msg.data['65328'].toString(16)}`;
+                const state = Number(data.substring(2, 4));
+                const action = Number(data.substring(4, 6));
+                const keynum = Number(data.substring(6, 8));
                 if (state == 11) {
                     if (action == 1) {
                         // unknown key
