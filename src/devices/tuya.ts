@@ -14143,6 +14143,82 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE200_wem3gxyx',
+            },
+        ],
+        model: 'AE-940K',
+        vendor: 'ACMELEC',
+        description: 'Compatible with Daikin vrv system',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
+            e
+                .climate()
+                .withSystemMode(['cool', 'heat', 'fan_only', 'dry'], ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 16, 32, 1, ea.STATE_SET)
+                .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
+                .withLocalTemperature(ea.STATE),
+            e.child_lock(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [
+                    2,
+                    'system_mode',
+                    tuya.valueConverterBasic.lookup({cool: tuya.enum(0), heat: tuya.enum(1), fan_only: tuya.enum(2), dry: tuya.enum(3)}),
+                ],
+                [16, 'current_heating_setpoint', tuya.valueConverter.raw],
+                [28, 'fan_mode', tuya.valueConverterBasic.lookup({low: tuya.enum(0), medium: tuya.enum(1), high: tuya.enum(2), auto: tuya.enum(3)})],
+                [40, 'child_lock', tuya.valueConverter.lockUnlock],
+            ],
+        },
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_mul9abs3',
+            },
+        ],
+        model: 'AE-669K',
+        vendor: 'ACMELEC',
+        description: 'Compatible with Mitsubishi Electric vrf system',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
+            e
+                .climate()
+                .withSystemMode(['cool', 'heat', 'fan_only', 'dry'], ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 16, 32, 1, ea.STATE_SET)
+                .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
+                .withLocalTemperature(ea.STATE),
+            e.child_lock(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [
+                    2,
+                    'system_mode',
+                    tuya.valueConverterBasic.lookup({cool: tuya.enum(0), heat: tuya.enum(1), fan_only: tuya.enum(2), dry: tuya.enum(3)}),
+                ],
+                [16, 'current_heating_setpoint', tuya.valueConverter.raw],
+                [28, 'fan_mode', tuya.valueConverterBasic.lookup({low: tuya.enum(0), medium: tuya.enum(1), high: tuya.enum(2), auto: tuya.enum(3)})],
+                [40, 'child_lock', tuya.valueConverter.lockUnlock],
+            ],
+        },
+    },
 ];
 
 export default definitions;
