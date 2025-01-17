@@ -1,5 +1,24 @@
 # Changelog
 
+## [21.21.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.20.0...v21.21.0) (2025-01-17)
+
+
+### Features
+
+* **add:** AE-940K, AE-669K ([#8618](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8618)) ([357445c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/357445cdd2ccbddd3f5de6eefd16736a76ead65a))
+* **add:** SR-ZG9060A-GS, SR-ZG9060B-CS, SR-ZG9050C-WS, SR-ZG9050B-WS ([#8620](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8620)) ([e15957a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e15957a49e383284a7d5565f467b5bbb47c74c76))
+
+
+### Bug Fixes
+
+* Add custom cluster for Wirenboard ([#8624](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8624)) ([058443c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/058443c48fd9d402fed9448f7257568a8fb653a8))
+* **detect:** Detect `_TZE204_xalsoe3m` as Moes BHT-002-GCLZB ([#8628](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8628)) ([2196eba](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2196eba66b25b0c7d536ba4a420d7897a36c5a9b))
+* Fix `data.substr is not a function` for Xiaomi A6121 https://github.com/Koenkk/zigbee2mqtt/issues/25491 ([58b4a87](https://github.com/Koenkk/zigbee-herdsman-converters/commit/58b4a87052ab38af6ef3f83e347aa374168bfb52))
+* Fix no state reported for GL-SD-001P https://github.com/Koenkk/zigbee2mqtt/issues/23661 ([7b45348](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b453485011f2e0c4a0cf2c59f9cfbc37d389bf9))
+* **ignore:** Refactor modern extend imports ([#8613](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8613)) ([7fe7490](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7fe7490f637d405432853504f5901dd25a1c8230))
+* **ignore:** Update ZG-205Z/A motion state values https://github.com/Koenkk/zigbee2mqtt/issues/25682 ([b9ab59d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b9ab59d6c447d9f18e6a6749301e6b456b1bd88c))
+* Improve Imhotep Creation E-Ctrl integration ([#8625](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8625)) ([cce4d94](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cce4d94d9877783bc34d4a5da29fa55a77b44776))
+
 ## [21.20.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.19.0...v21.20.0) (2025-01-15)
 
 
