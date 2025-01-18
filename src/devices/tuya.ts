@@ -4780,7 +4780,7 @@ const definitions: DefinitionWithExtend[] = [
                 '_TZE200_bvu2wnxz',
                 '_TZE200_6rdj8dzm',
                 '_TZE200_9xfjixap',
-                '_TZE200_jkfbph7l'
+                '_TZE200_jkfbph7l',
             ]),
             tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_rxntag7i', '_TZE200_ybsqljjg']),
             tuya.whitelabel('AVATTO', 'TRV06_1', 'Thermostatic radiator valve', ['_TZE200_hvaxb2tc', '_TZE284_o3x45p96']),
