@@ -14203,6 +14203,32 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_goecjd1t']),
+        model: 'TS0601_smart_energy_meter',
+        vendor: 'Tuya',
+        description: 'ZigBee Smart Energy Meter',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.power(),
+            e.voltage(),
+            e.current()
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [18, 'current', tuya.valueConverter.divideBy1000],
+                [19, 'power', tuya.valueConverter.divideBy10],
+                [20, 'voltage', tuya.valueConverter.divideBy10]
+            ]
+        },
+        whiteLabel: [
+            {vendor: 'AVATTO', model: 'ZWPM16'}
+        ],
+    }
 ];
 
 export default definitions;
