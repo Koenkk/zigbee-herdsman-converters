@@ -29,12 +29,15 @@ const local = {
                 const state: KeyValue = {};
 
                 if (msg.data.switchActionReporting !== undefined) {
-                    const actionReportingMap: KeyValue = {0x00: false, 0x1F: true};
+                    const actionReportingMap: KeyValue = {0x00: false, 0x1f: true};
                     state['action_reporting'] = utils.getFromLookup(msg.data.switchActionReporting, actionReportingMap);
                 }
                 if (msg.data.switchAction !== undefined) {
                     // NOTE: a single press = two separate values reported, 16 followed by 64
                     //       a hold/release cycle = three separate values, 16, 32, and 48
+                    // NOTE: these values should be interpreted bitwise
+                    //       when pushing multiple buttons at the same time, multiple bits can be set simultaneously and should generate multiple events
+                    //       currently, these values are not mapped and thus ignored
                     const actionMap: KeyValue =
                         model.model == '552-721X1'
                             ? {
@@ -129,7 +132,6 @@ const local = {
         switch_action_reporting: {
             key: ['action_reporting'],
             convertSet: async (entity, key, value, meta) => {
-                const actionReportingMap: KeyValue = {false: 0x00, true: 0x1F};
                 // @ts-expect-error ignore
                 if (actionReportingMap[value] === undefined) {
                     throw new Error(`action_reporting was called with an invalid value (${value})`);
@@ -301,12 +303,20 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Niko',
         description: 'Single connectable switch',
         fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action, local.fz.switch_status_led],
-        toZigbee: [tz.on_off, local.tz.switch_operation_mode, local.tz.switch_action_reporting, local.tz.switch_led_enable, local.tz.switch_led_state],
+        toZigbee: [
+            tz.on_off,
+            local.tz.switch_operation_mode,
+            local.tz.switch_action_reporting,
+            local.tz.switch_led_enable,
+            local.tz.switch_led_state,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
             await endpoint.read('manuSpecificNiko1', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
+            // Enable action reporting by default
+            await endpoint.write('manuSpecificNiko2', {switchActionReporting: true});
             await endpoint.read('manuSpecificNiko2', ['switchActionReporting']);
         },
         exposes: [
@@ -324,7 +334,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Niko',
         description: 'Double connectable switch',
         fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action, local.fz.switch_status_led],
-        toZigbee: [tz.on_off, local.tz.switch_operation_mode, local.tz.switch_action_reporting, local.tz.switch_led_enable, local.tz.switch_led_state],
+        toZigbee: [
+            tz.on_off,
+            local.tz.switch_operation_mode,
+            local.tz.switch_action_reporting,
+            local.tz.switch_led_enable,
+            local.tz.switch_led_state,
+        ],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
@@ -338,8 +354,9 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(ep2);
             await ep1.read('manuSpecificNiko1', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
             await ep2.read('manuSpecificNiko1', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
+            // Enable action reporting by default
+            await ep1.write('manuSpecificNiko2', {switchActionReporting: true});
             await ep1.read('manuSpecificNiko2', ['switchActionReporting']);
-            await ep2.read('manuSpecificNiko2', ['switchActionReporting']);
         },
         exposes: [
             e.switch().withEndpoint('l1'),
