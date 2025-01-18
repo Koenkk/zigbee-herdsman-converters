@@ -8,7 +8,7 @@ import {access, options, presets} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {Configure, Expose, Fz, KeyValue, KeyValueAny, LevelConfigFeatures, ModernExtend, OnEvent, Range, Tz} from "../lib/types";
+import type {Configure, Expose, Fz, KeyValue, KeyValueAny, LevelConfigFeatures, ModernExtend, OnEvent, Range, Tz, Zh} from "../lib/types";
 import {
     assertString,
     configureSetPowerSourceWhenUnknown,
@@ -91,6 +91,19 @@ export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: t
     }
     if (args?.colorTemp || args?.color) {
         result.exposes.push(presets.light_color_options());
+    }
+
+    if (result.toZigbee) {
+        result.toZigbee = result.toZigbee.map((orig) => {
+            if (orig.key?.some((k) => keysNeedingUnfreeze.has(k))) {
+                return {
+                    ...orig,
+                    convertSet: ikea_bulb_unfreeze(orig.convertSet),
+                };
+            }
+
+            return orig;
+        });
     }
 
     // Never use a transition when transitioning to OFF as this turns on the light when sending OFF twice
@@ -825,3 +838,87 @@ export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
         commandsResponse: {},
     });
 }
+
+const unfreezeMechanisms: {
+    [key: string]: (entity: Zh.Endpoint | Zh.Group) => Promise<void>;
+} = {
+    // WS lights:
+    //   Aborts the color transition midway: light will stay at the intermediary
+    //   state it was when it received the command.
+    // Color lights:
+    //   Do not support this command.
+    moveColorTemp: async (entity) => {
+        await entity.command("lightingColorCtrl", "moveColorTemp", {rate: 1, movemode: 0, minimum: 0, maximum: 600}, {});
+    },
+
+    // WS lights:
+    //   Same as "moveColorTemp".
+    // Color lights:
+    //   Finishes the color transition instantly: light will instantly
+    //   "fast forward" to the final state, post-transition.
+    genLevelCtrl: async (entity) => {
+        await entity.command("genLevelCtrl", "stop", {}, {});
+    },
+};
+
+// zigbee commands which will freeze an IKEA light
+const willFreeze = (clusterKey: string | number, payload: KeyValue): payload is KeyValue & {transtime: number} =>
+    payload &&
+    // any color command with a transition will freeze the light...
+    (payload.transtime as number) > 0 &&
+    clusterKey === "lightingColorCtrl" &&
+    // ...except for 'stop' commands:
+    payload.rate !== 1 &&
+    payload.movemode !== 0;
+
+// keys for whom we need to unfreeze the light before issuing a corresponding command to said light
+const keysNeedingUnfreeze = new Set(["state", "brightness", "brightness_percent", "color_temp", "color_temp_percent"]);
+
+const ikea_bulb_unfreeze = (next: Tz.Converter["convertSet"]) => {
+    const converter: Tz.Converter["convertSet"] = async (entity, key, value, meta) => {
+        if (!keysNeedingUnfreeze.has(key)) {
+            return await next(entity, key, value, meta);
+        }
+
+        const id = "deviceIeeeAddress" in entity ? entity.deviceIeeeAddress : entity.groupID;
+
+        const proxyCommand: Zh.Endpoint["command"] = async (clusterKey, commandKey, payload, options) => {
+            const now = Date.now();
+
+            const wasFrozenUntil: number | null = globalStore.getValue(entity, "frozenUntil");
+            if (wasFrozenUntil != null && now <= wasFrozenUntil) {
+                logger.debug(`${id}: light is frozen until ${new Date(wasFrozenUntil).toISOString()}, unfreezing via "genLevelCtrl"`, NS);
+
+                // hardcoded to a single unfreeze mechanism for now
+                await unfreezeMechanisms.genLevelCtrl(entity);
+            }
+
+            const ret = entity.command(clusterKey, commandKey, payload, options);
+
+            if (willFreeze(clusterKey, payload)) {
+                // remember that the light is now frozen
+                const millis = payload.transtime * 100;
+                const frozenUntil = Date.now() + millis;
+
+                logger.debug(
+                    `${id}: marking light as frozen until ${new Date(frozenUntil).toISOString()} because of ${clusterKey}.${commandKey} from "${key}"`,
+                    NS,
+                );
+
+                globalStore.putValue(entity, "frozenUntil", frozenUntil);
+            } else if (wasFrozenUntil != null) {
+                logger.debug(`${id}: marking light as unfrozen`, NS);
+
+                globalStore.clearValue(entity, "frozenUntil");
+            }
+
+            return ret;
+        };
+
+        const proxyEntity = Object.create(entity);
+        proxyEntity.command = proxyCommand;
+        return await next(proxyEntity, key, value, meta);
+    };
+
+    return converter;
+};
