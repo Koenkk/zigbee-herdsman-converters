@@ -1042,7 +1042,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dhke3p9w']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dhke3p9w', '_TZE284_dhke3p9w']),
         model: 'F00YK04-18-1',
         vendor: 'FORIA',
         description: '18 scenes remote',
