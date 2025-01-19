@@ -503,7 +503,7 @@ const converters1 = {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {co2: Math.floor(msg.data.measuredValue * 1000000)};
+            return {co2: Math.floor(1 / msg.data.measuredValue)};
         },
     } satisfies Fz.Converter,
     occupancy: {
