@@ -2,7 +2,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {battery, iasZoneAlarm, light} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
@@ -667,7 +666,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HS2WDS',
         vendor: 'HEIMAN',
         description: 'LED 9W CCT E27',
-        extend: [light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['CurtainMo-EF-3.0', 'CurtainMo-EF'],
@@ -767,8 +766,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'HEIMAN',
         description: 'Motion sensor',
         extend: [
-            battery({voltageToPercentage: {min: 2500, max: 3000}, voltage: true}),
-            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            m.battery({voltageToPercentage: {min: 2500, max: 3000}, voltage: true}),
+            m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
         ],
     },
 ];

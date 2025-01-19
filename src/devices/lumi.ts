@@ -3,24 +3,6 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import * as lumi from '../lib/lumi';
-import {
-    battery,
-    binary,
-    customTimeResponse,
-    deviceEndpoints,
-    enumLookup,
-    forceDeviceType,
-    forcePowerSource,
-    humidity,
-    identify,
-    light,
-    numeric,
-    onOff,
-    quirkAddEndpointCluster,
-    quirkCheckinInterval,
-    temperature,
-    windowCovering,
-} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -89,7 +71,7 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.airm.fhac01'],
@@ -115,7 +97,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
         extend: [
-            quirkCheckinInterval('1_HOUR'),
+            m.quirkCheckinInterval('1_HOUR'),
             // OTA request: "fieldControl":0, "manufacturerCode":4447, "imageType":10635, no available for now
             // https://github.com/Koenkk/zigbee-OTA/pull/138
             // lumiZigbeeOTA(),
@@ -138,18 +120,18 @@ const definitions: DefinitionWithExtend[] = [
                 .enum('detection_distance', ea.ALL, ['10mm', '20mm', '30mm'])
                 .withDescription('The sensor will be considered "off" within the set distance. Please press the device button before setting'),
         ],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.dimmer.rcbac1'],
         model: 'ZNDDMK11LM',
         vendor: 'Aqara',
         description: 'Smart lightstrip driver',
-        fromZigbee: [lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_specific, ...light({colorTemp: {range: undefined}, color: true}).fromZigbee],
+        fromZigbee: [lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_specific, ...m.light({colorTemp: {range: undefined}, color: true}).fromZigbee],
         toZigbee: [
             lumi.toZigbee.lumi_dimmer_mode,
             lumi.toZigbee.lumi_switch_power_outage_memory,
-            ...light({colorTemp: {range: undefined}, color: true}).toZigbee,
+            ...m.light({colorTemp: {range: undefined}, color: true}).toZigbee,
         ],
         exposes: [
             e.power(),
@@ -163,7 +145,7 @@ const definitions: DefinitionWithExtend[] = [
             e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('l2'),
             e.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct']).withDescription('Switch between rgbw mode or dual color temperature mode'),
         ],
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), lumiZigbeeOTA()],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.aqcn02'],
@@ -188,8 +170,8 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             lumiZigbeeOTA(),
             lumiLight({colorTemp: true, powerOutageMemory: 'switch'}),
-            forceDeviceType({type: 'Router'}),
-            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            m.forceDeviceType({type: 'Router'}),
+            m.forcePowerSource({powerSource: 'Mains (single phase)'}),
         ],
     },
     {
@@ -250,7 +232,7 @@ const definitions: DefinitionWithExtend[] = [
             e.power_outage_count(false),
         ],
         toZigbee: [],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.sensor_switch.aq2', 'lumi.remote.b1acn01'],
@@ -267,7 +249,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_basic],
         toZigbee: [],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.sensor_switch.aq3', 'lumi.sensor_swit'],
@@ -278,7 +260,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release', 'shake']), e.battery_voltage()],
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_action_multistate],
         toZigbee: [],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.sensor_86sw1'],
@@ -289,7 +271,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(['single']), e.battery_voltage()],
         fromZigbee: [lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_basic],
         toZigbee: [],
-        extend: [quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
     },
     {
         zigbeeModel: ['lumi.remote.b186acn01'],
@@ -300,7 +282,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.battery_voltage()],
         fromZigbee: [lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_basic],
         toZigbee: [],
-        extend: [quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
     },
     {
         zigbeeModel: ['lumi.remote.b186acn02'],
@@ -311,7 +293,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
         configure: async (device, coordinatorEndpoint) => {
             try {
                 const endpoint = device.endpoints[1];
@@ -328,9 +310,9 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Aqara', model: 'RLS-K01D'}],
         description: 'Light strip T1',
         extend: [
-            light({effect: false, powerOnBehavior: false, colorTemp: {startup: false, range: [153, 370]}, color: true}),
+            m.light({effect: false, powerOnBehavior: false, colorTemp: {startup: false, range: [153, 370]}, color: true}),
             lumiPowerOnBehavior(),
-            numeric({
+            m.numeric({
                 name: 'length',
                 valueMin: 1,
                 valueMax: 10,
@@ -342,7 +324,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'LED strip length',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            numeric({
+            m.numeric({
                 name: 'min_brightness',
                 valueMin: 0,
                 valueMax: 99,
@@ -352,7 +334,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Minimum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            numeric({
+            m.numeric({
                 name: 'max_brightness',
                 valueMin: 1,
                 valueMax: 100,
@@ -362,7 +344,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Maximum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            binary({
+            m.binary({
                 name: 'audio',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -371,7 +353,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enabling audio',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'audio_sensitivity',
                 lookup: {low: 0, medium: 1, high: 2},
                 cluster: 'manuSpecificLumi',
@@ -379,7 +361,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Audio sensitivity',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'audio_effect',
                 lookup: {random: 0, blink: 1, rainbow: 2, wave: 3},
                 cluster: 'manuSpecificLumi',
@@ -387,7 +369,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Audio effect',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            numeric({
+            m.numeric({
                 name: 'preset',
                 valueMin: 1,
                 valueMax: 32,
@@ -396,7 +378,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Preset index (0-6 default presets)',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            numeric({
+            m.numeric({
                 name: 'speed',
                 valueMin: 1,
                 valueMax: 100,
@@ -417,7 +399,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both']), e.battery_voltage(), e.power_outage_count(false)],
         fromZigbee: [lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_basic],
         toZigbee: [],
-        extend: [quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
     },
     {
         zigbeeModel: ['lumi.remote.b286acn01'],
@@ -442,7 +424,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_basic],
         toZigbee: [],
-        extend: [quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
     },
     {
         zigbeeModel: ['lumi.switch.b1laus01'],
@@ -1165,7 +1147,7 @@ const definitions: DefinitionWithExtend[] = [
                 'hold_both',
             ]),
         ],
-        extend: [quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
     },
     {
         zigbeeModel: ['lumi.switch.b1lacn02'],
@@ -1429,7 +1411,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart wall switch T1 (no neutral, double rocker)',
         extend: [
             lumiZigbeeOTA(),
-            deviceEndpoints({endpoints: {left: 1, right: 2}}),
+            m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             lumiOnOff({powerOutageMemory: 'binary', operationMode: true, endpointNames: ['left', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
@@ -1459,10 +1441,10 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (with neutral, double rocker)',
         extend: [
-            forceDeviceType({type: 'Router'}),
-            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            m.forceDeviceType({type: 'Router'}),
+            m.forcePowerSource({powerSource: 'Mains (single phase)'}),
             lumiZigbeeOTA(),
-            deviceEndpoints({endpoints: {left: 1, right: 2}}),
+            m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             lumiOnOff({powerOutageMemory: 'binary', operationMode: true, endpointNames: ['left', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
@@ -1479,7 +1461,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart wall switch T1 (no neutral, triple rocker)',
         extend: [
             lumiZigbeeOTA(),
-            deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
+            m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
             lumiOnOff({powerOutageMemory: 'binary', operationMode: true, endpointNames: ['left', 'center', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
@@ -1505,7 +1487,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart wall switch T1 (with neutral, triple rocker)',
         extend: [
             lumiZigbeeOTA(),
-            deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
+            m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
             lumiOnOff({powerOutageMemory: 'binary', operationMode: true, endpointNames: ['left', 'center', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
@@ -1540,7 +1522,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.weather'],
@@ -1555,7 +1537,7 @@ const definitions: DefinitionWithExtend[] = [
             device.powerSource = 'Battery';
             device.save();
         },
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.sensor_ht.agl02'],
@@ -1576,7 +1558,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_motion'],
@@ -1593,7 +1575,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, fz.occupancy_with_timeout],
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(), e.battery_voltage(), e.power_outage_count(false)],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.sensor_motion.aq2'],
@@ -1604,7 +1586,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, fz.occupancy_with_timeout, lumi.fromZigbee.lumi_illuminance],
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(), e.device_temperature(), e.battery_voltage(), e.illuminance(), e.power_outage_count(false)],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.motion.agl02'],
@@ -1634,7 +1616,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('manuSpecificLumi', [0x0102], {manufacturerCode: manufacturerCode});
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.agl04'],
@@ -1664,7 +1646,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('manuSpecificLumi', [0x0102], {manufacturerCode: manufacturerCode});
             await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: manufacturerCode});
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.ac02'],
@@ -1702,7 +1684,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: manufacturerCode});
             await endpoint.read('manuSpecificLumi', [0x0152], {manufacturerCode: manufacturerCode});
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.acn001'],
@@ -1731,7 +1713,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('manuSpecificLumi', [0x0102], {manufacturerCode: manufacturerCode});
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.ac01'],
@@ -1854,7 +1836,7 @@ const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.fp1eDetectionRange(),
             lumi.lumiModernExtend.fp1eSpatialLearning(),
             lumi.lumiModernExtend.fp1eRestartDevice(),
-            identify(),
+            m.identify(),
         ],
     },
     {
@@ -1872,7 +1854,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_contact],
         toZigbee: [],
         exposes: [e.battery(), e.contact(), e.battery_voltage(), e.power_outage_count(false)],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet.aq2'],
@@ -1883,7 +1865,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_contact],
         toZigbee: [],
         exposes: [e.battery(), e.contact(), e.device_temperature(), e.battery_voltage(), e.power_outage_count(false), e.trigger_count()],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         configure: async (device) => {
             device.powerSource = 'Battery';
             device.save();
@@ -1906,7 +1888,7 @@ const definitions: DefinitionWithExtend[] = [
             e.power_outage_count(false),
             e.trigger_count(),
         ],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.flood.agl02'],
@@ -1921,7 +1903,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ias_water_leak_alarm_1, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_cube', 'lumi.sensor_cube.aqgl01'],
@@ -1944,7 +1926,7 @@ const definitions: DefinitionWithExtend[] = [
             e.action(['shake', 'throw', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right']),
         ],
         toZigbee: [],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.plug'],
@@ -2042,7 +2024,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SP-EUC01',
         description: 'Smart plug EU',
         vendor: 'Aqara',
-        extend: [forceDeviceType({type: 'Router'}), lumiZigbeeOTA()],
+        extend: [m.forceDeviceType({type: 'Router'}), lumiZigbeeOTA()],
         fromZigbee: [
             fz.on_off,
             lumi.fromZigbee.lumi_basic,
@@ -2146,7 +2128,7 @@ const definitions: DefinitionWithExtend[] = [
             e.led_disabled_night(),
             e.auto_off(30),
         ],
-        extend: [customTimeResponse('2000_LOCAL')],
+        extend: [m.customTimeResponse('2000_LOCAL')],
     },
     {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
@@ -2187,7 +2169,7 @@ const definitions: DefinitionWithExtend[] = [
             e.device_temperature(),
             e.power_outage_count(false),
         ],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.sensor_natgas'],
@@ -2343,7 +2325,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('manuSpecificLumi', [0x0126], {manufacturerCode: manufacturerCode});
             await endpoint.read('manuSpecificLumi', [0x014b], {manufacturerCode: manufacturerCode});
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.lock.v1'],
@@ -2378,7 +2360,7 @@ const definitions: DefinitionWithExtend[] = [
             e.battery_voltage(),
             e.power_outage_count(false),
         ],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
     },
     {
         zigbeeModel: ['lumi.vibration.agl01'],
@@ -2390,9 +2372,9 @@ const definitions: DefinitionWithExtend[] = [
             // Doesn't seem to be working at all
             // https://github.com/Koenkk/zigbee2mqtt/issues/21731
             // lumiMiscellaneous(),
-            battery({voltageToPercentage: {min: 2850, max: 3000}, voltage: true}),
+            m.battery({voltageToPercentage: {min: 2850, max: 3000}, voltage: true}),
             lumiZigbeeOTA(),
-            quirkCheckinInterval('1_HOUR'),
+            m.quirkCheckinInterval('1_HOUR'),
         ],
     },
     {
@@ -2517,7 +2499,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withDescription('Performs an automatic calibration process similar to Aqara’s method to set curtain limits.'),
         ],
         extend: [
-            windowCovering({controls: ['lift'], coverInverted: true, configureReporting: true}),
+            m.windowCovering({controls: ['lift'], coverInverted: true, configureReporting: true}),
             lumiCurtainSpeed(),
             lumiCurtainManualOpenClose(),
             lumiCurtainAdaptivePullingSpeed(),
@@ -2530,7 +2512,7 @@ const definitions: DefinitionWithExtend[] = [
             lumiCurtainCalibrationStatus(),
             lumiCurtainCalibrated(),
             lumiCurtainIdentifyBeep(),
-            identify(),
+            m.identify(),
             lumiZigbeeOTA(),
         ],
     },
@@ -2575,7 +2557,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('manuSpecificLumi', [0x040a], {manufacturerCode: manufacturerCode});
         },
         extend: [
-            quirkAddEndpointCluster({
+            m.quirkAddEndpointCluster({
                 endpointID: 1,
                 inputClusters: ['manuSpecificLumi'],
             }),
@@ -2690,7 +2672,7 @@ const definitions: DefinitionWithExtend[] = [
             lumiOperationMode({description: 'Decoupled mode for 1st relay', endpointName: 'l1'}),
             lumiOperationMode({description: 'Decoupled mode for 2nd relay', endpointName: 'l2'}),
             lumiAction({endpointNames: ['l1', 'l2']}),
-            binary({
+            m.binary({
                 name: 'interlock',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2699,7 +2681,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enabling prevents both relays being on at the same time (Interlock)',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'mode',
                 lookup: {power: 0, pulse: 1, dry: 3},
                 cluster: 'manuSpecificLumi',
@@ -2707,7 +2689,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Work mode: Power mode, Dry mode with impulse, Dry mode',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            numeric({
+            m.numeric({
                 name: 'pulse_length',
                 valueMin: 200,
                 valueMax: 2000,
@@ -2759,7 +2741,7 @@ const definitions: DefinitionWithExtend[] = [
             device.type = 'EndDevice';
             device.save();
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.lock.acn03'],
@@ -2791,7 +2773,7 @@ const definitions: DefinitionWithExtend[] = [
                 'door_closed',
             ]),
         ],
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         configure: async (device, coordinatorEndpoint) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
@@ -2828,7 +2810,7 @@ const definitions: DefinitionWithExtend[] = [
                 'door_closed',
             ]),
         ],
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.remote.b286opcn01'],
@@ -2863,7 +2845,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('manuSpecificLumi', {mode: 1}, {manufacturerCode: manufacturerCode});
@@ -2915,7 +2897,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('manuSpecificLumi', {mode: 1}, {manufacturerCode: manufacturerCode});
@@ -2981,7 +2963,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write('manuSpecificLumi', {mode: 1}, {manufacturerCode: manufacturerCode});
@@ -2996,7 +2978,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Mi light sensor',
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_specific],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR'), m.illuminance()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), m.illuminance()],
         exposes: [e.battery(), e.battery_voltage()],
     },
     {
@@ -3017,7 +2999,7 @@ const definitions: DefinitionWithExtend[] = [
                 powerOutageMemory: 'enum',
                 levelConfig: {disabledFeatures: ['current_level_startup']},
             }),
-            numeric({
+            m.numeric({
                 name: 'min_brightness',
                 valueMin: 0,
                 valueMax: 99,
@@ -3027,7 +3009,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Minimum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            numeric({
+            m.numeric({
                 name: 'max_brightness',
                 valueMin: 1,
                 valueMax: 100,
@@ -3044,7 +3026,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZNTGMK11LM',
         vendor: 'Aqara',
         description: 'Smart RGBW light controller',
-        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}}), lumiZigbeeOTA()],
+        extend: [m.light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.cwacn1'],
@@ -3058,7 +3040,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HLQDQ01LM',
         vendor: 'Aqara',
         description: 'Smart LED controller',
-        extend: [light(), lumiZigbeeOTA()],
+        extend: [m.light(), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.acn004'],
@@ -3260,7 +3242,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aqara',
         description: 'Wireless remote switch T1 (single rocker)',
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         fromZigbee: [lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_action_multistate, fz.battery, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         exposes: [e.action(['single', 'double', 'hold']), e.battery()],
@@ -3274,7 +3256,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, fz.command_toggle],
         toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}, multiEndpoint: true},
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         exposes: [
             e.battery(),
             e.battery_voltage(),
@@ -3395,15 +3377,15 @@ const definitions: DefinitionWithExtend[] = [
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
         exposes: [e.device_temperature(), e.battery(), e.battery_voltage()],
         extend: [
-            quirkCheckinInterval('1_HOUR'),
-            quirkAddEndpointCluster({
+            m.quirkCheckinInterval('1_HOUR'),
+            m.quirkAddEndpointCluster({
                 endpointID: 1,
                 inputClusters: ['msTemperatureMeasurement', 'msRelativeHumidity', 'genAnalogInput', 'manuSpecificLumi'],
             }),
             lumiAirQuality(),
             lumiVoc(),
-            temperature(),
-            humidity(),
+            m.temperature(),
+            m.humidity(),
             lumiDisplayUnit(),
             lumiOutageCountRestoreBindReporting(),
             lumiZigbeeOTA(),
@@ -3516,7 +3498,7 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write('manuSpecificLumi', {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sen_ill.agl01'],
@@ -3541,7 +3523,7 @@ const definitions: DefinitionWithExtend[] = [
             await device.getEndpoint(1).write('manuSpecificLumi', {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
             await endpoint.read('manuSpecificLumi', [0x0000], {manufacturerCode: manufacturerCode});
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA(), m.illuminance({reporting: false})],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA(), m.illuminance({reporting: false})],
     },
     {
         zigbeeModel: ['lumi.plug.sacn03'],
@@ -3592,7 +3574,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.sacn02'],
@@ -3627,13 +3609,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aqara',
         description: 'Smart rotary knob H1 (wireless)',
         extend: [
-            quirkCheckinInterval('1_HOUR'),
+            m.quirkCheckinInterval('1_HOUR'),
             lumiPreventReset(),
             lumiCommandMode(),
             lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
             lumiBattery({voltageToPercentage: {min: 2850, max: 3000}}),
             lumiKnobRotation(),
-            enumLookup({
+            m.enumLookup({
                 name: 'sensitivity',
                 lookup: {low: 720, medium: 360, high: 180},
                 cluster: 'manuSpecificLumi',
@@ -3649,7 +3631,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aqara',
         description: 'Wireless remote switch E1 (single rocker)',
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         fromZigbee: [lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [lumi.toZigbee.lumi_switch_click_mode],
         exposes: [
@@ -3673,7 +3655,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aqara',
         description: 'Wireless remote switch E1 (double rocker)',
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
         exposes: [
             e.battery(),
             e.battery_voltage(),
@@ -3714,7 +3696,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
         ],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write('manuSpecificLumi', {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
@@ -3769,7 +3751,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('manuSpecificLumi', [0x040a], {manufacturerCode: manufacturerCode});
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['aqara.feeder.acn001'],
@@ -3851,7 +3833,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         exposes: [
             e.battery(),
             e.battery_voltage(),
@@ -3868,7 +3850,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, fz.command_toggle],
         toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}, multiEndpoint: true},
-        extend: [quirkCheckinInterval('1_HOUR')],
+        extend: [m.quirkCheckinInterval('1_HOUR')],
         exposes: [
             e.battery(),
             e.battery_voltage(),
@@ -3943,7 +3925,7 @@ const definitions: DefinitionWithExtend[] = [
                 'button_3_triple',
             ]),
         ],
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn048'],
@@ -3970,7 +3952,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             lumiZigbeeOTA(),
             lumiPreventReset(),
-            deviceEndpoints({endpoints: {top: 1, bottom: 2}}),
+            m.deviceEndpoints({endpoints: {top: 1, bottom: 2}}),
             lumiOnOff({
                 operationMode: true,
                 powerOutageMemory: 'enum',
@@ -3993,7 +3975,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             lumiZigbeeOTA(),
             lumiPreventReset(),
-            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
             lumiOnOff({
                 operationMode: true,
                 powerOutageMemory: 'enum',
@@ -4016,7 +3998,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             lumiZigbeeOTA(),
             lumiPreventReset(),
-            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3, wireless: 4}}),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3, wireless: 4}}),
             lumiOnOff({
                 operationMode: true,
                 powerOutageMemory: 'enum',
@@ -4059,7 +4041,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             lumiZigbeeOTA(),
             lumiPreventReset(),
-            deviceEndpoints({endpoints: {top: 1, bottom: 2}}),
+            m.deviceEndpoints({endpoints: {top: 1, bottom: 2}}),
             lumiOnOff({
                 operationMode: true,
                 powerOutageMemory: 'enum',
@@ -4085,7 +4067,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             lumiZigbeeOTA(),
             lumiPreventReset(),
-            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
             lumiOnOff({
                 operationMode: true,
                 powerOutageMemory: 'enum',
@@ -4111,7 +4093,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             lumiZigbeeOTA(),
             lumiPreventReset(),
-            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3, wireless: 4}}),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3, wireless: 4}}),
             lumiOnOff({
                 operationMode: true,
                 powerOutageMemory: 'enum',
@@ -4154,7 +4136,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Aqara', model: 'MFCZQ12LM'}],
         description: 'Cube T1 Pro',
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
         fromZigbee: [
             lumi.fromZigbee.lumi_specific,
             lumi.fromZigbee.lumi_action_multistate,
@@ -4406,7 +4388,7 @@ const definitions: DefinitionWithExtend[] = [
             lumiOverloadProtection(),
             lumiLedIndicator(),
             lumiButtonLock(),
-            binary({
+            m.binary({
                 name: 'charging_protection',
                 cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0202, type: 0x10},
@@ -4416,7 +4398,7 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'ALL',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            numeric({
+            m.numeric({
                 name: 'charging_limit',
                 cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0206, type: 0x39},
@@ -4436,7 +4418,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aqara',
         description: 'Ceiling light T1',
         extend: [
-            deviceEndpoints({endpoints: {white: 1, rgb: 2}}),
+            m.deviceEndpoints({endpoints: {white: 1, rgb: 2}}),
             lumiLight({colorTemp: true, powerOutageMemory: 'light', endpointNames: ['white']}),
             lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ['xy', 'hs']}, endpointNames: ['rgb']}),
             lumiZigbeeOTA(),
@@ -4448,11 +4430,11 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aqara',
         description: 'Ceiling light T1M',
         extend: [
-            deviceEndpoints({endpoints: {white: 1, rgb: 2}}),
+            m.deviceEndpoints({endpoints: {white: 1, rgb: 2}}),
             lumiLight({colorTemp: true, endpointNames: ['white']}),
             lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ['xy', 'hs']}, endpointNames: ['rgb']}),
             lumiZigbeeOTA(),
-            enumLookup({
+            m.enumLookup({
                 name: 'power_on_behaviour',
                 lookup: {on: 0, previous: 1, off: 2},
                 cluster: 'manuSpecificLumi',
@@ -4469,7 +4451,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Smart rotary knob H1 (with neutral)',
         extend: [
             lumiPreventReset(),
-            deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
+            m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
             lumiOnOff({powerOutageMemory: 'binary', endpointNames: ['left', 'center', 'right']}),
             lumiCommandMode(),
             lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
@@ -4484,7 +4466,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'VC-X01D',
         vendor: 'Aqara',
         description: 'Valve controller T1',
-        extend: [lumiZigbeeOTA(), onOff({powerOnBehavior: false}), battery()],
+        extend: [lumiZigbeeOTA(), m.onOff({powerOnBehavior: false}), m.battery()],
     },
 ];
 

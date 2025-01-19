@@ -1,15 +1,15 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {LightArgs, light as lightDontUse, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend, Zh} from '../lib/types';
 
 const e = exposes.presets;
 
-function mullerLichtLight(args: LightArgs) {
-    const result = lightDontUse(args);
+function mullerLichtLight(args: m.LightArgs) {
+    const result = m.light(args);
     result.toZigbee.push(tz.tint_scene);
     return result;
 }
@@ -48,14 +48,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '404017',
         vendor: 'Müller Licht',
         description: 'Smart power strip',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['tint smart power strip'],
         model: '45391',
         vendor: 'Müller Licht',
         description: 'Smart power strip',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         // Identify through fingerprint as modelID is the same as Airam 4713407
@@ -190,7 +190,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '404021',
         description: 'Tint smart switch',
         vendor: 'Müller Licht',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         fingerprint: [{modelID: 'Remote Control', manufacturerName: 'MLI'}],

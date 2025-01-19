@@ -5,22 +5,6 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {
-    battery,
-    binary,
-    bindCluster,
-    deviceAddCustomCluster,
-    deviceEndpoints,
-    electricityMeter,
-    enumLookup,
-    humidity,
-    iasZoneAlarm,
-    identify,
-    light,
-    numeric,
-    onOff,
-    quirkCheckinInterval,
-} from '../lib/modernExtend';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -94,7 +78,7 @@ Example: 30ff00000102010001`;
 
 const boschExtend = {
     hvacThermostatCluster: () =>
-        deviceAddCustomCluster('hvacThermostat', {
+        m.deviceAddCustomCluster('hvacThermostat', {
             ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
                 operatingMode: {
@@ -137,7 +121,7 @@ const boschExtend = {
             commandsResponse: {},
         }),
     hvacUserInterfaceCfgCluster: () =>
-        deviceAddCustomCluster('hvacUserInterfaceCfg', {
+        m.deviceAddCustomCluster('hvacUserInterfaceCfg', {
             ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
             attributes: {
                 displayOrientation: {
@@ -165,7 +149,7 @@ const boschExtend = {
             commandsResponse: {},
         }),
     operatingMode: () =>
-        enumLookup({
+        m.enumLookup({
             name: 'operating_mode',
             cluster: 'hvacThermostat',
             attribute: 'operatingMode',
@@ -175,7 +159,7 @@ const boschExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     windowDetection: () =>
-        binary({
+        m.binary({
             name: 'window_detection',
             cluster: 'hvacThermostat',
             attribute: 'windowDetection',
@@ -185,7 +169,7 @@ const boschExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     boostHeating: () =>
-        binary({
+        m.binary({
             name: 'boost_heating',
             cluster: 'hvacThermostat',
             attribute: 'boostHeating',
@@ -196,7 +180,7 @@ const boschExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     childLock: () =>
-        binary({
+        m.binary({
             name: 'child_lock',
             cluster: 'hvacUserInterfaceCfg',
             attribute: 'keypadLockout',
@@ -205,7 +189,7 @@ const boschExtend = {
             valueOff: ['UNLOCK', 0x00],
         }),
     displayOntime: () =>
-        numeric({
+        m.numeric({
             name: 'display_ontime',
             cluster: 'hvacUserInterfaceCfg',
             attribute: 'displayOntime',
@@ -216,7 +200,7 @@ const boschExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     displayBrightness: () =>
-        numeric({
+        m.numeric({
             name: 'display_brightness',
             cluster: 'hvacUserInterfaceCfg',
             attribute: 'displayBrightness',
@@ -1184,7 +1168,7 @@ const definitions: DefinitionWithExtend[] = [
             e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in'),
         ],
         extend: [
-            deviceAddCustomCluster('ssIasZone', {
+            m.deviceAddCustomCluster('ssIasZone', {
                 ID: Zcl.Clusters.ssIasZone.ID,
                 attributes: {},
                 commands: {
@@ -1195,7 +1179,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            deviceAddCustomCluster('ssIasWd', {
+            m.deviceAddCustomCluster('ssIasWd', {
                 ID: Zcl.Clusters.ssIasWd.ID,
                 attributes: {},
                 commands: {
@@ -1206,7 +1190,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            quirkCheckinInterval(0),
+            m.quirkCheckinInterval(0),
         ],
     },
     {
@@ -1215,7 +1199,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Bosch',
         description: 'Smart water alarm',
         extend: [
-            deviceAddCustomCluster('boschSpecific', {
+            m.deviceAddCustomCluster('boschSpecific', {
                 ID: 0xfcac,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1227,15 +1211,15 @@ const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            iasZoneAlarm({
+            m.iasZoneAlarm({
                 zoneType: 'water_leak',
                 zoneAttributes: ['alarm_1', 'tamper'],
             }),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
             }),
-            binary({
+            m.binary({
                 name: 'alarm_on_motion',
                 cluster: 'boschSpecific',
                 attribute: 'alarmOnMotion',
@@ -1245,7 +1229,7 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: manufacturerOptions,
                 entityCategory: 'config',
             }),
-            bindCluster({
+            m.bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
@@ -1263,7 +1247,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Bosch',
         description: 'Smoke alarm II',
         extend: [
-            deviceAddCustomCluster('ssIasZone', {
+            m.deviceAddCustomCluster('ssIasZone', {
                 ID: Zcl.Clusters.ssIasZone.ID,
                 attributes: {},
                 commands: {
@@ -1275,11 +1259,11 @@ const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             boschExtend.smokeAlarm(),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: false,
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'sensitivity',
                 cluster: 'ssIasZone',
                 attribute: 'currentZoneSensitivityLevel',
@@ -1292,7 +1276,7 @@ const definitions: DefinitionWithExtend[] = [
                 entityCategory: 'config',
             }),
             boschExtend.broadcastAlarm(),
-            bindCluster({
+            m.bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
@@ -1398,14 +1382,14 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             boschExtend.hvacThermostatCluster(),
             boschExtend.hvacUserInterfaceCfgCluster(),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: false,
             }),
             boschExtend.operatingMode(),
             boschExtend.windowDetection(),
             boschExtend.boostHeating(),
-            numeric({
+            m.numeric({
                 name: 'remote_temperature',
                 cluster: 'hvacThermostat',
                 attribute: 'remoteTemperature',
@@ -1417,7 +1401,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 zigbeeCommandOptions: manufacturerOptions,
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'setpoint_change_source',
                 cluster: 'hvacThermostat',
                 attribute: 'setpointChangeSource',
@@ -1429,7 +1413,7 @@ const definitions: DefinitionWithExtend[] = [
             boschExtend.childLock(),
             boschExtend.displayOntime(),
             boschExtend.displayBrightness(),
-            enumLookup({
+            m.enumLookup({
                 name: 'display_orientation',
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayOrientation',
@@ -1437,7 +1421,7 @@ const definitions: DefinitionWithExtend[] = [
                 lookup: {normal: 0x00, flipped: 0x01},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'displayed_temperature',
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'displayedTemperature',
@@ -1445,7 +1429,7 @@ const definitions: DefinitionWithExtend[] = [
                 lookup: {target: 0x00, measured: 0x01},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'valve_adapt_status',
                 cluster: 'hvacThermostat',
                 attribute: 'valveAdaptStatus',
@@ -1464,7 +1448,7 @@ const definitions: DefinitionWithExtend[] = [
             boschExtend.valveAdaptProcess(),
             boschExtend.heatingDemand(),
             boschExtend.ignoreDst(),
-            bindCluster({
+            m.bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
@@ -1537,7 +1521,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             boschExtend.hvacThermostatCluster(),
             boschExtend.hvacUserInterfaceCfgCluster(),
-            battery({
+            m.battery({
                 voltageToPercentage: {min: 4400, max: 6400},
                 percentage: true,
                 voltage: true,
@@ -1545,14 +1529,14 @@ const definitions: DefinitionWithExtend[] = [
                 voltageReporting: true,
                 percentageReporting: false,
             }),
-            humidity(),
+            m.humidity(),
             boschExtend.operatingMode(),
             boschExtend.windowDetection(),
             boschExtend.boostHeating(),
             boschExtend.childLock(),
             boschExtend.displayOntime(),
             boschExtend.displayBrightness(),
-            bindCluster({
+            m.bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
@@ -1612,7 +1596,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             boschExtend.hvacThermostatCluster(),
             boschExtend.hvacUserInterfaceCfgCluster(),
-            humidity(),
+            m.humidity(),
             boschExtend.operatingMode(),
             boschExtend.windowDetection(),
             boschExtend.boostHeating(),
@@ -1650,7 +1634,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Bosch',
         description: 'Twinguard',
         extend: [
-            deviceAddCustomCluster('twinguardSmokeDetector', {
+            m.deviceAddCustomCluster('twinguardSmokeDetector', {
                 ID: 0xe000,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1664,7 +1648,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            deviceAddCustomCluster('twinguardMeasurements', {
+            m.deviceAddCustomCluster('twinguardMeasurements', {
                 ID: 0xe002,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1685,7 +1669,7 @@ const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            deviceAddCustomCluster('twinguardOptions', {
+            m.deviceAddCustomCluster('twinguardOptions', {
                 ID: 0xe004,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1695,7 +1679,7 @@ const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            deviceAddCustomCluster('twinguardSetup', {
+            m.deviceAddCustomCluster('twinguardSetup', {
                 ID: 0xe006,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1711,7 +1695,7 @@ const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            deviceAddCustomCluster('twinguardAlarm', {
+            m.deviceAddCustomCluster('twinguardAlarm', {
                 ID: 0xe007,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1765,7 +1749,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'BSP-FZ2',
         vendor: 'Bosch',
         description: 'Plug compact EU',
-        extend: [onOff(), electricityMeter({voltage: false, current: false})],
+        extend: [m.onOff(), m.electricityMeter({voltage: false, current: false})],
         ota: true,
         whiteLabel: [
             {vendor: 'Bosch', model: 'BSP-EZ2', description: 'Plug compact FR', fingerprint: [{modelID: 'RBSH-SP-ZB-FR'}]},
@@ -1779,11 +1763,11 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Door/window contact II',
         extend: [
             boschExtend.doorWindowContact(false),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
             }),
-            bindCluster({
+            m.bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
@@ -1801,11 +1785,11 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Door/window contact II plus',
         extend: [
             boschExtend.doorWindowContact(true),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
             }),
-            bindCluster({
+            m.bindCluster({
                 cluster: 'genPollCtrl',
                 clusterType: 'input',
             }),
@@ -1821,14 +1805,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'BMCT-DZ',
         vendor: 'Bosch',
         description: 'Phase-cut dimmer',
-        extend: [identify(), light({configureReporting: true, effect: false})],
+        extend: [m.identify(), m.light({configureReporting: true, effect: false})],
     },
     {
         zigbeeModel: ['RBSH-MMR-ZB-EU'],
         model: 'BMCT-RZ',
         vendor: 'Bosch',
         description: 'Relay, potential free',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
@@ -1836,8 +1820,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Bosch',
         description: 'Light/shutter control unit II',
         extend: [
-            deviceEndpoints({endpoints: {left: 2, right: 3}}),
-            deviceAddCustomCluster('boschSpecific', {
+            m.deviceEndpoints({endpoints: {left: 2, right: 3}}),
+            m.deviceAddCustomCluster('boschSpecific', {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -2019,7 +2003,7 @@ const definitions: DefinitionWithExtend[] = [
             ]),
         ],
         extend: [
-            deviceAddCustomCluster('boschSpecific', {
+            m.deviceAddCustomCluster('boschSpecific', {
                 ID: 0xfca1,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {},

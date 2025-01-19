@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, forcePowerSource, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 
@@ -110,14 +110,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PM-S140-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang without neutral wire',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S240-ZB'],
         model: 'PM-S240-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
-        extend: [deviceEndpoints({endpoints: {top: 1, bottom: 2}}), onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
+        extend: [m.deviceEndpoints({endpoints: {top: 1, bottom: 2}}), m.onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S340-ZB'],
@@ -125,8 +125,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
         extend: [
-            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
-            onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
+            m.onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
         ],
     },
     {
@@ -134,14 +134,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PM-S140R-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang router without neutral wire',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S240R-ZB'],
         model: 'PM-S240R-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
-        extend: [deviceEndpoints({endpoints: {top: 1, bottom: 2}}), onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
+        extend: [m.deviceEndpoints({endpoints: {top: 1, bottom: 2}}), m.onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S340R-ZB'],
@@ -149,8 +149,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
         extend: [
-            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
-            onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
+            m.onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
         ],
     },
     {
@@ -158,7 +158,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PM-S150-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang router without neutral wire',
-        extend: [onOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.onOff({powerOnBehavior: false}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['PM-S250-ZB'],
@@ -166,9 +166,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
         extend: [
-            deviceEndpoints({endpoints: {top: 1, bottom: 2}}),
-            onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false}),
-            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            m.deviceEndpoints({endpoints: {top: 1, bottom: 2}}),
+            m.onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false}),
+            m.forcePowerSource({powerSource: 'Mains (single phase)'}),
         ],
     },
     {
@@ -177,9 +177,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
         extend: [
-            deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
-            onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
-            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
+            m.onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
+            m.forcePowerSource({powerSource: 'Mains (single phase)'}),
         ],
     },
     {

@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MWM002',
         vendor: 'Modular',
         description: '0-10V Zigbee Dimmer',
-        extend: [light()],
+        extend: [m.light()],
     },
 ];
 

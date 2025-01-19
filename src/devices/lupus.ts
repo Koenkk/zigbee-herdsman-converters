@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -48,14 +48,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '12126',
         vendor: 'Lupus',
         description: '1 channel relay',
-        extend: [onOff({powerOnBehavior: false, ota: true})],
+        extend: [m.onOff({powerOnBehavior: false, ota: true})],
     },
     {
         zigbeeModel: ['PRS3CH2_00.00.05.10TC', 'PRS3CH2_00.00.05.11TC', 'PRS3CH2_00.00.05.12TC'],
         model: '12127',
         vendor: 'Lupus',
         description: '2 channel relay',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2'], powerOnBehavior: false, ota: true})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ['l1', 'l2'], powerOnBehavior: false, ota: true})],
     },
 ];
 

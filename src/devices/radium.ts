@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LMZA4376',
         vendor: 'Radium',
         description: 'LED Controller ZGB White 84W/24V',
-        extend: [light()],
+        extend: [m.light()],
     },
 ];
 

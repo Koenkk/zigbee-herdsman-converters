@@ -1,4 +1,4 @@
-import {battery, humidity, iasZoneAlarm, ignoreClusterReport, temperature} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {modernExtend as tuyaModernExtend} from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -11,8 +11,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sber',
         description: 'Smart motion sensor',
         extend: [
-            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low'], alarmTimeout: true}),
-            battery({voltage: true, voltageReporting: true}),
+            m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low'], alarmTimeout: true}),
+            m.battery({voltage: true, voltageReporting: true}),
         ],
     },
     {
@@ -21,9 +21,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sber',
         description: 'Smart opening sensor',
         extend: [
-            ignoreClusterReport({cluster: 'genBasic'}),
-            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
-            battery({voltage: true, voltageReporting: true}),
+            m.ignoreClusterReport({cluster: 'genBasic'}),
+            m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            m.battery({voltage: true, voltageReporting: true}),
         ],
     },
     {
@@ -34,7 +34,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             tuyaMagicPacket(),
             tuyaOnOffActionLegacy({actions: ['single', 'double', 'hold']}),
-            battery({percentageReporting: false}),
+            m.battery({percentageReporting: false}),
             /*
              * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
              * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
@@ -48,7 +48,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SBDV-00079',
         vendor: 'Sber',
         description: 'Smart temperature and humidity sensor',
-        extend: [temperature(), humidity(), battery({voltage: true, voltageReporting: true})],
+        extend: [m.temperature(), m.humidity(), m.battery({voltage: true, voltageReporting: true})],
     },
     {
         fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_c8bqthpo'}],
@@ -56,9 +56,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sber',
         description: 'Smart water leak sensor',
         extend: [
-            ignoreClusterReport({cluster: 'genBasic'}),
-            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']}),
-            battery(),
+            m.ignoreClusterReport({cluster: 'genBasic'}),
+            m.iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']}),
+            m.battery(),
         ],
     },
 ];

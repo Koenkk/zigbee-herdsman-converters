@@ -1,4 +1,4 @@
-import {light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,14 +7,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '12501',
         vendor: 'Scan Products',
         description: 'Zigbee push dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['12502'],
         model: '12502',
         vendor: 'Scan Products',
         description: 'Zigbee 3.0 switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
 ];
 

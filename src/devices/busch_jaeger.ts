@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -15,7 +15,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '6717-84',
         vendor: 'Busch-Jaeger',
         description: 'Adaptor plug',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         // Busch-Jaeger 6735, 6736 and 6737 have been tested with the 6710 U (Power Adapter),

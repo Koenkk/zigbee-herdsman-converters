@@ -6,7 +6,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {battery, lock} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {getFromLookup} from '../lib/utils';
 
@@ -342,7 +342,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'YRM476',
         vendor: 'Yale',
         description: 'Assure lock',
-        extend: [battery(), lock({pinCodeCount: 250})],
+        extend: [m.battery(), m.lock({pinCodeCount: 250})],
     },
     {
         zigbeeModel: ['YRD216 PBDB'],
@@ -429,7 +429,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'YMI70A',
         vendor: 'Yale',
         description: 'Biometric digital lock',
-        extend: [battery(), lock({pinCodeCount: 100})],
+        extend: [m.battery(), m.lock({pinCodeCount: 100})],
     },
     {
         fingerprint: [

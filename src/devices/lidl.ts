@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {battery, iasZoneAlarm} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
@@ -289,7 +289,10 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HG06335/HG07310',
         vendor: 'Lidl',
         description: 'Silvercrest smart motion sensor',
-        extend: [iasZoneAlarm({zoneType: 'occupancy', zoneStatusReporting: true, zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), battery()],
+        extend: [
+            m.iasZoneAlarm({zoneType: 'occupancy', zoneStatusReporting: true, zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            m.battery(),
+        ],
     },
     {
         fingerprint: [
@@ -299,7 +302,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HG06336',
         vendor: 'Lidl',
         description: 'Silvercrest smart window and door sensor',
-        extend: [iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper']}), battery()],
+        extend: [m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper']}), m.battery()],
     },
     {
         fingerprint: [{modelID: 'TS1001', manufacturerName: '_TYZB01_bngwdjsr'}],

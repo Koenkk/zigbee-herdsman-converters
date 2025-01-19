@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '1444420',
         vendor: 'Heatit',
         description: 'Zig Dim 250W',
-        extend: [light({configureReporting: true, powerOnBehavior: false})],
+        extend: [m.light({configureReporting: true, powerOnBehavior: false})],
     },
 ];
 

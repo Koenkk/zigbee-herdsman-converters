@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -9,7 +9,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'K10-1220Z',
         vendor: 'TLW Global',
         description: '12V LED smart driver 15W with 6-port micro plug connector',
-        extend: [light()],
+        extend: [m.light()],
     },
     // K10-1230Z and K10-1250Z untested, but assumed to be consistent with K10-1220W
     {
@@ -17,14 +17,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'K10-1230Z',
         vendor: 'TLW Global',
         description: '12V LED smart driver 30W with 6-port micro plug connector',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['K10-1250Z'],
         model: 'K10-1250Z',
         vendor: 'TLW Global',
         description: '12V LED smart driver 50W with 6-port micro plug connector',
-        extend: [light()],
+        extend: [m.light()],
     },
 ];
 

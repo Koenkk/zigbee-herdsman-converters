@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {binary, enumLookup, light, numeric, text} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 import {assertString} from '../lib/utils';
@@ -16,7 +16,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '316GLEDRF',
         vendor: 'ELKO',
         description: 'ZigBee in-wall smart dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
         meta: {disableDefaultResponse: true},
     },
     {
@@ -41,7 +41,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.elko_thermostat],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.elko_power_status, tz.elko_relay_state, tz.elko_local_temperature_calibration],
         extend: [
-            text({
+            m.text({
                 name: 'display_text',
                 cluster: 'hvacThermostat',
                 attribute: 'elkoDisplayText',
@@ -52,7 +52,7 @@ const definitions: DefinitionWithExtend[] = [
                     if (value.length > 14) throw new Error('Length of text is greater than 14');
                 },
             }),
-            numeric({
+            m.numeric({
                 name: 'load',
                 cluster: 'hvacThermostat',
                 attribute: 'elkoLoad',
@@ -63,7 +63,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 2300,
             }),
-            binary({
+            m.binary({
                 name: 'regulator_mode',
                 cluster: 'hvacThermostat',
                 attribute: 'elkoRegulatorMode',
@@ -73,7 +73,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOn: ['regulator', 1],
                 valueOff: ['thermostat', 0],
             }),
-            numeric({
+            m.numeric({
                 name: 'regulator_time',
                 cluster: 'hvacThermostat',
                 attribute: 'elkoRegulatorTime',
@@ -88,7 +88,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMin: 5,
                 valueMax: 20,
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'sensor',
                 cluster: 'hvacThermostat',
                 attribute: 'elkoSensor',
@@ -96,7 +96,7 @@ const definitions: DefinitionWithExtend[] = [
                 reporting: {min: 'MIN', max: 'MAX', change: null},
                 lookup: {air: 0, floor: 1, supervisor_floor: 3},
             }),
-            numeric({
+            m.numeric({
                 name: 'floor_temp',
                 cluster: 'hvacThermostat',
                 attribute: 'elkoExternalTemp',
@@ -106,7 +106,7 @@ const definitions: DefinitionWithExtend[] = [
                 reporting: {min: 0, max: constants.repInterval.HOUR, change: 10},
                 scale: 100,
             }),
-            numeric({
+            m.numeric({
                 name: 'max_floor_temp',
                 cluster: 'hvacThermostat',
                 attribute: 'elkoMaxFloorTemp',
@@ -117,7 +117,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMin: 20,
                 valueMax: 35,
             }),
-            numeric({
+            m.numeric({
                 name: 'mean_power',
                 cluster: 'hvacThermostat',
                 attribute: 'elkoMeanPower',
@@ -126,7 +126,7 @@ const definitions: DefinitionWithExtend[] = [
                 unit: 'W',
                 reporting: {min: 0, max: constants.repInterval.HOUR, change: 5},
             }),
-            binary({
+            m.binary({
                 name: 'child_lock',
                 cluster: 'hvacThermostat',
                 attribute: 'elkoChildLock',
@@ -136,7 +136,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOn: ['lock', 1],
                 valueOff: ['unlock', 0],
             }),
-            binary({
+            m.binary({
                 name: 'frost_guard',
                 cluster: 'hvacThermostat',
                 attribute: 'elkoFrostGuard',
@@ -149,7 +149,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOn: ['on', 1],
                 valueOff: ['off', 0],
             }),
-            binary({
+            m.binary({
                 name: 'night_switching',
                 cluster: 'hvacThermostat',
                 attribute: 'elkoNightSwitching',

@@ -4,18 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {
-    battery,
-    deviceEndpoints,
-    enumLookup,
-    EnumLookupArgs,
-    humidity,
-    numeric,
-    NumericArgs,
-    onOff,
-    temperature,
-    windowCovering,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {nodonPilotWire} from '../lib/nodon';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
@@ -24,8 +13,8 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const nodonModernExtend = {
-    calibrationVerticalRunTimeUp: (args?: Partial<NumericArgs>) =>
-        numeric({
+    calibrationVerticalRunTimeUp: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'calibration_vertical_run_time_up',
             unit: '10 ms',
             cluster: 'closuresWindowCovering',
@@ -40,8 +29,8 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
-    calibrationVerticalRunTimeDowm: (args?: Partial<NumericArgs>) =>
-        numeric({
+    calibrationVerticalRunTimeDowm: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'calibration_vertical_run_time_down',
             unit: '10 ms',
             cluster: 'closuresWindowCovering',
@@ -56,8 +45,8 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
-    calibrationRotationRunTimeUp: (args?: Partial<NumericArgs>) =>
-        numeric({
+    calibrationRotationRunTimeUp: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'calibration_rotation_run_time_up',
             unit: 'ms',
             cluster: 'closuresWindowCovering',
@@ -72,8 +61,8 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
-    calibrationRotationRunTimeDown: (args?: Partial<NumericArgs>) =>
-        numeric({
+    calibrationRotationRunTimeDown: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'calibration_rotation_run_time_down',
             unit: 'ms',
             cluster: 'closuresWindowCovering',
@@ -88,8 +77,8 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
-    dryContact: (args?: Partial<EnumLookupArgs>) =>
-        enumLookup({
+    dryContact: (args?: Partial<m.EnumLookupArgs>) =>
+        m.enumLookup({
             name: 'dry_contact',
             lookup: {contact_closed: 0x00, contact_open: 0x01},
             cluster: 'genBinaryInput',
@@ -97,8 +86,8 @@ const nodonModernExtend = {
             description: 'State of the contact, closed or open.',
             ...args,
         }),
-    impulseMode: (args?: Partial<NumericArgs>) =>
-        numeric({
+    impulseMode: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'impulse_mode_configuration',
             unit: 'ms',
             cluster: 'genOnOff',
@@ -109,8 +98,8 @@ const nodonModernExtend = {
             description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
         }),
-    switchType: (args?: Partial<EnumLookupArgs>) =>
-        enumLookup({
+    switchType: (args?: Partial<m.EnumLookupArgs>) =>
+        m.enumLookup({
             name: 'switch_type',
             lookup: {bistable: 0x00, monostable: 0x01, auto_detect: 0x02},
             cluster: 'genOnOff',
@@ -119,8 +108,8 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
             ...args,
         }),
-    trvMode: (args?: Partial<EnumLookupArgs>) =>
-        enumLookup({
+    trvMode: (args?: Partial<m.EnumLookupArgs>) =>
+        m.enumLookup({
             name: 'trv_mode',
             lookup: {auto: 0x00, valve_position_mode: 0x01, manual: 0x02},
             cluster: 'hvacThermostat',
@@ -133,8 +122,8 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS},
             ...args,
         }),
-    valvePosition: (args?: Partial<NumericArgs>) =>
-        numeric({
+    valvePosition: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'valve_position',
             cluster: 'hvacThermostat',
             attribute: {ID: 0x4001, type: Zcl.DataType.UINT8},
@@ -157,7 +146,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SDC-4-1-00',
         vendor: 'NodOn',
         description: 'Dry contact sensor',
-        extend: [battery(), nodonModernExtend.dryContact()],
+        extend: [m.battery(), nodonModernExtend.dryContact()],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -186,7 +175,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'NodOn',
         description: 'Roller shutter relay switch',
         extend: [
-            windowCovering({controls: ['tilt', 'lift'], coverMode: true}),
+            m.windowCovering({controls: ['tilt', 'lift'], coverMode: true}),
             nodonModernExtend.calibrationVerticalRunTimeUp(),
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
@@ -200,7 +189,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'NodOn',
         description: 'Roller shutter relay switch',
         extend: [
-            windowCovering({controls: ['tilt', 'lift'], coverMode: true}),
+            m.windowCovering({controls: ['tilt', 'lift'], coverMode: true}),
             nodonModernExtend.calibrationVerticalRunTimeUp(),
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
@@ -213,7 +202,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SIN-4-1-20',
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: [onOff({ota: true}), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
+        extend: [m.onOff({ota: true}), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
         endpoint: (device) => {
             return {default: 1};
         },
@@ -223,7 +212,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SIN-4-1-20_PRO',
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: [onOff({ota: true}), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
+        extend: [m.onOff({ota: true}), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
         endpoint: (device) => {
             return {default: 1};
         },
@@ -253,8 +242,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'NodOn',
         description: 'Lighting relay switch',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.onOff({endpointNames: ['l1', 'l2']}),
             nodonModernExtend.switchType({endpointName: 'l1'}),
             nodonModernExtend.switchType({endpointName: 'l2'}),
         ],
@@ -266,8 +255,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'NodOn',
         description: 'Lighting relay switch',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.onOff({endpointNames: ['l1', 'l2']}),
             nodonModernExtend.switchType({endpointName: 'l1'}),
             nodonModernExtend.switchType({endpointName: 'l2'}),
         ],
@@ -316,7 +305,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'STPH-4-1-00',
         vendor: 'NodOn',
         description: 'Temperature & humidity sensor',
-        extend: [battery(), temperature(), humidity()],
+        extend: [m.battery(), m.temperature(), m.humidity()],
         ota: true,
     },
     {
@@ -324,7 +313,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TRV-4-1-00',
         vendor: 'NodOn',
         description: 'Thermostatic Radiateur Valve',
-        extend: [battery(), nodonModernExtend.trvMode(), nodonModernExtend.valvePosition()],
+        extend: [m.battery(), nodonModernExtend.trvMode(), nodonModernExtend.valvePosition()],
         fromZigbee: [fz.thermostat],
         toZigbee: [
             tz.thermostat_local_temperature,

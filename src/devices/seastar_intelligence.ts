@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '020B0B',
         vendor: 'Fischer & Honsel',
         description: 'LED Tischleuchte Beta Zig',
-        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
         endpoint: (device) => {
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/5463
             const endpoint = device.endpoints.find((e) => e.inputClusters.includes(6)).ID;

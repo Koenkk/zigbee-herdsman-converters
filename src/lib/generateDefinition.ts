@@ -53,23 +53,8 @@ type Extender = [string[], ExtendGenerator];
 type DefinitionWithZigbeeModel = DefinitionWithExtend & {zigbeeModel: string[]};
 
 function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: GeneratedExtend[]): string {
-    const imports: {[s: string]: string[]} = {};
-    const importsDeduplication = new Set<string>();
-    generatedExtend.forEach((e) => {
-        const lib = e.lib ?? 'modernExtend';
-        if (!(lib in imports)) imports[lib] = [];
-
-        const importName = e.getSource().split('(')[0];
-        if (!importsDeduplication.has(importName)) {
-            importsDeduplication.add(importName);
-            imports[lib].push(importName);
-        }
-    });
-
-    const importsStr = Object.entries(imports)
-        .map((e) => `const {${e[1].join(', ')}} = require('zigbee-herdsman-converters/lib/${e[0]}');`)
-        .join('\n');
-
+    const imports = [...new Set(generatedExtend.map((e) => e.lib ?? 'modernExtend'))];
+    const importsStr = imports.map((e) => `const ${e == 'modernExtend' ? 'm' : e} = require('zigbee-herdsman-converters/lib/${e}');`).join('\n');
     return `${importsStr}
 
 const definition = {
@@ -77,7 +62,7 @@ const definition = {
     model: '${definition.model}',
     vendor: '${definition.vendor}',
     description: 'Automatically generated definition',
-    extend: [${generatedExtend.map((e) => e.getSource()).join(', ')}],
+    extend: [${generatedExtend.map((e) => `${e.lib ?? 'm'}.${e.getSource()}`).join(', ')}],
     meta: ${JSON.stringify(definition.meta || {})},
 };
 

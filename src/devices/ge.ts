@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {electricityMeter, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -13,28 +13,28 @@ const definitions: DefinitionWithExtend[] = [
         model: 'PSB19-SW27',
         vendor: 'GE',
         description: 'Link smart LED light bulb, A19 soft white (2700K)',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['ZLL Light'],
         model: '22670',
         vendor: 'GE',
         description: 'Link smart LED light bulb, A19/BR30 soft white (2700K)',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['Daylight'],
         model: 'PQC19-DY01',
         vendor: 'GE',
         description: 'Link smart LED light bulb, A19/BR30 cold white (5000K)',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['45852'],
         model: '45852GE',
         vendor: 'GE',
         description: 'ZigBee plug-in smart dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['45853'],
@@ -74,14 +74,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '45857GE',
         vendor: 'GE',
         description: 'ZigBee in-wall smart dimmer',
-        extend: [light({configureReporting: true}), electricityMeter({cluster: 'metering'})],
+        extend: [m.light({configureReporting: true}), m.electricityMeter({cluster: 'metering'})],
     },
     {
         zigbeeModel: ['Smart Switch'],
         model: 'PTAPT-WH02',
         vendor: 'GE',
         description: 'Quirky smart switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
         endpoint: (device) => {
             return {default: 2};
         },
@@ -91,7 +91,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'POTLK-WH02',
         vendor: 'GE',
         description: 'Outlink smart remote outlet',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
 ];
 

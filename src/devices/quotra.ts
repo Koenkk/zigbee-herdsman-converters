@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,14 +7,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'B07CVL9SZF',
         vendor: 'Quotra',
         description: 'Dimmer',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['QV-RGBCCT'],
         model: 'B07JHL6DRV',
         vendor: 'Quotra',
         description: 'RGB WW LED strip',
-        extend: [light({colorTemp: {range: [150, 500]}, color: true, powerOnBehavior: false})],
+        extend: [m.light({colorTemp: {range: [150, 500]}, color: true, powerOnBehavior: false})],
     },
 ];
 

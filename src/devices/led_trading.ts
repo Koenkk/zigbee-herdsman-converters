@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -46,14 +46,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HK-LN-DIM-A',
         vendor: 'LED-Trading',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['HK-LN-SOCKET-A'],
         model: '9134',
         vendor: 'LED-Trading',
         description: 'Powerstrip with 4 sockets and USB',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), m.onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']})],
     },
     {
         zigbeeModel: ['HK-ZCC-ZLL-A'],

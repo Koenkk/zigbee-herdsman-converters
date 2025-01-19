@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'B00TN589ZG',
         vendor: 'CREE',
         description: 'Connected bulb',
-        extend: [light()],
+        extend: [m.light()],
     },
 ];
 
