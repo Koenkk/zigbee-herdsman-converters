@@ -1,5 +1,17 @@
 # Changelog
 
+## [21.21.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.21.0...v21.21.1) (2025-01-19)
+
+
+### Bug Fixes
+
+* Add missing actions for Philips Hue Tap (8718696743133) ([#8633](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8633)) ([7643376](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7643376580da97cdd31e2c4deee7672f402b2f99))
+* **detect:** Detect `_TZE200_jkfbph7l` as AVATTO ME167 ([#8638](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8638)) ([6e09825](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e098258b3879e4f0956171262294ca4ed0cc359))
+* **detect:** Detect `_TZE204_g5xqosu7` as Tuya TS0601_cover_8 ([#8634](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8634)) ([ce1827e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ce1827ed29f2eafdf81f7187514051a0d2fab98d))
+* **detect:** Detect `_TZE204_tgdnh7pw` as AVATTO ZDMS16-1 https://github.com/Koenkk/zigbee-herdsman-converters/issues/8639 ([db5c39b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db5c39b459058d903ac6f96b47729c496f580250))
+* **detect:** Detect `_TZE284_dhke3p9w` as FORIA F00YK04-18-1 https://github.com/Koenkk/zigbee-herdsman-converters/issues/8632 ([cdb1b50](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cdb1b50df2552594cd554dcd3226b8ed3a506d77))
+* **ignore:** fix external definition generator ([dc858cf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dc858cf578174d24f3a97010c3eaecbc41e9fa09))
+
 ## [21.21.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.20.0...v21.21.0) (2025-01-17)
 
 
