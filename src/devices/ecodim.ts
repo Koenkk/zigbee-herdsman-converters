@@ -213,7 +213,7 @@ const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
     },
     {
-        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_yluvwhjc'}],
+        fingerprint: tuya.fingerprint('TS0501B', ['_TZ3210_yluvwhjc']),
         model: 'ED-10042',
         vendor: 'EcoDim',
         description: 'Zigbee LED filament light dimmable E27, globe G125, flame 2200K',

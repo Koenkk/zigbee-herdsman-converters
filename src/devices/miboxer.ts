@@ -7,7 +7,7 @@ const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3210_ttkgurpb'}],
+        fingerprint: tuya.fingerprint('TS0504B', ['_TZ3210_ttkgurpb']),
         model: 'FUT038Z',
         description: 'RGBW LED controller',
         vendor: 'MiBoxer',

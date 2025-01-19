@@ -1,13 +1,14 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TYZB01_ujfk3xd9'}],
+        fingerprint: tuya.fingerprint('TS0201', ['_TYZB01_ujfk3xd9']),
         model: 'M423-9E',
         vendor: 'Akuvox',
         description: 'Smart temperature & humidity Sensor',

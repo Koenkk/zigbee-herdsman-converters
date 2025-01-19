@@ -27,7 +27,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
-        fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
+        fingerprint: tuya.fingerprint('TS0212', ['_TYZB01_wpmo3ja3']),
         zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba', 'CO_CTPG'],
         model: 'HS1CA-M',
         description: 'Smart carbon monoxide sensor',
@@ -287,10 +287,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'},
-            {modelID: 'TS0216', manufacturerName: '_TYZB01_4obovpbi'},
-        ],
+        fingerprint: tuya.fingerprint('TS0216', ['_TYZB01_8scntis1', '_TYZB01_4obovpbi']),
         zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0'],
         model: 'HS2WD-E',
         vendor: 'HEIMAN',

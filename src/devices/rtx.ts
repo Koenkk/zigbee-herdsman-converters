@@ -9,11 +9,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_akjefhj5'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_2wg5qrjy'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_81isopgh'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_akjefhj5', '_TZE200_2wg5qrjy', '_TZE200_81isopgh']),
         model: 'ZVG1',
         vendor: 'RTX',
         description: 'Zigbee smart water valve',
@@ -118,7 +114,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_mwd3c2at'}],
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_mwd3c2at']),
         model: 'ZMS4',
         vendor: 'RTX',
         description: 'Zigbee PIR sensor',

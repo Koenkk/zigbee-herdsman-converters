@@ -932,7 +932,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Linkoze', 'LKDSZ001', 'Door sensor with scene switch', ['_TZ3210_jowhpxop'])],
     },
     {
-        fingerprint: [{modelID: 'TS0021', manufacturerName: '_TZ3210_3ulg9kpo'}],
+        fingerprint: tuya.fingerprint('TS0021', ['_TZ3210_3ulg9kpo']),
         model: 'LKWSZ211',
         vendor: 'Tuya',
         description: 'Scene remote with 2 keys',
@@ -970,15 +970,15 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Linkoze', 'LKWSZ211', 'Wireless switch (2-key)', ['_TZ3210_3ulg9kpo'])],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_vs0skpuc'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_44af8vyi'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_zl1kmjqx'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_qyflbnbj'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_bq5c8xfe',
+            '_TZE200_bjawzodf',
+            '_TZE200_qyflbnbj',
+            '_TZE200_vs0skpuc',
+            '_TZE200_44af8vyi',
+            '_TZE200_zl1kmjqx',
+            '_TZE204_qyflbnbj',
+        ]),
         model: 'TS0601_temperature_humidity_sensor_1',
         vendor: 'Tuya',
         description: 'Temperature & humidity sensor',
@@ -995,7 +995,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_mfamvsdb'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mfamvsdb']),
         model: 'F00MB00-04-1',
         vendor: 'FORIA',
         description: '4 scenes switch',
@@ -1113,7 +1113,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_s1xgth2u'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_s1xgth2u']),
         model: 'TS0601_temperature_humidity_sensor_3',
         vendor: 'Tuya',
         description: 'Temperature & humidity sensor',
@@ -1240,7 +1240,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Aubess', '1005005194831629', 'Contact, temperature and humidity sensor', ['_TZE200_nvups4nh'])],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vzqtvljm'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vzqtvljm']),
         model: 'TS0601_illuminance_temperature_humidity_sensor_1',
         vendor: 'Tuya',
         description: 'Illuminance, temperature & humidity sensor',
@@ -1249,15 +1249,15 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.humidity(), e.illuminance(), e.battery()],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_8ygsuhe1'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_yvx5lh6k'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ryfmq5rl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_c2fmom5z'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_mja3fuja'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_c2fmom5z'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_yvx5lh6k'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_8ygsuhe1',
+            '_TZE200_yvx5lh6k',
+            '_TZE200_ryfmq5rl',
+            '_TZE200_c2fmom5z',
+            '_TZE200_mja3fuja',
+            '_TZE204_c2fmom5z',
+            '_TZE204_yvx5lh6k',
+        ]),
         model: 'TS0601_air_quality_sensor',
         vendor: 'Tuya',
         description: 'Air quality sensor',
@@ -1266,7 +1266,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rbbx5mfq'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_rbbx5mfq']),
         model: 'TS0601_illuminance_temperature_humidity_sensor_2',
         vendor: 'Tuya',
         description: 'Illuminance sensor',
@@ -1438,26 +1438,30 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'},
-            {manufacturerName: '_TZ3000_hktqahrq'},
-            {manufacturerName: '_TZ3000_q6a3tepg'},
-            {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
-            {modelID: 'TS000F', manufacturerName: '_TZ3000_mx3vgyea'},
-            {modelID: 'TS000F', manufacturerName: '_TZ3000_skueekg3'},
-            {modelID: 'TS000F', manufacturerName: '_TZ3000_dlhhrhs8'},
-            {modelID: 'TS000F', manufacturerName: '_TZ3000_fdxihpp7'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_skueekg3'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_5ng23zjs'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_rmjr4ufz'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_v7gnj3ad'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_3a9beq8a'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_ark8nv4y'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_mx3vgyea'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_fdxihpp7'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_qsp2pwtf'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_kycczpw8'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_46t1rvdu'},
+            ...tuya.fingerprint('TS0001', [
+                '_TZ3000_hktqahrq',
+                '_TZ3000_q6a3tepg',
+                '_TZ3000_skueekg3',
+                '_TZ3000_npzfdcof',
+                '_TZ3000_5ng23zjs',
+                '_TZ3000_rmjr4ufz',
+                '_TZ3000_v7gnj3ad',
+                '_TZ3000_3a9beq8a',
+                '_TZ3000_ark8nv4y',
+                '_TZ3000_mx3vgyea',
+                '_TZ3000_fdxihpp7',
+                '_TZ3000_qsp2pwtf',
+                '_TZ3000_kycczpw8',
+                '_TZ3000_46t1rvdu',
+            ]),
+            ...tuya.fingerprint('TS000F', [
+                '_TZ3000_hktqahrq',
+                '_TZ3000_m9af2l6g',
+                '_TZ3000_mx3vgyea',
+                '_TZ3000_skueekg3',
+                '_TZ3000_dlhhrhs8',
+                '_TZ3000_fdxihpp7',
+            ]),
         ],
         model: 'WHD02',
         vendor: 'Tuya',
@@ -1509,17 +1513,18 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_o4cjetlm'},
-            {manufacturerName: '_TZ3000_o4cjetlm'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_iedbgyxt'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_h3noz0a5'},
-            {modelID: 'TS0001', manufacturerName: '_TYZB01_4tlksk8a'},
-            {modelID: 'TS0011', manufacturerName: '_TYZB01_rifa0wlb'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_5ucujjts'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_h8ngtlxy'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_w0ypwa1f'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_wpueorev'},
+            ...tuya.fingerprint('TS011F', ['_TZ3000_rk2yzt0u', '_TZ3000_o4cjetlm']),
+            ...tuya.fingerprint('TS0001', [
+                '_TZ3000_o4cjetlm',
+                '_TZ3000_iedbgyxt',
+                '_TZ3000_h3noz0a5',
+                '_TYZB01_4tlksk8a',
+                '_TZ3000_5ucujjts',
+                '_TZ3000_h8ngtlxy',
+                '_TZ3000_w0ypwa1f',
+                '_TZ3000_wpueorev',
+            ]),
+            ...tuya.fingerprint('TS0011', ['_TYZB01_rifa0wlb']),
         ],
         model: 'ZN231392',
         vendor: 'Tuya',
@@ -1755,13 +1760,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Linkoze', model: 'LKMSZ001'}],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3000_lltemgsf'},
-            {modelID: 'TS0202', manufacturerName: '_TYZB01_5nr7ncpl'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3000_mg4dy6z6'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3000_bsvqrxru'},
-        ],
+        fingerprint: tuya.fingerprint('TS0202', ['_TYZB01_jytabjkb', '_TZ3000_lltemgsf', '_TYZB01_5nr7ncpl', '_TZ3000_mg4dy6z6', '_TZ3000_bsvqrxru']),
         model: 'TS0202_1',
         vendor: 'Tuya',
         description: 'Motion sensor',
@@ -1885,19 +1884,19 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_m0vaazab'},
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_ufttklsz'},
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_nkkl7uzv'},
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_misw04hq'},
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_nlsszmzl'},
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_gszjt2xx'},
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_wlquqiiz'},
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_5k5vh43t'},
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_kxlmv9ag'},
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_wmlc9p9z'},
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_shopg9ss'},
-        ],
+        fingerprint: tuya.fingerprint('TS0207', [
+            '_TZ3000_m0vaazab',
+            '_TZ3000_ufttklsz',
+            '_TZ3000_nkkl7uzv',
+            '_TZ3000_misw04hq',
+            '_TZ3000_nlsszmzl',
+            '_TZ3000_gszjt2xx',
+            '_TZ3000_wlquqiiz',
+            '_TZ3000_5k5vh43t',
+            '_TZ3000_kxlmv9ag',
+            '_TZ3000_wmlc9p9z',
+            '_TZ3000_shopg9ss',
+        ]),
         model: 'TS0207_repeater',
         vendor: 'Tuya',
         description: 'Repeater',
@@ -1948,7 +1947,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3210_tgvtvdoc'}],
+        fingerprint: tuya.fingerprint('TS0207', ['_TZ3210_tgvtvdoc']),
         model: 'RB-SRAIN01',
         vendor: 'Tuya',
         description: 'Solar rain sensor',
@@ -1990,7 +1989,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0108', manufacturerName: '_TYZB01_7yidyqxd'}],
+        fingerprint: tuya.fingerprint('TS0108', ['_TYZB01_7yidyqxd']),
         model: 'TS0108',
         vendor: 'Tuya',
         description: 'Socket with 2 USB',
@@ -2408,24 +2407,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Moes', model: 'MS-105-M'}],
     },
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_5cuocqty',
-            },
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_nqqylykc',
-            },
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_2cyb66xl',
-            },
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_tgdnh7pw',
-            },
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_5cuocqty', '_TZE204_nqqylykc', '_TZE204_2cyb66xl', '_TZE204_tgdnh7pw']),
         model: 'ZDMS16-1',
         vendor: 'AVATTO',
         description: 'Zigbee 1 channel Dimmer',
@@ -2451,16 +2433,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_o9gyszw2',
-            },
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_jtbgusdc',
-            },
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_o9gyszw2', '_TZE204_jtbgusdc']),
         model: 'ZDMS16-2',
         vendor: 'AVATTO',
         description: 'Zigbee 2 channels Dimmer',
@@ -2526,7 +2499,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_oiymh3qu']),
         model: 'TS011F_socket_module',
         vendor: 'Tuya',
         description: 'Socket module',
@@ -2543,10 +2516,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_wxtp7c5y'},
-            {modelID: 'TS011F', manufacturerName: '_TYZB01_mtunwanm'},
-        ],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_wxtp7c5y', '_TYZB01_mtunwanm']),
         model: 'TS011F_wall_outlet',
         vendor: 'Tuya',
         description: 'In-wall outlet',
@@ -2558,14 +2528,14 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_u9kkqh5o'}],
+        fingerprint: tuya.fingerprint('TS0003', ['_TYZB01_u9kkqh5o']),
         model: 'CSP043',
         vendor: 'ClickSmart+',
         description: '1 gang switch module with neutral wire',
         extend: [m.onOff({powerOnBehavior: false})],
     },
     {
-        fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_biakwrag'}],
+        fingerprint: tuya.fingerprint('TS0012', ['_TZ3000_biakwrag']),
         model: 'CSP042',
         vendor: 'ClickSmart+',
         description: '2 gang switch module without neutral wire',
@@ -2584,10 +2554,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Lonsonho', 'QS-Zigbee-D02-TRIAC-L', '1 gang smart dimmer switch module without neutral', ['_TZ3000_ktuoyvt5'])],
     },
     {
-        fingerprint: [
-            {modelID: 'isltm67\u0000', manufacturerName: '_TYST11_pisltm67'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_pisltm67'},
-        ],
+        fingerprint: [...tuya.fingerprint('isltm67\u0000', ['_TYST11_pisltm67']), ...tuya.fingerprint('TS0601', ['_TZE200_pisltm67'])],
         model: 'S-LUX-ZB',
         vendor: 'Tuya',
         description: 'Light sensor',
@@ -2667,13 +2634,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['qnazj70', 'kjintbl'],
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
-            {modelID: 'TS0601', manufacturerName: '_TZ3000_uim07oem'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_js3mgbjb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_7deq70b8'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_ptaqh9tk'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_oisqyl4o', '_TZ3000_uim07oem', '_TZE200_js3mgbjb', '_TZE200_7deq70b8', '_TZE204_ptaqh9tk']),
         model: 'TS0601_switch',
         vendor: 'Tuya',
         description: '1, 2, 3 or 4 gang switch',
@@ -2895,13 +2856,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_kyfqmmyl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_2hf7x9n3'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_atpwqgml'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bynnczcb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_atpwqgml'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_kyfqmmyl', '_TZE200_2hf7x9n3', '_TZE204_atpwqgml', '_TZE200_bynnczcb', '_TZE200_atpwqgml']),
         model: 'TS0601_switch_3_gang',
         vendor: 'Tuya',
         description: '3 gang switch',
@@ -2980,14 +2935,14 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_p6ju8myv'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_0zrccfgx'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_fsiepnrh'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_ug1vtuzn'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_eo3dttwe'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_jwcixnrz'},
-        ],
+        fingerprint: tuya.fingerprint('TS0215A', [
+            '_TZ3000_p6ju8myv',
+            '_TZ3000_0zrccfgx',
+            '_TZ3000_fsiepnrh',
+            '_TZ3000_ug1vtuzn',
+            '_TZ3000_eo3dttwe',
+            '_TZ3000_jwcixnrz',
+        ]),
         model: 'TS0215A_remote',
         vendor: 'Tuya',
         description: 'Security remote control',
@@ -3004,7 +2959,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0503A', manufacturerName: '_TZ3000_obacbukl'}],
+        fingerprint: tuya.fingerprint('TS0503A', ['_TZ3000_obacbukl']),
         model: 'TS0503A',
         vendor: 'Tuya',
         description: 'Led strip controller',
@@ -3069,7 +3024,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: undefined}, color: true})],
     },
     {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_sosdczdl'}],
+        fingerprint: tuya.fingerprint('TS0505A', ['_TZ3000_sosdczdl']),
         model: 'TS0505A_led',
         vendor: 'Tuya',
         description: 'RGB+CCT LED',
@@ -3097,7 +3052,6 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{manufacturerName: '_TZ2000_a476raq2'}],
         zigbeeModel: ['TS0201', 'SNTZ003', 'TY0201'],
         model: 'TS0201',
         vendor: 'Tuya',
@@ -3117,15 +3071,15 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'},
-            {modelID: 'TS0201', manufacturerName: '_TZ3000_yd2e749y'},
-            {modelID: 'TS0201', manufacturerName: '_TZ3000_6uzkisv2'},
-            {modelID: 'TS0201', manufacturerName: '_TZ3000_xr3htd96'},
-            {modelID: 'TS0201', manufacturerName: '_TZ3000_fllyghyj'},
-            {modelID: 'TS0201', manufacturerName: '_TZ3000_saiqcn0y'},
-            {modelID: 'TS0201', manufacturerName: '_TZ3000_bjawzodf'},
-        ],
+        fingerprint: tuya.fingerprint('TS0201', [
+            '_TZ3000_bguser20',
+            '_TZ3000_yd2e749y',
+            '_TZ3000_6uzkisv2',
+            '_TZ3000_xr3htd96',
+            '_TZ3000_fllyghyj',
+            '_TZ3000_saiqcn0y',
+            '_TZ3000_bjawzodf',
+        ]),
         model: 'WSD500A',
         vendor: 'Tuya',
         description: 'Temperature & humidity sensor',
@@ -3203,7 +3157,6 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['TS0041'],
-        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}],
         model: 'TS0041',
         vendor: 'Tuya',
         description: 'Wireless switch with 1 button',
@@ -3617,7 +3570,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_qq9mpfhw'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_qq9mpfhw']),
         model: 'TS0601_water_sensor',
         vendor: 'Tuya',
         description: 'Water leak sensor',
@@ -3627,7 +3580,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Neo', model: 'NAS-WS02B0'}],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_jthf7vb6'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_jthf7vb6']),
         model: 'WLS-100z',
         vendor: 'Tuya',
         description: 'Water leak sensor',
@@ -3776,7 +3729,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_gbshwgag'}],
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_gbshwgag']),
         model: 'TS0001_switch_module_2',
         vendor: 'Tuya',
         description: '1 gang switch with backlight',
@@ -4033,64 +3986,62 @@ const definitions: DefinitionWithExtend[] = [
             'mcdj3aq\u0000', // Tubular motors
         ],
         fingerprint: [
-            // Curtain motors:
-            {modelID: 'TS0601', manufacturerName: '_TZE200_5zbp6j0u'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_nkoabg8w'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_xuzcvlku'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_4vobcgd3'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_nogaemzt'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_r0jdjrvi'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_pk0sfzvr'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_fdtjuw7u'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_zpzndjez'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_wmcdj3aq'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_cowvfni3'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_rddyvrci'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_nueqqe6k'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bqcqqjpb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_xaabybja'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_rmymn92d'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_feolm6rk'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_3i3exuay'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_tvrvdj6o'},
-            {modelID: 'zo2pocs\u0000', manufacturerName: '_TYST11_fzo2pocs'},
-            {modelID: 'dank5zs\u0000', manufacturerName: '_TYST11_udank5zs'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_b2u1drdv'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ol5jlkkr'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_guvc7pdy'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_zxxfv8wi'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_1fuxihti'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_1fuxihti'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_57hjqelq'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_m1wl5fvq'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_en3wvcbx'},
-            // Roller blinds:
-            {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_hsgrhjpf'},
-            // Window pushers:
-            {modelID: 'TS0601', manufacturerName: '_TZE200_g5wdnuow'},
-            // Tubular motors:
-            {modelID: 'TS0601', manufacturerName: '_TZE200_5sbebbzs'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_udank5zs'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_dpqsvdbi'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_zuz7f94z'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_nv6nxo0c'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_3ylew7b4'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_llm0epxg'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_n1aauwb4'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_xu4a5rhj'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bjzrowv2'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_bjzrowv2'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_axgvo9jh'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_gaj531w3'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_yia0p3tr'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_rsj5pu8y'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_xu4a5rhj'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_2odrmqwq'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_lh3arisb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE284_udank5zs'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_7shyddj3'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_a2jcoyuk'},
+            ...tuya.fingerprint('TS0601', [
+                '_TZE200_5zbp6j0u',
+                '_TZE200_nkoabg8w',
+                '_TZE200_xuzcvlku',
+                '_TZE200_4vobcgd3',
+                '_TZE200_nogaemzt',
+                '_TZE200_r0jdjrvi',
+                '_TZE200_pk0sfzvr',
+                '_TZE200_fdtjuw7u',
+                '_TZE200_zpzndjez',
+                '_TZE200_wmcdj3aq',
+                '_TZE200_cowvfni3',
+                '_TZE200_rddyvrci',
+                '_TZE200_nueqqe6k',
+                '_TZE200_bqcqqjpb',
+                '_TZE200_xaabybja',
+                '_TZE200_rmymn92d',
+                '_TZE200_feolm6rk',
+                '_TZE200_3i3exuay',
+                '_TZE200_tvrvdj6o',
+                '_TZE200_b2u1drdv',
+                '_TZE200_ol5jlkkr',
+                '_TZE204_guvc7pdy',
+                '_TZE200_zxxfv8wi',
+                '_TZE200_1fuxihti',
+                '_TZE204_1fuxihti',
+                '_TZE204_57hjqelq',
+                '_TZE204_m1wl5fvq',
+                '_TZE200_en3wvcbx',
+                '_TZE200_fctwhugx',
+                '_TZE200_hsgrhjpf',
+                '_TZE200_g5wdnuow',
+                '_TZE200_5sbebbzs',
+                '_TZE200_udank5zs',
+                '_TZE204_dpqsvdbi',
+                '_TZE200_zuz7f94z',
+                '_TZE200_nv6nxo0c',
+                '_TZE200_3ylew7b4',
+                '_TZE200_llm0epxg',
+                '_TZE200_n1aauwb4',
+                '_TZE200_xu4a5rhj',
+                '_TZE200_bjzrowv2',
+                '_TZE204_bjzrowv2',
+                '_TZE200_axgvo9jh',
+                '_TZE200_gaj531w3',
+                '_TZE200_yia0p3tr',
+                '_TZE200_rsj5pu8y',
+                '_TZE204_xu4a5rhj',
+                '_TZE200_2odrmqwq',
+                '_TZE204_lh3arisb',
+                '_TZE284_udank5zs',
+                '_TZE200_7shyddj3',
+                '_TZE204_a2jcoyuk',
+            ]),
+            ...tuya.fingerprint('zo2pocs\u0000', ['_TYST11_fzo2pocs']),
+            ...tuya.fingerprint('dank5zs\u0000', ['_TYST11_udank5zs']),
         ],
         model: 'TS0601_cover_1',
         vendor: 'Tuya',
@@ -4130,10 +4081,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            // Curtain motors:
-            {modelID: 'TS0601', manufacturerName: '_TZE200_eegnwoyw'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_eegnwoyw']),
         model: 'TS0601_cover_2',
         vendor: 'Tuya',
         description: 'Curtain motor fixed speed',
@@ -4143,11 +4091,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
-        fingerprint: [
-            // Curtain motors:
-            {modelID: 'TS0601', manufacturerName: '_TZE200_cpbo62rn'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_libht6ua'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_cpbo62rn', '_TZE200_libht6ua']),
         model: 'TS0601_cover_6',
         vendor: 'Tuya',
         description: 'Cover motor',
@@ -4272,27 +4216,27 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['kud7u2l'],
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ywdxldoj'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_do5qy8zo'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9sfg7gm0'}, // HomeCloud
-            {modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho'}, // HY367
-            {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_znlqjmih'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_8thwkzxl'}, // Tervix eva2
-            {modelID: 'TS0601', manufacturerName: '_TZE200_4eeyebrt'}, // Immax 07732B
-            {modelID: 'TS0601', manufacturerName: '_TZE200_8whxpsiw'}, // EVOLVEO
-            {modelID: 'TS0601', manufacturerName: '_TZE200_xby0s3ta'}, // Sandy Beach HY367
-            {modelID: 'TS0601', manufacturerName: '_TZE200_7fqkphoq'}, // AFINTEK
-            {modelID: 'TS0601', manufacturerName: '_TZE200_rufdtfyv'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_lpwgshtl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_rk1wojce'}, // Emos P5630S
-            {modelID: 'TS0601', manufacturerName: '_TZE200_rndg81sf'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_qjp4ynvi'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_ckud7u2l',
+            '_TZE200_ywdxldoj',
+            '_TZE200_do5qy8zo',
+            '_TZE200_cwnjrr72',
+            '_TZE200_pvvbommb',
+            '_TZE200_9sfg7gm0',
+            '_TZE200_2atgpdho',
+            '_TZE200_cpmgn2cf',
+            '_TZE200_znlqjmih',
+            '_TZE200_8thwkzxl',
+            '_TZE200_4eeyebrt',
+            '_TZE200_8whxpsiw',
+            '_TZE200_xby0s3ta',
+            '_TZE200_7fqkphoq',
+            '_TZE200_rufdtfyv',
+            '_TZE200_lpwgshtl',
+            '_TZE200_rk1wojce',
+            '_TZE200_rndg81sf',
+            '_TZE200_qjp4ynvi',
+        ]),
         model: 'TS0601_thermostat',
         vendor: 'Tuya',
         description: 'Radiator valve with thermostat',
@@ -4919,10 +4863,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_wv90ladg'},
-        ],
+        fingerprint: [...tuya.fingerprint('v90ladg\u0000', ['_TYST11_wv90ladg']), ...tuya.fingerprint('TS0601', ['_TZE200_wv90ladg'])],
         model: 'HT-08',
         vendor: 'ETOP',
         description: 'Wall-mount thermostat',
@@ -4959,10 +4900,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'dpplnsn\u0000', manufacturerName: '_TYST11_2dpplnsn'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_2dpplnsn'},
-        ],
+        fingerprint: [...tuya.fingerprint('dpplnsn\u0000', ['_TYST11_2dpplnsn']), ...tuya.fingerprint('TS0601', ['_TZE200_2dpplnsn'])],
         model: 'HT-10',
         vendor: 'ETOP',
         description: 'Radiator valve',
@@ -5001,12 +4939,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_a4bpgplm'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_dv8abrrz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_z1tyspqw'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bvrlmajk'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_a4bpgplm', '_TZE200_dv8abrrz', '_TZE200_z1tyspqw', '_TZE200_bvrlmajk']),
         model: 'TS0601_thermostat_1',
         vendor: 'Tuya',
         description: 'Thermostatic radiator valve',
@@ -5081,7 +5014,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_rtrmfadk'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_rtrmfadk']),
         model: 'TRV601',
         vendor: 'Tuya',
         description: 'Thermostatic radiator valve.',
@@ -5357,7 +5290,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE284_ymldrmzx'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_ymldrmzx']),
         model: 'TRV603-WZ',
         vendor: 'Tuya',
         description: 'Thermostatic radiator valve.',
@@ -5502,7 +5435,7 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
     },
     {
-        fingerprint: [{modelID: 'TS0111', manufacturerName: '_TYZB01_ymcdbl3u'}],
+        fingerprint: tuya.fingerprint('TS0111', ['_TYZB01_ymcdbl3u']),
         model: 'TS0111_valve',
         vendor: 'Tuya',
         whiteLabel: [{vendor: 'Tuya', model: 'SM-AW713Z'}],
@@ -5682,7 +5615,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Nous', 'E8', 'Smoke sensor', ['_TZE200_0zaf1cr8', '_TZE284_0zaf1cr8'])],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ntcy3xu1'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ntcy3xu1']),
         model: 'TS0601_smoke_6',
         vendor: 'Tuya',
         description: 'Smoke sensor',
@@ -5727,9 +5660,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ux5v4dbd'}, // [KnockautX / Brelag AG, Switzerland](https://www.brelag.com)
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ux5v4dbd']),
         vendor: 'Tuya',
         model: 'TS0601_smoke_3',
         description: 'Photoelectric smoke detector',
@@ -5829,7 +5760,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_5d3vhjro'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_5d3vhjro']),
         model: 'SA12IZL',
         vendor: 'Tuya',
         description: 'Smart smoke alarm',
@@ -6342,11 +6273,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_fsb6zw01'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ewxhg6o9'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_byzdayie', '_TZE200_fsb6zw01', '_TZE200_ewxhg6o9']),
         model: 'TS0601_din',
         vendor: 'Tuya',
         description: 'Zigbee smart energy meter DDS238-2 Zigbee',
@@ -6359,14 +6286,14 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.voltage(), e.power(), e.current(), e.energy()],
     },
     {
-        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_xfs39dbf'}],
+        fingerprint: tuya.fingerprint('TS1101', ['_TZ3000_xfs39dbf']),
         model: 'TS1101_dimmer_module_1ch',
         vendor: 'Tuya',
         description: 'Zigbee dimmer module 1 channel',
         extend: [tuyaLight({minBrightness: 'attribute'})],
     },
     {
-        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_7ysdnebc'}],
+        fingerprint: tuya.fingerprint('TS1101', ['_TZ3000_7ysdnebc']),
         model: 'TS1101_dimmer_module_2ch',
         vendor: 'Tuya',
         description: 'Zigbee dimmer module 2 channel',
@@ -6445,7 +6372,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.humidity(), e.temperature(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_l8fsgo6p'}],
+        fingerprint: tuya.fingerprint('TS0011', ['_TZ3000_l8fsgo6p']),
         zigbeeModel: ['TS0011'],
         model: 'TS0011',
         vendor: 'Tuya',
@@ -6467,11 +6394,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0011', manufacturerName: '_TZ3000_qmi1cfuq'},
-            {modelID: 'TS0011', manufacturerName: '_TZ3000_txpirhfq'},
-            {modelID: 'TS0011', manufacturerName: '_TZ3000_ji4araar'},
-        ],
+        fingerprint: tuya.fingerprint('TS0011', ['_TZ3000_qmi1cfuq', '_TZ3000_txpirhfq', '_TZ3000_ji4araar']),
         model: 'TS0011_switch_module',
         vendor: 'Tuya',
         description: '1 gang switch module - (without neutral)',
@@ -6514,13 +6437,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0012', manufacturerName: '_TZ3000_jl7qyupf'},
-            {modelID: 'TS0012', manufacturerName: '_TZ3000_nPGIPl5D'},
-            {modelID: 'TS0012', manufacturerName: '_TZ3000_kpatq5pq'},
-            {modelID: 'TS0012', manufacturerName: '_TZ3000_ljhbw1c9'},
-            {modelID: 'TS0012', manufacturerName: '_TZ3000_4zf0crgo'},
-        ],
+        fingerprint: tuya.fingerprint('TS0012', ['_TZ3000_jl7qyupf', '_TZ3000_nPGIPl5D', '_TZ3000_kpatq5pq', '_TZ3000_ljhbw1c9', '_TZ3000_4zf0crgo']),
         model: 'TS0012_switch_module',
         vendor: 'Tuya',
         description: '2 gang switch module - (without neutral)',
@@ -6567,10 +6484,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0013', manufacturerName: '_TZ3000_ypgri8yz'},
-            {modelID: 'TS0013', manufacturerName: '_TZ3000_sznawwyw'},
-        ],
+        fingerprint: tuya.fingerprint('TS0013', ['_TZ3000_ypgri8yz', '_TZ3000_sznawwyw']),
         model: 'TS0013_switch_module',
         vendor: 'Tuya',
         description: '3 gang switch module - (without neutral)',
@@ -6765,7 +6679,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0726', manufacturerName: '_TZ3002_sal078g8'}],
+        fingerprint: tuya.fingerprint('TS0726', ['_TZ3002_sal078g8']),
         model: 'TS0726_switch_4g_2s',
         vendor: 'Tuya',
         description: 'COSWALL smart switch (4 gang + 2 scene)',
@@ -6925,7 +6839,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_znzs7yaw'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_znzs7yaw']),
         model: 'HY08WE',
         vendor: 'Tuya',
         description: 'Wall-mount thermostat',
@@ -6942,7 +6856,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_g9a3awaj'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_g9a3awaj']),
         model: 'ZWT07',
         vendor: 'Tuya',
         description: 'Wall-mount thermostat',
@@ -6972,7 +6886,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_2ekuz3dz'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_2ekuz3dz']),
         model: 'X5H-GB-B',
         vendor: 'Tuya',
         description: 'Wall-mount thermostat',
@@ -7257,11 +7171,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0222', manufacturerName: '_TYZB01_4mdqxxnn'},
-            {modelID: 'TS0222', manufacturerName: '_TYZB01_m6ec2pgj'},
-            {modelID: 'TS0222', manufacturerName: '_TZ3000_do6txrcw'},
-        ],
+        fingerprint: tuya.fingerprint('TS0222', ['_TYZB01_4mdqxxnn', '_TYZB01_m6ec2pgj', '_TZ3000_do6txrcw']),
         model: 'TS0222',
         vendor: 'Tuya',
         description: 'Light intensity sensor',
@@ -7322,10 +7232,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_8bxrzyxz'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ky0fq4ho'},
-        ],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_8bxrzyxz', '_TZ3000_ky0fq4ho']),
         model: 'TS011F_din_smart_relay',
         description: 'Din smart relay (with power monitoring)',
         vendor: 'Tuya',
@@ -7404,7 +7311,7 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_7issjl2q'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_7issjl2q']),
         model: 'ATMS1601Z',
         description: 'Din smart relay (without power monitoring)',
         vendor: 'Tuya',
@@ -7485,7 +7392,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wfxuhoea'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_wfxuhoea']),
         model: 'GDC311ZBQ1',
         vendor: 'Tuya',
         description: 'LoraTap garage door opener with wireless sensor',
@@ -7505,10 +7412,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0603', manufacturerName: '_TZE608_c75zqghm'},
-            {modelID: 'TS0603', manufacturerName: '_TZE608_fmemczv1'},
-        ],
+        fingerprint: tuya.fingerprint('TS0603', ['_TZE608_c75zqghm', '_TZE608_fmemczv1']),
         model: 'TS0603',
         vendor: 'Tuya',
         meta: {
@@ -7534,7 +7438,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_qaaysllp'}],
+        fingerprint: tuya.fingerprint('TS0201', ['_TZ3000_qaaysllp']),
         model: 'LCZ030',
         vendor: 'Tuya',
         description: 'Temperature & humidity & illuminance sensor with display',
@@ -7576,7 +7480,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_auin8mzr'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_auin8mzr']),
         model: 'TS0601_motion_sensor',
         vendor: 'Tuya',
         description: 'Human presence sensor AIR',
@@ -7764,7 +7668,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_hkdl5fmv'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hkdl5fmv']),
         model: 'TS0601_rcbo',
         vendor: 'Tuya',
         whiteLabel: [
@@ -7797,14 +7701,14 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS004F', manufacturerName: '_TZ3000_4fjiwweb'},
-            {modelID: 'TS004F', manufacturerName: '_TZ3000_uri7ongn'},
-            {modelID: 'TS004F', manufacturerName: '_TZ3000_ixla93vd'},
-            {modelID: 'TS004F', manufacturerName: '_TZ3000_qja6nq5z'},
-            {modelID: 'TS004F', manufacturerName: '_TZ3000_abrsvsou'},
-            {modelID: 'TS004F', manufacturerName: '_TZ3000_402vrq2i'},
-        ],
+        fingerprint: tuya.fingerprint('TS004F', [
+            '_TZ3000_4fjiwweb',
+            '_TZ3000_uri7ongn',
+            '_TZ3000_ixla93vd',
+            '_TZ3000_qja6nq5z',
+            '_TZ3000_abrsvsou',
+            '_TZ3000_402vrq2i',
+        ]),
         model: 'ERS-10TZBVK-AA',
         vendor: 'Tuya',
         description: 'Smart knob',
@@ -7860,7 +7764,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kzm5w4iz'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_kzm5w4iz']),
         model: 'TS0601_vibration_sensor',
         vendor: 'Tuya',
         description: 'Smart vibration sensor',
@@ -7869,11 +7773,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery(), e.vibration()],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_yi4jtqq1'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_khx7nnka'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_khx7nnka'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yi4jtqq1', '_TZE200_khx7nnka', '_TZE204_khx7nnka']),
         model: 'XFY-CGQ-ZIGB',
         vendor: 'Tuya',
         description: 'Illuminance sensor',
@@ -7882,10 +7782,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.illuminance(), e.brightness_state()],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_kltffuzl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_fwoorn8y'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_kltffuzl', '_TZE200_fwoorn8y']),
         model: 'TM001-ZA/TM081',
         vendor: 'Tuya',
         description: 'Door and window sensor',
@@ -7894,7 +7791,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_2m38mh6k'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_2m38mh6k']),
         model: 'SS9600ZB',
         vendor: 'Tuya',
         description: '6 gang remote',
@@ -7946,20 +7843,20 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_lyetpprm'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_jva8ink8'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_xpq2rzhq'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_holel4dk'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_xpq2rzhq'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_wukb7rhc'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_xsm7l9xa'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_ztc6ggyl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_sgpeacqp'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_fwondbzy'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_ikvncluo',
+            '_TZE200_lyetpprm',
+            '_TZE200_jva8ink8',
+            '_TZE204_xpq2rzhq',
+            '_TZE200_holel4dk',
+            '_TZE200_xpq2rzhq',
+            '_TZE200_wukb7rhc',
+            '_TZE204_xsm7l9xa',
+            '_TZE204_ztc6ggyl',
+            '_TZE200_ztc6ggyl',
+            '_TZE200_sgpeacqp',
+            '_TZE204_fwondbzy',
+        ]),
         model: 'TS0601_smart_human_presence_sensor_1',
         vendor: 'Tuya',
         description: 'Smart Human presence sensor',
@@ -8003,7 +7900,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE284_atuj3i0w'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_atuj3i0w']),
         model: 'M8Pro',
         vendor: 'Tuya',
         description: '4 gang switch with LCD',
@@ -8329,7 +8226,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_whkgqxse']),
         model: 'JM-TRH-ZGB-V1',
         vendor: 'Tuya',
         description: 'Temperature & humidity sensor with clock',
@@ -8361,7 +8258,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zyrdrmno'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_zyrdrmno']),
         model: 'ZB-Sm',
         vendor: 'Tuya',
         description: 'Tubular motor',
@@ -8409,7 +8306,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_itnrsufe'}],
+        fingerprint: tuya.fingerprint('TS0201', ['_TZ3000_itnrsufe']),
         model: 'KCTW1Z',
         vendor: 'Tuya',
         description: 'Temperature & humidity sensor with LCD',
@@ -8431,11 +8328,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_0u3bj3rc'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_v6ossqfy'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_mx6u6l4y'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_0u3bj3rc', '_TZE200_v6ossqfy', '_TZE200_mx6u6l4y']),
         model: 'TS0601_human_presence_sensor',
         vendor: 'Tuya',
         description: 'Human presence sensor Zigbee',
@@ -8648,10 +8541,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_8isdky6j'},
-            {modelID: 'TS0225', manufacturerName: '_TZE200_p6fuhvez'},
-        ],
+        fingerprint: [...tuya.fingerprint('TS0601', ['_TZE200_8isdky6j']), ...tuya.fingerprint('TS0225', ['_TZE200_p6fuhvez'])],
         model: 'ZG-225Z',
         vendor: 'Tuya',
         description: 'Gas sensor',
@@ -8943,7 +8833,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_wdexaypg'}],
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_wdexaypg']),
         model: 'TS110E_2gang_1',
         vendor: 'Tuya',
         description: '2 channel dimmer',
@@ -9343,10 +9233,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_bmqxalil'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_w1tcofu8'},
-        ],
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_bmqxalil', '_TZ3000_w1tcofu8']),
         model: 'TS0001_switch_1_gang',
         vendor: 'Tuya',
         description: '1-Gang switch with backlight',
@@ -9361,12 +9248,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0003', manufacturerName: '_TZ3000_pv4puuxi'},
-            {modelID: 'TS0003', manufacturerName: '_TZ3000_avky2mvc'},
-            {modelID: 'TS0003', manufacturerName: '_TZ3000_785olaiq'},
-            {modelID: 'TS0003', manufacturerName: '_TZ3000_qxcnwv26'},
-        ],
+        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_pv4puuxi', '_TZ3000_avky2mvc', '_TZ3000_785olaiq', '_TZ3000_qxcnwv26']),
         model: 'TS0003_switch_3_gang',
         vendor: 'Tuya',
         description: '3-Gang switch with backlight',
@@ -9389,7 +9271,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_hewlydpz'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hewlydpz']),
         model: 'TS0601_switch_4_gang_2',
         vendor: 'Tuya',
         description: '4 gang switch with backlight',
@@ -9419,7 +9301,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Homeetec', '37022714', '4 Gang switch with backlight', ['_TZE200_hewlydpz'])],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_p6vz3wzt'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_p6vz3wzt']),
         model: 'TS0601_cover_5',
         vendor: 'Tuya',
         description: 'Curtain/blind switch',
@@ -9472,7 +9354,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_jhkttplm'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_jhkttplm']),
         model: 'TS0601_cover_with_1_switch',
         vendor: 'Tuya',
         description: 'Curtain/blind switch with 1 Gang switch',
@@ -9505,7 +9387,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Homeetec', '37022493', 'Curtain/blind switch with 1 Gang switch', ['_TZE200_jhkttplm'])],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_5nldle7w'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_5nldle7w']),
         model: 'TS0601_cover_with_2_switch',
         vendor: 'Tuya',
         description: 'Curtain/blind switch with 2 Gang switch',
@@ -9540,7 +9422,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Homeetec', '37022173', 'Curtain/blind switch with 2 Gang switch', ['_TZE200_5nldle7w'])],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bcusnqt8'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_bcusnqt8']),
         model: 'SPM01',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 1P+N system',
@@ -9580,10 +9462,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_ves1ycwx'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ves1ycwx'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ves1ycwx', '_TZE200_ves1ycwx']),
         model: 'SPM02',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 3P+N system',
@@ -9616,10 +9495,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_qhlxve78'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_qhlxve78'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_qhlxve78', '_TZE204_qhlxve78']),
         model: 'SPM01V2',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 1P+N system',
@@ -9650,10 +9526,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_v9hkz2yn'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_v9hkz2yn'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_v9hkz2yn', '_TZE200_v9hkz2yn']),
         model: 'SPM02V2',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 3P+N system',
@@ -9699,7 +9572,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_dhotiauw'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dhotiauw']),
         model: '2CT',
         vendor: 'Tuya',
         description: 'Bidirectional energy meter with 80A current clamp',
@@ -9792,10 +9665,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_iwn0gpzz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_iwn0gpzz'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iwn0gpzz', '_TZE204_iwn0gpzz']),
         model: 'SPM01V2.5',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 1P+N system',
@@ -9824,11 +9694,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_ny94onlb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ny94onlb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE284_ny94onlb'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ny94onlb', '_TZE200_ny94onlb', '_TZE284_ny94onlb']),
         model: 'SPM02V2.5',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 3P+N system',
@@ -9871,10 +9737,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_dikb3dp6'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_dikb3dp6'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dikb3dp6', '_TZE204_dikb3dp6']),
         model: 'SPM02V3',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 3P+N system',
@@ -9997,10 +9860,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_gomuk3dc'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_gomuk3dc'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_gomuk3dc', '_TZE200_gomuk3dc']),
         model: 'SDM01V1.5',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 3P+N system',
@@ -10061,10 +9921,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_78ioiaml'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_78ioiaml'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_78ioiaml', '_TZE200_78ioiaml']),
         model: 'SDM02V1',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 2P+N system',
@@ -10139,15 +9996,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_vmcgja59'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_dvosyycn'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_wktrysab'},
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_wktrysab',
-            },
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vmcgja59', '_TZE204_dvosyycn', '_TZE200_wktrysab', '_TZE204_wktrysab']),
         model: 'TS0601_switch_8',
         vendor: 'Tuya',
         description: 'ZYXH 8 gang switch',
@@ -10182,7 +10031,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_adlblwab'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_adlblwab']),
         model: 'TS0601_switch_8_2',
         vendor: 'Tuya',
         description: '8 gang switch',
@@ -10451,10 +10300,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_0j5jma9b'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_h2rctifa'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_0j5jma9b', '_TZE200_h2rctifa']),
         model: 'ZS-TYG3-SM-61Z',
         vendor: 'Tuya',
         description: 'Smart switch (4 gang + 2 scene) with backlight and neutral wire',
@@ -10504,7 +10350,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_wunufsil']),
         model: 'ZS-TYG3-SM-21Z',
         vendor: 'Tuya',
         description: '2 gang smart switch with backlight and neutral wire',
@@ -10538,7 +10384,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vhy3iakz']),
         model: 'ZS-TYG3-SM-31Z',
         vendor: 'Tuya',
         description: '3 gang smart switch with backlight and neutral wire',
@@ -10576,7 +10422,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_k6jhsr0q'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_k6jhsr0q']),
         model: 'ZS-TYG3-SM-41Z',
         vendor: 'Tuya',
         description: '4 gang smart switch with backlight and neutral wire',
@@ -11878,7 +11724,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('AVATTO', 'ZWSM16-4-Zigbee', '4 gang switch module', ['_TZ3000_5ajpkyq6'])],
     },
     {
-        fingerprint: [{modelID: 'TS1002', manufacturerName: '_TZ3000_etufnltx'}],
+        fingerprint: tuya.fingerprint('TS1002', ['_TZ3000_etufnltx']),
         model: 'F00XN00-04-1',
         vendor: 'FORIA',
         description: 'Dimmer 4 scenes',
@@ -12188,7 +12034,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'ELECTSMART', model: 'EST-120Z'}],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_tagezcph'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_tagezcph']),
         model: 'PRO-900Z',
         vendor: 'ElectSmart',
         description: 'Thermostat for electric floor',
@@ -12765,7 +12611,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ncti2pro'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ncti2pro']),
         model: 'PN6',
         vendor: 'ZSVIOT',
         description: '6-way controller',
@@ -12856,10 +12702,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_fhvdgeuh'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_abatw3kj'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_fhvdgeuh', '_TZE200_abatw3kj']),
         model: 'TS0601_din_4',
         vendor: 'Tuya',
         description: 'Din rail switch with power monitoring and threshold settings',
@@ -12907,7 +12750,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_hcxvyxa5'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_hcxvyxa5']),
         model: 'ZA03',
         vendor: 'Tuya',
         description: 'Siren alarm',
@@ -14134,12 +13977,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE200_wem3gxyx',
-            },
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_wem3gxyx']),
         model: 'AE-940K',
         vendor: 'ACMELEC',
         description: 'Compatible with Daikin vrv system',
@@ -14172,12 +14010,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_mul9abs3',
-            },
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_mul9abs3']),
         model: 'AE-669K',
         vendor: 'ACMELEC',
         description: 'Compatible with Mitsubishi Electric vrf system',

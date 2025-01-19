@@ -87,14 +87,14 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_pwauw3g2'}],
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_pwauw3g2']),
         model: '07743L',
         vendor: 'Immax',
         description: 'Neo Smart LED E27 11W RGB + CCT, color, dimmable, Zigbee 3.0',
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        fingerprint: [{modelID: 'TS0502C', manufacturerName: '_TZ3210_6pwpez2j'}],
+        fingerprint: tuya.fingerprint('TS0502C', ['_TZ3210_6pwpez2j']),
         model: 'TS0502C',
         vendor: 'Immax',
         description: 'Neo FINO Smart pendant light black 80cm CCT 60W, Zigbee 3.0',
@@ -138,7 +138,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['losfena'],
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wlosfena'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_wlosfena']),
         model: '07703L',
         vendor: 'Immax',
         description: 'Radiator valve',
@@ -254,7 +254,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_krwtzhfd'}],
+        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_krwtzhfd']),
         model: '07767L',
         vendor: 'Immax',
         description: 'NEO Smart outdoor button',

@@ -77,10 +77,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0003', manufacturerName: '_TZ3000_vjhcenzo'},
-            {modelID: 'TS0003', manufacturerName: '_TZ3000_f09j9qjb'},
-        ],
+        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_vjhcenzo', '_TZ3000_f09j9qjb']),
         model: 'TB25',
         vendor: 'Zemismart',
         description: 'Smart light switch and socket - 2 gang with neutral wire',
@@ -106,7 +103,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zqtiam4u'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_zqtiam4u']),
         model: 'ZM-RM02',
         vendor: 'Zemismart',
         description: 'Smart 6 key scene switch',
@@ -251,10 +248,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_gubdgai2'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_vdiuwbkq'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_gubdgai2', '_TZE200_vdiuwbkq']),
         model: 'M515EGBZTN',
         vendor: 'Zemismart',
         description: 'Roller shade driver',
@@ -267,7 +261,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fzo2pocs'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_fzo2pocs']),
         model: 'ZM25TQ',
         vendor: 'Zemismart',
         description: 'Tubular motor',
@@ -277,11 +271,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_shkxsgis'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_shkxsgis'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_1n2kyphz', '_TZE200_shkxsgis', '_TZE204_shkxsgis']),
         model: 'TB26-4',
         vendor: 'Zemismart',
         description: '4-gang smart wall switch',
@@ -307,10 +297,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9mahtqtg'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_r731zlxk'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_9mahtqtg', '_TZE200_r731zlxk']),
         model: 'TB26-6',
         vendor: 'Zemismart',
         description: '6-gang smart wall switch',

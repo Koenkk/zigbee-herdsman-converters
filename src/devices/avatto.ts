@@ -6,7 +6,7 @@ const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_s139roas'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_s139roas']),
         model: 'ZWSH16',
         vendor: 'AVATTO',
         description: 'Smart Temperature and Humidity Detector',

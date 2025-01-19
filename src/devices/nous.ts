@@ -10,7 +10,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_lbtpiody'}],
+        fingerprint: tuya.fingerprint('TS0201', ['_TZ3000_lbtpiody']),
         model: 'E5',
         vendor: 'Nous',
         description: 'Temperature & humidity',
@@ -19,16 +19,16 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_lve3dvpy'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_c7emyjom'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_locansqn'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_qrztc3ev'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_snloy4rw'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_eanjj2pa'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ydrdfkim'},
-            {modelID: 'TS0601', manufacturerName: '_TZE284_locansqn'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_lve3dvpy',
+            '_TZE200_c7emyjom',
+            '_TZE200_locansqn',
+            '_TZE200_qrztc3ev',
+            '_TZE200_snloy4rw',
+            '_TZE200_eanjj2pa',
+            '_TZE200_ydrdfkim',
+            '_TZE284_locansqn',
+        ]),
         model: 'SZ-T04',
         vendor: 'Nous',
         whiteLabel: [tuya.whitelabel('Tuya', 'TH01Z', 'Temperature and humidity sensor with clock', ['_TZE200_locansqn'])],

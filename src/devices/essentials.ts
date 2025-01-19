@@ -67,7 +67,7 @@ const localValueConverters = {
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_i48qyn9s'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_i48qyn9s']),
         model: '_TZE200_i48qyn9s',
         vendor: 'Essentials',
         description: 'Thermostat Zigbee smart home',

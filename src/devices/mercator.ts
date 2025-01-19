@@ -9,7 +9,7 @@ const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_yvxjawlt'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3210_yvxjawlt']),
         model: 'SPP04G',
         vendor: 'Mercator Ikuü',
         description: 'Quad power point',
@@ -27,7 +27,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_qjqgmqxr'}],
+        fingerprint: tuya.fingerprint('TS0202', ['_TYZB01_qjqgmqxr']),
         model: 'SMA02P',
         vendor: 'Mercator Ikuü',
         description: 'Motion detector',
@@ -45,7 +45,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_82ptnsd4'}],
+        fingerprint: tuya.fingerprint('TS0201', ['_TZ3000_82ptnsd4']),
         model: 'SMA03P',
         vendor: 'Mercator Ikuü',
         description: 'Environmental sensor',
@@ -55,7 +55,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: [{modelID: 'TS0203', manufacturerName: '_TZ3000_wbrlnkm9'}],
+        fingerprint: tuya.fingerprint('TS0203', ['_TZ3000_wbrlnkm9']),
         model: 'SMA04P',
         vendor: 'Mercator Ikuü',
         description: 'Contact sensor',
@@ -74,21 +74,21 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZ3000_6dwfra5l'}],
+        fingerprint: tuya.fingerprint('TS0502B', ['_TZ3000_6dwfra5l']),
         model: 'SMCL01-ZB',
         vendor: 'Mercator Ikuü',
         description: 'Ikon ceiling light',
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}})],
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_xr5m6kfg'}],
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3000_xr5m6kfg']),
         model: 'SMD4109W-RGB-ZB',
         vendor: 'Mercator Ikuü',
         description: '92mm Walter downlight RGB + CCT',
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_raqjcxo5'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3210_raqjcxo5']),
         model: 'SPP02G',
         vendor: 'Mercator Ikuü',
         description: 'Double power point',
@@ -116,7 +116,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_7jnk7l3k'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3210_7jnk7l3k']),
         model: 'SPP02GIP',
         vendor: 'Mercator Ikuü',
         description: 'Double power point IP54',
@@ -144,7 +144,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0013', manufacturerName: '_TZ3000_khtlvdfc'}],
+        fingerprint: tuya.fingerprint('TS0013', ['_TZ3000_khtlvdfc']),
         model: 'SSW03G',
         vendor: 'Mercator Ikuü',
         description: 'Triple switch',
@@ -164,10 +164,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0501', manufacturerName: '_TZ3210_lzqq3u4r'},
-            {modelID: 'TS0501', manufacturerName: '_TZ3210_4whigl8i'},
-        ],
+        fingerprint: tuya.fingerprint('TS0501', ['_TZ3210_lzqq3u4r', '_TZ3210_4whigl8i']),
         model: 'SSWF01G',
         vendor: 'Mercator Ikuü',
         description: 'AC fan controller',
@@ -187,7 +184,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_pfbzs1an'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3210_pfbzs1an']),
         model: 'SPPUSB02',
         vendor: 'Mercator Ikuü',
         description: 'Double power point with USB',

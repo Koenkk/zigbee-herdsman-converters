@@ -1,12 +1,12 @@
 import * as m from '../lib/modernExtend';
-import {modernExtend as tuyaModernExtend} from '../lib/tuya';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
-const {tuyaMagicPacket, tuyaOnOffActionLegacy} = tuyaModernExtend;
+const {tuyaMagicPacket, tuyaOnOffActionLegacy} = tuya.modernExtend;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'SM0202', manufacturerName: '_TYZB01_2jzbhomb'}],
+        fingerprint: tuya.fingerprint('SM0202', ['_TYZB01_2jzbhomb']),
         model: 'SBDV-00029',
         vendor: 'Sber',
         description: 'Smart motion sensor',
@@ -16,7 +16,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0203', manufacturerName: '_TYZB01_epni2jgy'}],
+        fingerprint: tuya.fingerprint('TS0203', ['_TYZB01_epni2jgy']),
         model: 'SBDV-00030',
         vendor: 'Sber',
         description: 'Smart opening sensor',
@@ -27,7 +27,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0041A', manufacturerName: '_TYZB01_ub7urdza'}],
+        fingerprint: tuya.fingerprint('TS0041A', ['_TYZB01_ub7urdza']),
         model: 'SBDV-00032',
         vendor: 'Sber',
         description: 'Smart button',
@@ -44,14 +44,14 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_zfirri2d'}],
+        fingerprint: tuya.fingerprint('TS0201', ['_TZ3000_zfirri2d']),
         model: 'SBDV-00079',
         vendor: 'Sber',
         description: 'Smart temperature and humidity sensor',
         extend: [m.temperature(), m.humidity(), m.battery({voltage: true, voltageReporting: true})],
     },
     {
-        fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_c8bqthpo'}],
+        fingerprint: tuya.fingerprint('TS0207', ['_TZ3000_c8bqthpo']),
         model: 'SBDV-00154',
         vendor: 'Sber',
         description: 'Smart water leak sensor',

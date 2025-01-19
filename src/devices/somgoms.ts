@@ -1,6 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -26,7 +27,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_sbordckq'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_sbordckq']),
         model: 'SM-1CTW-EU',
         vendor: 'Somgoms',
         description: 'Curtain switch',

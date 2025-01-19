@@ -10,10 +10,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: 'TS110F', manufacturerName: '_TZ3210_lfbz816s'},
-            {modelID: 'TS110F', manufacturerName: '_TZ3210_ebbfkvoy'},
-        ],
+        fingerprint: tuya.fingerprint('TS110F', ['_TZ3210_lfbz816s', '_TZ3210_ebbfkvoy']),
         model: 'ZB006-X',
         vendor: 'Fantem',
         description: 'Smart dimmer module',
