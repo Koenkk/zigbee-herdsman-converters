@@ -3218,7 +3218,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Hue tap',
         fromZigbee: [fz.hue_tap],
         toZigbee: [],
-        exposes: [e.action(['press_1', 'press_2', 'press_3', 'press_4'])],
+        exposes: [e.action(['press_1', 'press_2', 'press_3', 'press_4', 'press_1_and_2', 'release_1_and_2', 'press_3_and_4', 'release_3_and_4'])],
     },
     {
         zigbeeModel: ['LCA005'],
