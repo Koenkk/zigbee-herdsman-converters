@@ -4709,7 +4709,6 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_jkfbph7l' /* model: 'ME167', vendor: 'AVATTO' */,
             '_TZE200_p3dbf6qs' /* model: 'ME168', vendor: 'AVATTO' */,
             '_TZE200_rxntag7i' /* model: 'ME168', vendor: 'AVATTO' */,
-            '_TZE200_ybsqljjg' /* model: 'ME168', vendor: 'AVATTO' */,
             '_TZE200_yqgbrdyo',
             '_TZE284_p3dbf6qs',
             '_TZE200_rxq4iti9',
@@ -4731,7 +4730,7 @@ const definitions: DefinitionWithExtend[] = [
                 '_TZE200_9xfjixap',
                 '_TZE200_jkfbph7l',
             ]),
-            tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_rxntag7i', '_TZE200_ybsqljjg']),
+            tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_rxntag7i']),
             tuya.whitelabel('AVATTO', 'TRV06_1', 'Thermostatic radiator valve', ['_TZE200_hvaxb2tc', '_TZE284_o3x45p96']),
             tuya.whitelabel('EARU', 'TRV06', 'Smart thermostat module', ['_TZE200_yqgbrdyo', '_TZE200_rxq4iti9']),
             tuya.whitelabel('AVATTO', 'AVATTO_TRV06', 'Thermostatic radiator valve', ['_TZE284_c6wv4xyo', '_TZE204_o3x45p96']),
@@ -5516,6 +5515,153 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ybsqljjg' /* model: 'ME168', vendor: 'AVATTO' */]),
+        model: 'TS0601_thermostat_5',
+        vendor: 'Tuya',
+        description: 'Thermostatic radiator valve',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        whiteLabel: [tuya.whitelabel('AVATTO', 'AVATTO_ME168', 'Thermostatic radiator valve', ['_TZE200_ybsqljjg'])],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        ota: true,
+        exposes: [
+            e.battery(),
+            //! to fix as the exposed format is bitmap
+            e.numeric('error', ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
+            e.child_lock().withCategory('config'),
+
+            e
+                .enum('running_mode', ea.STATE, ['auto', 'manual', 'off', 'eco', 'comfort', 'rapid'])
+                .withDescription('Actual TRV running mode')
+                .withCategory('diagnostic'),
+            e
+                .climate()
+                .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET, 'Basic modes')
+                .withPreset(['eco', 'comfort', 'boost'], 'Additional heat modes')
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withSetpoint('current_heating_setpoint', 4, 35, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-30, 30, 1, ea.STATE_SET),
+
+            e
+                .binary('window_detection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Enables/disables window detection on the device')
+                .withCategory('config'),
+            e.window_open(),
+
+            e
+                .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.',
+                )
+                .withCategory('config'),
+            e
+                .binary('scale_protection', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'If the heat sink is not fully opened within ' +
+                        'two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be ' +
+                        'able to be used. To ensure normal use of the heat sink, the controller will automatically open the valve fully every ' +
+                        'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
+                        'again.',
+                )
+                .withCategory('config'),
+
+            e
+                .numeric('boost_time', ea.STATE_SET)
+                .withUnit('min')
+                .withDescription('Boost running time')
+                .withValueMin(0)
+                .withValueMax(255)
+                .withCategory('config'),
+            e.numeric('boost_timeset_countdown', ea.STATE).withUnit('min').withDescription('Boost time remaining'),
+
+            e.eco_temperature().withValueMin(5).withValueMax(35).withValueStep(1).withCategory('config'),
+            e.comfort_temperature().withValueMin(5).withValueMax(35).withValueStep(1).withCategory('config'),
+
+            ...tuya.exposes
+                .scheduleAllDays(ea.STATE_SET, '06:00/21.0 08:00/16.0 12:00/21.0 14:00/16.0 18:00/21.0 22:00/16.0')
+                .map((text) => text.withCategory('config')),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                // mode (RW Enum [0=auto, 1=manual, 2=off, 3=eco, 4=comfort, 5=rapid])
+                [2, null, tuya.valueConverter.thermostatME168_systemModeAndPreset(null)],
+                [2, 'preset', tuya.valueConverter.thermostatME168_systemModeAndPreset('preset')],
+                [2, 'system_mode', tuya.valueConverter.thermostatME168_systemModeAndPreset('system_mode')],
+
+                // work_state (RO Enum [0=opened, 1=closed])
+                [3, 'running_state', tuya.valueConverterBasic.lookup({heat: tuya.enum(0), idle: tuya.enum(1)})],
+
+                // temp_set (RW Integer, 40-350 C, scale 1 step 10)
+                [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+
+                // temp_current (RO Integer, -0-500 C, scale 1 step 10)
+                [5, 'local_temperature', tuya.valueConverter.divideBy10],
+
+                // battery_percentage (RO, Integer, 0-100 %, scale 0 step 1)
+                [6, 'battery', tuya.valueConverter.raw],
+
+                // child_lock (RW Boolean)
+                [7, 'child_lock', tuya.valueConverter.lockUnlock],
+
+                //! load_status (RW, Enum, range [0=closed, 1=opened]) - Non-functional
+                // [13, 'load_status', tuya.valueConverterBasic.lookup({CLOSE: tuya.enum(0), OPEN: tuya.enum(1)})],
+
+                // window_check (RW Boolean)
+                [14, 'window_detection', tuya.valueConverter.onOff],
+
+                // window_state (RO Enum, range [0=opened, 1=closed])
+                [15, 'window_open', tuya.valueConverter.trueFalseEnum0],
+
+                // week_program_13_(1-7) (RW Raw, maxlen 128, special binary-in-base64 format)
+                [28, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 6)],
+                [29, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2, 6)],
+                [30, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3, 6)],
+                [31, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4, 6)],
+                [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5, 6)],
+                [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6, 6)],
+                [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 6)],
+
+                //? error (RO Bitmap, maxlen 2, label [0x=low_battery, x0=sensor_fault]?)
+                [35, null, tuya.valueConverter.errorOrBatteryLow],
+
+                // frost (RW Boolean)
+                [36, 'frost_protection', tuya.valueConverter.onOff],
+
+                //! rapid_switch (RW Boolean) - Non-functional
+                // [37, 'rapid_switch', tuya.valueConverter.onOff],
+
+                //! rapid_countdown (RW Integer, 1-12 h, scale 0 step 1) - Non-functional
+                // [38, 'rapid_countdown', tuya.valueConverter.raw],
+
+                // scale_switch (RW Boolean)
+                [39, 'scale_protection', tuya.valueConverter.onOff],
+
+                // temp_correction (RW Integer, -10-10 C, scale 0 step 1)
+                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration2],
+
+                // comfort_temp (RW Integer, 100-250 C, scale 1 step 10)
+                [101, 'comfort_temperature', tuya.valueConverter.divideBy10],
+
+                //! switch (RW Boolean) - Non-functional
+                // [102, 'switch', tuya.valueConverter.onOff],
+
+                // rapid_time_set (RW Integer, 0-180 min, scale 0 step 1)
+                [103, 'boost_time', tuya.valueConverter.raw],
+
+                // heating_countdown (RO Integer, 0-3600 min, scale 0 step 1)
+                [104, 'boost_timeset_countdown', tuya.valueConverter.countdown],
+
+                // eco_temp (RW Integer, 100-200 C, scale 1 step 10)
+                [105, 'eco_temperature', tuya.valueConverter.divideBy10],
+
+                //! eco (RW Boolean) - Non-functional
+                // [106, 'eco', tuya.valueConverter.onOff],
+            ],
         },
     },
     {

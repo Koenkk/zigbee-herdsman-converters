@@ -334,9 +334,9 @@ const tuyaExposes = {
             .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
             .withDescription(`When Anti-Freezing function is activated, the temperature in the house is kept at 8 °C.${extraNote}`),
     errorStatus: () => e.numeric('error_status', ea.STATE).withDescription('Error status'),
-    scheduleAllDays: (access: number, format: string) =>
+    scheduleAllDays: (access: number, example: string) =>
         ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) =>
-            e.text(`schedule_${day}`, access).withDescription(`Schedule for ${day}, format: "${format}"`),
+            e.text(`schedule_${day}`, access).withDescription(`Schedule for ${day}, example: "${example}"`),
         ),
     temperatureUnit: () => e.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Temperature unit'),
     temperatureCalibration: () =>
@@ -1062,7 +1062,7 @@ export const valueConverter = {
                     const hour = parseInt(hourMin[0]);
                     const min = parseInt(hourMin[1]);
                     const temperature = Math.floor(parseFloat(timeTemp[1]) * 10);
-                    if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
+                    if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 350) {
                         throw new Error('Invalid hour, minute or temperature of: ' + transition);
                     }
                     payload.push(hour, min, (temperature & 0xff00) >> 8, temperature & 0xff);
@@ -1528,6 +1528,37 @@ export const valueConverter = {
             }
             return data;
         },
+    },
+    thermostatME168_systemModeAndPreset: (toKey: string) => {
+        return {
+            from: (v: string) => {
+                utils.assertNumber(v, 'system_mode');
+                const modeMap: {[mode: number]: {name: string; system_mode: string; preset: string}} = {
+                    0: {name: 'auto', system_mode: 'auto', preset: 'none'},
+                    1: {name: 'manual', system_mode: 'heat', preset: 'none'},
+                    2: {name: 'off', system_mode: 'off', preset: 'none'},
+                    3: {name: 'eco', system_mode: 'heat', preset: 'eco'},
+                    4: {name: 'comfort', system_mode: 'heat', preset: 'comfort'},
+                    5: {name: 'rapid', system_mode: 'heat', preset: 'boost'},
+                };
+                return {running_mode: modeMap[v].name, preset: modeMap[v].preset, system_mode: modeMap[v].system_mode};
+            },
+            to: (v: string) => {
+                const presetLookup = {
+                    none: new Enum(1), // manual
+                    eco: new Enum(3), // eco
+                    comfort: new Enum(4), // comfort
+                    boost: new Enum(5), // rapid
+                };
+                const systemModeLookup = {
+                    auto: new Enum(0), // auto
+                    heat: new Enum(1), // manual
+                    off: new Enum(2), // off
+                };
+                const lookup = toKey === 'preset' ? presetLookup : systemModeLookup;
+                return utils.getFromLookup(v, lookup);
+            },
+        };
     },
 };
 
