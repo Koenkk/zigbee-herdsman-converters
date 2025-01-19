@@ -2,6 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -9,7 +10,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0219', manufacturerName: '_TZ3000_vdfwjopk'}],
+        fingerprint: tuya.fingerprint('TS0219', ['_TZ3000_vdfwjopk']),
         model: 'SA100',
         vendor: 'Cleverio',
         description: 'Smart siren',
@@ -28,7 +29,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'SM0201', manufacturerName: '_TYZB01_lzrhtcxu'}],
+        fingerprint: tuya.fingerprint('SM0201', ['_TYZB01_lzrhtcxu']),
         model: 'SS300',
         vendor: 'Cleverio',
         description: 'Temperature/humdity sensor',

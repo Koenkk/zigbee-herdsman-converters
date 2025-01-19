@@ -1,12 +1,13 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS1001', manufacturerName: '_TZ3000_ztrfrcsu'}],
+        fingerprint: tuya.fingerprint('TS1001', ['_TZ3000_ztrfrcsu']),
         model: '141L100RC',
         vendor: 'Aldi',
         description: 'MEGOS switch and dimming light remote control',

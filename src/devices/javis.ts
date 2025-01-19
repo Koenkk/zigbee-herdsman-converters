@@ -1,6 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -22,11 +23,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['JAVISSENSOR'],
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_lgstepha'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_kagkgk0i'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_i0b1dbqu'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lgstepha', '_TZE200_kagkgk0i', '_TZE200_i0b1dbqu']),
         model: 'JS-MC-SENSOR-ZB',
         vendor: 'JAVIS',
         description: 'Microwave sensor',

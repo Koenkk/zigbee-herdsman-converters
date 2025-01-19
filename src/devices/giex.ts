@@ -39,7 +39,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         ...exportTemplates.giexWaterValve,
         model: 'QT06_1',
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_sh1btabb'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_sh1btabb']),
         exposes: [
             ...exportTemplates.giexWaterValve.exposes,
             e
@@ -60,13 +60,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         ...exportTemplates.giexWaterValve,
         model: 'QT06_2',
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_a7sghmms'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_7ytb3h8u'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_7ytb3h8u'},
-            {modelID: 'TS0601', manufacturerName: '_TZE284_7ytb3h8u'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_a7sghmms', '_TZE204_a7sghmms', '_TZE204_7ytb3h8u', '_TZE200_7ytb3h8u', '_TZE284_7ytb3h8u']),
         exposes: [
             ...exportTemplates.giexWaterValve.exposes,
             e

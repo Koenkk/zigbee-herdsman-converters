@@ -11,11 +11,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_air9m6af'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_9djocypn'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_bppxj3sf'},
-        ],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_air9m6af', '_TZ3000_9djocypn', '_TZ3000_bppxj3sf']),
         zigbeeModel: ['JZ-ZB-005', 'E220-KR5N0Z0-HA', 'E220-KR5N0Z0-HA'],
         model: 'WP33-EU/WP34-EU',
         vendor: 'LELLKI',
@@ -55,14 +51,14 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ['l1', 'l2']})],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_twqctvna'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_twqctvna']),
         model: 'CM001',
         vendor: 'LELLKI',
         description: 'Circuit switch',
         extend: [m.onOff()],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_z6fgd73r'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_z6fgd73r']),
         model: 'XF-EU-S100-1-M',
         description: 'Touch switch 1 gang (with power monitoring)',
         vendor: 'LELLKI',
@@ -78,7 +74,7 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options),
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_0yxeawjt'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_0yxeawjt']),
         model: 'WK34-EU',
         description: 'Power socket EU (with power monitoring)',
         vendor: 'LELLKI',
@@ -95,7 +91,7 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options),
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_c7nc9w3c'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_c7nc9w3c']),
         model: 'WP30-EU',
         description: 'Power cord 4 sockets EU (with power monitoring)',
         vendor: 'LELLKI',

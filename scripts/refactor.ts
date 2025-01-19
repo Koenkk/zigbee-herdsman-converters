@@ -28,9 +28,10 @@ project.getSourceFiles().forEach((sourceFile) => {
     for (const definition of definitions.getElements()) {
         const childs = definition.getChildrenOfKind(SyntaxKind.PropertyAssignment);
         const fingerprint = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'fingerprint');
+        const model = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'model');
         const fingerprintArray = fingerprint?.getFirstChildByKind(SyntaxKind.ArrayLiteralExpression);
         if (fingerprintArray) {
-            const lookup = {};
+            const lookup: {[s: string]: Set<string>} = {};
             let match = true;
             for (const f of fingerprintArray.getElements()) {
                 let modelID: string | undefined;
@@ -45,16 +46,27 @@ project.getSourceFiles().forEach((sourceFile) => {
                     }
                 }
 
-                if (modelID && manufacturerName) {
+                if (modelID && manufacturerName && manufacturerName.includes('_T')) {
                     if (!(modelID in lookup)) lookup[modelID] = new Set();
                     lookup[modelID].add(manufacturerName);
                 } else {
                     match = false;
+                    console.log(`skip ${model?.getText()} (${modelID}, ${manufacturerName} ${manufacturerName?.includes('_T')})`);
+                    break;
                 }
             }
 
             if (match) {
-                fingerprintArray.replaceWithText(`tuya.fingerprint(${props.modelID[0]}, [${props.manufacturerName}])`);
+                if (Object.keys(lookup).length == 1) {
+                    const key = Object.keys(lookup)[0];
+                    fingerprintArray.replaceWithText(`tuya.fingerprint(${key}, [${[...lookup[key]]}])`);
+                } else {
+                    let txt: string[] = [];
+                    for (const [modelID, manufacturers] of Object.entries(lookup)) {
+                        txt.push(`...tuya.fingerprint(${modelID}, [${[...manufacturers]}])`);
+                    }
+                    fingerprintArray.replaceWithText(`[` + txt.join(', ') + `]`);
+                }
                 save = true;
             }
         }

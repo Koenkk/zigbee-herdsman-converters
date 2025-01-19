@@ -9,7 +9,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_wrhhi5h2'}],
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_wrhhi5h2']),
         model: '1GNNTS',
         vendor: 'WETEN',
         description: '1 gang no neutral touch wall switch',

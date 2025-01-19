@@ -2,6 +2,7 @@ import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as m from '../lib/modernExtend';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -17,7 +18,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy()],
     },
     {
-        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_aneiicmq'}],
+        fingerprint: tuya.fingerprint('TS0003', ['_TYZB01_aneiicmq']),
         model: 'BW-SS7_1gang',
         vendor: 'BlitzWolf',
         description: 'Zigbee 3.0 smart light switch module 1 gang',
@@ -25,7 +26,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.TYZB01_on_off],
     },
     {
-        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_digziiav'}],
+        fingerprint: tuya.fingerprint('TS0003', ['_TYZB01_digziiav']),
         model: 'BW-SS7_2gang',
         vendor: 'BlitzWolf',
         description: 'Zigbee 3.0 smart light switch module 2 gang',

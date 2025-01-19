@@ -32,7 +32,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_hzy4rjz3'}],
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_hzy4rjz3']),
         model: 'AJ_RGBCCT_CTRL',
         vendor: 'Ajax Online',
         description: 'Smart Zigbee LED strip RGB+CCT',

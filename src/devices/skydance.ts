@@ -8,10 +8,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_6qoazbre'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_fcooykb4'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_6qoazbre', '_TZE200_fcooykb4']),
         model: 'WZ5_dim_1',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (DIM mode)',
@@ -20,12 +17,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_gz3n0tzf'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_nthosjmx'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_na98lvjp'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_2gtsuokt'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_gz3n0tzf', '_TZE200_nthosjmx', '_TZE200_na98lvjp', '_TZE200_2gtsuokt']),
         model: 'WZ5_cct',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (CCT mode)',
@@ -46,10 +38,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9hghastn'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9mt3kgn0'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_9hghastn', '_TZE200_9mt3kgn0']),
         model: 'WZ5_rgb',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB mode)',
@@ -66,17 +55,14 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0503B', manufacturerName: '_TZB210_zdvrsts8'}],
+        fingerprint: tuya.fingerprint('TS0503B', ['_TZB210_zdvrsts8']),
         model: 'WZ5_rgb_1',
         vendor: 'Tuya',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB mode)',
         extend: [tuya.modernExtend.tuyaLight({color: {modes: ['hs', 'xy']}})],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_3thxjahu'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_g9jdneiu'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_3thxjahu', '_TZE200_g9jdneiu']),
         model: 'WZ5_rgbw',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGBW mode)',
@@ -95,10 +81,7 @@ const definitions: DefinitionWithExtend[] = [
         meta: {separateWhite: true},
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_mde0utnv'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_aa9awrng'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mde0utnv', '_TZE200_aa9awrng']),
         model: 'WZ5_rgbcct',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB+CCT mode)',

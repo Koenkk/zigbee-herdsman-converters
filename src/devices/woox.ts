@@ -11,7 +11,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3210_eymunffl'}],
+        fingerprint: tuya.fingerprint('TS0101', ['_TZ3210_eymunffl']),
         model: 'R7060',
         vendor: 'Woox',
         description: 'Smart garden irrigation control',
@@ -23,7 +23,7 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_keabpigv'}],
+        fingerprint: tuya.fingerprint('TS0505A', ['_TZ3000_keabpigv']),
         model: 'R9077',
         vendor: 'Woox',
         description: 'RGB+CCT LED',
@@ -31,7 +31,7 @@ const definitions: DefinitionWithExtend[] = [
         meta: {applyRedFix: true},
     },
     {
-        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_rusu2vzb'}],
+        fingerprint: tuya.fingerprint('TS0201', ['_TZ3000_rusu2vzb']),
         model: 'R7048',
         vendor: 'Woox',
         description: 'Smart humidity & temperature sensor',
@@ -68,11 +68,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0219', manufacturerName: '_TYZB01_ynsiasng'},
-            {modelID: 'TS0219', manufacturerName: '_TYZB01_bwsijaty'},
-            {modelID: 'TS0219', manufacturerName: '_TYZB01_rs7ff6o7'},
-        ],
+        fingerprint: tuya.fingerprint('TS0219', ['_TYZB01_ynsiasng', '_TYZB01_bwsijaty', '_TYZB01_rs7ff6o7']),
         model: 'R7051',
         vendor: 'Woox',
         description: 'Smart siren',

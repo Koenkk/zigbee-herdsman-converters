@@ -248,7 +248,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('Lidl', 'HG08673-BS', 'Silvercrest smart plug with power monitoring (BS)', ['_TZ3000_3uimvkn6'])],
     },
     {
-        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_rco1yzb1'}],
+        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_rco1yzb1']),
         model: 'HG08164',
         vendor: 'Lidl',
         description: 'Silvercrest smart button',
@@ -271,7 +271,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'single', 'double']), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
+        fingerprint: tuya.fingerprint('TS0211', ['_TZ1800_ladpngdx']),
         model: 'HG06668',
         vendor: 'Lidl',
         description: 'Silvercrest smart wireless door bell button',
@@ -285,7 +285,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(['pressed']), e.battery_low(), e.tamper()],
     },
     {
-        fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
+        fingerprint: tuya.fingerprint('TY0202', ['_TZ1800_fcdjzz3s']),
         model: 'HG06335/HG07310',
         vendor: 'Lidl',
         description: 'Silvercrest smart motion sensor',
@@ -295,17 +295,14 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TY0203', manufacturerName: '_TZ1800_ejwkn2h2'},
-            {modelID: 'TY0203', manufacturerName: '_TZ1800_ho6i0zk9'},
-        ],
+        fingerprint: tuya.fingerprint('TY0203', ['_TZ1800_ejwkn2h2', '_TZ1800_ho6i0zk9']),
         model: 'HG06336',
         vendor: 'Lidl',
         description: 'Silvercrest smart window and door sensor',
         extend: [m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper']}), m.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS1001', manufacturerName: '_TYZB01_bngwdjsr'}],
+        fingerprint: tuya.fingerprint('TS1001', ['_TYZB01_bngwdjsr']),
         model: 'FB20-002',
         vendor: 'Lidl',
         description: 'Livarno Lux switch and dimming light remote control',
@@ -316,7 +313,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
     },
     {
-        fingerprint: [{modelID: 'TS1001', manufacturerName: '_TYZB01_hww2py6b'}],
+        fingerprint: tuya.fingerprint('TS1001', ['_TYZB01_hww2py6b']),
         model: 'FB21-001',
         vendor: 'Lidl',
         description: 'Livarno Lux switch and dimming light remote control',
@@ -336,14 +333,14 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'}, // EU
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_oznonj5q'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_1obwwnmq'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_4uf3d0ax'}, // FR
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_vzopcetz'}, // CZ
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_vmpbygs5'}, // BS
-        ],
+        fingerprint: tuya.fingerprint('TS011F', [
+            '_TZ3000_wzauvbcs',
+            '_TZ3000_oznonj5q',
+            '_TZ3000_1obwwnmq',
+            '_TZ3000_4uf3d0ax',
+            '_TZ3000_vzopcetz',
+            '_TZ3000_vmpbygs5',
+        ]),
         model: 'HG06338',
         vendor: 'Lidl',
         description: 'Silvercrest 3 gang switch, with 4 USB (EU, FR, CZ, BS)',
@@ -360,7 +357,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_s8gkrkxk'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_s8gkrkxk']),
         model: 'HG06467',
         vendor: 'Lidl',
         description: 'Melinera smart LED string lights',
@@ -369,7 +366,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.light_brightness_colorhs().setAccess('brightness', ea.STATE_SET).setAccess('color_hs', ea.STATE_SET)],
     },
     {
-        fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3210_sroezl0s'}],
+        fingerprint: tuya.fingerprint('TS0504B', ['_TZ3210_sroezl0s']),
         model: '14153806L',
         vendor: 'Lidl',
         description: 'Livarno smart LED ceiling light',
@@ -379,7 +376,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_htnnfasr'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_htnnfasr']),
         model: 'PSBZS A1',
         vendor: 'Lidl',
         description: 'Parkside smart watering timer',
@@ -512,7 +509,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_br3laukf'}],
+        fingerprint: tuya.fingerprint('TS0101', ['_TZ3000_br3laukf']),
         model: 'HG06620',
         vendor: 'Lidl',
         description: 'Silvercrest garden spike with 2 sockets',
@@ -524,7 +521,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_pnzfdr9y'}],
+        fingerprint: tuya.fingerprint('TS0101', ['_TZ3000_pnzfdr9y']),
         model: 'HG06619',
         vendor: 'Lidl',
         description: 'Silvercrest outdoor plug',
@@ -536,14 +533,14 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_lxw3zcdk'}],
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3000_lxw3zcdk']),
         model: 'HG08633',
         vendor: 'Lidl',
         description: 'Livarno gardenspot RGB',
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ['hs', 'xy']}})],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_chyvmhay']),
         model: '368308_2010',
         vendor: 'Lidl',
         description: 'Silvercrest radiator valve with thermostat',
