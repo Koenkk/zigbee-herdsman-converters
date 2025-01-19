@@ -4,7 +4,6 @@ import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
 
 const NS = 'zhc:easyiot';
@@ -193,7 +192,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('ZB-TTS01', ['easyiot']),
+        fingerprint: [{modelID: 'ZB-TTS01', manufacturerName: 'easyiot'}],
         model: 'ZB-TTS01',
         vendor: 'easyiot',
         description: 'This is a Simplified Chinese (GB2312) TTS converter that can convert GB2312 encoded text to speech',
