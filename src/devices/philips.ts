@@ -130,8 +130,8 @@ const definitions: DefinitionWithExtend[] = [
     model: 'LEDtube T8 2ft V3',
     vendor: 'Philips',
     description: 'MasterConnect LEDtube EM/mains T8',
-    extend: [philipsLight(), electricityMeter({current: false, voltage: false, power: false}), 
-             numeric({"name":"Lamp burn hours", "cluster":"lightingBallastCfg", "attribute":"lampBurnHours", 
+    extend: [philipsLight(), m.electricityMeter({current: false, voltage: false, power: false}), 
+             m.numeric({"name":"Lamp burn hours", "cluster":"lightingBallastCfg", "attribute":"lampBurnHours", 
                     "reporting":{"attribute":"lampBurnHours", "min":"MIN", "max":"MAX","change":1}, 
                     "description":"Lamp burn hours", "access":"STATE_GET", "endpointName":"64", "unit": "h"
                     })
