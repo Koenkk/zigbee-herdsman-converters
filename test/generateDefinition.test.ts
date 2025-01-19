@@ -102,7 +102,7 @@ describe('GenerateDefinition', () => {
                 ],
             },
             externalDefintionSource: `
-const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
+const m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
@@ -143,7 +143,7 @@ module.exports = definition;
                 ],
             },
             externalDefintionSource: `
-const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
+const m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
@@ -189,7 +189,7 @@ module.exports = definition;
                 2: [['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]]],
             },
             externalDefintionSource: `
-const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
+const m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
@@ -259,7 +259,7 @@ module.exports = definition;
             },
             configureReporting: {},
             externalDefintionSource: `
-const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
+const m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
@@ -329,7 +329,7 @@ module.exports = definition;
             },
             configureReporting: {},
             externalDefintionSource: `
-const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
+const m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
@@ -405,7 +405,7 @@ module.exports = definition;
             },
             configureReporting: [],
             externalDefintionSource: `
-const * as philips = require('zigbee-herdsman-converters/lib/philips');
+const philips = require('zigbee-herdsman-converters/lib/philips');
 
 const definition = {
     zigbeeModel: ['combo'],
@@ -484,7 +484,7 @@ module.exports = definition;
                 ],
             },
             externalDefintionSource: `
-const * as m = require('zigbee-herdsman-converters/lib/modernExtend');
+const m = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],

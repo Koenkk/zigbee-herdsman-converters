@@ -54,7 +54,7 @@ type DefinitionWithZigbeeModel = DefinitionWithExtend & {zigbeeModel: string[]};
 
 function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: GeneratedExtend[]): string {
     const imports = [...new Set(generatedExtend.map((e) => e.lib ?? 'modernExtend'))];
-    const importsStr = imports.map((e) => `const * as ${e == 'modernExtend' ? 'm' : e} = require('zigbee-herdsman-converters/lib/${e}');`).join('\n');
+    const importsStr = imports.map((e) => `const ${e == 'modernExtend' ? 'm' : e} = require('zigbee-herdsman-converters/lib/${e}');`).join('\n');
     return `${importsStr}
 
 const definition = {
