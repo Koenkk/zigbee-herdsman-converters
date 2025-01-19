@@ -132,7 +132,7 @@ const definitions: DefinitionWithExtend[] = [
     description: 'MasterConnect LEDtube EM/mains T8',
     extend: [philipsLight(), m.electricityMeter({current: false, voltage: false, power: false}), 
              m.numeric({"name":"Lamp burn hours", "cluster":"lightingBallastCfg", "attribute":"lampBurnHours", 
-                    "reporting":{"attribute":"lampBurnHours", "min":"MIN", "max":"MAX","change":1}, 
+                    "reporting":{"min":"MIN", "max":"MAX","change":1}, 
                     "description":"Lamp burn hours", "access":"STATE_GET", "endpointName":"64", "unit": "h"
                     })
             ]
