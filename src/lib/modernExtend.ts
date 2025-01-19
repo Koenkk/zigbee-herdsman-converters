@@ -941,15 +941,18 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
 }
 
 export function co2(args?: Partial<NumericArgs>) {
+    const fractionOf1: ScaleFunction = (value: number, type: 'from' | 'to') => {
+        return 1 / value;
+    };
     return numeric({
         name: 'co2',
         cluster: 'msCO2',
         label: 'CO2',
         attribute: 'measuredValue',
-        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 0.00005}, // 50 ppm change
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: fractionOf1(50 /*ppm*/, 'to')},
         description: 'Measured value',
         unit: 'ppm',
-        scale: 0.000001,
+        scale: fractionOf1,
         access: 'STATE_GET',
         ...args,
     });
