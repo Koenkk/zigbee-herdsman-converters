@@ -59,14 +59,9 @@ const namronPrivateHvacThermostat: NamronPrivateTable = {
     currentOperatingMode: {attrId: 'programingOperMode', type: Zcl.DataType.BITMAP8, key: 'current_operating_mode'},
 };
 
-declare global {
-    interface Object {
-        fromFzToTz(): KeyValue;
-    }
-}
 
-Object.prototype.fromFzToTz = function (this: KeyValue) {
-    return Object.fromEntries(Object.entries(this).map(([k, v]) => [v, k]));
+function fromFzToTz(obj: KeyValue) {
+    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k]));
 };
 
 const fzNamronBoostTable = {
@@ -96,25 +91,25 @@ const fzNamronBoostTable = {
     23: '1h_55_min',
     24: '2h',
 };
-const tzNamronBoostTable = fzNamronBoostTable.fromFzToTz();
+const tzNamronBoostTable = fromFzToTz(fzNamronBoostTable);
 
 const fzNamronSystemMode = {0x00: 'off', 0x01: 'auto', 0x03: 'cool', 0x04: 'heat'};
-const tzNamronSystemMode = fzNamronSystemMode.fromFzToTz();
+const tzNamronSystemMode = fromFzToTz(fzNamronSystemMode);
 
 const fzNamronOnOff = {0: 'off', 1: 'on'};
-const tzNamronOnOff = fzNamronOnOff.fromFzToTz();
+const tzNamronOnOff = fromFzToTz(fzNamronOnOff);
 
 const fzNamronOpenClose = {0: 'closed', 1: 'open'};
-const tzNamronOpenClose = fzNamronOpenClose.fromFzToTz();
+const tzNamronOpenClose = fromFzToTz(fzNamronOpenClose);
 
 const fzNamronDisplayTimeout = {0: 'off', 1: '10s', 2: '30s', 3: '60s'};
-const tzNamronDisplayTimeout = fzNamronDisplayTimeout.fromFzToTz();
+const tzNamronDisplayTimeout = fromFzToTz(fzNamronDisplayTimeout);
 
 const fzNamronSensorMode = {0: 'air', 1: 'floor', 3: 'external', 6: 'regulator'};
-const tzNamronSensorMode = fzNamronSensorMode.fromFzToTz();
+const tzNamronSensorMode = fromFzToTz(fzNamronSensorMode);
 
 const fzNamronOperationMode = {0: 'manual', 1: 'manual', 5: 'eco'};
-const tzNamronOperationMode = fzNamronOperationMode.fromFzToTz();
+const tzNamronOperationMode = fromFzToTz(fzNamronOperationMode);
 
 const fzNamronFault = {
     0: 'no_fault',
@@ -126,7 +121,7 @@ const fzNamronFault = {
 };
 
 const fzNamronWorkDays = {0: 'mon-fri_sat-sun', 1: 'mon-sat_sun', 2: 'no_time_off', 3: 'time_off'};
-const tzNamronWorkDays = fzNamronWorkDays.fromFzToTz();
+const tzNamronWorkDays = fromFzToTz(fzNamronWorkDays);
 
 const findAttributeByKey = (key: string, attributes: NamronPrivateTable) => {
     // Finn objektet basert på key
