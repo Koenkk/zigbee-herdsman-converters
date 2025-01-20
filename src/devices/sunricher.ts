@@ -408,6 +408,13 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['HS8OS-EF1-3.0'],
+        model: 'SR-ZG9030F-PS',
+        vendor: 'Sunricher',
+        description: 'Smart Human Presence Sensor',
+        extend: [m.illuminance(), m.occupancy(), m.commandsOnOff()],
+    },
+    {
         zigbeeModel: ['HK-SENSOR-GAS'],
         model: 'SR-ZG9060A-GS',
         vendor: 'Sunricher',
