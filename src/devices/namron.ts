@@ -1999,28 +1999,28 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('current_operating_mode', ea.ALL, ['Manual', 'ECO']).withDescription('Selected program for thermostat'),
             e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
             e
-                .numeric(namronPrivateHvacThermostat.active_backlight.key, ea.ALL)
+                .numeric(namronPrivateHvacThermostat.activeBacklight.key, ea.ALL)
                 .withDescription('Desired display brightness')
                 .withUnit('%')
                 .withValueMin(1)
                 .withValueMax(100),
             e
-                .enum(namronPrivateHvacThermostat.display_auto_off.key, ea.ALL, Object.values(fzNamronDisplayTimeout))
+                .enum(namronPrivateHvacThermostat.displayAutoOff.key, ea.ALL, Object.values(fzNamronDisplayTimeout))
                 .withDescription('Turn off the display after the give time in inactivity or never'),
-            e.binary(namronPrivateHvacThermostat.window_check.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off window check mode'),
+            e.binary(namronPrivateHvacThermostat.windowCheck.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off window check mode'),
             e
-                .enum(namronPrivateHvacThermostat.window_state.key, ea.STATE_GET, Object.values(fzNamronOpenClose))
+                .enum(namronPrivateHvacThermostat.windowState.key, ea.STATE_GET, Object.values(fzNamronOpenClose))
                 .withDescription('Detected state of window'),
-            e.binary(namronPrivateHvacThermostat.anti_frost_mode.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off anti-frost mode'),
-            e.binary(namronPrivateHvacThermostat.summer_winter_switch.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off Summar Winter switch'),
-            e.binary(namronPrivateHvacThermostat.auto_time.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off Automatic time'),
+            e.binary(namronPrivateHvacThermostat.antiFrostMode.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off anti-frost mode'),
+            e.binary(namronPrivateHvacThermostat.summerWinterSwitch.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off Summar Winter switch'),
+            e.binary(namronPrivateHvacThermostat.autoTime.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off Automatic time'),
             e
-                .enum(namronPrivateHvacThermostat.countdown_set.key, ea.ALL, Object.values(fzNamronBoostTable))
+                .enum(namronPrivateHvacThermostat.countdownSet.key, ea.ALL, Object.values(fzNamronBoostTable))
                 .withDescription('Starts boost with defined time'),
-            e.numeric(namronPrivateHvacThermostat.countdown_left.key, ea.STATE_GET).withUnit('min').withDescription('Given boost time'),
-            e.binary(namronPrivateHvacThermostat.vacation_mode.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off vacation mode'),
+            e.numeric(namronPrivateHvacThermostat.countdownLeft.key, ea.STATE_GET).withUnit('min').withDescription('Given boost time'),
+            e.binary(namronPrivateHvacThermostat.vacationMode.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off vacation mode'),
             e
-                .numeric(namronPrivateHvacThermostat.holiday_temp_set.key, ea.ALL)
+                .numeric(namronPrivateHvacThermostat.holidayTempSet.key, ea.ALL)
                 .withValueMin(5)
                 .withValueMax(35)
                 .withValueStep(0.5)
@@ -2028,22 +2028,22 @@ const definitions: DefinitionWithExtend[] = [
                 .withLabel('Vacation temperature')
                 .withDescription('Vacation temperature setpoint'),
             e
-                .text(namronPrivateHvacThermostat.vacation_start_date.key, ea.ALL)
+                .text(namronPrivateHvacThermostat.vacationStartDate.key, ea.ALL)
                 .withDescription('Start date')
                 .withDescription("Supports dates starting with day or year with '. - /'"),
             e
-                .text(namronPrivateHvacThermostat.vacation_end_date.key, ea.ALL)
+                .text(namronPrivateHvacThermostat.vacationEndDate.key, ea.ALL)
                 .withDescription('End date')
                 .withDescription("Supports dates starting with day or year with '. - /'"),
-            e.binary(namronPrivateHvacThermostat.time_sync_flag.key, ea.ALL, 'On', 'Off'),
-            e.numeric(namronPrivateHvacThermostat.time_sync_value.key, ea.STATE_GET),
+            e.binary(namronPrivateHvacThermostat.timeSyncFlag.key, ea.ALL, 'On', 'Off'),
+            e.numeric(namronPrivateHvacThermostat.timeSyncValue.key, ea.STATE_GET),
             e
                 .enum(namronPrivateHvacThermostat.fault.key, ea.STATE_GET, Object.values(fzNamronFault))
                 .withDescription('Shows current error of the device'),
             e
-                .enum(namronPrivateHvacThermostat.work_days.key, ea.STATE_GET, Object.values(fzNamronWorkDays))
+                .enum(namronPrivateHvacThermostat.workDays.key, ea.STATE_GET, Object.values(fzNamronWorkDays))
                 .withDescription("Needs to be changed under 'Thermostat settings' > 'Advanced settings' > 'Schedule type'"),
-            e.numeric(namronPrivateHvacThermostat.regulator_percentage.key, ea.ALL).withUnit('%').withValueMin(10).withValueMax(100).withValueStep(1),
+            e.numeric(namronPrivateHvacThermostat.regulatorPercentage.key, ea.ALL).withUnit('%').withValueMin(10).withValueMax(100).withValueStep(1),
         ],
     },
 ];
