@@ -116,7 +116,8 @@ const local = {
                     state['led_enable'] = msg.data['outletLedState'] == 1;
                 }
                 if (msg.data.outletLedColor !== undefined) {
-                    state['led_state'] = msg.data['outletLedColor'] == 255 ? 'ON' : 'OFF';
+                    const ledStateMap: KeyValue = {0x00: 'OFF', 0x0000ff: 'ON', 0x00ff00: 'Blue', 0xff0000: 'Red', 0xffffff: 'Purple'};
+                    state['led_state'] = utils.getFromLookup(msg.data.outletLedColor, ledStateMap);
                 }
                 return state;
             },
@@ -175,7 +176,6 @@ const local = {
                         // @ts-expect-error ignore
                         {switchActionReporting: actionReportingMap[value]},
                     );
-                    await entity.read('manuSpecificNikoState', ['switchActionReporting']);
                     return {state: {action_reporting: value}};
                 }
             },
@@ -197,9 +197,18 @@ const local = {
         switch_led_state: {
             key: ['led_state'],
             convertSet: async (entity, key, value, meta) => {
-                utils.assertString(value, key);
-                await entity.write('manuSpecificNikoConfig', {outletLedColor: value.toLowerCase() === 'off' ? 0 : 255});
-                return {state: {led_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
+                const ledStateMap: KeyValue = {OFF: 0x00, ON: 0x0000ff, Blue: 0x00ff00, Red: 0xff0000, Purple: 0xffffff};
+                // @ts-expect-error ignore
+                if (ledStateMap[value] === undefined) {
+                    throw new Error(`led_state was called with an invalid value (${value})`);
+                } else {
+                    await entity.write(
+                        'manuSpecificNikoConfig',
+                        // @ts-expect-error ignore
+                        {outletLedColor: ledStateMap[value]},
+                    );
+                    return {state: {led_state: value}};
+                }
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNikoConfig', ['outletLedColor']);
@@ -361,7 +370,7 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
             e.binary('action_reporting', ea.ALL, true, false).withDescription('Enable Action Reporting'),
             e.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
-            e.binary('led_state', ea.ALL, 'ON', 'OFF').withDescription('LED State'),
+            e.enum('led_state', ea.ALL, ['ON', 'OFF', 'Blue', 'Red', 'Purple']).withDescription('LED State'),
         ],
     },
     {
@@ -416,8 +425,8 @@ const definitions: DefinitionWithExtend[] = [
             e.binary('action_reporting', ea.ALL, true, false).withDescription('Enable Action Reporting'),
             e.binary('led_enable', ea.ALL, true, false).withEndpoint('l1').withDescription('Enable LED'),
             e.binary('led_enable', ea.ALL, true, false).withEndpoint('l2').withDescription('Enable LED'),
-            e.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l1').withDescription('LED State'),
-            e.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l2').withDescription('LED State'),
+            e.enum('led_state', ea.ALL, ['ON', 'OFF', 'Blue', 'Red', 'Purple']).withEndpoint('l1').withDescription('LED State'),
+            e.enum('led_state', ea.ALL, ['ON', 'OFF', 'Blue', 'Red', 'Purple']).withEndpoint('l2').withDescription('LED State'),
         ],
     },
     {
