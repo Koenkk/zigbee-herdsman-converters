@@ -1921,7 +1921,7 @@ const definitions: DefinitionWithExtend[] = [
             tz.thermostat_programming_operation_mode,
             tz.thermostat_temperature_display_mode,
             tz.thermostat_running_state,
-            tz.thermostat_running_mode
+            tz.thermostat_running_mode,
         ],
         onEvent: async (type, data, device, options) => {
             if (type === 'stop') {
@@ -2044,12 +2044,7 @@ const definitions: DefinitionWithExtend[] = [
             e
                 .enum(namronPrivateHvacThermostat.work_days.key, ea.STATE_GET, Object.values(fzNamronWorkDays))
                 .withDescription("Needs to be changed under 'Thermostat settings' > 'Advanced settings' > 'Schedule type'"),
-            e
-                .numeric(namronPrivateHvacThermostat.regulator_percentage.key, ea.ALL)
-                .withUnit('%')
-                .withValueMin(10)
-                .withValueMax(100)
-                .withValueStep(1),
+            e.numeric(namronPrivateHvacThermostat.regulator_percentage.key, ea.ALL).withUnit('%').withValueMin(10).withValueMax(100).withValueStep(1),
         ],
     },
 ];
