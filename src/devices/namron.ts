@@ -1977,7 +1977,7 @@ const definitions: DefinitionWithExtend[] = [
             // Reads holiday
             await endpoint.read('hvacThermostat', [
                 namron_private_hvacThermostat.holiday_temp_set.attrId,
-                namron_private_hvacThermostat.holiday_temp_set_f.key,
+                namron_private_hvacThermostat.holiday_temp_set_f.attrId,
                 namron_private_hvacThermostat.vacation_mode.attrId,
                 namron_private_hvacThermostat.vacation_start_date.attrId,
                 namron_private_hvacThermostat.vacation_end_date.attrId,
