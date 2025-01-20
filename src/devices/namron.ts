@@ -16,6 +16,187 @@ const e = exposes.presets;
 
 const sunricherManufacturer = {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD};
 
+interface NamronPrivateAttribute {
+    attrId: number | string;
+    type: Zcl.DataType;
+    key: string;
+}
+
+interface NamronPrivateTable {
+    [key: string]: NamronPrivateAttribute;
+}
+
+const namron_private_hvacThermostat: NamronPrivateTable = {
+    window_check: {attrId: 0x8000, type: Zcl.DataType.BOOLEAN, key: 'window_open_check'},
+    anti_frost_mode: {attrId: 0x8001, type: Zcl.DataType.BOOLEAN, key: 'anti_frost'},
+    window_state: {attrId: 0x8002, type: Zcl.DataType.BOOLEAN, key: 'window_open'},
+    work_days: {attrId: 0x8003, type: Zcl.DataType.ENUM8, key: 'work_days'},
+    sensor_mode: {attrId: 0x8004, type: Zcl.DataType.ENUM8, key: 'sensor_mode'},
+    active_backlight: {attrId: 0x8005, type: Zcl.DataType.UINT8, key: 'active_display_brightness'},
+    fault: {attrId: 0x8006, type: Zcl.DataType.ENUM8, key: 'fault'},
+    regulator: {attrId: 0x8007, type: Zcl.DataType.UINT8, key: 'regulator'},
+    time_sync_flag: {attrId: 0x800a, type: Zcl.DataType.BOOLEAN, key: 'time_sync'},
+    time_sync_value: {attrId: 0x800b, type: Zcl.DataType.UINT32, key: 'time_sync_value'},
+    abs_min_heat_setpoint_limit_f: {attrId: 0x800c, type: Zcl.DataType.INT16, key: 'abs_min_heat_setpoint_limit_f'},
+    abs_max_heat_setpoint_limit_f: {attrId: 0x800d, type: Zcl.DataType.INT16, key: 'abs_max_heat_setpoint_limit_f'},
+    abs_min_cool_setpoint_limit_f: {attrId: 0x800e, type: Zcl.DataType.INT16, key: 'abs_min_cool_setpoint_limit_f'},
+    abs_max_cool_setpoint_limit_f: {attrId: 0x800f, type: Zcl.DataType.INT16, key: 'abs_max_cool_setpoint_limit_f'},
+    occupied_cooling_setpoint_f: {attrId: 0x8010, type: Zcl.DataType.INT16, key: 'occupied_cooling_setpoint_f'},
+    occupied_heating_setpoint_f: {attrId: 0x8011, type: Zcl.DataType.INT16, key: 'occupied_heating_setpoint_f'},
+    local_temperature_f: {attrId: 0x8012, type: Zcl.DataType.INT16, key: 'local_temperature_f'},
+    holiday_temp_set: {attrId: 0x8013, type: Zcl.DataType.INT16, key: 'holiday_temp_set'},
+    holiday_temp_set_f: {attrId: 0x801b, type: Zcl.DataType.INT16, key: 'holiday_temp_set_f'},
+    regulation_mode: {attrId: 0x801c, type: Zcl.DataType.INT16, key: 'regulation_mode'},
+    regulator_percentage: {attrId: 0x801d, type: Zcl.DataType.INT16, key: 'regulator_percentage'},
+    summer_winter_switch: {attrId: 0x801e, type: Zcl.DataType.BOOLEAN, key: 'summer_winter_switch'},
+    vacation_mode: {attrId: 0x801f, type: Zcl.DataType.BOOLEAN, key: 'vacation_mode'},
+    vacation_start_date: {attrId: 0x8020, type: Zcl.DataType.UINT32, key: 'vacation_start_date'},
+    vacation_end_date: {attrId: 0x8021, type: Zcl.DataType.UINT32, key: 'vacation_end_date'},
+    auto_time: {attrId: 0x8022, type: Zcl.DataType.BOOLEAN, key: 'auto_time'},
+    countdown_set: {attrId: 0x8023, type: Zcl.DataType.ENUM8, key: 'boost_time_set'},
+    countdown_left: {attrId: 0x8024, type: Zcl.DataType.INT16, key: 'boost_time_left'},
+    display_auto_off: {attrId: 0x8029, type: Zcl.DataType.ENUM8, key: 'display_auto_off'},
+    system_mode: {attrId: 'systemMode', type: Zcl.DataType.ENUM8, key: 'system_mode'},
+    current_operating_mode: {attrId: 'programingOperMode', type: Zcl.DataType.BITMAP8, key: 'current_operating_mode'},
+};
+
+declare global {
+    interface Object {
+        fromFzToTz(): KeyValue;
+    }
+}
+
+Object.prototype.fromFzToTz = function (this: KeyValue) {
+    return Object.fromEntries(Object.entries(this).map(([k, v]) => [v, k]));
+};
+
+const fzNamronBoostTable = {
+    0: 'Off',
+    1: '5 min',
+    2: '10 min',
+    3: '15 min',
+    4: '20 min',
+    5: '25 min',
+    6: '30 min',
+    7: '35 min',
+    8: '40 min',
+    9: '45 min',
+    10: '50 min',
+    11: '55 min',
+    12: '1h',
+    13: '1h 5 min',
+    14: '1h 10 min',
+    15: '1h 15 min',
+    16: '1h 20 min',
+    17: '1h 25 min',
+    18: '1h 30 min',
+    19: '1h 35 min',
+    20: '1h 40 min',
+    21: '1h 45 min',
+    22: '1h 50 min',
+    23: '1h 55 min',
+    24: '2h',
+};
+const tzNamronBoostTable = fzNamronBoostTable.fromFzToTz();
+
+const fzNamronSystemMode = {0x00: 'off', 0x01: 'auto', 0x03: 'cool', 0x04: 'heat'};
+const tzNamronSystemMode = fzNamronSystemMode.fromFzToTz();
+
+const fzNamronOnOff = {0: 'Off', 1: 'On'};
+const tzNamronOnOff = fzNamronOnOff.fromFzToTz();
+
+const fzNamronOpenClose = {0: 'Closed', 1: 'Open'};
+const tzNamronOpenClose = fzNamronOpenClose.fromFzToTz();
+
+const fzNamronDisplayTimeout = {0: 'Off', 1: '10s', 2: '30s', 3: '60s'};
+const tzNamronDisplayTimeout = fzNamronDisplayTimeout.fromFzToTz();
+
+const fzNamronSensorMode = {0: 'Air', 1: 'Floor', 3: 'External', 6: 'Regulator'};
+const tzNamronSensorMode = fzNamronSensorMode.fromFzToTz();
+
+const fzNamronOperationMode = {0: 'Manual', 1: 'Manual', 5: 'ECO'};
+const tzNamronOperationMode = fzNamronOperationMode.fromFzToTz();
+
+const fzNamronFault = {
+    0: 'No Fault',
+    1: 'Over current Error',
+    2: 'Over heat Error',
+    3: 'Built-in Sensor Error',
+    4: 'Air Sensor Error',
+    5: 'Floor Sensor Error',
+};
+
+const fzNamronWorkDays = {0: 'Mon-Fri Sat-Sun', 1: 'Mon-Sat Sun', 2: 'No Time Off', 3: 'Time Off'};
+const tzNamronWorkDays = fzNamronWorkDays.fromFzToTz();
+
+const findAttributeByKey = (key: string, attributes: NamronPrivateTable) => {
+    // Finn objektet basert på key
+    return Object.values(attributes).find((attr) => attr.key === key);
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const assign = (data: any, attribute: NamronPrivateAttribute, target: KeyValue, defaultValue: any = null, transform = (value: any) => value) => {
+    // Ekstrakt `attrId` og `key` direkte fra attributtobjektet
+    const {attrId, key: targetKey} = attribute;
+
+    if (data[attrId] !== undefined) {
+        target[targetKey] = transform(data[attrId]);
+    } else if (data[attrId] && defaultValue !== null && defaultValue !== undefined) {
+        target[targetKey] = transform(defaultValue);
+    }
+};
+
+const assignWithLookup = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: any,
+    attribute: NamronPrivateAttribute,
+    target: KeyValue,
+    lookup = {},
+    defaultValue: string | number | null = null,
+) => {
+    // Ekstrakt `attrId` og `key` direkte fra attributtobjektet
+    const {attrId, key: targetKey} = attribute;
+
+    if (data[attrId] !== undefined) {
+        const value = data[attrId] ?? defaultValue;
+        target[targetKey] = utils.getFromLookup(value, lookup);
+    }
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const assignDate = (data: any, attribute: NamronPrivateAttribute, target: KeyValue) => {
+    // Ekstrakt `attrId` og `key` direkte fra attributtobjektet
+    const {attrId, key: targetKey} = attribute;
+    const value = data[attrId];
+    if (value === undefined) {
+        return;
+    }
+    const date = new Date(value * 86400000);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Månedene er 0-indeksert
+    const year = date.getFullYear();
+    target[targetKey] = `${year}.${month}.${day}`;
+};
+
+const fromDate = (value: string) => {
+    // Ekstrakt `attrId` og `key` direkte fra attributtobjektet
+    const dateParts = value.split(/[.\-/]/);
+    if (dateParts.length !== 3) {
+        throw new Error('Invalid date format');
+    }
+
+    let date: Date;
+    if (dateParts[0].length === 4) {
+        date = new Date(`${dateParts[0]}-${dateParts[1]}-${dateParts[2]}`);
+    } else if (dateParts[2].length === 4) {
+        date = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+    } else {
+        throw new Error('Invalid date format');
+    }
+
+    return date.getTime() / 86400000 + 1;
+};
+
 const fzLocal = {
     namron_panelheater: {
         cluster: 'hvacThermostat',
@@ -61,6 +242,58 @@ const fzLocal = {
             // in homeAssistant climate ui card (red background)
             if (msg.data['runningMode'] !== undefined) msg.data['runningState'] = runningModeStateMap[msg.data['runningMode']];
             return fz.thermostat.convert(model, msg, publish, options, meta); // as KeyValue;
+        },
+    } satisfies Fz.Converter,
+    namron_edge_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data;
+
+            assignWithLookup(data, namron_private_hvacThermostat.work_days, result, fzNamronWorkDays, 0);
+            assignWithLookup(data, namron_private_hvacThermostat.sensor_mode, result, fzNamronSensorMode, 0);
+            assignWithLookup(data, namron_private_hvacThermostat.fault, result, fzNamronFault, 0);
+
+            assignWithLookup(data, namron_private_hvacThermostat.window_check, result, fzNamronOnOff, 0);
+            assignWithLookup(data, namron_private_hvacThermostat.anti_frost_mode, result, fzNamronOnOff, 0);
+            assignWithLookup(data, namron_private_hvacThermostat.window_state, result, fzNamronOpenClose, 0);
+            assignWithLookup(data, namron_private_hvacThermostat.summer_winter_switch, result, fzNamronOnOff, 0);
+            assignWithLookup(data, namron_private_hvacThermostat.vacation_mode, result, fzNamronOnOff, 0);
+            assignWithLookup(data, namron_private_hvacThermostat.time_sync_flag, result, fzNamronOnOff, 0);
+
+            assign(data, namron_private_hvacThermostat.active_backlight, result);
+            assign(data, namron_private_hvacThermostat.time_sync_value, result);
+            assign(data, namron_private_hvacThermostat.abs_min_heat_setpoint_limit_f, result);
+            assign(data, namron_private_hvacThermostat.abs_max_heat_setpoint_limit_f, result);
+            assign(data, namron_private_hvacThermostat.abs_min_cool_setpoint_limit_f, result);
+            assign(data, namron_private_hvacThermostat.abs_max_cool_setpoint_limit_f, result);
+            assign(data, namron_private_hvacThermostat.occupied_cooling_setpoint_f, result);
+            assign(data, namron_private_hvacThermostat.occupied_heating_setpoint_f, result);
+            assign(data, namron_private_hvacThermostat.local_temperature_f, result);
+            assign(data, namron_private_hvacThermostat.holiday_temp_set, result, (value: number) => {
+                return value / 100;
+            });
+            assign(data, namron_private_hvacThermostat.holiday_temp_set_f, result, (value: number) => {
+                return value / 100;
+            });
+
+            assign(data, namron_private_hvacThermostat.regulator_percentage, result, 0, (value) => {
+                return value;
+            });
+
+            assignDate(data, namron_private_hvacThermostat.vacation_start_date, result);
+            assignDate(data, namron_private_hvacThermostat.vacation_end_date, result);
+
+            // Auto_time (synkroniser tid med ntp?)
+            assignWithLookup(data, namron_private_hvacThermostat.auto_time, result, fzNamronOnOff, 0);
+            assignWithLookup(data, namron_private_hvacThermostat.countdown_set, result, fzNamronBoostTable, 0);
+            assign(data, namron_private_hvacThermostat.countdown_left, result, 0, (value) => (value > 200 ? 0 : value));
+            assignWithLookup(data, namron_private_hvacThermostat.display_auto_off, result, fzNamronDisplayTimeout, 0);
+            assignWithLookup(data, namron_private_hvacThermostat.system_mode, result, fzNamronSystemMode, 0x00);
+            assignWithLookup(data, namron_private_hvacThermostat.current_operating_mode, result, fzNamronOperationMode, 0);
+
+            return result;
         },
     } satisfies Fz.Converter,
 };
@@ -109,6 +342,160 @@ const tzLocal = {
 
                 default: // Unknown key
                     throw new Error(`Unhandled key toZigbee.namron_panelheater.convertGet ${key}`);
+            }
+        },
+    } satisfies Tz.Converter,
+    namron_edge_thermostat: {
+        key: [
+            'window_open_check',
+            'anti_frost',
+            'window_open',
+            'work_days',
+            'sensor_mode',
+            'active_display_brightness',
+            'fault',
+            'regulator',
+            'time_sync',
+            'time_sync_value',
+            'abs_min_heat_setpoint_limit_f',
+            'abs_max_heat_setpoint_limit_f',
+            'abs_min_cool_setpoint_limit_f',
+            'abs_max_cool_setpoint_limit_f',
+            'occupied_cooling_setpoint_f',
+            'occupied_heating_setpoint_f',
+            'local_temperature_f',
+            'holiday_temp_set',
+            'holiday_temp_set_f',
+            'regulation_mode',
+            'regulator_percentage',
+            'summer_winter_switch',
+            'vacation_mode',
+            'vacation_start_date',
+            'vacation_end_date',
+            'auto_time',
+            'boost_time_set',
+            'boost_time_left',
+            'display_auto_off',
+            'system_mode',
+            'current_operating_mode',
+        ],
+
+        convertGet: async (entity, key, meta) => {
+            const readAttr = findAttributeByKey(key, namron_private_hvacThermostat);
+            if (readAttr) {
+                await entity.read('hvacThermostat', [readAttr.attrId]);
+            } else {
+                throw new Error(`Unhandled key toZigbee.namronEdgeThermostat.convertGet ${key}`);
+            }
+        },
+
+        convertSet: async (entity, key, value, meta) => {
+            const readAttr = findAttributeByKey(key, namron_private_hvacThermostat);
+
+            if (!readAttr) {
+                throw new Error(`Unhandled key toZigbee.namronEdgeThermostat.convertSet ${key}`);
+            }
+
+            if (
+                [
+                    namron_private_hvacThermostat.window_check.key,
+                    namron_private_hvacThermostat.anti_frost_mode.key,
+                    namron_private_hvacThermostat.time_sync_flag.key,
+                    namron_private_hvacThermostat.summer_winter_switch.key,
+                    namron_private_hvacThermostat.auto_time.key,
+                    namron_private_hvacThermostat.vacation_mode.key,
+                ].includes(readAttr.key)
+            ) {
+                const payload = {[readAttr.attrId]: {value: utils.getFromLookup(value, tzNamronOnOff), type: readAttr.type}};
+                await entity.write('hvacThermostat', payload);
+                return;
+            }
+
+            // Direct call
+            if ([Zcl.DataType.UINT8, Zcl.DataType.INT16, Zcl.DataType.UINT32].includes(readAttr.type)) {
+                const payload = {[readAttr.attrId]: {value: value, type: readAttr.type}};
+                await entity.write('hvacThermostat', payload);
+            }
+
+            if (readAttr === namron_private_hvacThermostat.countdown_set) {
+                await entity.write('hvacThermostat', {
+                    [readAttr.attrId]: {
+                        value: utils.getFromLookup(value, tzNamronBoostTable),
+                        type: readAttr.type,
+                    },
+                });
+            }
+
+            if (readAttr === namron_private_hvacThermostat.window_state) {
+                await entity.write('hvacThermostat', {
+                    [readAttr.attrId]: {
+                        value: utils.getFromLookup(value, tzNamronOpenClose),
+                        type: readAttr.type,
+                    },
+                });
+            }
+
+            if (readAttr === namron_private_hvacThermostat.display_auto_off) {
+                await entity.write('hvacThermostat', {
+                    [readAttr.attrId]: {
+                        value: utils.getFromLookup(value, tzNamronDisplayTimeout),
+                        type: readAttr.type,
+                    },
+                });
+            }
+
+            if (readAttr === namron_private_hvacThermostat.sensor_mode) {
+                await entity.write('hvacThermostat', {
+                    [readAttr.attrId]: {
+                        value: utils.getFromLookup(value, tzNamronSensorMode),
+                        type: readAttr.type,
+                    },
+                });
+            }
+
+            if (readAttr === namron_private_hvacThermostat.system_mode) {
+                await entity.write('hvacThermostat', {
+                    [readAttr.attrId]: {
+                        value: utils.getFromLookup(value, tzNamronSystemMode),
+                        type: readAttr.type,
+                    },
+                });
+            }
+
+            if (readAttr === namron_private_hvacThermostat.current_operating_mode) {
+                await entity.write('hvacThermostat', {
+                    [readAttr.attrId]: {
+                        value: utils.getFromLookup(value, tzNamronOperationMode),
+                        type: readAttr.type,
+                    },
+                });
+            }
+
+            if (readAttr === namron_private_hvacThermostat.holiday_temp_set) {
+                await entity.write('hvacThermostat', {
+                    [readAttr.attrId]: {
+                        value: Number(value) * 100,
+                        type: readAttr.type,
+                    },
+                });
+            }
+
+            if ([namron_private_hvacThermostat.vacation_start_date.key, namron_private_hvacThermostat.vacation_end_date.key].includes(readAttr.key)) {
+                await entity.write('hvacThermostat', {
+                    [readAttr.attrId]: {
+                        value: fromDate(String(value)),
+                        type: readAttr.type,
+                    },
+                });
+            }
+
+            if (readAttr === namron_private_hvacThermostat.work_days) {
+                await entity.write('hvacThermostat', {
+                    [readAttr.attrId]: {
+                        value: utils.getFromLookup(value, tzNamronWorkDays),
+                        type: readAttr.type,
+                    },
+                });
             }
         },
     } satisfies Tz.Converter,
@@ -1518,6 +1905,149 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Namron',
         description: 'Zigbee smart plug dimmer 150W',
         extend: [m.light(), m.electricityMeter({cluster: 'electrical'})],
+    },
+    {
+        zigbeeModel: ['4512783', '4512784'],
+        model: 'Edge Thermostat',
+        vendor: 'Namron',
+        description: 'Namron Zigbee Edge Termostat',
+        fromZigbee: [fzLocal.namron_edge_thermostat, fz.namron_hvac_user_interface, fz.metering, fz.electrical_measurement],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tzLocal.namron_edge_thermostat,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.namron_thermostat_child_lock,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_programming_operation_mode,
+            tz.thermostat_temperature_display_mode,
+        ],
+        onEvent: async (type, data, device, options) => {
+            if (type === 'stop') {
+                try {
+                    const key = namron_private_hvacThermostat.time_sync_value.key;
+                    clearInterval(globalStore.getValue(device, key));
+                    globalStore.clearValue(device, key);
+                } catch {
+                    /* Do nothing*/
+                }
+            }
+            if (!globalStore.hasValue(device, namron_private_hvacThermostat.time_sync_value.key)) {
+                const hours24 = 1000 * 60 * 60 * 24;
+                const interval = setInterval(async () => {
+                    try {
+                        const endpoint = device.getEndpoint(1);
+                        // Device does not asks for the time with binding, therefore we write the time every 24 hours
+                        const time = new Date().getTime() / 1000;
+                        await endpoint.write('hvacThermostat', {
+                            [namron_private_hvacThermostat.time_sync_value.attrId]: {
+                                value: time,
+                                type: namron_private_hvacThermostat.time_sync_value.type,
+                            },
+                        });
+                    } catch {
+                        /* Do nothing*/
+                    }
+                }, hours24);
+                globalStore.putValue(device, namron_private_hvacThermostat.time_sync_value.key, interval);
+            }
+        },
+        configure: async (device, coordinatorEndpoint, _logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic',
+                'genIdentify',
+                'genOnOff',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'msRelativeHumidity',
+                'seMetering',
+                'haElectricalMeasurement',
+                'msOccupancySensing',
+            ];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, change: 50});
+            await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
+            await reporting.thermostatKeypadLockMode(endpoint);
+
+            // Initial read
+            await endpoint.read('hvacThermostat', [0x8000, 0x8001, 0x8002, 0x801e, 0x8004, 0x8006, 0x8005, 0x8029, 0x8022, 0x8023, 0x8024]);
+
+            // Reads holiday
+            await endpoint.read('hvacThermostat', [
+                namron_private_hvacThermostat.holiday_temp_set.attrId,
+                namron_private_hvacThermostat.holiday_temp_set_f.key,
+                namron_private_hvacThermostat.vacation_mode.attrId,
+                namron_private_hvacThermostat.vacation_start_date.attrId,
+                namron_private_hvacThermostat.vacation_end_date.attrId,
+            ]);
+
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+        extend: [m.electricityMeter({voltage: false}), m.onOff({powerOnBehavior: false})],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
+                .withSystemMode(['off', 'auto', 'cool', 'heat'], ea.ALL),
+            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit']).withLabel('Temperature Unit').withDescription('Select Unit'),
+            e.enum('current_operating_mode', ea.ALL, ['Manual', 'ECO']).withDescription('Selected program for thermostat'),
+            e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            e
+                .numeric(namron_private_hvacThermostat.active_backlight.key, ea.ALL)
+                .withDescription('Desired display brightness')
+                .withUnit('%')
+                .withValueMin(1)
+                .withValueMax(100),
+            e
+                .enum(namron_private_hvacThermostat.display_auto_off.key, ea.ALL, Object.values(fzNamronDisplayTimeout))
+                .withDescription('Turn off the display after the give time in inactivity or never'),
+            e.binary(namron_private_hvacThermostat.window_check.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off window check mode'),
+            e
+                .enum(namron_private_hvacThermostat.window_state.key, ea.STATE_GET, Object.values(fzNamronOpenClose))
+                .withDescription('Detected state of window'),
+            e.binary(namron_private_hvacThermostat.anti_frost_mode.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off anti-frost mode'),
+            e.binary(namron_private_hvacThermostat.summer_winter_switch.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off Summar Winter switch'),
+            e.binary(namron_private_hvacThermostat.auto_time.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off Automatic time'),
+            e
+                .enum(namron_private_hvacThermostat.countdown_set.key, ea.ALL, Object.values(fzNamronBoostTable))
+                .withDescription('Starts boost with defined time'),
+            e.numeric(namron_private_hvacThermostat.countdown_left.key, ea.STATE_GET).withUnit('min').withDescription('Given boost time'),
+            e.binary(namron_private_hvacThermostat.vacation_mode.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off vacation mode'),
+            e
+                .numeric(namron_private_hvacThermostat.holiday_temp_set.key, ea.ALL)
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withUnit('°C')
+                .withLabel('Vacation temperature')
+                .withDescription('Vacation temperature setpoint'),
+            e
+                .text(namron_private_hvacThermostat.vacation_start_date.key, ea.ALL)
+                .withDescription('Start date')
+                .withDescription("Supports dates starting with day or year with '. - /'"),
+            e
+                .text(namron_private_hvacThermostat.vacation_end_date.key, ea.ALL)
+                .withDescription('End date')
+                .withDescription("Supports dates starting with day or year with '. - /'"),
+            e.binary(namron_private_hvacThermostat.time_sync_flag.key, ea.ALL, 'On', 'Off'),
+            e.numeric(namron_private_hvacThermostat.time_sync_value.key, ea.STATE_GET),
+            e
+                .enum(namron_private_hvacThermostat.fault.key, ea.STATE_GET, Object.values(fzNamronFault))
+                .withDescription('Shows current error of the device'),
+            e
+                .enum(namron_private_hvacThermostat.work_days.key, ea.STATE_GET, Object.values(fzNamronWorkDays))
+                .withDescription("Needs to be changed under 'Thermostat settings' > 'Advanced settings' > 'Schedule type'"),
+            e
+                .numeric(namron_private_hvacThermostat.regulator_percentage.key, ea.ALL)
+                .withUnit('%')
+                .withValueMin(10)
+                .withValueMax(100)
+                .withValueStep(1),
+        ],
     },
 ];
 
