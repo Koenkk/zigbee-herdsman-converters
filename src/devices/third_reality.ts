@@ -411,7 +411,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RSP02065Z',
         vendor: 'Third Reality',
         description: 'Zigbee / BLE smart plug with power',
-        extend: [onOff(), electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter()],
         ota: true,
     },
     {
@@ -419,7 +419,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RSP02064Z',
         vendor: 'Third Reality',
         description: 'Zigbee / BLE smart plug with power',
-        extend: [onOff(), electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter()],
         ota: true,
     },
     {
