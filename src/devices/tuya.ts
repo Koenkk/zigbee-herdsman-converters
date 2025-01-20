@@ -5204,18 +5204,8 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    2,
-                    'preset',
-                    tuya.valueConverterBasic.lookup({
-                        off: tuya.enum(0),
-                        antifrost: tuya.enum(1),
-                        eco: tuya.enum(2),
-                        comfort: tuya.enum(3),
-                        auto: tuya.enum(4),
-                        on: tuya.enum(5),
-                    }),
-                ],
+                [2, null, tuya.valueConverter.thermostatTRV602ZSystemModeAndPreset(null)],
+                [2, 'preset', tuya.valueConverter.thermostatTRV602ZSystemModeAndPreset('preset')],
                 [2, 'system_mode', tuya.valueConverter.thermostatTRV602ZSystemModeAndPreset('system_mode')],
                 [3, 'running_state', tuya.valueConverterBasic.lookup({heat: 1, idle: 0})],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],

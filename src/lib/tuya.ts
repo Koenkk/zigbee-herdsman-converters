@@ -1192,6 +1192,9 @@ export const valueConverter = {
                 };
                 const systemModeLookup = {
                     0: 'off',
+                    1: 'auto',
+                    2: 'auto',
+                    3: 'auto',
                     4: 'auto',
                     5: 'heat',
                 };
