@@ -411,7 +411,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['HK-SENSOR-PRE'],
         model: 'SR-ZG9030F-PS',
         vendor: 'Sunricher',
-        description: 'Smart Human Presence Sensor',
+        description: 'Smart human presence sensor',
         extend: [m.illuminance(), m.occupancy(), m.commandsOnOff()],
     },
     {
