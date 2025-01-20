@@ -1,5 +1,21 @@
 # Changelog
 
+## [21.22.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.21.1...v21.22.0) (2025-01-20)
+
+
+### Features
+
+* **add:** 3RSP02065Z, 3RSP02064Z ([#8654](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8654)) ([a3c7bda](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3c7bda5d37d104c7f9a3eb63193e5cbaff71dbc))
+* **add:** SR-ZG9030F-PS ([#8652](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8652)) ([701acf4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/701acf41d9562243684431e5d76f473f24025fa9))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_iwn0gpzz` as Tuya SPM01V2.5 https://github.com/Koenkk/zigbee2mqtt/discussions/25891 ([15f15aa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/15f15aa151239c1d5af5d776449a6f8077d59da6))
+* Fix CO2 value interpretation ([#8644](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8644)) ([8a70e68](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8a70e68fdcd3717a0acf66987ada4960fce4cb1f))
+* **ignore:** Refactor Tuya fingerprint ([#8648](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8648)) ([f42aa50](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f42aa5080ee933e8cde9fc08c67a88bf886d71ff))
+* **ignore:** update dependencies ([#8641](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8641)) ([5c0b54b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5c0b54b0b237c78bdc32f34bb6745a9ca5946c59))
+
 ## [21.21.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.21.0...v21.21.1) (2025-01-19)
 
 
