@@ -101,7 +101,7 @@ const tzNamronBoostTable = fzNamronBoostTable.fromFzToTz();
 const fzNamronSystemMode = {0x00: 'off', 0x01: 'auto', 0x03: 'cool', 0x04: 'heat'};
 const tzNamronSystemMode = fzNamronSystemMode.fromFzToTz();
 
-const fzNamronOnOff = {0: 'Off', 1: 'On'};
+const fzNamronOnOff = {0: 'off', 1: 'on'};
 const tzNamronOnOff = fzNamronOnOff.fromFzToTz();
 
 const fzNamronOpenClose = {0: 'closed', 1: 'open'};
