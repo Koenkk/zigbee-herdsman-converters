@@ -5216,7 +5216,7 @@ const definitions: DefinitionWithExtend[] = [
                         on: tuya.enum(5),
                     }),
                 ],
-                [2, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset('system_mode')],
+                [2, 'system_mode', tuya.valueConverter.thermostatTRV602ZSystemModeAndPreset('system_mode')],
                 [3, 'running_state', tuya.valueConverterBasic.lookup({heat: 1, idle: 0})],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],

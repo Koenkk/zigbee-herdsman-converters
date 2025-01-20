@@ -1178,6 +1178,44 @@ export const valueConverter = {
             },
         };
     },
+    thermostatTRV602ZSystemModeAndPreset: (toKey: string) => {
+        return {
+            from: (v: string) => {
+                utils.assertNumber(v, 'system_mode');
+                const presetLookup = {
+                    0: 'off',
+                    1: 'antifrost',
+                    2: 'eco',
+                    3: 'comfort',
+                    4: 'auto',
+                    5: 'on',
+                };
+                const systemModeLookup = {
+                    0: 'off',
+                    4: 'auto',
+                    5: 'heat',
+                };
+                return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
+            },
+            to: (v: string) => {
+                const presetLookup = {
+                    off: new Enum(0),
+                    antifrost: new Enum(1),
+                    eco: new Enum(2),
+                    comfort: new Enum(3),
+                    auto: new Enum(4),
+                    on: new Enum(5),
+                };
+                const systemModeLookup = {
+                    off: new Enum(0),
+                    auto: new Enum(4),
+                    heat: new Enum(5),
+                };
+                const lookup = toKey === 'preset' ? presetLookup : systemModeLookup;
+                return utils.getFromLookup(v, lookup);
+            },
+        };
+    },
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
             const programmingMode = [];
