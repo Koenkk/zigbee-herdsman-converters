@@ -59,10 +59,9 @@ const namronPrivateHvacThermostat: NamronPrivateTable = {
     currentOperatingMode: {attrId: 'programingOperMode', type: Zcl.DataType.BITMAP8, key: 'current_operating_mode'},
 };
 
-
 function fromFzToTz(obj: KeyValue) {
     return Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k]));
-};
+}
 
 const fzNamronBoostTable = {
     0: 'off',
@@ -1915,6 +1914,7 @@ const definitions: DefinitionWithExtend[] = [
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_programming_operation_mode,
             tz.thermostat_temperature_display_mode,
+            tz.thermostat_local_temperature_calibration,
             tz.thermostat_running_state,
             tz.thermostat_running_mode,
         ],
