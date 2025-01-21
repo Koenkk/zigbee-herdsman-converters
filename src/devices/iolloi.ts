@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ID-UK21FW09',
         vendor: 'Iolloi',
         description: 'Zigbee LED smart dimmer switch',
-        extend: [light({effect: false, configureReporting: true})],
+        extend: [m.light({effect: false, configureReporting: true})],
         whiteLabel: [{vendor: 'Iolloi', model: 'ID-EU20FW09'}],
     },
 ];

@@ -3,17 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {
-    battery,
-    deviceAddCustomCluster,
-    deviceEndpoints,
-    electricityMeter,
-    humidity,
-    iasZoneAlarm,
-    light,
-    onOff,
-    temperature,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue} from '../lib/types';
 
@@ -58,7 +48,7 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
-            deviceAddCustomCluster('3rSwitchGen3SpecialCluster', {
+            m.deviceAddCustomCluster('3rSwitchGen3SpecialCluster', {
                 ID: 0xff02,
                 manufacturerCode: 0x1233,
                 attributes: {
@@ -85,7 +75,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RSS007Z',
         vendor: 'Third Reality',
         description: 'Smart light switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
         meta: {disableDefaultResponse: true},
     },
     {
@@ -93,14 +83,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '3RSL011Z',
         vendor: 'Third Reality',
         description: 'Smart light A19',
-        extend: [light({colorTemp: {range: undefined}})],
+        extend: [m.light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3RSL012Z'],
         model: '3RSL012Z',
         vendor: 'Third Reality',
         description: 'Smart light BR30',
-        extend: [light({colorTemp: {range: undefined}})],
+        extend: [m.light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3RWS18BZ'],
@@ -111,7 +101,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         ota: true,
         extend: [
-            deviceAddCustomCluster('r3Specialcluster', {
+            m.deviceAddCustomCluster('r3Specialcluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
@@ -146,7 +136,7 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
-            deviceAddCustomCluster('3rMotionSpecialCluster', {
+            m.deviceAddCustomCluster('3rMotionSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
@@ -173,7 +163,7 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
-            deviceAddCustomCluster('3rDoorSpecialCluster', {
+            m.deviceAddCustomCluster('3rDoorSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
@@ -190,9 +180,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Third Reality',
         description: 'Garage door tilt sensor',
         extend: [
-            battery(),
-            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']}),
-            deviceAddCustomCluster('3rGarageDoorSpecialCluster', {
+            m.battery(),
+            m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']}),
+            m.deviceAddCustomCluster('3rGarageDoorSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
@@ -211,8 +201,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Third Reality',
         description: 'Zigbee / BLE smart plug',
         extend: [
-            onOff(),
-            deviceAddCustomCluster('3rPlugGen1SpecialCluster', {
+            m.onOff(),
+            m.deviceAddCustomCluster('3rPlugGen1SpecialCluster', {
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
@@ -246,7 +236,7 @@ const definitions: DefinitionWithExtend[] = [
         },
         exposes: [e.cover_position(), e.battery()],
         extend: [
-            deviceAddCustomCluster('3rRollerShadeSpecialCluster', {
+            m.deviceAddCustomCluster('3rRollerShadeSpecialCluster', {
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
@@ -262,7 +252,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TRZB3',
         vendor: 'Third Reality',
         description: 'Roller blind motor',
-        extend: [battery()],
+        extend: [m.battery()],
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
@@ -289,10 +279,10 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Third Reality',
         description: 'Temperature and humidity sensor',
         extend: [
-            temperature(),
-            humidity(),
-            battery(),
-            deviceAddCustomCluster('3rSpecialCluster', {
+            m.temperature(),
+            m.humidity(),
+            m.battery(),
+            m.deviceAddCustomCluster('3rSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
@@ -312,10 +302,10 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Third Reality',
         description: 'Soil sensor',
         extend: [
-            temperature(),
-            humidity(),
-            battery(),
-            deviceAddCustomCluster('3rSoilSpecialCluster', {
+            m.temperature(),
+            m.humidity(),
+            m.battery(),
+            m.deviceAddCustomCluster('3rSoilSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
@@ -335,10 +325,10 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Third Reality',
         description: 'Temperature and humidity sensor lite',
         extend: [
-            temperature(),
-            humidity(),
-            battery(),
-            deviceAddCustomCluster('3rSpecialCluster', {
+            m.temperature(),
+            m.humidity(),
+            m.battery(),
+            m.deviceAddCustomCluster('3rSpecialCluster', {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
@@ -358,9 +348,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Third Reality',
         description: 'Smart watering kit',
         extend: [
-            battery({percentage: true, voltage: true, lowStatus: true, percentageReporting: true}),
-            onOff({powerOnBehavior: false}),
-            deviceAddCustomCluster('3rWateringSpecialCluster', {
+            m.battery({percentage: true, voltage: true, lowStatus: true, percentageReporting: true}),
+            m.onOff({powerOnBehavior: false}),
+            m.deviceAddCustomCluster('3rWateringSpecialCluster', {
                 ID: 0xfff2,
                 manufacturerCode: 0x1407,
                 attributes: {
@@ -403,7 +393,7 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
-            deviceAddCustomCluster('3rPlugGen2SpecialCluster', {
+            m.deviceAddCustomCluster('3rPlugGen2SpecialCluster', {
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
@@ -417,15 +407,31 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ['3RSP02065Z'],
+        model: '3RSP02065Z',
+        vendor: 'Third Reality',
+        description: 'Zigbee / BLE smart plug with power',
+        extend: [m.onOff(), m.electricityMeter()],
+        ota: true,
+    },
+    {
+        zigbeeModel: ['3RSP02064Z'],
+        model: '3RSP02064Z',
+        vendor: 'Third Reality',
+        description: 'Zigbee / BLE smart plug with power',
+        extend: [m.onOff(), m.electricityMeter()],
+        ota: true,
+    },
+    {
         zigbeeModel: ['3RDP01072Z'],
         model: '3RDP01072Z',
         vendor: 'Third Reality',
         description: 'Zigbee / BLE dual plug with power',
         ota: true,
         extend: [
-            deviceEndpoints({endpoints: {left: 1, right: 2}}),
-            onOff({endpointNames: ['left', 'right']}),
-            electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ['left', 'right']}),
+            m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
+            m.onOff({endpointNames: ['left', 'right']}),
+            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ['left', 'right']}),
         ],
     },
     {
@@ -444,7 +450,7 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
-            deviceAddCustomCluster('3rVirationSpecialcluster', {
+            m.deviceAddCustomCluster('3rVirationSpecialcluster', {
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
@@ -465,8 +471,8 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee multi-function night light',
         ota: true,
         extend: [
-            light({color: true}),
-            deviceAddCustomCluster('r3Specialcluster', {
+            m.light({color: true}),
+            m.deviceAddCustomCluster('r3Specialcluster', {
                 ID: 0xfc00,
                 manufacturerCode: 0x130d,
                 attributes: {
@@ -477,9 +483,10 @@ const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            m.illuminance(),
         ],
-        fromZigbee: [fzLocal.thirdreality_private_motion_sensor, fz.illuminance, fz.ias_occupancy_alarm_1_report],
-        exposes: [e.occupancy(), e.illuminance()],
+        fromZigbee: [fzLocal.thirdreality_private_motion_sensor, fz.ias_occupancy_alarm_1_report],
+        exposes: [e.occupancy()],
         configure: async (device, coordinatorEndpoint) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -491,7 +498,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Third Reality',
         description: 'Zigbee color lights',
         ota: true,
-        extend: [light({colorTemp: {range: [154, 500]}, color: {modes: ['xy', 'hs']}})],
+        extend: [m.light({colorTemp: {range: [154, 500]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['3RSPE01044BZ'],
@@ -523,7 +530,7 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
-            deviceAddCustomCluster('3rPlugE2Specialcluster', {
+            m.deviceAddCustomCluster('3rPlugE2Specialcluster', {
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {

@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -65,7 +65,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZC0101',
         vendor: 'MultiTerm',
         description: 'ZeeFan fan coil unit controller',
-        extend: [deviceEndpoints({endpoints: {'8': 8, '9': 9, '10': 10}})],
+        extend: [m.deviceEndpoints({endpoints: {'8': 8, '9': 9, '10': 10}})],
         meta: {multiEndpoint: true},
         fromZigbee: [fz.fan, fzLocal.binary_output],
         toZigbee: [tzLocal.fan_mode, tzLocal.binary_output],

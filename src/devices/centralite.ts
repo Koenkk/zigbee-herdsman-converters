@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Fz} from '../lib/types';
@@ -102,7 +102,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Centralite',
         description: '3-Series smart dimming outlet',
         fromZigbee: [fz.restorable_brightness, fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.light_onoff_restorable_brightness],
+        toZigbee: [tz.light_onoff_restorable_brightness, tz.ignore_transition],
         exposes: [e.light_brightness(), e.power(), e.voltage(), e.current()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -219,7 +219,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '3420-G',
         vendor: 'Centralite',
         description: '3-Series night light repeater',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         fingerprint: [
@@ -319,7 +319,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4200-C',
         vendor: 'Centralite',
         description: 'Smart outlet',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['3310-G'],

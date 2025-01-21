@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
@@ -12,10 +12,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: 'TS130F', manufacturerName: '_TZ3000_vd43bbfq'},
-            {modelID: 'TS130F', manufacturerName: '_TZ3000_fccpjz5z'},
-        ],
+        fingerprint: tuya.fingerprint('TS130F', ['_TZ3000_vd43bbfq', '_TZ3000_fccpjz5z']),
         model: 'QS-Zigbee-C01',
         vendor: 'Lonsonho',
         description: 'Curtain/blind motor controller',
@@ -31,7 +28,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_egq7y6pr'}],
+        fingerprint: tuya.fingerprint('TS130F', ['_TZ3000_egq7y6pr']),
         model: '11830304',
         vendor: 'Lonsonho',
         description: 'Curtain switch',
@@ -72,7 +69,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_t3s9qmmg'}],
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_t3s9qmmg']),
         model: 'X701A',
         vendor: 'Lonsonho',
         description: '1 gang switch with backlight',
@@ -83,10 +80,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_8vxj8khv'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_7tdtqgwv'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8vxj8khv', '_TZE200_7tdtqgwv']),
         model: 'X711A',
         vendor: 'Lonsonho',
         description: '1 gang switch',
@@ -95,7 +89,7 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [legacy.tz.tuya_switch_state],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dhdstcqc'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dhdstcqc']),
         model: 'X712A',
         vendor: 'Lonsonho',
         description: '2 gang switch',
@@ -109,7 +103,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fqytfymk'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_fqytfymk']),
         model: 'X713A',
         vendor: 'Lonsonho',
         description: '3 gang switch',
@@ -127,19 +121,19 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_qezuin6k'}],
+        fingerprint: tuya.fingerprint('TS110F', ['_TYZB01_qezuin6k']),
         model: 'QS-Zigbee-D02-TRIAC-LN',
         vendor: 'Lonsonho',
         description: '1 gang smart dimmer switch module with neutral',
         extend: [tuya.modernExtend.tuyaLight({minBrightness: 'attribute'})],
     },
     {
-        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}],
+        fingerprint: tuya.fingerprint('TS110F', ['_TYZB01_v8gtiaed']),
         model: 'QS-Zigbee-D02-TRIAC-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module with neutral',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuya.modernExtend.tuyaLight({minBrightness: 'attribute', endpointNames: ['l1', 'l2']}),
         ],
         meta: {multiEndpoint: true},
@@ -150,18 +144,18 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_92chsky7'}],
+        fingerprint: tuya.fingerprint('TS110F', ['_TZ3000_92chsky7']),
         model: 'QS-Zigbee-D02-TRIAC-2C-L',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module without neutral',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), light({endpointNames: ['l1', 'l2'], configureReporting: true})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.light({endpointNames: ['l1', 'l2'], configureReporting: true})],
     },
     {
         zigbeeModel: ['Plug_01'],
         model: '4000116784070',
         vendor: 'Lonsonho',
         description: 'Smart plug EU',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['ZB-RGBCW'],
@@ -175,13 +169,10 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
-        extend: [light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false})],
+        extend: [m.light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false})],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'},
-            {modelID: 'TS0003', manufacturerName: '_TYZB01_uqkphoed'},
-        ],
+        fingerprint: tuya.fingerprint('TS0003', ['_TYZB01_zsl6z0pw', '_TYZB01_uqkphoed']),
         model: 'QS-Zigbee-S04-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang switch module with neutral wire',
@@ -198,18 +189,15 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_ncutbjdi'}],
+        fingerprint: tuya.fingerprint('TS0003', ['_TYZB01_ncutbjdi']),
         model: 'QS-Zigbee-S05-LN',
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
-        extend: [onOff({powerOnBehavior: false, configureReporting: false})],
+        extend: [m.onOff({powerOnBehavior: false, configureReporting: false})],
         toZigbee: [tz.TYZB01_on_off],
     },
     {
-        fingerprint: [
-            {modelID: 'TS130F', manufacturerName: '_TZ3000_zirycpws'},
-            {modelID: 'TS130F', manufacturerName: '_TZ3210_ol1uhvza'},
-        ],
+        fingerprint: tuya.fingerprint('TS130F', ['_TZ3000_zirycpws', '_TZ3210_ol1uhvza']),
         model: 'QS-Zigbee-C03',
         vendor: 'Lonsonho',
         description: 'Curtain/blind motor controller',
@@ -225,7 +213,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0603', manufacturerName: '_TZE600_wxq8dpha\u0000'}],
+        fingerprint: tuya.fingerprint('TS0603', ['_TZE600_wxq8dpha\u0000']),
         model: 'VM-Zigbee-S02-0-10V',
         vendor: 'Lonsonho',
         description: '2 channel Zigbee 0-10V dimmer module',

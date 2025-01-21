@@ -1054,7 +1054,7 @@ const converters2 = {
         },
     } satisfies Tz.Converter,
     light_onoff_brightness: {
-        key: ['state', 'brightness', 'brightness_percent', 'on_time', 'off_wait_time'],
+        key: ['state', 'brightness', 'brightness_percent'],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             const {message} = meta;
@@ -1891,12 +1891,6 @@ const converters2 = {
         key: ['humidity'],
         convertGet: async (entity, key, meta) => {
             await entity.read('msRelativeHumidity', ['measuredValue']);
-        },
-    } satisfies Tz.Converter,
-    illuminance: {
-        key: ['illuminance'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('msIlluminanceMeasurement', ['measuredValue']);
         },
     } satisfies Tz.Converter,
     // #endregion

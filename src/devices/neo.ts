@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {battery, humidity, temperature} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -10,7 +10,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_d0yu2xgi'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_d0yu2xgi']),
         zigbeeModel: ['0yu2xgi'],
         model: 'NAS-AB02B0',
         vendor: 'Neo',
@@ -72,7 +72,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7hfcudw5'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_7hfcudw5']),
         model: 'NAS-PD07',
         vendor: 'Neo',
         description: 'Motion, temperature & humidity sensor',
@@ -451,11 +451,11 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'SNZB-02', manufacturerName: '_TZ3000_utwgoauk'}],
+        fingerprint: tuya.fingerprint('SNZB-02', ['_TZ3000_utwgoauk']),
         model: 'NAS-TH07B2',
         vendor: 'NEO',
         description: 'Temperature & humidity sensor',
-        extend: [temperature(), humidity(), battery()],
+        extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_1youk3hj']),

@@ -1,6 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -8,10 +9,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: 'daqwrsj\u0000', manufacturerName: '_TYST11_8daqwrsj'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_8daqwrsj'},
-        ],
+        fingerprint: [...tuya.fingerprint('daqwrsj\u0000', ['_TYST11_8daqwrsj']), ...tuya.fingerprint('TS0601', ['_TZE200_8daqwrsj'])],
         model: 'SMART-HEAT10',
         vendor: 'Alecto',
         description: 'Radiator valve with thermostat',
@@ -39,10 +37,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'tbrwrfv\u0000', manufacturerName: '_TYST11_qtbrwrfv'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_qtbrwrfv'},
-        ],
+        fingerprint: [...tuya.fingerprint('tbrwrfv\u0000', ['_TYST11_qtbrwrfv']), ...tuya.fingerprint('TS0601', ['_TZE200_qtbrwrfv'])],
         model: 'SMART-SMOKE10',
         vendor: 'Alecto',
         description: 'Smoke detector',

@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '1001248',
         vendor: 'SLV',
         description: 'VALETO CCT LED driver',
-        extend: [light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['1002994'],
@@ -23,14 +23,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '1001923',
         vendor: 'SLV',
         description: 'VALETO LED GU10 RGBW',
-        extend: [light({colorTemp: {range: [153, 556]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: true})],
     },
     {
         zigbeeModel: ['1005318'],
         model: '1005318',
         vendor: 'SLV',
         description: 'VALETO LED E27 RGBW',
-        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
     },
 ];
 

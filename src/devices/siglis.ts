@@ -137,7 +137,6 @@ const definitions: DefinitionWithExtend[] = [
             const expose = [];
 
             expose.push(buttonEventExposes);
-            expose.push(e.linkquality());
 
             if (checkOption(device, options, 'front_surface_enabled')) {
                 expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
@@ -246,7 +245,6 @@ const definitions: DefinitionWithExtend[] = [
             const expose = [];
 
             expose.push(buttonEventExposes);
-            expose.push(e.linkquality());
 
             if (checkOption(device, options, 'front_surface_enabled')) {
                 expose.push(e.light_brightness_colorxy().withEndpoint('l1'));

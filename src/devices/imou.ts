@@ -1,4 +1,4 @@
-import {battery, forceDeviceType, iasWarning, iasZoneAlarm} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZP1-EN',
         vendor: 'IMOU',
         description: 'Zigbee ZP1 PIR motion sensor',
-        extend: [battery(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low'], alarmTimeout: true})],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low'], alarmTimeout: true})],
     },
     {
         zigbeeModel: ['ZR1-EN'],
@@ -15,10 +15,10 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'IMOU',
         description: 'Zigbee ZR1 siren',
         extend: [
-            battery(),
-            forceDeviceType({type: 'EndDevice'}),
-            iasWarning(),
-            iasZoneAlarm({zoneType: 'alarm', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            m.battery(),
+            m.forceDeviceType({type: 'EndDevice'}),
+            m.iasWarning(),
+            m.iasZoneAlarm({zoneType: 'alarm', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
         ],
         meta: {disableDefaultResponse: true},
     },

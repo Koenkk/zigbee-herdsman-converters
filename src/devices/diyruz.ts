@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -16,8 +16,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'DIYRuZ',
         description: 'DiY 4 Relays + 4 switches + 1 buzzer',
         extend: [
-            deviceEndpoints({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4, center: 5}}),
-            onOff({endpointNames: ['bottom_left', 'bottom_right', 'top_left', 'top_right', 'center']}),
+            m.deviceEndpoints({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4, center: 5}}),
+            m.onOff({endpointNames: ['bottom_left', 'bottom_right', 'top_left', 'top_right', 'center']}),
         ],
     },
     {
@@ -239,8 +239,8 @@ const definitions: DefinitionWithExtend[] = [
         description: 'DiY 8 Relays + 8 switches',
         fromZigbee: [fz.ptvo_multistate_action, fz.ignore_basic_report],
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8']}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8}}),
+            m.onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8']}),
         ],
     },
     {
@@ -257,7 +257,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'DIYRuZ_Flower',
         vendor: 'DIYRuZ',
         description: 'Flower sensor',
-        fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.pressure, fz.battery],
+        fromZigbee: [fz.temperature, fz.humidity, fz.soil_moisture, fz.pressure, fz.battery],
         toZigbee: [],
         meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
         endpoint: (device) => {
@@ -271,7 +271,6 @@ const definitions: DefinitionWithExtend[] = [
                 'msTemperatureMeasurement',
                 'msRelativeHumidity',
                 'msPressureMeasurement',
-                'msIlluminanceMeasurement',
                 'msSoilMoisture',
             ]);
             await reporting.bind(secondEndpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
@@ -281,7 +280,6 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(firstEndpoint, overrides);
             await reporting.humidity(firstEndpoint, overrides);
             await reporting.pressureExtended(firstEndpoint, overrides);
-            await reporting.illuminance(firstEndpoint, overrides);
             await reporting.soil_moisture(firstEndpoint, overrides);
             await reporting.temperature(secondEndpoint, overrides);
             await firstEndpoint.read('msPressureMeasurement', ['scale']);
@@ -289,12 +287,12 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.soil_moisture(),
             e.battery(),
-            e.illuminance(),
             e.humidity(),
             e.pressure(),
             e.temperature().withEndpoint('ds'),
             e.temperature().withEndpoint('bme'),
         ],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['DIYRuZ_AirSense'],

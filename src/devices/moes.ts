@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {actionEnumLookup, battery, deviceEndpoints, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
@@ -23,10 +23,7 @@ const exposesLocal = {
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_2xlvlnez'},
-        ],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cymsnfvf', '_TZ3000_2xlvlnez']),
         model: 'ZP-LZ-FR2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
@@ -44,11 +41,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_zmy1waw6'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_bkfe0bab'},
-        ],
+        fingerprint: [...tuya.fingerprint('TS0121', ['_TYZB01_iuepbmpv']), ...tuya.fingerprint('TS011F', ['_TZ3000_zmy1waw6', '_TZ3000_bkfe0bab'])],
         model: 'MS-104Z',
         description: 'Smart light switch module (1 gang)',
         vendor: 'Moes',
@@ -90,7 +83,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZK-EU-2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
-        extend: [onOff({endpointNames: ['l1', 'l2']})],
+        extend: [m.onOff({endpointNames: ['l1', 'l2']})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             const hasEndpoint2 = !!device.getEndpoint(2);
@@ -98,16 +91,17 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_5toc8efa'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_aoclfnxz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_u9bfwha0'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_aoclfnxz',
+            '_TZE200_ztvwu4nk',
+            '_TZE204_5toc8efa',
+            '_TZE200_5toc8efa',
+            '_TZE200_ye5jkfsb',
+            '_TZE204_aoclfnxz',
+            '_TZE200_u9bfwha0',
+            '_TZE204_u9bfwha0',
+            '_TZE204_xalsoe3m',
+        ]),
         model: 'BHT-002-GCLZB',
         vendor: 'Moes',
         description: 'Moes BHT series Thermostat',
@@ -128,7 +122,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === '_TZE204_5toc8efa' ? 0.5 : 1;
             return [
-                e.linkquality(),
                 e.child_lock(),
                 e.deadzone_temperature(),
                 e.max_temperature_limit().withValueMax(45),
@@ -188,10 +181,7 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetLocalTime,
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_amp6tsvy'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_tviaymwx'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_amp6tsvy', '_TZE200_tviaymwx']),
         model: 'ZTS-EU_1gang',
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
@@ -213,7 +203,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_g1ib5ldv'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_g1ib5ldv']),
         model: 'ZTS-EU_2gang',
         vendor: 'Moes',
         description: 'Wall touch light switch (2 gang)',
@@ -242,7 +232,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_tz32mtza'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_tz32mtza']),
         model: 'ZTS-EU_3gang',
         vendor: 'Moes',
         description: 'Wall touch light switch (3 gang)',
@@ -273,7 +263,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1ozguk6x'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_1ozguk6x']),
         model: 'ZTS-EU_4gang',
         vendor: 'Moes',
         description: 'Wall touch light switch (4 gang)',
@@ -306,22 +296,17 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'},
-            {modelID: 'TS0222', manufacturerName: '_TYZB01_ftdkanlj'},
-        ],
+        fingerprint: tuya.fingerprint('TS0222', ['_TYZB01_kvwjujy9', '_TYZB01_ftdkanlj']),
         model: 'ZSS-ZK-THL',
         vendor: 'Moes',
         description: 'Smart temperature and humidity meter with display',
-        fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
+        fromZigbee: [fz.battery, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.illuminance(), e.humidity(), e.temperature()],
+        exposes: [e.battery(), e.humidity(), e.temperature()],
+        extend: [m.illuminance()],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_qsoecqlk'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_b6wax7g0', '_TZE200_qsoecqlk']),
         model: 'BRT-100-TRV',
         vendor: 'Moes',
         description: 'Thermostatic radiator valve',
@@ -359,8 +344,8 @@ const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
-                .withSetpoint('current_heating_setpoint', 0, 35, 1, ea.STATE_SET)
-                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 0, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET)
                 .withSystemMode(['heat'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(
@@ -397,7 +382,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nhyj64w2'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nhyj64w2', '_TZE200_127x7wnl']),
         model: 'ZTS-EUR-C',
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch',
@@ -412,12 +397,12 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'},
-            {modelID: 'TS1201', manufacturerName: '_TZ3290_ot6ewjvmejq5ekhl'},
-            {modelID: 'TS1201', manufacturerName: '_TZ3290_xjpbcxn92aaxvmlz'},
-            {modelID: 'TS1201', manufacturerName: '_TZ3290_gnl5a6a5xvql7c2a'},
-        ],
+        fingerprint: tuya.fingerprint('TS1201', [
+            '_TZ3290_j37rooaxrcdcqo5n',
+            '_TZ3290_ot6ewjvmejq5ekhl',
+            '_TZ3290_xjpbcxn92aaxvmlz',
+            '_TZ3290_gnl5a6a5xvql7c2a',
+        ]),
         model: 'UFO-R11',
         vendor: 'Moes',
         description: 'Universal smart IR remote control',
@@ -432,7 +417,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: (device, options) => {
-            const exposes = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.linkquality()];
+            const exposes = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
             if (device?.manufacturerName !== '') {
                 exposes.push(e.battery(), e.battery_voltage());
             }
@@ -454,10 +439,10 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZWV-YC',
         vendor: 'Moes',
         description: 'Water valve',
-        extend: [battery(), onOff({powerOnBehavior: false})],
+        extend: [m.battery(), m.onOff({powerOnBehavior: false})],
     },
     {
-        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_hhiodade'}],
+        fingerprint: tuya.fingerprint('TS0011', ['_TZ3000_hhiodade']),
         model: 'ZS-EUB_1gang',
         vendor: 'Moes',
         description: 'Wall light switch (1 gang)',
@@ -489,7 +474,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('HEIMAN', 'HS-720ES', 'Carbon monoxide alarm', ['_TZE200_hr0tdd47'])],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_vawy74yh'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_vawy74yh']),
         model: 'ZSS-HM-SSD01',
         vendor: 'Moes',
         description: 'Smoke sensor',
@@ -515,11 +500,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS004F', manufacturerName: '_TZ3000_ja5osu5g'},
-            {modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'},
-            {modelID: 'TS004F', manufacturerName: '_TZ3000_egvb1p2g'},
-        ],
+        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_ja5osu5g', '_TZ3000_kjfzuycl', '_TZ3000_egvb1p2g']),
         model: 'ERS-10TZBVB-AA',
         vendor: 'Moes',
         description: 'Smart button',
@@ -591,15 +572,15 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0726', manufacturerName: '_TZ3002_vaq2bfcu'}],
+        fingerprint: tuya.fingerprint('TS0726', ['_TZ3002_vaq2bfcu']),
         model: 'SR-ZS',
         vendor: 'Moes',
         description: 'Smart switch (light + sence)',
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3'], powerOnBehavior2: true, switchMode: true}),
-            actionEnumLookup({
+            m.actionEnumLookup({
                 cluster: 'genOnOff',
                 commands: ['commandTuyaAction'],
                 attribute: 'value',

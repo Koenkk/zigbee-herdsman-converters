@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {battery, iasZoneAlarm} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -66,7 +66,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'LH03121',
         vendor: 'iHORN',
         description: 'Door contact DNAKE SH-DM-S01',
-        extend: [iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']}), battery()],
+        extend: [m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']}), m.battery()],
     },
 ];
 

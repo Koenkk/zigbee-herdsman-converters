@@ -1,4 +1,4 @@
-import {onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,14 +7,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZCC-3500',
         vendor: 'KlikAanKlikUit',
         description: 'Zigbee socket switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         fingerprint: [{modelID: 'Built-in Switch', manufacturerName: 'KlikAanKlikUit'}],
         model: 'ZCM-1800',
         vendor: 'KlikAanKlikUit',
         description: 'Zigbee switch module',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
 ];
 

@@ -4,26 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {
-    battery,
-    commandsLevelCtrl,
-    commandsOnOff,
-    deviceAddCustomCluster,
-    deviceEndpoints,
-    electricityMeter,
-    enumLookup,
-    iasZoneAlarm,
-    identify,
-    illuminance,
-    light,
-    lightingBallast,
-    numeric,
-    occupancy,
-    onOff,
-    ScaleFunction,
-    setupConfigureForReading,
-    temperature,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -37,7 +18,7 @@ function indicatorMode(endpoint?: string) {
     if (endpoint) {
         description = 'Set Indicator Mode for ' + endpoint + ' switch.';
     }
-    return enumLookup({
+    return m.enumLookup({
         name: 'indicator_mode',
         lookup: {
             reverse_with_load: 2,
@@ -53,7 +34,7 @@ function indicatorMode(endpoint?: string) {
 }
 
 function socketIndicatorMode() {
-    return enumLookup({
+    return m.enumLookup({
         name: 'indicator_mode',
         lookup: {
             reverse_with_load: 0,
@@ -69,7 +50,7 @@ function socketIndicatorMode() {
 
 function fanIndicatorMode() {
     const description = 'Set Indicator Mode.';
-    return enumLookup({
+    return m.enumLookup({
         name: 'indicator_mode',
         lookup: {
             always_on: 3,
@@ -84,7 +65,7 @@ function fanIndicatorMode() {
 
 function fanIndicatorOrientation() {
     const description = 'Set Indicator Orientation.';
-    return enumLookup({
+    return m.enumLookup({
         name: 'indicator_orientation',
         lookup: {
             horizontal_left: 2,
@@ -103,7 +84,7 @@ function switchActions(endpoint?: string) {
     if (endpoint) {
         description = 'Set Switch Action for ' + endpoint + ' Button.';
     }
-    return enumLookup({
+    return m.enumLookup({
         name: 'switch_actions',
         lookup: {
             light: 0,
@@ -130,7 +111,7 @@ function switchActions(endpoint?: string) {
 
 const schneiderElectricExtend = {
     addVisaConfigurationCluster: (enumDataType: Zcl.DataType.ENUM8 | Zcl.DataType.UINT8) =>
-        deviceAddCustomCluster('visaConfiguration', {
+        m.deviceAddCustomCluster('visaConfiguration', {
             ID: 0xfc04,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
@@ -150,7 +131,7 @@ const schneiderElectricExtend = {
             commandsResponse: {},
         }),
     visaConfigIndicatorLuminanceLevel: (): ModernExtend => {
-        return enumLookup({
+        return m.enumLookup({
             name: 'indicator_luminance_level',
             lookup: {
                 '100': 0,
@@ -166,7 +147,7 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigIndicatorColor: (): ModernExtend => {
-        return enumLookup({
+        return m.enumLookup({
             name: 'indicator_color',
             lookup: {
                 white: 0,
@@ -178,7 +159,7 @@ const schneiderElectricExtend = {
         });
     },
     visaIndicatorMode: ([reverseWithLoad, consistentWithLoad, alwaysOff, alwaysOn]: number[]): ModernExtend => {
-        return enumLookup({
+        return m.enumLookup({
             name: 'indicator_mode',
             lookup: {
                 reverse_with_load: reverseWithLoad,
@@ -195,7 +176,7 @@ const schneiderElectricExtend = {
         const attribute = `motorTypeChannel${channel || ''}`;
         const description = `Set motor type for channel ${channel || ''}`;
 
-        return enumLookup({
+        return m.enumLookup({
             name: 'motor_type' + (channel ? `_${channel}` : ''),
             lookup: {
                 ac_motor: 0,
@@ -210,7 +191,7 @@ const schneiderElectricExtend = {
         const attribute = `curtainStatusChannel${channel || ''}`;
         const description = `Set curtain status for channel ${channel}`;
 
-        return enumLookup({
+        return m.enumLookup({
             access: 'STATE',
             name: 'curtain_status' + (channel ? `_${channel}` : ''),
             lookup: {
@@ -319,7 +300,7 @@ const schneiderElectricExtend = {
     },
 
     dimmingMode: (): ModernExtend => {
-        const extend = enumLookup({
+        const extend = m.enumLookup({
             name: 'dimmer_mode',
             lookup: {
                 Auto: 0,
@@ -330,12 +311,12 @@ const schneiderElectricExtend = {
             description: 'Auto detects the correct mode for the ballast. RL-LED may have improved dimming quality for LEDs.',
             entityCategory: 'config',
         });
-        extend.configure.push(setupConfigureForReading('lightingBallastCfg', ['wiserControlMode']));
+        extend.configure.push(m.setupConfigureForReading('lightingBallastCfg', ['wiserControlMode']));
         return extend;
     },
 
     addOccupancyConfigurationCluster: () =>
-        deviceAddCustomCluster('occupancyConfiguration', {
+        m.deviceAddCustomCluster('occupancyConfiguration', {
             ID: 0xff19,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
@@ -349,7 +330,7 @@ const schneiderElectricExtend = {
         }),
 
     occupancyConfiguration: (): ModernExtend => {
-        const extend = enumLookup({
+        const extend = m.enumLookup({
             name: 'occupancy_sensitivity',
             lookup: {
                 Low: 50,
@@ -365,7 +346,7 @@ const schneiderElectricExtend = {
             entityCategory: 'config',
         });
 
-        const luxScale: ScaleFunction = (value: number, type: 'from' | 'to') => {
+        const luxScale: m.ScaleFunction = (value: number, type: 'from' | 'to') => {
             if (type === 'from') {
                 return Math.round(Math.pow(10, (value - 1) / 10000));
             } else {
@@ -373,7 +354,7 @@ const schneiderElectricExtend = {
             }
         };
 
-        const luxThresholdExtend = numeric({
+        const luxThresholdExtend = m.numeric({
             name: 'ambience_light_threshold',
             cluster: 'occupancyConfiguration',
             attribute: 'ambienceLightThreshold',
@@ -388,7 +369,7 @@ const schneiderElectricExtend = {
         extend.fromZigbee.push(...luxThresholdExtend.fromZigbee);
         extend.toZigbee.push(...luxThresholdExtend.toZigbee);
         extend.exposes.push(...luxThresholdExtend.exposes);
-        extend.configure.push(setupConfigureForReading('occupancyConfiguration', ['ambienceLightThreshold']));
+        extend.configure.push(m.setupConfigureForReading('occupancyConfiguration', ['ambienceLightThreshold']));
 
         return extend;
     },
@@ -656,7 +637,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'U202DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 2 gang 2x300W dimmer module',
-        extend: [deviceEndpoints({endpoints: {l1: 10, l2: 11}}), light({endpointNames: ['l1', 'l2'], configureReporting: true})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 10, l2: 11}}), m.light({endpointNames: ['l1', 'l2'], configureReporting: true})],
     },
     {
         zigbeeModel: ['PUCK/DIMMER/1'],
@@ -664,7 +645,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer',
         ota: true,
-        extend: [light({configureReporting: true, levelConfig: {}})],
+        extend: [m.light({configureReporting: true, levelConfig: {}})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
         exposes: [
@@ -682,7 +663,10 @@ const definitions: DefinitionWithExtend[] = [
                 .enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
                 .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)'),
         ],
-        whiteLabel: [{vendor: 'Elko', model: 'EKO07090'}],
+        whiteLabel: [
+            {vendor: 'Elko', model: 'EKO07090'},
+            {vendor: 'Schneider Electric', model: '550B1012'},
+        ],
     },
     {
         zigbeeModel: ['PUCK/SWITCH/1'],
@@ -690,7 +674,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Micro module switch',
         ota: true,
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
     },
     {
@@ -699,7 +683,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer with neutral lead',
         ota: true,
-        extend: [light({configureReporting: true, levelConfig: {}})],
+        extend: [m.light({configureReporting: true, levelConfig: {}})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
         exposes: [
@@ -724,7 +708,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser power micromodule',
         whiteLabel: [{vendor: 'Elko', model: 'EKO20004'}],
-        extend: [onOff({powerOnBehavior: true}), electricityMeter({cluster: 'metering'}), identify()],
+        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: 'metering'}), m.identify()],
     },
     {
         zigbeeModel: ['NHROTARY/DIMMER/1'],
@@ -762,7 +746,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Rotary dimmer',
         extend: [
-            light({
+            m.light({
                 effect: false,
                 powerOnBehavior: false,
                 color: false,
@@ -771,7 +755,7 @@ const definitions: DefinitionWithExtend[] = [
                     disabledFeatures: ['on_transition_time', 'off_transition_time', 'on_off_transition_time', 'execute_if_off'],
                 },
             }),
-            lightingBallast(),
+            m.lightingBallast(),
             schneiderElectricExtend.dimmingMode(),
         ],
         whiteLabel: [
@@ -898,7 +882,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 2AX',
         ota: true,
-        extend: [onOff({powerOnBehavior: false}), indicatorMode('smart')],
+        extend: [m.onOff({powerOnBehavior: false}), indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -915,7 +899,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 10AX with ControlLink',
         ota: true,
-        extend: [onOff({powerOnBehavior: false}), indicatorMode('smart')],
+        extend: [m.onOff({powerOnBehavior: false}), indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -971,14 +955,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'U201DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 1 gang 550W dimmer module',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['U201SRY2KWZB'],
         model: 'U201SRY2KWZB',
         vendor: 'Schneider Electric',
         description: 'Ulti 240V 9.1 A 1 gang relay switch impress switch module, amber LED',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['CCTFR6100'],
@@ -1028,14 +1012,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'S520530W',
         vendor: 'Schneider Electric',
         description: 'Odace connectable relay switch 10A',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['U202SRY2KWZB'],
         model: 'U202SRY2KWZB',
         vendor: 'Schneider Electric',
         description: 'Ulti 240V 9.1 A 2 gangs relay switch impress switch module, amber LED',
-        extend: [deviceEndpoints({endpoints: {l1: 10, l2: 11}}), onOff({endpointNames: ['l1', 'l2']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 10, l2: 11}}), m.onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         zigbeeModel: ['1GANG/SHUTTER/1'],
@@ -1144,8 +1128,8 @@ const definitions: DefinitionWithExtend[] = [
                 .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)'),
         ],
         extend: [
-            deviceEndpoints({endpoints: {left: 4, right: 3, left_btn: 22, right_btn: 21}}),
-            light({endpointNames: ['left', 'right'], configureReporting: true}),
+            m.deviceEndpoints({endpoints: {left: 4, right: 3, left_btn: 22, right_btn: 21}}),
+            m.light({endpointNames: ['left', 'right'], configureReporting: true}),
             switchActions('left_btn'),
             switchActions('right_btn'),
             indicatorMode('left_btn'),
@@ -1156,7 +1140,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MEG5161-0000',
         vendor: 'Schneider Electric',
         description: 'Merten PlusLink relay insert with Merten Wiser system M push button (1fold)',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['LK Switch'],
@@ -1192,7 +1176,7 @@ const definitions: DefinitionWithExtend[] = [
             return {l1: 3, s1: 21, s2: 22, s3: 23, s4: 24};
         },
         meta: {multiEndpoint: true},
-        extend: [light({endpointNames: ['l1'], configureReporting: true, levelConfig: {}})],
+        extend: [m.light({endpointNames: ['l1'], configureReporting: true, levelConfig: {}})],
         exposes: [
             e
                 .numeric('ballast_minimum_level', ea.ALL)
@@ -1386,7 +1370,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MEG5126-0300',
         vendor: 'Schneider Electric',
         description: 'Merten MEG5165 PlusLink relais insert with Merten Wiser System M push button (2fold)',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         zigbeeModel: ['EH-ZB-VACT'],
@@ -1544,12 +1528,12 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser wireless switch 1-gang or 2-gang',
         extend: [
-            battery(),
-            deviceEndpoints({endpoints: {right: 21, left: 22}}),
+            m.battery(),
+            m.deviceEndpoints({endpoints: {right: 21, left: 22}}),
             switchActions('right'),
             switchActions('left'),
-            commandsOnOff({endpointNames: ['right', 'left']}),
-            commandsLevelCtrl({endpointNames: ['right', 'left']}),
+            m.commandsOnOff({endpointNames: ['right', 'left']}),
+            m.commandsLevelCtrl({endpointNames: ['right', 'left']}),
         ],
     },
     {
@@ -1632,7 +1616,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MUR36014',
         vendor: 'Schneider Electric',
         description: 'Mureva EVlink Smart socket outlet',
-        extend: [onOff({powerOnBehavior: true}), electricityMeter()],
+        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter()],
     },
     {
         zigbeeModel: ['NHMOTION/SWITCH/1'],
@@ -1640,12 +1624,12 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Motion sensor with switch',
         extend: [
-            onOff({
+            m.onOff({
                 powerOnBehavior: false,
                 configureReporting: true,
             }),
-            illuminance(),
-            occupancy({
+            m.illuminance(),
+            m.occupancy({
                 pirConfig: ['otu_delay'],
             }),
             schneiderElectricExtend.addOccupancyConfigurationCluster(),
@@ -1664,16 +1648,16 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CCT595011',
         vendor: 'Schneider Electric',
         description: 'Wiser motion sensor',
-        fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_occupancy_only_alarm_2, fz.illuminance],
+        fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_occupancy_only_alarm_2],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genPowerCfg', 'msIlluminanceMeasurement'];
+            const binds = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
         },
-        exposes: [e.battery(), e.illuminance(), e.occupancy()],
+        exposes: [e.battery(), e.occupancy()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['CH/Socket/2'],
@@ -1681,7 +1665,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Dual connected smart socket',
         ota: true,
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         zigbeeModel: ['CCT592011_AS'],
@@ -1728,9 +1712,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser smoke alarm',
         extend: [
-            battery({voltage: true, voltageReporting: true}),
-            temperature(),
-            iasZoneAlarm({
+            m.battery({voltage: true, voltageReporting: true}),
+            m.temperature(),
+            m.iasZoneAlarm({
                 zoneType: 'smoke',
                 zoneAttributes: ['alarm_1', 'tamper', 'battery_low', 'test'],
                 zoneStatusReporting: true,
@@ -1897,10 +1881,10 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Merten MEG5152 switch insert (2fold) with Merten System M push button (2fold)',
         extend: [
-            deviceEndpoints({endpoints: {left: 1, right: 2, left_sw: 21, right_sw: 22}}),
-            identify(),
-            onOff({powerOnBehavior: false, endpointNames: ['left', 'right']}),
-            commandsOnOff({endpointNames: ['left_sw', 'right_sw']}),
+            m.deviceEndpoints({endpoints: {left: 1, right: 2, left_sw: 21, right_sw: 22}}),
+            m.identify(),
+            m.onOff({powerOnBehavior: false, endpointNames: ['left', 'right']}),
+            m.commandsOnOff({endpointNames: ['left_sw', 'right_sw']}),
         ],
     },
     {
@@ -1909,10 +1893,10 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Merten MEG5162 switch insert (2fold) with Merten System M push button (1fold)',
         extend: [
-            deviceEndpoints({endpoints: {left: 1, right: 2, left_sw: 21}}),
-            identify(),
-            onOff({powerOnBehavior: false, endpointNames: ['left', 'right']}),
-            commandsOnOff({endpointNames: ['left_sw']}),
+            m.deviceEndpoints({endpoints: {left: 1, right: 2, left_sw: 21}}),
+            m.identify(),
+            m.onOff({powerOnBehavior: false, endpointNames: ['left', 'right']}),
+            m.commandsOnOff({endpointNames: ['left_sw']}),
         ],
     },
     {
@@ -1921,10 +1905,10 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Merten MEG5151 switch insert with Merten System M push button (1fold)',
         extend: [
-            deviceEndpoints({endpoints: {switch: 1, switch_sw: 21}}),
-            identify(),
-            onOff({powerOnBehavior: false}),
-            commandsOnOff({endpointNames: ['switch_sw']}),
+            m.deviceEndpoints({endpoints: {switch: 1, switch_sw: 21}}),
+            m.identify(),
+            m.onOff({powerOnBehavior: false}),
+            m.commandsOnOff({endpointNames: ['switch_sw']}),
         ],
     },
     {
@@ -1933,7 +1917,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 1G dimmer switch',
         extend: [
-            light({
+            m.light({
                 effect: false,
                 color: false,
                 powerOnBehavior: false,
@@ -1961,8 +1945,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 2G dimmer switch',
         extend: [
-            deviceEndpoints({endpoints: {l1: 10, l2: 11}}),
-            light({
+            m.deviceEndpoints({endpoints: {l1: 10, l2: 11}}),
+            m.light({
                 endpointNames: ['l1', 'l2'],
                 effect: false,
                 color: false,
@@ -1991,8 +1975,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 1G onoff switch',
         extend: [
-            deviceEndpoints({endpoints: {l1: 10}}),
-            onOff({endpointNames: ['l1'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {l1: 10}}),
+            m.onOff({endpointNames: ['l1'], powerOnBehavior: false}),
             schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
             schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
             schneiderElectricExtend.visaConfigIndicatorColor(),
@@ -2005,8 +1989,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 1G onoff switch',
         extend: [
-            deviceEndpoints({endpoints: {l1: 10}}),
-            onOff({endpointNames: ['l1'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {l1: 10}}),
+            m.onOff({endpointNames: ['l1'], powerOnBehavior: false}),
             schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
             schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
         ],
@@ -2017,8 +2001,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 2G onoff switch',
         extend: [
-            deviceEndpoints({endpoints: {l1: 10, l2: 11}}),
-            onOff({endpointNames: ['l1', 'l2'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {l1: 10, l2: 11}}),
+            m.onOff({endpointNames: ['l1', 'l2'], powerOnBehavior: false}),
             schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
             schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
             schneiderElectricExtend.visaConfigIndicatorColor(),
@@ -2031,8 +2015,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 2G onoff switch',
         extend: [
-            deviceEndpoints({endpoints: {l1: 10, l2: 11}}),
-            onOff({endpointNames: ['l1', 'l2'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {l1: 10, l2: 11}}),
+            m.onOff({endpointNames: ['l1', 'l2'], powerOnBehavior: false}),
             schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
             schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
         ],
@@ -2043,8 +2027,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 3G onoff switch',
         extend: [
-            deviceEndpoints({endpoints: {l1: 10, l2: 11, l3: 12}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {l1: 10, l2: 11, l3: 12}}),
+            m.onOff({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: false}),
             schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
             schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
             schneiderElectricExtend.visaConfigIndicatorColor(),
@@ -2057,8 +2041,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 3G onoff switch',
         extend: [
-            deviceEndpoints({endpoints: {l1: 10, l2: 11, l3: 12}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {l1: 10, l2: 11, l3: 12}}),
+            m.onOff({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: false}),
             schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
             schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
         ],
@@ -2069,7 +2053,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser AvatarOn 2G curtain switch',
         extend: [
-            deviceEndpoints({endpoints: {l1: 10, l2: 11}}),
+            m.deviceEndpoints({endpoints: {l1: 10, l2: 11}}),
             schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
             schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
             schneiderElectricExtend.visaConfigIndicatorColor(),
@@ -2102,7 +2086,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Motion sensor with dimmer',
         extend: [
-            light({
+            m.light({
                 effect: false,
                 powerOnBehavior: false,
                 color: false,
@@ -2111,9 +2095,9 @@ const definitions: DefinitionWithExtend[] = [
                     disabledFeatures: ['on_transition_time', 'off_transition_time', 'on_off_transition_time', 'execute_if_off'],
                 },
             }),
-            lightingBallast(),
-            illuminance(),
-            occupancy({
+            m.lightingBallast(),
+            m.illuminance(),
+            m.occupancy({
                 pirConfig: ['otu_delay'],
             }),
             schneiderElectricExtend.addOccupancyConfigurationCluster(),
@@ -2136,7 +2120,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Schneider Electric',
         description: 'Motion sensor with dimmer',
         extend: [
-            light({
+            m.light({
                 effect: false,
                 powerOnBehavior: false,
                 color: false,
@@ -2145,9 +2129,9 @@ const definitions: DefinitionWithExtend[] = [
                     disabledFeatures: ['on_off_transition_time', 'on_transition_time', 'off_transition_time', 'execute_if_off'],
                 },
             }),
-            lightingBallast(),
-            illuminance(),
-            occupancy({
+            m.lightingBallast(),
+            m.illuminance(),
+            m.occupancy({
                 pirConfig: ['otu_delay'],
             }),
             schneiderElectricExtend.addOccupancyConfigurationCluster(),

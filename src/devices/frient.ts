@@ -1,5 +1,5 @@
 import {develcoModernExtend} from '../lib/develco';
-import {battery, electricityMeter, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 // NOTE! Develco and Frient is the same company, therefore we use develco specific things in here.
@@ -11,8 +11,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Frient',
         description: 'Electricity meter interface 2 LED',
         extend: [
-            electricityMeter({cluster: 'metering', power: {divisor: 1000, multiplier: 1}, energy: {divisor: 1000, multiplier: 1}}),
-            battery(),
+            m.electricityMeter({cluster: 'metering', power: {divisor: 1000, multiplier: 1}, energy: {divisor: 1000, multiplier: 1}}),
+            m.battery(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.pulseConfiguration(),
@@ -25,7 +25,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SMRZB-153',
         vendor: 'Frient',
         description: 'Smart Cable - Power switch with power measurement',
-        extend: [onOff({configureReporting: false}), electricityMeter()],
+        extend: [m.onOff({configureReporting: false}), m.electricityMeter()],
         endpoint: () => {
             return {default: 2};
         },
@@ -35,7 +35,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'EMIZB-151',
         vendor: 'Frient',
         description: 'HAN P1 power-meter sensor',
-        extend: [electricityMeter({threePhase: true})],
+        extend: [m.electricityMeter({threePhase: true})],
     },
 ];
 

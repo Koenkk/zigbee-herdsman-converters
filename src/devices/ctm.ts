@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {battery, identify, light, temperature} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -1029,7 +1029,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'mKomfy_Tak',
         vendor: 'CTM Lyng',
         description: 'Temperature sensor',
-        extend: [battery(), temperature()],
+        extend: [m.battery(), m.temperature()],
     },
     {
         zigbeeModel: ['mKomfy'],
@@ -1255,17 +1255,15 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MBD-S',
         vendor: 'CTM Lyng',
         description: 'MBD-S, motion detector with 16A relay',
-        fromZigbee: [fz.illuminance, fz.occupancy, fzLocal.ctm_mbd_device_enabled, fzLocal.ctm_relay_state],
+        fromZigbee: [fz.occupancy, fzLocal.ctm_mbd_device_enabled, fzLocal.ctm_relay_state],
         toZigbee: [tzLocal.ctm_mbd_device_enabled, tzLocal.ctm_relay_state],
         meta: {disableDefaultResponse: true},
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'msIlluminanceMeasurement', 'msOccupancySensing']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'msOccupancySensing']);
             await endpoint.read('genOnOff', ['onOff']);
             await reporting.onOff(endpoint);
-            await endpoint.read('msIlluminanceMeasurement', ['measuredValue']);
-            await reporting.illuminance(endpoint);
             await endpoint.read('msOccupancySensing', ['occupancy']);
             await reporting.occupancy(endpoint);
             // Relay State
@@ -1283,37 +1281,20 @@ const definitions: DefinitionWithExtend[] = [
                 {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS},
             );
         },
-        exposes: [
-            e.switch(),
-            e.illuminance(),
-            e.occupancy(),
-            e.binary('device_enabled', ea.ALL, 'ON', 'OFF').withDescription('Turn the device on or off'),
-        ],
+        exposes: [e.switch(), e.occupancy(), e.binary('device_enabled', ea.ALL, 'ON', 'OFF').withDescription('Turn the device on or off')],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['MBD Dim'],
         model: 'CTM_MBD_Dim',
         vendor: 'CTM Lyng',
         description: 'MBD Dim, motion detector with dimmer',
-        fromZigbee: [
-            fz.illuminance,
-            fz.occupancy,
-            fzLocal.ctm_mbd_device_enabled,
-            fzLocal.ctm_relay_state,
-            fz.brightness,
-            fz.lighting_ballast_configuration,
-        ],
+        fromZigbee: [fz.occupancy, fzLocal.ctm_mbd_device_enabled, fzLocal.ctm_relay_state, fz.brightness, fz.lighting_ballast_configuration],
         toZigbee: [tzLocal.ctm_mbd_device_enabled, tzLocal.ctm_relay_state, tzLocal.ctm_mbd_brightness, tz.ballast_config],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genOnOff',
-                'genLevelCtrl',
-                'lightingBallastCfg',
-                'msIlluminanceMeasurement',
-                'msOccupancySensing',
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg', 'msOccupancySensing']);
             await endpoint.read('genOnOff', ['onOff']);
             await reporting.onOff(endpoint);
             await endpoint.read('genLevelCtrl', ['currentLevel']);
@@ -1343,8 +1324,6 @@ const definitions: DefinitionWithExtend[] = [
                     reportableChange: null,
                 },
             ]);
-            await endpoint.read('msIlluminanceMeasurement', ['measuredValue']);
-            await reporting.illuminance(endpoint);
             await endpoint.read('msOccupancySensing', ['occupancy']);
             await reporting.occupancy(endpoint);
             // Relay State
@@ -1364,7 +1343,6 @@ const definitions: DefinitionWithExtend[] = [
         },
         exposes: [
             e.light_brightness(),
-            e.illuminance(),
             e.occupancy(),
             e.binary('device_enabled', ea.ALL, 'ON', 'OFF').withDescription('Turn the device on or off'),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(10).withValueMax(97).withDescription('Specifies the minimum brightness value'),
@@ -1375,13 +1353,14 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMax(97)
                 .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"'),
         ],
+        extend: [m.illuminance()],
     },
     {
         fingerprint: [{modelID: 'DIMMER', manufacturerName: 'NorLum Dim OP'}],
         model: '4503145',
         vendor: 'CTM Lyng',
         description: 'NorLum Dim OP, 2-250W rotary dimmer',
-        extend: [identify(), light({configureReporting: true, powerOnBehavior: true, effect: false})],
+        extend: [m.identify(), m.light({configureReporting: true, powerOnBehavior: true, effect: false})],
         ota: true,
         meta: {},
     },

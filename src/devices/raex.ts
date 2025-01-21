@@ -1,4 +1,4 @@
-import {battery, windowCovering} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TQL25-2211',
         vendor: 'Raex',
         description: 'Tubular motor',
-        extend: [battery(), windowCovering({controls: ['lift']})],
+        extend: [m.battery(), m.windowCovering({controls: ['lift']})],
     },
 ];
 

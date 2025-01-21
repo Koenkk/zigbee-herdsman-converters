@@ -3,7 +3,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_mcm6m1ma'}],
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_mcm6m1ma']),
         model: 'DL41-03-10-R-ZB',
         vendor: 'Oz Smart Things',
         description: 'Oz Smart RGBW Zigbee downlight 10w',

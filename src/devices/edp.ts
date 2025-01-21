@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -31,7 +31,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SWITCH EDP RE:DY',
         vendor: 'EDP',
         description: 're:dy switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
 ];
 

@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {battery, iasZoneAlarm, identify, windowCovering} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -13,7 +13,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SOMFY-1241752',
         vendor: 'SOMFY',
         description: 'Blinds',
-        extend: [windowCovering({controls: ['lift']}), battery()],
+        extend: [m.windowCovering({controls: ['lift']}), m.battery()],
     },
     {
         zigbeeModel: ['1822647'],
@@ -38,14 +38,14 @@ const definitions: DefinitionWithExtend[] = [
         model: '1811680',
         vendor: 'SOMFY',
         description: 'Zigbee opening sensor',
-        extend: [identify(), iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'battery_low']}), battery()],
+        extend: [m.identify(), m.iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'battery_low']}), m.battery()],
     },
     {
         zigbeeModel: ['1811681'],
         model: '1811681',
         vendor: 'SOMFY',
         description: 'Zigbee motion sensor',
-        extend: [identify(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}), battery()],
+        extend: [m.identify(), m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}), m.battery()],
     },
 ];
 

@@ -6,23 +6,7 @@ import * as constants from '../lib/constants';
 import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {
-    battery,
-    binary,
-    bindCluster,
-    commandsOnOff,
-    customTimeResponse,
-    deviceAddCustomCluster,
-    deviceEndpoints,
-    enumLookup,
-    forcePowerSource,
-    humidity,
-    iasZoneAlarm,
-    numeric,
-    occupancy,
-    onOff,
-    temperature,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
@@ -54,7 +38,7 @@ const fzLocal = {
 
 const sonoffExtend = {
     addCustomClusterEwelink: () =>
-        deviceAddCustomCluster('customClusterEwelink', {
+        m.deviceAddCustomCluster('customClusterEwelink', {
             ID: 0xfc11,
             attributes: {
                 networkLed: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
@@ -675,14 +659,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch',
         // configureReporting fails for this device
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
     },
     {
         zigbeeModel: ['ZBMINI-L'],
         model: 'ZBMINI-L',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
-        extend: [onOff()],
+        extend: [m.onOff()],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
@@ -702,7 +686,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZBMINIL2',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
-        extend: [onOff()],
+        extend: [m.onOff()],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
@@ -722,14 +706,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZBMINI',
         vendor: 'SONOFF',
         description: 'Zigbee two way smart switch',
-        extend: [onOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.onOff({powerOnBehavior: false}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['S31 Lite zb'],
         model: 'S31ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
         configure: async (device, coordinatorEndpoint) => {
             // Device does not support configureReporting for onOff, therefore just bind here.
             // https://github.com/Koenkk/zigbee2mqtt/issues/20618
@@ -758,15 +742,10 @@ const definitions: DefinitionWithExtend[] = [
                 model: 'SNZB-04',
                 fingerprint: [{modelID: 'SNZB-04', manufacturerName: 'eWeLink'}],
             },
-            {
-                vendor: 'Zbeacon',
-                model: 'TH01',
-                fingerprint: [{modelID: 'TH01', manufacturerName: 'Zbeacon'}],
-            },
             tuya.whitelabel('Tuya', 'WL-19DWZ', 'Contact sensor', ['_TZ3000_n2egfsli']),
         ],
         description: 'Contact sensor',
-        extend: [ewelinkBattery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
+        extend: [ewelinkBattery(), m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
     {
         zigbeeModel: ['WB01', 'WB-01', 'SNZB-01'],
@@ -826,6 +805,11 @@ const definitions: DefinitionWithExtend[] = [
                 modelID: 'DS01',
                 endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]}],
             },
+            {
+                type: 'EndDevice',
+                manufacturerName: 'Zbeacon',
+                modelID: 'TH01',
+            },
         ],
         zigbeeModel: ['TH01', 'SNZB-02'],
         model: 'SNZB-02',
@@ -836,6 +820,11 @@ const definitions: DefinitionWithExtend[] = [
                 vendor: 'eWeLink',
                 model: 'SNZB-02',
                 fingerprint: [{modelID: 'SNZB-02', manufacturerName: 'eWeLink'}],
+            },
+            {
+                vendor: 'Zbeacon',
+                model: 'TH01',
+                fingerprint: [{modelID: 'TH01', manufacturerName: 'Zbeacon'}],
             },
         ],
         description: 'Temperature and humidity sensor',
@@ -864,7 +853,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SNZB-02D',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor with screen',
-        extend: [battery(), temperature(), humidity(), bindCluster({cluster: 'genPollCtrl', clusterType: 'input'})],
+        extend: [m.battery(), m.temperature(), m.humidity(), m.bindCluster({cluster: 'genPollCtrl', clusterType: 'input'})],
     },
     {
         fingerprint: [
@@ -915,21 +904,21 @@ const definitions: DefinitionWithExtend[] = [
             },
         ],
         description: 'Motion sensor',
-        extend: [ewelinkBattery(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']})],
+        extend: [ewelinkBattery(), m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
     {
         zigbeeModel: ['S26R2ZB'],
         model: 'S26R2ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['S40LITE'],
         model: 'S40ZBTPB',
         vendor: 'SONOFF',
         description: '15A Zigbee smart plug',
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
         ota: true,
     },
     {
@@ -960,7 +949,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
-        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.onOff(), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['Z111PL0H-1JX'],
@@ -968,7 +957,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-028-1'}],
         description: 'Smart Plug',
-        extend: [onOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.onOff({powerOnBehavior: false}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['SNZB-01P'],
@@ -977,7 +966,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Wireless button',
         extend: [
             ewelinkAction(),
-            battery({
+            m.battery({
                 percentageReportingConfig: {min: 3600, max: 7200, change: 0},
                 voltage: true,
                 voltageReporting: true,
@@ -991,7 +980,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SNZB-02P',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor',
-        extend: [battery({percentage: true}), temperature(), humidity(), bindCluster({cluster: 'genPollCtrl', clusterType: 'input'})],
+        extend: [m.battery({percentage: true}), m.temperature(), m.humidity(), m.bindCluster({cluster: 'genPollCtrl', clusterType: 'input'})],
     },
     {
         zigbeeModel: ['SNZB-04P'],
@@ -999,8 +988,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Contact sensor',
         extend: [
-            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']}),
-            binary({
+            m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']}),
+            m.binary({
                 name: 'tamper',
                 cluster: 0xfc11,
                 attribute: {ID: 0x2000, type: 0x20},
@@ -1020,8 +1009,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Zigbee PIR sensor',
         extend: [
-            occupancy(),
-            numeric({
+            m.occupancy(),
+            m.numeric({
                 name: 'motion_timeout',
                 cluster: 0x0406,
                 attribute: {ID: 0x0020, type: 0x21},
@@ -1029,7 +1018,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMin: 5,
                 valueMax: 60,
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'illumination',
                 lookup: {dim: 0, bright: 1},
                 cluster: 0xfc11,
@@ -1047,7 +1036,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SNZB-05P',
         vendor: 'SONOFF',
         description: 'Zigbee water sensor',
-        extend: [battery(), iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']})],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
     {
         zigbeeModel: ['SNZB-06P'],
@@ -1055,8 +1044,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Zigbee occupancy sensor',
         extend: [
-            occupancy({reporting: false}),
-            numeric({
+            m.occupancy({reporting: false}),
+            m.numeric({
                 name: 'occupancy_timeout',
                 cluster: 0x0406,
                 attribute: {ID: 0x0020, type: 0x21},
@@ -1064,14 +1053,14 @@ const definitions: DefinitionWithExtend[] = [
                 valueMin: 15,
                 valueMax: 65535,
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'occupancy_sensitivity',
                 lookup: {low: 1, medium: 2, high: 3},
                 cluster: 0x0406,
                 attribute: {ID: 0x0022, type: 0x20},
                 description: 'Sensitivity of human presence detection',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'illumination',
                 lookup: {dim: 0, bright: 1},
                 cluster: 0xfc11,
@@ -1107,7 +1096,7 @@ const definitions: DefinitionWithExtend[] = [
             tz.thermostat_running_state,
         ],
         extend: [
-            deviceAddCustomCluster('customSonoffTrvzb', {
+            m.deviceAddCustomCluster('customSonoffTrvzb', {
                 ID: 0xfc11,
                 attributes: {
                     childLock: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
@@ -1126,7 +1115,7 @@ const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            binary({
+            m.binary({
                 name: 'child_lock',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'childLock',
@@ -1135,7 +1124,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOn: ['LOCK', 0x01],
                 valueOff: ['UNLOCK', 0x00],
             }),
-            binary({
+            m.binary({
                 name: 'open_window',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'openWindow',
@@ -1144,7 +1133,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOn: ['ON', 0x01],
                 valueOff: ['OFF', 0x00],
             }),
-            numeric({
+            m.numeric({
                 name: 'frost_protection_temperature',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'frostProtectionTemperature',
@@ -1156,7 +1145,7 @@ const definitions: DefinitionWithExtend[] = [
                 unit: '°C',
                 scale: 100,
             }),
-            numeric({
+            m.numeric({
                 name: 'idle_steps',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'idleSteps',
@@ -1164,7 +1153,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Number of steps used for calibration (no-load steps)',
                 access: 'STATE_GET',
             }),
-            numeric({
+            m.numeric({
                 name: 'closing_steps',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'closingSteps',
@@ -1172,7 +1161,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Number of steps it takes to close the valve',
                 access: 'STATE_GET',
             }),
-            numeric({
+            m.numeric({
                 name: 'valve_opening_limit_voltage',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'valveOpeningLimitVoltage',
@@ -1181,7 +1170,7 @@ const definitions: DefinitionWithExtend[] = [
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
-            numeric({
+            m.numeric({
                 name: 'valve_closing_limit_voltage',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'valveClosingLimitVoltage',
@@ -1190,7 +1179,7 @@ const definitions: DefinitionWithExtend[] = [
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
-            numeric({
+            m.numeric({
                 name: 'valve_motor_running_voltage',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'valveMotorRunningVoltage',
@@ -1199,7 +1188,7 @@ const definitions: DefinitionWithExtend[] = [
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
-            numeric({
+            m.numeric({
                 name: 'valve_opening_degree',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'valveOpeningDegree',
@@ -1215,7 +1204,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueStep: 1.0,
                 unit: '%',
             }),
-            numeric({
+            m.numeric({
                 name: 'valve_closing_degree',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'valveClosingDegree',
@@ -1232,7 +1221,7 @@ const definitions: DefinitionWithExtend[] = [
                 unit: '%',
             }),
             sonoffExtend.weeklySchedule(),
-            customTimeResponse('1970_UTC'),
+            m.customTimeResponse('1970_UTC'),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -1250,14 +1239,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'S60ZBTPF',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['S60ZBTPG'],
         model: 'S60ZBTPG',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['SWV'],
@@ -1267,14 +1256,14 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.flow],
         exposes: [e.numeric('flow', ea.STATE).withDescription('Current water flow').withUnit('m³/h')],
         extend: [
-            battery(),
-            onOff({
+            m.battery(),
+            m.onOff({
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: true,
             }),
             sonoffExtend.addCustomClusterEwelink(),
-            enumLookup({
+            m.enumLookup({
                 name: 'current_device_status',
                 lookup: {normal_state: 0, water_shortage: 1, water_leakage: 2, 'water_shortage & water_leakage': 3},
                 cluster: 'customClusterEwelink',
@@ -1282,7 +1271,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'The water valve is in normal state, water shortage or water leakage',
                 access: 'STATE_GET',
             }),
-            binary({
+            m.binary({
                 name: 'auto_close_when_water_shortage',
                 cluster: 'customClusterEwelink',
                 attribute: 'lackWaterCloseValveTimeout',
@@ -1309,9 +1298,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'SONOFF',
         description: 'Zigbee USB repeater plug',
         extend: [
-            onOff(),
+            m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
-            binary({
+            m.binary({
                 name: 'rf_turbo_mode',
                 cluster: 'customClusterEwelink',
                 attribute: 'radioPowerWithManuCode',
@@ -1337,10 +1326,10 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee smart switch',
         exposes: [],
         extend: [
-            commandsOnOff({commands: ['toggle']}),
-            onOff({configureReporting: false}),
+            m.commandsOnOff({commands: ['toggle']}),
+            m.onOff({configureReporting: false}),
             sonoffExtend.addCustomClusterEwelink(),
-            binary({
+            m.binary({
                 name: 'network_indicator',
                 cluster: 'customClusterEwelink',
                 attribute: 'networkLed',
@@ -1348,7 +1337,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
-            binary({
+            m.binary({
                 name: 'turbo_mode',
                 cluster: 'customClusterEwelink',
                 attribute: 'radioPower',
@@ -1356,7 +1345,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
             }),
-            binary({
+            m.binary({
                 name: 'delayed_power_on_state',
                 cluster: 'customClusterEwelink',
                 attribute: 'delayedPowerOnState',
@@ -1364,7 +1353,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
-            numeric({
+            m.numeric({
                 name: 'delayed_power_on_time',
                 cluster: 'customClusterEwelink',
                 attribute: 'delayedPowerOnTime',
@@ -1375,7 +1364,7 @@ const definitions: DefinitionWithExtend[] = [
                 unit: 'seconds',
                 scale: 2,
             }),
-            binary({
+            m.binary({
                 name: 'detach_relay_mode',
                 cluster: 'customClusterEwelink',
                 attribute: 'detachRelayMode',
@@ -1402,10 +1391,10 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [],
         ota: true,
         extend: [
-            deviceEndpoints({endpoints: {l1: 1}}),
-            onOff(),
+            m.deviceEndpoints({endpoints: {l1: 1}}),
+            m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
-            enumLookup({
+            m.enumLookup({
                 name: 'device_work_mode',
                 lookup: {'Zigbee end device': 0, 'Zigbee router': 1},
                 cluster: 'customClusterEwelink',
@@ -1413,7 +1402,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'The device runs as a Zigbee End device or Zigbee router.',
                 access: 'STATE_GET',
             }),
-            binary({
+            m.binary({
                 name: 'network_indicator',
                 cluster: 'customClusterEwelink',
                 attribute: 'networkLed',
@@ -1439,10 +1428,10 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [],
         ota: true,
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            onOff({endpointNames: ['l1', 'l2']}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.onOff({endpointNames: ['l1', 'l2']}),
             sonoffExtend.addCustomClusterEwelink(),
-            enumLookup({
+            m.enumLookup({
                 name: 'device_work_mode',
                 lookup: {'Zigbee end device': 0, 'Zigbee router': 1},
                 cluster: 'customClusterEwelink',
@@ -1450,7 +1439,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'The device runs as a Zigbee End device or Zigbee router.',
                 access: 'STATE_GET',
             }),
-            binary({
+            m.binary({
                 name: 'network_indicator',
                 cluster: 'customClusterEwelink',
                 attribute: 'networkLed',
@@ -1480,10 +1469,10 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [],
         ota: true,
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3']}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            m.onOff({endpointNames: ['l1', 'l2', 'l3']}),
             sonoffExtend.addCustomClusterEwelink(),
-            enumLookup({
+            m.enumLookup({
                 name: 'device_work_mode',
                 lookup: {'Zigbee end device': 0, 'Zigbee router': 1},
                 cluster: 'customClusterEwelink',
@@ -1491,7 +1480,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'The device runs as a Zigbee End device or Zigbee router.',
                 access: 'STATE_GET',
             }),
-            binary({
+            m.binary({
                 name: 'network_indicator',
                 cluster: 'customClusterEwelink',
                 attribute: 'networkLed',

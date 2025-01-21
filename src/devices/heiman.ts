@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {battery, iasZoneAlarm, light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend, Reporting, Zh} from '../lib/types';
@@ -16,20 +16,18 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HS1MIS-3.0',
         vendor: 'HEIMAN',
         description: 'Smart occupancy sensor',
-        fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery(), e.illuminance()],
+        fromZigbee: [fz.occupancy, fz.battery],
+        exposes: [e.occupancy(), e.battery()],
         configure: async (device, cordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, cordinatorEndpoint, ['msOccupancySensing', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint1);
             await reporting.occupancy(endpoint1);
-            await reporting.bind(endpoint1, cordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint1);
         },
+        extend: [m.illuminance()],
     },
     {
-        fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
+        fingerprint: tuya.fingerprint('TS0212', ['_TYZB01_wpmo3ja3']),
         zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba', 'CO_CTPG'],
         model: 'HS1CA-M',
         description: 'Smart carbon monoxide sensor',
@@ -289,10 +287,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'},
-            {modelID: 'TS0216', manufacturerName: '_TYZB01_4obovpbi'},
-        ],
+        fingerprint: tuya.fingerprint('TS0216', ['_TYZB01_8scntis1', '_TYZB01_4obovpbi']),
         zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0'],
         model: 'HS2WD-E',
         vendor: 'HEIMAN',
@@ -668,7 +663,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'HS2WDS',
         vendor: 'HEIMAN',
         description: 'LED 9W CCT E27',
-        extend: [light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['CurtainMo-EF-3.0', 'CurtainMo-EF'],
@@ -768,8 +763,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'HEIMAN',
         description: 'Motion sensor',
         extend: [
-            battery({voltageToPercentage: {min: 2500, max: 3000}, voltage: true}),
-            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            m.battery({voltageToPercentage: {min: 2500, max: 3000}, voltage: true}),
+            m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
         ],
     },
 ];

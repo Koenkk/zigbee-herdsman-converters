@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'DM A60F',
         vendor: 'CY-LIGHTING',
         description: '6W smart dimmable E27 lamp 2700K',
-        extend: [light()],
+        extend: [m.light()],
     },
 ];
 

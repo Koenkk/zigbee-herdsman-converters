@@ -5,17 +5,7 @@ import {Zcl} from 'zigbee-herdsman';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import {access, options, presets} from '../lib/exposes';
-import {
-    deviceAddCustomCluster,
-    LightArgs,
-    light as lightDontUse,
-    numeric,
-    NumericArgs,
-    ReportingConfigWithoutAttribute,
-    setupConfigureForBinding,
-    setupConfigureForReporting,
-    TIME_LOOKUP,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
@@ -31,6 +21,9 @@ import {
     precisionRound,
     replaceToZigbeeConvertersInArray,
 } from '../lib/utils';
+import {logger} from './logger';
+
+const NS = 'zhc:ikea';
 
 export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
 
@@ -85,12 +78,12 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
     }
 };
 
-export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: true | {range: Range; viaColor: true}}) {
+export function ikeaLight(args?: Omit<m.LightArgs, 'colorTemp'> & {colorTemp?: true | {range: Range; viaColor: true}}) {
     const colorTemp: {range: Range} = args?.colorTemp ? (args.colorTemp === true ? {range: [250, 454]} : args.colorTemp) : undefined;
     const levelConfig: {disabledFeatures?: string[]} = args?.levelConfig
         ? args.levelConfig
         : {disabledFeatures: ['on_off_transition_time', 'on_transition_time', 'off_transition_time', 'on_level']};
-    const result = lightDontUse({...args, colorTemp, levelConfig});
+    const result = m.light({...args, colorTemp, levelConfig});
     result.ota = true;
     result.onEvent = bulbOnEvent;
     if (isObject(args?.colorTemp) && args.colorTemp.viaColor) {
@@ -171,10 +164,10 @@ export function ikeaBattery(): ModernExtend {
         },
     ];
 
-    const defaultReporting: ReportingConfigWithoutAttribute = {min: '1_HOUR', max: 'MAX', change: 10};
+    const defaultReporting: m.ReportingConfigWithoutAttribute = {min: '1_HOUR', max: 'MAX', change: 10};
 
     const configure: Configure[] = [
-        setupConfigureForReporting('genPowerCfg', 'batteryPercentageRemaining', defaultReporting, access.STATE_GET),
+        m.setupConfigureForReporting('genPowerCfg', 'batteryPercentageRemaining', defaultReporting, access.STATE_GET),
         configureSetPowerSourceWhenUnknown('Battery'),
     ];
 
@@ -198,16 +191,20 @@ export function ikeaConfigureStyrbar(): ModernExtend {
 export function ikeaConfigureRemote(): ModernExtend {
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
-            // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
-            // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-            // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
-            const endpoint = device.getEndpoint(1);
-            const version = device.softwareBuildID.split('.').map((n) => Number(n));
-            const bindTarget =
-                version[0] > 2 || (version[0] == 2 && version[1] > 3) || (version[0] == 2 && version[1] == 3 && version[2] >= 75)
-                    ? coordinatorEndpoint
-                    : constants.defaultBindGroup;
-            await endpoint.bind('genOnOff', bindTarget);
+            if (device.softwareBuildID) {
+                // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
+                // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
+                // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
+                const endpoint = device.getEndpoint(1);
+                const version = device.softwareBuildID.split('.').map((n) => Number(n));
+                const bindTarget =
+                    version[0] > 2 || (version[0] == 2 && version[1] > 3) || (version[0] == 2 && version[1] == 3 && version[2] >= 75)
+                        ? coordinatorEndpoint
+                        : constants.defaultBindGroup;
+                await endpoint.bind('genOnOff', bindTarget);
+            } else {
+                logger.warning(`Could not correctly configure '${device.softwareBuildID}' since softwareBuildID is missing, try re-pairing it`, NS);
+            }
         },
     ];
 
@@ -418,8 +415,8 @@ export function ikeaAirPurifier(): ModernExtend {
                 [
                     {
                         attribute: 'particulateMatter25Measurement',
-                        minimumReportInterval: TIME_LOOKUP['1_MINUTE'],
-                        maximumReportInterval: TIME_LOOKUP['1_HOUR'],
+                        minimumReportInterval: m.TIME_LOOKUP['1_MINUTE'],
+                        maximumReportInterval: m.TIME_LOOKUP['1_HOUR'],
                         reportableChange: 1,
                     },
                 ],
@@ -430,8 +427,8 @@ export function ikeaAirPurifier(): ModernExtend {
                 [
                     {
                         attribute: 'filterRunTime',
-                        minimumReportInterval: TIME_LOOKUP['1_HOUR'],
-                        maximumReportInterval: TIME_LOOKUP['1_HOUR'],
+                        minimumReportInterval: m.TIME_LOOKUP['1_HOUR'],
+                        maximumReportInterval: m.TIME_LOOKUP['1_HOUR'],
                         reportableChange: 0,
                     },
                 ],
@@ -439,12 +436,12 @@ export function ikeaAirPurifier(): ModernExtend {
             );
             await endpoint.configureReporting(
                 'manuSpecificIkeaAirPurifier',
-                [{attribute: 'fanMode', minimumReportInterval: 0, maximumReportInterval: TIME_LOOKUP['1_HOUR'], reportableChange: 1}],
+                [{attribute: 'fanMode', minimumReportInterval: 0, maximumReportInterval: m.TIME_LOOKUP['1_HOUR'], reportableChange: 1}],
                 manufacturerOptions,
             );
             await endpoint.configureReporting(
                 'manuSpecificIkeaAirPurifier',
-                [{attribute: 'fanSpeed', minimumReportInterval: 0, maximumReportInterval: TIME_LOOKUP['1_HOUR'], reportableChange: 1}],
+                [{attribute: 'fanSpeed', minimumReportInterval: 0, maximumReportInterval: m.TIME_LOOKUP['1_HOUR'], reportableChange: 1}],
                 manufacturerOptions,
             );
 
@@ -455,8 +452,8 @@ export function ikeaAirPurifier(): ModernExtend {
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export function ikeaVoc(args?: Partial<NumericArgs>) {
-    return numeric({
+export function ikeaVoc(args?: Partial<m.NumericArgs>) {
+    return m.numeric({
         name: 'voc_index',
         label: 'VOC index',
         cluster: 'manuSpecificIkeaVocIndexMeasurement',
@@ -675,7 +672,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForBinding('tradfriButton', 'output', args.endpointNames)];
+    const configure: Configure[] = [m.setupConfigureForBinding('tradfriButton', 'output', args.endpointNames)];
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
@@ -725,7 +722,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = [setupConfigureForBinding('genScenes', 'output')];
+    if (args.bind) result.configure = [m.setupConfigureForBinding('genScenes', 'output')];
 
     return result;
 }
@@ -764,13 +761,13 @@ export function ikeaMediaCommands(): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForBinding('genLevelCtrl', 'output')];
+    const configure: Configure[] = [m.setupConfigureForBinding('genLevelCtrl', 'output')];
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
 
 export function addCustomClusterManuSpecificIkeaAirPurifier(): ModernExtend {
-    return deviceAddCustomCluster('manuSpecificIkeaAirPurifier', {
+    return m.deviceAddCustomCluster('manuSpecificIkeaAirPurifier', {
         ID: 0xfc7d,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {
@@ -790,7 +787,7 @@ export function addCustomClusterManuSpecificIkeaAirPurifier(): ModernExtend {
 }
 
 export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExtend {
-    return deviceAddCustomCluster('manuSpecificIkeaVocIndexMeasurement', {
+    return m.deviceAddCustomCluster('manuSpecificIkeaVocIndexMeasurement', {
         ID: 0xfc7e,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {
@@ -807,7 +804,7 @@ export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExt
 //  Also observed on some older devices that had a post DIRIGERA release fw update.
 //  No attributes known.
 export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
-    return deviceAddCustomCluster('manuSpecificIkeaUnknown', {
+    return m.deviceAddCustomCluster('manuSpecificIkeaUnknown', {
         ID: 0xfc7c,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {},

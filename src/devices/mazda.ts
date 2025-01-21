@@ -11,16 +11,7 @@ interface KeyValueStringEnum {
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE284_k6rdmisz',
-            },
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_k6rdmisz',
-            },
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_k6rdmisz', '_TZE204_k6rdmisz']),
         model: 'TR-M2Z',
         vendor: 'MAZDA',
         description: 'Thermostatic radiator valve',
@@ -31,7 +22,6 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.temperature(),
             e.window_detection(),
             tuya.exposes.frostProtection(),
             e.binary('alarm_switch', ea.STATE, 'ON', 'OFF').withDescription('Thermostat in error state'),

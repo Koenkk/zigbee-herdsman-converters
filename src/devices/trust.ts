@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -53,7 +53,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZLED-2709',
         vendor: 'Trust',
         description: 'Smart Dimmable LED Bulb',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         fingerprint: [
@@ -78,7 +78,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZLED-TUNE9',
         vendor: 'Trust',
         description: 'Smart tunable LED bulb',
-        extend: [light({colorTemp: {range: undefined}})],
+        extend: [m.light({colorTemp: {range: undefined}})],
     },
     {
         fingerprint: [
@@ -102,7 +102,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZLED-RGB9',
         vendor: 'Trust',
         description: 'Smart RGB LED bulb',
-        extend: [light({colorTemp: {range: [153, 500]}, color: true, powerOnBehavior: false})],
+        extend: [m.light({colorTemp: {range: [153, 500]}, color: true, powerOnBehavior: false})],
         endpoint: (device) => {
             return {default: 2};
         },
@@ -140,7 +140,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZCM-300',
         vendor: 'Trust',
         description: 'Zigbee smart dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
 ];
 

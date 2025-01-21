@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, electricityMeter, identify, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -11,14 +11,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZG_LED_DRIVER42CC',
         vendor: 'Envilar',
         description: 'Zigbee LED driver',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['ZG50CC-CCT-DRIVER', 'HK-CCT'],
         model: 'ZG50CC-CCT-DRIVER',
         vendor: 'Envilar',
         description: 'Zigbee CCT LED driver',
-        extend: [light({colorTemp: {range: [160, 450]}})],
+        extend: [m.light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['ZGR904-S'],
@@ -35,28 +35,28 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZG102-BOX-UNIDIM',
         vendor: 'Envilar',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ZG302-BOX-RELAY'],
         model: 'ZG302-BOX-RELAY',
         vendor: 'Envilar',
         description: 'Zigbee AC in wall switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['2CH-ZG-BOX-RELAY'],
         model: '2CH-ZG-BOX-RELAY',
         vendor: 'Envilar',
         description: '2 channel box relay',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2}}), onOff({endpointNames: ['l1', 'l2']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ['l1', 'l2']})],
     },
     {
         zigbeeModel: ['7853'],
         model: '1CH-HP-RELAY-7853',
         vendor: 'Envilar',
         description: '1 channel high power box relay',
-        extend: [onOff({powerOnBehavior: true}), identify(), electricityMeter()],
+        extend: [m.onOff({powerOnBehavior: true}), m.identify(), m.electricityMeter()],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9101SAC-HP-SWITCH-B'}],
     },
 ];

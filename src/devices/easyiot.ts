@@ -2,7 +2,7 @@ import * as iconv from 'iconv-lite';
 
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {deviceEndpoints, electricityMeter, onOff, windowCovering} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
 
@@ -233,14 +233,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZB-PM01',
         vendor: 'easyiot',
         description: 'Smart circuit breaker with Metering',
-        extend: [onOff({powerOnBehavior: false}), electricityMeter()],
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
     },
     {
         zigbeeModel: ['ZB-WC01'],
         model: 'ZB-WC01',
         vendor: 'easyiot',
         description: 'Curtain motor',
-        extend: [windowCovering({controls: ['lift'], configureReporting: false})],
+        extend: [m.windowCovering({controls: ['lift'], configureReporting: false})],
     },
     {
         zigbeeModel: ['ZB-WB01'],
@@ -342,8 +342,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'easyiot',
         description: 'Zigbee 4-channel relay',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4'], configureReporting: false, powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            m.onOff({endpointNames: ['l1', 'l2', 'l3', 'l4'], configureReporting: false, powerOnBehavior: false}),
         ],
     },
     {
@@ -352,8 +352,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'easyiot',
         description: 'Zigbee 8-channel relay',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8}}),
-            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8'], configureReporting: false, powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8}}),
+            m.onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8'], configureReporting: false, powerOnBehavior: false}),
         ],
     },
 ];

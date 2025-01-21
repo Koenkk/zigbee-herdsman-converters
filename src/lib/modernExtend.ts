@@ -12,6 +12,7 @@ import {
     BatteryLinearVoltage,
     BatteryNonLinearVoltage,
     Configure,
+    DefinitionExposes,
     DefinitionExposesFunction,
     DefinitionMeta,
     Expose,
@@ -651,7 +652,7 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
         return result;
     };
 
-    return numeric({
+    const result = numeric({
         name: 'illuminance',
         cluster: 'msIlluminanceMeasurement',
         attribute: 'measuredValue',
@@ -662,6 +663,24 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
         access: 'STATE_GET',
         ...args,
     });
+
+    const fzIlluminanceRaw = {
+        cluster: 'msIlluminanceMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        options: [opt.illuminance_raw()],
+        convert: (model, msg, publish, options, meta) => {
+            if (options.illuminance_raw) {
+                return {illuminance_raw: msg.data['measuredValue']};
+            }
+        },
+    } satisfies Fz.Converter;
+    result.fromZigbee.push(fzIlluminanceRaw);
+    const exposeIlluminanceRaw: DefinitionExposes = (device, options) => {
+        return options?.illuminance_raw ? [e.illuminance_raw()] : [];
+    };
+    result.exposes.push(exposeIlluminanceRaw);
+
+    return result;
 }
 
 export function temperature(args?: Partial<NumericArgs>) {
@@ -922,15 +941,18 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
 }
 
 export function co2(args?: Partial<NumericArgs>) {
+    const fractionOf1: ScaleFunction = (value: number, type: 'from' | 'to') => {
+        return 1 / value;
+    };
     return numeric({
         name: 'co2',
         cluster: 'msCO2',
         label: 'CO2',
         attribute: 'measuredValue',
-        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 0.00005}, // 50 ppm change
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: fractionOf1(50 /*ppm*/, 'to')},
         description: 'Measured value',
         unit: 'ppm',
-        scale: 0.000001,
+        scale: fractionOf1,
         access: 'STATE_GET',
         ...args,
     });
@@ -2082,7 +2104,7 @@ export interface NumericArgs {
     access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     unit?: string;
     endpointNames?: string[];
-    reporting?: ReportingConfigWithoutAttribute;
+    reporting?: false | ReportingConfigWithoutAttribute;
     valueMin?: number;
     valueMax?: number;
     valueStep?: number;
@@ -2196,7 +2218,10 @@ export function numeric(args: NumericArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access, endpoints)];
+    const configure: Configure[] = [];
+    if (reporting) {
+        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access, endpoints));
+    }
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2210,7 +2235,7 @@ export interface BinaryArgs {
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: ReportingConfig;
+    reporting?: false | ReportingConfig;
     access?: 'STATE' | 'STATE_GET' | 'STATE_SET' | 'SET' | 'ALL';
     entityCategory?: 'config' | 'diagnostic';
 }
@@ -2258,7 +2283,10 @@ export function binary(args: BinaryArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [];
+    if (reporting) {
+        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access));
+    }
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }

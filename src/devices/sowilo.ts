@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'L258',
         vendor: 'Sowilo DS',
         description: 'Heimdall Pro 5 channel RGBWW controller',
-        extend: [light({colorTemp: {range: [150, 575]}, color: {modes: ['xy', 'hs']}, turnsOffAtBrightness1: true})],
+        extend: [m.light({colorTemp: {range: [150, 575]}, color: {modes: ['xy', 'hs']}, turnsOffAtBrightness1: true})],
     },
 ];
 

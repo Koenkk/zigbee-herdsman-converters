@@ -1,16 +1,16 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import * as modernExtend from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {Configure, DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
-
-const {forcePowerSource, temperature, humidity, co2, deviceEndpoints, onOff, illuminance, occupancy} = modernExtend;
 
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -250,8 +250,8 @@ const tzLocal = {
 };
 
 const sprutModernExtend = {
-    sprutActivityIndicator: (args?: Partial<modernExtend.BinaryArgs>) =>
-        modernExtend.binary({
+    sprutActivityIndicator: (args?: Partial<m.BinaryArgs>) =>
+        m.binary({
             name: 'activity_led',
             cluster: 'genBinaryOutput',
             attribute: 'presentValue',
@@ -263,8 +263,37 @@ const sprutModernExtend = {
             entityCategory: 'config',
             ...args,
         }),
-    sprutTemperatureOffset: (args?: Partial<modernExtend.NumericArgs>) =>
-        modernExtend.numeric({
+    sprutIsConnected: (args?: Partial<m.BinaryArgs>) =>
+        m.binary({
+            name: 'uart_connection',
+            cluster: 'sprutDevice',
+            attribute: 'isConnected',
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            description: 'Indicates whether the device is communicating with sensors via UART',
+            access: 'STATE_GET',
+            entityCategory: 'diagnostic',
+            ...args,
+        }),
+    sprutUartBaudRate: (args?: Partial<m.EnumLookupArgs>) =>
+        m.enumLookup({
+            name: 'uart_baud_rate',
+            lookup: {
+                '9600': 9600,
+                '19200': 19200,
+                '38400': 38400,
+                '57600': 57600,
+                '115200': 115200,
+            },
+            cluster: 'sprutDevice',
+            attribute: 'UartBaudRate',
+            description: 'UART baud rate',
+            access: 'ALL',
+            entityCategory: 'config',
+            ...args,
+        }),
+    sprutTemperatureOffset: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'temperature_offset',
             cluster: 'msTemperatureMeasurement',
             attribute: 'sprutTemperatureOffset',
@@ -278,8 +307,8 @@ const sprutModernExtend = {
             zigbeeCommandOptions: manufacturerOptions,
             ...args,
         }),
-    sprutThHeater: (args?: Partial<modernExtend.BinaryArgs>) =>
-        modernExtend.binary({
+    sprutThHeater: (args?: Partial<m.BinaryArgs>) =>
+        m.binary({
             name: 'th_heater',
             cluster: 'msRelativeHumidity',
             attribute: 'sprutHeater',
@@ -291,8 +320,8 @@ const sprutModernExtend = {
             zigbeeCommandOptions: manufacturerOptions,
             ...args,
         }),
-    sprutOccupancyLevel: (args?: Partial<modernExtend.NumericArgs>) =>
-        modernExtend.numeric({
+    sprutOccupancyLevel: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'occupancy_level',
             cluster: 'msOccupancySensing',
             attribute: 'sprutOccupancyLevel',
@@ -302,8 +331,8 @@ const sprutModernExtend = {
             entityCategory: 'diagnostic',
             ...args,
         }),
-    sprutOccupancyTimeout: (args?: Partial<modernExtend.NumericArgs>) =>
-        modernExtend.numeric({
+    sprutOccupancyTimeout: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'occupancy_timeout',
             cluster: 'msOccupancySensing',
             attribute: 'pirOToUDelay',
@@ -315,8 +344,8 @@ const sprutModernExtend = {
             entityCategory: 'config',
             ...args,
         }),
-    sprutOccupancySensitivity: (args?: Partial<modernExtend.NumericArgs>) =>
-        modernExtend.numeric({
+    sprutOccupancySensitivity: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'occupancy_sensitivity',
             cluster: 'msOccupancySensing',
             attribute: 'sprutOccupancySensitivity',
@@ -328,8 +357,8 @@ const sprutModernExtend = {
             zigbeeCommandOptions: manufacturerOptions,
             ...args,
         }),
-    sprutNoise: (args?: Partial<modernExtend.NumericArgs>) =>
-        modernExtend.numeric({
+    sprutNoise: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'noise',
             cluster: 'sprutNoise',
             attribute: 'noise',
@@ -341,8 +370,8 @@ const sprutModernExtend = {
             entityCategory: 'diagnostic',
             ...args,
         }),
-    sprutNoiseDetectLevel: (args?: Partial<modernExtend.NumericArgs>) =>
-        modernExtend.numeric({
+    sprutNoiseDetectLevel: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'noise_detect_level',
             cluster: 'sprutNoise',
             attribute: 'noiseDetectLevel',
@@ -355,8 +384,8 @@ const sprutModernExtend = {
             zigbeeCommandOptions: manufacturerOptions,
             ...args,
         }),
-    sprutNoiseDetected: (args?: Partial<modernExtend.BinaryArgs>) =>
-        modernExtend.binary({
+    sprutNoiseDetected: (args?: Partial<m.BinaryArgs>) =>
+        m.binary({
             name: 'noise_detected',
             cluster: 'sprutNoise',
             attribute: 'noiseDetected',
@@ -366,8 +395,8 @@ const sprutModernExtend = {
             access: 'STATE_GET',
             ...args,
         }),
-    sprutNoiseTimeout: (args?: Partial<modernExtend.NumericArgs>) =>
-        modernExtend.numeric({
+    sprutNoiseTimeout: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'noise_timeout',
             cluster: 'sprutNoise',
             attribute: 'noiseAfterDetectDelay',
@@ -379,8 +408,8 @@ const sprutModernExtend = {
             entityCategory: 'config',
             ...args,
         }),
-    sprutVoc: (args?: Partial<modernExtend.NumericArgs>) =>
-        modernExtend.numeric({
+    sprutVoc: (args?: Partial<m.NumericArgs>) =>
+        m.numeric({
             name: 'voc',
             label: 'VOC',
             cluster: 'sprutVoc',
@@ -434,13 +463,15 @@ const sprutModernExtend = {
                 },
             },
         ];
-        const configure: Configure[] = [modernExtend.setupConfigureForBinding('sprutIrBlaster', 'input')];
+        const configure: Configure[] = [m.setupConfigureForBinding('sprutIrBlaster', 'input')];
         return {toZigbee, configure, isModernExtend: true};
     },
 };
 
 const {
     sprutActivityIndicator,
+    sprutIsConnected,
+    sprutUartBaudRate,
     sprutOccupancyLevel,
     sprutNoise,
     sprutVoc,
@@ -462,7 +493,6 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Wall-mounted multi sensor',
         fromZigbee: [
             fzLocal.temperature,
-            fz.illuminance,
             fz.humidity,
             fz.occupancy,
             fzLocal.occupancy_level,
@@ -491,7 +521,6 @@ const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e.temperature(),
-            e.illuminance(),
             e.humidity(),
             e.occupancy(),
             e.occupancy_level(),
@@ -561,7 +590,6 @@ const definitions: DefinitionWithExtend[] = [
             const binds = [
                 'genBasic',
                 'msTemperatureMeasurement',
-                'msIlluminanceMeasurement',
                 'msRelativeHumidity',
                 'msOccupancySensing',
                 'msCO2',
@@ -574,7 +602,6 @@ const definitions: DefinitionWithExtend[] = [
 
             // report configuration
             await reporting.temperature(endpoint1);
-            await reporting.illuminance(endpoint1);
             await reporting.humidity(endpoint1);
             await reporting.occupancy(endpoint1);
 
@@ -598,6 +625,7 @@ const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
         ota: true,
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['WBMSW4'],
@@ -605,20 +633,36 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Wirenboard',
         description: 'Wall-mounted multi sensor',
         extend: [
-            forcePowerSource({powerSource: 'Mains (single phase)'}),
-            deviceEndpoints({
+            m.deviceAddCustomCluster('sprutDevice', {
+                ID: 26112,
+                manufacturerCode: 26214,
+                attributes: {
+                    isConnected: {ID: 26116, type: Zcl.DataType.BOOLEAN},
+                    UartBaudRate: {ID: 26113, type: Zcl.DataType.UINT32},
+                },
+                commands: {
+                    debug: {
+                        ID: 103,
+                        parameters: [{name: 'data', type: Zcl.DataType.UINT8}],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            m.forcePowerSource({powerSource: 'Mains (single phase)'}),
+            m.deviceEndpoints({
                 endpoints: {default: 1, l1: 2, l2: 3, l3: 4, indicator: 5},
                 multiEndpointSkip: ['occupancy'],
             }),
-            onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
+            m.onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
             sprutActivityIndicator({endpointName: 'indicator'}),
-            temperature(),
+            sprutIsConnected(),
+            m.temperature(),
             sprutTemperatureOffset(),
-            humidity(),
+            m.humidity(),
             sprutThHeater(),
-            co2(),
-            illuminance(),
-            occupancy(),
+            m.co2(),
+            m.illuminance(),
+            m.occupancy(),
             sprutOccupancySensitivity(),
             sprutOccupancyLevel(),
             sprutOccupancyTimeout(),
@@ -628,6 +672,7 @@ const definitions: DefinitionWithExtend[] = [
             sprutNoiseTimeout(),
             sprutVoc(),
             sprutIrBlaster(),
+            sprutUartBaudRate(),
         ],
         ota: true,
     },

@@ -1,4 +1,4 @@
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'GD-ZCRGB012',
         vendor: 'GIDERWEL',
         description: 'Smart Zigbee RGB LED strip controller',
-        extend: [light({color: {modes: ['xy', 'hs']}})],
+        extend: [m.light({color: {modes: ['xy', 'hs']}})],
     },
 ];
 

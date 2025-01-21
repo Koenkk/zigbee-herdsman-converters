@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -9,11 +9,11 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_wrhhi5h2'}],
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_wrhhi5h2']),
         model: '1GNNTS',
         vendor: 'WETEN',
         description: '1 gang no neutral touch wall switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
         fromZigbee: [fz.ignore_basic_report, fz.ignore_time_read],
     },
     {

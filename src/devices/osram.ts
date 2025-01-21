@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {ledvanceFz, ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
-import {deviceEndpoints} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -298,6 +298,7 @@ const definitions: DefinitionWithExtend[] = [
             fz.command_off,
             fz.battery,
             fz.command_move_to_level,
+            fz.command_move_hue,
         ],
         exposes: [
             e.battery(),
@@ -421,7 +422,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4062172044776_3',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices)',
-        extend: [deviceEndpoints({endpoints: {l1: 10, l2: 11}}), ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2'], ota: true})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 10, l2: 11}}), ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2'], ota: true})],
     },
     {
         fingerprint: [
@@ -432,7 +433,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
         extend: [
-            deviceEndpoints({endpoints: {l1: 10, l2: 11, s1: 25}}),
+            m.deviceEndpoints({endpoints: {l1: 10, l2: 11, s1: 25}}),
             ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2', 's1'], ota: true}),
         ],
         fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],

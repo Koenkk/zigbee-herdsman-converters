@@ -10,17 +10,17 @@ const ea = exposes.access;
 const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000', 'fvq6avy\u0000', 'fvq6avy', 'zk78ptr\u0000', '4yfvweb\u0000'],
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_zivfvd7h'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_kfvq6avy'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_hhrtiq0x'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ps5v5jor'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_jeaxp72v'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_owwdxjbx'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_2cs6g9i7'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_04yfvweb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_lrznf59v'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_zivfvd7h',
+            '_TZE200_kfvq6avy',
+            '_TZE200_hhrtiq0x',
+            '_TZE200_ps5v5jor',
+            '_TZE200_jeaxp72v',
+            '_TZE200_owwdxjbx',
+            '_TZE200_2cs6g9i7',
+            '_TZE200_04yfvweb',
+            '_TZE200_lrznf59v',
+        ]),
         model: 'GS361A-H04',
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',

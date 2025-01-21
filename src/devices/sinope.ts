@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
-import {electricityMeter, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -603,7 +603,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TH1123ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        extend: [electricityMeter()],
+        extend: [m.electricityMeter()],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -703,7 +703,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TH1124ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        extend: [electricityMeter()],
+        extend: [m.electricityMeter()],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -803,7 +803,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TH1123ZB-G2',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        extend: [electricityMeter()],
+        extend: [m.electricityMeter()],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -914,7 +914,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TH1124ZB-G2',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        extend: [electricityMeter()],
+        extend: [m.electricityMeter()],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -1028,7 +1028,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {model: 'TH1320ZB-04', vendor: 'Sinopé', description: 'Zigbee smart floor heating thermostat', fingerprint: [{modelID: 'TH1320ZB-04'}]},
         ],
-        extend: [electricityMeter()],
+        extend: [m.electricityMeter()],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -1391,7 +1391,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SW2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
-        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+        extend: [m.onOff(), m.electricityMeter({cluster: 'metering'})],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
@@ -1458,7 +1458,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'DM2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
@@ -1508,7 +1508,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'DM2550ZB',
         vendor: 'Sinopé',
         description: 'Zigbee Adaptive phase smart dimmer',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
@@ -1558,21 +1558,21 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SP2600ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart plug',
-        extend: [onOff(), electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter()],
     },
     {
         zigbeeModel: ['SP2610ZB'],
         model: 'SP2610ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart plug',
-        extend: [onOff(), electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter()],
     },
     {
         zigbeeModel: ['RM3250ZB'],
         model: 'RM3250ZB',
         vendor: 'Sinopé',
         description: '50A Smart electrical load controller',
-        extend: [onOff(), electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter()],
     },
     {
         zigbeeModel: ['WL4200'],
@@ -1692,7 +1692,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'RM3500ZB',
         vendor: 'Sinopé',
         description: 'Calypso smart water heater controller',
-        extend: [onOff({powerOnBehavior: false}), electricityMeter()],
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
         fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
         toZigbee: [tzLocal.low_water_temp_protection],
         exposes: [

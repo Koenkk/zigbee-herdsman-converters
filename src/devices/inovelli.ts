@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceAddCustomCluster, deviceEndpoints, electricityMeter, humidity, identify, temperature} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Expose, Fz, Tz, Zh} from '../lib/types';
@@ -69,7 +69,7 @@ const individualLedEffects: {[key: string]: number} = {
 
 const inovelliExtend = {
     addCustomClusterInovelli: () =>
-        deviceAddCustomCluster('manuSpecificInovelli', {
+        m.deviceAddCustomCluster('manuSpecificInovelli', {
             ID: 64561,
             manufacturerCode: 0x122f,
             attributes: {
@@ -1978,16 +1978,16 @@ const definitions: DefinitionWithExtend[] = [
         model: 'VZM30-SN',
         vendor: 'Inovelli',
         description: 'On/off switch',
-        exposes: exposesListVZM30.concat(identify().exposes as Expose[]),
+        exposes: exposesListVZM30.concat(m.identify().exposes as Expose[]),
         extend: [
-            deviceEndpoints({
+            m.deviceEndpoints({
                 endpoints: {'1': 1, '2': 2, '3': 3, '4': 4},
                 multiEndpointSkip: ['state', 'voltage', 'power', 'current', 'energy', 'brightness', 'temperature', 'humidity'],
             }),
             inovelliExtend.addCustomClusterInovelli(),
-            temperature(),
-            humidity(),
-            electricityMeter(),
+            m.temperature(),
+            m.humidity(),
+            m.electricityMeter(),
         ],
         toZigbee: [
             tzLocal.light_onoff_brightness_inovelli,
@@ -2016,14 +2016,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'VZM31-SN',
         vendor: 'Inovelli',
         description: '2-in-1 switch + dimmer',
-        exposes: exposesListVZM31.concat(identify().exposes as Expose[]),
+        exposes: exposesListVZM31.concat(m.identify().exposes as Expose[]),
         extend: [
-            deviceEndpoints({
+            m.deviceEndpoints({
                 endpoints: {'1': 1, '2': 2, '3': 3},
                 multiEndpointSkip: ['state', 'power', 'energy', 'brightness'],
             }),
             inovelliExtend.addCustomClusterInovelli(),
-            electricityMeter({
+            m.electricityMeter({
                 current: false,
                 voltage: false,
                 power: {min: 15, max: 3600, change: 1},
@@ -2068,7 +2068,7 @@ const definitions: DefinitionWithExtend[] = [
             tzLocal.inovelli_parameters_readOnly(VZM35_ATTRIBUTES),
             tzLocal.breezeMode,
         ],
-        exposes: exposesListVZM35.concat(identify().exposes as Expose[]),
+        exposes: exposesListVZM35.concat(m.identify().exposes as Expose[]),
         extend: [inovelliExtend.addCustomClusterInovelli()],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -2094,7 +2094,7 @@ const definitions: DefinitionWithExtend[] = [
             tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES),
             tzLocal.vzm36_breezeMode,
         ],
-        exposes: exposesListVZM36.concat(identify().exposes as Expose[]),
+        exposes: exposesListVZM36.concat(m.identify().exposes as Expose[]),
         extend: [inovelliExtend.addCustomClusterInovelli()],
         ota: true,
         // The configure method below is needed to make the device reports on/off state changes

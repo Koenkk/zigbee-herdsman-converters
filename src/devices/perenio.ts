@@ -3,7 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceAddCustomCluster} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -19,7 +19,7 @@ const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.CUSTOM_PEREN
 
 const perenioExtend = {
     addCustomClusterPerenio: () =>
-        deviceAddCustomCluster('perenioSpecific', {
+        m.deviceAddCustomCluster('perenioSpecific', {
             ID: 64635,
             manufacturerCode: Zcl.ManufacturerCode.CUSTOM_PERENIO,
             attributes: {},

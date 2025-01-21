@@ -1,4 +1,4 @@
-import {battery, iasZoneAlarm} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -8,8 +8,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Shyugj',
         description: 'Door sensor',
         extend: [
-            battery(),
-            iasZoneAlarm({
+            m.battery(),
+            m.iasZoneAlarm({
                 zoneType: 'generic',
                 zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low'],
             }),

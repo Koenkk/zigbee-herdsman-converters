@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {forcePowerSource, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -152,7 +152,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'iL03_1',
         vendor: 'Iris',
         description: 'Smart plug',
-        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.onOff(), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['3315-L'],

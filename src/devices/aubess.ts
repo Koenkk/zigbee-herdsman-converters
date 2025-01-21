@@ -1,3 +1,4 @@
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 import * as zosung from '../lib/zosung';
 
@@ -7,7 +8,7 @@ const ez = zosung.presetsZosung;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_acv1iuslxi3shaaj'}],
+        fingerprint: tuya.fingerprint('TS1201', ['_TZ3290_acv1iuslxi3shaaj']),
         model: 'ZXZIR-02',
         vendor: 'Aubess',
         description: 'Universal smart IR remote control',

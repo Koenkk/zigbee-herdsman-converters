@@ -6,7 +6,7 @@ import * as constants from '../lib/constants';
 import {develcoModernExtend} from '../lib/develco';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
-import {battery, electricityMeter, humidity, iasZoneAlarm, illuminance, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
@@ -228,8 +228,8 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
-            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
-            onOff(),
+            m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            m.onOff(),
         ],
         endpoint: (device) => {
             return {default: 2};
@@ -245,8 +245,8 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
-            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
-            onOff(),
+            m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            m.onOff(),
         ],
         endpoint: (device) => {
             return {default: 2};
@@ -262,8 +262,8 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
-            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
-            onOff(),
+            m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            m.onOff(),
         ],
         endpoint: (device) => {
             return {default: 2};
@@ -304,8 +304,8 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
-            electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
-            onOff(),
+            m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            m.onOff(),
         ],
         endpoint: (device) => {
             return {default: 2};
@@ -384,7 +384,7 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(), // TODO: ep 38
-            battery({
+            m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
@@ -461,7 +461,7 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(), // TODO: ep 38
-            battery({
+            m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
@@ -516,7 +516,7 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(), // TODO: ep 38
-            battery({
+            m.battery({
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
@@ -540,7 +540,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            battery({
+            m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
@@ -565,7 +565,7 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
-            battery({
+            m.battery({
                 voltageToPercentage: '3V_2100',
                 percentage: true,
                 voltage: true,
@@ -590,7 +590,7 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
-            battery({
+            m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
@@ -629,7 +629,6 @@ const definitions: DefinitionWithExtend[] = [
                     e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
                 );
             }
-            dynExposes.push(e.linkquality());
             return dynExposes;
         },
         ota: true,
@@ -640,8 +639,8 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(), // TODO: ep 38
-            illuminance(), // TODO: ep 39
-            battery({
+            m.illuminance(), // TODO: ep 39
+            m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
@@ -670,7 +669,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}),
+            m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}),
         ],
     },
     {
@@ -689,7 +688,6 @@ const definitions: DefinitionWithExtend[] = [
                     e.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).withDescription('Control LED indicator usage.'),
                 );
             }
-            dynExposes.push(e.linkquality());
             return dynExposes;
         },
         ota: true,
@@ -700,8 +698,8 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
-            illuminance({reporting: {min: 60, max: 3600, change: 500}}),
-            battery({
+            m.illuminance({reporting: {min: 60, max: 3600, change: 500}}),
+            m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
@@ -709,7 +707,7 @@ const definitions: DefinitionWithExtend[] = [
                 voltageReporting: true,
                 percentageReporting: false,
             }),
-            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1']}),
+            m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1']}),
         ],
         configure: async (device, coordinatorEndpoint) => {
             if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 2) {
@@ -733,8 +731,8 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
-            humidity(),
-            battery({
+            m.humidity(),
+            m.battery({
                 voltageToPercentage: {min: 2500, max: 3200},
                 percentage: true,
                 voltage: true,
@@ -817,7 +815,7 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(), // TODO: ep 38
-            battery({
+            m.battery({
                 voltageToPercentage: {min: 2800, max: 3000},
                 percentage: true,
                 voltage: true,
@@ -843,8 +841,8 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.voc(),
             develcoModernExtend.airQuality(),
             develcoModernExtend.temperature(),
-            humidity(),
-            battery({
+            m.humidity(),
+            m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
@@ -866,7 +864,7 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
-            battery({
+            m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
@@ -923,7 +921,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            battery({
+            m.battery({
                 voltageToPercentage: {min: 3000, max: 4200},
                 percentage: true,
                 voltage: true,
@@ -1015,7 +1013,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            battery({
+            m.battery({
                 voltageToPercentage: {min: 2200, max: 3000},
                 percentage: true,
                 voltage: true,

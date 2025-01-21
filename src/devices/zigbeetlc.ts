@@ -1,9 +1,9 @@
 import {Zcl} from 'zigbee-herdsman';
 
-import {battery, binary, enumLookup, humidity, numeric, temperature} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 
 const extend = {
-    comfortDisplay: binary({
+    comfortDisplay: m.binary({
         name: 'comfort_display',
         valueOn: ['show', 0],
         valueOff: ['hide', 1],
@@ -11,7 +11,7 @@ const extend = {
         attribute: {ID: 0x0002, type: Zcl.DataType.ENUM8},
         description: 'Whether to show a comfort indicator on the device screen.',
     }),
-    comfortHumidityMax: numeric({
+    comfortHumidityMax: m.numeric({
         name: 'comfort_humidity_max',
         unit: '%',
         cluster: 'hvacUserInterfaceCfg',
@@ -21,7 +21,7 @@ const extend = {
         scale: 100,
         description: 'Comfort parameters/Humidity maximum, in 1% steps, default 60.00%.',
     }),
-    comfortHumidityMin: numeric({
+    comfortHumidityMin: m.numeric({
         name: 'comfort_humidity_min',
         unit: '%',
         cluster: 'hvacUserInterfaceCfg',
@@ -31,7 +31,7 @@ const extend = {
         scale: 100,
         description: 'Comfort parameters/Humidity minimum, in 1% steps, default 40.00%',
     }),
-    comfortTemperatureMin: numeric({
+    comfortTemperatureMin: m.numeric({
         name: 'comfort_temperature_min',
         unit: '°C',
         cluster: 'hvacUserInterfaceCfg',
@@ -42,7 +42,7 @@ const extend = {
         scale: 100,
         description: 'Comfort parameters/Temperature minimum, in 0.01°C steps, default 20.00°C.',
     }),
-    comfortTemperatureMax: numeric({
+    comfortTemperatureMax: m.numeric({
         name: 'comfort_temperature_max',
         unit: '°C',
         cluster: 'hvacUserInterfaceCfg',
@@ -53,7 +53,7 @@ const extend = {
         scale: 100,
         description: 'Comfort parameters/Temperature maximum, in 0.01°C steps, default 25.00°C.',
     }),
-    display: binary({
+    display: m.binary({
         name: 'display',
         valueOn: ['on', 0],
         valueOff: ['off', 1],
@@ -61,7 +61,7 @@ const extend = {
         attribute: {ID: 0x0106, type: Zcl.DataType.ENUM8},
         description: 'Whether to enable the device display.',
     }),
-    humidityCalibration: numeric({
+    humidityCalibration: m.numeric({
         name: 'humidity_calibration',
         unit: '%',
         cluster: 'hvacUserInterfaceCfg',
@@ -72,7 +72,7 @@ const extend = {
         scale: 100,
         description: 'Humidity calibration, in 0.01% steps, default 0%.',
     }),
-    measurementInterval: numeric({
+    measurementInterval: m.numeric({
         name: 'measurement_interval',
         unit: 's',
         cluster: 'hvacUserInterfaceCfg',
@@ -81,7 +81,7 @@ const extend = {
         valueMax: 255,
         description: 'Measurement interval, default 10 seconds.',
     }),
-    tempCalibration: numeric({
+    tempCalibration: m.numeric({
         name: 'temperature_calibration',
         unit: '°C',
         cluster: 'hvacUserInterfaceCfg',
@@ -92,7 +92,7 @@ const extend = {
         scale: 100,
         description: 'Temperature calibration, in 0.01° steps, default 0 °C.',
     }),
-    tempDisplayMode: enumLookup({
+    tempDisplayMode: m.enumLookup({
         name: 'temperature_display_mode',
         lookup: {celsius: 0, fahrenheit: 1},
         cluster: 'hvacUserInterfaceCfg',
@@ -125,8 +125,8 @@ const definitions = [
         vendor: 'Xiaomi',
         description: 'Temp & RH Monitor Lite (pvxx/ZigbeeTLc)',
         extend: [
-            temperature({reporting: {min: 10, max: 300, change: 10}}),
-            humidity({reporting: {min: 10, max: 300, change: 50}}),
+            m.temperature({reporting: {min: 10, max: 300, change: 10}}),
+            m.humidity({reporting: {min: 10, max: 300, change: 50}}),
             extend.display,
             extend.tempDisplayMode,
             extend.comfortDisplay,
@@ -137,7 +137,7 @@ const definitions = [
             extend.tempCalibration,
             extend.humidityCalibration,
             extend.measurementInterval,
-            battery(),
+            m.battery(),
         ],
         ota: true,
     },
@@ -157,14 +157,14 @@ const definitions = [
         vendor: 'Qingping',
         description: 'Temp & RH Monitor Lite (pvxx/ZigbeeTLc)',
         extend: [
-            temperature({reporting: {min: 10, max: 300, change: 10}}),
-            humidity({reporting: {min: 10, max: 300, change: 50}}),
+            m.temperature({reporting: {min: 10, max: 300, change: 10}}),
+            m.humidity({reporting: {min: 10, max: 300, change: 50}}),
             extend.display,
             extend.tempDisplayMode,
             extend.tempCalibration,
             extend.humidityCalibration,
             extend.measurementInterval,
-            battery(),
+            m.battery(),
         ],
         ota: true,
     },
@@ -189,12 +189,12 @@ const definitions = [
         vendor: 'Tuya',
         description: 'Temperature & Humidity Sensor (pvxx/ZigbeeTLc)',
         extend: [
-            temperature({reporting: {min: 10, max: 300, change: 10}}),
-            humidity({reporting: {min: 10, max: 300, change: 50}}),
+            m.temperature({reporting: {min: 10, max: 300, change: 10}}),
+            m.humidity({reporting: {min: 10, max: 300, change: 50}}),
             extend.tempCalibration,
             extend.humidityCalibration,
             extend.measurementInterval,
-            battery(),
+            m.battery(),
         ],
         ota: true,
     },

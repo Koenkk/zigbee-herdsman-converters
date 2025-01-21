@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {eLegrand, fzLegrand, legrandOptions, readInitialBatteryState, tzLegrand} from '../lib/legrand';
-import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -37,7 +37,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Legrand',
         description: 'DIN dry contactor module',
         whiteLabel: [{vendor: 'BTicino', model: 'FC80AC'}],
-        extend: [onOff()],
+        extend: [m.onOff()],
         ota: true,
         fromZigbee: [fz.identify, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tz.electrical_measurement_power],
@@ -66,7 +66,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Legrand',
         description: 'DIN contactor module',
         whiteLabel: [{vendor: 'BTicino', model: 'FC80CC'}],
-        extend: [onOff(), electricityMeter({cluster: 'electrical', voltage: false, current: false})],
+        extend: [m.onOff(), m.electricityMeter({cluster: 'electrical', voltage: false, current: false})],
         ota: true,
         fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta, fz.electrical_measurement],
         toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tzLegrand.auto_mode, tz.electrical_measurement_power],
@@ -88,7 +88,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Legrand',
         description: 'DIN smart relay for light control',
         whiteLabel: [{vendor: 'BTicino', model: 'FC80RC'}],
-        extend: [onOff()],
+        extend: [m.onOff()],
         ota: true,
         fromZigbee: [fz.identify, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tz.electrical_measurement_power],
@@ -158,7 +158,6 @@ const definitions: DefinitionWithExtend[] = [
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
                 eLegrand.getCalibrationModes(false),
-                e.linkquality(),
             ];
         },
         configure: async (device, coordinatorEndpoint) => {
@@ -230,7 +229,6 @@ const definitions: DefinitionWithExtend[] = [
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
                 eLegrand.getCalibrationModes(true),
-                e.linkquality(),
             ];
         },
         configure: async (device, coordinatorEndpoint) => {
@@ -313,7 +311,7 @@ const definitions: DefinitionWithExtend[] = [
             eLegrand.ledIfOn(),
         ],
         extend: [
-            light({
+            m.light({
                 configureReporting: true,
                 levelConfig: {
                     disabledFeatures: [
@@ -346,7 +344,7 @@ const definitions: DefinitionWithExtend[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genBinaryInput', 'lightingBallastCfg']);
@@ -393,7 +391,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Legrand', description: 'Micromodule switch', model: '199142'},
             {vendor: 'BTicino', description: 'Connected lighting micromodule', model: '3584C'},
         ],
-        extend: [onOff()],
+        extend: [m.onOff()],
         ota: true,
         fromZigbee: [fz.identify],
         toZigbee: [tzLegrand.identify],
@@ -613,7 +611,7 @@ const definitions: DefinitionWithExtend[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [deviceEndpoints({endpoints: {left: 2, right: 1}}), light({configureReporting: true, endpointNames: ['left', 'right']})],
+        extend: [m.deviceEndpoints({endpoints: {left: 2, right: 1}}), m.light({configureReporting: true, endpointNames: ['left', 'right']})],
     },
     {
         zigbeeModel: [' Mobile outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
@@ -662,7 +660,7 @@ const definitions: DefinitionWithExtend[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genBinaryInput', 'lightingBallastCfg']);

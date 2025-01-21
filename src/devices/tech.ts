@@ -7,10 +7,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_r7brscr6'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_p1qrtljn'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_r7brscr6', '_TZE204_p1qrtljn']),
         model: 'VNTH-T2',
         vendor: 'TECH',
         description: 'Smart radiator valve',

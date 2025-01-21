@@ -1,7 +1,7 @@
 import {DefinitionWithExtend} from 'src/lib/types';
 
 import * as exposes from '../lib/exposes';
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 
 const e = exposes.presets;
@@ -89,7 +89,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Futurehome',
         description: 'Smart puck',
         ota: true,
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
 ];
 

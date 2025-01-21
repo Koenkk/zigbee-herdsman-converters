@@ -1,24 +1,11 @@
 import {Zcl} from 'zigbee-herdsman';
 
 import {presets} from '../lib/exposes';
-import {
-    battery,
-    binary,
-    deviceAddCustomCluster,
-    electricityMeter,
-    enumLookup,
-    forcePowerSource,
-    iasZoneAlarm,
-    identify,
-    LightArgs,
-    light as lightDontUse,
-    numeric,
-    onOff,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend, Expose, Fz, KeyValueAny, ModernExtend} from '../lib/types';
 
-export function sengledLight(args?: LightArgs) {
-    return lightDontUse({effect: false, powerOnBehavior: false, ...args});
+export function sengledLight(args?: m.LightArgs) {
+    return m.light({effect: false, powerOnBehavior: false, ...args});
 }
 
 export function sengledSwitchAction(): ModernExtend {
@@ -64,7 +51,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E13-N11',
         vendor: 'Sengled',
         description: 'Flood light with motion sensor light outdoor',
-        extend: [sengledLight(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1']})],
+        extend: [sengledLight(), m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1']})],
         ota: true,
     },
     {
@@ -81,9 +68,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sengled',
         description: 'Smart LED multicolor A19 bulb',
         extend: [
-            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            m.forcePowerSource({powerSource: 'Mains (single phase)'}),
             sengledLight({colorTemp: {range: [154, 500]}, color: {modes: ['xy']}}),
-            electricityMeter({cluster: 'metering'}),
+            m.electricityMeter({cluster: 'metering'}),
         ],
         ota: true,
     },
@@ -93,9 +80,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sengled',
         description: 'Smart LED multicolor BR30 bulb',
         extend: [
-            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            m.forcePowerSource({powerSource: 'Mains (single phase)'}),
             sengledLight({colorTemp: {range: [154, 500]}, color: {modes: ['xy']}}),
-            electricityMeter({cluster: 'metering'}),
+            m.electricityMeter({cluster: 'metering'}),
         ],
         ota: true,
     },
@@ -105,9 +92,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sengled',
         description: 'Smart LED multicolor (BR30)',
         extend: [
-            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            m.forcePowerSource({powerSource: 'Mains (single phase)'}),
             sengledLight({colorTemp: {range: [154, 500]}, color: {modes: ['xy']}}),
-            electricityMeter({cluster: 'metering'}),
+            m.electricityMeter({cluster: 'metering'}),
         ],
         ota: true,
     },
@@ -132,7 +119,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E11-G13',
         vendor: 'Sengled',
         description: 'Element classic (A19)',
-        extend: [forcePowerSource({powerSource: 'Mains (single phase)'}), sengledLight(), electricityMeter({cluster: 'metering'})],
+        extend: [m.forcePowerSource({powerSource: 'Mains (single phase)'}), sengledLight(), m.electricityMeter({cluster: 'metering'})],
         ota: true,
     },
     {
@@ -164,7 +151,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'Z01-A19NAE26',
         vendor: 'Sengled',
         description: 'Element plus (A19)',
-        extend: [sengledLight({colorTemp: {range: [154, 500]}}), electricityMeter({cluster: 'metering'})],
+        extend: [sengledLight({colorTemp: {range: [154, 500]}}), m.electricityMeter({cluster: 'metering'})],
         ota: true,
     },
     {
@@ -181,9 +168,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sengled',
         description: 'Element plus color (A19)',
         extend: [
-            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            m.forcePowerSource({powerSource: 'Mains (single phase)'}),
             sengledLight({colorTemp: {range: [154, 500]}, color: {modes: ['xy']}}),
-            electricityMeter({cluster: 'metering'}),
+            m.electricityMeter({cluster: 'metering'}),
         ],
         ota: true,
     },
@@ -209,9 +196,9 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sengled',
         description: 'Element color plus E12',
         extend: [
-            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            m.forcePowerSource({powerSource: 'Mains (single phase)'}),
             sengledLight({colorTemp: {range: [154, 500]}, color: {modes: ['xy']}}),
-            electricityMeter({cluster: 'metering'}),
+            m.electricityMeter({cluster: 'metering'}),
         ],
         ota: true,
     },
@@ -237,8 +224,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sengled',
         description: 'Smart window and door sensor',
         extend: [
-            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
-            battery({voltage: true, voltageReporting: true}),
+            m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            m.battery({voltage: true, voltageReporting: true}),
         ],
         ota: true,
     },
@@ -248,8 +235,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sengled',
         description: 'Smart window and door sensor G2',
         extend: [
-            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
-            battery({voltage: true, voltageReporting: true}),
+            m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            m.battery({voltage: true, voltageReporting: true}),
         ],
         ota: true,
     },
@@ -258,7 +245,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E1C-NB6',
         vendor: 'Sengled',
         description: 'Smart plug',
-        extend: [onOff()],
+        extend: [m.onOff()],
         ota: true,
     },
     {
@@ -266,7 +253,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E1C-NB7',
         vendor: 'Sengled',
         description: 'Smart plug with energy tracker',
-        extend: [onOff({powerOnBehavior: false}), electricityMeter({cluster: 'metering'})],
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({cluster: 'metering'})],
     },
     {
         zigbeeModel: ['E1E-G7F'],
@@ -297,7 +284,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E21-N14A',
         vendor: 'Sengled',
         description: 'Smart light bulb, dimmable 5000K, E26/A19',
-        extend: [sengledLight(), electricityMeter({cluster: 'metering'})],
+        extend: [sengledLight(), m.electricityMeter({cluster: 'metering'})],
         ota: true,
     },
     {
@@ -306,12 +293,12 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Sengled',
         description: 'Flood light with motion sensor light outdoor',
         extend: [
-            identify(),
+            m.identify(),
             sengledLight({color: false}),
             // The Sengled E13-A21 smart bulb will not report instantaneous demand unless the reporting min is set to 5 seconds or lower.
             // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8123
-            electricityMeter({cluster: 'metering', power: {min: 5}, energy: {min: 5}}),
-            deviceAddCustomCluster('manuSpecificSengledMotionSensor', {
+            m.electricityMeter({cluster: 'metering', power: {min: 5}, energy: {min: 5}}),
+            m.deviceAddCustomCluster('manuSpecificSengledMotionSensor', {
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.SENGLED_CO_LTD,
                 attributes: {
@@ -323,7 +310,7 @@ const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'trigger_condition',
                 lookup: {dark: 0, weak_light: 1},
                 cluster: 'manuSpecificSengledMotionSensor',
@@ -332,7 +319,7 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: 0x1160},
                 access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'enable_auto_on_off',
                 cluster: 'manuSpecificSengledMotionSensor',
                 attribute: 'enableAutoOnOff',
@@ -342,7 +329,7 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: 0x1160},
                 access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'motion_status',
                 cluster: 'manuSpecificSengledMotionSensor',
                 attribute: 'motionStatus',
@@ -353,7 +340,7 @@ const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: 0x1160},
                 access: 'STATE_GET',
             }),
-            numeric({
+            m.numeric({
                 name: 'off_delay',
                 cluster: 'manuSpecificSengledMotionSensor',
                 attribute: 'offDelay',

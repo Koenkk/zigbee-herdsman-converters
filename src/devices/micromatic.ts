@@ -1,4 +1,4 @@
-import {electricityMeter, light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const definitions: DefinitionWithExtend[] = [
@@ -7,7 +7,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZB250',
         vendor: 'Micro Matic Norge AS',
         description: 'Zigbee dimmer for LED',
-        extend: [light({configureReporting: true}), electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
 ];
 

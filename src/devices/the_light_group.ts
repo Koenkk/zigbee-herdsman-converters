@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -73,21 +73,21 @@ const definitions: DefinitionWithExtend[] = [
         model: 'S24013',
         vendor: 'The Light Group',
         description: 'SLC SmartOne AC dimmer mini 200W Zigbee LN',
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['S32053'],
         model: 'S32053',
         vendor: 'The Light Group',
         description: 'SLC SmartOne CV led dimmable driver',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['S32055'],
         model: 'S32055',
         vendor: 'The Light Group',
         description: 'SLC SmartOne TW led dimmable driver 24V/75W',
-        extend: [light({colorTemp: {range: [160, 450]}})],
+        extend: [m.light({colorTemp: {range: [160, 450]}})],
     },
 ];
 

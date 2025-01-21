@@ -4,21 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
-import {
-    battery,
-    binary,
-    commandsOnOff,
-    deviceEndpoints,
-    enumLookup,
-    forcePowerSource,
-    humidity,
-    light,
-    linkQuality,
-    numeric,
-    onOff,
-    quirkAddEndpointCluster,
-    temperature,
-} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from '../lib/types';
 import {getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from '../lib/utils';
@@ -267,7 +253,7 @@ const definitions: DefinitionWithExtend[] = [
                     'Resets and launches the bootloader for flashing. If USB, ensure the device is already connected to the machine where you intend to flash it before triggering this.',
                 ),
         ],
-        extend: [linkQuality({reporting: true})],
+        extend: [m.linkQuality({reporting: true})],
         // prevent timeout with tz.factory_reset (reboots adapter into bootloader, hence disconnected)
         // since this is the only tz, it's not a problem to disable this globally
         meta: {disableDefaultResponse: true},
@@ -541,7 +527,7 @@ const definitions: DefinitionWithExtend[] = [
             if (exposeDeviceOptions['expose_battery']) {
                 expose.push(e.battery());
             }
-            expose.push(e.linkquality());
+
             return expose;
         },
         meta: {multiEndpoint: true, tuyaThermostatPreset: legacy.fz /* for subclassed custom converters */},
@@ -621,14 +607,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'DNCKATSD001',
         vendor: 'Custom devices (DiY)',
         description: 'DNCKAT single key wired wall dimmable light switch',
-        extend: [light()],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ['DNCKAT_S001'],
         model: 'DNCKATSW001',
         vendor: 'Custom devices (DiY)',
         description: 'DNCKAT single key wired wall light switch',
-        extend: [onOff()],
+        extend: [m.onOff()],
     },
     {
         zigbeeModel: ['DNCKAT_S002'],
@@ -636,7 +622,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Custom devices (DiY)',
         description: 'DNCKAT double key wired wall light switch',
         fromZigbee: [fz.DNCKAT_S00X_buttons],
-        extend: [deviceEndpoints({endpoints: {left: 1, right: 2}}), onOff({endpointNames: ['left', 'right']})],
+        extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ['left', 'right']})],
         exposes: [e.action(['release_left', 'hold_left', 'release_right', 'hold_right'])],
     },
     {
@@ -645,7 +631,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Custom devices (DiY)',
         description: 'DNCKAT triple key wired wall light switch',
         fromZigbee: [fz.DNCKAT_S00X_buttons],
-        extend: [deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), onOff({endpointNames: ['left', 'center', 'right']})],
+        extend: [m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), m.onOff({endpointNames: ['left', 'center', 'right']})],
         exposes: [e.action(['release_left', 'hold_left', 'release_right', 'hold_right', 'release_center', 'hold_center'])],
     },
     {
@@ -655,8 +641,8 @@ const definitions: DefinitionWithExtend[] = [
         description: 'DNCKAT quadruple key wired wall light switch',
         fromZigbee: [fz.DNCKAT_S00X_buttons],
         extend: [
-            deviceEndpoints({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4}}),
-            onOff({endpointNames: ['bottom_left', 'bottom_right', 'top_left', 'top_right']}),
+            m.deviceEndpoints({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4}}),
+            m.onOff({endpointNames: ['bottom_left', 'bottom_right', 'top_left', 'top_right']}),
         ],
         exposes: [
             e.action([
@@ -694,32 +680,27 @@ const definitions: DefinitionWithExtend[] = [
         model: 'ZeeFlora',
         vendor: 'Custom devices (DiY)',
         description: 'Flower sensor with rechargeable battery',
-        fromZigbee: [fz.temperature, fz.illuminance, fz.soil_moisture, fz.battery],
+        fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
         toZigbee: [],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const firstEndpoint = device.getEndpoint(1);
-            await reporting.bind(firstEndpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'msTemperatureMeasurement',
-                'msIlluminanceMeasurement',
-                'msSoilMoisture',
-            ]);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
             const overrides = {min: 0, max: 3600, change: 0};
             await reporting.batteryVoltage(firstEndpoint, overrides);
             await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
             await reporting.temperature(firstEndpoint, overrides);
-            await reporting.illuminance(firstEndpoint, overrides);
             await reporting.soil_moisture(firstEndpoint, overrides);
         },
-        exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature()],
+        exposes: [e.soil_moisture(), e.battery(), e.temperature()],
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['UT-01'],
         model: 'EFR32MG21.Router.1',
         vendor: 'Custom devices (DiY)',
         description: 'EFR32MG21 Zigbee bridge router',
-        extend: [forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['UT-02'],
@@ -735,24 +716,18 @@ const definitions: DefinitionWithExtend[] = [
         model: 'b-parasite',
         vendor: 'Custom devices (DiY)',
         description: 'b-parasite open source soil moisture sensor',
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture, fz.illuminance],
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance()],
+        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'msTemperatureMeasurement',
-                'msRelativeHumidity',
-                'msSoilMoisture',
-                'msIlluminanceMeasurement',
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msSoilMoisture']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.temperature(endpoint);
             await reporting.humidity(endpoint);
             await reporting.soil_moisture(endpoint);
-            await reporting.illuminance(endpoint);
         },
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['MULTI-ZIG-SW'],
@@ -786,22 +761,22 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Custom devices (DiY)',
         description: 'Xiaomi temperature & humidity sensor with custom firmware',
         extend: [
-            quirkAddEndpointCluster({
+            m.quirkAddEndpointCluster({
                 endpointID: 1,
                 outputClusters: [],
                 inputClusters: ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'hvacUserInterfaceCfg'],
             }),
-            battery(),
-            temperature({reporting: {min: 10, max: 300, change: 10}}),
-            humidity({reporting: {min: 10, max: 300, change: 50}}),
-            enumLookup({
+            m.battery(),
+            m.temperature({reporting: {min: 10, max: 300, change: 10}}),
+            m.humidity({reporting: {min: 10, max: 300, change: 50}}),
+            m.enumLookup({
                 name: 'temperature_display_mode',
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'tempDisplayMode',
                 description: 'The units of the temperature displayed on the device screen.',
             }),
-            binary({
+            m.binary({
                 name: 'show_smiley',
                 valueOn: ['SHOW', 1],
                 valueOff: ['HIDE', 0],
@@ -809,7 +784,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0010, type: Zcl.DataType.BOOLEAN},
                 description: 'Whether to show a smiley on the device screen.',
             }),
-            binary({
+            m.binary({
                 name: 'enable_display',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -817,7 +792,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0011, type: Zcl.DataType.BOOLEAN},
                 description: 'Whether to turn display on/off.',
             }),
-            numeric({
+            m.numeric({
                 name: 'temperature_calibration',
                 unit: '°C',
                 cluster: 'msTemperatureMeasurement',
@@ -828,7 +803,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 description: 'The temperature calibration offset is set in 0.01° steps.',
             }),
-            numeric({
+            m.numeric({
                 name: 'humidity_calibration',
                 unit: '%',
                 cluster: 'msRelativeHumidity',
@@ -839,7 +814,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 description: 'The humidity calibration offset is set in 0.01 % steps.',
             }),
-            numeric({
+            m.numeric({
                 name: 'comfort_temperature_min',
                 unit: '°C',
                 cluster: 'hvacUserInterfaceCfg',
@@ -849,7 +824,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 description: 'Comfort parameters/Temperature minimum, in 0.01°C steps.',
             }),
-            numeric({
+            m.numeric({
                 name: 'comfort_temperature_max',
                 unit: '°C',
                 cluster: 'hvacUserInterfaceCfg',
@@ -859,7 +834,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 description: 'Comfort parameters/Temperature maximum, in 0.01°C steps.',
             }),
-            numeric({
+            m.numeric({
                 name: 'comfort_humidity_min',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
@@ -869,7 +844,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 description: 'Comfort parameters/Humidity minimum, in 0.01% steps.',
             }),
-            numeric({
+            m.numeric({
                 name: 'comfort_humidity_max',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
@@ -903,24 +878,24 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Custom devices (DiY)',
         description: 'Xiaomi temperature & humidity sensor with custom firmware',
         extend: [
-            quirkAddEndpointCluster({
+            m.quirkAddEndpointCluster({
                 endpointID: 1,
                 outputClusters: ['hvacUserInterfaceCfg'],
                 inputClusters: ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'hvacUserInterfaceCfg'],
             }),
-            battery(),
-            temperature({reporting: {min: 10, max: 300, change: 10}}),
-            humidity({reporting: {min: 10, max: 300, change: 50}}),
+            m.battery(),
+            m.temperature({reporting: {min: 10, max: 300, change: 10}}),
+            m.humidity({reporting: {min: 10, max: 300, change: 50}}),
             // Temperature display and show smile.
             // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issue-2033984519
-            enumLookup({
+            m.enumLookup({
                 name: 'temperature_display_mode',
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'tempDisplayMode',
                 description: 'The units of the temperature displayed on the device screen.',
             }),
-            binary({
+            m.binary({
                 name: 'show_smile',
                 valueOn: ['HIDE', 1],
                 valueOff: ['SHOW', 0],
@@ -930,7 +905,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             // Setting offsets for temperature and humidity.
             // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/30
-            numeric({
+            m.numeric({
                 name: 'temperature_calibration',
                 unit: 'C',
                 cluster: 'hvacUserInterfaceCfg',
@@ -941,7 +916,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 10,
                 description: 'The temperature calibration, in 0.1° steps. Requires v0.1.1.6 or newer.',
             }),
-            numeric({
+            m.numeric({
                 name: 'humidity_calibration',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
@@ -954,7 +929,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             // Comfort parameters.
             // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issuecomment-1855763432
-            numeric({
+            m.numeric({
                 name: 'comfort_temperature_min',
                 unit: 'C',
                 cluster: 'hvacUserInterfaceCfg',
@@ -963,7 +938,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 127,
                 description: 'Comfort parameters/Temperature minimum, in 1° steps. Requires v0.1.1.7 or newer.',
             }),
-            numeric({
+            m.numeric({
                 name: 'comfort_temperature_max',
                 unit: 'C',
                 cluster: 'hvacUserInterfaceCfg',
@@ -972,7 +947,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 127,
                 description: 'Comfort parameters/Temperature maximum, in 1° steps. Requires v0.1.1.7 or newer.',
             }),
-            numeric({
+            m.numeric({
                 name: 'comfort_humidity_min',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
@@ -981,7 +956,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 100,
                 description: 'Comfort parameters/Humidity minimum, in 1% steps. Requires v0.1.1.7 or newer.',
             }),
-            numeric({
+            m.numeric({
                 name: 'comfort_humidity_max',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
@@ -999,22 +974,22 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Xiaomi',
         description: 'E-Ink temperature & humidity sensor with custom firmware (pvxx/ZigbeeTLc)',
         extend: [
-            quirkAddEndpointCluster({
+            m.quirkAddEndpointCluster({
                 endpointID: 1,
                 outputClusters: [],
                 inputClusters: ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'hvacUserInterfaceCfg'],
             }),
-            battery({percentage: true}),
-            temperature({reporting: {min: 10, max: 300, change: 10}, access: 'STATE'}),
-            humidity({reporting: {min: 2, max: 300, change: 50}, access: 'STATE'}),
-            enumLookup({
+            m.battery({percentage: true}),
+            m.temperature({reporting: {min: 10, max: 300, change: 10}, access: 'STATE'}),
+            m.humidity({reporting: {min: 2, max: 300, change: 50}, access: 'STATE'}),
+            m.enumLookup({
                 name: 'temperature_display_mode',
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: {ID: 0x0000, type: Zcl.DataType.ENUM8},
                 description: 'The units of the temperature displayed on the device screen.',
             }),
-            binary({
+            m.binary({
                 name: 'smiley',
                 valueOn: ['SHOW', 0],
                 valueOff: ['HIDE', 1],
@@ -1022,7 +997,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0002, type: Zcl.DataType.ENUM8},
                 description: 'Whether to show a smiley on the device screen.',
             }),
-            numeric({
+            m.numeric({
                 name: 'temperature_calibration',
                 unit: '°C',
                 cluster: 'hvacUserInterfaceCfg',
@@ -1033,7 +1008,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 10,
                 description: 'The temperature calibration, in 0.01° steps.',
             }),
-            numeric({
+            m.numeric({
                 name: 'humidity_calibration',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
@@ -1044,7 +1019,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 10,
                 description: 'The humidity offset is set in 0.01 % steps.',
             }),
-            numeric({
+            m.numeric({
                 name: 'comfort_temperature_min',
                 unit: '°C',
                 cluster: 'hvacUserInterfaceCfg',
@@ -1054,7 +1029,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 description: 'Comfort parameters/Temperature minimum, in 1°C steps.',
             }),
-            numeric({
+            m.numeric({
                 name: 'comfort_temperature_max',
                 unit: '°C',
                 cluster: 'hvacUserInterfaceCfg',
@@ -1064,7 +1039,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 description: 'Comfort parameters/Temperature maximum, in 1°C steps.',
             }),
-            numeric({
+            m.numeric({
                 name: 'comfort_humidity_min',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
@@ -1074,7 +1049,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 description: 'Comfort parameters/Humidity minimum, in 1% steps.',
             }),
-            numeric({
+            m.numeric({
                 name: 'comfort_humidity_max',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
@@ -1084,7 +1059,7 @@ const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 description: 'Comfort parameters/Humidity maximum, in 1% steps.',
             }),
-            numeric({
+            m.numeric({
                 name: 'measurement_interval',
                 unit: 's',
                 cluster: 'hvacUserInterfaceCfg',
@@ -1175,14 +1150,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Alab',
         description: 'Four channel relay board with four inputs',
         extend: [
-            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, in1: 5, in2: 6, in3: 7, in4: 8}}),
-            onOff({
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, in1: 5, in2: 6, in3: 7, in4: 8}}),
+            m.onOff({
                 powerOnBehavior: false,
                 configureReporting: false,
                 endpointNames: ['l1', 'l2', 'l3', 'l4'],
             }),
-            commandsOnOff({endpointNames: ['l1', 'l2', 'l3', 'l4']}),
-            numeric({
+            m.commandsOnOff({endpointNames: ['l1', 'l2', 'l3', 'l4']}),
+            m.numeric({
                 name: 'input_state',
                 valueMin: 0,
                 valueMax: 1,

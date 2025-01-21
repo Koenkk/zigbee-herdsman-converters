@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {battery, iasZoneAlarm, temperature} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -15,7 +15,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery_voltage(), e.linkquality(), e.temperature(), e.battery()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery_voltage(), e.temperature(), e.battery()],
     },
     {
         zigbeeModel: ['MP-841'],
@@ -95,7 +95,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MCT-302 SMA',
         vendor: 'Visonic',
         description: 'Magnetic door & window contact senso',
-        extend: [temperature(), battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
+        extend: [m.temperature(), m.battery(), m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
     },
 ];
 

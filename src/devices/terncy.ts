@@ -1,7 +1,7 @@
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -14,14 +14,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TERNCY-WS01',
         vendor: 'TERNCY',
         description: 'Smart light switch - 4 gang without neutral wire',
-        extend: [deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}), onOff({endpointNames: ['l1', 'l2', 'l3', 'l4']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}), m.onOff({endpointNames: ['l1', 'l2', 'l3', 'l4']})],
     },
     {
         zigbeeModel: ['DL001'],
         model: 'DL001',
         vendor: 'TERNCY',
         description: 'Two color temperature intelligent downlight',
-        extend: [light({colorTemp: {range: [156, 476]}})],
+        extend: [m.light({colorTemp: {range: [156, 476]}})],
     },
     {
         zigbeeModel: ['TERNCY-DC01'],
@@ -38,10 +38,11 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TERNCY-PP01',
         vendor: 'TERNCY',
         description: 'Awareness switch',
-        fromZigbee: [fz.terncy_temperature, fz.occupancy_with_timeout, fz.illuminance, fz.terncy_raw, fz.battery],
-        exposes: [e.temperature(), e.occupancy(), e.illuminance(), e.action(['single', 'double', 'triple', 'quadruple'])],
+        fromZigbee: [fz.terncy_temperature, fz.occupancy_with_timeout, fz.terncy_raw, fz.battery],
+        exposes: [e.temperature(), e.occupancy(), e.action(['single', 'double', 'triple', 'quadruple'])],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
+        extend: [m.illuminance()],
     },
     {
         zigbeeModel: ['TERNCY-SD01'],
@@ -73,7 +74,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'TERNCY',
         description: 'Beevon ceiling light',
         ota: true,
-        extend: [light({colorTemp: {range: [50, 500]}, powerOnBehavior: false, effect: false})],
+        extend: [m.light({colorTemp: {range: [50, 500]}, powerOnBehavior: false, effect: false})],
     },
 ];
 

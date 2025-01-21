@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, light} from '../lib/modernExtend';
+import * as m from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
@@ -44,8 +44,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EcoDim',
         description: 'LED dimmer duo 2x 0-100W',
         extend: [
-            deviceEndpoints({endpoints: {left: 2, right: 1}}),
-            light({effect: false, configureReporting: true, endpointNames: ['left', 'right']}),
+            m.deviceEndpoints({endpoints: {left: 2, right: 1}}),
+            m.light({effect: false, configureReporting: true, endpointNames: ['left', 'right']}),
         ],
     },
     {
@@ -75,7 +75,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EcoDim',
         description: 'Zigbee & Z-wave dimmer',
         ota: true,
-        extend: [light({configureReporting: true})],
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ED-10010'],
@@ -213,7 +213,7 @@ const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
     },
     {
-        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_yluvwhjc'}],
+        fingerprint: tuya.fingerprint('TS0501B', ['_TZ3210_yluvwhjc']),
         model: 'ED-10042',
         vendor: 'EcoDim',
         description: 'Zigbee LED filament light dimmable E27, globe G125, flame 2200K',

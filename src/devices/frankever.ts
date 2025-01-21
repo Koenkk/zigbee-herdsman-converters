@@ -1,5 +1,6 @@
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
@@ -7,11 +8,7 @@ const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_wt9agwf3'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_5uodvhgc'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_1n2zev06'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_wt9agwf3', '_TZE200_5uodvhgc', '_TZE200_1n2zev06']),
         model: 'FK_V02',
         vendor: 'FrankEver',
         description: 'Zigbee smart water valve',
