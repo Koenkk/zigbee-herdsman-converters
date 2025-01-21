@@ -9665,7 +9665,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iwn0gpzz', '_TZE204_iwn0gpzz']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iwn0gpzz', '_TZE204_iwn0gpzz', '_TZE284_iwn0gpzz']),
         model: 'SPM01V2.5',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 1P+N system',
