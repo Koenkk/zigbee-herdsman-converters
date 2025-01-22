@@ -2301,12 +2301,7 @@ export const lumiModernExtend = {
         }),
     lumiPreventLeave: (): ModernExtend => {
         const onEvent: OnEvent = async (type, data, device) => {
-            if (
-                type == 'message' &&
-                data.type == 'attributeReport' &&
-                data.cluster == 'manuSpecificLumi' &&
-                data.data[0x00fc] == false
-            ) {
+            if (type == 'message' && data.type == 'attributeReport' && data.cluster == 'manuSpecificLumi' && data.data[0x00fc] == false) {
                 const payload = {
                     [0x00fc]: {
                         value: true,
