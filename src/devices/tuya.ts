@@ -14073,15 +14073,15 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'energy', tuya.valueConverter.divideBy100],  // "Forward Active Energy", 7685 -> 76.85kW
-                [6, null, tuya.valueConverter.phaseVariant2WithPhase('a')],  // "Phase A", CJMAAEMAAAI=
-                [7, null, tuya.valueConverter.phaseVariant2WithPhase('b')],  // "Phase B"
-                [8, null, tuya.valueConverter.phaseVariant2WithPhase('c')],  // "Phase C"
-                [23, 'produced_energy', tuya.valueConverter.divideBy100],  // "Reverse Energy", 0 W*h -> 0.0 kW*h
-                [24, 'active_enery_total', tuya.valueConverter.divideBy100],  // "Active Energy Total", 7692 W*h -> 76.92kW*h
-                [29, 'power', tuya.valueConverter.power],  // "Total Active Power", 1740 W
+                [1, 'energy', tuya.valueConverter.divideBy100], // "Forward Active Energy", 7685 -> 76.85kW
+                [6, null, tuya.valueConverter.phaseVariant2WithPhase('a')], // "Phase A", CJMAAEMAAAI=
+                [7, null, tuya.valueConverter.phaseVariant2WithPhase('b')], // "Phase B"
+                [8, null, tuya.valueConverter.phaseVariant2WithPhase('c')], // "Phase C"
+                [23, 'produced_energy', tuya.valueConverter.divideBy100], // "Reverse Energy", 0 W*h -> 0.0 kW*h
+                [24, 'active_enery_total', tuya.valueConverter.divideBy100], // "Active Energy Total", 7692 W*h -> 76.92kW*h
+                [29, 'power', tuya.valueConverter.power], // "Total Active Power", 1740 W
                 [30, 'power_reactive', tuya.valueConverter.power], // "Total Reactive Power", 985 Var
-                [50, 'power_factor', tuya.valueConverter.raw],  // "Overall Power Factor" 88 -> 88 %
+                [50, 'power_factor', tuya.valueConverter.raw], // "Overall Power Factor" 88 -> 88 %
             ],
         },
     },
