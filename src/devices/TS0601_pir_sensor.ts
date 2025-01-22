@@ -1,6 +1,10 @@
 import {Definition} from '../lib/types';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
-import {presets as e, access as ea} from '../lib/exposes';
+const e = exposes.presets;
+const ea = exposes.access;
 
 const definition: Definition = {
     fingerprint: [
@@ -21,18 +25,15 @@ const definition: Definition = {
         e.occupancy(),
         e.illuminance().withUnit('lx'),
         e.battery(),
-        e
-            .enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])
+        e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])
             .withDescription('PIR sensor sensitivity (refresh and update only while active)'),
-        e
-            .numeric('keep_time', ea.STATE_SET)
+        e.numeric('keep_time', ea.STATE_SET)
             .withValueMin(5)
             .withValueMax(3600)
             .withValueStep(1)
             .withUnit('seconds')
             .withDescription('PIR keep time in seconds (refresh and update only while active)'),
-        e
-            .numeric('illuminance_interval', ea.STATE_SET)
+        e.numeric('illuminance_interval', ea.STATE_SET)
             .withValueMin(1)
             .withValueMax(720)
             .withValueStep(1)
@@ -49,7 +50,6 @@ const definition: Definition = {
             [102, 'keep_time', tuya.valueConverter.raw],
         ],
     },
-    extend: [],
 };
 
 export default definition;
