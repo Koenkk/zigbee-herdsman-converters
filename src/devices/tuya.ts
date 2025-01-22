@@ -14066,7 +14066,7 @@ const definitions: DefinitionWithExtend[] = [
             tuya.exposes.currentWithPhase('b'),
             tuya.exposes.currentWithPhase('c'),
             e.produced_energy(),
-            e.numeric('active_enery_total', ea.STATE).withUnit('kWh').withDescription('Total Active Energy'),
+            e.numeric('active_energy_total', ea.STATE).withUnit('kWh').withDescription('Total Active Energy'),
             e.power(),
             e.power_reactive(),
             e.power_factor().withUnit('%'),
@@ -14078,7 +14078,7 @@ const definitions: DefinitionWithExtend[] = [
                 [7, null, tuya.valueConverter.phaseVariant2WithPhase('b')], // "Phase B"
                 [8, null, tuya.valueConverter.phaseVariant2WithPhase('c')], // "Phase C"
                 [23, 'produced_energy', tuya.valueConverter.divideBy100], // "Reverse Energy", 0 W*h -> 0.0 kW*h
-                [24, 'active_enery_total', tuya.valueConverter.divideBy100], // "Active Energy Total", 7692 W*h -> 76.92kW*h
+                [24, 'active_energy_total', tuya.valueConverter.divideBy100], // "Active Energy Total", 7692 W*h -> 76.92kW*h
                 [29, 'power', tuya.valueConverter.power], // "Total Active Power", 1740 W
                 [30, 'power_reactive', tuya.valueConverter.power], // "Total Reactive Power", 985 Var
                 [50, 'power_factor', tuya.valueConverter.raw], // "Overall Power Factor" 88 -> 88 %
