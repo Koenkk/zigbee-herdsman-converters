@@ -14205,7 +14205,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_goecjd1t']),
-        model: 'TS0601_smart_energy_meter',
+        model: 'ZWPM16',
         vendor: 'Tuya',
         description: 'ZigBee Smart Energy Meter',
         fromZigbee: [tuya.fz.datapoints],
