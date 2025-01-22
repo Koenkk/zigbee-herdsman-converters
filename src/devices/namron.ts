@@ -1522,7 +1522,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['4512783', '4512784'],
-        model: 'Edge Thermostat',
+        model: '4512783/4512784',
         vendor: 'Namron',
         description: 'Namron Zigbee Edge Termostat',
         fromZigbee: [
