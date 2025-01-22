@@ -5,6 +5,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as m from '../lib/modernExtend';
+import * as namron from '../lib/namron';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
@@ -15,180 +16,6 @@ const ea = exposes.access;
 const e = exposes.presets;
 
 const sunricherManufacturer = {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD};
-
-interface NamronPrivateAttribute {
-    attrId: number | string;
-    type: Zcl.DataType;
-    key: string;
-}
-
-interface NamronPrivateTable {
-    [key: string]: NamronPrivateAttribute;
-}
-
-const namronPrivateHvacThermostat: NamronPrivateTable = {
-    windowCheck: {attrId: 0x8000, type: Zcl.DataType.BOOLEAN, key: 'window_open_check'},
-    antiFrostMode: {attrId: 0x8001, type: Zcl.DataType.BOOLEAN, key: 'anti_frost'},
-    windowState: {attrId: 0x8002, type: Zcl.DataType.BOOLEAN, key: 'window_open'},
-    workDays: {attrId: 0x8003, type: Zcl.DataType.ENUM8, key: 'work_days'},
-    sensorMode: {attrId: 0x8004, type: Zcl.DataType.ENUM8, key: 'sensor_mode'},
-    activeBacklight: {attrId: 0x8005, type: Zcl.DataType.UINT8, key: 'active_display_brightness'},
-    fault: {attrId: 0x8006, type: Zcl.DataType.ENUM8, key: 'fault'},
-    regulator: {attrId: 0x8007, type: Zcl.DataType.UINT8, key: 'regulator'},
-    timeSyncFlag: {attrId: 0x800a, type: Zcl.DataType.BOOLEAN, key: 'time_sync'},
-    timeSyncValue: {attrId: 0x800b, type: Zcl.DataType.UINT32, key: 'time_sync_value'},
-    absMinHeatSetpointLimitF: {attrId: 0x800c, type: Zcl.DataType.INT16, key: 'abs_min_heat_setpoint_limit_f'},
-    absMaxHeatSetpointLimitF: {attrId: 0x800d, type: Zcl.DataType.INT16, key: 'abs_max_heat_setpoint_limit_f'},
-    absMinCoolSetpointLimitF: {attrId: 0x800e, type: Zcl.DataType.INT16, key: 'abs_min_cool_setpoint_limit_f'},
-    absMaxCoolSetpointLimitF: {attrId: 0x800f, type: Zcl.DataType.INT16, key: 'abs_max_cool_setpoint_limit_f'},
-    occupiedCoolingSetpointF: {attrId: 0x8010, type: Zcl.DataType.INT16, key: 'occupied_cooling_setpoint_f'},
-    occupiedHeatingSetpointF: {attrId: 0x8011, type: Zcl.DataType.INT16, key: 'occupied_heating_setpoint_f'},
-    localTemperatureF: {attrId: 0x8012, type: Zcl.DataType.INT16, key: 'local_temperature_f'},
-    holidayTempSet: {attrId: 0x8013, type: Zcl.DataType.INT16, key: 'holiday_temp_set'},
-    holidayTempSetF: {attrId: 0x801b, type: Zcl.DataType.INT16, key: 'holiday_temp_set_f'},
-    regulationMode: {attrId: 0x801c, type: Zcl.DataType.INT16, key: 'regulation_mode'},
-    regulatorPercentage: {attrId: 0x801d, type: Zcl.DataType.INT16, key: 'regulator_percentage'},
-    summerWinterSwitch: {attrId: 0x801e, type: Zcl.DataType.BOOLEAN, key: 'summer_winter_switch'},
-    vacationMode: {attrId: 0x801f, type: Zcl.DataType.BOOLEAN, key: 'vacation_mode'},
-    vacationStartDate: {attrId: 0x8020, type: Zcl.DataType.UINT32, key: 'vacation_start_date'},
-    vacationEndDate: {attrId: 0x8021, type: Zcl.DataType.UINT32, key: 'vacation_end_date'},
-    autoTime: {attrId: 0x8022, type: Zcl.DataType.BOOLEAN, key: 'auto_time'},
-    countdownSet: {attrId: 0x8023, type: Zcl.DataType.ENUM8, key: 'boost_time_set'},
-    countdownLeft: {attrId: 0x8024, type: Zcl.DataType.INT16, key: 'boost_time_left'},
-    displayAutoOff: {attrId: 0x8029, type: Zcl.DataType.ENUM8, key: 'display_auto_off'},
-    currentOperatingMode: {attrId: 'programingOperMode', type: Zcl.DataType.BITMAP8, key: 'current_operating_mode'},
-};
-
-function fromFzToTz(obj: KeyValue) {
-    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k]));
-}
-
-const fzNamronBoostTable = {
-    0: 'off',
-    1: '5_min',
-    2: '10_min',
-    3: '15_min',
-    4: '20_min',
-    5: '25_min',
-    6: '30_min',
-    7: '35_min',
-    8: '40_min',
-    9: '45_min',
-    10: '50_min',
-    11: '55_min',
-    12: '1h',
-    13: '1h_5_min',
-    14: '1h_10_min',
-    15: '1h_15_min',
-    16: '1h_20_min',
-    17: '1h_25_min',
-    18: '1h_30_min',
-    19: '1h_35_min',
-    20: '1h_40_min',
-    21: '1h_45_min',
-    22: '1h_50_min',
-    23: '1h_55_min',
-    24: '2h',
-};
-const tzNamronBoostTable = fromFzToTz(fzNamronBoostTable);
-
-const fzNamronSystemMode = {0x00: 'off', 0x01: 'auto', 0x03: 'cool', 0x04: 'heat'};
-const tzNamronSystemMode = fromFzToTz(fzNamronSystemMode);
-
-const fzNamronOnOff = {0: 'off', 1: 'on'};
-const tzNamronOnOff = fromFzToTz(fzNamronOnOff);
-
-const fzNamronOpenClose = {0: 'closed', 1: 'open'};
-const tzNamronOpenClose = fromFzToTz(fzNamronOpenClose);
-
-const fzNamronDisplayTimeout = {0: 'off', 1: '10s', 2: '30s', 3: '60s'};
-const tzNamronDisplayTimeout = fromFzToTz(fzNamronDisplayTimeout);
-
-const fzNamronSensorMode = {0: 'air', 1: 'floor', 3: 'external', 6: 'regulator'};
-const tzNamronSensorMode = fromFzToTz(fzNamronSensorMode);
-
-const fzNamronOperationMode = {0: 'manual', 1: 'manual', 5: 'eco'};
-const tzNamronOperationMode = fromFzToTz(fzNamronOperationMode);
-
-const fzNamronFault = {
-    0: 'no_fault',
-    1: 'over_current_error',
-    2: 'over_heat_error',
-    3: 'built-in_sensor_error',
-    4: 'air_sensor_error',
-    5: 'floor_sensor_error',
-};
-
-const fzNamronWorkDays = {0: 'mon-fri_sat-sun', 1: 'mon-sat_sun', 2: 'no_time_off', 3: 'time_off'};
-const tzNamronWorkDays = fromFzToTz(fzNamronWorkDays);
-
-const findAttributeByKey = (key: string, attributes: NamronPrivateTable) => {
-    // Finn objektet basert på key
-    return Object.values(attributes).find((attr) => attr.key === key);
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const assign = (data: any, attribute: NamronPrivateAttribute, target: KeyValue, defaultValue: any = null, transform = (value: any) => value) => {
-    // Ekstrakt `attrId` og `key` direkte fra attributtobjektet
-    const {attrId, key: targetKey} = attribute;
-
-    if (data[attrId] !== undefined) {
-        target[targetKey] = transform(data[attrId]);
-    } else if (data[attrId] && defaultValue !== null && defaultValue !== undefined) {
-        target[targetKey] = transform(defaultValue);
-    }
-};
-
-const assignWithLookup = (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: any,
-    attribute: NamronPrivateAttribute,
-    target: KeyValue,
-    lookup = {},
-    defaultValue: string | number | null = null,
-) => {
-    // Ekstrakt `attrId` og `key` direkte fra attributtobjektet
-    const {attrId, key: targetKey} = attribute;
-
-    if (data[attrId] !== undefined) {
-        const value = data[attrId] ?? defaultValue;
-        target[targetKey] = utils.getFromLookup(value, lookup);
-    }
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const assignDate = (data: any, attribute: NamronPrivateAttribute, target: KeyValue) => {
-    // Ekstrakt `attrId` og `key` direkte fra attributtobjektet
-    const {attrId, key: targetKey} = attribute;
-    const value = data[attrId];
-    if (value === undefined) {
-        return;
-    }
-    const date = new Date(value * 86400000);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Månedene er 0-indeksert
-    const year = date.getFullYear();
-    target[targetKey] = `${year}.${month}.${day}`;
-};
-
-const fromDate = (value: string) => {
-    // Ekstrakt `attrId` og `key` direkte fra attributtobjektet
-    const dateParts = value.split(/[.\-/]/);
-    if (dateParts.length !== 3) {
-        throw new Error('Invalid date format');
-    }
-
-    let date: Date;
-    if (dateParts[0].length === 4) {
-        date = new Date(`${dateParts[0]}-${dateParts[1]}-${dateParts[2]}`);
-    } else if (dateParts[2].length === 4) {
-        date = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
-    } else {
-        throw new Error('Invalid date format');
-    }
-
-    return date.getTime() / 86400000 + 1;
-};
 
 const fzLocal = {
     namron_panelheater: {
@@ -237,58 +64,6 @@ const fzLocal = {
             return fz.thermostat.convert(model, msg, publish, options, meta); // as KeyValue;
         },
     } satisfies Fz.Converter,
-    namron_edge_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            const data = msg.data;
-
-            assignWithLookup(data, namronPrivateHvacThermostat.work_days, result, fzNamronWorkDays, 0);
-            assignWithLookup(data, namronPrivateHvacThermostat.sensor_mode, result, fzNamronSensorMode, 0);
-            assignWithLookup(data, namronPrivateHvacThermostat.fault, result, fzNamronFault, 0);
-
-            assignWithLookup(data, namronPrivateHvacThermostat.window_check, result, fzNamronOnOff, 0);
-            assignWithLookup(data, namronPrivateHvacThermostat.anti_frost_mode, result, fzNamronOnOff, 0);
-            assignWithLookup(data, namronPrivateHvacThermostat.window_state, result, fzNamronOpenClose, 0);
-            assignWithLookup(data, namronPrivateHvacThermostat.summer_winter_switch, result, fzNamronOnOff, 0);
-            assignWithLookup(data, namronPrivateHvacThermostat.vacation_mode, result, fzNamronOnOff, 0);
-            assignWithLookup(data, namronPrivateHvacThermostat.time_sync_flag, result, fzNamronOnOff, 0);
-
-            assign(data, namronPrivateHvacThermostat.active_backlight, result);
-            assign(data, namronPrivateHvacThermostat.time_sync_value, result);
-            assign(data, namronPrivateHvacThermostat.abs_min_heat_setpoint_limit_f, result);
-            assign(data, namronPrivateHvacThermostat.abs_max_heat_setpoint_limit_f, result);
-            assign(data, namronPrivateHvacThermostat.abs_min_cool_setpoint_limit_f, result);
-            assign(data, namronPrivateHvacThermostat.abs_max_cool_setpoint_limit_f, result);
-            assign(data, namronPrivateHvacThermostat.occupied_cooling_setpoint_f, result);
-            assign(data, namronPrivateHvacThermostat.occupied_heating_setpoint_f, result);
-            assign(data, namronPrivateHvacThermostat.local_temperature_f, result);
-            assign(data, namronPrivateHvacThermostat.holiday_temp_set, result, (value: number) => {
-                return value / 100;
-            });
-            assign(data, namronPrivateHvacThermostat.holiday_temp_set_f, result, (value: number) => {
-                return value / 100;
-            });
-
-            assign(data, namronPrivateHvacThermostat.regulator_percentage, result, 0, (value) => {
-                return value;
-            });
-
-            assignDate(data, namronPrivateHvacThermostat.vacation_start_date, result);
-            assignDate(data, namronPrivateHvacThermostat.vacation_end_date, result);
-
-            // Auto_time (synkroniser tid med ntp?)
-            assignWithLookup(data, namronPrivateHvacThermostat.auto_time, result, fzNamronOnOff, 0);
-            assignWithLookup(data, namronPrivateHvacThermostat.countdown_set, result, fzNamronBoostTable, 0);
-            assign(data, namronPrivateHvacThermostat.countdown_left, result, 0, (value) => (value > 200 ? 0 : value));
-            assignWithLookup(data, namronPrivateHvacThermostat.display_auto_off, result, fzNamronDisplayTimeout, 0);
-            assignWithLookup(data, namronPrivateHvacThermostat.system_mode, result, fzNamronSystemMode, 0x00);
-            assignWithLookup(data, namronPrivateHvacThermostat.current_operating_mode, result, fzNamronOperationMode, 0);
-
-            return result;
-        },
-    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -335,160 +110,6 @@ const tzLocal = {
 
                 default: // Unknown key
                     throw new Error(`Unhandled key toZigbee.namron_panelheater.convertGet ${key}`);
-            }
-        },
-    } satisfies Tz.Converter,
-    namron_edge_thermostat: {
-        key: [
-            'window_open_check',
-            'anti_frost',
-            'window_open',
-            'work_days',
-            'sensor_mode',
-            'active_display_brightness',
-            'fault',
-            'regulator',
-            'time_sync',
-            'time_sync_value',
-            'abs_min_heat_setpoint_limit_f',
-            'abs_max_heat_setpoint_limit_f',
-            'abs_min_cool_setpoint_limit_f',
-            'abs_max_cool_setpoint_limit_f',
-            'occupied_cooling_setpoint_f',
-            'occupied_heating_setpoint_f',
-            'local_temperature_f',
-            'holiday_temp_set',
-            'holiday_temp_set_f',
-            'regulation_mode',
-            'regulator_percentage',
-            'summer_winter_switch',
-            'vacation_mode',
-            'vacation_start_date',
-            'vacation_end_date',
-            'auto_time',
-            'boost_time_set',
-            'boost_time_left',
-            'display_auto_off',
-            'system_mode',
-            'current_operating_mode',
-        ],
-
-        convertGet: async (entity, key, meta) => {
-            const readAttr = findAttributeByKey(key, namronPrivateHvacThermostat);
-            if (readAttr) {
-                await entity.read('hvacThermostat', [readAttr.attrId]);
-            } else {
-                throw new Error(`Unhandled key toZigbee.namronEdgeThermostat.convertGet ${key}`);
-            }
-        },
-
-        convertSet: async (entity, key, value, meta) => {
-            const readAttr = findAttributeByKey(key, namronPrivateHvacThermostat);
-
-            if (!readAttr) {
-                throw new Error(`Unhandled key toZigbee.namronEdgeThermostat.convertSet ${key}`);
-            }
-
-            if (
-                [
-                    namronPrivateHvacThermostat.window_check.key,
-                    namronPrivateHvacThermostat.anti_frost_mode.key,
-                    namronPrivateHvacThermostat.time_sync_flag.key,
-                    namronPrivateHvacThermostat.summer_winter_switch.key,
-                    namronPrivateHvacThermostat.auto_time.key,
-                    namronPrivateHvacThermostat.vacation_mode.key,
-                ].includes(readAttr.key)
-            ) {
-                const payload = {[readAttr.attrId]: {value: utils.getFromLookup(value, tzNamronOnOff), type: readAttr.type}};
-                await entity.write('hvacThermostat', payload);
-                return;
-            }
-
-            // Direct call
-            if ([Zcl.DataType.UINT8, Zcl.DataType.INT16, Zcl.DataType.UINT32].includes(readAttr.type)) {
-                const payload = {[readAttr.attrId]: {value: value, type: readAttr.type}};
-                await entity.write('hvacThermostat', payload);
-            }
-
-            if (readAttr === namronPrivateHvacThermostat.countdown_set) {
-                await entity.write('hvacThermostat', {
-                    [readAttr.attrId]: {
-                        value: utils.getFromLookup(value, tzNamronBoostTable),
-                        type: readAttr.type,
-                    },
-                });
-            }
-
-            if (readAttr === namronPrivateHvacThermostat.window_state) {
-                await entity.write('hvacThermostat', {
-                    [readAttr.attrId]: {
-                        value: utils.getFromLookup(value, tzNamronOpenClose),
-                        type: readAttr.type,
-                    },
-                });
-            }
-
-            if (readAttr === namronPrivateHvacThermostat.display_auto_off) {
-                await entity.write('hvacThermostat', {
-                    [readAttr.attrId]: {
-                        value: utils.getFromLookup(value, tzNamronDisplayTimeout),
-                        type: readAttr.type,
-                    },
-                });
-            }
-
-            if (readAttr === namronPrivateHvacThermostat.sensor_mode) {
-                await entity.write('hvacThermostat', {
-                    [readAttr.attrId]: {
-                        value: utils.getFromLookup(value, tzNamronSensorMode),
-                        type: readAttr.type,
-                    },
-                });
-            }
-
-            if (readAttr === namronPrivateHvacThermostat.system_mode) {
-                await entity.write('hvacThermostat', {
-                    [readAttr.attrId]: {
-                        value: utils.getFromLookup(value, tzNamronSystemMode),
-                        type: readAttr.type,
-                    },
-                });
-            }
-
-            if (readAttr === namronPrivateHvacThermostat.current_operating_mode) {
-                await entity.write('hvacThermostat', {
-                    [readAttr.attrId]: {
-                        value: utils.getFromLookup(value, tzNamronOperationMode),
-                        type: readAttr.type,
-                    },
-                });
-            }
-
-            if (readAttr === namronPrivateHvacThermostat.holiday_temp_set) {
-                await entity.write('hvacThermostat', {
-                    [readAttr.attrId]: {
-                        value: Number(value) * 100,
-                        type: readAttr.type,
-                    },
-                });
-            }
-
-            if ([namronPrivateHvacThermostat.vacation_start_date.key, namronPrivateHvacThermostat.vacation_end_date.key].includes(readAttr.key)) {
-                await entity.write('hvacThermostat', {
-                    [readAttr.attrId]: {
-                        value: fromDate(String(value)),
-                        type: readAttr.type,
-                    },
-                });
-            }
-
-            if (readAttr === namronPrivateHvacThermostat.work_days) {
-                await entity.write('hvacThermostat', {
-                    [readAttr.attrId]: {
-                        value: utils.getFromLookup(value, tzNamronWorkDays),
-                        type: readAttr.type,
-                    },
-                });
             }
         },
     } satisfies Tz.Converter,
@@ -1904,10 +1525,16 @@ const definitions: DefinitionWithExtend[] = [
         model: 'Edge Thermostat',
         vendor: 'Namron',
         description: 'Namron Zigbee Edge Termostat',
-        fromZigbee: [fzLocal.namron_edge_thermostat, fz.thermostat, fz.namron_hvac_user_interface, fz.metering, fz.electrical_measurement],
+        fromZigbee: [
+            fz.thermostat,
+            namron.fromZigbee.namron_edge_thermostat_holiday_temp,
+            namron.fromZigbee.namron_edge_thermostat_vacation_date,
+            fz.namron_hvac_user_interface,
+            fz.metering,
+            fz.electrical_measurement,
+        ],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tzLocal.namron_edge_thermostat,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
             tz.namron_thermostat_child_lock,
@@ -1917,18 +1544,20 @@ const definitions: DefinitionWithExtend[] = [
             tz.thermostat_local_temperature_calibration,
             tz.thermostat_running_state,
             tz.thermostat_running_mode,
+            namron.toZigbee.namron_edge_thermostat_holiday_temp,
+            namron.toZigbee.namron_edge_thermostat_vacation_date,
         ],
         onEvent: async (type, data, device, options) => {
             if (type === 'stop') {
                 try {
-                    const key = namronPrivateHvacThermostat.time_sync_value.key;
+                    const key = 'time_sync_value';
                     clearInterval(globalStore.getValue(device, key));
                     globalStore.clearValue(device, key);
                 } catch {
                     /* Do nothing*/
                 }
             }
-            if (!globalStore.hasValue(device, namronPrivateHvacThermostat.time_sync_value.key)) {
+            if (!globalStore.hasValue(device, 'time_sync_value')) {
                 const hours24 = 1000 * 60 * 60 * 24;
                 const interval = setInterval(async () => {
                     try {
@@ -1936,16 +1565,16 @@ const definitions: DefinitionWithExtend[] = [
                         // Device does not asks for the time with binding, therefore we write the time every 24 hours
                         const time = new Date().getTime() / 1000;
                         await endpoint.write('hvacThermostat', {
-                            [namronPrivateHvacThermostat.time_sync_value.attrId]: {
+                            [0x800b]: {
                                 value: time,
-                                type: namronPrivateHvacThermostat.time_sync_value.type,
+                                type: Zcl.DataType.UINT32,
                             },
                         });
                     } catch {
                         /* Do nothing*/
                     }
                 }, hours24);
-                globalStore.putValue(device, namronPrivateHvacThermostat.time_sync_value.key, interval);
+                globalStore.putValue(device, 'time_sync_value', interval);
             }
         },
         configure: async (device, coordinatorEndpoint, _logger) => {
@@ -1970,19 +1599,31 @@ const definitions: DefinitionWithExtend[] = [
             // Initial read
             await endpoint.read('hvacThermostat', [0x8000, 0x8001, 0x8002, 0x801e, 0x8004, 0x8006, 0x8005, 0x8029, 0x8022, 0x8023, 0x8024]);
 
-            // Reads holiday
-            await endpoint.read('hvacThermostat', [
-                namronPrivateHvacThermostat.holiday_temp_set.attrId,
-                namronPrivateHvacThermostat.holiday_temp_set_f.attrId,
-                namronPrivateHvacThermostat.vacation_mode.attrId,
-                namronPrivateHvacThermostat.vacation_start_date.attrId,
-                namronPrivateHvacThermostat.vacation_end_date.attrId,
-            ]);
-
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
-        extend: [m.electricityMeter({voltage: false}), m.onOff({powerOnBehavior: false})],
+        extend: [
+            m.electricityMeter({voltage: false}),
+            m.onOff({powerOnBehavior: false}),
+            namron.edgeThermostat.windowOpenDetection(),
+            namron.edgeThermostat.antiFrost(),
+            namron.edgeThermostat.summerWinterSwitch(),
+            namron.edgeThermostat.vacationMode(),
+            namron.edgeThermostat.timeSync(),
+            namron.edgeThermostat.autoTime(),
+            namron.edgeThermostat.displayActiveBacklight(),
+            namron.edgeThermostat.displayAutoOff(),
+            namron.edgeThermostat.regulatorPercentage(),
+            namron.edgeThermostat.regulationMode(),
+            namron.edgeThermostat.sensorMode(),
+            namron.edgeThermostat.boostTime(),
+            namron.edgeThermostat.readOnly.boostTimeRemaining(),
+            namron.edgeThermostat.systemMode(),
+            namron.edgeThermostat.deviceTime(),
+            namron.edgeThermostat.readOnly.windowState(),
+            namron.edgeThermostat.readOnly.deviceFault(),
+            namron.edgeThermostat.readOnly.workDays(),
+        ],
         exposes: [
             e
                 .climate()
@@ -1992,31 +1633,10 @@ const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
                 .withRunningState(['idle', 'heat']),
             e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit']).withLabel('Temperature Unit').withDescription('Select Unit'),
-            e.enum('current_operating_mode', ea.ALL, ['Manual', 'ECO']).withDescription('Selected program for thermostat'),
+            e.enum('operating_mode', ea.ALL, ['Manual', 'ECO']).withDescription('Selected program for thermostat'),
             e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
             e
-                .numeric(namronPrivateHvacThermostat.activeBacklight.key, ea.ALL)
-                .withDescription('Desired display brightness')
-                .withUnit('%')
-                .withValueMin(1)
-                .withValueMax(100),
-            e
-                .enum(namronPrivateHvacThermostat.displayAutoOff.key, ea.ALL, Object.values(fzNamronDisplayTimeout))
-                .withDescription('Turn off the display after the give time in inactivity or never'),
-            e.binary(namronPrivateHvacThermostat.windowCheck.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off window check mode'),
-            e
-                .enum(namronPrivateHvacThermostat.windowState.key, ea.STATE_GET, Object.values(fzNamronOpenClose))
-                .withDescription('Detected state of window'),
-            e.binary(namronPrivateHvacThermostat.antiFrostMode.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off anti-frost mode'),
-            e.binary(namronPrivateHvacThermostat.summerWinterSwitch.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off Summar Winter switch'),
-            e.binary(namronPrivateHvacThermostat.autoTime.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off Automatic time'),
-            e
-                .enum(namronPrivateHvacThermostat.countdownSet.key, ea.ALL, Object.values(fzNamronBoostTable))
-                .withDescription('Starts boost with defined time'),
-            e.numeric(namronPrivateHvacThermostat.countdownLeft.key, ea.STATE_GET).withUnit('min').withDescription('Given boost time'),
-            e.binary(namronPrivateHvacThermostat.vacationMode.key, ea.ALL, 'On', 'Off').withDescription('Turn on/off vacation mode'),
-            e
-                .numeric(namronPrivateHvacThermostat.holidayTempSet.key, ea.ALL)
+                .numeric('holiday_temp_set', ea.ALL)
                 .withValueMin(5)
                 .withValueMax(35)
                 .withValueStep(0.5)
@@ -2024,22 +1644,10 @@ const definitions: DefinitionWithExtend[] = [
                 .withLabel('Vacation temperature')
                 .withDescription('Vacation temperature setpoint'),
             e
-                .text(namronPrivateHvacThermostat.vacationStartDate.key, ea.ALL)
+                .text('vacation_start_date', ea.ALL)
                 .withDescription('Start date')
                 .withDescription("Supports dates starting with day or year with '. - /'"),
-            e
-                .text(namronPrivateHvacThermostat.vacationEndDate.key, ea.ALL)
-                .withDescription('End date')
-                .withDescription("Supports dates starting with day or year with '. - /'"),
-            e.binary(namronPrivateHvacThermostat.timeSyncFlag.key, ea.ALL, 'On', 'Off'),
-            e.numeric(namronPrivateHvacThermostat.timeSyncValue.key, ea.STATE_GET),
-            e
-                .enum(namronPrivateHvacThermostat.fault.key, ea.STATE_GET, Object.values(fzNamronFault))
-                .withDescription('Shows current error of the device'),
-            e
-                .enum(namronPrivateHvacThermostat.workDays.key, ea.STATE_GET, Object.values(fzNamronWorkDays))
-                .withDescription("Needs to be changed under 'Thermostat settings' > 'Advanced settings' > 'Schedule type'"),
-            e.numeric(namronPrivateHvacThermostat.regulatorPercentage.key, ea.ALL).withUnit('%').withValueMin(10).withValueMax(100).withValueStep(1),
+            e.text('vacation_end_date', ea.ALL).withDescription('End date').withDescription("Supports dates starting with day or year with '. - /'"),
         ],
     },
 ];
