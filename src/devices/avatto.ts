@@ -29,6 +29,22 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_goecjd1t']),
+        model: 'ZWPM16',
+        vendor: 'AVATTO',
+        description: 'Zigbee smart energy meter',
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [e.power(), e.voltage(), e.current()],
+        meta: {
+            tuyaDatapoints: [
+                [18, 'current', tuya.valueConverter.divideBy1000],
+                [19, 'power', tuya.valueConverter.divideBy10],
+                [20, 'voltage', tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
 ];
 
 export default definitions;
