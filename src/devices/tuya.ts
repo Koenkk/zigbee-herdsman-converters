@@ -14042,6 +14042,49 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_a14rjslz']),
+        model: 'TS0601_zigbee_3_phase_meter',
+        vendor: 'Tuya',
+        description: 'Zigbee 3 Phase Meter',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        whiteLabel: [
+            {vendor: 'Ourtop', model: 'ATMS10013Z3'},
+            {vendor: 'Ourtop', model: 'ATMS100133Z'},
+        ],
+        exposes: [
+            e.energy(),
+            tuya.exposes.voltageWithPhase('a'),
+            tuya.exposes.voltageWithPhase('b'),
+            tuya.exposes.voltageWithPhase('c'),
+            tuya.exposes.powerWithPhase('a'),
+            tuya.exposes.powerWithPhase('b'),
+            tuya.exposes.powerWithPhase('c'),
+            tuya.exposes.currentWithPhase('a'),
+            tuya.exposes.currentWithPhase('b'),
+            tuya.exposes.currentWithPhase('c'),
+            e.produced_energy(),
+            e.numeric('active_enery_total', ea.STATE).withUnit('kWh').withDescription('Total Active Energy'),
+            e.power(),
+            e.power_reactive(),
+            e.power_factor().withUnit('%'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'energy', tuya.valueConverter.divideBy100],  // "Forward Active Energy", 7685 -> 76.85kW
+                [6, null, tuya.valueConverter.phaseVariant2WithPhase('a')],  // "Phase A", CJMAAEMAAAI=
+                [7, null, tuya.valueConverter.phaseVariant2WithPhase('b')],  // "Phase B"
+                [8, null, tuya.valueConverter.phaseVariant2WithPhase('c')],  // "Phase C"
+                [23, 'produced_energy', tuya.valueConverter.divideBy100],  // "Reverse Energy", 0 W*h -> 0.0 kW*h
+                [24, 'active_enery_total', tuya.valueConverter.divideBy100],  // "Active Energy Total", 7692 W*h -> 76.92kW*h
+                [29, 'power', tuya.valueConverter.power],  // "Total Active Power", 1740 W
+                [30, 'power_reactive', tuya.valueConverter.power], // "Total Reactive Power", 985 Var
+                [50, 'power_factor', tuya.valueConverter.raw],  // "Overall Power Factor" 88 -> 88 %
+            ],
+        },
+    },
 ];
 
 export default definitions;
