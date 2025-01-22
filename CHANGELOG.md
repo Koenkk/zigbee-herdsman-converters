@@ -1,5 +1,20 @@
 # Changelog
 
+## [21.23.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.22.0...v21.23.0) (2025-01-22)
+
+
+### Features
+
+* **add:** WS-K07E, WS-K08E ([#8660](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8660)) ([9c3433f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c3433f2237b0e4842ef984b37fbe494c17dcb40))
+* **add:** ZWPM16 ([#8640](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8640)) ([21d0967](https://github.com/Koenkk/zigbee-herdsman-converters/commit/21d0967db03fcbabc039fa2c19223b6091d424a4))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_2imwyigp` as Tuya MG-ZG03W https://github.com/Koenkk/zigbee2mqtt/issues/20265 ([400fa2c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/400fa2c34d91b090c32dc2956ff17e376b89a98f))
+* **detect:** Detect `af22cef59b2543d1be1dfab4f1c9c920` as ORVIBO DD10Z ([#8657](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8657)) ([14c4664](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14c466491a9363fc06922381cd151ceef372232e))
+* Support OTA for Namron 1402769 @IDmedia https://github.com/Koenkk/zigbee-OTA/pull/655 ([3d892ed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3d892edcb684dda14467a360cc953d86df629530))
+
 ## [21.22.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.21.1...v21.22.0) (2025-01-20)
 
 
