@@ -1616,6 +1616,7 @@ const definitions: DefinitionWithExtend[] = [
                 '_TZ3210_mja6r5ix',
             ]),
             tuya.whitelabel('MiBoxer', 'FUTC11ZR', 'Outdoor light', ['_TZB210_zmppwawa']),
+            tuya.whitelabel('TechToy', '_TZ3210_iw0zkcu8', 'Smart bulb RGB 9W E27', ['_TZ3210_iw0zkcu8']),
         ],
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
         configure: async (device, coordinatorEndpoint) => {
