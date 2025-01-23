@@ -283,6 +283,7 @@ import titan_products from './titan_products';
 import tlwglobal from './tlwglobal';
 import tplink from './tplink';
 import trust from './trust';
+import TS0601_pir_sensor from './TS0601_pir_sensor';
 import tubeszb from './tubeszb';
 import tuya from './tuya';
 import ubisys from './ubisys';
@@ -604,6 +605,7 @@ export default [
     ...trust,
     ...tubeszb,
     ...tuya,
+    TS0601_pir_sensor,
     ...ubisys,
     ...uhome,
     ...lumi,
