@@ -3,6 +3,7 @@ import {Zcl} from 'zigbee-herdsman';
 import * as libColor from '../lib/color';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import {unfreezeMechanisms, UnfreezeSupport} from '../lib/ikea';
 import * as legacy from '../lib/legacy';
 import * as light from '../lib/light';
 import {logger} from '../lib/logger';
@@ -4507,6 +4508,38 @@ const converters3 = {
                 await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
             }
             return await converters2.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
+    ikea_bulb_unfreeze: {
+        key: ['transition', 'brightness', 'brightness_percent', 'color_temp', 'color_temp_percent'],
+        convertSet: async (entity, key, value, meta) => {
+            const {message} = meta;
+
+            // attempts to transition a colour and brightness at the same time fail
+            if ('transition' in message && typeof message.transition === 'number' && 'brightness' in message && 'color_temp' in message) {
+                const appliedFix = 'hasIkeaFix' in entity;
+
+                if (!appliedFix) {
+                    logger.info('Applied workaround for IKEA brightness + temperature change', NS);
+
+                    const unfreeze = new UnfreezeSupport(
+                        entity,
+                        unfreezeMechanisms.genLevelCtrl, // hardcoded
+                    );
+
+                    const newEntity = Object.create(entity);
+                    newEntity.hasIkeaFix = true;
+
+                    newEntity.command = async (clusterKey: string, commandKey: string, payload: KeyValue, options: KeyValue) => {
+                        return await unfreeze.command(clusterKey, commandKey, payload, options);
+                    };
+
+                    entity = newEntity;
+                    // rob: return await converters.convertSet(newEntity, key, value, meta);
+                }
+            }
+
+            await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
         },
     } satisfies Tz.Converter,
 };
