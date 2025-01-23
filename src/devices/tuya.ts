@@ -14044,14 +14044,13 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE284_a14rjslz']),
-        model: 'TS0601_zigbee_3_phase_meter',
-        vendor: 'Tuya',
+        model: 'ATMS10013Z3',
+        vendor: 'Ourtop',
         description: 'Zigbee 3 Phase Meter',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         whiteLabel: [
-            {vendor: 'Ourtop', model: 'ATMS10013Z3'},
             {vendor: 'Ourtop', model: 'ATMS100133Z'},
         ],
         exposes: [
