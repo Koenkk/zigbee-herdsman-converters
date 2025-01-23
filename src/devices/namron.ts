@@ -1623,6 +1623,7 @@ const definitions: DefinitionWithExtend[] = [
             namron.edgeThermostat.readOnly.windowState(),
             namron.edgeThermostat.readOnly.deviceFault(),
             namron.edgeThermostat.readOnly.workDays(),
+            m.humidity(),
         ],
         exposes: [
             e
