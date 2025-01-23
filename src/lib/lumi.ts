@@ -2286,6 +2286,33 @@ export const lumiModernExtend = {
             ],
         } satisfies ModernExtend;
     },
+    lumiMultiClick: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'multi_click',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0286, type: 0x20},
+            valueOn: [true, 2],
+            valueOff: [false, 1],
+            description: 'Enable multi-click mode for the switch, otherwise single click',
+            access: 'ALL',
+            entityCategory: 'config',
+            zigbeeCommandOptions: {manufacturerCode},
+            ...args,
+        }),
+    lumiPreventLeave: (): ModernExtend => {
+        const onEvent: OnEvent = async (type, data, device) => {
+            if (type == 'message' && data.type == 'attributeReport' && data.cluster == 'manuSpecificLumi' && data.data[0x00fc] == false) {
+                const payload = {
+                    [0x00fc]: {
+                        value: true,
+                        type: 0x10,
+                    },
+                };
+                await device.getEndpoint(1).write('manuSpecificLumi', payload, {manufacturerCode});
+            }
+        };
+        return {onEvent, isModernExtend: true};
+    },
 };
 
 export {lumiModernExtend as modernExtend};

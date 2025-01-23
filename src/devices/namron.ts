@@ -305,6 +305,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Namron',
         description: 'ZigBee LED dimmer',
         extend: [m.light({configureReporting: true}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
+        ota: true,
     },
     {
         zigbeeModel: ['4512702'],

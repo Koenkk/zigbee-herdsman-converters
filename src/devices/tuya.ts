@@ -2880,7 +2880,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_go3tvswy']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_go3tvswy', '_TZE204_2imwyigp']),
         model: 'MG-ZG03W',
         vendor: 'Tuya',
         description: '3 gang switch',
