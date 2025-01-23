@@ -14050,9 +14050,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        whiteLabel: [
-            {vendor: 'Ourtop', model: 'ATMS100133Z'},
-        ],
+        whiteLabel: [{vendor: 'Ourtop', model: 'ATMS100133Z'}],
         exposes: [
             e.energy(),
             tuya.exposes.voltageWithPhase('a'),
