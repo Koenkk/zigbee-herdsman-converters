@@ -1856,7 +1856,6 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        whiteLabel: [tuya.whitelabel('Tuya', 'ZG-204ZA', 'Motion sensor', ['_TZ3000_6ygjfyll'])],
         whiteLabel: [tuya.whitelabel('Tuya', 'ZMS-102', 'Motion sensor', ['_TZ3000_msl6wxk9'])],
     },
     {
