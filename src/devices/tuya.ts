@@ -1914,7 +1914,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'CR Smart Home', model: 'TS0207'},
             tuya.whitelabel('Meian', 'SW02', 'Water leak sensor', ['_TZ3000_kyb656no']),
             tuya.whitelabel('Aubess', 'IH-K665', 'Water leak sensor', ['_TZ3000_kstbkt6a']),
-            tuya.whitelabel('HOBEIAN', 'ZG-222Z', 'Water leak sensor', ['_TZ3000_k4ej3ww2']),
+            tuya.whitelabel('HOBEIAN', 'ZG-222ZA', 'Water leak sensor', ['_TZ3000_k4ej3ww2']),
             tuya.whitelabel('Tuya', 'TS0207_water_leak_detector_1', 'Zigbee water flood sensor + 1m probe cable', [
                 '_TZ3000_ocjlo4ea',
                 '_TZ3000_upgcbody',
