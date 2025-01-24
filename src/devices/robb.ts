@@ -427,11 +427,11 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Door/Window sensor',
         extend: [
             m.battery(),
-            m.ignoreClusterReport({ cluster: 'genBinaryInput' }),
+            m.ignoreClusterReport({cluster: 'genBinaryInput'}),
             m.iasZoneAlarm({
-                "zoneType":"contact",
-                "zoneAttributes":["alarm_1","tamper","battery_low"]
-            })
+                zoneType: 'contact',
+                zoneAttributes: ['alarm_1', 'tamper', 'battery_low'],
+            }),
         ],
         meta: {},
     },
