@@ -26,6 +26,8 @@ const local = {
                     outletLedColor: {ID: 0x0100, type: Zcl.DataType.UINT24},
                     outletChildLock: {ID: 0x0101, type: Zcl.DataType.UINT8},
                     outletLedState: {ID: 0x0104, type: Zcl.DataType.UINT8},
+                    /* WARNING: 0x0107 is not supported on older switches */
+                    ledSyncMode: {ID: 0x0107, type: Zcl.DataType.BITMAP32},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -68,43 +70,43 @@ const local = {
                 if (msg.data.switchAction !== undefined) {
                     // NOTE: a single press = two separate values reported, 16 followed by 64
                     //       a hold/release cycle = three separate values, 16, 32, and 48
-                    // NOTE: these values should be interpreted bitwise
-                    //       when pushing multiple buttons at the same time, multiple bits can be set simultaneously and should generate multiple events
-                    //       currently, these values are not mapped and thus ignored
-                    const actionMap: KeyValue =
+
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/13737#issuecomment-1520002786
+                    const buttonShift: {[key: string]: number} =
                         model.model == '552-721X1'
                             ? {
-                                  16: null,
-                                  64: 'single',
-                                  32: 'hold',
-                                  48: 'release',
-                                  256: null,
-                                  1024: 'single_ext',
-                                  512: 'hold_ext',
-                                  768: 'release_ext',
+                                  left: 4,
+                                  left_ext: 8,
+                                  right: 12,
+                                  right_ext: 16,
                               }
                             : {
-                                  16: null,
-                                  64: 'single_left',
-                                  32: 'hold_left',
-                                  48: 'release_left',
-                                  256: null,
-                                  1024: 'single_left_ext',
-                                  512: 'hold_left_ext',
-                                  768: 'release_left_ext',
-                                  4096: null,
-                                  16384: 'single_right',
-                                  8192: 'hold_right',
-                                  12288: 'release_right',
-                                  65536: null,
-                                  262144: 'single_right_ext',
-                                  131072: 'hold_right_ext',
-                                  196608: 'release_right_ext',
+                                  '': 4,
+                                  ext: 8,
                               };
+                    const actions: {[key: string]: number} = {
+                        null: 1,
+                        single: 4,
+                        hold: 2,
+                        release: 3,
+                    };
 
-                    state['action'] = actionMap[msg.data.switchAction];
+                    for (const button in buttonShift) {
+                        const shiftedValue = (msg.data.switchAction >> buttonShift[button]) & 0xf;
+                        for (const action in actions) {
+                            if (shiftedValue == actions[action]) {
+                                const buttonPostFix = button === '' ? '' : '_' + button;
+                                if ('null' === action) {
+                                    // publish without button name
+                                    publish({action: 'null'});
+                                } else {
+                                    const value = action + buttonPostFix;
+                                    publish({action: value});
+                                }
+                            }
+                        }
+                    }
                 }
-                return state;
             },
         } satisfies Fz.Converter,
         switch_status_led: {
@@ -118,6 +120,10 @@ const local = {
                 if (msg.data.outletLedColor !== undefined) {
                     const ledStateMap: KeyValue = {0x00: 'OFF', 0x0000ff: 'ON', 0x00ff00: 'Blue', 0xff0000: 'Red', 0xffffff: 'Purple'};
                     state['led_state'] = utils.getFromLookup(msg.data.outletLedColor, ledStateMap);
+                }
+                if (msg.data.ledSyncMode !== undefined) {
+                    const ledSyncMap: KeyValue = {0x00: 'Off', 0x11: 'On', 0x22: 'Inverted'};
+                    state['led_sync_mode'] = utils.getFromLookup(msg.data.ledSyncMode, ledSyncMap);
                 }
                 return state;
             },
@@ -212,6 +218,27 @@ const local = {
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNikoConfig', ['outletLedColor']);
+            },
+        } satisfies Tz.Converter,
+        switch_led_sync_mode: {
+            key: ['led_sync_mode'],
+            convertSet: async (entity, key, value, meta) => {
+                // This could be set endpoint specific, where the first 4 bits are used for the left button and the last 4 bits for the right button
+                const ledSyncMap: KeyValue = {Off: 0x00, On: 0x11, Inverted: 0x11};
+                // @ts-expect-error ignore
+                if (ledSyncMap[value] === undefined) {
+                    throw new Error(`led_sync_mode was called with an invalid value (${value})`);
+                } else {
+                    await entity.write(
+                        'manuSpecificNikoConfig',
+                        // @ts-expect-error ignore
+                        {ledSyncMode: ledSyncMap[value]},
+                    );
+                    return {state: {led_sync_mode: value}};
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNikoConfig', ['ledSyncMode']);
             },
         } satisfies Tz.Converter,
         outlet_child_lock: {
@@ -353,6 +380,7 @@ const definitions: DefinitionWithExtend[] = [
             local.tz.switch_action_reporting,
             local.tz.switch_led_enable,
             local.tz.switch_led_state,
+            local.tz.switch_led_sync_mode,
         ],
         extend: [local.modernExtend.addCustomClusterManuSpecificNikoConfig(), local.modernExtend.addCustomClusterManuSpecificNikoState()],
         configure: async (device, coordinatorEndpoint) => {
@@ -371,6 +399,7 @@ const definitions: DefinitionWithExtend[] = [
             e.binary('action_reporting', ea.ALL, true, false).withDescription('Enable Action Reporting'),
             e.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
             e.enum('led_state', ea.ALL, ['ON', 'OFF', 'Blue', 'Red', 'Purple']).withDescription('LED State'),
+            e.enum('led_sync_mode', ea.ALL, ['Off', 'On', 'Inverted']).withDescription('Sync LED with relay state'),
         ],
     },
     {
@@ -385,6 +414,7 @@ const definitions: DefinitionWithExtend[] = [
             local.tz.switch_action_reporting,
             local.tz.switch_led_enable,
             local.tz.switch_led_state,
+            local.tz.switch_led_sync_mode,
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -427,6 +457,7 @@ const definitions: DefinitionWithExtend[] = [
             e.binary('led_enable', ea.ALL, true, false).withEndpoint('l2').withDescription('Enable LED'),
             e.enum('led_state', ea.ALL, ['ON', 'OFF', 'Blue', 'Red', 'Purple']).withEndpoint('l1').withDescription('LED State'),
             e.enum('led_state', ea.ALL, ['ON', 'OFF', 'Blue', 'Red', 'Purple']).withEndpoint('l2').withDescription('LED State'),
+            e.enum('led_sync_mode', ea.ALL, ['Off', 'On', 'Inverted']).withDescription('Sync LED with relay state'),
         ],
     },
     {
