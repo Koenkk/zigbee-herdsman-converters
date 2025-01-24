@@ -5536,7 +5536,6 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'AVATTO', model: 'MIUCOT10Z'},
             {vendor: 'Neo', model: 'NAS-WR01B'},
             {vendor: 'Neo', model: 'PLUG-001SPB2'},
-            tuya.whitelabel('Tuya', 'BSD29_1', 'Smart plug (with power monitoring by polling)', ['_TZ3000_okaz9tjs']),
         ],
         ota: true,
         extend: [tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true})],
