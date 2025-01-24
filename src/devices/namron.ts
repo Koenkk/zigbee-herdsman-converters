@@ -1524,7 +1524,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['4512783', '4512784'],
         model: '4512783/4512784',
         vendor: 'Namron',
-        description: 'Zigbee edge thermostat',
+        description: 'Namron edge termostat',
         fromZigbee: [
             fz.thermostat,
             namron.fromZigbee.namron_edge_thermostat_holiday_temp,
@@ -1597,7 +1597,11 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatKeypadLockMode(endpoint);
 
             // Initial read
-            await endpoint.read('hvacThermostat', [0x8000, 0x8001, 0x8002, 0x801e, 0x8004, 0x8006, 0x8005, 0x8029, 0x8022, 0x8023, 0x8024]);
+            await endpoint.read('hvacThermostat', ['systemMode', 'runningMode', 'occupiedHeatingSetpoint']);
+            await endpoint.read(
+                'hvacThermostat',
+                [0x8000, 0x8001, 0x8002, 0x8003, 0x8004, 0x801e, 0x8006, 0x8005, 0x8006, 0x8029, 0x8022, 0x8023, 0x8024],
+            );
 
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -1631,10 +1635,10 @@ const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
                 .withSystemMode(['off', 'auto', 'cool', 'heat'], ea.ALL)
-                .withLocalTemperatureCalibration(-3, 3, 0.1)
-                .withRunningState(['idle', 'heat']),
+                .withRunningState(['idle', 'heat', 'cool'])
+                .withLocalTemperatureCalibration(-10, 10, 0.5),
             e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit']).withLabel('Temperature Unit').withDescription('Select Unit'),
-            e.enum('operating_mode', ea.ALL, ['Manual', 'ECO']).withDescription('Selected program for thermostat'),
+            e.enum('operating_mode', ea.ALL, ['manual', 'program', 'eco']).withDescription('Selected program for thermostat'),
             e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
             e
                 .numeric('holiday_temp_set', ea.ALL)

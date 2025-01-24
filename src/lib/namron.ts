@@ -55,7 +55,7 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.programingOperMode !== undefined) {
-                result.operating_mode = utils.getFromLookup(msg.data['programingOperMode'], {0: 'manual', 1: 'manual', 5: 'eco'});
+                result.operating_mode = utils.getFromLookup(msg.data['programingOperMode'], {0: 'manual', 1: 'program', 5: 'eco'});
             }
             if (msg.data[0x8013] !== undefined) {
                 result.holiday_temp_set = parseInt(msg.data[0x8013]) / 100;
@@ -95,17 +95,18 @@ export const toZigbee = {
     namron_edge_thermostat_holiday_temp: {
         key: ['operating_mode', 'holiday_temp_set', 'holiday_temp_set_f'],
         convertSet: async (entity, key, value, meta) => {
-            let lookupValue = 0;
             switch (key) {
                 case 'operating_mode':
-                    if (value != 1) {
-                        lookupValue = Number(value);
-                    }
-                    await entity.write('hvacThermostat', {value: utils.getFromLookup(lookupValue, {manual: 0, eco: 5}), type: Zcl.DataType.BITMAP8});
+                    await entity.write('hvacThermostat', {
+                        0x0025: utils.getFromLookup(value, {manual: 0, program: 1, eco: 5}),
+                        type: Zcl.DataType.BITMAP8,
+                    });
                     break;
                 case 'holiday_temp_set':
+                    await entity.write('hvacThermostat', {0x8013: Number(value) * 100, type: Zcl.DataType.INT16});
+                    break;
                 case 'holiday_temp_set_f':
-                    await entity.write('hvacThermostat', {value: Number(value) * 100, type: Zcl.DataType.INT16});
+                    await entity.write('hvacThermostat', {0x801b: Number(value) * 100, type: Zcl.DataType.INT16});
                     break;
             }
         },
@@ -289,7 +290,7 @@ export const edgeThermostat = {
         modernExtend.enumLookup({
             name: 'system_mode',
             cluster: 'hvacThermostat',
-            attribute: {ID: 0x8008, type: Zcl.DataType.ENUM8},
+            attribute: {ID: 0x001c, type: Zcl.DataType.ENUM8},
             description: 'System mode',
             lookup: {0x00: 'off', 0x01: 'auto', 0x03: 'cool', 0x04: 'heat'},
             access: 'ALL',
