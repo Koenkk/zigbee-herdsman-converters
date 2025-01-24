@@ -974,7 +974,6 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_bq5c8xfe',
             '_TZE200_bjawzodf',
             '_TZE200_qyflbnbj',
-            '_TZE200_vs0skpuc',
             '_TZE200_44af8vyi',
             '_TZE200_zl1kmjqx',
             '_TZE204_qyflbnbj',
@@ -1858,6 +1857,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.batteryVoltage(endpoint);
         },
         whiteLabel: [tuya.whitelabel('Tuya', 'ZMS-102', 'Motion sensor', ['_TZ3000_msl6wxk9'])],
+        whiteLabel: [tuya.whitelabel('HOBEIAN', 'ZG-204Z', 'Motion sensor', ['_TZ3000_6ygjfyll'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_o4mkahkc']),
@@ -1913,7 +1913,8 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: 'CR Smart Home', model: 'TS0207'},
             tuya.whitelabel('Meian', 'SW02', 'Water leak sensor', ['_TZ3000_kyb656no']),
-            tuya.whitelabel('Aubess', 'IH-K665', 'Water leak sensor', ['_TZ3000_k4ej3ww2', '_TZ3000_kstbkt6a']),
+            tuya.whitelabel('Aubess', 'IH-K665', 'Water leak sensor', ['_TZ3000_kstbkt6a']),
+            tuya.whitelabel('HOBEIAN', 'ZG-222Z', 'Water leak sensor', ['_TZ3000_k4ej3ww2']),
             tuya.whitelabel('Tuya', 'TS0207_water_leak_detector_1', 'Zigbee water flood sensor + 1m probe cable', [
                 '_TZ3000_ocjlo4ea',
                 '_TZ3000_upgcbody',
@@ -8343,7 +8344,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_qoy0ekbd', '_TZE200_znbl8dj5', '_TZE200_a8sdabtg', '_TZE200_dikkika5']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_qoy0ekbd', '_TZE200_znbl8dj5', '_TZE200_a8sdabtg', '_TZE200_dikkika5','_TZE200_vs0skpuc']),
         model: 'ZG-227ZL',
         vendor: 'Tuya',
         description: 'Temperature & humidity LCD sensor',
@@ -8361,6 +8362,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('Tuya', 'ZG-227Z', 'Temperature and humidity sensor', ['_TZE200_a8sdabtg']),
             tuya.whitelabel('KOJIMA', 'KOJIMA-THS-ZG-LCD', 'Temperature and humidity sensor', ['_TZE200_dikkika5']),
+            tuya.whitelabel('HOBEIAN', 'ZG-227Z', 'Temperature and humidity sensor', ['_TZE200_vs0skpuc']),
         ],
         meta: {
             tuyaDatapoints: [
@@ -12698,6 +12700,113 @@ const definitions: DefinitionWithExtend[] = [
                 [103, 'z', tuya.valueConverter.raw],
                 [104, 'sensitivity', tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
                 [105, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_kccdzaeo','_TZE200_s7rsrtbg','_TZE200_tmszbtzq']),
+        model: 'ZG-302ZM',
+        vendor: 'HOBEIAN',
+        description: 'Motion sensing switch',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.enum('motion_state', ea.STATE, ['none', 'motion']).withDescription('Sensor motion detection'),
+            e.binary('switch1', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch1'),
+            e.binary('switch2', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch2'),
+            e.binary('switch3', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch3'),
+            e
+                .numeric('sensitivity', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(19)
+                .withValueStep(1)
+                .withUnit('x')
+                .withDescription('detection sensitivity'),
+            e.binary('backlight', ea.STATE_SET, 'ON', 'OFF').withDescription('backlight'),
+            e
+                .numeric('trigger_hold', ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit('s')
+                .withDescription('Trigger hold(second)'),
+            e.enum('power_on_state', ea.STATE_SET, ['off', 'on','memory']).withDescription('Power on state'),
+            e.enum('auto_on', ea.STATE_SET, ['off', 'all','ch1', 'ch2', 'ch3', 'ch1_2', 'ch2_3', 'ch1_3']).withDescription('Someone turn on the light'),
+            e.enum('auto_off', ea.STATE_SET, ['off', 'all','ch1', 'ch2', 'ch3', 'ch1_2', 'ch2_3', 'ch1_3']).withDescription('No one turns off the lights'),
+            e.enum('trigger_switch', ea.STATE_SET, ['ch1', 'ch2','ch3']).withDescription('Switch state reversal'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1,'motion_state',tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'motion': tuya.enum(1),})],
+                [101,'switch1',tuya.valueConverter.onOff],
+                [102,'switch2',tuya.valueConverter.onOff],
+                [103,'switch3',tuya.valueConverter.onOff],
+                [110, 'sensitivity', tuya.valueConverter.raw],
+                [111,'backlight',tuya.valueConverter.onOff],
+                [114, 'trigger_hold', tuya.valueConverter.raw], 
+                [112,'power_on_state',tuya.valueConverterBasic.lookup({'off': tuya.enum(0),'on': tuya.enum(1),'memory': tuya.enum(2)})],
+                [113, 'auto_on', tuya.valueConverterBasic.lookup({'off': tuya.enum(0),'all': tuya.enum(1),'ch1': tuya.enum(1),'ch2': tuya.enum(2),'ch3': tuya.enum(3),'ch1_2': tuya.enum(4),'ch2_3': tuya.enum(5),'ch1_3': tuya.enum(6)})],
+                [115, 'auto_off', tuya.valueConverterBasic.lookup({'off': tuya.enum(0),'all': tuya.enum(1),'ch1': tuya.enum(1),'ch2': tuya.enum(2),'ch3': tuya.enum(3),'ch1_2': tuya.enum(4),'ch2_3': tuya.enum(5),'ch1_3': tuya.enum(6)})],
+                [108,'trigger_switch',tuya.valueConverterBasic.lookup({'ch1': tuya.enum(0),'ch2': tuya.enum(1),'ch3': tuya.enum(2)})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_wqashyqo']),
+        model: 'ZG-303Z',
+        vendor: 'HOBEIAN',
+        description: 'Soil moisture sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum('water_warning', ea.STATE, ['none', 'alarm']).withDescription('Water shortage warning'),
+            e.temperature(), 
+            e.humidity(),
+            e.numeric('soil_humidity', ea.STATE).withUnit('%').withDescription('Soil relative humidity'),
+            tuya.exposes.temperatureUnit(), 
+            tuya.exposes.temperatureCalibration(),
+            tuya.exposes.humidityCalibration(), 
+            e.numeric('soil_calibration', ea.STATE_SET)
+            .withValueMin(-30)
+            .withValueMax(30)
+            .withValueStep(1)
+            .withUnit('%')
+            .withDescription('Soil Humidity calibration'),
+            e.numeric('air_sampling', ea.STATE_SET)
+            .withValueMin(5)
+            .withValueMax(3600)
+            .withValueStep(1)
+            .withUnit('s')
+            .withDescription('Air temperature and humidity sampling'),
+            e.numeric('soil_sampling', ea.STATE_SET)
+            .withValueMin(5)
+            .withValueMax(3600)
+            .withValueStep(1)
+            .withUnit('s')
+            .withDescription('Soil humidity sampling'),
+             e.numeric('soil_humidity_warning', ea.STATE_SET)
+            .withValueMin(0)
+            .withValueMax(100)
+            .withValueStep(1)
+            .withUnit('%')
+            .withDescription('Soil water shortage humidity value'),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1,'water_warning',tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'alarm': tuya.enum(1),})],
+                [101, 'temperature', tuya.valueConverter.divideBy10],
+                [109, 'humidity', tuya.valueConverter.raw],
+                [107, 'soil_humidity', tuya.valueConverter.raw],
+                [108, 'battery', tuya.valueConverter.raw],
+                [106, 'temperature_unit', tuya.valueConverter.temperatureUnit],
+                [104, 'temperature_calibration', tuya.valueConverter.divideBy10],
+                [105, 'humidity_calibration', tuya.valueConverter.raw],
+                [102, 'soil_calibration', tuya.valueConverter.raw],
+                [111, 'air_sampling', tuya.valueConverter.raw],
+                [112, 'soil_sampling', tuya.valueConverter.raw],
+                [110, 'soil_humidity_warning', tuya.valueConverter.raw],
             ],
         },
     },
