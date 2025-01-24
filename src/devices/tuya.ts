@@ -1857,7 +1857,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.batteryVoltage(endpoint);
         },
         whiteLabel: [tuya.whitelabel('Tuya', 'ZMS-102', 'Motion sensor', ['_TZ3000_msl6wxk9'])],
-        whiteLabel: [tuya.whitelabel('HOBEIAN', 'ZG-204Z', 'Motion sensor', ['_TZ3000_6ygjfyll'])],
+        whiteLabel: [tuya.whitelabel('HOBEIAN', 'ZG-204ZA', 'Motion sensor', ['_TZ3000_6ygjfyll'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_o4mkahkc']),
