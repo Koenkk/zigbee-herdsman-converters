@@ -12710,7 +12710,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.enum('motion_state', ea.STATE, ['none', 'motion']).withDescription('Sensor motion detection'),
+            e.presence(),
             e.binary('switch1', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch1'),
             e.binary('switch2', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch2'),
             e.binary('switch3', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch3'),
@@ -12729,21 +12729,21 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit('s')
                 .withDescription('Trigger hold(second)'),
-            e.enum('power_on_state', ea.STATE_SET, ['off', 'on','memory']).withDescription('Power on state'),
+            tuya.exposes.powerOutageMemory(),
             e.enum('auto_on', ea.STATE_SET, ['off', 'all','ch1', 'ch2', 'ch3', 'ch1_2', 'ch2_3', 'ch1_3']).withDescription('Someone turn on the light'),
             e.enum('auto_off', ea.STATE_SET, ['off', 'all','ch1', 'ch2', 'ch3', 'ch1_2', 'ch2_3', 'ch1_3']).withDescription('No one turns off the lights'),
             e.enum('trigger_switch', ea.STATE_SET, ['ch1', 'ch2','ch3']).withDescription('Switch state reversal'),
         ],
         meta: {
             tuyaDatapoints: [
-                [1,'motion_state',tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'motion': tuya.enum(1),})],
+                [1,'presence',tuya.valueConverter.trueFalse1],
                 [101,'switch1',tuya.valueConverter.onOff],
                 [102,'switch2',tuya.valueConverter.onOff],
                 [103,'switch3',tuya.valueConverter.onOff],
                 [110, 'sensitivity', tuya.valueConverter.raw],
                 [111,'backlight',tuya.valueConverter.onOff],
                 [114, 'trigger_hold', tuya.valueConverter.raw], 
-                [112,'power_on_state',tuya.valueConverterBasic.lookup({'off': tuya.enum(0),'on': tuya.enum(1),'memory': tuya.enum(2)})],
+                [112,'power_outage_memory',tuya.valueConverterBasic.lookup({'off': tuya.enum(0),'on': tuya.enum(1),'restore': tuya.enum(2)})],
                 [113, 'auto_on', tuya.valueConverterBasic.lookup({'off': tuya.enum(0),'all': tuya.enum(1),'ch1': tuya.enum(1),'ch2': tuya.enum(2),'ch3': tuya.enum(3),'ch1_2': tuya.enum(4),'ch2_3': tuya.enum(5),'ch1_3': tuya.enum(6)})],
                 [115, 'auto_off', tuya.valueConverterBasic.lookup({'off': tuya.enum(0),'all': tuya.enum(1),'ch1': tuya.enum(1),'ch2': tuya.enum(2),'ch3': tuya.enum(3),'ch1_2': tuya.enum(4),'ch2_3': tuya.enum(5),'ch1_3': tuya.enum(6)})],
                 [108,'trigger_switch',tuya.valueConverterBasic.lookup({'ch1': tuya.enum(0),'ch2': tuya.enum(1),'ch3': tuya.enum(2)})],
@@ -12762,34 +12762,14 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('water_warning', ea.STATE, ['none', 'alarm']).withDescription('Water shortage warning'),
             e.temperature(), 
             e.humidity(),
-            e.numeric('soil_humidity', ea.STATE).withUnit('%').withDescription('Soil relative humidity'),
+            e.soil_moisture(),
             tuya.exposes.temperatureUnit(), 
             tuya.exposes.temperatureCalibration(),
             tuya.exposes.humidityCalibration(), 
-            e.numeric('soil_calibration', ea.STATE_SET)
-            .withValueMin(-30)
-            .withValueMax(30)
-            .withValueStep(1)
-            .withUnit('%')
-            .withDescription('Soil Humidity calibration'),
-            e.numeric('air_sampling', ea.STATE_SET)
-            .withValueMin(5)
-            .withValueMax(3600)
-            .withValueStep(1)
-            .withUnit('s')
-            .withDescription('Air temperature and humidity sampling'),
-            e.numeric('soil_sampling', ea.STATE_SET)
-            .withValueMin(5)
-            .withValueMax(3600)
-            .withValueStep(1)
-            .withUnit('s')
-            .withDescription('Soil humidity sampling'),
-             e.numeric('soil_humidity_warning', ea.STATE_SET)
-            .withValueMin(0)
-            .withValueMax(100)
-            .withValueStep(1)
-            .withUnit('%')
-            .withDescription('Soil water shortage humidity value'),
+            tuya.exposes.soilCalibration(),
+            tuya.exposes.temperatureSampling(),
+            tuya.exposes.soilSampling(),
+            tuya.exposes.soilWarning(),
             e.battery(),
         ],
         meta: {
@@ -12797,15 +12777,15 @@ const definitions: DefinitionWithExtend[] = [
                 [1,'water_warning',tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'alarm': tuya.enum(1),})],
                 [101, 'temperature', tuya.valueConverter.divideBy10],
                 [109, 'humidity', tuya.valueConverter.raw],
-                [107, 'soil_humidity', tuya.valueConverter.raw],
+                [107, 'soil_moisture', tuya.valueConverter.raw],
                 [108, 'battery', tuya.valueConverter.raw],
                 [106, 'temperature_unit', tuya.valueConverter.temperatureUnit],
                 [104, 'temperature_calibration', tuya.valueConverter.divideBy10],
                 [105, 'humidity_calibration', tuya.valueConverter.raw],
                 [102, 'soil_calibration', tuya.valueConverter.raw],
-                [111, 'air_sampling', tuya.valueConverter.raw],
+                [111, 'temperature_sampling', tuya.valueConverter.raw],
                 [112, 'soil_sampling', tuya.valueConverter.raw],
-                [110, 'soil_humidity_warning', tuya.valueConverter.raw],
+                [110, 'soil_warning', tuya.valueConverter.raw],
             ],
         },
     },
