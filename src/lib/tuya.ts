@@ -1156,6 +1156,7 @@ export const valueConverter = {
             },
         };
     },
+    /** @deprecated left for compatibility, use {@link thermostatSystemModeAndPresetMap} */
     thermostatSystemModeAndPreset: (toKey: string) => {
         return {
             from: (v: string) => {
@@ -1529,34 +1530,21 @@ export const valueConverter = {
             return data;
         },
     },
-    thermostatME168_systemModeAndPreset: (toKey: string) => {
+    /** @param toMap the key is 'system_mode' or 'preset' related value */
+    thermostatSystemModeAndPresetMap: ({
+        fromMap = {},
+        toMap = {},
+    }: {
+        fromMap?: {[modeId: number]: {device_mode: string; system_mode: string; preset: string}};
+        toMap?: {[key: string]: Enum};
+    }) => {
         return {
             from: (v: string) => {
                 utils.assertNumber(v, 'system_mode');
-                const modeMap: {[mode: number]: {name: string; system_mode: string; preset: string}} = {
-                    0: {name: 'auto', system_mode: 'auto', preset: 'none'},
-                    1: {name: 'manual', system_mode: 'heat', preset: 'none'},
-                    2: {name: 'off', system_mode: 'off', preset: 'none'},
-                    3: {name: 'eco', system_mode: 'heat', preset: 'eco'},
-                    4: {name: 'comfort', system_mode: 'heat', preset: 'comfort'},
-                    5: {name: 'rapid', system_mode: 'heat', preset: 'boost'},
-                };
-                return {running_mode: modeMap[v].name, preset: modeMap[v].preset, system_mode: modeMap[v].system_mode};
+                return {running_mode: fromMap[v].device_mode, system_mode: fromMap[v].system_mode, preset: fromMap[v].preset};
             },
             to: (v: string) => {
-                const presetLookup = {
-                    none: new Enum(1), // manual
-                    eco: new Enum(3), // eco
-                    comfort: new Enum(4), // comfort
-                    boost: new Enum(5), // rapid
-                };
-                const systemModeLookup = {
-                    auto: new Enum(0), // auto
-                    heat: new Enum(1), // manual
-                    off: new Enum(2), // off
-                };
-                const lookup = toKey === 'preset' ? presetLookup : systemModeLookup;
-                return utils.getFromLookup(v, lookup);
+                return utils.getFromLookup(v, toMap);
             },
         };
     },
