@@ -424,16 +424,12 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['ROB_200-001-0'],
         model: 'ROB_200-001-0',
         vendor: 'ROBB',
-        description: 'Door/Window sensor',
+        description: 'Door/window sensor',
         extend: [
             m.battery(),
             m.ignoreClusterReport({cluster: 'genBinaryInput'}),
-            m.iasZoneAlarm({
-                zoneType: 'contact',
-                zoneAttributes: ['alarm_1', 'tamper', 'battery_low'],
-            }),
+            m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
         ],
-        meta: {},
     },
 ];
 
