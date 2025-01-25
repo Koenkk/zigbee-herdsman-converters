@@ -1168,26 +1168,26 @@ const definitions: DefinitionWithExtend[] = [
                 .withDescription('Alarm temperature min'),
             e.numeric('max_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Alarm humidity max'),
             e.numeric('min_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Alarm humidity min'),
-            e.enum('temperature_alarm', ea.STATE_SET, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Temperature alarm'),
-            e.enum('humidity_alarm', ea.STATE_SET, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Humidity alarm'),
+            e.enum('temperature_alarm', ea.STATE, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Temperature alarm'),
+            e.enum('humidity_alarm', ea.STATE, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Humidity alarm'),
             e
                 .numeric('temperature_periodic_report', ea.STATE_SET)
-                .withUnit('%')
-                .withValueMin(0)
-                .withValueMax(100)
+                .withUnit('min')
+                .withValueMin(1)
+                .withValueMax(120)
                 .withDescription('Temp periodic report'),
             e
                 .numeric('humidity_periodic_report', ea.STATE_SET)
-                .withUnit('%')
-                .withValueMin(0)
-                .withValueMax(100)
+                .withUnit('min')
+                .withValueMin(1)
+                .withValueMax(120)
                 .withDescription('Humidity periodic report'),
             e
                 .numeric('temperature_sensitivity', ea.STATE_SET)
                 .withUnit('°C')
-                .withValueMin(3)
-                .withValueMax(10)
-                .withValueStep(1)
+                .withValueMin(0.3)
+                .withValueMax(1)
+                .withValueStep(0.1)
                 .withDescription('Sensitivity of temperature'),
             e
                 .numeric('humidity_sensitivity', ea.STATE_SET)
@@ -1215,10 +1215,11 @@ const definitions: DefinitionWithExtend[] = [
                 [15, 'humidity_alarm', tuya.valueConverterBasic.lookup({lower_alarm: tuya.enum(0), upper_alarm: tuya.enum(1), cancel: tuya.enum(2)})],
                 [17, 'temperature_periodic_report', tuya.valueConverter.raw],
                 [18, 'humidity_periodic_report', tuya.valueConverter.raw],
-                [19, 'temperature_sensitivity', tuya.valueConverter.raw],
+                [19, 'temperature_sensitivity', tuya.valueConverter.divideBy10],
                 [20, 'humidity_sensitivity', tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel('ONENUO', 'TH05Z', 'Temperature & humidity sensor with clock and humidity display', ['_TZE200_vvmbj46n'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nvups4nh']),
