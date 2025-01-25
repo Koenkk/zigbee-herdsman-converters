@@ -4691,12 +4691,12 @@ export const toZigbee = {
     lumi_vibration_sensitivity: {
         key: ['sensitivity'],
         convertSet: async (entity, key, value, meta) => {
-            assertString(value, key);
-            value = value.toLowerCase();
-            const lookup = {low: 0x15, medium: 0x0b, high: 0x01};
-
+            if (isString(value)) {
+                value = getFromLookup(value, {low: 0x15, medium: 0x0b, high: 0x01});
+            }
+            assertNumber(value);
             const options = {...manufacturerOptions.lumi, timeout: 35000};
-            await entity.write('genBasic', {0xff0d: {value: getFromLookup(value, lookup), type: 0x20}}, options);
+            await entity.write('genBasic', {0xff0d: {value, type: 0x20}}, options);
             return {state: {sensitivity: value}};
         },
     } satisfies Tz.Converter,
