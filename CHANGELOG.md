@@ -1,5 +1,27 @@
 # Changelog
 
+## [21.24.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.23.0...v21.24.0) (2025-01-25)
+
+
+### Features
+
+* **add:** 4512783/4512784 ([#8650](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8650)) ([79e4c85](https://github.com/Koenkk/zigbee-herdsman-converters/commit/79e4c8560f96e6ba52a94370137d420e2a9641b8))
+* **add:** ATMS10013Z3 ([#8658](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8658)) ([b60bbb8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b60bbb8ee44bec8199a8e64ab9449f3705ff23fb))
+* **add:** ROB_200-001-0 ([#8671](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8671)) ([3fe7f91](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3fe7f91c9e8f6010fbf4df96251fe9e3b8083e2d))
+* **add:** SR-ZG9070A-SS ([#8662](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8662)) ([6bcf334](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6bcf33454fffb79d0f2596eeffaa91616234dce7))
+* **add:** ZG-303Z, ZG-302ZM ([#8670](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8670)) ([9760eb1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9760eb1e7841b6f84633a0cd7b11ae2712b4dd6f))
+* Allow more precise control of Aqara DJT11LM sensitivity https://github.com/Koenkk/zigbee2mqtt/issues/3028 ([719f27f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/719f27f06a52851e1909ee18d7a14bf35b32718c))
+* Improvements for LiXee ([#8673](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8673)) ([284e855](https://github.com/Koenkk/zigbee-herdsman-converters/commit/284e8557ac7bde72429daee2f168f89e0050d4cd))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_iw0zkcu8` as `_TZ3210_iw0zkcu8` ([#8659](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8659)) ([b79bc94](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b79bc945d477ca118280537cb075798ea49cd5b9))
+* **detect:** Detect `_TZE200_wtikaxzs` as Nous E6 ([#8574](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8574)) ([d95f3c9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d95f3c95ecbd7ebc5ad158b9dd501a6398b6653c))
+* **detect:** Detect TS011F instead of BSD29_1 ([#8669](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8669)) ([b997ae4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b997ae4d7ae573a682ea1776eda84cd5329bdf72))
+* Fixes for Namron Edge Thermostat ([#8672](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8672)) ([ad0bdf4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ad0bdf4f366abfa49cc373ceb13a335634b3d270))
+* **ignore:** Forgoten FlipIndicator for Aqara WS-K07E, WS-K08E ([#8665](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8665)) ([4471082](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4471082e3040f3ca42c7cf80b3aa7eef9fe36ae4))
+
 ## [21.23.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.22.0...v21.23.0) (2025-01-22)
 
 
