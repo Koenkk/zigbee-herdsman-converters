@@ -356,31 +356,32 @@ const tuyaExposes = {
             .withUnit('%')
             .withDescription('Humidity calibration'),
     soilCalibration: () =>
-        e.
-            numeric('soil_calibration', ea.STATE_SET)
+        e
+            .numeric('soil_calibration', ea.STATE_SET)
             .withValueMin(-30)
             .withValueMax(30)
             .withValueStep(1)
             .withUnit('%')
             .withDescription('Soil Humidity calibration'),
     temperatureSampling: () =>
-        e.
-            numeric('temperature_sampling', ea.STATE_SET)
+        e
+            .numeric('temperature_sampling', ea.STATE_SET)
             .withValueMin(5)
             .withValueMax(3600)
             .withValueStep(1)
             .withUnit('s')
             .withDescription('Air temperature and humidity sampling'),
     soilSampling: () =>
-        e.
-            numeric('soil_sampling', ea.STATE_SET)
+        e
+            .numeric('soil_sampling', ea.STATE_SET)
             .withValueMin(5)
             .withValueMax(3600)
             .withValueStep(1)
             .withUnit('s')
             .withDescription('Soil humidity sampling'),
     soilWarning: () =>
-             e.numeric('soil_warning', ea.STATE_SET)
+        e
+            .numeric('soil_warning', ea.STATE_SET)
             .withValueMin(0)
             .withValueMax(100)
             .withValueStep(1)
