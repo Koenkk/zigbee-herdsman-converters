@@ -762,7 +762,7 @@ export interface OccupancyArgs {
     endpointNames?: string[];
 }
 export function occupancy(args?: OccupancyArgs): ModernExtend {
-    args = {reporting: true, reportingConfig: {min: '10_SECONDS', max: '1_MINUTE', change: 0}, ...args};
+    args = {reporting: true, reportingConfig: {min: 'MIN', max: '1_HOUR', change: 0}, ...args};
 
     const templateExposes: Expose[] = [e.occupancy().withAccess(ea.STATE_GET)];
     const exposes: (Expose | DefinitionExposesFunction)[] = args.endpointNames
