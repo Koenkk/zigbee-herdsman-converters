@@ -5018,9 +5018,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_rtrmfadk', '_TZE204_cvcu2p6e']),
         model: 'TRV601',
         vendor: 'Tuya',
-        whiteLabel: [
-            tuya.whitelabel('Sber', 'SBDV-00185', 'Thermostatic radiator valve', ['_TZE204_cvcu2p6e']),
-        ],
+        whiteLabel: [tuya.whitelabel('Sber', 'SBDV-00185', 'Thermostatic radiator valve', ['_TZE204_cvcu2p6e'])],
         description: 'Thermostatic radiator valve.',
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
