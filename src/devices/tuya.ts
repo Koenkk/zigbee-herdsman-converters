@@ -1616,6 +1616,7 @@ const definitions: DefinitionWithExtend[] = [
                 '_TZ3210_mja6r5ix',
             ]),
             tuya.whitelabel('MiBoxer', 'FUTC11ZR', 'Outdoor light', ['_TZB210_zmppwawa']),
+            tuya.whitelabel('TechToy', '_TZ3210_iw0zkcu8', 'Smart bulb RGB 9W E27', ['_TZ3210_iw0zkcu8']),
         ],
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
         configure: async (device, coordinatorEndpoint) => {
@@ -5536,7 +5537,6 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'AVATTO', model: 'MIUCOT10Z'},
             {vendor: 'Neo', model: 'NAS-WR01B'},
             {vendor: 'Neo', model: 'PLUG-001SPB2'},
-            tuya.whitelabel('Tuya', 'BSD29_1', 'Smart plug (with power monitoring by polling)', ['_TZ3000_okaz9tjs']),
         ],
         ota: true,
         extend: [tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true})],
