@@ -618,10 +618,10 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Power switch S1',
         fromZigbee: [ubisys.fz.configure_device_setup],
         toZigbee: [ubisys.tz.configure_device_setup],
-        //endpoint: (device) => {
-        //    return {l1: 1, s1: 2, meter: 3};
-        //},
-        //meta: {multiEndpointEnforce: {power: 3, energy: 3}},
+        endpoint: (device) => {
+            return {l1: 1, s1: 2};
+        },
+        meta: {multiEndpoint: true},
         options: [exposes.options.measurement_poll_interval()],
         extend: [
             // NOTE: identify is supported but no visual indicator so omitted here
@@ -666,17 +666,9 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Power switch S1-R',
         fromZigbee: [ubisys.fz.configure_device_setup],
         toZigbee: [ubisys.tz.configure_device_setup],
-        //meta: {multiEndpointEnforce: {power: 4, energy: 4}},
-        //endpoint: (device) => {
-        //    const endpoints = {l1: 1, s1: 2, s2: 3, meter: 4};
-        //
-        //  // Series 2 (hwVer >= 16 has metering on endpoint 1)
-        //    if (device.hardwareVersion >= 16) {
-        //        endpoints.meter = 1;
-        //    }
-        //
-        //    return endpoints;
-        //},
+        endpoint: (device) => {
+            return {l1: 1, s1: 2, s2: 3};
+        },
         options: [exposes.options.measurement_poll_interval()],
         extend: [
             m.identify(),
@@ -759,9 +751,9 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior, tz.currentsummdelivered],
         endpoint: (device) => {
-            return {l1: 1, l2: 2, s1: 3, s2: 4, meter: 5};
+            return {l1: 1, l2: 2, s1: 3, s2: 4};
         },
-        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy'], multiEndpointEnforce: {power: 5, energy: 5}},
+        meta: {multiEndpoint: true},
         options: [exposes.options.measurement_poll_interval()],
         extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup()],
         configure: async (device, coordinatorEndpoint) => {
@@ -949,10 +941,10 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness', 'power', 'energy'], multiEndpointEnforce: {power: 4, energy: 4}},
+        meta: {multiEndpoint: true},
         options: [exposes.options.measurement_poll_interval()],
         endpoint: (device) => {
-            return {default: 1, s1: 2, s2: 3, meter: 4};
+            return {default: 1, s1: 2, s2: 3};
         },
         onEvent: async (type, data, device, settings) => {
             /*
@@ -1022,10 +1014,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint1);
         },
-        endpoint: (device) => {
-            return {default: 1, meter: 3};
-        },
-        meta: {multiEndpointEnforce: {power: 3, energy: 3}},
+        meta: {multiEndpoint: true},
         options: [exposes.options.measurement_poll_interval()],
         onEvent: async (type, data, device, settings) => {
             /*
@@ -1059,11 +1048,6 @@ const definitions: DefinitionWithExtend[] = [
             fz.command_cover_open,
             fz.command_cover_close,
             fz.command_cover_stop,
-            // NOTE:    Previous configuration if something does not work correctly. Easy way to roll back
-            //legacy.fz.ubisys_c4_scenes,
-            //legacy.fz.ubisys_c4_onoff,
-            //legacy.fz.ubisys_c4_level,
-            //legacy.fz.ubisys_c4_cover,
             ubisys.fz.configure_device_setup,
         ],
         toZigbee: [ubisys.tz.configure_device_setup],
