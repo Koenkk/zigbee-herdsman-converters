@@ -227,8 +227,6 @@ const local = {
         switch_led_sync_mode: {
             key: ['led_sync_mode'],
             convertSet: async (entity, key, value, meta) => {
-                // This could be set endpoint specific, where the first 4 bits are used for the left button and the last 4 bits for the right button
-                //const ep = meta.endpoint_name === undefined ? 1 : {l1: 1, l2: 2}[meta.endpoint_name];
                 const ledSyncMap: {[key: string]: number} = {Off: 0, On: 1, Inverted: 2};
                 // @ts-expect-error ignore
                 if (ledSyncMap[value] === undefined) {
