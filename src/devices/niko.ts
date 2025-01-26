@@ -75,17 +75,16 @@ const local = {
                     const buttonShift: {[key: string]: number} =
                         model.model == '552-721X1'
                             ? {
+                                  '': 4,
+                                  ext: 8,
+                              }
+                            : {
                                   left: 4,
                                   left_ext: 8,
                                   right: 12,
                                   right_ext: 16,
-                              }
-                            : {
-                                  '': 4,
-                                  ext: 8,
                               };
                     const actions: {[key: string]: number} = {
-                        null: 1,
                         single: 4,
                         hold: 2,
                         release: 3,
@@ -96,13 +95,8 @@ const local = {
                         for (const action in actions) {
                             if (shiftedValue == actions[action]) {
                                 const buttonPostFix = button === '' ? '' : '_' + button;
-                                if ('null' === action) {
-                                    // publish without button name
-                                    publish({action: 'null'});
-                                } else {
-                                    const value = action + buttonPostFix;
-                                    publish({action: value});
-                                }
+                                const value = action + buttonPostFix;
+                                publish({action: value});
                             }
                         }
                     }
@@ -122,8 +116,18 @@ const local = {
                     state['led_state'] = utils.getFromLookup(msg.data.outletLedColor, ledStateMap);
                 }
                 if (msg.data.ledSyncMode !== undefined) {
-                    const ledSyncMap: KeyValue = {0x00: 'Off', 0x11: 'On', 0x22: 'Inverted'};
-                    state['led_sync_mode'] = utils.getFromLookup(msg.data.ledSyncMode, ledSyncMap);
+                    const ledSyncMap: {[key: number]: string} = {0: 'Off', 1: 'On', 2: 'Inverted'};
+                    if (model.meta.multiEndpoint) {
+                        const endpointOffsetMap: {[key: string]: number} = {l1: 0, l2: 1};
+                        for (const ep in endpointOffsetMap) {
+                            const shift = endpointOffsetMap[ep] * 4;
+                            const mask = 0xf << shift;
+                            const result = (msg.data.ledSyncMode & mask) >> shift;
+                            state['led_sync_mode_' + ep] = utils.getFromLookup(result, ledSyncMap);
+                        }
+                    } else {
+                        state['led_sync_mode'] = utils.getFromLookup(msg.data.ledSyncMode, ledSyncMap);
+                    }
                 }
                 return state;
             },
@@ -224,18 +228,30 @@ const local = {
             key: ['led_sync_mode'],
             convertSet: async (entity, key, value, meta) => {
                 // This could be set endpoint specific, where the first 4 bits are used for the left button and the last 4 bits for the right button
-                const ledSyncMap: KeyValue = {Off: 0x00, On: 0x11, Inverted: 0x11};
+                //const ep = meta.endpoint_name === undefined ? 1 : {l1: 1, l2: 2}[meta.endpoint_name];
+                const ledSyncMap: {[key: string]: number} = {Off: 0, On: 1, Inverted: 2};
                 // @ts-expect-error ignore
                 if (ledSyncMap[value] === undefined) {
                     throw new Error(`led_sync_mode was called with an invalid value (${value})`);
-                } else {
-                    await entity.write(
-                        'manuSpecificNikoConfig',
-                        // @ts-expect-error ignore
-                        {ledSyncMode: ledSyncMap[value]},
-                    );
-                    return {state: {led_sync_mode: value}};
                 }
+                const endpointOffsetMap: {[key: string]: number} = {l1: 0, l2: 1};
+                let result: number = 0x00;
+                if (endpointOffsetMap[meta.endpoint_name] !== undefined) {
+                    // combine states of all endpoints into single value to write to device
+                    for (const ep in endpointOffsetMap) {
+                        // @ts-expect-error ignore
+                        const endpointState: number = ep === meta.endpoint_name ? value : meta.state['led_sync_mode_' + ep];
+                        // @ts-expect-error ignore
+                        const endpointValue = ledSyncMap[endpointState] === undefined ? ledSyncMap[value] : ledSyncMap[endpointState];
+                        const shiftedValue = endpointValue << (endpointOffsetMap[ep] * 4);
+                        result = result | shiftedValue;
+                    }
+                } else {
+                    // @ts-expect-error ignore
+                    result = ledSyncMap[value];
+                }
+                await entity.write('manuSpecificNikoConfig', {ledSyncMode: result});
+                return {state: {led_sync_mode: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNikoConfig', ['ledSyncMode']);
@@ -391,6 +407,7 @@ const definitions: DefinitionWithExtend[] = [
             // Enable action reporting by default
             await endpoint.write('manuSpecificNikoState', {switchActionReporting: true});
             await endpoint.read('manuSpecificNikoState', ['switchActionReporting']);
+            await endpoint.read('manuSpecificNikoConfig', ['ledSyncMode']);
         },
         exposes: [
             e.switch(),
@@ -433,6 +450,8 @@ const definitions: DefinitionWithExtend[] = [
             // Enable action reporting by default
             await ep1.write('manuSpecificNikoState', {switchActionReporting: true});
             await ep1.read('manuSpecificNikoState', ['switchActionReporting']);
+            await ep1.read('manuSpecificNikoConfig', ['ledSyncMode']);
+            await ep2.read('manuSpecificNikoConfig', ['ledSyncMode']);
         },
         exposes: [
             e.switch().withEndpoint('l1'),
@@ -457,7 +476,8 @@ const definitions: DefinitionWithExtend[] = [
             e.binary('led_enable', ea.ALL, true, false).withEndpoint('l2').withDescription('Enable LED'),
             e.enum('led_state', ea.ALL, ['ON', 'OFF', 'Blue', 'Red', 'Purple']).withEndpoint('l1').withDescription('LED State'),
             e.enum('led_state', ea.ALL, ['ON', 'OFF', 'Blue', 'Red', 'Purple']).withEndpoint('l2').withDescription('LED State'),
-            e.enum('led_sync_mode', ea.ALL, ['Off', 'On', 'Inverted']).withDescription('Sync LED with relay state'),
+            e.enum('led_sync_mode', ea.ALL, ['Off', 'On', 'Inverted']).withEndpoint('l1').withDescription('Sync LED with relay state'),
+            e.enum('led_sync_mode', ea.ALL, ['Off', 'On', 'Inverted']).withEndpoint('l2').withDescription('Sync LED with relay state'),
         ],
     },
     {
