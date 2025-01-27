@@ -1,5 +1,28 @@
 # Changelog
 
+## [21.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.24.0...v21.25.0) (2025-01-27)
+
+
+### Features
+
+* Add Niko switch action reporting functionality ([#8635](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8635)) ([4ae589e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ae589e429467334708e811a1f5b812206a7f75f))
+* **add:** DS-Z-001DE ([#8682](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8682)) ([809bb75](https://github.com/Koenkk/zigbee-herdsman-converters/commit/809bb75926520ca76b99cb14aaf51678ce81bfaf))
+* **add:** SBDV-00185 ([#8677](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8677)) ([7201875](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7201875778d72cacd37166358a6cd6f2f1c9af85))
+* **add:** SM0502 ([#8667](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8667)) ([04df965](https://github.com/Koenkk/zigbee-herdsman-converters/commit/04df965c6aac64645283f4b8d01edc9b9bda452e))
+* Improve Ubisys S1-R (Series 2) support ([#8627](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8627)) ([d8ade3e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d8ade3e53c92ad6a40137a42a6702e15a567dd5e))
+* SNZB-02D: add support for comfort levels and temperature units. ([#8684](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8684)) ([1fc8d0e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1fc8d0e28dfa011db04c154f0d3653182e1ac14c))
+
+
+### Bug Fixes
+
+* Decrease SmartThings IM6001-MPP01 reporting interval ([#8676](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8676)) ([b9766c5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b9766c59886e897bdb199fc4674f181c4ac9c46d))
+* **detect:** Detect `_TZE200_vvmbj46n` as ONENUO TH05Z ([#8675](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8675)) ([fd55801](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fd558012bd303d75530291d0eb8f0486c5876499))
+* Fix missing action messages for Legrand Wireless Shutter switch 0067646 ([#8679](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8679)) ([8a9a6d3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8a9a6d306c1dd1816a3e88131a7810dc1a23ab9b))
+* Fix Tuya ZY-M100-24GV3 losing settings ([#8674](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8674)) ([55e18a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/55e18a61f2887267ed1da07871e10099ff0a5bb6))
+* **ignore:** update dependencies ([#8678](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8678)) ([20981bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/20981bcc7fb7b7a3da90f68095e8f87d60d4d303))
+* Improve AVATTO ME168 support ([#8651](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8651)) ([a797ca6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a797ca6122dcec0b93f92a484b2f420906968889))
+* Invert direction for Smartwings shades ([#8681](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8681)) ([d48ac2e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d48ac2e0105f46669c662f55414aa33f8fde4abe))
+
 ## [21.24.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.23.0...v21.24.0) (2025-01-25)
 
 
