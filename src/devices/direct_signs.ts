@@ -8,7 +8,6 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'DIRECTSIGNS',
         description: 'RGB + CCT LED Controller',
         extend: [m.light({colorTemp: {range: [158, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
-        meta: {},
     },
 ];
 
