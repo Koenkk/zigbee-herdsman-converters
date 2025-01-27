@@ -621,7 +621,6 @@ const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, s1: 2};
         },
-        meta: {multiEndpoint: true},
         options: [exposes.options.measurement_poll_interval()],
         extend: [
             // NOTE: identify is supported but no visual indicator so omitted here
@@ -1014,7 +1013,6 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint1);
         },
-        meta: {multiEndpoint: true},
         options: [exposes.options.measurement_poll_interval()],
         onEvent: async (type, data, device, settings) => {
             /*
