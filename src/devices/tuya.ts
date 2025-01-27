@@ -1167,26 +1167,26 @@ const definitions: DefinitionWithExtend[] = [
                 .withDescription('Alarm temperature min'),
             e.numeric('max_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Alarm humidity max'),
             e.numeric('min_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Alarm humidity min'),
-            e.enum('temperature_alarm', ea.STATE_SET, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Temperature alarm'),
-            e.enum('humidity_alarm', ea.STATE_SET, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Humidity alarm'),
+            e.enum('temperature_alarm', ea.STATE, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Temperature alarm'),
+            e.enum('humidity_alarm', ea.STATE, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Humidity alarm'),
             e
                 .numeric('temperature_periodic_report', ea.STATE_SET)
-                .withUnit('%')
-                .withValueMin(0)
-                .withValueMax(100)
+                .withUnit('min')
+                .withValueMin(1)
+                .withValueMax(120)
                 .withDescription('Temp periodic report'),
             e
                 .numeric('humidity_periodic_report', ea.STATE_SET)
-                .withUnit('%')
-                .withValueMin(0)
-                .withValueMax(100)
+                .withUnit('min')
+                .withValueMin(1)
+                .withValueMax(120)
                 .withDescription('Humidity periodic report'),
             e
                 .numeric('temperature_sensitivity', ea.STATE_SET)
                 .withUnit('°C')
-                .withValueMin(3)
-                .withValueMax(10)
-                .withValueStep(1)
+                .withValueMin(0.3)
+                .withValueMax(1)
+                .withValueStep(0.1)
                 .withDescription('Sensitivity of temperature'),
             e
                 .numeric('humidity_sensitivity', ea.STATE_SET)
@@ -1214,10 +1214,11 @@ const definitions: DefinitionWithExtend[] = [
                 [15, 'humidity_alarm', tuya.valueConverterBasic.lookup({lower_alarm: tuya.enum(0), upper_alarm: tuya.enum(1), cancel: tuya.enum(2)})],
                 [17, 'temperature_periodic_report', tuya.valueConverter.raw],
                 [18, 'humidity_periodic_report', tuya.valueConverter.raw],
-                [19, 'temperature_sensitivity', tuya.valueConverter.raw],
+                [19, 'temperature_sensitivity', tuya.valueConverter.divideBy10],
                 [20, 'humidity_sensitivity', tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel('ONENUO', 'TH05Z', 'Temperature & humidity sensor with clock and humidity display', ['_TZE200_vvmbj46n'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nvups4nh']),
@@ -4709,7 +4710,6 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_jkfbph7l' /* model: 'ME167', vendor: 'AVATTO' */,
             '_TZE200_p3dbf6qs' /* model: 'ME168', vendor: 'AVATTO' */,
             '_TZE200_rxntag7i' /* model: 'ME168', vendor: 'AVATTO' */,
-            '_TZE200_ybsqljjg' /* model: 'ME168', vendor: 'AVATTO' */,
             '_TZE200_yqgbrdyo',
             '_TZE284_p3dbf6qs',
             '_TZE200_rxq4iti9',
@@ -4731,7 +4731,7 @@ const definitions: DefinitionWithExtend[] = [
                 '_TZE200_9xfjixap',
                 '_TZE200_jkfbph7l',
             ]),
-            tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_rxntag7i', '_TZE200_ybsqljjg']),
+            tuya.whitelabel('AVATTO', 'ME168_1', 'Thermostatic radiator valve', ['_TZE200_rxntag7i']),
             tuya.whitelabel('AVATTO', 'TRV06_1', 'Thermostatic radiator valve', ['_TZE200_hvaxb2tc', '_TZE284_o3x45p96']),
             tuya.whitelabel('EARU', 'TRV06', 'Smart thermostat module', ['_TZE200_yqgbrdyo', '_TZE200_rxq4iti9']),
             tuya.whitelabel('AVATTO', 'AVATTO_TRV06', 'Thermostatic radiator valve', ['_TZE284_c6wv4xyo', '_TZE204_o3x45p96']),
@@ -5015,9 +5015,10 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_rtrmfadk']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_rtrmfadk', '_TZE204_cvcu2p6e']),
         model: 'TRV601',
         vendor: 'Tuya',
+        whiteLabel: [tuya.whitelabel('Sber', 'SBDV-00185', 'Thermostatic radiator valve', ['_TZE204_cvcu2p6e'])],
         description: 'Thermostatic radiator valve.',
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
@@ -10905,8 +10906,8 @@ const definitions: DefinitionWithExtend[] = [
             e.numeric('distance', ea.STATE).withDescription('Target distance'),
             e.binary('find_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('distance switch'),
             e.illuminance().withDescription('Illuminance sensor'),
-            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
-            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion Sensitivity'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence Sensitivity'),
             e
                 .numeric('detection_distance_min', ea.STATE_SET)
                 .withValueMin(0)
@@ -13237,9 +13238,45 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [2, null, tuya.valueConverter.thermostatGtz10SystemModeAndPreset(null)],
-                [2, 'preset', tuya.valueConverter.thermostatGtz10SystemModeAndPreset('preset')],
-                [2, 'system_mode', tuya.valueConverter.thermostatGtz10SystemModeAndPreset('system_mode')],
+                [
+                    2,
+                    null,
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        fromMap: {
+                            0: {device_mode: 'manual', system_mode: 'heat', preset: 'manual'},
+                            1: {device_mode: 'auto', system_mode: 'auto', preset: 'auto'},
+                            2: {device_mode: 'holiday', system_mode: 'heat', preset: 'holiday'},
+                            3: {device_mode: 'comfort', system_mode: 'heat', preset: 'comfort'},
+                            4: {device_mode: 'eco', system_mode: 'heat', preset: 'eco'},
+                            5: {device_mode: 'off', system_mode: 'off', preset: 'off'},
+                        },
+                    }),
+                ],
+                [
+                    2,
+                    'preset',
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            manual: new tuya.Enum(0),
+                            auto: new tuya.Enum(1),
+                            holiday: new tuya.Enum(2),
+                            comfort: new tuya.Enum(3),
+                            eco: new tuya.Enum(4),
+                            off: new tuya.Enum(5),
+                        },
+                    }),
+                ],
+                [
+                    2,
+                    'system_mode',
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            heat: new tuya.Enum(0),
+                            auto: new tuya.Enum(1),
+                            off: new tuya.Enum(5),
+                        },
+                    }),
+                ],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [6, 'battery', tuya.valueConverter.raw],
