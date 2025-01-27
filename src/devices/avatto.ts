@@ -32,7 +32,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ybsqljjg']),
-        model: 'AVATTO_ME168',
+        model: 'ME168',
         vendor: 'AVATTO',
         description: 'Thermostatic radiator valve',
         fromZigbee: [tuya.fz.datapoints],
