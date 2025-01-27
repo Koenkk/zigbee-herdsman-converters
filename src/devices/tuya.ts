@@ -4710,7 +4710,6 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_jkfbph7l' /* model: 'ME167', vendor: 'AVATTO' */,
             '_TZE200_p3dbf6qs' /* model: 'ME168', vendor: 'AVATTO' */,
             '_TZE200_rxntag7i' /* model: 'ME168', vendor: 'AVATTO' */,
-            '_TZE200_ybsqljjg' /* model: 'ME168', vendor: 'AVATTO' */,
             '_TZE200_yqgbrdyo',
             '_TZE284_p3dbf6qs',
             '_TZE200_rxq4iti9',
@@ -4732,7 +4731,7 @@ const definitions: DefinitionWithExtend[] = [
                 '_TZE200_9xfjixap',
                 '_TZE200_jkfbph7l',
             ]),
-            tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_rxntag7i', '_TZE200_ybsqljjg']),
+            tuya.whitelabel('AVATTO', 'ME168_1', 'Thermostatic radiator valve', ['_TZE200_rxntag7i']),
             tuya.whitelabel('AVATTO', 'TRV06_1', 'Thermostatic radiator valve', ['_TZE200_hvaxb2tc', '_TZE284_o3x45p96']),
             tuya.whitelabel('EARU', 'TRV06', 'Smart thermostat module', ['_TZE200_yqgbrdyo', '_TZE200_rxq4iti9']),
             tuya.whitelabel('AVATTO', 'AVATTO_TRV06', 'Thermostatic radiator valve', ['_TZE284_c6wv4xyo', '_TZE204_o3x45p96']),
@@ -13239,9 +13238,45 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [2, null, tuya.valueConverter.thermostatGtz10SystemModeAndPreset(null)],
-                [2, 'preset', tuya.valueConverter.thermostatGtz10SystemModeAndPreset('preset')],
-                [2, 'system_mode', tuya.valueConverter.thermostatGtz10SystemModeAndPreset('system_mode')],
+                [
+                    2,
+                    null,
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        fromMap: {
+                            0: {device_mode: 'manual', system_mode: 'heat', preset: 'manual'},
+                            1: {device_mode: 'auto', system_mode: 'auto', preset: 'auto'},
+                            2: {device_mode: 'holiday', system_mode: 'heat', preset: 'holiday'},
+                            3: {device_mode: 'comfort', system_mode: 'heat', preset: 'comfort'},
+                            4: {device_mode: 'eco', system_mode: 'heat', preset: 'eco'},
+                            5: {device_mode: 'off', system_mode: 'off', preset: 'off'},
+                        },
+                    }),
+                ],
+                [
+                    2,
+                    'preset',
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            manual: new tuya.Enum(0),
+                            auto: new tuya.Enum(1),
+                            holiday: new tuya.Enum(2),
+                            comfort: new tuya.Enum(3),
+                            eco: new tuya.Enum(4),
+                            off: new tuya.Enum(5),
+                        },
+                    }),
+                ],
+                [
+                    2,
+                    'system_mode',
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            heat: new tuya.Enum(0),
+                            auto: new tuya.Enum(1),
+                            off: new tuya.Enum(5),
+                        },
+                    }),
+                ],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [6, 'battery', tuya.valueConverter.raw],
