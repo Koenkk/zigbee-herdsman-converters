@@ -250,6 +250,7 @@ import shinasystem from './shinasystem';
 import shyugj from './shyugj';
 import siglis from './siglis';
 import sikom from './sikom';
+import simon from './simon';
 import sinope from './sinope';
 import siterwell from './siterwell';
 import skydance from './skydance';
@@ -569,6 +570,7 @@ export default [
     ...shyugj,
     ...siglis,
     ...sikom,
+    ...simon,
     ...sinope,
     ...siterwell,
     ...skydance,
