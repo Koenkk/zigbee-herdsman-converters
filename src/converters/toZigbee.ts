@@ -6,6 +6,7 @@ import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as light from '../lib/light';
 import {logger} from '../lib/logger';
+import {determineEndpoint} from '../lib/modernExtend';
 import * as globalStore from '../lib/store';
 import {KeyValue, KeyValueAny, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -1791,46 +1792,53 @@ const converters2 = {
     electrical_measurement_power: {
         key: ['power'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['activePower']);
+            const ep = determineEndpoint(entity, meta, 'haElectricalMeasurement');
+            await ep.read('haElectricalMeasurement', ['activePower']);
         },
     } satisfies Tz.Converter,
     electrical_measurement_power_phase_b: {
         key: ['power_phase_b'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['activePowerPhB']);
+            const ep = determineEndpoint(entity, meta, 'haElectricalMeasurement');
+            await ep.read('haElectricalMeasurement', ['activePowerPhB']);
         },
     } satisfies Tz.Converter,
     electrical_measurement_power_phase_c: {
         key: ['power_phase_c'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['activePowerPhC']);
+            const ep = determineEndpoint(entity, meta, 'haElectricalMeasurement');
+            await ep.read('haElectricalMeasurement', ['activePowerPhC']);
         },
     } satisfies Tz.Converter,
     metering_power: {
         key: ['power'],
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
-            await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['instantaneousDemand']);
+            const ep = determineEndpoint(entity, meta, 'seMetering');
+            await ep.read('seMetering', ['instantaneousDemand']);
         },
     } satisfies Tz.Converter,
     currentsummdelivered: {
         key: ['energy'],
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
-            await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['currentSummDelivered']);
+            const ep = determineEndpoint(entity, meta, 'seMetering');
+            await ep.read('seMetering', ['currentSummDelivered']);
         },
     } satisfies Tz.Converter,
     currentsummreceived: {
         key: ['produced_energy'],
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
-            await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['currentSummReceived']);
+            const ep = determineEndpoint(entity, meta, 'seMetering');
+            await ep.read('seMetering', ['currentSummReceived']);
         },
     } satisfies Tz.Converter,
     frequency: {
         key: ['ac_frequency'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['acFrequency']);
+            const ep = determineEndpoint(entity, meta, 'haElectricalMeasurement');
+            await ep.read('haElectricalMeasurement', ['acFrequency']);
         },
     } satisfies Tz.Converter,
     electrical_measurement_power_reactive: {
@@ -1842,43 +1850,50 @@ const converters2 = {
     powerfactor: {
         key: ['power_factor'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['powerFactor']);
+            const ep = determineEndpoint(entity, meta, 'haElectricalMeasurement');
+            await ep.read('haElectricalMeasurement', ['powerFactor']);
         },
     } satisfies Tz.Converter,
     acvoltage: {
         key: ['voltage'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['rmsVoltage']);
+            const ep = determineEndpoint(entity, meta, 'haElectricalMeasurement');
+            await ep.read('haElectricalMeasurement', ['rmsVoltage']);
         },
     } satisfies Tz.Converter,
     acvoltage_phase_b: {
         key: ['voltage_phase_b'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['rmsVoltagePhB']);
+            const ep = determineEndpoint(entity, meta, 'haElectricalMeasurement');
+            await ep.read('haElectricalMeasurement', ['rmsVoltagePhB']);
         },
     } satisfies Tz.Converter,
     acvoltage_phase_c: {
         key: ['voltage_phase_c'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['rmsVoltagePhC']);
+            const ep = determineEndpoint(entity, meta, 'haElectricalMeasurement');
+            await ep.read('haElectricalMeasurement', ['rmsVoltagePhC']);
         },
     } satisfies Tz.Converter,
     accurrent: {
         key: ['current'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['rmsCurrent']);
+            const ep = determineEndpoint(entity, meta, 'haElectricalMeasurement');
+            await ep.read('haElectricalMeasurement', ['rmsCurrent']);
         },
     } satisfies Tz.Converter,
     accurrent_phase_b: {
         key: ['current_phase_b'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['rmsCurrentPhB']);
+            const ep = determineEndpoint(entity, meta, 'haElectricalMeasurement');
+            await ep.read('haElectricalMeasurement', ['rmsCurrentPhB']);
         },
     } satisfies Tz.Converter,
     accurrent_phase_c: {
         key: ['current_phase_c'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('haElectricalMeasurement', ['rmsCurrentPhC']);
+            const ep = determineEndpoint(entity, meta, 'haElectricalMeasurement');
+            await ep.read('haElectricalMeasurement', ['rmsCurrentPhC']);
         },
     } satisfies Tz.Converter,
     temperature: {
