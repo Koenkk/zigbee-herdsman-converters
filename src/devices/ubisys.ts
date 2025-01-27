@@ -752,7 +752,7 @@ const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, s1: 3, s2: 4};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         options: [exposes.options.measurement_poll_interval()],
         extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup()],
         configure: async (device, coordinatorEndpoint) => {
@@ -940,7 +940,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness', 'power', 'energy']},
         options: [exposes.options.measurement_poll_interval()],
         endpoint: (device) => {
             return {default: 1, s1: 2, s2: 3};
