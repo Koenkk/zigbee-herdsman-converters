@@ -4574,7 +4574,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withUnit('s')
                 .withDescription(
                     'Setting ' +
-                        'minimum 0 - maximum 465 seconds boost time. The boost (â¨) function is activated. The remaining ' +
+                        'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining ' +
                         'time for the function will be counted down in seconds ( 465 to 0 ).',
                 )
                 .withValueMin(0)
