@@ -1,5 +1,20 @@
 # Changelog
 
+## [21.26.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.25.0...v21.26.0) (2025-01-28)
+
+
+### Features
+
+* SNZB-02D: add support for temperature and humidity calibration ([#8685](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8685)) ([77fe20f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/77fe20ffb9f2910e1820a689c4afe08316b203b4))
+
+
+### Bug Fixes
+
+* Add Lidl HG09155C and HG09155B to the list of Lidl devices ([#8686](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8686)) ([d15812a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d15812a4beba7408f78766fc324b0f216d37f02e))
+* **detect:** Detect `_TZE204_5slehgeo` as Moes ZTS-EUR-C https://github.com/Koenkk/zigbee2mqtt/issues/26011 ([1272419](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1272419b5fa9b1a14e82e4c25cc98cb6dcecc200))
+* Encoding error in boost-heating emoji (♨) ([#8687](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8687)) ([2afdd6e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2afdd6e3f77f6f528e0a46f8159b38b307723524))
+* **ignore:** Fix BRT-100-TRV step accuracy ([#8688](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8688)) ([cec6ecf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cec6ecf195dbd12e72ab55509b0b1631a01e08cc))
+
 ## [21.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.24.0...v21.25.0) (2025-01-27)
 
 
