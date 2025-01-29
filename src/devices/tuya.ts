@@ -3434,20 +3434,17 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         options: [
             e
-                .enum('control_sequence_of_operation', ea.SET, ['cooling_only', 'heating_only', 'cooling_and_heating_4-pipes'])
+                .enum('control_sequence_of_operation', ea.SET, ['cooling_only', 'cooling_and_heating_4-pipes'])
                 .withDescription('Operating environment of the thermostat'),
         ],
         exposes: (device, options) => {
             const system_modes = ['off', 'cool', 'heat', 'fan_only'];
 
             // Device can operate either in 2-pipe or 4-pipe configuration
-            // For 2-pipe configurations remove either 'cool' or 'heat' modes
+            // For 2-pipe configurations remove 'heat' mode
             switch (options?.control_sequence_of_operation) {
                 case 'cooling_only':
                     system_modes.splice(2, 1);
-                    break;
-                case 'heating_only':
-                    system_modes.splice(1, 1);
                     break;
             }
 
