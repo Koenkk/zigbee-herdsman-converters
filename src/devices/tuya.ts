@@ -2683,6 +2683,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE204_6wi2mope',
             '_TZE204_iik0pquw',
             '_TZE204_aagrxlbd',
+            '_TZE204_f5efvtbv',
         ]),
         model: 'TS0601_switch_4_gang_1',
         vendor: 'Tuya',
@@ -2702,6 +2703,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Somgoms', model: 'ZSQB-SMB-ZB'},
             {vendor: 'Moes', model: 'WS-EUB1-ZG'},
             {vendor: 'AVATTO', model: 'ZGB-WS-EU'},
+            tuya.whitelabel('AVATTO', 'WSMD-4', '4 gang switch', ['_TZE204_f5efvtbv']),
         ],
         meta: {
             multiEndpoint: true,
