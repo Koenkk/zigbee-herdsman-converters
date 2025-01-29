@@ -1,5 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
+import tz from '../converters/toZigbee';
 import {repInterval} from '../lib/constants';
 import {
     addCustomClusterManuSpecificIkeaAirPurifier,
@@ -210,6 +211,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'IKEA',
         description: 'TRADFRI bulb B22, white spectrum, globe, opal, 1055 lm',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+        toZigbee: [tz.ikea_bulb_unfreeze],
     },
     // #endregion E26/E27/B22
     {
