@@ -372,6 +372,18 @@ const definitions: DefinitionWithExtend[] = [
                         ' used. 0 to 360 to match the remote display',
                 ),
         ],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(5);
+            const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatRunningState(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatTemperatureSetpointHold(endpoint);
+            await reporting.thermostatTemperatureSetpointHoldDuration(endpoint);
+        },
     },
     {
         zigbeeModel: ['SLR2'],
