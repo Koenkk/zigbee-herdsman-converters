@@ -2703,7 +2703,7 @@ const definitions: DefinitionWithExtend[] = [
             {vendor: 'Somgoms', model: 'ZSQB-SMB-ZB'},
             {vendor: 'Moes', model: 'WS-EUB1-ZG'},
             {vendor: 'AVATTO', model: 'ZGB-WS-EU'},
-            {vendor: 'AVATTO', model: 'WSMD-4'},
+            tuya.whitelabel('AVATTO', 'WSMD-4', '4 gang switch', ['_TZE204_f5efvtbv']),
         ],
         meta: {
             multiEndpoint: true,
