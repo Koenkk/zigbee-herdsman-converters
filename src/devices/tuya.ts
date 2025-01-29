@@ -11321,13 +11321,12 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
             e.child_lock(),
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
-                .withSystemMode(['cool', 'heat', 'fan_only'], ea.STATE_SET)
+                .withSystemMode(['off', 'cool', 'heat', 'fan_only'], ea.STATE_SET)
                 .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
                 .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET),
             e.min_temperature().withValueMin(5).withValueMax(15),
@@ -11342,8 +11341,45 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverter.onOff],
-                [2, 'system_mode', tuya.valueConverterBasic.lookup({cool: tuya.enum(0), heat: tuya.enum(1), fan_only: tuya.enum(2)})],
+                [
+                    1,
+                    null,
+                    {
+                        from: (v, meta) => {
+                            return v === true
+                                ? {system_mode: meta.state.system_mode_device ? meta.state.system_mode_device : 'cool'}
+                                : {system_mode: 'off'};
+                        },
+                    },
+                ],
+                [
+                    2,
+                    'system_mode',
+                    {
+                        // Extend system_mode to support 'off' in addition to 'cool', 'heat' and 'fan_only'
+                        to: async (v: string, meta) => {
+                            const entity = meta.device.endpoints[0];
+                            // Power State
+                            await tuya.sendDataPointBool(entity, 1, v !== 'off', 'dataRequest', 1);
+                            switch (v) {
+                                case 'cool':
+                                    await tuya.sendDataPointEnum(entity, 2, 0, 'dataRequest', 1);
+                                    break;
+                                case 'heat':
+                                    await tuya.sendDataPointEnum(entity, 2, 1, 'dataRequest', 1);
+                                    break;
+                                case 'fan_only':
+                                    await tuya.sendDataPointEnum(entity, 2, 2, 'dataRequest', 1);
+                                    break;
+                            }
+                        },
+                        from: (v: number, meta) => {
+                            const modes = ['cool', 'heat', 'fan_only'];
+                            meta.state.system_mode_device = modes[v];
+                            return modes[v];
+                        },
+                    },
+                ],
                 [4, 'eco_mode', tuya.valueConverter.onOff],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [19, 'max_temperature', tuya.valueConverter.divideBy10],
