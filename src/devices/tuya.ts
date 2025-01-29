@@ -3430,37 +3430,53 @@ const definitions: DefinitionWithExtend[] = [
         description: 'FCU thermostat temperature controller',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
-        exposes: [
+        options: [
             e
-                .climate()
-                .withLocalTemperature(ea.STATE)
-                .withSystemMode(['off', 'cool', 'heat', 'fan_only'], ea.STATE_SET)
-                .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
-                .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
-                .withPreset(['auto', 'manual'])
-                .withLocalTemperatureCalibration(-3, 3, 1, ea.STATE_SET),
-            e
-                .numeric('deadzone_temperature', ea.STATE_SET)
-                .withUnit('°C')
-                .withValueMax(5)
-                .withValueMin(1)
-                .withValueStep(1)
-                .withPreset('default', 1, 'Default value')
-                .withDescription('The delta between local_temperature and current_heating_setpoint to trigger activity'),
-            e.child_lock(),
-            e
-                .text('schedule', ea.STATE_SET)
-                .withDescription(
-                    'Schedule will work with "auto" preset. In this mode, the device executes ' +
-                        'a preset week programming temperature time and temperature. Schedule can contains 12 segments. ' +
-                        'All 12 segments should be defined. It should be defined in the following format: "hh:mm/tt". ' +
-                        'Segments should be divided by space symbol. ' +
-                        'Example: "06:00/20 11:30/21 13:30/22 17:30/23 06:00/24 12:00/23 14:30/22 17:30/21 06:00/19 12:30/20 14:30/21 18:30/20"',
-                ),
+                .enum('control_sequence_of_operation', ea.SET, ['cooling_only', 'cooling_and_heating_4-pipes'])
+                .withDescription('Operating environment of the thermostat'),
         ],
+        exposes: (device, options) => {
+            const system_modes = ['off', 'cool', 'heat', 'fan_only'];
+
+            // Device can operate either in 2-pipe or 4-pipe configuration
+            // For 2-pipe configurations remove 'heat' mode
+            switch (options?.control_sequence_of_operation) {
+                case 'cooling_only':
+                    system_modes.splice(2, 1);
+                    break;
+            }
+
+            return [
+                e
+                    .climate()
+                    .withLocalTemperature(ea.STATE)
+                    .withSystemMode(system_modes, ea.STATE_SET)
+                    .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
+                    .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
+                    .withPreset(['auto', 'manual'])
+                    .withLocalTemperatureCalibration(-3, 3, 1, ea.STATE_SET),
+                e.child_lock(),
+                e
+                    .composite('schedule', 'schedule', ea.STATE_SET)
+                    .withFeature(e.text('weekdays', ea.SET).withDescription('Schedule (1-5), 4 periods in format "hh:mm/tt".'))
+                    .withFeature(e.text('saturday', ea.SET).withDescription('Schedule (6), 4 periods in format "hh:mm/tt".'))
+                    .withFeature(e.text('sunday', ea.SET).withDescription('Schedule (7), 4 periods in format "hh:mm/tt".'))
+                    .withDescription('Auto-mode schedule, 4 periods each per category. Example: "06:00/20 11:30/21 13:30/22 17:30/23.5".'),
+                e.max_temperature().withValueMin(35).withValueMax(45).withPreset('default', 35, 'Default value'),
+                e
+                    .numeric('deadzone_temperature', ea.STATE_SET)
+                    .withUnit('°C')
+                    .withValueMax(5)
+                    .withValueMin(1)
+                    .withValueStep(1)
+                    .withPreset('default', 1, 'Default value')
+                    .withDescription('The delta between local_temperature and current_heating_setpoint to trigger activity'),
+            ];
+        },
         meta: {
+            publishDuplicateTransaction: true,
             tuyaDatapoints: [
                 [
                     1,
@@ -3468,22 +3484,20 @@ const definitions: DefinitionWithExtend[] = [
                     {
                         from: (v, meta) => {
                             return v === true
-                                ? {state: 'ON', system_mode: meta.state.system_mode_device ? meta.state.system_mode_device : 'cool'}
-                                : {state: 'OFF', system_mode: 'off'};
+                                ? {system_mode: meta.state.system_mode_device ? meta.state.system_mode_device : 'cool'}
+                                : {system_mode: 'off'};
                         },
                     },
                 ],
                 [
-                    null,
+                    2,
                     'system_mode',
                     {
                         // Extend system_mode to support 'off' in addition to 'cool', 'heat' and 'fan_only'
                         to: async (v: string, meta) => {
                             const entity = meta.device.endpoints[0];
-
                             // Power State
                             await tuya.sendDataPointBool(entity, 1, v !== 'off', 'dataRequest', 1);
-
                             switch (v) {
                                 case 'cool':
                                     await tuya.sendDataPointEnum(entity, 2, 0, 'dataRequest', 1);
@@ -3496,35 +3510,16 @@ const definitions: DefinitionWithExtend[] = [
                                     break;
                             }
                         },
-                    },
-                ],
-                [
-                    2,
-                    null,
-                    {
-                        // Map system_mode back to both 'state' and 'system_mode'
                         from: (v: number, meta) => {
                             const modes = ['cool', 'heat', 'fan_only'];
-
-                            return {
-                                system_mode: modes[v],
-                                system_mode_device: modes[v],
-                            };
+                            meta.state.system_mode_device = modes[v];
+                            return modes[v];
                         },
                     },
                 ],
                 [4, 'preset', tuya.valueConverterBasic.lookup({manual: true, auto: false})],
-                [16, 'current_cooling_setpoint', tuya.valueConverter.raw],
                 [16, 'current_heating_setpoint', tuya.valueConverter.raw],
-                [
-                    16,
-                    null,
-                    {
-                        from: (v, meta) => {
-                            return {current_cooling_setpoint: v, current_heating_setpoint: v};
-                        },
-                    },
-                ],
+                [19, 'max_temperature', tuya.valueConverter.raw],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [26, 'deadzone_temperature', tuya.valueConverter.raw],
                 [27, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration],
@@ -3534,33 +3529,50 @@ const definitions: DefinitionWithExtend[] = [
                     101,
                     'schedule',
                     {
-                        to: (v: string, meta) => {
-                            const regex = /((?<h>[01][0-9]|2[0-3]):(?<m>[0-5][0-9])\/(?<t>[0-3][0-9](\.[0,5]|)))/gm;
-                            const matches = [...v.matchAll(regex)];
+                        to: (v: {weekdays: string; saturday: string; sunday: string}, meta) => {
+                            const periods = (value: string) => {
+                                const regex = /((?<h>[01][0-9]|2[0-3]):(?<m>[0-5][0-9])\/(?<t>[0-3][0-9](\.[0,5]|)))/gm;
+                                const matches = [...value.matchAll(regex)];
 
-                            if (matches.length == 12) {
-                                return matches.reduce((arr, m) => {
-                                    arr.push(parseInt(m.groups.h));
-                                    arr.push(parseInt(m.groups.m));
-                                    arr.push(parseFloat(m.groups.t) * 2);
-                                    return arr;
-                                }, []);
-                            }
+                                if (matches.length == 4) {
+                                    return matches.reduce((arr, m) => {
+                                        arr.push(parseInt(m.groups.h));
+                                        arr.push(parseInt(m.groups.m));
+                                        arr.push(parseFloat(m.groups.t) * 2);
+                                        return arr;
+                                    }, []);
+                                }
 
-                            logger.warning('Ignoring invalid or incomplete schedule', NS);
+                                logger.warning('Ignoring invalid or incomplete schedule', NS);
+                            };
+
+                            const schedule = [...periods(v['weekdays']), ...periods(v['saturday']), ...periods(v['sunday'])];
+
+                            return schedule;
                         },
                         from: (v: number[], meta) => {
-                            let r = '';
+                            const format = (data: number[]) => {
+                                return data.reduce((a, v, i) => {
+                                    switch (i % 3) {
+                                        // Hour
+                                        case 0:
+                                            return `${a}${i > 0 ? ' ' : ''}${v.toString().padStart(2, '0')}`;
+                                        // Minute
+                                        case 1:
+                                            return `${a}:${v.toString().padStart(2, '0')}`;
+                                            break;
+                                        // Setpoint
+                                        case 2:
+                                            return `${a}/${v / 2}`;
+                                    }
+                                }, '');
+                            };
 
-                            for (let i = 0; i < 12; i++) {
-                                r += `${v[i * 3].toString().padStart(2, '0')}:${v[i * 3 + 1].toString().padStart(2, '0')}/${v[i * 3 + 2] / 2}`;
-
-                                if (i < 11) {
-                                    r += ' ';
-                                }
-                            }
-
-                            return r;
+                            return {
+                                weekdays: format(v.slice(0, 12)),
+                                saturday: format(v.slice(1 * 12, 2 * 12)),
+                                sunday: format(v.slice(2 * 12, 3 * 12)),
+                            };
                         },
                     },
                 ],
