@@ -3457,6 +3457,14 @@ const definitions: DefinitionWithExtend[] = [
                     .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
                     .withPreset(['auto', 'manual'])
                     .withLocalTemperatureCalibration(-3, 3, 1, ea.STATE_SET),
+                e.child_lock(),
+                e
+                    .composite('schedule', 'schedule', ea.STATE_SET)
+                    .withFeature(e.text('weekdays', ea.SET).withDescription('Schedule (1-5), 4 periods in format "hh:mm/tt".'))
+                    .withFeature(e.text('saturday', ea.SET).withDescription('Schedule (6), 4 periods in format "hh:mm/tt".'))
+                    .withFeature(e.text('sunday', ea.SET).withDescription('Schedule (7), 4 periods in format "hh:mm/tt".'))
+                    .withDescription('Auto-mode schedule, 4 periods each per category. Example: "06:00/20 11:30/21 13:30/22 17:30/23.5".'),
+                e.max_temperature().withValueMin(35).withValueMax(45).withPreset('default', 35, 'Default value'),
                 e
                     .numeric('deadzone_temperature', ea.STATE_SET)
                     .withUnit('°C')
@@ -3465,13 +3473,6 @@ const definitions: DefinitionWithExtend[] = [
                     .withValueStep(1)
                     .withPreset('default', 1, 'Default value')
                     .withDescription('The delta between local_temperature and current_heating_setpoint to trigger activity'),
-                e.child_lock(),
-                e
-                    .composite('schedule', 'schedule', ea.STATE_SET)
-                    .withFeature(e.text('weekdays', ea.SET).withDescription('Schedule (1-5), 4 periods in format "hh:mm/tt".'))
-                    .withFeature(e.text('saturday', ea.SET).withDescription('Schedule (6), 4 periods in format "hh:mm/tt".'))
-                    .withFeature(e.text('sunday', ea.SET).withDescription('Schedule (7), 4 periods in format "hh:mm/tt".'))
-                    .withDescription('Auto-mode schedule, 4 periods each per category. Example: "06:00/20 11:30/21 13:30/22 17:30/23.5".'),
             ];
         },
         meta: {
@@ -3518,6 +3519,7 @@ const definitions: DefinitionWithExtend[] = [
                 ],
                 [4, 'preset', tuya.valueConverterBasic.lookup({manual: true, auto: false})],
                 [16, 'current_heating_setpoint', tuya.valueConverter.raw],
+                [19, 'max_temperature', tuya.valueConverter.raw],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [26, 'deadzone_temperature', tuya.valueConverter.raw],
                 [27, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration],
