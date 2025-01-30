@@ -1,5 +1,23 @@
 # Changelog
 
+## [21.27.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.26.0...v21.27.0) (2025-01-30)
+
+
+### Features
+
+* **add:** DSZ12060 ([#8699](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8699)) ([074d472](https://github.com/Koenkk/zigbee-herdsman-converters/commit/074d472b61092c357455739b6ee1da6b1ec34801))
+* **add:** GL-G-005P ([#8693](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8693)) ([09c20f0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/09c20f0d4fbca4845ba4b5b9487786f6b5eded48))
+* **add:** POK014, POK015 ([#8695](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8695)) ([123b4e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/123b4e4086eb19dc33d9710740e2eb5abb2f069e))
+* **add:** WSMD-4 ([#8690](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8690)) ([d5726d5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d5726d590bb39a685af17327db18e8493871248f))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_vvmbj46n` as Tuya ZTH05Z https://github.com/Koenkk/zigbee2mqtt/discussions/26036 ([560ae94](https://github.com/Koenkk/zigbee-herdsman-converters/commit/560ae94e38d2dbc8da05ca97ab1b9298134c0e71))
+* **detect:** Detect `SLP3` as Hive 1613V https://github.com/Koenkk/zigbee2mqtt.io/pull/3471 ([9164583](https://github.com/Koenkk/zigbee-herdsman-converters/commit/916458308338238ecf8910083dcde6202d12f3a1))
+* Improve Tuya BAC-003 support ([#8694](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8694)) ([9a94890](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9a948901b5ae606d7da9a6db0395713fd8438394))
+* TYBAC-006: Update system_mode to support "off", dropping "state" ([#8691](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8691)) ([301258d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/301258ddba975198decaf8f48b1aaadea8f2756a))
+
 ## [21.26.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.25.0...v21.26.0) (2025-01-28)
 
 
