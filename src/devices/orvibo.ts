@@ -37,7 +37,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['9ff5a780c5a4470d9087175c71d50f92'],
         model: 'DSZ12060',
         vendor: 'ORVIBO',
-        description: 'ORVIBO Spot Light S10',
+        description: 'Spot light S10',
         extend: [m.identify(), m.light({effect: false, colorTemp: {range: [166, 370]}})],
     },
     {
