@@ -1136,7 +1136,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vvmbj46n']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vvmbj46n', '_TZE284_vvmbj46n']),
         model: 'ZTH05Z',
         vendor: 'Tuya',
         description: 'Temperature and humidity sensor',
@@ -3562,7 +3562,6 @@ const definitions: DefinitionWithExtend[] = [
                                         // Minute
                                         case 1:
                                             return `${a}:${v.toString().padStart(2, '0')}`;
-                                            break;
                                         // Setpoint
                                         case 2:
                                             return `${a}/${v / 2}`;
