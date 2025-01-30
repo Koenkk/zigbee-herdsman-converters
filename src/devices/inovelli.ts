@@ -2097,7 +2097,7 @@ const definitions: DefinitionWithExtend[] = [
 
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificInovelli']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, [inovelliCluster]);
         },
     },
     {
