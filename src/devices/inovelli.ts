@@ -67,13 +67,15 @@ const individualLedEffects: {[key: string]: number} = {
     clear_effect: 255,
 };
 
+const inovelliCluster: string = 'manuSpecificInovelli';
+
 const inovelliExtend = {
     addCustomClusterInovelli: () =>
-        m.deviceAddCustomCluster('manuSpecificInovelli', {
+        m.deviceAddCustomCluster(inovelliCluster, {
             ID: 64561,
             manufacturerCode: 0x122f,
             attributes: {
-                dimmingSpeedUpRemote: {ID: 0x001, type: Zcl.DataType.UINT8},
+                dimmingSpeedUpRemote: {ID: 0x0001, type: Zcl.DataType.UINT8},
                 dimmingSpeedUpLocal: {ID: 0x0002, type: Zcl.DataType.UINT8},
                 rampRateOffToOnRemote: {ID: 0x0003, type: Zcl.DataType.UINT8},
                 rampRateOffToOnLocal: {ID: 0x0004, type: Zcl.DataType.UINT8},
@@ -97,7 +99,7 @@ const inovelliExtend = {
                 quickStartTime: {ID: 0x0017, type: Zcl.DataType.UINT8},
                 quickStartLevel: {ID: 0x0018, type: Zcl.DataType.UINT8},
                 higherOutputInNonNeutral: {ID: 0x0019, type: Zcl.DataType.BOOLEAN},
-                leadingTrailingEdge: {ID: 0x001a, type: Zcl.DataType.UINT8},
+                dimmingMode: {ID: 0x001a, type: Zcl.DataType.BOOLEAN},
                 nonNeutralAuxMediumGear: {ID: 0x001e, type: Zcl.DataType.UINT8},
                 nonNeutralAuxLowGear: {ID: 0x001f, type: Zcl.DataType.UINT8},
                 internalTemperature: {ID: 0x0020, type: Zcl.DataType.UINT8},
@@ -932,6 +934,13 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
 };
 
+/**
+ * Common Dimmer Attributes
+ *
+ * These attributes are shared between all devices that act like dimmers (including dimmers + fan switches) with
+ * the manufacturer specific Inovelli cluster. These are not shared with on/off switches.
+ * Some of the descriptions, max, min or value properties may be overridden for each device
+ */
 const COMMON_DIMMER_ATTRIBUTES: {[s: string]: Attribute} = {
     ...COMMON_ATTRIBUTES,
     minimumLevel: {
@@ -974,6 +983,61 @@ const COMMON_DIMMER_ATTRIBUTES: {[s: string]: Attribute} = {
     },
 };
 
+/**
+ * Common Dimmable light Attributes
+ *
+ * These attributes are shared between all devices that are dimmable light switches with
+ * the manufacturer specific Inovelli cluster. These are not shared with fans or on/off switches.
+ * Some of the descriptions, max, min or value properties may be overridden for each device
+ */
+
+const COMMON_DIMMABLE_LIGHT_ATTRIBUTES: {[s: string]: Attribute} = {
+    quickStartTime: {
+        ID: 23,
+        dataType: Zcl.DataType.UINT8,
+        min: 0,
+        max: 60,
+        description: 'Duration of full power output while lamp transitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
+    },
+    quickStartLevel: {
+        ID: 24,
+        dataType: Zcl.DataType.UINT8,
+        min: 1,
+        max: 254,
+        description: 'Level of power output during Quick Start Light time (P23).',
+    },
+    higherOutputInNonNeutral: {
+        ID: 25,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled (default)': 0, Enabled: 1},
+        min: 0,
+        max: 1,
+        description: 'Increase level in non-neutral mode',
+    },
+    dimmingMode: {
+        ID: 26,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: 'enum',
+        values: {'Leading edge': 0, 'Trailing edge': 1},
+        min: 0,
+        max: 1,
+        readOnly: true,
+        description:
+            'Switches the dimming mode from leading edge (default) to trailing edge. ' +
+            '1. Trailing Edge is only available on neutral single-pole and neutral multi-way with an ' +
+            'aux/add-on switch (multi-way with a dumb/existing switch and non-neutral setups are not supported and ' +
+            'will default back to Leading Edge). This parameter can only be changed at the switch.',
+    },
+};
+
+/**
+ * Common Dimmer or On/Off Attributes
+ *
+ * These attributes are shared between all devices that are light switches (either dimmers or on/off) with
+ * the manufacturer specific Inovelli cluster. These are not shared with fans.
+ * Some of the descriptions, max, min or value properties may be overridden for each device
+ */
 const COMMON_DIMMER_ON_OFF_ATTRIBUTES: {[s: string]: Attribute} = {
     ledBarScaling: {
         ID: 100,
@@ -1020,29 +1084,7 @@ const VZM30_ATTRIBUTES: {[s: string]: Attribute} = {
 const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
     ...COMMON_DIMMER_ATTRIBUTES,
     ...COMMON_DIMMER_ON_OFF_ATTRIBUTES,
-    quickStartTime: {
-        ID: 23,
-        dataType: Zcl.DataType.UINT8,
-        min: 0,
-        max: 60,
-        description: 'Duration of full power output while lamp tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
-    },
-    quickStartLevel: {
-        ID: 24,
-        dataType: Zcl.DataType.UINT8,
-        min: 1,
-        max: 254,
-        description: 'Level of power output during Quick Start Light time (P23).',
-    },
-    higherOutputInNonNeutral: {
-        ID: 25,
-        dataType: Zcl.DataType.BOOLEAN,
-        displayType: 'enum',
-        values: {'Disabled (default)': 0, Enabled: 1},
-        min: 0,
-        max: 1,
-        description: 'Increase level in non-neutral mode',
-    },
+    ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES,
     relayClick: {
         ID: 261,
         dataType: Zcl.DataType.BOOLEAN,
@@ -1138,39 +1180,18 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
         ...COMMON_ATTRIBUTES.stateAfterPowerRestored,
         description: 'The state the light should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.',
     },
+    quickStartTime_1: {...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.quickStartTime},
+    quickStartLevel_1: {...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.quickStartLevel},
     higherOutputInNonNeutral_1: {
-        ID: 25,
-        dataType: Zcl.DataType.BOOLEAN,
-        displayType: 'enum',
-        values: {'Disabled (default)': 0, Enabled: 1},
-        min: 0,
-        max: 1,
+        ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.higherOutputInNonNeutral,
         description: 'Increase level in non-neutral mode for light.',
     },
-    quickStartTime_1: {
-        ID: 23,
-        dataType: Zcl.DataType.UINT8,
-        min: 0,
-        max: 60,
-        description: 'Duration of full power output while lamp tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
-    },
-    quickStartLevel_1: {
-        ID: 24,
-        dataType: Zcl.DataType.UINT8,
-        min: 1,
-        max: 254,
-        description: 'Level of power output during Quick Start Light time (P23).',
-    },
-    leadingTrailingEdge_1: {
-        ID: 26,
-        dataType: Zcl.DataType.UINT8,
-        displayType: 'enum',
-        values: {'Leading Edge': 0, 'Trailing Edge': 1},
-        min: 0,
-        max: 1,
+    dimmingMode_1: {
+        ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.dimmingMode,
+        readOnly: false,
         description:
-            'Leading Edge has a value of 0 and is the default value, whereas Trailing Edge has a value of ' +
-            '1. Please note that Trailing Edge is only available on neutral single-pole and neutral multi-way with an ' +
+            'Switches the dimming mode from leading edge (default) to trailing edge. ' +
+            '1. Trailing Edge is only available on neutral single-pole and neutral multi-way with an ' +
             'aux/add-on switch (multi-way with a dumb/existing switch and non-neutral setups are not supported and ' +
             'will default back to Leading Edge).',
     },
@@ -1233,11 +1254,8 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
         description: 'The state the fan should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.',
     },
     quickStartTime_2: {
-        ID: 23,
-        dataType: Zcl.DataType.UINT8,
-        min: 0,
-        max: 60,
-        description: 'Duration of full power output while fan tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
+        ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.quickStartTime,
+        description: 'Duration of full power output while fan transitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
     },
     // power type readonly
     // internal temp readonly
@@ -1256,7 +1274,7 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
 };
 
 const tzLocal = {
-    inovelli_parameters: (ATTRIBUTES: {[s: string]: Attribute}) =>
+    inovelli_parameters: (ATTRIBUTES: {[s: string]: Attribute}, cluster: string) =>
         ({
             key: Object.keys(ATTRIBUTES).filter((a) => !ATTRIBUTES[a].readOnly),
             convertSet: async (entity, key, value, meta) => {
@@ -1282,7 +1300,7 @@ const tzLocal = {
                     },
                 };
 
-                await entityToUse.write('manuSpecificInovelli', payload, {
+                await entityToUse.write(cluster, payload, {
                     manufacturerCode: INOVELLI,
                 });
 
@@ -1301,12 +1319,12 @@ const tzLocal = {
                     entityToUse = meta.device.getEndpoint(Number(keysplit[1]));
                     keyToUse = keysplit[0];
                 }
-                await entityToUse.read('manuSpecificInovelli', [keyToUse], {
+                await entityToUse.read(cluster, [keyToUse], {
                     manufacturerCode: INOVELLI,
                 });
             },
         }) satisfies Tz.Converter,
-    inovelli_parameters_readOnly: (ATTRIBUTES: {[s: string]: Attribute}) =>
+    inovelli_parameters_readOnly: (ATTRIBUTES: {[s: string]: Attribute}, cluster: string) =>
         ({
             key: Object.keys(ATTRIBUTES).filter((a) => ATTRIBUTES[a].readOnly),
             convertGet: async (entity, key, meta) => {
@@ -1318,7 +1336,7 @@ const tzLocal = {
                     entityToUse = meta.device.getEndpoint(Number(keysplit[1]));
                     keyToUse = keysplit[0];
                 }
-                await entityToUse.read('manuSpecificInovelli', [keyToUse], {
+                await entityToUse.read(cluster, [keyToUse], {
                     manufacturerCode: INOVELLI,
                 });
             },
@@ -1715,9 +1733,9 @@ const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: stri
 };
 
 const fzLocal = {
-    inovelli: (ATTRIBUTES: {[s: string]: Attribute}) =>
+    inovelli: (ATTRIBUTES: {[s: string]: Attribute}, cluster: string, splitValuesByEndpoint: boolean = false) =>
         ({
-            cluster: 'manuSpecificInovelli',
+            cluster: cluster,
             type: ['raw', 'readResponse', 'commandQueryNextImageRequest'],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.type === 'raw' && msg.endpoint.ID == 2 && msg.data[4] === 0x00) {
@@ -1741,13 +1759,14 @@ const fzLocal = {
                     return {action: `${button}_${action}`};
                 } else if (msg.type === 'readResponse') {
                     return Object.keys(msg.data).reduce((p, c) => {
-                        if (ATTRIBUTES[c] && ATTRIBUTES[c].displayType === 'enum') {
+                        const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
+                        if (ATTRIBUTES[key] && ATTRIBUTES[key].displayType === 'enum') {
                             return {
                                 ...p,
-                                [c]: Object.keys(ATTRIBUTES[c].values).find((k) => ATTRIBUTES[c].values[k] === msg.data[c]),
+                                [key]: Object.keys(ATTRIBUTES[key].values).find((k) => ATTRIBUTES[key].values[k] === msg.data[c]),
                             };
                         }
-                        return {...p, [c]: msg.data[c]};
+                        return {...p, [key]: msg.data[c]};
                     }, {});
                 } else {
                     return msg.data;
@@ -1972,6 +1991,17 @@ exposesListVZM30.push(e.action(buttonTapSequences));
 exposesListVZM31.push(e.action(buttonTapSequences));
 exposesListVZM35.push(e.action(buttonTapSequences));
 
+/*
+ * Inovelli devices have a huge number of attributes. Calling endpoint.read() in a single call
+ * for all attributes causes timeouts even with the timeout set to an absurdly high number (2 minutes)
+ */
+const chunkedRead = async (endpoint: Zh.Endpoint, attributes: string[], cluster: string) => {
+    const chunkSize = 10;
+    for (let i = 0; i < attributes.length; i += chunkSize) {
+        await endpoint.read(cluster, attributes.slice(i, i + chunkSize));
+    }
+};
+
 const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['VZM30-SN'],
@@ -1996,15 +2026,24 @@ const definitions: DefinitionWithExtend[] = [
             tz.identify,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_parameters(VZM30_ATTRIBUTES),
-            tzLocal.inovelli_parameters_readOnly(VZM30_ATTRIBUTES),
+            tzLocal.inovelli_parameters(VZM30_ATTRIBUTES, inovelliCluster),
+            tzLocal.inovelli_parameters_readOnly(VZM30_ATTRIBUTES, inovelliCluster),
         ],
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report, fzLocal.inovelli(VZM30_ATTRIBUTES)],
+        fromZigbee: [
+            fz.on_off,
+            fz.brightness,
+            fz.level_config,
+            fz.power_on_behavior,
+            fz.ignore_basic_report,
+            fzLocal.inovelli(VZM30_ATTRIBUTES, inovelliCluster),
+        ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
+
+            await chunkedRead(endpoint, Object.keys(VZM30_ATTRIBUTES), inovelliCluster);
 
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
@@ -2037,15 +2076,24 @@ const definitions: DefinitionWithExtend[] = [
             tz.identify,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_parameters(VZM31_ATTRIBUTES),
-            tzLocal.inovelli_parameters_readOnly(VZM31_ATTRIBUTES),
+            tzLocal.inovelli_parameters(VZM31_ATTRIBUTES, inovelliCluster),
+            tzLocal.inovelli_parameters_readOnly(VZM31_ATTRIBUTES, inovelliCluster),
         ],
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report, fzLocal.inovelli(VZM31_ATTRIBUTES)],
+        fromZigbee: [
+            fz.on_off,
+            fz.brightness,
+            fz.level_config,
+            fz.power_on_behavior,
+            fz.ignore_basic_report,
+            fzLocal.inovelli(VZM31_ATTRIBUTES, inovelliCluster),
+        ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
+
+            await chunkedRead(endpoint, Object.keys(VZM31_ATTRIBUTES), inovelliCluster);
 
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
@@ -2057,15 +2105,15 @@ const definitions: DefinitionWithExtend[] = [
         model: 'VZM35-SN',
         vendor: 'Inovelli',
         description: 'Fan controller',
-        fromZigbee: [fzLocal.fan_state, fzLocal.fan_mode(1), fzLocal.breeze_mode, fzLocal.inovelli(VZM35_ATTRIBUTES)],
+        fromZigbee: [fzLocal.fan_state, fzLocal.fan_mode(1), fzLocal.breeze_mode, fzLocal.inovelli(VZM35_ATTRIBUTES, inovelliCluster)],
         toZigbee: [
             tz.identify,
             tzLocal.fan_state,
             tzLocal.fan_mode(1),
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_parameters(VZM35_ATTRIBUTES),
-            tzLocal.inovelli_parameters_readOnly(VZM35_ATTRIBUTES),
+            tzLocal.inovelli_parameters(VZM35_ATTRIBUTES, inovelliCluster),
+            tzLocal.inovelli_parameters_readOnly(VZM35_ATTRIBUTES, inovelliCluster),
             tzLocal.breezeMode,
         ],
         exposes: exposesListVZM35.concat(m.identify().exposes as Expose[]),
@@ -2074,9 +2122,12 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+
+            await chunkedRead(endpoint, Object.keys(VZM35_ATTRIBUTES), inovelliCluster);
+
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificInovelli']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, [inovelliCluster]);
         },
     },
     {
@@ -2084,14 +2135,20 @@ const definitions: DefinitionWithExtend[] = [
         model: 'VZM36',
         vendor: 'Inovelli',
         description: 'Fan canopy module',
-        fromZigbee: [fzLocal.brightness, fzLocal.vzm36_fan_light_state, fzLocal.fan_mode(2), fzLocal.breeze_mode, fzLocal.inovelli(VZM36_ATTRIBUTES)],
+        fromZigbee: [
+            fzLocal.brightness,
+            fzLocal.vzm36_fan_light_state,
+            fzLocal.fan_mode(2),
+            fzLocal.breeze_mode,
+            fzLocal.inovelli(VZM36_ATTRIBUTES, inovelliCluster, true),
+        ],
         toZigbee: [
             tz.identify,
             tzLocal.vzm36_fan_on_off, // Need to use VZM36 specific converter
             tzLocal.fan_mode(2),
             tzLocal.light_onoff_brightness_inovelli,
-            tzLocal.inovelli_parameters(VZM36_ATTRIBUTES),
-            tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES),
+            tzLocal.inovelli_parameters(VZM36_ATTRIBUTES, inovelliCluster),
+            tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES, inovelliCluster),
             tzLocal.vzm36_breezeMode,
         ],
         exposes: exposesListVZM36.concat(m.identify().exposes as Expose[]),
@@ -2103,9 +2160,39 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+
+            await chunkedRead(
+                endpoint,
+                Object.keys(VZM36_ATTRIBUTES).flatMap((key) => {
+                    const keysplit = key.split('_');
+                    if (keysplit.length === 2) {
+                        if (Number(keysplit[1]) == 1) {
+                            return [keysplit[0]];
+                        }
+                        return [];
+                    }
+                    return [key];
+                }),
+                inovelliCluster,
+            );
+
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint2);
+
+            await chunkedRead(
+                endpoint,
+                Object.keys(VZM36_ATTRIBUTES).flatMap((key) => {
+                    const keysplit = key.split('_');
+                    if (keysplit.length === 2) {
+                        if (Number(keysplit[1]) == 2) {
+                            return [keysplit[0]];
+                        }
+                    }
+                    return [];
+                }),
+                inovelliCluster,
+            );
         },
     },
 ];
