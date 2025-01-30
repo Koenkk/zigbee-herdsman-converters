@@ -2181,7 +2181,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(endpoint2);
 
             await chunkedRead(
-                endpoint,
+                endpoint2,
                 Object.keys(VZM36_ATTRIBUTES).flatMap((key) => {
                     const keysplit = key.split('_');
                     if (keysplit.length === 2) {
