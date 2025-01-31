@@ -34,13 +34,6 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({powerOnBehavior: false, colorTemp: {range: [153, 370], startup: false}})],
     },
     {
-        zigbeeModel: ['9ff5a780c5a4470d9087175c71d50f92'],
-        model: 'DSZ12060',
-        vendor: 'ORVIBO',
-        description: 'Spot light S10',
-        extend: [m.identify(), m.light({effect: false, colorTemp: {range: [166, 370]}})],
-    },
-    {
         zigbeeModel: ['4a33f5ea766a4c96a962b371ffde9943'],
         model: 'DS20Z07B',
         vendor: 'ORVIBO',
@@ -278,7 +271,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position(), e.battery()],
     },
     {
-        zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f'],
+        zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f', '71a0b275d9ba4895afdaf400bc7e3a0d', 'b7313321dbe74da384d136a2a3fa2005'],
         model: 'T40W1Z',
         vendor: 'ORVIBO',
         description: 'MixSwitch 1 gang',
@@ -299,7 +292,14 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), m.onOff({endpointNames: ['left', 'center', 'right']})],
     },
     {
-        zigbeeModel: ['20513b10079f4cc68cffb8b0dc6d3277'],
+        zigbeeModel: ['f3be30b8c43c44da85aac622e5b56111', 'f58591161f344ccea242688a6de7d25d'],
+        model: 'T40W3Z',
+        vendor: 'ORVIBO',
+        description: 'MixSwitch 3 gangs',
+        extend: [m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}), m.onOff({endpointNames: ['right', 'center', 'left']})],
+    },
+    {
+        zigbeeModel: ['20513b10079f4cc68cffb8b0dc6d3277', 'c2ea8c76f9fe40e5a7de5e8fb8dfb765'],
         model: 'T40W4Z',
         vendor: 'ORVIBO',
         description: 'MixSwitch 4 gangs',
