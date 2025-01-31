@@ -30,13 +30,13 @@ const definitions: DefinitionWithExtend[] = [
             {
                 model: '43094',
                 vendor: 'Enbrighten',
-                description: 'Zigbee plug-in indoor smart switch with dual outlets controlled together',
+                description: 'Zigbee plug-in indoor smart switch with dual outlets on one control',
                 fingerprint: [{modelID: '43094'}],
             },
             {
                 model: '43084',
                 vendor: 'Enbrighten',
-                description: 'Zigbee in-wall smart toggle switch',
+                description: 'Zigbee in-wall smart toggle style switch',
                 fingerprint: [{modelID: '43084'}],
             },
         ],
@@ -84,13 +84,13 @@ const definitions: DefinitionWithExtend[] = [
             {
                 model: '43090',
                 vendor: 'Enbrighten',
-                description: 'Zigbee in-wall smart toggle dimmer',
+                description: 'Zigbee in-wall smart toggle style dimmer',
                 fingerprint: [{modelID: '43090'}],
             },
             {
                 model: '43096',
                 vendor: 'Enbrighten',
-                description: 'Zigbee plug-in smart dimmer with dual outlets controlled together',
+                description: 'Zigbee plug-in smart dimmer with dual outlets on one control',
                 fingerprint: [{modelID: '43096'}],
             },
         ],
