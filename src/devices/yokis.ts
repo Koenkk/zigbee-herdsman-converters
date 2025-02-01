@@ -2342,7 +2342,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         // MTR1300E-UP
-        zigbeeModel: ['MTR1300E-UP'],
+        zigbeeModel: ['MTR1300E-UP', 'MTR1300EB-UP'],
         model: 'MTR1300E-UP',
         vendor: 'YOKIS',
         description: 'Remote power switch with timer 1300W',
