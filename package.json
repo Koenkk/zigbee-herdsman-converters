@@ -4,6 +4,7 @@
     "description": "Collection of device converters to be used with zigbee-herdsman",
     "main": "index.js",
     "types": "index.d.ts",
+    "packageManager": "pnpm@9.15.4",
     "files": [
         "/index.js",
         "/index.js.map",
