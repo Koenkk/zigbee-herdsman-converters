@@ -14,7 +14,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'FB56-DOS06HM1.1',
         vendor: 'Feibit,co.ltd   ',
         description: '3A / Nue Zigbee Door Sensor',
-        extend: [iasWarning(), iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
+        extend: [m.iasWarning(), m.iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
     },
     {
         zigbeeModel: ['FZB56+ZSW2FYM1.1'],
