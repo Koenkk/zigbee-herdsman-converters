@@ -1,7 +1,7 @@
 {
-    "name": "zigbee-herdsman-converters",
+    "name": "@namelessd76/zigbee-herdsman-converters",
     "version": "21.27.0",
-    "description": "Collection of device converters to be used with zigbee-herdsman",
+    "description": "Custom fork from zigbee-herdsman-converters",
     "main": "index.js",
     "types": "index.d.ts",
     "files": [
@@ -16,7 +16,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
+        "url": "git+https://github.com/namelessd76/zigbee-herdsman-converters.git"
     },
     "keywords": [
         "aqara",
@@ -39,7 +39,7 @@
         "prepack": "pnpm run clean && pnpm run build",
         "prepare": "husky"
     },
-    "author": "Koen Kanters",
+    "author": "Nameless D",
     "license": "MIT",
     "bugs": {
         "url": "https://github.com/Koenkk/zigbee-herdsman-converters/issues"
