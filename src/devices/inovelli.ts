@@ -67,11 +67,11 @@ const individualLedEffects: {[key: string]: number} = {
     clear_effect: 255,
 };
 
-const inovelliCluster: string = 'manuSpecificInovelli';
+const INOVELLI_CLUSTER_NAME: string = 'manuSpecificInovelli';
 
 const inovelliExtend = {
     addCustomClusterInovelli: () =>
-        m.deviceAddCustomCluster(inovelliCluster, {
+        m.deviceAddCustomCluster(INOVELLI_CLUSTER_NAME, {
             ID: 64561,
             manufacturerCode: 0x122f,
             attributes: {
@@ -1345,7 +1345,7 @@ const tzLocal = {
         key: ['led_effect'],
         convertSet: async (entity, key, values, meta) => {
             await entity.command(
-                'manuSpecificInovelli',
+                INOVELLI_CLUSTER_NAME,
                 'ledEffect',
                 {
                     // @ts-expect-error ignore
@@ -1366,7 +1366,7 @@ const tzLocal = {
         key: ['individual_led_effect'],
         convertSet: async (entity, key, values, meta) => {
             await entity.command(
-                'manuSpecificInovelli',
+                INOVELLI_CLUSTER_NAME,
                 'individualLedEffect',
                 {
                     // @ts-expect-error ignore
@@ -1510,6 +1510,15 @@ const tzLocal = {
 
                 meta.state[key] = value;
 
+                if (endpointId == 2) {
+                    return {
+                        state: {
+                            [key]: value,
+                            fan_state: 'ON',
+                        },
+                    };
+                }
+
                 return {
                     state: {
                         [key]: value,
@@ -1583,116 +1592,62 @@ const tzLocal = {
             await endpoint.read('genOnOff', ['onOff']);
         },
     } satisfies Tz.Converter,
-    vzm36_breezeMode: {
-        key: ['breezeMode'],
-        convertSet: async (entity, key, values: BreezeModeValues, meta) => {
-            // Calculate the value..
-            let configValue = 0;
-            let term = false;
-            configValue += speedToInt(values.speed1);
-            configValue += (Number(values.time1) / 5) * 4;
+    breezeMode: (endpointId: number) =>
+        ({
+            key: ['breezeMode'],
+            convertSet: async (entity, key, values: BreezeModeValues, meta) => {
+                // Calculate the value..
+                let configValue = 0;
+                let term = false;
+                configValue += speedToInt(values.speed1);
+                configValue += (Number(values.time1) / 5) * 4;
 
-            let speed = speedToInt(values.speed2);
+                let speed = speedToInt(values.speed2);
 
-            if (speed !== 0) {
-                configValue += speed * 64;
-                configValue += (values.time2 / 5) * 256;
-            } else {
-                term = true;
-            }
+                if (speed !== 0) {
+                    configValue += speed * 64;
+                    configValue += (values.time2 / 5) * 256;
+                } else {
+                    term = true;
+                }
 
-            speed = speedToInt(values.speed3);
+                speed = speedToInt(values.speed3);
 
-            if (speed !== 0 && !term) {
-                configValue += speed * 4096;
-                configValue += (values.time3 / 5) * 16384;
-            } else {
-                term = true;
-            }
+                if (speed !== 0 && !term) {
+                    configValue += speed * 4096;
+                    configValue += (values.time3 / 5) * 16384;
+                } else {
+                    term = true;
+                }
 
-            speed = speedToInt(values.speed4);
+                speed = speedToInt(values.speed4);
 
-            if (speed !== 0 && !term) {
-                configValue += speed * 262144;
-                configValue += (values.time4 / 5) * 1048576;
-            } else {
-                term = true;
-            }
+                if (speed !== 0 && !term) {
+                    configValue += speed * 262144;
+                    configValue += (values.time4 / 5) * 1048576;
+                } else {
+                    term = true;
+                }
 
-            speed = speedToInt(values.speed5);
+                speed = speedToInt(values.speed5);
 
-            if (speed !== 0 && !term) {
-                configValue += speed * 16777216;
-                configValue += (values.time5 / 5) * 67108864;
-            } else {
-                term = true;
-            }
+                if (speed !== 0 && !term) {
+                    configValue += speed * 16777216;
+                    configValue += (values.time5 / 5) * 67108864;
+                } else {
+                    term = true;
+                }
 
-            const endpoint = meta.device.getEndpoint(2);
+                const endpoint = meta.device.getEndpoint(endpointId);
 
-            const payload = {breezeMode: configValue.toString()};
-            await endpoint.write('manuSpecificInovelli', payload, {
-                manufacturerCode: INOVELLI,
-            });
+                const payload = {breezeMode: configValue.toString()};
+                await endpoint.write(INOVELLI_CLUSTER_NAME, payload, {
+                    manufacturerCode: INOVELLI,
+                });
 
-            return {state: {[key]: values}};
-        },
-    } satisfies Tz.Converter,
-    breezeMode: {
-        key: ['breezeMode'],
-        convertSet: async (entity, key, values: BreezeModeValues, meta) => {
-            // Calculate the value..
-            let configValue = 0;
-            let term = false;
-            configValue += speedToInt(values.speed1);
-            configValue += (Number(values.time1) / 5) * 4;
-
-            let speed = speedToInt(values.speed2);
-
-            if (speed !== 0) {
-                configValue += speed * 64;
-                configValue += (values.time2 / 5) * 256;
-            } else {
-                term = true;
-            }
-
-            speed = speedToInt(values.speed3);
-
-            if (speed !== 0 && !term) {
-                configValue += speed * 4096;
-                configValue += (values.time3 / 5) * 16384;
-            } else {
-                term = true;
-            }
-
-            speed = speedToInt(values.speed4);
-
-            if (speed !== 0 && !term) {
-                configValue += speed * 262144;
-                configValue += (values.time4 / 5) * 1048576;
-            } else {
-                term = true;
-            }
-
-            speed = speedToInt(values.speed5);
-
-            if (speed !== 0 && !term) {
-                configValue += speed * 16777216;
-                configValue += (values.time5 / 5) * 67108864;
-            } else {
-                term = true;
-            }
-
-            const endpoint = meta.device.getEndpoint(1);
-
-            const payload = {breezeMode: configValue.toString()};
-            await endpoint.write('manuSpecificInovelli', payload, {
-                manufacturerCode: INOVELLI,
-            });
-
-            return {state: {[key]: values}};
-        },
-    } satisfies Tz.Converter,
+                return {state: {[key]: values}};
+            },
+        }) satisfies Tz.Converter,
 };
 
 /*
@@ -1822,44 +1777,45 @@ const fzLocal = {
      *
      * Extract each nybble of the word, then reverse the calculation to get the settig for each.
      */
-    breeze_mode: {
-        cluster: 'manuSpecificInovelli',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID == 2) {
-                if (msg.data.breeze_mode !== undefined) {
-                    const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
-                    const raw = msg.data['breeze_mode'];
-                    const s1 = breezemodes[raw & bitmasks[0]];
-                    const s2 = breezemodes[(raw & bitmasks[2]) / 64];
-                    const s3 = breezemodes[(raw & bitmasks[4]) / 4096];
-                    const s4 = breezemodes[(raw & bitmasks[6]) / 262144];
-                    const s5 = breezemodes[(raw & bitmasks[8]) / 16777216];
+    breeze_mode: (endpointId: number) =>
+        ({
+            cluster: INOVELLI_CLUSTER_NAME,
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.endpoint.ID == endpointId) {
+                    if (msg.data.breeze_mode !== undefined) {
+                        const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
+                        const raw = msg.data['breeze_mode'];
+                        const s1 = breezemodes[raw & bitmasks[0]];
+                        const s2 = breezemodes[(raw & bitmasks[2]) / 64];
+                        const s3 = breezemodes[(raw & bitmasks[4]) / 4096];
+                        const s4 = breezemodes[(raw & bitmasks[6]) / 262144];
+                        const s5 = breezemodes[(raw & bitmasks[8]) / 16777216];
 
-                    const d1 = ((raw & bitmasks[1]) / 4) * 5;
-                    const d2 = ((raw & bitmasks[3]) / 256) * 5;
-                    const d3 = ((raw & bitmasks[5]) / 16384) * 5;
-                    const d4 = ((raw & bitmasks[7]) / 1048576) * 5;
-                    const d5 = ((raw & bitmasks[9]) / 67108864) * 5;
+                        const d1 = ((raw & bitmasks[1]) / 4) * 5;
+                        const d2 = ((raw & bitmasks[3]) / 256) * 5;
+                        const d3 = ((raw & bitmasks[5]) / 16384) * 5;
+                        const d4 = ((raw & bitmasks[7]) / 1048576) * 5;
+                        const d5 = ((raw & bitmasks[9]) / 67108864) * 5;
 
-                    return {
-                        breeze_mode: {
-                            speed1: s1,
-                            duration1: d1,
-                            speed2: s2,
-                            duration2: d2,
-                            speed3: s3,
-                            duration3: d3,
-                            speed4: s4,
-                            duration4: d4,
-                            speed5: s5,
-                            duration5: d5,
-                        },
-                    };
+                        return {
+                            breeze_mode: {
+                                speed1: s1,
+                                duration1: d1,
+                                speed2: s2,
+                                duration2: d2,
+                                speed3: s3,
+                                duration3: d3,
+                                speed4: s4,
+                                duration4: d4,
+                                speed5: s5,
+                                duration5: d5,
+                            },
+                        };
+                    }
                 }
-            }
-        },
-    } satisfies Fz.Converter,
+            },
+        }) satisfies Fz.Converter,
     vzm36_fan_light_state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -2026,8 +1982,8 @@ const definitions: DefinitionWithExtend[] = [
             tz.identify,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_parameters(VZM30_ATTRIBUTES, inovelliCluster),
-            tzLocal.inovelli_parameters_readOnly(VZM30_ATTRIBUTES, inovelliCluster),
+            tzLocal.inovelli_parameters(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.inovelli_parameters_readOnly(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
         ],
         fromZigbee: [
             fz.on_off,
@@ -2035,7 +1991,7 @@ const definitions: DefinitionWithExtend[] = [
             fz.level_config,
             fz.power_on_behavior,
             fz.ignore_basic_report,
-            fzLocal.inovelli(VZM30_ATTRIBUTES, inovelliCluster),
+            fzLocal.inovelli(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -2043,11 +1999,11 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
 
-            await chunkedRead(endpoint, Object.keys(VZM30_ATTRIBUTES), inovelliCluster);
+            await chunkedRead(endpoint, Object.keys(VZM30_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
 
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificInovelli']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
         },
     },
     {
@@ -2076,8 +2032,8 @@ const definitions: DefinitionWithExtend[] = [
             tz.identify,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_parameters(VZM31_ATTRIBUTES, inovelliCluster),
-            tzLocal.inovelli_parameters_readOnly(VZM31_ATTRIBUTES, inovelliCluster),
+            tzLocal.inovelli_parameters(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.inovelli_parameters_readOnly(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
         ],
         fromZigbee: [
             fz.on_off,
@@ -2085,7 +2041,7 @@ const definitions: DefinitionWithExtend[] = [
             fz.level_config,
             fz.power_on_behavior,
             fz.ignore_basic_report,
-            fzLocal.inovelli(VZM31_ATTRIBUTES, inovelliCluster),
+            fzLocal.inovelli(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -2093,11 +2049,11 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
 
-            await chunkedRead(endpoint, Object.keys(VZM31_ATTRIBUTES), inovelliCluster);
+            await chunkedRead(endpoint, Object.keys(VZM31_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
 
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, [inovelliCluster]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
         },
     },
     {
@@ -2105,16 +2061,16 @@ const definitions: DefinitionWithExtend[] = [
         model: 'VZM35-SN',
         vendor: 'Inovelli',
         description: 'Fan controller',
-        fromZigbee: [fzLocal.fan_state, fzLocal.fan_mode(1), fzLocal.breeze_mode, fzLocal.inovelli(VZM35_ATTRIBUTES, inovelliCluster)],
+        fromZigbee: [fzLocal.fan_state, fzLocal.fan_mode(1), fzLocal.breeze_mode(1), fzLocal.inovelli(VZM35_ATTRIBUTES, INOVELLI_CLUSTER_NAME)],
         toZigbee: [
             tz.identify,
             tzLocal.fan_state,
             tzLocal.fan_mode(1),
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_parameters(VZM35_ATTRIBUTES, inovelliCluster),
-            tzLocal.inovelli_parameters_readOnly(VZM35_ATTRIBUTES, inovelliCluster),
-            tzLocal.breezeMode,
+            tzLocal.inovelli_parameters(VZM35_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.inovelli_parameters_readOnly(VZM35_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.breezeMode(1),
         ],
         exposes: exposesListVZM35.concat(m.identify().exposes as Expose[]),
         extend: [inovelliExtend.addCustomClusterInovelli()],
@@ -2123,11 +2079,11 @@ const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
 
-            await chunkedRead(endpoint, Object.keys(VZM35_ATTRIBUTES), inovelliCluster);
+            await chunkedRead(endpoint, Object.keys(VZM35_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
 
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, [inovelliCluster]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
         },
     },
     {
@@ -2139,17 +2095,17 @@ const definitions: DefinitionWithExtend[] = [
             fzLocal.brightness,
             fzLocal.vzm36_fan_light_state,
             fzLocal.fan_mode(2),
-            fzLocal.breeze_mode,
-            fzLocal.inovelli(VZM36_ATTRIBUTES, inovelliCluster, true),
+            fzLocal.breeze_mode(2),
+            fzLocal.inovelli(VZM36_ATTRIBUTES, INOVELLI_CLUSTER_NAME, true),
         ],
         toZigbee: [
             tz.identify,
             tzLocal.vzm36_fan_on_off, // Need to use VZM36 specific converter
             tzLocal.fan_mode(2),
             tzLocal.light_onoff_brightness_inovelli,
-            tzLocal.inovelli_parameters(VZM36_ATTRIBUTES, inovelliCluster),
-            tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES, inovelliCluster),
-            tzLocal.vzm36_breezeMode,
+            tzLocal.inovelli_parameters(VZM36_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.breezeMode(2),
         ],
         exposes: exposesListVZM36.concat(m.identify().exposes as Expose[]),
         extend: [inovelliExtend.addCustomClusterInovelli()],
@@ -2173,7 +2129,7 @@ const definitions: DefinitionWithExtend[] = [
                     }
                     return [key];
                 }),
-                inovelliCluster,
+                INOVELLI_CLUSTER_NAME,
             );
 
             const endpoint2 = device.getEndpoint(2);
@@ -2191,7 +2147,7 @@ const definitions: DefinitionWithExtend[] = [
                     }
                     return [];
                 }),
-                inovelliCluster,
+                INOVELLI_CLUSTER_NAME,
             );
         },
     },
