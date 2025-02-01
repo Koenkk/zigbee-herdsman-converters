@@ -1428,8 +1428,6 @@ const yokisTz = {
 function YokisOnOff(args?: m.OnOffArgs): ModernExtend {
     const result: ModernExtend = {...m.onOff(args), toZigbee: [yokisTz.on_off]};
 
-    logger.debug(`YokisOnOff: ${JSON.stringify(result)}`, NS);
-
     return result;
 }
 
