@@ -123,6 +123,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: false})],
     },
     {
+        zigbeeModel: ['AD-BR3RGBW3001'],
+        model: '81813-V2',
+        vendor: 'AduroSmart',
+        description: 'BR30 light bulb',
+        extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         fingerprint: [{modelID: 'Smart Siren', manufacturerName: 'AduroSmart Eria'}],
         model: '81868',
         vendor: 'AduroSmart',
