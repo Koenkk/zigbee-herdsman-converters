@@ -2672,7 +2672,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0301',
         vendor: 'Tuya',
         description: 'Cover',
-        extend: [m.battery(), m.windowCovering({controls: ['lift', 'tilt']})],
+        extend: [m.battery(), m.windowCovering({controls: ['lift']})],
         whiteLabel: [tuya.whitelabel('Yookee', 'D10110_1', 'Smart blind', ['_TZE200_9caxna4s'])],
     },
     {
