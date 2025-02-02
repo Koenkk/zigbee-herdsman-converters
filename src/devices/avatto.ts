@@ -189,12 +189,20 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'AVATTO',
         description: 'Zigbee smart energy meter',
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [e.power(), e.voltage(), e.current()],
+        exposes: [
+            e.power(),
+            e.voltage(),
+            e.current(),
+            e.energy(),
+            e.numeric('daily_energy', ea.STATE).withUnit('kWh').withDescription('Daily energy'),
+        ],
         meta: {
             tuyaDatapoints: [
                 [18, 'current', tuya.valueConverter.divideBy1000],
                 [19, 'power', tuya.valueConverter.divideBy10],
                 [20, 'voltage', tuya.valueConverter.divideBy10],
+                [104, 'energy', tuya.valueConverter.divideBy1000],
+                [105, 'daily_energy', tuya.valueConverter.divideBy1000],
             ],
         },
     },
