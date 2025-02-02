@@ -206,6 +206,33 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_jrcfsaa3']),
+        model: 'ZWPM16-2',
+        vendor: 'AVATTO',
+        description: 'Zigbee smart energy meter 80A/2CH',
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.voltage(),
+            tuya.exposes.powerWithPhase('a'),
+            tuya.exposes.currentWithPhase('a'),
+            tuya.exposes.energyWithPhase('a'),
+            tuya.exposes.powerWithPhase('b'),
+            tuya.exposes.currentWithPhase('b'),
+            tuya.exposes.energyWithPhase('b'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [107, 'voltage', tuya.valueConverter.divideBy10],
+                [105, 'power_l1', tuya.valueConverter.divideBy10],
+                [106, 'current_l1', tuya.valueConverter.divideBy1000],
+                [115, 'power_l2', tuya.valueConverter.divideBy10],
+                [116, 'current_l2', tuya.valueConverter.divideBy1000],
+                [108, 'energy_l1', tuya.valueConverter.divideBy1000],
+                [109, 'energy_l2', tuya.valueConverter.divideBy1000],
+            ],
+        },
+    },
 ];
 
 export default definitions;
