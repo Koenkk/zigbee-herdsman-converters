@@ -179,14 +179,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ['ZG2819S-RGBW'],
+        zigbeeModel: ['511.344'],
         model: '511.344',
         vendor: 'Iluminize',
         description: 'Zigbee handheld remote RGBW 4 channels',
         extend: [
             m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
             m.battery(),
-            m.identify(),
             m.commandsOnOff(),
             m.commandsLevelCtrl(),
             m.commandsColorCtrl(),
