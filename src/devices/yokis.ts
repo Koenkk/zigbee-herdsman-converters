@@ -1,6 +1,7 @@
 import {Zcl} from 'zigbee-herdsman';
 import {ClusterDefinition} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
 
+import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import * as m from '../lib/modernExtend';
@@ -1406,28 +1407,13 @@ const yokisCommandsExtend = {
 // Dereferencing the `on_time` and `off_wait_time` from the keys of the converter.
 const yokisTz = {
     on_off: {
+        ...tz.on_off,
         key: ['state'],
-        convertSet: async (entity, key, value, meta) => {
-            const state = utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : null;
-            utils.validateValue(state, ['toggle', 'off', 'on']);
-
-            await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
-            if (state === 'toggle') {
-                const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
-                return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
-            } else {
-                return {state: {state: state.toUpperCase()}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['onOff']);
-        },
     } satisfies Tz.Converter,
 };
 
 function YokisOnOff(args?: m.OnOffArgs): ModernExtend {
     const result: ModernExtend = {...m.onOff(args), toZigbee: [yokisTz.on_off]};
-
     return result;
 }
 
@@ -2344,6 +2330,14 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MTR1300E-UP',
         vendor: 'YOKIS',
         description: 'Remote power switch with timer 1300W',
+        whiteLabel: [
+            {
+                model: 'MTR1300EB-UP',
+                vendor: 'YOKIS',
+                description: 'Remote power switch with timer 1300W',
+                fingerprint: [{modelID: 'MTR1300EB-UP'}],
+            },
+        ],
         extend: [
             m.deviceAddCustomCluster('manuSpecificYokisDevice', YokisClustersDefinition['manuSpecificYokisDevice']),
             m.deviceAddCustomCluster('manuSpecificYokisInput', YokisClustersDefinition['manuSpecificYokisInput']),
