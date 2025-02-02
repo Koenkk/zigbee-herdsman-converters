@@ -198,6 +198,54 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+  fingerprint: [
+    {
+      modelID: "TS0601",
+      manufacturerName: "_TZE204_jrcfsaa3",
+    },
+  ],
+  model: "ZWPM16-2",
+  vendor: "AVATTO",
+  description: "Zigbee smart energy meter 80A/2CH",
+  extend: [tuya.modernExtend.tuyaBase({ dp: true })],
+
+  exposes: [
+    e.voltage(),
+
+    tuya.exposes.powerWithPhase("a"),
+    tuya.exposes.currentWithPhase("a"),
+    tuya.exposes.energyWithPhase("a"),
+
+    tuya.exposes.powerWithPhase("b"),
+    tuya.exposes.currentWithPhase("b"),
+    tuya.exposes.energyWithPhase("b"),
+  ],
+  meta: {
+    tuyaDatapoints: [
+      [107, "voltage", tuya.valueConverter.divideBy10],
+
+      [105, "power_a", tuya.valueConverter.divideBy10],
+      [106, "current_b", tuya.valueConverter.divideBy1000],
+
+      [115, "power_b", tuya.valueConverter.divideBy10],
+      [116, "current_b", tuya.valueConverter.divideBy1000],
+
+      [108, "energy_a", tuya.valueConverter.divideBy1000],
+      [109, "energy_b", tuya.valueConverter.divideBy1000],
+
+      [110, "110", tuya.valueConverter.raw], // Unknown value
+      [112, "112", tuya.valueConverter.raw], // Unknown value
+      [113, "113", tuya.valueConverter.raw], // Unknown value
+      [114, "114", tuya.valueConverter.raw], // Unknown value
+      [117, "117", tuya.valueConverter.raw], // Unknown value
+      [118, "118", tuya.valueConverter.raw], // Unknown value
+      [119, "119", tuya.valueConverter.raw], // Unknown value
+      [120, "120", tuya.valueConverter.raw], // Unknown value
+      [122, "122", tuya.valueConverter.raw], // Unknown value
+    ],
+  },
+}
 ];
 
 export default definitions;
