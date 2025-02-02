@@ -1600,7 +1600,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('hvacThermostat', ['systemMode', 'runningMode', 'occupiedHeatingSetpoint']);
             await endpoint.read(
                 'hvacThermostat',
-                [0x8000, 0x8001, 0x8002, 0x8003, 0x8004, 0x801e, 0x8006, 0x8005, 0x8006, 0x8029, 0x8022, 0x8023, 0x8024],
+                [0x8000, 0x8001, 0x8002, 0x8003, 0x8004, 0x801e, 0x8006, 0x8005, 0x8006, 0x8029, 0x8022, 0x8023, 0x8024, 0x8013],
             );
 
             device.powerSource = 'Mains (single phase)';
