@@ -94,7 +94,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
-        zigbeeModel: ['SLP2', 'SLP2b', 'SLP2c'],
+        zigbeeModel: ['SLP2', 'SLP2b', 'SLP2c', 'SLP3'],
         model: '1613V',
         vendor: 'Hive',
         description: 'Active plug',

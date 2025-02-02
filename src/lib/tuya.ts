@@ -334,9 +334,9 @@ const tuyaExposes = {
             .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
             .withDescription(`When Anti-Freezing function is activated, the temperature in the house is kept at 8 °C.${extraNote}`),
     errorStatus: () => e.numeric('error_status', ea.STATE).withDescription('Error status'),
-    scheduleAllDays: (access: number, format: string) =>
+    scheduleAllDays: (access: number, example: string) =>
         ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) =>
-            e.text(`schedule_${day}`, access).withDescription(`Schedule for ${day}, format: "${format}"`),
+            e.text(`schedule_${day}`, access).withDescription(`Schedule for ${day}, example: "${example}"`),
         ),
     temperatureUnit: () => e.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Temperature unit'),
     temperatureCalibration: () =>
@@ -355,6 +355,38 @@ const tuyaExposes = {
             .withValueStep(1)
             .withUnit('%')
             .withDescription('Humidity calibration'),
+    soilCalibration: () =>
+        e
+            .numeric('soil_calibration', ea.STATE_SET)
+            .withValueMin(-30)
+            .withValueMax(30)
+            .withValueStep(1)
+            .withUnit('%')
+            .withDescription('Soil Humidity calibration'),
+    temperatureSampling: () =>
+        e
+            .numeric('temperature_sampling', ea.STATE_SET)
+            .withValueMin(5)
+            .withValueMax(3600)
+            .withValueStep(1)
+            .withUnit('s')
+            .withDescription('Air temperature and humidity sampling'),
+    soilSampling: () =>
+        e
+            .numeric('soil_sampling', ea.STATE_SET)
+            .withValueMin(5)
+            .withValueMax(3600)
+            .withValueStep(1)
+            .withUnit('s')
+            .withDescription('Soil humidity sampling'),
+    soilWarning: () =>
+        e
+            .numeric('soil_warning', ea.STATE_SET)
+            .withValueMin(0)
+            .withValueMax(100)
+            .withValueStep(1)
+            .withUnit('%')
+            .withDescription('Soil water shortage humidity value'),
     gasValue: () => e.numeric('gas_value', ea.STATE).withDescription('Measured gas concentration'),
     energyWithPhase: (phase: string) =>
         e.numeric(`energy_${phase}`, ea.STATE).withUnit('kWh').withDescription(`Sum of consumed energy (phase ${phase.toUpperCase()})`),
@@ -1030,7 +1062,7 @@ export const valueConverter = {
                     const hour = parseInt(hourMin[0]);
                     const min = parseInt(hourMin[1]);
                     const temperature = Math.floor(parseFloat(timeTemp[1]) * 10);
-                    if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
+                    if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 350) {
                         throw new Error('Invalid hour, minute or temperature of: ' + transition);
                     }
                     payload.push(hour, min, (temperature & 0xff00) >> 8, temperature & 0xff);
@@ -1124,6 +1156,7 @@ export const valueConverter = {
             },
         };
     },
+    /** @deprecated left for compatibility, use {@link thermostatSystemModeAndPresetMap} */
     thermostatSystemModeAndPreset: (toKey: string) => {
         return {
             from: (v: string) => {
@@ -1136,44 +1169,6 @@ export const valueConverter = {
                 const presetLookup: KeyValueStringEnum = {auto: new Enum(0), manual: new Enum(1), off: new Enum(2), on: new Enum(3)};
                 const systemModeLookup: KeyValueStringEnum = {auto: new Enum(1), off: new Enum(2), heat: new Enum(3)};
                 const lookup: KeyValueStringEnum = toKey === 'preset' ? presetLookup : systemModeLookup;
-                return utils.getFromLookup(v, lookup);
-            },
-        };
-    },
-    thermostatGtz10SystemModeAndPreset: (toKey: string) => {
-        return {
-            from: (v: string) => {
-                utils.assertNumber(v, 'system_mode');
-                const presetLookup = {
-                    0: 'manual',
-                    1: 'auto',
-                    2: 'holiday',
-                    3: 'comfort',
-                    4: 'eco',
-                    5: 'off',
-                };
-                const systemModeLookup = {
-                    0: 'heat',
-                    1: 'auto',
-                    5: 'off',
-                };
-                return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
-            },
-            to: (v: string) => {
-                const presetLookup = {
-                    manual: new Enum(0),
-                    auto: new Enum(1),
-                    holiday: new Enum(2),
-                    comfort: new Enum(3),
-                    eco: new Enum(4),
-                    off: new Enum(5),
-                };
-                const systemModeLookup = {
-                    heat: new Enum(0),
-                    auto: new Enum(1),
-                    off: new Enum(5),
-                };
-                const lookup = toKey === 'preset' ? presetLookup : systemModeLookup;
                 return utils.getFromLookup(v, lookup);
             },
         };
@@ -1496,6 +1491,24 @@ export const valueConverter = {
             }
             return data;
         },
+    },
+    /** @param toMap the key is 'system_mode' or 'preset' related value */
+    thermostatSystemModeAndPresetMap: ({
+        fromMap = {},
+        toMap = {},
+    }: {
+        fromMap?: {[modeId: number]: {device_mode: string; system_mode: string; preset: string}};
+        toMap?: {[key: string]: Enum};
+    }) => {
+        return {
+            from: (v: string) => {
+                utils.assertNumber(v, 'system_mode');
+                return {running_mode: fromMap[v].device_mode, system_mode: fromMap[v].system_mode, preset: fromMap[v].preset};
+            },
+            to: (v: string) => {
+                return utils.getFromLookup(v, toMap);
+            },
+        };
     },
 };
 

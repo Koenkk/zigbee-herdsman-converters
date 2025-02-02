@@ -1299,14 +1299,13 @@ export const presets = {
             .withFeature(new Numeric('strobe_duty_cycle', access.SET).withValueMax(10).withValueMin(0).withDescription('Length of the flash cycle'))
             .withFeature(new Numeric('duration', access.SET).withUnit('s').withDescription('Duration in seconds of the alarm')),
     week: () => new Enum('week', access.STATE_SET, ['5+2', '6+1', '7']).withDescription('Week format user for schedule'),
+    /** @deprecated left for compatability, use {@link window_detection_bool} instead */
     window_detection: () =>
         new Switch()
             .withLabel('Window detection')
-            .withState('window_detection', true, 'Enables/disables window detection on the device', access.STATE_SET), // left for compatability, do not use
-    window_detection_bool: () =>
-        new Binary('window_detection', access.ALL, true, false)
-            .withDescription('Enables/disables window detection on the device')
-            .withCategory('config'),
+            .withState('window_detection', true, 'Enables/disables window detection on the device', access.STATE_SET),
+    window_detection_bool: (access: number = a.ALL) =>
+        new Binary('window_detection', access, true, false).withDescription('Enables/disables window detection on the device').withCategory('config'),
     window_open: () => new Binary('window_open', access.STATE, true, false).withDescription('Indicates if window is open').withCategory('diagnostic'),
     moving: () => new Binary('moving', access.STATE, true, false).withDescription('Indicates if the device is moving'),
     x_axis: () => new Numeric('x_axis', access.STATE).withDescription('Accelerometer X value'),

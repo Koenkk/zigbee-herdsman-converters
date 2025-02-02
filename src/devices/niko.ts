@@ -1,6 +1,9 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {deviceAddCustomCluster} from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
@@ -9,9 +12,41 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const local = {
+    modernExtend: {
+        addCustomClusterManuSpecificNikoConfig: () =>
+            deviceAddCustomCluster('manuSpecificNikoConfig', {
+                ID: 0xfc00,
+                manufacturerCode: Zcl.ManufacturerCode.NIKO_NV,
+                attributes: {
+                    /* WARNING: 0x0000 has different datatypes!
+                     *          enum8 (switch) vs. bitmap8 (outlet)
+                     *          unknown usage/function on outlet
+                     */
+                    switchOperationMode: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    outletLedColor: {ID: 0x0100, type: Zcl.DataType.UINT24},
+                    outletChildLock: {ID: 0x0101, type: Zcl.DataType.UINT8},
+                    outletLedState: {ID: 0x0104, type: Zcl.DataType.UINT8},
+                    /* WARNING: 0x0107 is not supported on older switches */
+                    ledSyncMode: {ID: 0x0107, type: Zcl.DataType.BITMAP32},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        addCustomClusterManuSpecificNikoState: () =>
+            deviceAddCustomCluster('manuSpecificNikoState', {
+                ID: 0xfc01,
+                manufacturerCode: Zcl.ManufacturerCode.NIKO_NV,
+                attributes: {
+                    switchActionReporting: {ID: 0x0001, type: Zcl.DataType.BITMAP8},
+                    switchAction: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+    },
     fz: {
         switch_operation_mode: {
-            cluster: 'manuSpecificNiko1',
+            cluster: 'manuSpecificNikoConfig',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
@@ -23,52 +58,53 @@ const local = {
             },
         } satisfies Fz.Converter,
         switch_action: {
-            cluster: 'manuSpecificNiko2',
+            cluster: 'manuSpecificNikoState',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
+                if (msg.data.switchActionReporting !== undefined) {
+                    const actionReportingMap: KeyValue = {0x00: false, 0x1f: true};
+                    state['action_reporting'] = utils.getFromLookup(msg.data.switchActionReporting, actionReportingMap);
+                }
                 if (msg.data.switchAction !== undefined) {
                     // NOTE: a single press = two separate values reported, 16 followed by 64
                     //       a hold/release cycle = three separate values, 16, 32, and 48
-                    const actionMap: KeyValue =
+
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/13737#issuecomment-1520002786
+                    const buttonShift: {[key: string]: number} =
                         model.model == '552-721X1'
                             ? {
-                                  16: null,
-                                  64: 'single',
-                                  32: 'hold',
-                                  48: 'release',
-                                  256: null,
-                                  1024: 'single_ext',
-                                  512: 'hold_ext',
-                                  768: 'release_ext',
+                                  '': 4,
+                                  ext: 8,
                               }
                             : {
-                                  16: null,
-                                  64: 'single_left',
-                                  32: 'hold_left',
-                                  48: 'release_left',
-                                  256: null,
-                                  1024: 'single_left_ext',
-                                  512: 'hold_left_ext',
-                                  768: 'release_left_ext',
-                                  4096: null,
-                                  16384: 'single_right',
-                                  8192: 'hold_right',
-                                  12288: 'release_right',
-                                  65536: null,
-                                  262144: 'single_right_ext',
-                                  131072: 'hold_right_ext',
-                                  196608: 'release_right_ext',
+                                  left: 4,
+                                  left_ext: 8,
+                                  right: 12,
+                                  right_ext: 16,
                               };
+                    const actions: {[key: string]: number} = {
+                        single: 4,
+                        hold: 2,
+                        release: 3,
+                    };
 
-                    state['action'] = actionMap[msg.data.switchAction];
+                    for (const button in buttonShift) {
+                        const shiftedValue = (msg.data.switchAction >> buttonShift[button]) & 0xf;
+                        for (const action in actions) {
+                            if (shiftedValue == actions[action]) {
+                                const buttonPostFix = button === '' ? '' : '_' + button;
+                                const value = action + buttonPostFix;
+                                publish({action: value});
+                            }
+                        }
+                    }
                 }
-                return state;
             },
         } satisfies Fz.Converter,
         switch_status_led: {
-            cluster: 'manuSpecificNiko1',
+            cluster: 'manuSpecificNikoConfig',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
@@ -76,13 +112,28 @@ const local = {
                     state['led_enable'] = msg.data['outletLedState'] == 1;
                 }
                 if (msg.data.outletLedColor !== undefined) {
-                    state['led_state'] = msg.data['outletLedColor'] == 255 ? 'ON' : 'OFF';
+                    const ledStateMap: KeyValue = {0x00: 'OFF', 0x0000ff: 'ON', 0x00ff00: 'Blue', 0xff0000: 'Red', 0xffffff: 'Purple'};
+                    state['led_state'] = utils.getFromLookup(msg.data.outletLedColor, ledStateMap);
+                }
+                if (msg.data.ledSyncMode !== undefined) {
+                    const ledSyncMap: {[key: number]: string} = {0: 'Off', 1: 'On', 2: 'Inverted'};
+                    if (model.meta.multiEndpoint) {
+                        const endpointOffsetMap: {[key: string]: number} = {l1: 0, l2: 1};
+                        for (const ep in endpointOffsetMap) {
+                            const shift = endpointOffsetMap[ep] * 4;
+                            const mask = 0xf << shift;
+                            const result = (msg.data.ledSyncMode & mask) >> shift;
+                            state['led_sync_mode_' + ep] = utils.getFromLookup(result, ledSyncMap);
+                        }
+                    } else {
+                        state['led_sync_mode'] = utils.getFromLookup(msg.data.ledSyncMode, ledSyncMap);
+                    }
                 }
                 return state;
             },
         } satisfies Fz.Converter,
         outlet: {
-            cluster: 'manuSpecificNiko1',
+            cluster: 'manuSpecificNikoConfig',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
@@ -109,7 +160,7 @@ const local = {
                     throw new Error(`operation_mode was called with an invalid value (${value})`);
                 } else {
                     await utils.enforceEndpoint(entity, key, meta).write(
-                        'manuSpecificNiko1',
+                        'manuSpecificNikoConfig',
                         // @ts-expect-error ignore
                         {switchOperationMode: operationModeLookup[value]},
                     );
@@ -119,50 +170,110 @@ const local = {
             },
             convertGet: async (entity, key, meta) => {
                 utils.assertEndpoint(entity);
-                await utils.enforceEndpoint(entity, key, meta).read('manuSpecificNiko1', ['switchOperationMode']);
+                await utils.enforceEndpoint(entity, key, meta).read('manuSpecificNikoConfig', ['switchOperationMode']);
+            },
+        } satisfies Tz.Converter,
+        switch_action_reporting: {
+            key: ['action_reporting'],
+            convertSet: async (entity, key, value, meta) => {
+                const actionReportingMap: KeyValue = {false: 0x00, true: 0x1f};
+                // @ts-expect-error ignore
+                if (actionReportingMap[value] === undefined) {
+                    throw new Error(`action_reporting was called with an invalid value (${value})`);
+                } else {
+                    await entity.write(
+                        'manuSpecificNikoState',
+                        // @ts-expect-error ignore
+                        {switchActionReporting: actionReportingMap[value]},
+                    );
+                    return {state: {action_reporting: value}};
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNikoState', ['switchActionReporting']);
             },
         } satisfies Tz.Converter,
         switch_led_enable: {
             key: ['led_enable'],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write('manuSpecificNiko1', {outletLedState: value ? 1 : 0});
-                await entity.read('manuSpecificNiko1', ['outletLedColor']);
+                await entity.write('manuSpecificNikoConfig', {outletLedState: value ? 1 : 0});
+                await entity.read('manuSpecificNikoConfig', ['outletLedColor']);
                 return {state: {led_enable: value ? true : false}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificNiko1', ['outletLedState']);
+                await entity.read('manuSpecificNikoConfig', ['outletLedState']);
             },
         } satisfies Tz.Converter,
         switch_led_state: {
             key: ['led_state'],
             convertSet: async (entity, key, value, meta) => {
-                utils.assertString(value, key);
-                await entity.write('manuSpecificNiko1', {outletLedColor: value.toLowerCase() === 'off' ? 0 : 255});
-                return {state: {led_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
+                const ledStateMap: KeyValue = {OFF: 0x00, ON: 0x0000ff, Blue: 0x00ff00, Red: 0xff0000, Purple: 0xffffff};
+                // @ts-expect-error ignore
+                if (ledStateMap[value] === undefined) {
+                    throw new Error(`led_state was called with an invalid value (${value})`);
+                } else {
+                    await entity.write(
+                        'manuSpecificNikoConfig',
+                        // @ts-expect-error ignore
+                        {outletLedColor: ledStateMap[value]},
+                    );
+                    return {state: {led_state: value}};
+                }
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificNiko1', ['outletLedColor']);
+                await entity.read('manuSpecificNikoConfig', ['outletLedColor']);
+            },
+        } satisfies Tz.Converter,
+        switch_led_sync_mode: {
+            key: ['led_sync_mode'],
+            convertSet: async (entity, key, value, meta) => {
+                const ledSyncMap: {[key: string]: number} = {Off: 0, On: 1, Inverted: 2};
+                // @ts-expect-error ignore
+                if (ledSyncMap[value] === undefined) {
+                    throw new Error(`led_sync_mode was called with an invalid value (${value})`);
+                }
+                const endpointOffsetMap: {[key: string]: number} = {l1: 0, l2: 1};
+                let result: number = 0x00;
+                if (endpointOffsetMap[meta.endpoint_name] !== undefined) {
+                    // combine states of all endpoints into single value to write to device
+                    for (const ep in endpointOffsetMap) {
+                        // @ts-expect-error ignore
+                        const endpointState: number = ep === meta.endpoint_name ? value : meta.state['led_sync_mode_' + ep];
+                        // @ts-expect-error ignore
+                        const endpointValue = ledSyncMap[endpointState] === undefined ? ledSyncMap[value] : ledSyncMap[endpointState];
+                        const shiftedValue = endpointValue << (endpointOffsetMap[ep] * 4);
+                        result = result | shiftedValue;
+                    }
+                } else {
+                    // @ts-expect-error ignore
+                    result = ledSyncMap[value];
+                }
+                await entity.write('manuSpecificNikoConfig', {ledSyncMode: result});
+                return {state: {led_sync_mode: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNikoConfig', ['ledSyncMode']);
             },
         } satisfies Tz.Converter,
         outlet_child_lock: {
             key: ['child_lock'],
             convertSet: async (entity, key, value, meta) => {
                 utils.assertString(value, key);
-                await entity.write('manuSpecificNiko1', {outletChildLock: value.toLowerCase() === 'lock' ? 0 : 1});
+                await entity.write('manuSpecificNikoConfig', {outletChildLock: value.toLowerCase() === 'lock' ? 0 : 1});
                 return {state: {child_lock: value.toLowerCase() === 'lock' ? 'LOCK' : 'UNLOCK'}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificNiko1', ['outletChildLock']);
+                await entity.read('manuSpecificNikoConfig', ['outletChildLock']);
             },
         } satisfies Tz.Converter,
         outlet_led_enable: {
             key: ['led_enable'],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write('manuSpecificNiko1', {outletLedState: value ? 1 : 0});
+                await entity.write('manuSpecificNikoConfig', {outletLedState: value ? 1 : 0});
                 return {state: {led_enable: value ? true : false}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificNiko1', ['outletLedState']);
+                await entity.read('manuSpecificNikoConfig', ['outletLedState']);
             },
         } satisfies Tz.Converter,
     },
@@ -176,6 +287,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Connected socket outlet',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, local.fz.outlet],
         toZigbee: [tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered, local.tz.outlet_child_lock, local.tz.outlet_led_enable],
+        extend: [local.modernExtend.addCustomClusterManuSpecificNikoConfig()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -193,8 +305,8 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
 
-            await endpoint.read('manuSpecificNiko1', ['outletChildLock']);
-            await endpoint.read('manuSpecificNiko1', ['outletLedState']);
+            await endpoint.read('manuSpecificNikoConfig', ['outletChildLock']);
+            await endpoint.read('manuSpecificNikoConfig', ['outletLedState']);
         },
         exposes: [
             e.switch(),
@@ -276,19 +388,33 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Niko',
         description: 'Single connectable switch',
         fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action, local.fz.switch_status_led],
-        toZigbee: [tz.on_off, local.tz.switch_operation_mode, local.tz.switch_led_enable, local.tz.switch_led_state],
+        toZigbee: [
+            tz.on_off,
+            local.tz.switch_operation_mode,
+            local.tz.switch_action_reporting,
+            local.tz.switch_led_enable,
+            local.tz.switch_led_state,
+            local.tz.switch_led_sync_mode,
+        ],
+        extend: [local.modernExtend.addCustomClusterManuSpecificNikoConfig(), local.modernExtend.addCustomClusterManuSpecificNikoState()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
-            await endpoint.read('manuSpecificNiko1', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
+            await endpoint.read('manuSpecificNikoConfig', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
+            // Enable action reporting by default
+            await endpoint.write('manuSpecificNikoState', {switchActionReporting: true});
+            await endpoint.read('manuSpecificNikoState', ['switchActionReporting']);
+            await endpoint.read('manuSpecificNikoConfig', ['ledSyncMode']);
         },
         exposes: [
             e.switch(),
             e.action(['single', 'hold', 'release', 'single_ext', 'hold_ext', 'release_ext']),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
+            e.binary('action_reporting', ea.ALL, true, false).withDescription('Enable Action Reporting'),
             e.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
-            e.binary('led_state', ea.ALL, 'ON', 'OFF').withDescription('LED State'),
+            e.enum('led_state', ea.ALL, ['ON', 'OFF', 'Blue', 'Red', 'Purple']).withDescription('LED State'),
+            e.enum('led_sync_mode', ea.ALL, ['Off', 'On', 'Inverted']).withDescription('Sync LED with relay state'),
         ],
     },
     {
@@ -297,10 +423,18 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Niko',
         description: 'Double connectable switch',
         fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action, local.fz.switch_status_led],
-        toZigbee: [tz.on_off, local.tz.switch_operation_mode, local.tz.switch_led_enable, local.tz.switch_led_state],
+        toZigbee: [
+            tz.on_off,
+            local.tz.switch_operation_mode,
+            local.tz.switch_action_reporting,
+            local.tz.switch_led_enable,
+            local.tz.switch_led_state,
+            local.tz.switch_led_sync_mode,
+        ],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
+        extend: [local.modernExtend.addCustomClusterManuSpecificNikoConfig(), local.modernExtend.addCustomClusterManuSpecificNikoState()],
         meta: {multiEndpointEnforce: {operation_mode: 1}, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const ep1 = device.getEndpoint(1);
@@ -309,8 +443,13 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(ep2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(ep1);
             await reporting.onOff(ep2);
-            await ep1.read('manuSpecificNiko1', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
-            await ep2.read('manuSpecificNiko1', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
+            await ep1.read('manuSpecificNikoConfig', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
+            await ep2.read('manuSpecificNikoConfig', ['switchOperationMode', 'outletLedState', 'outletLedColor']);
+            // Enable action reporting by default
+            await ep1.write('manuSpecificNikoState', {switchActionReporting: true});
+            await ep1.read('manuSpecificNikoState', ['switchActionReporting']);
+            await ep1.read('manuSpecificNikoConfig', ['ledSyncMode']);
+            await ep2.read('manuSpecificNikoConfig', ['ledSyncMode']);
         },
         exposes: [
             e.switch().withEndpoint('l1'),
@@ -330,10 +469,13 @@ const definitions: DefinitionWithExtend[] = [
                 'release_right_ext',
             ]),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
+            e.binary('action_reporting', ea.ALL, true, false).withDescription('Enable Action Reporting'),
             e.binary('led_enable', ea.ALL, true, false).withEndpoint('l1').withDescription('Enable LED'),
             e.binary('led_enable', ea.ALL, true, false).withEndpoint('l2').withDescription('Enable LED'),
-            e.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l1').withDescription('LED State'),
-            e.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l2').withDescription('LED State'),
+            e.enum('led_state', ea.ALL, ['ON', 'OFF', 'Blue', 'Red', 'Purple']).withEndpoint('l1').withDescription('LED State'),
+            e.enum('led_state', ea.ALL, ['ON', 'OFF', 'Blue', 'Red', 'Purple']).withEndpoint('l2').withDescription('LED State'),
+            e.enum('led_sync_mode', ea.ALL, ['Off', 'On', 'Inverted']).withEndpoint('l1').withDescription('Sync LED with relay state'),
+            e.enum('led_sync_mode', ea.ALL, ['Off', 'On', 'Inverted']).withEndpoint('l2').withDescription('Sync LED with relay state'),
         ],
     },
     {

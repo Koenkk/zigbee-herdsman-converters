@@ -1,5 +1,6 @@
+import {access, presets} from '../lib/exposes';
 import * as m from '../lib/modernExtend';
-import {DefinitionWithExtend} from '../lib/types';
+import {DefinitionWithExtend, Fz, ModernExtend, Tz} from '../lib/types';
 
 const pushokExtend = {
     valveStatus: (args?: Partial<m.EnumLookupArgs>) =>
@@ -28,6 +29,33 @@ const pushokExtend = {
             reporting: null,
             ...args,
         }),
+    extendedTemperature: (): ModernExtend => {
+        const exposes = [presets.numeric('temperature', access.STATE).withUnit('°C').withDescription('Measured temperature value')];
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'msTemperatureMeasurement',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data['measuredValue'] !== undefined) {
+                        let temperature = msg.data.measuredValue / 100.0;
+
+                        if (msg.data[0xf001] !== undefined) {
+                            temperature += msg.data[0xf001] / 10.0;
+                        }
+                        return {temperature};
+                    }
+                    return {};
+                },
+            },
+        ];
+        const toZigbee: Tz.Converter[] = [];
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 
 const definitions: DefinitionWithExtend[] = [
@@ -295,6 +323,22 @@ const definitions: DefinitionWithExtend[] = [
             }),
             m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
         ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ['POK014'],
+        model: 'POK014',
+        vendor: 'PushOk Hardware',
+        description: 'External probe temperature sensor: k-type',
+        extend: [pushokExtend.extendedTemperature(), m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false})],
+        ota: true,
+    },
+    {
+        zigbeeModel: ['POK015'],
+        model: 'POK015',
+        vendor: 'PushOk Hardware',
+        description: 'External probe temperature sensor: pt1000',
+        extend: [pushokExtend.extendedTemperature(), m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false})],
         ota: true,
     },
 ];
