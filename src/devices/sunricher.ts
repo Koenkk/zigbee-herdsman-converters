@@ -1104,9 +1104,9 @@ const definitions: DefinitionWithExtend[] = [
             fz.command_step,
             fz.command_move,
             fz.command_stop,
-            fz.command_move_hue,
             fz.command_move_to_color,
             fz.command_move_to_color_temp,
+            fz.command_move_hue,
             fz.command_recall,
         ],
         exposes: [
@@ -1128,7 +1128,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [],
         meta: {multiEndpoint: true},
-        endpoint: (device) => {    
+        endpoint: (device) => {
             return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
         },
     },
