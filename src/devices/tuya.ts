@@ -2009,7 +2009,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu', '_TZE200_ga1maeof', '_TZE200_2se8efxh', '_TZE204_myd45weu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu', '_TZE200_ga1maeof', '_TZE200_2se8efxh', '_TZE204_myd45weu', '_TZE284_myd45weu']),
         model: 'TS0601_soil',
         vendor: 'Tuya',
         description: 'Soil sensor',
@@ -2672,7 +2672,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0301',
         vendor: 'Tuya',
         description: 'Cover',
-        extend: [m.battery(), m.windowCovering({controls: ['lift', 'tilt']})],
+        extend: [m.battery(), m.windowCovering({controls: ['lift']})],
         whiteLabel: [tuya.whitelabel('Yookee', 'D10110_1', 'Smart blind', ['_TZE200_9caxna4s'])],
     },
     {
