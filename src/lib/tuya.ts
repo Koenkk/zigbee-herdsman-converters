@@ -1867,7 +1867,7 @@ const tuyaFz = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.seq)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model, msg.data)) return;
             const result: KeyValue = {};
             if (!model.meta || !model.meta.tuyaDatapoints) throw new Error('No datapoints map defined');
             const datapoints = model.meta.tuyaDatapoints;
