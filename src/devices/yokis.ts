@@ -2,6 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import type {ClusterDefinition, ZclArray} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
 import * as tz from "../converters/toZigbee";
+import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -38,6 +39,16 @@ const inputModeEnum: {[s: string]: number} = {
     switch: 0x02,
     relay: 0x03,
     fp_in: 0x04, // Fil pilote
+};
+
+// pilotwireOrderEnun (manuSpecificYokisPilotWire)
+const pilotwireOrderEnun: {[s: string]: number} = {
+    stop: 0x00,
+    frost_off: 0x01,
+    eco: 0x02,
+    confort_2: 0x03,
+    confort_1: 0x04,
+    confort: 0x05,
 };
 
 // #endregion
@@ -1017,6 +1028,22 @@ const yokisExtendChecks = {
             },
         };
     },
+    parsePilotwireOrder: (input: string) => {
+        if (!input) {
+            throw new Error("MISSING_INPUT");
+        }
+
+        if (!Object.keys(pilotwireOrderEnun).includes(input)) {
+            throw new Error("INVALID_ORDER_ACTION");
+        }
+
+        return {
+            payload: {
+                // biome-ignore lint/style/useNamingConvention: <explanation>
+                uc_Order: utils.getFromLookup(input, pilotwireOrderEnun),
+            },
+        };
+    },
     log: (key: string, value: KeyValueAny | string, payload?: KeyValueAny) => {
         logger.debug(`Invoked converter with key: '${key}'`, NS);
         logger.debug(`Invoked converter with values:${JSON.stringify(value)}`, NS);
@@ -1660,6 +1687,56 @@ const yokisCommandsExtend = {
                         "startNightLightMode",
                         commandWrapper.payload,
                     );
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposes],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    // biome-ignore lint/style/useNamingConvention: <explanation>
+    pilotwire_setOrder: (): ModernExtend => {
+        const exposes = e
+            .enum("pilotwire_setOrder", ea.SET, Object.keys(pilotwireOrderEnun))
+            .withDescription("Set the device in the specified order.")
+            .withCategory("config");
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["pilotwire_setOrder"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
+                    const commandWrapper = yokisExtendChecks.parsePilotwireOrder(value);
+
+                    yokisExtendChecks.log(key, value, commandWrapper.payload);
+
+                    await entity.command("manuSpecificYokisPilotWire", "setOrder", commandWrapper.payload);
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposes],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    // biome-ignore lint/style/useNamingConvention: <explanation>
+    pilotwire_toggleOrder: (): ModernExtend => {
+        const exposes = e
+            .enum("pilotwire_toggleOrder", ea.SET, ["pilotwire_toggleOrder"])
+            .withDescription("Toggle between order by respecting the scrolling order")
+            .withCategory("config");
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["pilotwire_toggleOrder"],
+                convertSet: async (entity, key, value, meta) => {
+                    yokisExtendChecks.log(key, value);
+                    await entity.command("manuSpecificYokisPilotWire", "toggleOrder", {});
                 },
             },
         ];
@@ -2560,7 +2637,159 @@ const YokisLoadManagerExtend: ModernExtend[] = [
 ];
 
 const YokisPilotWireExtend: ModernExtend[] = [
-    // TODO : Placeholder - pending documentation
+    // Actual Order
+    m.enumLookup({
+        name: "actual_order",
+        lookup: {
+            stop: 0x00,
+            frost_off: 0x01,
+            eco: 0x02,
+            confort_2: 0x03,
+            confort_1: 0x04,
+            confort: 0x05,
+            shortcut_error: 0x06,
+            temperature_error: 0x07,
+        },
+        cluster: "manuSpecificYokisPilotWire",
+        attribute: "actualOrder",
+        description: `Represent the actual order used by the device:
+- 0x00 -> Stop
+- 0x01 -> Frost-off
+- 0x02 -> Eco (default)
+- 0x03 -> Confort-2
+- 0x04 -> Confort-1
+- 0x05 -> Confort
+- 0xF0 -> ShortCut error
+- 0xF1 -> Temperature error`,
+        access: "STATE_GET",
+        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        entityCategory: "diagnostic",
+    }),
+
+    // Order timer
+    m.numeric({
+        name: "order_timer",
+        cluster: "manuSpecificYokisPilotWire",
+        attribute: "orderTimer",
+        description:
+            "Define the “Order” embedded timer duration. This timer is set when the device changes its order (in second). After that duration, the device is set back to its fallback order.",
+        valueMin: 0x00000000,
+        valueMax: 0xffffffff,
+        valueStep: 1,
+        reporting: {min: repInterval.SECONDS_5, max: repInterval.MINUTES_15, change: 1},
+        entityCategory: "config",
+    }),
+
+    // Pre-Order timer
+    m.numeric({
+        name: "pre_order_timer",
+        cluster: "manuSpecificYokisPilotWire",
+        attribute: "preOrderTimer",
+        description:
+            "Define the duration before an order is set. This timer is used when a new order is asked, it corresponds to the time before this order is applied. The duration is set in second.",
+        valueMin: 0x00000000,
+        valueMax: 0xffffffff,
+        valueStep: 1,
+        reporting: {min: repInterval.SECONDS_5, max: repInterval.MINUTES_15, change: 1},
+        entityCategory: "config",
+    }),
+
+    // Timer unit
+    m.enumLookup({
+        name: "timer_unit",
+        lookup: {
+            second: 0x00,
+            minutes: 0x01,
+        },
+        cluster: "manuSpecificYokisPilotWire",
+        attribute: "timerUnit",
+        description: `Represent the actual unit used for local command configuration :
+- 0x00 -> Second (default)
+- 0x01 -> Minutes`,
+        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        entityCategory: "config",
+    }),
+
+    // Led mode
+    m.enumLookup({
+        name: "led_mode",
+        lookup: {
+            led_on: 0x00,
+            led_off: 0x01,
+        },
+        cluster: "manuSpecificYokisPilotWire",
+        attribute: "ledMode",
+        description: `Define the product’s LED behavior:
+- 0x00 -> LED is always ON and blink during radio activity (default)
+- 0x01 -> LED is only OFF during few seconds after a mode transition`,
+        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        entityCategory: "config",
+    }),
+
+    // Pilot-wire relay mode
+    m.enumLookup({
+        name: "pilot_wire_relay_mode",
+        lookup: {
+            relay_on: 0x00,
+            relay_off: 0x01,
+        },
+        cluster: "manuSpecificYokisPilotWire",
+        attribute: "pilotWireRelayMode",
+        description: `Define if the product must be set into pilot wire relay mode:
+- 0x00 -> Relay mode is deactivated (default)
+- 0x01 -> Relay mode is activated`,
+        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        entityCategory: "config",
+    }),
+
+    // Order scrolling mode
+    m.enumLookup({
+        name: "order_scrolling_mode",
+        lookup: {
+            forward: 0x00,
+            backward: 0x01,
+        },
+        cluster: "manuSpecificYokisPilotWire",
+        attribute: "orderScrollingMode",
+        description: `Define the order scrolling sense:
+- 0x00 -> Forward : Confort -> Confort – 1 -> Confort – 2 -> Eco -> Hors-Gel -> Arrêt (default)
+- 0x01 -> Backward : Arrêt -> Hors-Gel -> Eco -> Confort – 2 -> Confort – 1 -> Confort`,
+        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        entityCategory: "config",
+    }),
+
+    // Order number supported
+    m.enumLookup({
+        name: "order_number_supported",
+        lookup: {
+            four_orders: 0x00,
+            six_orders: 0x01,
+        },
+        cluster: "manuSpecificYokisPilotWire",
+        attribute: "orderNumberSupported",
+        description: `Define the number of orders supported by the device:
+- 0x00 -> 4 orders (Confort, Eco, Hors-Gel, Arrêt)
+- 0x01 -> 6 orders (Confort, Confort – 1, Confort – 2, Eco, Hors-Gel, Arrêt) - (default)`,
+        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        entityCategory: "config",
+    }),
+
+    // Fallback Order
+    m.enumLookup({
+        name: "fallback_order",
+        lookup: pilotwireOrderEnun,
+        cluster: "manuSpecificYokisPilotWire",
+        attribute: "fallbackOrder",
+        description: `Represent the fallback order used by the device after the end of an order timer is reached
+- 0x00 -> Stop
+- 0x01 -> Frost-off
+- 0x02 -> Eco (default)
+- 0x03 -> Confort-2
+- 0x04 -> Confort-1
+- 0x05 -> Confor`,
+        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        entityCategory: "config",
+    }),
 ];
 
 const YokisStatsExtend: ModernExtend[] = [
@@ -3011,6 +3240,30 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
             ...YokisPilotWireExtend,
+        ],
+    },
+    {
+        // MFP-UP
+        zigbeeModel: ["MFP-UP"],
+        model: "MFP-UP",
+        vendor: "YOKIS",
+        description: "Remote module for pilot wire heating system",
+        extend: [
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition.manuSpecificYokisEntryConfigurator),
+            m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition.manuSpecificYokisSubSystem),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition.manuSpecificYokisStats), // Pending implementation
+            m.identify(),
+            // Electrical Measurement
+            // Simple Metering
+            ...YokisSubSystemExtend,
+            ...YokisPilotWireExtend, // Pending implementation
+            ...YokisDeviceExtend,
+            ...YokisInputExtend,
+            ...YokisEntryExtend,
+            ...YokisStatsExtend, // Pending implementation
         ],
     },
 ];
