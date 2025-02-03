@@ -755,13 +755,13 @@ const definitions: DefinitionWithExtend[] = [
         model: 'EFEKTA_Air_Quality_Station',
         vendor: 'EFEKTA',
         description: '[EFEKTA Air Quality Station, PM1.0, PM2.5, PM4.0, PM10, AQ PM2.5 Index, PM Size, CO2, VOC Index, Temperature, \
-			Humidity, TFT display 3.2 inches.](http://efektalab.com/EFEKTA_Air_Quality_Station)',
+            Humidity, TFT display 3.2 inches.](http://efektalab.com/EFEKTA_Air_Quality_Station)',
         extend: [
             m.co2({
-				reporting: false,
-				access: 'STATE',
+                reporting: false,
+                access: 'STATE',
             }),
-			m.numeric({
+            m.numeric({
                 name: 'pm1',
                 unit: 'µg/m³',
                 cluster: 'pm25Measurement',
@@ -769,15 +769,15 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Measured PM1.0 (particulate matter) concentration',
                 access: 'STATE',
                 reporting: false,
-				precision: 1,
+                precision: 1,
             }),
-			m.pm25({
-				reporting: false,
-				access: 'STATE',
-				description: 'Measured PM2.5 (particulate matter) concentration',
-				precision: 1,
+            m.pm25({
+                reporting: false,
+                access: 'STATE',
+                description: 'Measured PM2.5 (particulate matter) concentration',
+                precision: 1,
             }),
-			m.numeric({
+            m.numeric({
                 name: 'pm4',
                 unit: 'µg/m³',
                 cluster: 'pm25Measurement',
@@ -785,9 +785,9 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Measured PM4.0 (particulate matter) concentration',
                 access: 'STATE',
                 reporting: false,
-				precision: 1,
+                precision: 1,
             }),
-			m.numeric({
+            m.numeric({
                 name: 'pm10',
                 unit: 'µg/m³',
                 cluster: 'pm25Measurement',
@@ -795,9 +795,9 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Measured PM10.0 (particulate matter) concentration',
                 access: 'STATE',
                 reporting: false,
-				precision: 1,
+                precision: 1,
             }),
-			m.numeric({
+            m.numeric({
                 name: 'pm_size',
                 unit: 'µm',
                 cluster: 'pm25Measurement',
@@ -805,9 +805,9 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Typical Particle Size',
                 access: 'STATE',
                 reporting: false,
-				precision: 2,
+                precision: 2,
             }),
-			m.numeric({
+            m.numeric({
                 name: 'aqi_25_index',
                 unit: 'PM2.5 Index',
                 cluster: 'pm25Measurement',
@@ -816,7 +816,7 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
                 reporting: false,
             }),
-			m.numeric({
+            m.numeric({
                 name: 'voc_index',
                 unit: 'VOC Index points',
                 cluster: 'genAnalogInput',
@@ -828,18 +828,18 @@ const definitions: DefinitionWithExtend[] = [
             m.temperature({
                 description: 'Measured value of the built-in temperature sensor',
                 reporting: false,
-				access: 'STATE',
+                access: 'STATE',
             }),
             m.humidity({
                 description: 'Measured value of the built-in humidity sensor',
                 reporting: false,
-				access: 'STATE',
+                access: 'STATE',
             }),
             m.illuminance({
                 access: 'STATE',
                 reporting: false,
             }),
-			m.numeric({
+            m.numeric({
                 name: 'report_delay',
                 unit: 'sec',
                 valueMin: 6,
@@ -847,27 +847,27 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'pm25Measurement',
                 attribute: {ID: 0x0201, type: 0x21},
                 description: 'Setting the sensor report delay. Setting the time in seconds (6-600), by default 15 seconds',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.binary({
+            m.binary({
                 name: 'auto_brightness',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msIlluminanceMeasurement',
                 attribute: {ID: 0x0203, type: 0x10},
                 description: 'Enable or Disable Auto Brightness of the Display',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.binary({
+            m.binary({
                 name: 'night_onoff_backlight',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msIlluminanceMeasurement',
                 attribute: {ID: 0x0401, type: 0x10},
                 description: 'Complete shutdown of the backlight at night mode',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.numeric({
+            m.numeric({
                 name: 'night_on_backlight',
                 unit: 'Hr',
                 valueMin: 0,
@@ -875,9 +875,9 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'msIlluminanceMeasurement',
                 attribute: {ID: 0x0405, type: 0x20},
                 description: 'Night mode activation time',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.numeric({
+            m.numeric({
                 name: 'night_off_backlight',
                 unit: 'Hr',
                 valueMin: 0,
@@ -885,9 +885,9 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'msIlluminanceMeasurement',
                 attribute: {ID: 0x0406, type: 0x20},
                 description: 'Night mode activation time',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.numeric({
+            m.numeric({
                 name: 'temperature_offset',
                 unit: '°C',
                 valueMin: -50,
@@ -897,9 +897,9 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'msTemperatureMeasurement',
                 attribute: {ID: 0x0210, type: 0x29},
                 description: 'Adjust temperature',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.numeric({
+            m.numeric({
                 name: 'humidity_offset',
                 unit: '%',
                 valueMin: -50,
@@ -908,9 +908,9 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'msRelativeHumidity',
                 attribute: {ID: 0x0210, type: 0x29},
                 description: 'Adjust humidity',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.numeric({
+            m.numeric({
                 name: 'auto_clean_interval',
                 unit: 'day',
                 valueMin: 0,
@@ -919,18 +919,18 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'pm25Measurement',
                 attribute: {ID: 0x0330, type: 0x20},
                 description: 'Auto clean interval PM2.5 sensor',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.binary({
+            m.binary({
                 name: 'manual_clean',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'pm25Measurement',
                 attribute: {ID: 0x0331, type: 0x10},
                 description: 'Manual clean PM2.5 sensor',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.numeric({
+            m.numeric({
                 name: 'set_altitude',
                 unit: 'meters',
                 valueMin: 0,
@@ -938,18 +938,18 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'msCO2',
                 attribute: {ID: 0x0205, type: 0x21},
                 description: 'Setting the altitude above sea level (for high accuracy of the CO2 sensor)',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.binary({
+            m.binary({
                 name: 'forced_recalibration',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
                 attribute: {ID: 0x0202, type: 0x10},
                 description: 'Start FRC (Perform Forced Recalibration of the CO2 Sensor)',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.numeric({
+            m.numeric({
                 name: 'manual_forced_recalibration',
                 unit: 'ppm',
                 valueMin: 0,
@@ -957,25 +957,25 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'msCO2',
                 attribute: {ID: 0x0207, type: 0x21},
                 description: 'Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.binary({
+            m.binary({
                 name: 'automatic_scal',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
                 attribute: {ID: 0x0402, type: 0x10},
                 description: 'Automatic self calibration',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
-			m.binary({
+            m.binary({
                 name: 'factory_reset_co2',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'msCO2',
                 attribute: {ID: 0x0206, type: 0x10},
                 description: 'Factory Reset CO2 sensor',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
         ],
     },
