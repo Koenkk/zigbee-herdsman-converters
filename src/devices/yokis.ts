@@ -1,6 +1,7 @@
 import {Zcl} from 'zigbee-herdsman';
 import {ClusterDefinition} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
 
+import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import * as m from '../lib/modernExtend';
@@ -1400,6 +1401,22 @@ const yokisCommandsExtend = {
     },
 };
 
+// Yokis specific definition
+
+// Yokis does not support the timer OnOff cluster. It uses a custom cluster instead.
+// Dereferencing the `on_time` and `off_wait_time` from the keys of the converter.
+const yokisTz = {
+    on_off: {
+        ...tz.on_off,
+        key: ['state'],
+    } satisfies Tz.Converter,
+};
+
+function YokisOnOff(args?: m.OnOffArgs): ModernExtend {
+    const result: ModernExtend = {...m.onOff(args), toZigbee: [yokisTz.on_off]};
+    return result;
+}
+
 // Custom cluster exposition
 const YokisDeviceExtend: ModernExtend[] = [
     // ConfigurationChanged => This attribute is used by Yokis-based controller and probably not very useful at the moment, as we don't know which configuration was changed.
@@ -2296,7 +2313,7 @@ const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster('manuSpecificYokisLoadManager', YokisClustersDefinition['manuSpecificYokisLoadManager']), // Pending implementation
             m.deviceAddCustomCluster('manuSpecificYokisLightControl', YokisClustersDefinition['manuSpecificYokisLightControl']),
             m.deviceAddCustomCluster('manuSpecificYokisStats', YokisClustersDefinition['manuSpecificYokisStats']), // Pending implementation
-            m.onOff({powerOnBehavior: false}), // StartupOnOff is not supported
+            YokisOnOff({powerOnBehavior: false}), // StartupOnOff is not supported
             m.identify(),
             ...YokisSubSystemExtend,
             ...yokisLightControlExtend,
@@ -2309,10 +2326,18 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         // MTR1300E-UP
-        zigbeeModel: ['MTR1300E-UP'],
+        zigbeeModel: ['MTR1300E-UP', 'MTR1300EB-UP'],
         model: 'MTR1300E-UP',
         vendor: 'YOKIS',
         description: 'Remote power switch with timer 1300W',
+        whiteLabel: [
+            {
+                model: 'MTR1300EB-UP',
+                vendor: 'YOKIS',
+                description: 'Remote power switch with timer 1300W',
+                fingerprint: [{modelID: 'MTR1300EB-UP'}],
+            },
+        ],
         extend: [
             m.deviceAddCustomCluster('manuSpecificYokisDevice', YokisClustersDefinition['manuSpecificYokisDevice']),
             m.deviceAddCustomCluster('manuSpecificYokisInput', YokisClustersDefinition['manuSpecificYokisInput']),
@@ -2321,7 +2346,7 @@ const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster('manuSpecificYokisLoadManager', YokisClustersDefinition['manuSpecificYokisLoadManager']), // Pending implementation
             m.deviceAddCustomCluster('manuSpecificYokisLightControl', YokisClustersDefinition['manuSpecificYokisLightControl']),
             m.deviceAddCustomCluster('manuSpecificYokisStats', YokisClustersDefinition['manuSpecificYokisStats']), // Pending implementation
-            m.onOff({powerOnBehavior: false}), // StartupOnOff is not supported
+            YokisOnOff({powerOnBehavior: false}), // StartupOnOff is not supported
             m.identify(),
             ...YokisSubSystemExtend,
             ...yokisLightControlExtend,
@@ -2346,7 +2371,7 @@ const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster('manuSpecificYokisLoadManager', YokisClustersDefinition['manuSpecificYokisLoadManager']), // Pending implementation
             m.deviceAddCustomCluster('manuSpecificYokisLightControl', YokisClustersDefinition['manuSpecificYokisLightControl']),
             m.deviceAddCustomCluster('manuSpecificYokisStats', YokisClustersDefinition['manuSpecificYokisStats']), // Pending implementation
-            m.onOff({powerOnBehavior: false}), // StartupOnOff is not supported
+            YokisOnOff({powerOnBehavior: false}), // StartupOnOff is not supported
             m.identify(),
             ...YokisSubSystemExtend,
             ...yokisLightControlExtend,
@@ -2372,7 +2397,11 @@ const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster('manuSpecificYokisLightControl', YokisClustersDefinition['manuSpecificYokisLightControl']),
             m.deviceAddCustomCluster('manuSpecificYokisDimmer', YokisClustersDefinition['manuSpecificYokisDimmer']),
             m.deviceAddCustomCluster('manuSpecificYokisStats', YokisClustersDefinition['manuSpecificYokisStats']), // Pending implementation
-            m.light({configureReporting: true, powerOnBehavior: false}), // StartupOnOff is not supported, TODO: review dimmer cluster instead
+            m.light({
+                effect: false, // related to the identify cluster
+                configureReporting: true,
+                powerOnBehavior: false,
+            }), // StartupOnOff is not supported, TODO: review dimmer cluster instead
             m.identify(),
             ...yokisLightControlExtend,
             ...YokisSubSystemExtend,
@@ -2411,8 +2440,8 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        // E2BPA-UP
-        zigbeeModel: ['E2BPA-UP', 'E2BP-UP'],
+        // E2BP-UP
+        zigbeeModel: ['E2BP-UP'],
         model: 'E2BP-UP',
         vendor: 'YOKIS',
         description: 'Flush-mounted independent 2-channel transmitter',
@@ -2436,11 +2465,61 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        // E4BPA-UP
-        zigbeeModel: ['E4BPA-UP', 'E4BP-UP', 'E4BPX-UP'],
+        // E2BPA-UP
+        zigbeeModel: ['E2BPA-UP'],
+        model: 'E2BPA-UP',
+        vendor: 'YOKIS',
+        description: 'Flush-mounted independent 2-channel transmitter (main powered)',
+        extend: [
+            m.deviceAddCustomCluster('manuSpecificYokisDevice', YokisClustersDefinition['manuSpecificYokisDevice']),
+            m.deviceAddCustomCluster('manuSpecificYokisInput', YokisClustersDefinition['manuSpecificYokisInput']),
+            m.deviceAddCustomCluster('manuSpecificYokisLightControl', YokisClustersDefinition['manuSpecificYokisLightControl']),
+            m.deviceAddCustomCluster('manuSpecificYokisDimmer', YokisClustersDefinition['manuSpecificYokisDimmer']),
+            m.deviceAddCustomCluster('manuSpecificYokisWindowCovering', YokisClustersDefinition['manuSpecificYokisWindowCovering']), // Pending implementation
+            m.deviceAddCustomCluster('manuSpecificYokisChannel', YokisClustersDefinition['manuSpecificYokisChannel']),
+            m.deviceAddCustomCluster('manuSpecificYokisPilotWire', YokisClustersDefinition['manuSpecificYokisPilotWire']), // Pending implementation
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            m.identify(),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+            m.commandsWindowCovering(),
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
+        ],
+    },
+    {
+        // E4BP-UP
+        zigbeeModel: ['E4BP-UP'],
         model: 'E4BP-UP',
         vendor: 'YOKIS',
         description: 'Flush-mounted independent 4-channel transmitter',
+        extend: [
+            m.deviceAddCustomCluster('manuSpecificYokisDevice', YokisClustersDefinition['manuSpecificYokisDevice']),
+            m.deviceAddCustomCluster('manuSpecificYokisInput', YokisClustersDefinition['manuSpecificYokisInput']),
+            m.deviceAddCustomCluster('manuSpecificYokisLightControl', YokisClustersDefinition['manuSpecificYokisLightControl']),
+            m.deviceAddCustomCluster('manuSpecificYokisDimmer', YokisClustersDefinition['manuSpecificYokisDimmer']),
+            m.deviceAddCustomCluster('manuSpecificYokisWindowCovering', YokisClustersDefinition['manuSpecificYokisWindowCovering']), // Pending implementation
+            m.deviceAddCustomCluster('manuSpecificYokisChannel', YokisClustersDefinition['manuSpecificYokisChannel']),
+            m.deviceAddCustomCluster('manuSpecificYokisPilotWire', YokisClustersDefinition['manuSpecificYokisPilotWire']), // Pending implementation
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4}}),
+            m.identify(),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+            m.commandsWindowCovering(),
+            // ...YokisDeviceExtend,
+            // ...YokisInputExtend,
+            // ...YokisChannelExtend,
+            ...YokisPilotWireExtend,
+        ],
+    },
+    {
+        // E4BPX-UP
+        zigbeeModel: ['E4BPX-UP'],
+        model: 'E4BPX-UP',
+        vendor: 'YOKIS',
+        description: 'Flush-mounted independent 4-channel transmitter (with antenna)',
         extend: [
             m.deviceAddCustomCluster('manuSpecificYokisDevice', YokisClustersDefinition['manuSpecificYokisDevice']),
             m.deviceAddCustomCluster('manuSpecificYokisInput', YokisClustersDefinition['manuSpecificYokisInput']),
