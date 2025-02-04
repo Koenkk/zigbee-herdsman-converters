@@ -20,6 +20,7 @@ import {
     KeyValue,
     KeyValueAny,
     KeyValueString,
+    LevelConfigFeatures,
     ModernExtend,
     OnEvent,
     Range,
@@ -981,7 +982,7 @@ export interface LightArgs {
     configureReporting?: boolean;
     endpointNames?: string[];
     ota?: ModernExtend['ota'];
-    levelConfig?: {disabledFeatures?: string[]};
+    levelConfig?: {disabledFeatures?: LevelConfigFeatures};
 }
 export function light(args?: LightArgs): ModernExtend {
     args = {effect: true, powerOnBehavior: true, configureReporting: false, ...args};
