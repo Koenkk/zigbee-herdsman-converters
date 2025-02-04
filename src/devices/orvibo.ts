@@ -293,14 +293,14 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['e8d667cb184b4a2880dd886c23d00976'],
-        model: 'T40W3Z',
+        model: 'T40W3Z_v1',
         vendor: 'ORVIBO',
         description: 'MixSwitch 3 gangs',
         extend: [m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), m.onOff({endpointNames: ['left', 'center', 'right']})],
     },
     {
         zigbeeModel: ['f3be30b8c43c44da85aac622e5b56111', 'f58591161f344ccea242688a6de7d25d'],
-        model: 'T40W3Z',
+        model: 'T40W3Z_v2',
         vendor: 'ORVIBO',
         description: 'MixSwitch 3 gangs',
         extend: [m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}), m.onOff({endpointNames: ['right', 'center', 'left']})],
