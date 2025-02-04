@@ -4436,10 +4436,9 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_tbgecldg']),
-        model: 'TS0601_thermostat',
-        vendor: 'Tuya',
-        description: 'Radiator valve with thermostat',
-        whiteLabel: [{vendor: 'POWERNITY', model: 'KZTETHEAU'}],
+        model: 'PO-THCO-EAU',
+        vendor: 'Powernity',
+        description: 'Thermostat radiator valve',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
