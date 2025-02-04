@@ -13,7 +13,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Radson/Purma',
         description: 'Electric oil-filled radiator',
         extend: [],
-        fromZigbee: [fz.hvac_user_interface, fz.thermostat],
+        fromZigbee: [fz.thermostat],
         toZigbee: [
             tz.thermostat_occupancy,
             tz.thermostat_local_temperature,
@@ -21,8 +21,7 @@ const definitions: DefinitionWithExtend[] = [
             tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_system_mode,
             tz.thermostat_running_mode,
-            tz.thermostat_pi_heating_demand,
-            tz.thermostat_remote_sensing,
+            tz.thermostat_running_state,
             tz.thermostat_max_heat_setpoint_limit,
             tz.thermostat_local_temperature_calibration,
         ],
@@ -36,9 +35,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration()
                 .withRunningState(['idle', 'heat'])
-                .withRunningMode(['off', 'heat'])
-                .withPiHeatingDemand(),
-            e.occupancy(),
+                .withRunningMode(['off', 'heat']),
             e.max_heat_setpoint_limit(5, 30, 0.5),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -52,7 +49,6 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatRunningMode(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupancy(endpoint);
             await reporting.thermostatTemperatureCalibration(endpoint);
 
