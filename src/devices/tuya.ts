@@ -4477,7 +4477,9 @@ const definitions: DefinitionWithExtend[] = [
             e.open_window_temperature().withValueMin(5).withValueMax(25),
             e
                 .numeric('open_window_time', ea.STATE_SET)
-                .withDescription('In the setting time, when the range of indoor temperature changes reaches the set range, the window opening reminder will be displayed')
+                .withDescription(
+                    'In the setting time, when the range of indoor temperature changes reaches the set range, the window opening reminder will be displayed',
+                )
                 .withUnit('minutes')
                 .withValueMin(0)
                 .withValueMax(60)
@@ -4501,7 +4503,6 @@ const definitions: DefinitionWithExtend[] = [
                 [107, 'window_open', tuya.valueConverterBasic.lookup({CLOSE: tuya.enum(0), OPEN: tuya.enum(1)})],
                 [116, 'open_window_temperature', tuya.valueConverter.divideBy2],
                 [117, 'open_window_time', tuya.valueConverter.raw],
-
             ],
         },
     },
