@@ -1,7 +1,6 @@
 import {Zcl} from 'zigbee-herdsman';
 
 import * as m from '../lib/modernExtend';
-import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
 const defaultReporting = {min: 0, max: 300, change: 0};
@@ -755,7 +754,9 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['EFEKTA_Air_Quality_Station'],
         model: 'EFEKTA_Air_Quality_Station',
         vendor: 'EFEKTA',
-        description: 'EFEKTA Air Quality Station',
+        description:
+            '[EFEKTA Air Quality Station, PM1.0, PM2.5, PM4.0, PM10, AQ PM2.5 Index, PM Size, CO2, VOC Index, Temperature, \
+			Humidity, TFT display 3.2 inches.](http://efektalab.com/EFEKTA_Air_Quality_Station)',
         extend: [
             m.co2({
                 reporting: false,
