@@ -214,12 +214,12 @@ const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.voltage(),
-            tuya.exposes.powerWithPhase('a'),
-            tuya.exposes.currentWithPhase('a'),
-            tuya.exposes.energyWithPhase('a'),
-            tuya.exposes.powerWithPhase('b'),
-            tuya.exposes.currentWithPhase('b'),
-            tuya.exposes.energyWithPhase('b'),
+            tuya.exposes.powerWithPhase('l1'),
+            tuya.exposes.currentWithPhase('l1'),
+            tuya.exposes.energyWithPhase('l1'),
+            tuya.exposes.powerWithPhase('l2'),
+            tuya.exposes.currentWithPhase('l2'),
+            tuya.exposes.energyWithPhase('l2'),
         ],
         meta: {
             tuyaDatapoints: [
