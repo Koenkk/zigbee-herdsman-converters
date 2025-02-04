@@ -11355,35 +11355,74 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
-        exposes: [
-            e.child_lock(),
+        options: [
             e
-                .climate()
-                .withLocalTemperature(ea.STATE)
-                .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
-                .withSystemMode(['off', 'cool', 'heat', 'fan_only'], ea.STATE_SET)
-                .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
-                .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET),
-            e.min_temperature().withValueMin(5).withValueMax(15),
-            e.max_temperature().withValueMin(15).withValueMax(45),
-            e.binary('eco_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('ECO mode ON/OFF'),
-            e.max_temperature_limit().withDescription('ECO Heating energy-saving temperature (default: 20 ºC)').withValueMin(15).withValueMax(30),
-            e.min_temperature_limit().withDescription('ECO Cooling energy-saving temperature (default: 26 ºC)').withValueMin(15).withValueMax(30),
-            e.deadzone_temperature().withValueMin(0).withValueMax(5).withValueStep(1),
-            e.binary('valve', ea.STATE, 'OPEN', 'CLOSE').withDescription('3-Way Valve State'),
-            e.binary('manual_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Manual = ON or Schedule = OFF'),
-            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+                .enum('control_sequence_of_operation', ea.SET, ['cooling_only', 'cooling_and_heating_4-pipes'])
+                .withDescription('Operating environment of the thermostat'),
+            e.binary('expose_device_state', ea.SET, true, false).withDescription('Expose device power state as a separate property when enabled.'),
         ],
+        exposes: (device, options) => {
+            const system_modes = ['off', 'cool', 'heat', 'fan_only'];
+            // Device can operate either in 2-pipe or 4-pipe configuration
+            // For 2-pipe configurations remove 'heat' mode
+            switch (options?.control_sequence_of_operation) {
+                case 'cooling_only':
+                    system_modes.splice(2, 1);
+                    break;
+            }
+
+            const exposes = [
+                e
+                    .climate()
+                    .withLocalTemperature(ea.STATE)
+                    .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
+                    .withSystemMode(['off', 'cool', 'heat', 'fan_only'], ea.STATE_SET)
+                    .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
+                    .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET),
+                e.child_lock(),
+                e.min_temperature().withValueMin(5).withValueMax(15),
+                e.max_temperature().withValueMin(15).withValueMax(45),
+                e.binary('eco_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('ECO mode ON/OFF'),
+                e.max_temperature_limit().withDescription('ECO Heating energy-saving temperature (default: 20 ºC)').withValueMin(15).withValueMax(30),
+                e.min_temperature_limit().withDescription('ECO Cooling energy-saving temperature (default: 26 ºC)').withValueMin(15).withValueMax(30),
+                e.deadzone_temperature().withValueMin(0).withValueMax(5).withValueStep(1),
+                e.binary('valve', ea.STATE, 'OPEN', 'CLOSE').withDescription('3-Way Valve State'),
+                e.binary('manual_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Manual = ON or Schedule = OFF'),
+                ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            ];
+
+            if (options?.expose_device_state === true) {
+                exposes.unshift(e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON or OFF'));
+            }
+
+            return exposes;
+        },
         meta: {
+            publishDuplicateTransaction: true,
             tuyaDatapoints: [
                 [
                     1,
-                    null,
+                    'state',
                     {
-                        from: (v, meta) => {
-                            return v === true
-                                ? {system_mode: meta.state.system_mode_device ? meta.state.system_mode_device : 'cool'}
-                                : {system_mode: 'off'};
+                        to: async (v, meta) => {
+                            if (meta.options?.expose_device_state === true) {
+                                await tuya.sendDataPointBool(
+                                    meta.device.endpoints[0],
+                                    1,
+                                    utils.getFromLookup(v, {on: true, off: false}),
+                                    'dataRequest',
+                                    1,
+                                );
+                            }
+                        },
+                        from: (v, meta, options) => {
+                            meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? 'cool') : 'off';
+
+                            if (options?.expose_device_state === true) {
+                                return v === true ? 'ON' : 'OFF';
+                            }
+
+                            delete meta.state.state;
                         },
                     },
                 ],
