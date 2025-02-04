@@ -1,8 +1,8 @@
 import {Buffer} from 'buffer';
-
 import fz from '../converters/fromZigbee';
 import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
+import {deviceAddCustomCluster} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
@@ -13,6 +13,65 @@ const ea = exposes.access;
 const e = exposes.presets;
 
 const NS = 'zhc:lixee';
+
+const local = {
+	modernExtend: {
+        addCustomClusterManuSpecificLixee: () =>
+            deviceAddCustomCluster('liXeePrivate', {
+                ID: 0xff66,
+				manufacturerCode: ManufacturerCode.NXP_SEMICONDUCTORS,
+				attributes: {
+					currentTarif: {ID: 0x0000, type: DataType.CHAR_STR},
+					tomorrowColor: {ID: 0x0001, type: DataType.CHAR_STR},
+					scheduleHPHC: {ID: 0x0002, type: DataType.UINT8},
+					presencePotential: {ID: 0x0003, type: DataType.UINT8},
+					startNoticeEJP: {ID: 0x0004, type: DataType.UINT8},
+					warnDPS: {ID: 0x0005, type: DataType.UINT16},
+					warnDIR1: {ID: 0x0006, type: DataType.UINT16},
+					warnDIR2: {ID: 0x0007, type: DataType.UINT16},
+					warnDIR3: {ID: 0x0008, type: DataType.UINT16},
+					motDEtat: {ID: 0x0009, type: DataType.CHAR_STR},
+					tariffPeriod: {ID: 0x0010, type: DataType.CHAR_STR},
+					currentPrice: {ID: 0x0200, type: DataType.CHAR_STR},
+					currentIndexTarif: {ID: 0x0201, type: DataType.UINT8},
+					currentDate: {ID: 0x0202, type: DataType.CHAR_STR},
+					activeEnergyOutD01: {ID: 0x0203, type: DataType.UINT32},
+					activeEnergyOutD02: {ID: 0x0204, type: DataType.UINT32},
+					activeEnergyOutD03: {ID: 0x0205, type: DataType.UINT32},
+					activeEnergyOutD04: {ID: 0x0206, type: DataType.UINT32},
+					injectedVA: {ID: 0x0207, type: DataType.UINT16},
+					injectedVAMaxN: {ID: 0x0208, type: DataType.INT16},
+					injectedVAMaxN1: {ID: 0x0209, type: DataType.INT16},
+					injectedActiveLoadN: {ID: 0x0210, type: DataType.INT16},
+					injectedActiveLoadN1: {ID: 0x0211, type: DataType.INT16},
+					drawnVAMaxN1: {ID: 0x0212, type: DataType.INT16},
+					drawnVAMaxN1P2: {ID: 0x0213, type: DataType.INT16},
+					drawnVAMaxN1P3: {ID: 0x0214, type: DataType.INT16},
+					message1: {ID: 0x0215, type: DataType.CHAR_STR},
+					message2: {ID: 0x0216, type: DataType.CHAR_STR},
+					statusRegister: {ID: 0x0217, type: DataType.OCTET_STR},
+					startMobilePoint1: {ID: 0x0218, type: DataType.UINT8},
+					stopMobilePoint1: {ID: 0x0219, type: DataType.UINT8},
+					startMobilePoint2: {ID: 0x0220, type: DataType.UINT8},
+					stopMobilePoint2: {ID: 0x0221, type: DataType.UINT8},
+					startMobilePoint3: {ID: 0x0222, type: DataType.UINT8},
+					stopMobilePoint3: {ID: 0x0223, type: DataType.UINT8},
+					relais: {ID: 0x0224, type: DataType.UINT16},
+					daysNumberCurrentCalendar: {ID: 0x0225, type: DataType.UINT8},
+					daysNumberNextCalendar: {ID: 0x0226, type: DataType.UINT8},
+					daysProfileCurrentCalendar: {ID: 0x0227, type: DataType.LONG_OCTET_STR},
+					daysProfileNextCalendar: {ID: 0x0228, type: DataType.LONG_OCTET_STR},
+					linkyMode: {ID: 0x0300, type: DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
+        })
+	}
+
+}
+
+
+
 /* Start ZiPulses */
 
 const unitsZiPulses = [
@@ -1776,6 +1835,7 @@ const definitions: DefinitionWithExtend[] = [
 
             return exposes;
         },
+		extend:[local.modernExtend.addCustomClusterManuSpecificLixee()],
         options: [
             exposes.options.measurement_poll_interval(),
             e
