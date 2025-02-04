@@ -787,33 +787,16 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['SP 240'],
+        zigbeeModel: ['SP 240', 'SP 242', 'SP 244'],
         model: 'SP 240',
         vendor: 'Innr',
-        description: 'Smart plug',
-        extend: [m.onOff(), m.electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}})],
-        ota: true,
-    },
-    {
-        zigbeeModel: ['SP 242'],
-        model: 'SP 242',
-        vendor: 'Innr',
-        description: 'Smart plug',
-        extend: [
-            m.onOff(),
-            m.electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
-            // Device looses reporting config on power cycle
-            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/6747
-            m.reconfigureReportingsOnDeviceAnnounce(),
+        description: 'Smart plug (EU)',
+        whiteLabel: [
+            {model: 'SP 242', vendor: 'Innr', description: 'Smart plug (UK)', fingerprint: [{modelID: 'SP 242'}]},
+            {model: 'SP 244', vendor: 'Innr', description: 'Smart plug (US)', fingerprint: [{modelID: 'SP 244'}]},
         ],
-        ota: true,
-    },
-    {
-        zigbeeModel: ['SP 244'],
-        model: 'SP 244',
-        vendor: 'Innr',
-        description: 'Smart plug',
-        extend: [m.onOff(), m.electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}})],
+        // Needs FW 1.9.27/1.9.28+
+        extend: [m.onOff(), m.electricityMeter()],
         ota: true,
     },
     {
