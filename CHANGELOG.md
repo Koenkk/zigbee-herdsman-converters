@@ -1,5 +1,30 @@
 # Changelog
 
+## [21.29.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.28.0...v21.29.0) (2025-02-04)
+
+
+### Features
+
+* Add support for light_brightness_move and light_brightness step to Inovelli switches ([#8727](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8727)) ([dded1fa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dded1fac067a96e9833fe416ab35858f339c3608))
+* **add:** FB56-DOS06HM1.1 ([#8704](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8704)) ([2680dfd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2680dfd538e10ecb96f797da68b7fb92f22633e2))
+* Support power on behaviour for LEDVANCE 4058075729322 https://github.com/Koenkk/zigbee2mqtt/issues/26163 ([4d5a7d3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d5a7d372f80d5b324bc9f78c317620062223989))
+
+
+### Bug Fixes
+
+* Adapt SP 24x converter for new firmware version ([#8715](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8715)) ([67c008d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/67c008dc69bce05a3a37df7d6500098e54ce10e4))
+* Added type for LightArgs.levelConfig  ([#8724](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8724)) ([8dc7622](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8dc76221a4445d5bd723e9dbbade2327537d0bdf))
+* **detect:** Detect `_TZE204_cvub6xbb` as Tuya TGM50-ZB ([#8725](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8725)) ([4a66a0a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4a66a0a87371ed785c0ed131e08b5d459f5cb8ec))
+* **detect:** Detect `HK-LN-SOCKET-EU-5` as LED-Trading 9134 https://github.com/Koenkk/zigbee2mqtt/issues/26165 ([9137e5b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9137e5b88b6cf6333ba3fc4c3060497958430fcc))
+* Disable `power_on_behaviour` for Schneider Electric MEG5126-0300 ([#8719](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8719)) ([4cd9699](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4cd9699a7b8260299b559ebde8b4c95eff7dc0e4))
+* Fix CO2 values [#26108](https://github.com/Koenkk/zigbee-herdsman-converters/issues/26108) ([#8733](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8733)) ([eb7693f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eb7693fb8b4a5807676ce774a52f8d2ac3a36f27))
+* Fix Namron 4512768 power measurements https://github.com/Koenkk/zigbee2mqtt/issues/25964 ([ad60fd4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ad60fd4c171d5e84cad6a37f93f744809289f405))
+* **ignore:** Correction name of lines L1/L2 ([#8720](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8720)) ([5313dae](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5313daed547c4c7d58ec648390a2deb0d27168f7))
+* Prevent Tuya packets from being reprocessed by checking entire packet instead of `seq` only ([#8723](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8723)) ([e3bd7b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e3bd7b63efae425eb92bb2db11be94c10d05b840))
+* Revert "Invert direction for Smartwings shades" ([#8736](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8736)) ([a6f234d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a6f234d32c67ed011e20188a7bd4b99d59784e9a))
+* Tuya BAC-003: Add optional device state property as per issue request ([#8730](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8730)) ([8b2d5d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8b2d5d424983547ffecd634606247e81b8e92d4b))
+* Tuya BAC-006: publishDuplicateTransaction, optional heating, optional device state ([#8731](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8731)) ([d88f402](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d88f402f505f87226b288e43ea8c21f6181df998))
+
 ## [21.28.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.27.1...v21.28.0) (2025-02-02)
 
 
