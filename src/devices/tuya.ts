@@ -3438,6 +3438,7 @@ const definitions: DefinitionWithExtend[] = [
             e
                 .enum('control_sequence_of_operation', ea.SET, ['cooling_only', 'cooling_and_heating_4-pipes'])
                 .withDescription('Operating environment of the thermostat'),
+            e.binary('expose_device_state', ea.SET, true, false).withDescription('Expose device power state as a separate property when enabled.'),
         ],
         exposes: (device, options) => {
             const system_modes = ['off', 'cool', 'heat', 'fan_only'];
@@ -3450,7 +3451,7 @@ const definitions: DefinitionWithExtend[] = [
                     break;
             }
 
-            return [
+            const exposes = [
                 e
                     .climate()
                     .withLocalTemperature(ea.STATE)
@@ -3476,18 +3477,39 @@ const definitions: DefinitionWithExtend[] = [
                     .withPreset('default', 1, 'Default value')
                     .withDescription('The delta between local_temperature and current_heating_setpoint to trigger activity'),
             ];
+
+            if (options?.expose_device_state === true) {
+                exposes.unshift(e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON or OFF'));
+            }
+
+            return exposes;
         },
         meta: {
             publishDuplicateTransaction: true,
             tuyaDatapoints: [
                 [
                     1,
-                    null,
+                    'state',
                     {
-                        from: (v, meta) => {
-                            return v === true
-                                ? {system_mode: meta.state.system_mode_device ? meta.state.system_mode_device : 'cool'}
-                                : {system_mode: 'off'};
+                        to: async (v, meta) => {
+                            if (meta.options?.expose_device_state === true) {
+                                await tuya.sendDataPointBool(
+                                    meta.device.endpoints[0],
+                                    1,
+                                    utils.getFromLookup(v, {on: true, off: false}),
+                                    'dataRequest',
+                                    1,
+                                );
+                            }
+                        },
+                        from: (v, meta, options) => {
+                            meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? 'cool') : 'off';
+
+                            if (options?.expose_device_state === true) {
+                                return v === true ? 'ON' : 'OFF';
+                            }
+
+                            delete meta.state.state;
                         },
                     },
                 ],
