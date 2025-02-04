@@ -13,28 +13,62 @@ const definitions: DefinitionWithExtend[] = [
         model: '5144.01',
         vendor: 'Iluminize',
         description: 'RGB CCT 3 in 1 Remote Controller',
-        extend: [m.battery(), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+            m.commandsColorCtrl(),
+        ],
+        meta: {
+            battery: {
+                type: 'mapping',
+                map: (value) => value * 2, // Convert to Zigbee format (0-200)
+                property: 'batteryPercentageRemaining',
+                removeOriginal: true, // Ensure 'battery' is not published
+            },
+        },
     },
     {
         zigbeeModel: ['ZGRC-KEY-001'],
         model: '5144.11',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 wall dimmer with switches',
-        extend: [m.battery(), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl()],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+        ],
+        meta: {
+            battery: {
+                type: 'mapping',
+                map: (value) => value * 2,
+                property: 'batteryPercentageRemaining',
+                removeOriginal: true,
+            },
+        },
     },
     {
         zigbeeModel: ['ZGRC-KEY-002'],
         model: '5144.21',
         vendor: 'Iluminize',
-        description: 'Single color wall mounted push button remote',
-        extend: [m.battery(), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
-    },
-    {
-        zigbeeModel: ['5121.10'],
-        model: '5121.10',
-        vendor: 'Iluminize',
-        description: 'Rotary dimmer with integrated Zigbee 3.0 dimming actuator',
-        extend: [m.light({configureReporting: true})],
+        description: 'Single color wall-mounted push button remote',
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+            m.commandsColorCtrl(),
+        ],
+        meta: {
+            battery: {
+                type: 'mapping',
+                map: (value) => value * 2,
+                property: 'batteryPercentageRemaining',
+                removeOriginal: true,
+            },
+        },
     },
     {
         zigbeeModel: ['5120.2210'],
