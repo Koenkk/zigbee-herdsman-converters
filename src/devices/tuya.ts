@@ -4435,11 +4435,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', [
-            '_TZE204_tbgecldg',
-            '_TZE284_tbgecldg', 
-            '_TZE200_tbgecldg'
-        ]),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_tbgecldg', '_TZE284_tbgecldg', '_TZE200_tbgecldg']),
         model: 'PO-THCO-EAU',
         vendor: 'Powernity',
         description: 'Thermostat radiator valve',
