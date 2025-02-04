@@ -4507,7 +4507,7 @@ const definitions: DefinitionWithExtend[] = [
                 [104, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
                 [105, 'auto_temperature', tuya.valueConverter.divideBy2],
                 [106, 'boost_heating', tuya.valueConverter.onOff],
-                [107, 'window_open', tuya.valueConverterBasic.lookup({CLOSE: tuya.enum(0), OPEN: tuya.enum(1)})],
+                [107, 'window_open', tuya.valueConverter.onOff],
                 [116, 'open_window_temperature', tuya.valueConverter.divideBy2],
                 [117, 'open_window_time', tuya.valueConverter.raw],
                 [118, 'boost_time', tuya.valueConverter.countdown],
