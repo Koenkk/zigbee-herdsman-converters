@@ -1980,6 +1980,8 @@ const definitions: DefinitionWithExtend[] = [
             tz.power_on_behavior,
             tz.ignore_transition,
             tz.identify,
+            tz.light_brightness_move,
+            tz.light_brightness_step,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
             tzLocal.inovelli_parameters(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
@@ -2030,6 +2032,8 @@ const definitions: DefinitionWithExtend[] = [
             tz.power_on_behavior,
             tz.ignore_transition,
             tz.identify,
+            tz.light_brightness_move,
+            tz.light_brightness_step,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
             tzLocal.inovelli_parameters(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
@@ -2101,6 +2105,8 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [
             tz.identify,
             tzLocal.vzm36_fan_on_off, // Need to use VZM36 specific converter
+            tz.light_brightness_move,
+            tz.light_brightness_step,
             tzLocal.fan_mode(2),
             tzLocal.light_onoff_brightness_inovelli,
             tzLocal.inovelli_parameters(VZM36_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
