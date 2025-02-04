@@ -10,7 +10,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'PUMM01102', manufacturerName: 'computime'}],
         model: 'Yali Parada Plus',
-        vendor: 'Radson/Purma',
+        vendor: 'Purmo/Radson',
         description: 'Electric oil-filled radiator',
         extend: [],
         fromZigbee: [fz.thermostat],
