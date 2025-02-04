@@ -29,16 +29,6 @@ const manufacturerOptions = {
     ubisysNull: {manufacturerCode: null},
 };
 
-const ubisysOnEventReadCurrentSummDelivered = async function (type: OnEventType, data: OnEventData, device: Zh.Device) {
-    if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
-        try {
-            await data.endpoint.read('seMetering', ['currentSummDelivered']);
-        } catch {
-            /* Do nothing*/
-        }
-    }
-};
-
 const ubisysPollCurrentSummDelivered = async (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
     const endpoint = device.getEndpoint(endpointId);
     const poll = async () => {
@@ -626,145 +616,23 @@ const definitions: DefinitionWithExtend[] = [
         model: 'S1',
         vendor: 'Ubisys',
         description: 'Power switch S1',
-        exposes: [
-            e.switch(),
-            e.action(['toggle', 'on', 'off', 'recall_*', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
-            e.power_on_behavior(),
-            e.power().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
-        ],
-        fromZigbee: [
-            fz.on_off,
-            fz.metering,
-            fz.command_toggle,
-            fz.command_on,
-            fz.command_off,
-            fz.command_recall,
-            fz.command_move,
-            fz.command_stop,
-            fz.power_on_behavior,
-            ubisys.fz.configure_device_setup,
-        ],
-        toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered, ubisys.tz.configure_device_setup, tz.power_on_behavior],
+        fromZigbee: [ubisys.fz.configure_device_setup],
+        toZigbee: [ubisys.tz.configure_device_setup],
         endpoint: (device) => {
-            return {l1: 1, s1: 2, meter: 3};
+            return {l1: 1, s1: 2};
         },
-        meta: {multiEndpointEnforce: {power: 3, energy: 3}},
-        extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup()],
+        options: [exposes.options.measurement_poll_interval()],
+        extend: [
+            // NOTE: identify is supported but no visual indicator so omitted here
+            m.onOff({powerOnBehavior: true}),
+            m.electricityMeter({cluster: 'metering', configureReporting: false}),
+            m.commandsOnOff({endpointNames: ['2']}),
+            m.commandsLevelCtrl({endpointNames: ['2']}),
+            m.commandsColorCtrl({endpointNames: ['2']}),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-        },
-        onEvent: async (type, data, device) => {
-            /*
-             * As per technical doc page 18 section 7.3.4
-             * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
-             *
-             * This cluster uses the binding table for managing command targets.
-             * When factory fresh, this cluster is bound to endpoint #1 to
-             * enable local control.
-             *
-             * We use addBinding to 'record' this default binding.
-             */
-            if (type === 'deviceInterview') {
-                const ep1 = device.getEndpoint(1);
-                const ep2 = device.getEndpoint(2);
-                ep2.addBinding('genOnOff', ep1);
-            } else {
-                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
-            }
-        },
-        ota: true,
-    },
-    {
-        zigbeeModel: ['S1-R (5601)'],
-        model: 'S1-R',
-        vendor: 'Ubisys',
-        description: 'Power switch S1-R',
-        exposes: [
-            e.switch(),
-            e.action(['toggle', 'on', 'off', 'recall_*', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
-            e.power_on_behavior(),
-            e.power().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
-        ],
-        fromZigbee: [
-            fz.on_off,
-            fz.metering,
-            fz.command_toggle,
-            fz.command_on,
-            fz.command_off,
-            fz.command_recall,
-            fz.command_move,
-            fz.command_stop,
-            fz.power_on_behavior,
-            ubisys.fz.configure_device_setup,
-        ],
-        toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered, ubisys.tz.configure_device_setup, tz.power_on_behavior],
-        meta: {multiEndpointEnforce: {power: 4, energy: 4}},
-        endpoint: (device) => {
-            return {l1: 1, s1: 2, meter: 4};
-        },
-        extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(4);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-        },
-        onEvent: async (type, data, device) => {
-            /*
-             * As per technical doc page 18 section 7.3.4
-             * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
-             *
-             * This cluster uses the binding table for managing command targets.
-             * When factory fresh, this cluster is bound to endpoint #1 to
-             * enable local control.
-             *
-             * We use addBinding to 'record' this default binding.
-             */
-            if (type === 'deviceInterview') {
-                const ep1 = device.getEndpoint(1);
-                const ep2 = device.getEndpoint(2);
-                ep2.addBinding('genOnOff', ep1);
-            } else {
-                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
-            }
-        },
-        ota: true,
-    },
-    {
-        // S1-R Series 2 uses the same modelId as the regular S1-R, but the energy clusters are located in endpoint 1 (instead of 4, like the regular S1-R).
-        fingerprint: [
-            {
-                manufacturerName: 'Ubisys',
-                modelID: 'S1-R (5601)',
-                endpoints: [
-                    {ID: 1, profileID: 260, deviceID: 266, inputClusters: [0, 3, 4, 5, 6, 1794, 2820], outputClusters: []},
-                    {ID: 2, profileID: 260, deviceID: 260, inputClusters: [0, 3], outputClusters: [3, 5, 6, 8, 768, 64514]},
-                    {ID: 3, profileID: 260, deviceID: 260, inputClusters: [0, 3], outputClusters: [3, 5, 6, 8, 768, 64514]},
-                    {ID: 232, profileID: 260, deviceID: 1287, inputClusters: [0, 61, 64512, 64599], outputClusters: [3, 25]},
-                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
-                ],
-            },
-        ],
-        model: 'S1-R-2',
-        vendor: 'Ubisys',
-        description: 'Power switch S1-R (Series 2)',
-        extend: [
-            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '232': 232}, multiEndpointSkip: ['state', 'power', 'energy']}),
-            m.identify(),
-            m.onOff({powerOnBehavior: false}),
-            m.electricityMeter({cluster: 'metering', configureReporting: false}),
-            m.commandsOnOff({endpointNames: ['2', '3']}),
-            m.commandsLevelCtrl({endpointNames: ['2', '3']}),
-            m.commandsColorCtrl({endpointNames: ['2', '3']}),
-        ],
-        options: [exposes.options.measurement_poll_interval()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
@@ -785,9 +653,59 @@ const definitions: DefinitionWithExtend[] = [
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('genOnOff', ep1);
             } else {
-                await ubisysPollCurrentSummDelivered(type, data, device, 1, settings);
+                await ubisysPollCurrentSummDelivered(type, data, device, 3, settings);
             }
         },
+        ota: true,
+    },
+    {
+        zigbeeModel: ['S1-R (5601)'],
+        model: 'S1-R',
+        vendor: 'Ubisys',
+        description: 'Power switch S1-R',
+        fromZigbee: [ubisys.fz.configure_device_setup],
+        toZigbee: [ubisys.tz.configure_device_setup],
+        endpoint: (device) => {
+            return {l1: 1, s1: 2, s2: 3};
+        },
+        options: [exposes.options.measurement_poll_interval()],
+        extend: [
+            m.identify(),
+            m.onOff({powerOnBehavior: true}),
+            m.electricityMeter({cluster: 'metering', configureReporting: false}),
+            m.commandsOnOff({endpointNames: ['2', '3']}),
+            m.commandsLevelCtrl({endpointNames: ['2', '3']}),
+            m.commandsColorCtrl({endpointNames: ['2', '3']}),
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            // Series 2 has metering on endpoint 1, older devices on endpoint 4
+            // hardwareVersion is 16
+            const endpoint = device.getEndpoint(device.hardwareVersion < 16 ? 4 : 1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
+        onEvent: async (type, data, device, settings) => {
+            /*
+             * As per technical doc page 18 section 7.3.4
+             * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
+             *
+             * This cluster uses the binding table for managing command targets.
+             * When factory fresh, this cluster is bound to endpoint #1 to
+             * enable local control.
+             *
+             * We use addBinding to 'record' this default binding.
+             */
+            if (type === 'deviceInterview') {
+                const ep1 = device.getEndpoint(1);
+                const ep2 = device.getEndpoint(2);
+                ep2.addBinding('genOnOff', ep1);
+            } else {
+                await ubisysPollCurrentSummDelivered(type, data, device, device.hardwareVersion < 16 ? 4 : 1, settings);
+            }
+        },
+        ota: true,
     },
     {
         zigbeeModel: ['S2 (5502)', 'S2-R (5602)'],
@@ -832,9 +750,10 @@ const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior, tz.currentsummdelivered],
         endpoint: (device) => {
-            return {l1: 1, l2: 2, s1: 3, s2: 4, meter: 5};
+            return {l1: 1, l2: 2, s1: 3, s2: 4};
         },
-        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy'], multiEndpointEnforce: {power: 5, energy: 5}},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
+        options: [exposes.options.measurement_poll_interval()],
         extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
@@ -842,7 +761,7 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        onEvent: async (type, data, device) => {
+        onEvent: async (type, data, device, settings) => {
             /*
              * As per technical doc page 20 section 7.4.4 and
              *                      page 22 section 7.5.4
@@ -866,7 +785,7 @@ const definitions: DefinitionWithExtend[] = [
                 ep3.addBinding('genOnOff', ep1);
                 ep4.addBinding('genOnOff', ep2);
             } else {
-                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
+                await ubisysPollCurrentSummDelivered(type, data, device, 5, settings);
             }
         },
         ota: true,
@@ -1021,11 +940,12 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness', 'power', 'energy'], multiEndpointEnforce: {power: 4, energy: 4}},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness', 'power', 'energy']},
+        options: [exposes.options.measurement_poll_interval()],
         endpoint: (device) => {
-            return {default: 1, s1: 2, s2: 3, meter: 4};
+            return {default: 1, s1: 2, s2: 3};
         },
-        onEvent: async (type, data, device) => {
+        onEvent: async (type, data, device, settings) => {
             /*
              * As per technical doc page 23 section 7.3.4, 7.3.5
              * https://www.ubisys.de/wp-content/uploads/ubisys-d1-technical-reference.pdf
@@ -1038,7 +958,7 @@ const definitions: DefinitionWithExtend[] = [
                 ep2.addBinding('genOnOff', ep1);
                 ep2.addBinding('genLevelCtrl', ep1);
             } else {
-                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
+                await ubisysPollCurrentSummDelivered(type, data, device, 4, settings);
             }
         },
         ota: true,
@@ -1093,11 +1013,8 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint1);
         },
-        endpoint: (device) => {
-            return {default: 1, meter: 3};
-        },
-        meta: {multiEndpointEnforce: {power: 3, energy: 3}},
-        onEvent: async (type, data, device) => {
+        options: [exposes.options.measurement_poll_interval()],
+        onEvent: async (type, data, device, settings) => {
             /*
              * As per technical doc page 21 section 7.3.4
              * https://www.ubisys.de/wp-content/uploads/ubisys-j1-technical-reference.pdf
@@ -1109,7 +1026,7 @@ const definitions: DefinitionWithExtend[] = [
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('closuresWindowCovering', ep1);
             } else {
-                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
+                await ubisysPollCurrentSummDelivered(type, data, device, 3, settings);
             }
         },
         ota: true,
@@ -1129,11 +1046,6 @@ const definitions: DefinitionWithExtend[] = [
             fz.command_cover_open,
             fz.command_cover_close,
             fz.command_cover_stop,
-            // NOTE:    Previous configuration if something does not work correctly. Easy way to roll back
-            //legacy.fz.ubisys_c4_scenes,
-            //legacy.fz.ubisys_c4_onoff,
-            //legacy.fz.ubisys_c4_level,
-            //legacy.fz.ubisys_c4_cover,
             ubisys.fz.configure_device_setup,
         ],
         toZigbee: [ubisys.tz.configure_device_setup],

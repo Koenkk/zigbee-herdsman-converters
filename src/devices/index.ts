@@ -56,6 +56,7 @@ import datek from './datek';
 import dawon_dns from './dawon_dns';
 import develco from './develco';
 import digi from './digi';
+import direct_signs from './direct_signs';
 import diyruz from './diyruz';
 import dlink from './dlink';
 import dnake from './dnake';
@@ -250,6 +251,7 @@ import shinasystem from './shinasystem';
 import shyugj from './shyugj';
 import siglis from './siglis';
 import sikom from './sikom';
+import simon from './simon';
 import sinope from './sinope';
 import siterwell from './siterwell';
 import skydance from './skydance';
@@ -377,6 +379,7 @@ export default [
     ...dawon_dns,
     ...develco,
     ...digi,
+    ...direct_signs,
     ...diyruz,
     ...dlink,
     ...dnake,
@@ -569,6 +572,7 @@ export default [
     ...shyugj,
     ...siglis,
     ...sikom,
+    ...simon,
     ...sinope,
     ...siterwell,
     ...skydance,

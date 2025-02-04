@@ -34,6 +34,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({powerOnBehavior: false, colorTemp: {range: [153, 370], startup: false}})],
     },
     {
+        zigbeeModel: ['9ff5a780c5a4470d9087175c71d50f92'],
+        model: 'DSZ12060',
+        vendor: 'ORVIBO',
+        description: 'Spot light S10',
+        extend: [m.identify(), m.light({effect: false, colorTemp: {range: [166, 370]}})],
+    },
+    {
         zigbeeModel: ['4a33f5ea766a4c96a962b371ffde9943'],
         model: 'DS20Z07B',
         vendor: 'ORVIBO',

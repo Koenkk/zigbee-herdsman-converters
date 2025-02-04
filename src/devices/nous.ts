@@ -82,7 +82,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_wtikaxzs', '_TZE200_nnrfa68v', '_TZE200_zppcgbdj']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_wtikaxzs', '_TZE200_nnrfa68v', '_TZE200_zppcgbdj', '_TZE200_wtikaxzs']),
         model: 'E6',
         vendor: 'Nous',
         description: 'Temperature & humidity LCD sensor',
@@ -102,6 +102,9 @@ const definitions: DefinitionWithExtend[] = [
             e.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm']).withDescription('Temperature alarm status'),
             e.numeric('max_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60).withDescription('Alarm temperature max'),
             e.numeric('min_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60).withDescription('Alarm temperature min'),
+            e.enum('humidity_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm']).withDescription('Humidity alarm status'),
+            e.numeric('max_humidity', ea.STATE_SET).withUnit('%').withValueMin(1).withValueMax(100).withDescription('Alarm humidity max'),
+            e.numeric('min_humidity', ea.STATE_SET).withUnit('%').withValueMin(1).withValueMax(100).withDescription('Alarm humidity min'),
             e
                 .numeric('temperature_sensitivity', ea.STATE_SET)
                 .withUnit('°C')
@@ -109,6 +112,20 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMax(50)
                 .withValueStep(0.1)
                 .withDescription('Temperature sensitivity'),
+            e
+                .numeric('temperature_report_interval', ea.STATE_SET)
+                .withUnit('min')
+                .withValueMin(1)
+                .withValueMax(120)
+                .withValueStep(1)
+                .withDescription('Temperature Report interval'),
+            e
+                .numeric('humidity_sensitivity', ea.STATE_SET)
+                .withUnit('%')
+                .withValueMin(1)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withDescription('Humidity sensitivity'),
         ],
     },
 ];

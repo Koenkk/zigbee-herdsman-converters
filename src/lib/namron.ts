@@ -55,7 +55,7 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.programingOperMode !== undefined) {
-                result.operating_mode = utils.getFromLookup(msg.data['programingOperMode'], {0: 'manual', 1: 'manual', 5: 'eco'});
+                result.operating_mode = utils.getFromLookup(msg.data['programingOperMode'], {0: 'manual', 1: 'program', 5: 'eco'});
             }
             if (msg.data[0x8013] !== undefined) {
                 result.holiday_temp_set = parseInt(msg.data[0x8013]) / 100;
@@ -95,17 +95,18 @@ export const toZigbee = {
     namron_edge_thermostat_holiday_temp: {
         key: ['operating_mode', 'holiday_temp_set', 'holiday_temp_set_f'],
         convertSet: async (entity, key, value, meta) => {
-            let lookupValue = 0;
             switch (key) {
                 case 'operating_mode':
-                    if (value != 1) {
-                        lookupValue = Number(value);
-                    }
-                    await entity.write('hvacThermostat', {value: utils.getFromLookup(lookupValue, {manual: 0, eco: 5}), type: Zcl.DataType.BITMAP8});
+                    await entity.write('hvacThermostat', {
+                        0x0025: utils.getFromLookup(value, {manual: 0, program: 1, eco: 5}),
+                        type: Zcl.DataType.BITMAP8,
+                    });
                     break;
                 case 'holiday_temp_set':
+                    await entity.write('hvacThermostat', {0x8013: Number(value) * 100, type: Zcl.DataType.INT16});
+                    break;
                 case 'holiday_temp_set_f':
-                    await entity.write('hvacThermostat', {value: Number(value) * 100, type: Zcl.DataType.INT16});
+                    await entity.write('hvacThermostat', {0x801b: Number(value) * 100, type: Zcl.DataType.INT16});
                     break;
             }
         },
@@ -225,7 +226,7 @@ export const edgeThermostat = {
             cluster: 'hvacThermostat',
             attribute: {ID: 0x801c, type: Zcl.DataType.ENUM8},
             description: 'Regulation mode',
-            lookup: {0: 'off', 1: 'heat', 2: 'cool'},
+            lookup: {off: 0, heat: 1, cool: 2},
             access: 'ALL',
             ...args,
         }),
@@ -235,7 +236,7 @@ export const edgeThermostat = {
             cluster: 'hvacThermostat',
             attribute: {ID: 0x8029, type: Zcl.DataType.ENUM8},
             description: 'Display auto off',
-            lookup: {0: 'always_on', 1: 'auto_off_after_10s', 2: 'auto_off_after_30s', 3: 'auto_off_after_60s'},
+            lookup: {always_on: 0, auto_off_after_10s: 1, auto_off_after_30s: 2, auto_off_after_60s: 3},
             access: 'ALL',
             ...args,
         }),
@@ -245,7 +246,7 @@ export const edgeThermostat = {
             cluster: 'hvacThermostat',
             attribute: {ID: 0x8004, type: Zcl.DataType.ENUM8},
             description: 'Sensor mode',
-            lookup: {0: 'air', 1: 'floor', 3: 'external', 6: 'regulator'},
+            lookup: {air: 0, floor: 1, external: 3, regulator: 6},
             access: 'ALL',
             ...args,
         }),
@@ -256,31 +257,31 @@ export const edgeThermostat = {
             attribute: {ID: 0x8023, type: Zcl.DataType.ENUM8},
             description: 'Boost time',
             lookup: {
-                0: 'off',
-                1: '5_min',
-                2: '10_min',
-                3: '15_min',
-                4: '20_min',
-                5: '25_min',
-                6: '30_min',
-                7: '35_min',
-                8: '40_min',
-                9: '45_min',
-                10: '50_min',
-                11: '55_min',
-                12: '1h',
-                13: '1h_5_min',
-                14: '1h_10_min',
-                15: '1h_15_min',
-                16: '1h_20_min',
-                17: '1h_25_min',
-                18: '1h_30_min',
-                19: '1h_35_min',
-                20: '1h_40_min',
-                21: '1h_45_min',
-                22: '1h_50_min',
-                23: '1h_55_min',
-                24: '2h',
+                off: 0,
+                '5_min': 1,
+                '10_min': 2,
+                '15_min': 3,
+                '20_min': 4,
+                '25_min': 5,
+                '30_min': 6,
+                '35_min': 7,
+                '40_min': 8,
+                '45_min': 9,
+                '50_min': 10,
+                '55_min': 11,
+                '1h': 12,
+                '1h_5_min': 13,
+                '1h_10_min': 14,
+                '1h_15_min': 15,
+                '1h_20_min': 16,
+                '1h_25_min': 17,
+                '1h_30_min': 18,
+                '1h_35_min': 19,
+                '1h_40_min': 20,
+                '1h_45_min': 21,
+                '1h_50_min': 22,
+                '1h_55_min': 23,
+                '2h': 24,
             },
             access: 'ALL',
             ...args,
@@ -289,7 +290,7 @@ export const edgeThermostat = {
         modernExtend.enumLookup({
             name: 'system_mode',
             cluster: 'hvacThermostat',
-            attribute: {ID: 0x8008, type: Zcl.DataType.ENUM8},
+            attribute: {ID: 0x001c, type: Zcl.DataType.ENUM8},
             description: 'System mode',
             lookup: {0x00: 'off', 0x01: 'auto', 0x03: 'cool', 0x04: 'heat'},
             access: 'ALL',
@@ -397,12 +398,12 @@ export const edgeThermostat = {
                 attribute: {ID: 0x8006, type: Zcl.DataType.ENUM8},
                 description: 'Device fault',
                 lookup: {
-                    0: 'no_fault',
-                    1: 'over_current_error',
-                    2: 'over_heat_error',
-                    3: 'built-in_sensor_error',
-                    4: 'air_sensor_error',
-                    5: 'floor_sensor_error',
+                    no_fault: 0,
+                    over_current_error: 1,
+                    over_heat_error: 2,
+                    'built-in_sensor_error': 3,
+                    air_sensor_error: 4,
+                    floor_sensor_error: 5,
                 },
                 access: 'STATE_GET',
                 ...args,
@@ -413,7 +414,7 @@ export const edgeThermostat = {
                 cluster: 'hvacThermostat',
                 attribute: {ID: 0x8003, type: Zcl.DataType.ENUM8},
                 description: 'Work days',
-                lookup: {0: 'monday-friday_saturday-sunday', 1: 'monday-saturday_sunday', 2: 'no_time_off', 3: 'time_off'},
+                lookup: {'monday-friday_saturday-sunday': 0, 'monday-saturday_sunday': 1, no_time_off: 2, time_off: 3},
                 access: 'STATE_GET',
                 ...args,
             }),

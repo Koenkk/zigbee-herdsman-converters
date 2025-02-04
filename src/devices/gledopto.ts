@@ -659,6 +659,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true})],
     },
     {
+        zigbeeModel: ['GL-G-005P'],
+        model: 'GL-G-005P',
+        vendor: 'Gledopto',
+        description: 'Zigbee 7W garden light Pro RGB+CCT',
+        extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['GL-B-007ZS'],
         model: 'GL-B-007ZS',
         vendor: 'Gledopto',

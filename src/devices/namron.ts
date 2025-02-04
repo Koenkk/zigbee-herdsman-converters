@@ -1335,33 +1335,11 @@ const definitions: DefinitionWithExtend[] = [
         model: '4512768',
         vendor: 'Namron',
         description: 'Zigbee 2 channel switch',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-            e.power_on_behavior(['off', 'on', 'previous']),
-            e.energy(),
-            e.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
-            e.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),
-            e.numeric('current_l1', ea.STATE).withUnit('A').withDescription('Phase 1 current'),
-            e.numeric('current_l2', ea.STATE).withUnit('A').withDescription('Phase 2 current'),
-            e.numeric('power_l1', ea.STATE).withUnit('W').withDescription('Phase 1 power'),
-            e.numeric('power_l2', ea.STATE).withUnit('W').withDescription('Phase 2 power'),
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.onOff({endpointNames: ['l1', 'l2']}),
+            m.electricityMeter({endpointNames: ['l1', 'l2']}),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true, publishDuplicateTransaction: true, multiEndpointSkip: ['power', 'energy']},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            await reporting.onOff(endpoint2);
-            await reporting.currentSummDelivered(endpoint1);
-        },
     },
     {
         zigbeeModel: ['4512761'],
@@ -1524,7 +1502,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['4512783', '4512784'],
         model: '4512783/4512784',
         vendor: 'Namron',
-        description: 'Zigbee edge thermostat',
+        description: 'Namron edge termostat',
         fromZigbee: [
             fz.thermostat,
             namron.fromZigbee.namron_edge_thermostat_holiday_temp,
@@ -1597,7 +1575,11 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatKeypadLockMode(endpoint);
 
             // Initial read
-            await endpoint.read('hvacThermostat', [0x8000, 0x8001, 0x8002, 0x801e, 0x8004, 0x8006, 0x8005, 0x8029, 0x8022, 0x8023, 0x8024]);
+            await endpoint.read('hvacThermostat', ['systemMode', 'runningMode', 'occupiedHeatingSetpoint']);
+            await endpoint.read(
+                'hvacThermostat',
+                [0x8000, 0x8001, 0x8002, 0x8003, 0x8004, 0x801e, 0x8006, 0x8005, 0x8006, 0x8029, 0x8022, 0x8023, 0x8024, 0x8013],
+            );
 
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -1631,10 +1613,10 @@ const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
                 .withSystemMode(['off', 'auto', 'cool', 'heat'], ea.ALL)
-                .withLocalTemperatureCalibration(-3, 3, 0.1)
-                .withRunningState(['idle', 'heat']),
+                .withRunningState(['idle', 'heat', 'cool'])
+                .withLocalTemperatureCalibration(-10, 10, 0.5),
             e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit']).withLabel('Temperature Unit').withDescription('Select Unit'),
-            e.enum('operating_mode', ea.ALL, ['Manual', 'ECO']).withDescription('Selected program for thermostat'),
+            e.enum('operating_mode', ea.ALL, ['manual', 'program', 'eco']).withDescription('Selected program for thermostat'),
             e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
             e
                 .numeric('holiday_temp_set', ea.ALL)
