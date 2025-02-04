@@ -1836,7 +1836,7 @@ const definitions: DefinitionWithExtend[] = [
 
             return exposes;
         },
-		extend:[local.modernExtend.addCustomClusterManuSpecificLixee()],
+        extend:[local.modernExtend.addCustomClusterManuSpecificLixee()],
         options: [
             exposes.options.measurement_poll_interval(),
             e
