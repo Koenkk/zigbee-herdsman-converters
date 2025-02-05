@@ -70,7 +70,8 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.humidity'
-            const humidity = calibrateAndPrecisionRoundOptions(parseFloat(msg.data['measuredValue']) / 100.0, options, 'humidity');
+            let humidity = parseFloat(msg.data['measuredValue']) / 100.0;
+            humidity = calibrateAndPrecisionRoundOptions(humidity, options, 'humidity');
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
             // Sometimes the sensor publishes non-realistic vales, it should only publish message
@@ -88,7 +89,8 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.illuminance'
             const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = calibrateAndPrecisionRoundOptions(illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000), options, 'illuminance');
+            let illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
+            illuminanceLux = calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance');
             const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property1 = multiEndpoint ? postfixWithEndpointName('illuminance', msg, model, meta) : 'illuminance';
             return {[property1]: illuminanceLux};
