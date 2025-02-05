@@ -754,7 +754,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['EFEKTA_Air_Quality_Station'],
         model: 'EFEKTA_Air_Quality_Station',
         vendor: 'EFEKTA',
-        description: 'EFEKTA Air Quality Station',
+        description: 'Air quality station',
         extend: [
             m.co2({
                 reporting: false,
