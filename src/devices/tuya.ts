@@ -4456,6 +4456,86 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_tbgecldg', '_TZE284_tbgecldg', '_TZE200_tbgecldg']),
+        model: 'PO-THCO-EAU',
+        vendor: 'Powernity',
+        description: 'Thermostat radiator valve',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.battery().withUnit('%'),
+            e.child_lock(),
+            e.comfort_temperature().withValueMin(0.5).withValueMax(29.5),
+            e.eco_temperature().withValueMin(0.5).withValueMax(29.5),
+            e.holiday_temperature().withValueMin(0.5).withValueMax(29.5),
+            e
+                .numeric('auto_temperature', ea.STATE_SET)
+                .withDescription('Auto settings temperature')
+                .withUnit('°C')
+                .withValueMin(0.5)
+                .withValueStep(0.5)
+                .withValueMax(29.5),
+            e
+                .climate()
+                .withPreset(['auto', 'manual', 'holiday'])
+                .withLocalTemperatureCalibration(-5.5, 5.5, 0.1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint('current_heating_setpoint', 0.5, 29.5, 0.5, ea.STATE_SET),
+            e.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: the device will enter the boost heating mode.'),
+            e
+                .numeric('boost_time', ea.STATE_SET)
+                .withUnit('s')
+                .withDescription(
+                    'Setting ' +
+                        'minimum 0 - maximum 900 seconds boost time. The boost function is activated. The remaining ' +
+                        'time for the function will be counted down in seconds ( 900 to 0 ).',
+                )
+                .withValueMin(0)
+                .withValueMax(900),
+            e.binary('window_open', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status CLOSE or OPEN '),
+            e.open_window_temperature().withValueMin(5).withValueMax(25),
+            e
+                .numeric('open_window_time', ea.STATE_SET)
+                .withDescription(
+                    'In the setting time, when the range of indoor temperature changes reaches the set range, the window opening reminder will be displayed',
+                )
+                .withUnit('minutes')
+                .withValueMin(0)
+                .withValueMax(60)
+                .withValueStep(1),
+            tuya.exposes.errorStatus(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    'preset',
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                        holiday: tuya.enum(2),
+                    }),
+                ],
+                [16, 'current_heating_setpoint', tuya.valueConverter.divideBy2],
+                [24, 'local_temperature', tuya.valueConverter.divideBy10],
+                [30, 'child_lock', tuya.valueConverter.lockUnlock],
+                [34, 'battery', tuya.valueConverter.raw],
+                [101, 'comfort_temperature', tuya.valueConverter.divideBy2],
+                [102, 'eco_temperature', tuya.valueConverter.divideBy2],
+                [103, 'holiday_temperature', tuya.valueConverter.divideBy2],
+                [104, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [105, 'auto_temperature', tuya.valueConverter.divideBy2],
+                [106, 'boost_heating', tuya.valueConverter.onOff],
+                [107, 'window_open', tuya.valueConverter.onOff],
+                [116, 'open_window_temperature', tuya.valueConverter.divideBy2],
+                [117, 'open_window_time', tuya.valueConverter.raw],
+                [118, 'boost_time', tuya.valueConverter.countdown],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', [
             '_TZE200_68nvbio9',
             '_TZE200_pw7mji0l',
