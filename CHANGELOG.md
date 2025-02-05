@@ -1,5 +1,26 @@
 # Changelog
 
+## [21.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.29.0...v21.30.0) (2025-02-05)
+
+
+### Features
+
+* Add Orvibo MixSwitch zigbee models ([#8701](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8701)) ([4f43cad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4f43cad72303308346ea5d5ae4b5b5ac885f4d32))
+* **add:** 7963223 ([#8745](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8745)) ([0f59d49](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f59d49a4a06c33de3fa1a2d2e081a878c8723f5))
+* **add:** EFEKTA_Air_Quality_Station ([#8726](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8726)) ([e92b434](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e92b434d62557cc61522f018ca8ca16c7719bafa))
+* **add:** PO-THCO-EAU ([#8729](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8729)) ([80c08ec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/80c08ec18dce36e9c15b04116e58530f47da7f45))
+* **add:** Yali Parada Plus ([#8732](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8732)) ([f6c2922](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f6c2922dd8f7e55febc515be2cc99cc8f863aaab))
+
+
+### Bug Fixes
+
+* Add `ZG2819S-RGBW` as whitelabel of `511.344` ([#8740](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8740)) ([f6444b0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f6444b0dd1de688dfa0f790d0eed284f4a47c92f))
+* Change ZG9030A-MW occupancy to endpoint 2 and change some category to config ([#8743](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8743)) ([f462174](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f462174c8d8bb50f77aedc78661b1936cbf15008))
+* Fix 501.39 detection https://github.com/Koenkk/zigbee2mqtt/issues/26158 ([603e698](https://github.com/Koenkk/zigbee-herdsman-converters/commit/603e698304778fad62f61f695955c3535ebf8e59))
+* Fix LiXee integration ([#8748](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8748)) ([622631f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/622631f9e4edd64590959db1479f6bee0f7f0d7b))
+* **ignore:** Fix ZWPM16-2 integration ([#8739](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8739)) ([5f26553](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5f265535ffb59cb0fd6ef3cbeaae57238fe19755))
+* PTVO converters: added rounding for pressure, humidity, illuminance. ([#8746](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8746)) ([0769495](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0769495956dcdd005866df503ef4fa78eea39f3e))
+
 ## [21.29.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.28.0...v21.29.0) (2025-02-04)
 
 
