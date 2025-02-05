@@ -88,7 +88,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.illuminance'
             const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = calibrateAndPrecisionRoundOptions(illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000), options, 'illuminance'),
+            const illuminanceLux = calibrateAndPrecisionRoundOptions(illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000), options, 'illuminance');
             const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property1 = multiEndpoint ? postfixWithEndpointName('illuminance', msg, model, meta) : 'illuminance';
             return {[property1]: illuminanceLux};
