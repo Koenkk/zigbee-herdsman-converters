@@ -18,7 +18,7 @@ const NS = 'zhc:lixee';
 const local = {
 	modernExtend: {
         addCustomClusterManuSpecificLixee: () =>
-            deviceAddCustomCluster('liXeePrivate', {
+            deviceAddCustomCluster('liXeeCustom', {
                 ID: 0xff66,
                 manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS,
                 attributes: {
@@ -185,7 +185,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     lixee_private_fz: {
-        cluster: 'liXeePrivate', // 0xFF66
+        cluster: 'liXeeCustom', // 0xFF66
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
@@ -718,7 +718,7 @@ const linkyPhaseDef = {
 };
 
 const clustersDef = {
-    _0xFF66: 'liXeePrivate', // 0xFF66
+    _0xFF66: 'liXeeCustom', // 0xFF66
     _0x0B04: 'haElectricalMeasurement', // 0x0B04
     _0x0702: 'seMetering', // 0x0702
     _0x0B01: 'haMeterIdentification', // 0x0B01
@@ -1871,10 +1871,10 @@ const definitions: DefinitionWithExtend[] = [
                 clustersDef._0x0702 /* seMetering */,
                 clustersDef._0x0B01 /* haMeterIdentification */,
                 clustersDef._0x0B04 /* haElectricalMeasurement */,
-                clustersDef._0xFF66 /* liXeePrivate */,
+                clustersDef._0xFF66 /* liXeeCustom */,
             ]);
 
-            await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null}).catch((e) => {
+            await endpoint.read('liXeeCustom', ['linkyMode', 'currentTarif'], {manufacturerCode: null}).catch((e) => {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/11674
                 logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
             });
@@ -1931,7 +1931,7 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: async (type, data, device, options) => {
             const endpoint = device.getEndpoint(1);
             if (type === 'start') {
-                endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null}).catch((e) => {
+                endpoint.read('liXeeCustom', ['linkyMode', 'currentTarif'], {manufacturerCode: null}).catch((e) => {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11674
                     logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
                 });
