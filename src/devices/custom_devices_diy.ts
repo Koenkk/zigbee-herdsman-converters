@@ -7,7 +7,7 @@ import * as legacy from '../lib/legacy';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from '../lib/types';
-import {getFromLookup, getKey, isEndpoint, postfixWithEndpointName, calibrateAndPrecisionRoundOptions} from '../lib/utils';
+import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
