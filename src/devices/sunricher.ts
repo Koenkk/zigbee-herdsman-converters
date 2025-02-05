@@ -718,7 +718,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
             m.light(),
-            m.occupancy(),
+            m.occupancy({endpointNames: ['2']}),
             m.illuminance({endpointNames: ['3']}),
             m.commandsOnOff(),
             m.commandsLevelCtrl(),
