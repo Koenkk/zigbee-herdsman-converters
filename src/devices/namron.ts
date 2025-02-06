@@ -1335,33 +1335,11 @@ const definitions: DefinitionWithExtend[] = [
         model: '4512768',
         vendor: 'Namron',
         description: 'Zigbee 2 channel switch',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-            e.power_on_behavior(['off', 'on', 'previous']),
-            e.energy(),
-            e.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
-            e.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),
-            e.numeric('current_l1', ea.STATE).withUnit('A').withDescription('Phase 1 current'),
-            e.numeric('current_l2', ea.STATE).withUnit('A').withDescription('Phase 2 current'),
-            e.numeric('power_l1', ea.STATE).withUnit('W').withDescription('Phase 1 power'),
-            e.numeric('power_l2', ea.STATE).withUnit('W').withDescription('Phase 2 power'),
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.onOff({endpointNames: ['l1', 'l2']}),
+            m.electricityMeter({endpointNames: ['l1', 'l2']}),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true, publishDuplicateTransaction: true, multiEndpointSkip: ['power', 'energy']},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            await reporting.onOff(endpoint2);
-            await reporting.currentSummDelivered(endpoint1);
-        },
     },
     {
         zigbeeModel: ['4512761'],
