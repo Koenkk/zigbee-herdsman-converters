@@ -159,7 +159,7 @@ const definitions: DefinitionWithExtend[] = [
                 [21, 'holiday_temperature', tuya.valueConverter.divideBy10],
                 [105, 'min_temperature_limit', tuya.valueConverter.divideBy10],
                 [36, 'frost_protection', tuya.valueConverter.onOff],
-				[39, 'scale_protection', tuya.valueConverter.onOff],
+		[39, 'scale_protection', tuya.valueConverter.onOff],
                 [14, 'window_detection', tuya.valueConverter.onOff],
                 [15, 'window_open', tuya.valueConverter.onOff],
                 [35, 'fault_alarm', tuya.valueConverter.raw], // not sure
