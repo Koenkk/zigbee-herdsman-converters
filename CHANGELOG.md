@@ -1,5 +1,18 @@
 # Changelog
 
+## [21.31.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.30.0...v21.31.0) (2025-02-06)
+
+
+### Features
+
+* **add:** SLZB-06Mg24 ([#8754](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8754)) ([bac86f3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bac86f3c4fe4b992faafd3bbe09262406f2ffb99))
+
+
+### Bug Fixes
+
+* Enable OTA for newer Hue Motion Sensors ([#8749](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8749)) ([40be450](https://github.com/Koenkk/zigbee-herdsman-converters/commit/40be450d7c47e9e559459553210b824c5d08848b))
+* Improve battery report PO-THCO-EAU ([#8752](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8752)) ([1799090](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1799090feed6cf95bb10e55ed2291f9697d8b938))
+
 ## [21.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.29.0...v21.30.0) (2025-02-05)
 
 
