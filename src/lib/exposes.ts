@@ -1,6 +1,6 @@
 import assert from 'assert';
 
-import {Access, Range} from './types';
+import {Access, LevelConfigFeatures, Range} from './types';
 import {getLabelFromName} from './utils';
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
@@ -376,7 +376,7 @@ export class Light extends Base {
         return this;
     }
 
-    withLevelConfig(disableFeatures: string[] = []) {
+    withLevelConfig(disableFeatures: LevelConfigFeatures = []) {
         let levelConfig = new Composite('level_config', 'level_config', access.ALL);
         if (!disableFeatures.includes('on_off_transition_time')) {
             levelConfig = levelConfig.withFeature(

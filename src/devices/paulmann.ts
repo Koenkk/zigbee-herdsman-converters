@@ -291,7 +291,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 454]}, color: {modes: ['xy', 'hs']}})],
     },
     {
-        fingerprint: tuya.fingerprint('TS000F', ['_TZ3210_hjxqqofs']),
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3210_hjxqqofs\u0000']),
         model: '501.39',
         vendor: 'Paulmann',
         description: 'Universal-switch white',

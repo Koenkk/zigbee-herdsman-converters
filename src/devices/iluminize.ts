@@ -182,6 +182,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['ZG2819S-RGBW'],
         model: '511.344',
         vendor: 'Iluminize',
+        whiteLabel: [{vendor: 'Sunricher', model: 'ZG2819S-RGBW'}],
         description: 'Zigbee handheld remote RGBW 4 channels',
         extend: [
             m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),

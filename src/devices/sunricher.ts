@@ -551,6 +551,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 65535,
                 description: 'Light PWM frequency (0-65535, default: 3300)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.enumLookup({
@@ -563,6 +564,7 @@ const definitions: DefinitionWithExtend[] = [
                     gamma_logistics_1_8: 0x12,
                 },
                 description: 'Brightness curve (default: Linear)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.enumLookup({
@@ -575,6 +577,7 @@ const definitions: DefinitionWithExtend[] = [
                     off: 0,
                 },
                 description: 'Start up on/off (default: last_state)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.numeric({
@@ -585,6 +588,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 65535,
                 unit: 's',
                 description: 'Motion sensor light duration (0s-65535s, default: 5s)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.numeric({
@@ -594,6 +598,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 255,
                 description: 'Motion sensor light sensitivity (0-255, default: 0)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.enumLookup({
@@ -605,6 +610,7 @@ const definitions: DefinitionWithExtend[] = [
                     manual: 1,
                 },
                 description: 'Motion sensor working mode (default: Automatic)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.numeric({
@@ -614,6 +620,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 15,
                 description: 'Motion sensor sensing distance (0-15, default: 1)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.enumLookup({
@@ -625,6 +632,7 @@ const definitions: DefinitionWithExtend[] = [
                     off: 0,
                 },
                 description: 'Motion sensor microwave switch (default: On)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.enumLookup({
@@ -636,6 +644,7 @@ const definitions: DefinitionWithExtend[] = [
                     off: 0,
                 },
                 description: 'Motion sensor on/off broadcast (default: On)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.enumLookup({
@@ -647,6 +656,7 @@ const definitions: DefinitionWithExtend[] = [
                     off: 0,
                 },
                 description: 'Motion sensor light state (default: On)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.numeric({
@@ -657,6 +667,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 1000,
                 unit: 'lux',
                 description: 'Motion sensor IN PWM brightness (0-1000 lux, default: 0)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.numeric({
@@ -666,6 +677,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 254,
                 description: 'Motion sensor IN PWM output (0-254, default: 254)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.numeric({
@@ -676,6 +688,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 100,
                 unit: '%',
                 description: 'Motion sensor LEAVE PWM output (0%-100%, default: 0%)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.numeric({
@@ -686,6 +699,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 65535,
                 unit: 's',
                 description: 'Motion sensor LEAVE delay (0s-65535s, default: 0s)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.numeric({
@@ -696,6 +710,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 100,
                 unit: '%',
                 description: 'Motion sensor PWM output after delay (0%-100%, default: 0%)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.numeric({
@@ -705,6 +720,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMin: 100,
                 valueMax: 10000,
                 description: 'Linear error ratio coefficient of LUX measurement (100‰-10000‰, default: 1000‰)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.numeric({
@@ -714,18 +730,19 @@ const definitions: DefinitionWithExtend[] = [
                 valueMin: -100,
                 valueMax: 100,
                 description: 'Fixed deviation of LUX measurement (-100~100, default: 0)',
+                entityCategory: 'config',
                 access: 'ALL',
             }),
             m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3}}),
             m.light(),
-            m.occupancy(),
+            m.occupancy({endpointNames: ['2']}),
             m.illuminance({endpointNames: ['3']}),
             m.commandsOnOff(),
             m.commandsLevelCtrl(),
         ],
         meta: {multiEndpoint: true},
         toZigbee: [sunricher.tz.setModel],
-        exposes: [e.enum('model', ea.SET, ['HK-DIM', 'ZG9030A-MW']).withDescription('Model of the device')],
+        exposes: [e.enum('model', ea.SET, ['HK-DIM', 'ZG9030A-MW']).withDescription('Model of the device').withCategory('config')],
     },
     {
         zigbeeModel: ['HK-ZRC-K5&RS-E'],
