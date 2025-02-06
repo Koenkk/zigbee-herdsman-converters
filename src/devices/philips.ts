@@ -2596,6 +2596,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
+        ota: true,
     },
     {
         zigbeeModel: ['SML004'],
@@ -2624,8 +2625,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
-        // Temporary disable until OTA is available: https://github.com/Koenkk/zigbee2mqtt/issues/14923
-        // ota: true,
+        ota: true,
     },
     {
         zigbeeModel: ['LOM001'],
