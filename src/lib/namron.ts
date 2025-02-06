@@ -292,7 +292,7 @@ export const edgeThermostat = {
             cluster: 'hvacThermostat',
             attribute: {ID: 0x001c, type: Zcl.DataType.ENUM8},
             description: 'System mode',
-            lookup: {0x00: 'off', 0x01: 'auto', 0x03: 'cool', 0x04: 'heat'},
+            lookup: {off: 0x00, auto: 0x01, cool: 0x03, heat: 0x04},
             access: 'ALL',
             ...args,
         }),
