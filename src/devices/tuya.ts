@@ -4521,7 +4521,7 @@ const definitions: DefinitionWithExtend[] = [
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy2],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [30, 'child_lock', tuya.valueConverter.lockUnlock],
-                [34, 'battery', tuya.valueConverter.raw],
+                [34, 'battery', tuya.valueConverterBasic.scale(0, 100, 50, 150)],
                 [101, 'comfort_temperature', tuya.valueConverter.divideBy2],
                 [102, 'eco_temperature', tuya.valueConverter.divideBy2],
                 [103, 'holiday_temperature', tuya.valueConverter.divideBy2],
