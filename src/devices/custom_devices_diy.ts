@@ -238,6 +238,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'ZB-GW04-1v2', manufacturerName: 'easyiot', applicationVersion: 200},
             {modelID: 'SkyConnect', manufacturerName: 'NabuCasa', applicationVersion: 200},
             {modelID: 'SLZB-06M', manufacturerName: 'SMLIGHT', applicationVersion: 200},
+            {modelID: 'SLZB-06MG24', manufacturerName: 'SMLIGHT', applicationVersion: 200},
             {modelID: 'SLZB-07', manufacturerName: 'SMLIGHT', applicationVersion: 200},
             {modelID: 'SLZB-07MG24', manufacturerName: 'SMLIGHT', applicationVersion: 200},
             {modelID: 'DONGLE-E', manufacturerName: 'SONOFF', applicationVersion: 200},
