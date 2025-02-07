@@ -499,6 +499,7 @@ const definitions: DefinitionWithExtend[] = [
                 unit: '°C',
                 description: 'Temperature sensor compensation (-5~+5°C)',
                 access: 'ALL',
+                entityCategory: 'config',
                 zigbeeCommandOptions: {manufacturerCode: 0x1224},
                 endpointNames: ['1'],
             }),
@@ -513,6 +514,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Temperature display unit',
                 access: 'ALL',
                 endpointName: '1',
+                entityCategory: 'config',
                 zigbeeCommandOptions: {manufacturerCode: 0x1224},
             }),
             m.numeric({
@@ -525,6 +527,7 @@ const definitions: DefinitionWithExtend[] = [
                 unit: '%',
                 description: 'Humidity sensor compensation (-5~+5%)',
                 access: 'ALL',
+                entityCategory: 'config',
                 zigbeeCommandOptions: {manufacturerCode: 0x1224},
                 endpointNames: ['2'],
             }),
