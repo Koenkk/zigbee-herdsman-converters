@@ -70,7 +70,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['511.020'],
         model: '511.020',
-        vendor: 'iluminize',
+        vendor: 'Iluminize',
         description: 'Zigbee 3.0 LED controller multi 4 - 5A, CCT WW/CW LED',
         extend: [m.light({colorTemp: {range: [155, 450]}})],
     },
