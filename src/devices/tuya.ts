@@ -9331,6 +9331,22 @@ const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
+            // Device advertises itself as Router but is an EndDevice
+            device.type = 'EndDevice';
+            device.save();
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3218_hdc8bbha']),
+        model: 'QS-Zigbee-SEC01-DC',
+        vendor: 'Tuya',
+        description: 'Mini 1 Gang Zigbee Switch Module',
+        extend: [tuya.modernExtend.tuyaOnOff({switchType: true})],
+        configure: async (device, coordinatorEndpoint) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            // Device advertises itself as Router but is an EndDevice
+            device.type = 'EndDevice';
             device.save();
         },
     },
