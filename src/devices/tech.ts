@@ -131,12 +131,14 @@ const definitions: DefinitionWithExtend[] = [
             e.min_temperature_limit().withValueMin(5).withValueMax(15).withValueStep(0.5), // min temperature for frost protection
             e
                 .binary('scale_protection', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('If the heat sink is not fully opened within ' +
-                'two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be ' +
-                'able to be used. To ensure normal use of the heat sink, the controller will automatically open the valve fully every ' +
-                'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
-                'again.'),
-			e
+                .withDescription(
+                    'If the heat sink is not fully opened within ' +
+                        'two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be ' +
+                        'able to be used. To ensure normal use of the heat sink, the controller will automatically open the valve fully every ' +
+                        'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
+                        'again.',
+                ),
+            e
                 .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Indicates if the frost protection mode is enabled')
                 .withCategory('config'),
@@ -145,10 +147,10 @@ const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [101, 'system_mode', tuya.valueConverterBasic.lookup({ heat: true, off: false })],
+                [101, 'system_mode', tuya.valueConverterBasic.lookup({heat: true, off: false})],
                 [101, 'state', tuya.valueConverter.onOff],
                 [7, 'child_lock', tuya.valueConverter.lockUnlock],
-                [3, 'running_state', tuya.valueConverterBasic.lookup({ heat: tuya.enum(1), idle: tuya.enum(0) })],
+                [3, 'running_state', tuya.valueConverterBasic.lookup({heat: tuya.enum(1), idle: tuya.enum(0)})],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
                 [6, 'battery', tuya.valueConverter.raw],
@@ -159,7 +161,7 @@ const definitions: DefinitionWithExtend[] = [
                 [21, 'holiday_temperature', tuya.valueConverter.divideBy10],
                 [105, 'min_temperature_limit', tuya.valueConverter.divideBy10],
                 [36, 'frost_protection', tuya.valueConverter.onOff],
-		[39, 'scale_protection', tuya.valueConverter.onOff],
+                [39, 'scale_protection', tuya.valueConverter.onOff],
                 [14, 'window_detection', tuya.valueConverter.onOff],
                 [15, 'window_open', tuya.valueConverter.onOff],
                 [35, 'fault_alarm', tuya.valueConverter.raw], // not sure
