@@ -3914,6 +3914,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929003822901'],
+        model: '929003822901',
+        vendor: 'Philips',
+        description: 'Hue Tento White ambiance 29.1 cm',
+        extend: [philipsLight({"colorTemp":{"range":[153,438]}})],
+    },
+    {
         zigbeeModel: ['929003823001'],
         model: '929003823001',
         vendor: 'Philips',
