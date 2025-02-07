@@ -408,6 +408,198 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['ZG9340'],
+        model: 'SR-ZG9093TRV',
+        vendor: 'Sunricher',
+        description: 'Zigbee thermostatic radiator valve',
+        extend: [
+            m.battery(),
+            m.commandsScenes(),
+            m.numeric({
+                name: 'screen_timeout',
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x100d, type: 0x20},
+                valueMin: 10,
+                valueMax: 30,
+                unit: 's',
+                description: 'Screen Timeout for Inactivity (excluding gateway config). Range: 10-30s, Default: 10s',
+                access: 'ALL',
+                entityCategory: 'config',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.numeric({
+                name: 'anti_freezing_temp',
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x1005, type: 0x20},
+                valueMin: 0,
+                valueMax: 10,
+                unit: '°C',
+                description: 'Anti Freezing(Low Temp) Mode Configuration. 0: disabled, 5~10: temperature (5°C by default)',
+                access: 'ALL',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.enumLookup({
+                name: 'temperature_display_mode',
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x1008, type: 0x30},
+                lookup: {
+                    set_temp: 1,
+                    room_temp: 2,
+                },
+                description: 'Temperature Display Mode. 1: displays set temp, 2: displays room temp (default)',
+                access: 'ALL',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.numeric({
+                name: 'window_open_check',
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x1009, type: 0x20},
+                valueMin: 0,
+                valueMax: 10,
+                unit: '°C',
+                description: 'The temperature threshold for Window Open Detect, value range 0~10, unit is 1°C, 0 means disabled, default value is 5',
+                access: 'ALL',
+                entityCategory: 'config',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.numeric({
+                name: 'hysteresis',
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x100a, type: 0x20},
+                valueMin: 5,
+                valueMax: 20,
+                valueStep: 0.1,
+                unit: '°C',
+                description:
+                    'Control hysteresis setting, range is 5-20, unit is 0.1°C, default value is 10. Because the sensor accuracy is 0.5°C, it is recommended not to set this value below 1°C to avoid affecting the battery life.',
+                access: 'ALL',
+                entityCategory: 'config',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.binary({
+                name: 'window_open_flag',
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x100b, type: 0x30},
+                description: 'Window open flag',
+                valueOn: ['opened', 1],
+                valueOff: ['not_opened', 0],
+                access: 'STATE_GET',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.numeric({
+                name: 'boost_mode_time',
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x100e, type: 0x20},
+                valueMin: 10,
+                valueMax: 90,
+                unit: '10s',
+                description: 'Boost mode time, range 10~90, unit is 10s, default value is 30(300s)',
+                access: 'ALL',
+                entityCategory: 'config',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.enumLookup({
+                name: 'away_or_boost_mode',
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x2002, type: 0x30},
+                lookup: {
+                    normal: 0,
+                    away: 1,
+                    boost: 2,
+                },
+                description: 'Away or boost mode setting',
+                access: 'ALL',
+                entityCategory: 'config',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.enumLookup({
+                name: 'error_code',
+                cluster: 'hvacThermostat',
+                attribute: {ID: 0x2003, type: 0x18},
+                lookup: {
+                    no_error: 0,
+                    motor_error: 4,
+                    motor_timeout: 5,
+                },
+                description:
+                    'Error code: 0=No hardware error, 4=Motor error (detected not running), 5=The motor runs exceeding the self-check time without finding the boundary',
+                access: 'STATE_GET',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.enumLookup({
+                name: 'temperature_display_unit',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: {ID: 0x0000, type: 0x30},
+                lookup: {
+                    celsius: 0x00,
+                    fahrenheit: 0x01,
+                },
+                description: 'The temperature unit shown on the display',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.enumLookup({
+                name: 'keypad_lockout',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: {ID: 0x0001, type: 0x30},
+                lookup: {
+                    no_lockout: 0x00,
+                    level_1_lockout: 0x01,
+                    level_2_lockout: 0x02,
+                    level_3_lockout: 0x03,
+                    level_4_lockout: 0x04,
+                    level_5_lockout: 0x05,
+                },
+                description: 'Lockout the local keypad',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+        ],
+        fromZigbee: [fz.thermostat],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 35, 0.01)
+                .withSetpoint('unoccupied_heating_setpoint', 5, 35, 0.01)
+                .withLocalTemperature(ea.STATE_GET)
+                .withLocalTemperatureCalibration(-30, 30, 0.5, ea.ALL)
+                .withSystemMode(['off', 'auto', 'heat'], ea.ALL)
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg', 'genTime', 'genAlarms', 'genPollCtrl'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+
+            await endpoint.read('hvacThermostat', ['localTemp', 'occupiedHeatingSetpoint']);
+            await endpoint.read('hvacThermostat', ['systemMode', 'runningState']);
+            await endpoint.read('hvacUserInterfaceCfg', ['tempDisplayMode', 'keypadLockout']);
+
+            const manufacturerOptions = {manufacturerCode: 0x1224};
+            await endpoint.read('hvacThermostat', [0x100d, 0x1005, 0x1008], manufacturerOptions);
+            await endpoint.read('hvacThermostat', [0x1009, 0x100a, 0x100b], manufacturerOptions);
+            await endpoint.read('hvacThermostat', [0x100e, 0x2002, 0x2003], manufacturerOptions);
+
+            await syncTime(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['HK-SENSOR-SMO'],
         model: 'SR-ZG9070A-SS',
         vendor: 'Sunricher',
