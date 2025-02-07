@@ -98,7 +98,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '10447293',
         vendor: 'HORNBACH',
         description: '10445606 FLAIR Viyu Smart LED Ceiling Luminaire',
-        extend: [m.light({colorTemp: {range: [153,370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
 ];
 
