@@ -823,7 +823,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RF 274 T'],
         model: 'RF 274 T',
-        vendor: 'innr',
+        vendor: 'Innr',
         description: 'Smart filament bulb E27 tunable edison',
         extend: [m.light({colorTemp: {range: [153, 556]}})],
         ota: true,
