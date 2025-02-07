@@ -1370,7 +1370,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'MEG5126-0300',
         vendor: 'Schneider Electric',
         description: 'Merten MEG5165 PlusLink relais insert with Merten Wiser System M push button (2fold)',
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ['l1', 'l2']})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ['l1', 'l2'], powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['EH-ZB-VACT'],

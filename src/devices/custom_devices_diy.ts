@@ -7,7 +7,7 @@ import * as legacy from '../lib/legacy';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from '../lib/types';
-import {getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from '../lib/utils';
+import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -70,7 +70,8 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.humidity'
-            const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
+            let humidity = parseFloat(msg.data['measuredValue']) / 100.0;
+            humidity = calibrateAndPrecisionRoundOptions(humidity, options, 'humidity');
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
             // Sometimes the sensor publishes non-realistic vales, it should only publish message
@@ -88,7 +89,8 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.illuminance'
             const illuminance = msg.data['measuredValue'];
-            const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
+            let illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
+            illuminanceLux = calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance');
             const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property1 = multiEndpoint ? postfixWithEndpointName('illuminance', msg, model, meta) : 'illuminance';
             return {[property1]: illuminanceLux};
@@ -106,6 +108,7 @@ const fzLocal = {
             } else {
                 pressure = parseFloat(msg.data['measuredValue']);
             }
+            pressure = calibrateAndPrecisionRoundOptions(pressure, options, 'pressure');
             const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
             const property = multiEndpoint ? postfixWithEndpointName('pressure', msg, model, meta) : 'pressure';
             return {[property]: pressure};
@@ -235,6 +238,7 @@ const definitions: DefinitionWithExtend[] = [
             {modelID: 'ZB-GW04-1v2', manufacturerName: 'easyiot', applicationVersion: 200},
             {modelID: 'SkyConnect', manufacturerName: 'NabuCasa', applicationVersion: 200},
             {modelID: 'SLZB-06M', manufacturerName: 'SMLIGHT', applicationVersion: 200},
+            {modelID: 'SLZB-06MG24', manufacturerName: 'SMLIGHT', applicationVersion: 200},
             {modelID: 'SLZB-07', manufacturerName: 'SMLIGHT', applicationVersion: 200},
             {modelID: 'SLZB-07MG24', manufacturerName: 'SMLIGHT', applicationVersion: 200},
             {modelID: 'DONGLE-E', manufacturerName: 'SONOFF', applicationVersion: 200},

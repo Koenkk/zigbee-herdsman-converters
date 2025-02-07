@@ -140,7 +140,6 @@ const fzLocal = {
                 /* 0x0007 */ 'warnDIR2',
                 /* 0x0008 */ 'warnDIR3',
                 /* 0x0009 */ 'motDEtat',
-                /* 0x0010 */ 'tariffPeriod',
                 /* 0x0200 */ 'currentPrice',
                 /* 0x0201 */ 'currentIndexTarif',
                 /* 0x0202 */ 'currentDate',
@@ -977,13 +976,6 @@ const allPhaseData = [
     },
     {
         cluster: clustersDef._0xFF66,
-        att: 'tariffPeriod',
-        reportable: true,
-        onlyProducer: false,
-        exposes: e.text('Tariff', ea.STATE).withProperty('tariff_period').withDescription('Tariff Period'),
-    },
-    {
-        cluster: clustersDef._0xFF66,
         att: 'currentPrice',
         reportable: false,
         onlyProducer: false,
@@ -1797,7 +1789,7 @@ const definitions: DefinitionWithExtend[] = [
                 .numeric(`measurement_poll_chunk`, ea.SET)
                 .withValueMin(1)
                 .withDescription(
-                    `During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 2`,
+                    `During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 1`,
                 ),
             e
                 .text(`tic_command_whitelist`, ea.SET)
@@ -1880,7 +1872,7 @@ const definitions: DefinitionWithExtend[] = [
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 600;
                 utils.assertNumber(seconds);
-                const measurement_poll_chunk = options && options.measurement_poll_chunk ? options.measurement_poll_chunk : 2;
+                const measurement_poll_chunk = options && options.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
                 utils.assertNumber(measurement_poll_chunk);
 
                 const setTimer = () => {

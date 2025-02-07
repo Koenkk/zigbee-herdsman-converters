@@ -2009,7 +2009,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu', '_TZE200_ga1maeof', '_TZE200_2se8efxh', '_TZE204_myd45weu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu', '_TZE200_ga1maeof', '_TZE200_2se8efxh', '_TZE204_myd45weu', '_TZE284_myd45weu']),
         model: 'TS0601_soil',
         vendor: 'Tuya',
         description: 'Soil sensor',
@@ -2672,7 +2672,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0301',
         vendor: 'Tuya',
         description: 'Cover',
-        extend: [m.battery(), m.windowCovering({controls: ['lift', 'tilt']})],
+        extend: [m.battery(), m.windowCovering({controls: ['lift']})],
         whiteLabel: [tuya.whitelabel('Yookee', 'D10110_1', 'Smart blind', ['_TZE200_9caxna4s'])],
     },
     {
@@ -3438,6 +3438,7 @@ const definitions: DefinitionWithExtend[] = [
             e
                 .enum('control_sequence_of_operation', ea.SET, ['cooling_only', 'cooling_and_heating_4-pipes'])
                 .withDescription('Operating environment of the thermostat'),
+            e.binary('expose_device_state', ea.SET, true, false).withDescription('Expose device power state as a separate property when enabled.'),
         ],
         exposes: (device, options) => {
             const system_modes = ['off', 'cool', 'heat', 'fan_only'];
@@ -3450,7 +3451,7 @@ const definitions: DefinitionWithExtend[] = [
                     break;
             }
 
-            return [
+            const exposes = [
                 e
                     .climate()
                     .withLocalTemperature(ea.STATE)
@@ -3476,18 +3477,39 @@ const definitions: DefinitionWithExtend[] = [
                     .withPreset('default', 1, 'Default value')
                     .withDescription('The delta between local_temperature and current_heating_setpoint to trigger activity'),
             ];
+
+            if (options?.expose_device_state === true) {
+                exposes.unshift(e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON or OFF'));
+            }
+
+            return exposes;
         },
         meta: {
             publishDuplicateTransaction: true,
             tuyaDatapoints: [
                 [
                     1,
-                    null,
+                    'state',
                     {
-                        from: (v, meta) => {
-                            return v === true
-                                ? {system_mode: meta.state.system_mode_device ? meta.state.system_mode_device : 'cool'}
-                                : {system_mode: 'off'};
+                        to: async (v, meta) => {
+                            if (meta.options?.expose_device_state === true) {
+                                await tuya.sendDataPointBool(
+                                    meta.device.endpoints[0],
+                                    1,
+                                    utils.getFromLookup(v, {on: true, off: false}),
+                                    'dataRequest',
+                                    1,
+                                );
+                            }
+                        },
+                        from: (v, meta, options) => {
+                            meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? 'cool') : 'off';
+
+                            if (options?.expose_device_state === true) {
+                                return v === true ? 'ON' : 'OFF';
+                            }
+
+                            delete meta.state.state;
                         },
                     },
                 ],
@@ -4430,6 +4452,86 @@ const definitions: DefinitionWithExtend[] = [
                 [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
                 [48, 'valve_testing', tuya.valueConverter.raw],
                 [49, 'valve', tuya.valueConverterBasic.lookup({OPEN: 1, CLOSE: 0})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_tbgecldg', '_TZE284_tbgecldg', '_TZE200_tbgecldg']),
+        model: 'PO-THCO-EAU',
+        vendor: 'Powernity',
+        description: 'Thermostat radiator valve',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.battery().withUnit('%'),
+            e.child_lock(),
+            e.comfort_temperature().withValueMin(0.5).withValueMax(29.5),
+            e.eco_temperature().withValueMin(0.5).withValueMax(29.5),
+            e.holiday_temperature().withValueMin(0.5).withValueMax(29.5),
+            e
+                .numeric('auto_temperature', ea.STATE_SET)
+                .withDescription('Auto settings temperature')
+                .withUnit('°C')
+                .withValueMin(0.5)
+                .withValueStep(0.5)
+                .withValueMax(29.5),
+            e
+                .climate()
+                .withPreset(['auto', 'manual', 'holiday'])
+                .withLocalTemperatureCalibration(-5.5, 5.5, 0.1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint('current_heating_setpoint', 0.5, 29.5, 0.5, ea.STATE_SET),
+            e.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: the device will enter the boost heating mode.'),
+            e
+                .numeric('boost_time', ea.STATE_SET)
+                .withUnit('s')
+                .withDescription(
+                    'Setting ' +
+                        'minimum 0 - maximum 900 seconds boost time. The boost function is activated. The remaining ' +
+                        'time for the function will be counted down in seconds ( 900 to 0 ).',
+                )
+                .withValueMin(0)
+                .withValueMax(900),
+            e.binary('window_open', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status CLOSE or OPEN '),
+            e.open_window_temperature().withValueMin(5).withValueMax(25),
+            e
+                .numeric('open_window_time', ea.STATE_SET)
+                .withDescription(
+                    'In the setting time, when the range of indoor temperature changes reaches the set range, the window opening reminder will be displayed',
+                )
+                .withUnit('minutes')
+                .withValueMin(0)
+                .withValueMax(60)
+                .withValueStep(1),
+            tuya.exposes.errorStatus(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    'preset',
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                        holiday: tuya.enum(2),
+                    }),
+                ],
+                [16, 'current_heating_setpoint', tuya.valueConverter.divideBy2],
+                [24, 'local_temperature', tuya.valueConverter.divideBy10],
+                [30, 'child_lock', tuya.valueConverter.lockUnlock],
+                [34, 'battery', tuya.valueConverterBasic.scale(0, 100, 50, 150)],
+                [101, 'comfort_temperature', tuya.valueConverter.divideBy2],
+                [102, 'eco_temperature', tuya.valueConverter.divideBy2],
+                [103, 'holiday_temperature', tuya.valueConverter.divideBy2],
+                [104, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [105, 'auto_temperature', tuya.valueConverter.divideBy2],
+                [106, 'boost_heating', tuya.valueConverter.onOff],
+                [107, 'window_open', tuya.valueConverter.onOff],
+                [116, 'open_window_temperature', tuya.valueConverter.divideBy2],
+                [117, 'open_window_time', tuya.valueConverter.raw],
+                [118, 'boost_time', tuya.valueConverter.countdown],
             ],
         },
     },
@@ -7083,7 +7185,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_mwomyz5n']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_mwomyz5n', '_TZE204_cvub6xbb']),
         model: 'TGM50-ZB',
         vendor: 'Tuya',
         description: 'Beok wall thermostat',
@@ -11333,35 +11435,74 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
-        exposes: [
-            e.child_lock(),
+        options: [
             e
-                .climate()
-                .withLocalTemperature(ea.STATE)
-                .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
-                .withSystemMode(['off', 'cool', 'heat', 'fan_only'], ea.STATE_SET)
-                .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
-                .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET),
-            e.min_temperature().withValueMin(5).withValueMax(15),
-            e.max_temperature().withValueMin(15).withValueMax(45),
-            e.binary('eco_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('ECO mode ON/OFF'),
-            e.max_temperature_limit().withDescription('ECO Heating energy-saving temperature (default: 20 ºC)').withValueMin(15).withValueMax(30),
-            e.min_temperature_limit().withDescription('ECO Cooling energy-saving temperature (default: 26 ºC)').withValueMin(15).withValueMax(30),
-            e.deadzone_temperature().withValueMin(0).withValueMax(5).withValueStep(1),
-            e.binary('valve', ea.STATE, 'OPEN', 'CLOSE').withDescription('3-Way Valve State'),
-            e.binary('manual_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Manual = ON or Schedule = OFF'),
-            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+                .enum('control_sequence_of_operation', ea.SET, ['cooling_only', 'cooling_and_heating_4-pipes'])
+                .withDescription('Operating environment of the thermostat'),
+            e.binary('expose_device_state', ea.SET, true, false).withDescription('Expose device power state as a separate property when enabled.'),
         ],
+        exposes: (device, options) => {
+            const system_modes = ['off', 'cool', 'heat', 'fan_only'];
+            // Device can operate either in 2-pipe or 4-pipe configuration
+            // For 2-pipe configurations remove 'heat' mode
+            switch (options?.control_sequence_of_operation) {
+                case 'cooling_only':
+                    system_modes.splice(2, 1);
+                    break;
+            }
+
+            const exposes = [
+                e
+                    .climate()
+                    .withLocalTemperature(ea.STATE)
+                    .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
+                    .withSystemMode(['off', 'cool', 'heat', 'fan_only'], ea.STATE_SET)
+                    .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
+                    .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET),
+                e.child_lock(),
+                e.min_temperature().withValueMin(5).withValueMax(15),
+                e.max_temperature().withValueMin(15).withValueMax(45),
+                e.binary('eco_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('ECO mode ON/OFF'),
+                e.max_temperature_limit().withDescription('ECO Heating energy-saving temperature (default: 20 ºC)').withValueMin(15).withValueMax(30),
+                e.min_temperature_limit().withDescription('ECO Cooling energy-saving temperature (default: 26 ºC)').withValueMin(15).withValueMax(30),
+                e.deadzone_temperature().withValueMin(0).withValueMax(5).withValueStep(1),
+                e.binary('valve', ea.STATE, 'OPEN', 'CLOSE').withDescription('3-Way Valve State'),
+                e.binary('manual_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Manual = ON or Schedule = OFF'),
+                ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            ];
+
+            if (options?.expose_device_state === true) {
+                exposes.unshift(e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON or OFF'));
+            }
+
+            return exposes;
+        },
         meta: {
+            publishDuplicateTransaction: true,
             tuyaDatapoints: [
                 [
                     1,
-                    null,
+                    'state',
                     {
-                        from: (v, meta) => {
-                            return v === true
-                                ? {system_mode: meta.state.system_mode_device ? meta.state.system_mode_device : 'cool'}
-                                : {system_mode: 'off'};
+                        to: async (v, meta) => {
+                            if (meta.options?.expose_device_state === true) {
+                                await tuya.sendDataPointBool(
+                                    meta.device.endpoints[0],
+                                    1,
+                                    utils.getFromLookup(v, {on: true, off: false}),
+                                    'dataRequest',
+                                    1,
+                                );
+                            }
+                        },
+                        from: (v, meta, options) => {
+                            meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? 'cool') : 'off';
+
+                            if (options?.expose_device_state === true) {
+                                return v === true ? 'ON' : 'OFF';
+                            }
+
+                            delete meta.state.state;
                         },
                     },
                 ],

@@ -222,6 +222,7 @@ import plaid from './plaid';
 import plugwise from './plugwise';
 import profalux from './profalux';
 import prolight from './prolight';
+import purmo from './purmo';
 import pushok from './pushok';
 import qa from './qa';
 import qmotion from './qmotion';
@@ -544,6 +545,7 @@ export default [
     ...plugwise,
     ...profalux,
     ...prolight,
+    ...purmo,
     ...pushok,
     ...qmotion,
     ...qoto,
