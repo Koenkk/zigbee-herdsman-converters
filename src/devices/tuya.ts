@@ -14450,7 +14450,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(['auto', 'heat', 'off'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
-                .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET) [47, 'local_temperature_calibration', tuya.valueConverter.divideBy10],
+                .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
             e
                 .binary('scale_protection', ea.STATE_SET, 'ON', 'OFF')
@@ -14481,7 +14481,7 @@ const definitions: DefinitionWithExtend[] = [
                 [35, null, tuya.valueConverter.errorOrBatteryLow],
                 [36, 'frost_protection', tuya.valueConverter.onOff],
                 [39, 'scale_protection', tuya.valueConverter.onOff],
-                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration2],
+                [47, 'local_temperature_calibration', tuya.valueConverter.divideBy10],
             ],
         },
 
