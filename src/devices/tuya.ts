@@ -14443,6 +14443,13 @@ const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        zigbeeModel: ['TS0901'],
+        model: 'TS0901',
+        vendor: 'Tuya',
+        description: 'Battery powered light',
+        extend: [m.battery(), m.light()],
+    },
 ];
 
 export default definitions;
