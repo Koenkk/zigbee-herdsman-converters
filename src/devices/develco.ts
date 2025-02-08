@@ -578,7 +578,7 @@ const definitions: DefinitionWithExtend[] = [
                 if (data && typeof data.description !== 'undefined') {
                     return; // If the description is successfully read, no further action is required.
                 }
-            } catch (error) {
+            } catch {
                 // In case of a read failure, we proceed to force the cluster value.
             }
             // Forcefully inject the genBinaryInput cluster with the default attribute
