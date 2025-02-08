@@ -13,62 +13,28 @@ const definitions: DefinitionWithExtend[] = [
         model: '5144.01',
         vendor: 'Iluminize',
         description: 'RGB CCT 3 in 1 Remote Controller',
-        extend: [
-            m.battery(),
-            m.identify(),
-            m.commandsOnOff(),
-            m.commandsLevelCtrl(),
-            m.commandsColorCtrl(),
-        ],
-        meta: {
-            battery: {
-                type: 'mapping',
-                map: (value) => value * 2, // Convert to Zigbee format (0-200)
-                property: 'batteryPercentageRemaining',
-                removeOriginal: true, // Ensure 'battery' is not published
-            },
-        },
+        extend: [m.battery(), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
     },
     {
         zigbeeModel: ['ZGRC-KEY-001'],
         model: '5144.11',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 wall dimmer with switches',
-        extend: [
-            m.battery(),
-            m.identify(),
-            m.commandsOnOff(),
-            m.commandsLevelCtrl(),
-        ],
-        meta: {
-            battery: {
-                type: 'mapping',
-                map: (value) => value * 2,
-                property: 'batteryPercentageRemaining',
-                removeOriginal: true,
-            },
-        },
+        extend: [m.battery(), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl()],
     },
     {
         zigbeeModel: ['ZGRC-KEY-002'],
         model: '5144.21',
         vendor: 'Iluminize',
-        description: 'Single color wall-mounted push button remote',
-        extend: [
-            m.battery(),
-            m.identify(),
-            m.commandsOnOff(),
-            m.commandsLevelCtrl(),
-            m.commandsColorCtrl(),
-        ],
-        meta: {
-            battery: {
-                type: 'mapping',
-                map: (value) => value * 2,
-                property: 'batteryPercentageRemaining',
-                removeOriginal: true,
-            },
-        },
+        description: 'Single color wall mounted push button remote',
+        extend: [m.battery(), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+    },
+    {
+        zigbeeModel: ['5121.10'],
+        model: '5121.10',
+        vendor: 'Iluminize',
+        description: 'Rotary dimmer with integrated Zigbee 3.0 dimming actuator',
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ['5120.2210'],
@@ -104,7 +70,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['511.020'],
         model: '511.020',
-        vendor: 'iluminize',
+        vendor: 'Iluminize',
         description: 'Zigbee 3.0 LED controller multi 4 - 5A, CCT WW/CW LED',
         extend: [m.light({colorTemp: {range: [155, 450]}})],
     },
@@ -216,6 +182,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['ZG2819S-RGBW'],
         model: '511.344',
         vendor: 'Iluminize',
+        whiteLabel: [{vendor: 'Sunricher', model: 'ZG2819S-RGBW'}],
         description: 'Zigbee handheld remote RGBW 4 channels',
         extend: [
             m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
