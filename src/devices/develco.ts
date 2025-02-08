@@ -551,6 +551,55 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ['WISZB-131'],
+        model: 'WISZB-131',
+        vendor: 'Develco',
+        description: 'Contact sensor', // For door or window
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low()],
+        ota: true,
+        endpoint: (device) => {
+            return { default: 35 };
+        },
+        configure: async (device, coordinatorEndpoint, definition) => {
+            /*
+            * BUGFIX: When adding a new WISZB-131 contact sensor to z2m, if the magnet is never brought close to it,
+            * genBinaryInput remains 'undiscovered'. This causes zstack to hang waiting for the sensor to discover
+            * that endpoint when z2m is restarted after the sensor's batteries are removed.
+            * 
+            * By forcing this discovery and patching the device database for already configured devices,
+            * the issue appears to be resolved. This configure function ensures the genBinaryInput cluster
+            * is properly registered even if the magnetic sensor was never triggered during initial setup.
+            */
+            const ep = device.getEndpoint(35);
+            try {
+                const data = await ep.read('genBinaryInput', ['description'], manufacturerOptions);
+                if (data && typeof data.description !== 'undefined') {
+                    return; // If the description is successfully read, no further action is required.
+                }
+            } catch (error) {
+                // In case of a read failure, we proceed to force the cluster value.
+            }
+            // Forcefully inject the genBinaryInput cluster with the default attribute
+            ep.clusters.genBinaryInput = { attributes: { description: 'Magnet Open' } };
+            device.save();
+        },
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            develcoModernExtend.temperature(),
+            m.battery({
+                voltageToPercentage: { min: 2500, max: 3000 },
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
+        ],
+    },
+    {
         zigbeeModel: ['WISZB-137'],
         model: 'WISZB-137',
         vendor: 'Develco',
