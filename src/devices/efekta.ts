@@ -982,8 +982,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['EFEKTA_ePST_POW_E_LR'],
         model: 'EFEKTA_ePST_POW_E_LR',
         vendor: 'EFEKTA',
-        description:
-            'Smart water/gas pressure monitor with e-ink display.',
+        description: 'Water, gas smart pressure monitor with e-ink display.',
         extend: [
             m.pressure({
                 unit: 'kPa',
@@ -1048,9 +1047,9 @@ const definitions: DefinitionWithExtend[] = [
             }),
             m.battery({
                 percentage: true,
-                percentageReporting: false,
                 lowStatus: true,
                 voltage: false,
+                percentageReporting: false,
                 voltageReporting: false,
             }),
             m.numeric({
@@ -1090,84 +1089,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: 'fastmode',
-                lookup: {'Fast': 0, 'Ultra Fast': 1},
-                cluster: 'genPowerCfg',
-                attribute: {ID: 0xF005, type: Zcl.DataType.UINT8},
-                description: 'Display refresh mode',
-                access: 'STATE_SET',
-            }),
-        ],
-    },
-    {
-        zigbeeModel: ['EFEKTA_eTH_POW_E_LR'],
-        model: 'EFEKTA_eTH_POW_E_LR',
-        vendor: 'EFEKTA',
-        description:
-            'Temperature and humidity smart sensor with with e-ink display.',
-        extend: [
-            m.temperature({
-                reporting: false,
-                access: 'STATE',
-            }),
-            m.humidity({
-                reporting: false,
-                access: 'STATE',
-            }),
-            m.numeric({
-                name: 'mains_voltage',
-                unit: 'V',
-                cluster: 'genPowerCfg',
-                attribute: 'mainsVoltage',
-                description: 'Mains voltage',
-                scale: 10,
-                precision: 1,
-                access: 'STATE',
-            }),
-            m.battery({
-                percentage: true,
-                percentageReporting: false,
-                lowStatus: true,
-                voltage: false,
-                voltageReporting: false,
-            }),
-            m.numeric({
-                name: 'reading_interval',
-                unit: 'sec',
-                valueMin: 10,
-                valueMax: 300,
-                cluster: 'genPowerCfg',
-                attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
-                description: 'Setting the sensor reading interval in seconds, by default 40 seconds',
-                access: 'STATE_SET',
-            }),
-            m.enumLookup({
-                name: 'tx_radio_power',
-                lookup: {'4': 4, '19': 19},
-                cluster: 'genPowerCfg',
-                attribute: {ID: 0x0236, type: Zcl.DataType.INT8},
-                description: 'Set TX Radio Power, dbm',
-                access: 'STATE_SET',
-            }),
-            m.binary({
-                name: 'comparison_previous_data',
-                valueOn: ['ON', 1],
-                valueOff: ['OFF', 0],
-                cluster: 'genPowerCfg',
-                attribute: {ID: 0x0205, type: Zcl.DataType.BOOLEAN},
-                description: 'Enable сontrol of comparison with previous data',
-                access: 'STATE_SET',
-            }),
-            m.enumLookup({
-                name: 'invert',
-                lookup: {'BW': 0, 'WB': 1},
-                cluster: 'genPowerCfg',
-                attribute: {ID: 0xF004, type: Zcl.DataType.UINT8},
-                description: 'Invert display color',
-                access: 'STATE_SET',
-            }),
-            m.enumLookup({
-                name: 'fastmode',
-                lookup: {'Fast': 0, 'Ultra Fast': 1},
+                lookup: {'Fast': 0, 'UltraFast': 1},
                 cluster: 'genPowerCfg',
                 attribute: {ID: 0xF005, type: Zcl.DataType.UINT8},
                 description: 'Display refresh mode',
