@@ -7,7 +7,6 @@ const defaultReporting = {min: 0, max: 300, change: 0};
 const normalReporting = {min: 0, max: 3600, change: 0};
 const rareReporting = {min: 0, max: 21600, change: 0};
 const rarestReporting = {min: 0, max: 64800, change: 0};
-const threeReporting = {min: 30, max: 1800, change: 1};
 const fourReporting = {min: 30, max: 1800, change: 10};
 const sixReporting = {min: 3600, max: 21600, change: 1};
 
@@ -1192,6 +1191,132 @@ const definitions: DefinitionWithExtend[] = [
                 voltage: true,
                 percentageReporting: false,
                 voltageReporting: false,
+            }),
+        ],
+    },
+    {
+    zigbeeModel: ['EFEKTA_T8_POW'],
+    model: 'EFEKTA_T8_POW',
+    vendor: 'EfektaLab',
+    description: 'Temperature sensor with a signal amplifier, support up to 8 DS18B20 sensors \
+	    on one line. Two types of power supply',
+            extend: [
+            m.deviceEndpoints({
+                endpoints: {
+                    '1': 1,
+                    '2': 2,
+                    '3': 3,
+                    '4': 4,
+                    '5': 5,
+                    '6': 6,
+                    '7': 7,
+                    '8': 8,
+                },
+            }),
+            m.temperature({
+                endpointNames: ['1'],
+                description: 'Measured value of the 1 temperature sensor',
+                reporting: fourReporting,
+                access: 'STATE',
+            }),
+            m.temperature({
+                endpointNames: ['2'],
+                description: 'Measured value of the 2 temperature sensor',
+                reporting: fourReporting,
+                access: 'STATE',
+            }),
+            m.temperature({
+                endpointNames: ['3'],
+                description: 'Measured value of the 3 temperature sensor',
+                reporting: fourReporting,
+                access: 'STATE',
+            }),
+            m.temperature({
+                endpointNames: ['4'],
+                description: 'Measured value of the 4 temperature sensor',
+                reporting: fourReporting,
+                access: 'STATE',
+            }),
+            m.temperature({
+                endpointNames: ['5'],
+                description: 'Measured value of the 5 temperature sensor',
+                reporting: fourReporting,
+                access: 'STATE',
+            }),
+            m.temperature({
+                endpointNames: ['6'],
+                description: 'Measured value of the 6 temperature sensor',
+                reporting: fourReporting,
+                access: 'STATE',
+            }),
+            m.temperature({
+                endpointNames: ['7'],
+                description: 'Measured value of the 7 temperature sensor',
+                reporting: fourReporting,
+                access: 'STATE',
+            }),
+            m.temperature({
+                endpointNames: ['8'],
+                description: 'Measured value of the 8 temperature sensor',
+                reporting: fourReporting,
+                access: 'STATE',
+            }),
+            m.battery({
+                percentage: true,
+                lowStatus: true,
+                voltage: false,
+                percentageReporting: true,
+                percentageReportingConfig: sixReporting,
+            }),
+            m.numeric({
+                name: 'number_of_sensors',
+                cluster: 'msTemperatureMeasurement',
+                attribute: {ID: 0xa199, type: Zcl.DataType.UINT8},
+                description: 'Number of ds18b20 sensors per data bus',
+                access: 'STATE',
+            }),
+            m.numeric({
+                name: 'uptime',
+                unit: 'Hours',
+                cluster: 'genTime',
+                attribute: 'localTime',
+                description: 'Uptime',
+                access: 'STATE',
+            }),
+            m.numeric({
+                name: 'mains_voltage',
+                unit: 'V',
+                cluster: 'genPowerCfg',
+                attribute: 'mainsVoltage',
+                description: 'Mains voltage',
+                scale: 10,
+                precision: 1,
+                access: 'STATE_GET',
+            }),
+            m.numeric({
+                name: 'reading_interval',
+                unit: 'sec',
+                valueMin: 3,
+                valueMax: 360,
+                cluster: 'genPowerCfg',
+                attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
+                description: 'Setting the sensor reading interval in seconds, by default 15 seconds',
+            }),
+            m.enumLookup({
+                name: 'tx_radio_power',
+                lookup: {'4': 4, '19': 19},
+                cluster: 'genPowerCfg',
+                attribute: {ID: 0x0236, type: Zcl.DataType.INT8},
+                description: 'Set TX Radio Power, dbm',
+                access: 'STATE_SET',
+            }),
+            m.binary({
+                name: 'smart_sleep',
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                cluster: 'genPowerCfg',
+                attribute: {ID: 0x0216, type: Zcl.DataType.BOOLEAN},
+                description: 'Enable Smart Sleep, short wakeup every 2-7 seconds',
             }),
         ],
     },
