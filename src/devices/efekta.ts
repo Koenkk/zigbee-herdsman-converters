@@ -1894,7 +1894,7 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'msPressureMeasurement',
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust first pressure sensor',
-                access: 'STATE_SET',
+				access: 'STATE_SET',
             }),
             m.numeric({
                 endpointNames: ['1'],
@@ -1988,8 +1988,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 360,
                 cluster: 'genPowerCfg',
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
-                description:
-                    'Setting the sensor reading interval in seconds, by default 20 seconds',
+                description: 'Setting sensor reading interval in seconds, by default 20 seconds',
                 access: 'STATE_SET',
             }),
             m.binary({
