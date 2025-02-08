@@ -1489,6 +1489,7 @@ const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1}}),
+            m.commandsOnOff({commands: ['toggle'], endpointNames: ['l1']}),
             m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup({
@@ -1526,6 +1527,7 @@ const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.commandsOnOff({commands: ['toggle'], endpointNames: ['l1', 'l2']}),
             m.onOff({endpointNames: ['l1', 'l2']}),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup({
@@ -1567,6 +1569,7 @@ const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            m.commandsOnOff({commands: ['toggle'], endpointNames: ['l1', 'l2', 'l3']}),
             m.onOff({endpointNames: ['l1', 'l2', 'l3']}),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup({
