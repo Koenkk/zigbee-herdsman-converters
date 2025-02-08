@@ -1185,8 +1185,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Water, gas smart pressure monitor with two sensors',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
-            pressure({
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            m.pressure({
                 endpointNames: ['1'],
                 unit: 'kPa',
                 description: 'Measured pressure value оf the first sensor in kPa',
@@ -1194,7 +1194,7 @@ const definitions: DefinitionWithExtend[] = [
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'bar',
                 unit: 'bar',
@@ -1205,7 +1205,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'psi',
                 unit: 'psi',
@@ -1216,13 +1216,13 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 endpointNames: ['1'],
                 description: 'Measured value of the first temperature sensor',
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'pressure_offset',
                 unit: 'kPa',
@@ -1233,7 +1233,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'raw_temperature_calibration',
                 unit: 'raw unit',
@@ -1244,7 +1244,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first temperature sensor',
 				access: 'STATE_SET',
             }),
-            pressure({
+            m.pressure({
                 endpointNames: ['2'],
                 unit: 'kPa',
                 description: 'Measured pressure value оf the second sensor in kPa',
@@ -1252,7 +1252,7 @@ const definitions: DefinitionWithExtend[] = [
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'bar',
                 unit: 'bar',
@@ -1263,7 +1263,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'psi',
                 unit: 'psi',
@@ -1274,13 +1274,13 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 endpointNames: ['2'],
                 description: 'Measured value of the second temperature sensor',
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'pressure_offset',
                 unit: 'kPa',
@@ -1291,7 +1291,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust second pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'raw_temperature_cal',
                 unit: 'raw unit',
@@ -1302,7 +1302,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust second temperature sensor',
 				access: 'STATE_SET',
             }),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: true,
@@ -1310,7 +1310,7 @@ const definitions: DefinitionWithExtend[] = [
                 voltageReporting: false,
                 percentageReportingConfig: fiveReporting,
             }),
-            numeric({
+            m.numeric({
                 name: 'uptime',
                 unit: 'Hours',
                 cluster: 'genTime',
@@ -1318,7 +1318,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Uptime',
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 10,
@@ -1328,7 +1328,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval in seconds, by default 20 seconds',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'smart_sleep',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1337,7 +1337,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable Smart Sleep, short wakeup every 7 seconds',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'config_report_enable',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1346,7 +1346,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable reporting based on reporting configuration',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1363,8 +1363,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Water, gas smart pressure monitor with two sensors and signal amplifier',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
-            pressure({
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            m.pressure({
                 endpointNames: ['1'],
                 unit: 'kPa',
                 description: 'Measured pressure value оf the first sensor in kPa',
@@ -1372,7 +1372,7 @@ const definitions: DefinitionWithExtend[] = [
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'bar',
                 unit: 'bar',
@@ -1383,7 +1383,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'psi',
                 unit: 'psi',
@@ -1394,13 +1394,13 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 endpointNames: ['1'],
                 description: 'Measured value of the first temperature sensor',
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'pressure_offset',
                 unit: 'kPa',
@@ -1411,7 +1411,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'raw_temperature_cal',
                 unit: 'raw unit',
@@ -1422,7 +1422,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first temperature sensor',
 				access: 'STATE_SET',
             }),
-            pressure({
+            m.pressure({
                 endpointNames: ['2'],
                 unit: 'kPa',
                 description: 'Measured pressure value оf the second sensor in kPa',
@@ -1430,7 +1430,7 @@ const definitions: DefinitionWithExtend[] = [
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'bar',
                 unit: 'bar',
@@ -1441,7 +1441,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'psi',
                 unit: 'psi',
@@ -1452,13 +1452,13 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 endpointNames: ['2'],
                 description: 'Measured value of the second temperature sensor',
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'pressure_offset',
                 unit: 'kPa',
@@ -1469,7 +1469,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust second pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'raw_temperature_calibration',
                 unit: 'raw unit',
@@ -1480,7 +1480,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust second temperature sensor',
 				access: 'STATE_SET',
             }),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: true,
@@ -1488,7 +1488,7 @@ const definitions: DefinitionWithExtend[] = [
                 voltageReporting: false,
                 percentageReportingConfig: fiveReporting,
             }),
-            numeric({
+            m.numeric({
                 name: 'uptime',
                 unit: 'Hours',
                 cluster: 'genTime',
@@ -1496,7 +1496,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Uptime',
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 10,
@@ -1506,7 +1506,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval in seconds, by default 40 seconds',
 				access: 'STATE_SET',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'tx_radio_power',
                 lookup: {'4dbm': 4, '19dbm': 19},
                 cluster: 'genPowerCfg',
@@ -1514,7 +1514,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set TX Radio Power, dbm',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'smart_sleep',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1523,7 +1523,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable Smart Sleep, short wakeup every 7 seconds',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'config_report_enable',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1532,7 +1532,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable reporting based on reporting configuration',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1549,8 +1549,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Water, gas smart pressure monitor with two sensors, two types of power supply and signal amplifier',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
-            pressure({
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            m.pressure({
                 endpointNames: ['1'],
                 unit: 'kPa',
                 description: 'Measured pressure value оf the first sensor in kPa',
@@ -1558,7 +1558,7 @@ const definitions: DefinitionWithExtend[] = [
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'bar',
                 unit: 'bar',
@@ -1569,7 +1569,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'psi',
                 unit: 'psi',
@@ -1580,13 +1580,13 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 endpointNames: ['1'],
                 description: 'Measured value of the first temperature sensor',
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'pressure_offset',
                 unit: 'kPa',
@@ -1597,7 +1597,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'raw_temperature_calibration',
                 unit: 'raw unit',
@@ -1608,7 +1608,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first temperature sensor',
 				access: 'STATE_SET',
             }),
-            pressure({
+            m.pressure({
                 endpointNames: ['2'],
                 unit: 'kPa',
                 description: 'Measured pressure value оf the second sensor in kPa',
@@ -1616,7 +1616,7 @@ const definitions: DefinitionWithExtend[] = [
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'bar',
                 unit: 'bar',
@@ -1627,7 +1627,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'psi',
                 unit: 'psi',
@@ -1638,13 +1638,13 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 endpointNames: ['2'],
                 description: 'Measured value of the second temperature sensor',
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'pressure_offset',
                 unit: 'kPa',
@@ -1655,7 +1655,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust second pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'raw_temperature_calibration',
                 unit: 'raw unit',
@@ -1666,7 +1666,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust second temperature sensor',
 				access: 'STATE_SET',
             }),
-			numeric({
+            m.numeric({
                 name: 'mains_voltage',
                 unit: 'V',
                 cluster: 'genPowerCfg',
@@ -1676,14 +1676,14 @@ const definitions: DefinitionWithExtend[] = [
 				precision: 1,
 				access: 'STATE_GET',
             }),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: false,
                 percentageReporting: true,
                 percentageReportingConfig: fiveReporting,
             }),
-            numeric({
+            m.numeric({
                 name: 'uptime',
                 unit: 'Hours',
                 cluster: 'genTime',
@@ -1691,7 +1691,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Uptime',
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 10,
@@ -1701,7 +1701,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval in seconds, by default 10 seconds',
 				access: 'STATE_SET',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'tx_radio_power',
                 lookup: {'4dbm': 4, '19dbm': 19},
                 cluster: 'genPowerCfg',
@@ -1709,7 +1709,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set TX Radio Power, dbm',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'smart_sleep',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1718,7 +1718,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable Smart Sleep, short wakeup every 2-7 seconds',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'config_report_enable',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1727,7 +1727,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable reporting based on reporting configuration',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1744,8 +1744,8 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Water, gas smart pressure monitor with two sensors, two types of power supply and signal amplifier, V2',
         extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
-            pressure({
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            m.pressure({
                 endpointNames: ['1'],
                 unit: 'kPa',
                 description: 'Measured pressure value оf the first sensor in kPa',
@@ -1753,7 +1753,7 @@ const definitions: DefinitionWithExtend[] = [
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'bar',
                 unit: 'bar',
@@ -1764,7 +1764,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'psi',
                 unit: 'psi',
@@ -1775,13 +1775,13 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 endpointNames: ['1'],
                 description: 'Measured value of the first temperature sensor',
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'pressure_offset',
                 unit: 'kPa',
@@ -1792,7 +1792,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['1'],
                 name: 'raw_temperature_calibration',
                 unit: 'raw unit',
@@ -1803,7 +1803,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first temperature sensor',
 				access: 'STATE_SET',
             }),
-            pressure({
+            m.pressure({
                 endpointNames: ['2'],
                 unit: 'kPa',
                 description: 'Measured pressure value оf the second sensor in kPa',
@@ -1811,7 +1811,7 @@ const definitions: DefinitionWithExtend[] = [
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'bar',
                 unit: 'bar',
@@ -1822,7 +1822,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'psi',
                 unit: 'psi',
@@ -1833,13 +1833,13 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 endpointNames: ['2'],
                 description: 'Measured value of the second temperature sensor',
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'pressure_offset',
                 unit: 'kPa',
@@ -1850,7 +1850,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust second pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ['2'],
                 name: 'raw_temperature_calibration',
                 unit: 'raw unit',
@@ -1861,7 +1861,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust second temperature sensor',
 				access: 'STATE_SET',
             }),
-			numeric({
+            m.numeric({
                 name: 'mains_voltage',
                 unit: 'V',
                 cluster: 'genPowerCfg',
@@ -1871,14 +1871,14 @@ const definitions: DefinitionWithExtend[] = [
 				precision: 1,
 				access: 'STATE_GET',
             }),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: false,
                 percentageReporting: true,
                 percentageReportingConfig: fiveReporting,
             }),
-            numeric({
+            m.numeric({
                 name: 'uptime',
                 unit: 'Hours',
                 cluster: 'genTime',
@@ -1886,7 +1886,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Uptime',
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 10,
@@ -1896,7 +1896,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval in seconds, by default 10 seconds',
 				access: 'STATE_SET',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'tx_radio_power',
                 lookup: {'4dbm': 4, '19dbm': 19},
                 cluster: 'genPowerCfg',
@@ -1904,7 +1904,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set TX Radio Power, dbm',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'smart_sleep',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1913,7 +1913,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable Smart Sleep, short wakeup every 2-7 seconds',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'config_report_enable',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1922,7 +1922,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable reporting based on reporting configuration',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1939,14 +1939,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Water, gas smart pressure monitor with two types of power supply and signal amplifier',
         extend: [
-            pressure({
+            m.pressure({
                 unit: 'kPa',
                 description: 'Measured pressure value in kPa',
                 scale: 10,
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'bar',
                 unit: 'bar',
                 cluster: 'msPressureMeasurement',
@@ -1956,7 +1956,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'psi',
                 unit: 'psi',
                 cluster: 'msPressureMeasurement',
@@ -1966,11 +1966,11 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'pressure_offset',
                 unit: 'kPa',
                 valueMin: -100.0,
@@ -1980,7 +1980,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 name: 'raw_temperature_calibration',
                 unit: 'raw unit',
                 valueMin: -8192,
@@ -1990,7 +1990,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first temperature sensor',
 				access: 'STATE_SET',
             }),
-			numeric({
+            m.numeric({
                 name: 'mains_voltage',
                 unit: 'V',
                 cluster: 'genPowerCfg',
@@ -2000,14 +2000,14 @@ const definitions: DefinitionWithExtend[] = [
 				precision: 1,
 				access: 'STATE_GET',
             }),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: false,
                 percentageReporting: true,
                 percentageReportingConfig: fiveReporting,
             }),
-            numeric({
+            m.numeric({
                 name: 'uptime',
                 unit: 'Hours',
                 cluster: 'genTime',
@@ -2015,7 +2015,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Uptime',
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 10,
@@ -2025,7 +2025,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval in seconds, by default 10 seconds',
 				access: 'STATE_SET',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'tx_radio_power',
                 lookup: {'4dbm': 4, '19dbm': 19},
                 cluster: 'genPowerCfg',
@@ -2033,7 +2033,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set TX Radio Power, dbm',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'smart_sleep',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2042,7 +2042,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable Smart Sleep, short wakeup every 2-7 seconds',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'config_report_enable',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2051,7 +2051,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable reporting based on reporting configuration',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2068,14 +2068,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Water, gas smart pressure monitor with two types of power supply and signal amplifier, V2',
         extend: [
-            pressure({
+            m.pressure({
                 unit: 'kPa',
                 description: 'Measured pressure value in kPa',
                 scale: 10,
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'bar',
                 unit: 'bar',
                 cluster: 'msPressureMeasurement',
@@ -2085,7 +2085,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'psi',
                 unit: 'psi',
                 cluster: 'msPressureMeasurement',
@@ -2095,11 +2095,11 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'pressure_offset',
                 unit: 'kPa',
                 valueMin: -100.0,
@@ -2109,7 +2109,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 name: 'raw_temperature_calibration',
                 unit: 'raw unit',
                 valueMin: -8192,
@@ -2119,7 +2119,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first temperature sensor',
 				access: 'STATE_SET',
             }),
-			numeric({
+            m.numeric({
                 name: 'mains_voltage',
                 unit: 'V',
                 cluster: 'genPowerCfg',
@@ -2129,14 +2129,14 @@ const definitions: DefinitionWithExtend[] = [
 				precision: 1,
 				access: 'STATE_GET',
             }),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: false,
                 percentageReporting: true,
                 percentageReportingConfig: fiveReporting,
             }),
-            numeric({
+            m.numeric({
                 name: 'uptime',
                 unit: 'Hours',
                 cluster: 'genTime',
@@ -2144,7 +2144,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Uptime',
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 10,
@@ -2154,7 +2154,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval in seconds, by default 10 seconds',
 				access: 'STATE_SET',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'tx_radio_power',
                 lookup: {'4dbm': 4, '19dbm': 19},
                 cluster: 'genPowerCfg',
@@ -2162,7 +2162,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set TX Radio Power, dbm',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'smart_sleep',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2171,7 +2171,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable Smart Sleep, short wakeup every 2-7 seconds',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'config_report_enable',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2180,7 +2180,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable reporting based on reporting configuration',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2197,14 +2197,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Water, gas smart pressure monitor',
         extend: [
-            pressure({
+            m.pressure({
                 unit: 'kPa',
                 description: 'Measured pressure value in kPa',
                 scale: 10,
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'bar',
                 unit: 'bar',
                 cluster: 'msPressureMeasurement',
@@ -2214,7 +2214,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'psi',
                 unit: 'psi',
                 cluster: 'msPressureMeasurement',
@@ -2224,11 +2224,11 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'pressure_offset',
                 unit: 'kPa',
                 valueMin: -100.0,
@@ -2238,7 +2238,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 name: 'raw_temperature_calibration',
                 unit: 'raw unit',
                 valueMin: -8192,
@@ -2248,7 +2248,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first temperature sensor',
 				access: 'STATE_SET',
             }),
-			numeric({
+            m.numeric({
                 name: 'raw_temperature',
                 unit: 'raw unit',
                 cluster: 'msTemperatureMeasurement',
@@ -2256,7 +2256,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Sensor raw temperature',
                 access: 'STATE',
             }),
-			numeric({
+            m.numeric({
                 name: 'raw_temperature_recalibrated',
                 unit: 'raw unit',
                 cluster: 'msTemperatureMeasurement',
@@ -2264,7 +2264,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Recalibrated sensor raw temperature',
                 access: 'STATE',
             }),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: true,
@@ -2272,7 +2272,7 @@ const definitions: DefinitionWithExtend[] = [
                 voltageReporting: false,
                 percentageReportingConfig: fiveReporting,
             }),
-            numeric({
+            m.numeric({
                 name: 'uptime',
                 unit: 'Hours',
                 cluster: 'genTime',
@@ -2280,7 +2280,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Uptime',
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 10,
@@ -2290,7 +2290,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval in seconds, by default 15 seconds',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'smart_sleep',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2299,7 +2299,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable Smart Sleep, short wakeup every 7 seconds',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'config_report_enable',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2308,7 +2308,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable reporting based on reporting configuration',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2325,14 +2325,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Water, gas smart pressure monitor with signal amplifier',
         extend: [
-            pressure({
+            m.pressure({
                 unit: 'kPa',
                 description: 'Measured pressure value in kPa',
                 scale: 10,
                 reporting: threeReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'bar',
                 unit: 'bar',
                 cluster: 'msPressureMeasurement',
@@ -2342,7 +2342,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'psi',
                 unit: 'psi',
                 cluster: 'msPressureMeasurement',
@@ -2352,11 +2352,11 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 reporting: fourReporting,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'pressure_offset',
                 unit: 'kPa',
                 valueMin: -100.0,
@@ -2366,7 +2366,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first pressure sensor',
 				access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 name: 'raw_temperature_calibration',
                 unit: 'raw unit',
                 valueMin: -8192,
@@ -2376,7 +2376,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust first temperature sensor',
 				access: 'STATE_SET',
             }),
-			numeric({
+            m.numeric({
                 name: 'raw_temperature',
                 unit: 'raw unit',
                 cluster: 'msTemperatureMeasurement',
@@ -2384,7 +2384,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Sensor raw temperature',
                 access: 'STATE',
             }),
-			numeric({
+            m.numeric({
                 name: 'raw_temperature_recalibrated',
                 unit: 'raw unit',
                 cluster: 'msTemperatureMeasurement',
@@ -2392,7 +2392,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Recalibrated sensor raw temperature',
                 access: 'STATE',
             }),
-            battery({
+            m.battery({
 				percentage: true,
                 lowStatus: true,
                 voltage: true,
@@ -2400,7 +2400,7 @@ const definitions: DefinitionWithExtend[] = [
                 voltageReporting: false,
                 percentageReportingConfig: fiveReporting,
             }),
-            numeric({
+            m.numeric({
                 name: 'uptime',
                 unit: 'Hours',
                 cluster: 'genTime',
@@ -2408,7 +2408,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Uptime',
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 10,
@@ -2418,7 +2418,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval in seconds, by default 15 seconds',
 				access: 'STATE_SET',
             }),
-			enumLookup({
+            m.enumLookup({
                 name: 'tx_radio_power',
                 lookup: {'4dbm': 4, '19dbm': 19},
                 cluster: 'genPowerCfg',
@@ -2426,7 +2426,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set TX Radio Power, dbm',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'smart_sleep',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2435,7 +2435,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable Smart Sleep, short wakeup every 7 seconds',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'config_report_enable',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2444,7 +2444,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable reporting based on reporting configuration',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -2461,11 +2461,11 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Temperature sensor DS18B20, AAA bsttery, works in Tuya',
         extend: [
-            temperature({
+            m.temperature({
                 reporting: false,
                 access: 'STATE',
             }),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: true,
@@ -2480,11 +2480,11 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Temperature sensor DS18B20, AAA bsttery, signal amplifier, works in Tuya',
         extend: [
-            temperature({
+            m.temperature({
                 reporting: false,
                 access: 'STATE',
             }),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: true,
@@ -2499,70 +2499,70 @@ const definitions: DefinitionWithExtend[] = [
     vendor: 'EfektaLab',
     description: 'Temperature sensor with a signal amplifier, support up to 8 DS18B20 sensors on one line. Two types of power supply',
             extend: [
-            deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}}),
-            temperature({
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}}),
+            m.temperature({
                 endpointNames: ['1'],
                 description: 'Measured value of the 1 temperature sensor',
                 reporting: oneReporting,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 endpointNames: ['2'],
                 description: 'Measured value of the 2 temperature sensor',
                 reporting: oneReporting,
                 access: 'STATE',
             }),
-			temperature({
+            m.temperature({
                 endpointNames: ['3'],
                 description: 'Measured value of the 3 temperature sensor',
                 reporting: oneReporting,
                 access: 'STATE',
             }),
-			temperature({
+            m.temperature({
                 endpointNames: ['4'],
                 description: 'Measured value of the 4 temperature sensor',
                 reporting: oneReporting,
                 access: 'STATE',
             }),
-			temperature({
+            m.temperature({
                 endpointNames: ['5'],
                 description: 'Measured value of the 5 temperature sensor',
                 reporting: oneReporting,
                 access: 'STATE',
             }),
-			temperature({
+            m.temperature({
                 endpointNames: ['6'],
                 description: 'Measured value of the 6 temperature sensor',
                 reporting: oneReporting,
                 access: 'STATE',
             }),
-			temperature({
+            m.temperature({
                 endpointNames: ['7'],
                 description: 'Measured value of the 7 temperature sensor',
                 reporting: oneReporting,
                 access: 'STATE',
             }),
-			temperature({
+            m.temperature({
                 endpointNames: ['8'],
                 description: 'Measured value of the 8 temperature sensor',
                 reporting: oneReporting,
                 access: 'STATE',
             }),
-            battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: false,
                 percentageReporting: true,
                 percentageReportingConfig: fourReporting,
             }),
-			    numeric({
+            m.numeric({
                 name: 'number_of_sensors',
                 cluster: 'msTemperatureMeasurement',
 				attribute: {ID: 0xa199, type: Zcl.DataType.UINT8},
                 description: 'Number of ds18b20 sensors per data bus',
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'uptime',
                 unit: 'Hours',
                 cluster: 'genTime',
@@ -2570,7 +2570,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Uptime',
                 access: 'STATE',
             }),
-			numeric({
+            m.numeric({
                 name: 'mains_voltage',
                 unit: 'V',
                 cluster: 'genPowerCfg',
@@ -2580,7 +2580,7 @@ const definitions: DefinitionWithExtend[] = [
 				precision: 1,
                 access: 'STATE_GET',
             }),
-            numeric({
+            m.numeric({
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 3,
@@ -2589,7 +2589,7 @@ const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
                 description: 'Setting the sensor reading interval in seconds, by default 15 seconds',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'tx_radio_power',
                 lookup: {'4dbm': 4, '19dbm': 19},
                 cluster: 'genPowerCfg',
@@ -2597,7 +2597,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set TX Radio Power, dbm',
 				access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'smart_sleep',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
