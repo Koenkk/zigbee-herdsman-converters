@@ -851,7 +851,8 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 600,
                 cluster: 'pm25Measurement',
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
-                description: 'Setting the sensor report delay. Setting the time in seconds (6-600), by default 15 seconds',
+                description: 'Setting the sensor report delay. Setting the time in seconds (6-600), \
+			by default 15 seconds',
                 access: 'STATE_SET',
             }),
             m.binary({
@@ -1547,7 +1548,8 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['EFEKTA_PST_POW_DUO_V1_LR'],
         model: 'EFEKTA_PST_POW_DUO_V1_LR',
         vendor: 'EFEKTA',
-        description: 'Water, gas smart pressure monitor with two sensors, two types of power supply and signal amplifier',
+        description: 'Water, gas smart pressure monitor with two sensors, two types of power supply \
+		and signal amplifier',
         extend: [
             m.deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             m.pressure({
@@ -1742,7 +1744,8 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['EFEKTA_PST_POW_DUO_V2_LR'],
         model: 'EFEKTA_PST_POW_DUO_V2_LR',
         vendor: 'EFEKTA',
-        description: 'Water, gas smart pressure monitor with two sensors, two types of power supply and signal amplifier, V2',
+        description: 'Water, gas smart pressure monitor with two sensors, two types of power supply \
+		and signal amplifier, V2',
         extend: [
             m.deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             m.pressure({
@@ -1937,7 +1940,8 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['EFEKTA_PST_POW_V1_LR'],
         model: 'EFEKTA_PST_POW_V1_LR',
         vendor: 'EFEKTA',
-        description: 'Water, gas smart pressure monitor with two types of power supply and signal amplifier',
+        description: 'Water, gas smart pressure monitor with two types of power supply and \
+		signal amplifier',
         extend: [
             m.pressure({
                 unit: 'kPa',
@@ -2066,7 +2070,8 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['EFEKTA_PST_POW_V2_LR'],
         model: 'EFEKTA_PST_POW_V2_LR',
         vendor: 'EFEKTA',
-        description: 'Water, gas smart pressure monitor with two types of power supply and signal amplifier, V2',
+        description: 'Water, gas smart pressure monitor with two types of power supply \
+		and signal amplifier, V2',
         extend: [
             m.pressure({
                 unit: 'kPa',
@@ -2497,7 +2502,8 @@ const definitions: DefinitionWithExtend[] = [
     zigbeeModel: ['EFEKTA_T8_POW'],
     model: 'EFEKTA_T8_POW',
     vendor: 'EfektaLab',
-    description: 'Temperature sensor with a signal amplifier, support up to 8 DS18B20 sensors on one line. Two types of power supply',
+    description: 'Temperature sensor with a signal amplifier, support up to 8 DS18B20 sensors \
+	    on one line. Two types of power supply',
             extend: [
             m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}}),
             m.temperature({
