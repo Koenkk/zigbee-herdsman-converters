@@ -984,14 +984,14 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Smart water/gas pressure monitor with e-ink display.',
         extend: [
-            pressure({
+            m.pressure({
                 unit: 'kPa',
                 description: 'Pressure in kPa',
                 scale: 10,
                 reporting: false,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'bar',
                 unit: 'bar',
                 cluster: 'msPressureMeasurement',
@@ -1001,7 +1001,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'psi',
                 unit: 'psi',
                 cluster: 'msPressureMeasurement',
@@ -1011,11 +1011,11 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 access: 'STATE',
             }),
-            temperature({
+            m.temperature({
                 reporting: false,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'pressure_offset',
                 unit: 'kPa',
                 valueMin: -100.0,
@@ -1025,7 +1025,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust pressure sensor',
                 access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 name: 'raw_temperature_calibration',
                 unit: 'raw unit',
                 valueMin: -8192,
@@ -1035,7 +1035,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Adjust temperature sensor',
                 access: 'STATE_SET',
             }),
-            numeric({
+            m.numeric({
                 name: 'mains_voltage',
                 unit: 'V',
                 cluster: 'genPowerCfg',
@@ -1045,7 +1045,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 1,
                 access: 'STATE',
             }),
-            battery({
+            m.battery({
                 access: 'STATE',
                 percentageReportingConfig: false,
                 lowStatus: true,
@@ -1053,7 +1053,7 @@ const definitions: DefinitionWithExtend[] = [
                 voltageReporting: false,
                 voltageReportingConfig: false,
             }),
-            numeric({
+            m.numeric({
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 10,
@@ -1063,7 +1063,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval in seconds, by default 20 seconds',
                 access: 'STATE_SET',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'tx_radio_power',
                 lookup: {'4': 4, '19': 19},
                 cluster: 'genPowerCfg',
@@ -1071,7 +1071,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set TX Radio Power, dbm',
                 access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1080,7 +1080,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable сontrol of comparison with previous data',
                 access: 'STATE_SET',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'invert',
                 lookup: {'BW': 0, 'WB': 1},
                 cluster: 'genPowerCfg',
@@ -1088,7 +1088,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Invert display color',
                 access: 'STATE_SET',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'fastmode',
                 lookup: {'Fast': 0, 'Ultra Fast': 1},
                 cluster: 'genPowerCfg',
@@ -1104,15 +1104,15 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'EFEKTA',
         description: 'Temperature and humidity smart sensor with with e-ink display.',
         extend: [
-            temperature({
+            m.temperature({
                 reporting: false,
                 access: 'STATE',
             }),
-            humidity({
+            m.humidity({
                 reporting: false,
                 access: 'STATE',
             }),
-            numeric({
+            m.numeric({
                 name: 'mains_voltage',
                 unit: 'V',
                 cluster: 'genPowerCfg',
@@ -1122,7 +1122,7 @@ const definitions: DefinitionWithExtend[] = [
                 precision: 1,
                 access: 'STATE',
             }),
-            battery({
+            m.battery({
                 access: 'STATE',
                 percentageReportingConfig: false,
                 lowStatus: true,
@@ -1130,7 +1130,7 @@ const definitions: DefinitionWithExtend[] = [
                 voltageReporting: false,
                 voltageReportingConfig: false,
             }),
-            numeric({
+            m.numeric({
                 name: 'reading_interval',
                 unit: 'sec',
                 valueMin: 10,
@@ -1140,7 +1140,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Setting the sensor reading interval in seconds, by default 40 seconds',
                 access: 'STATE_SET',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'tx_radio_power',
                 lookup: {'4': 4, '19': 19},
                 cluster: 'genPowerCfg',
@@ -1148,7 +1148,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Set TX Radio Power, dbm',
                 access: 'STATE_SET',
             }),
-            binary({
+            m.binary({
                 name: 'comparison_previous_data',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1157,7 +1157,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Enable сontrol of comparison with previous data',
                 access: 'STATE_SET',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'invert',
                 lookup: {'BW': 0, 'WB': 1},
                 cluster: 'genPowerCfg',
@@ -1165,7 +1165,7 @@ const definitions: DefinitionWithExtend[] = [
                 description: 'Invert display color',
                 access: 'STATE_SET',
             }),
-            enumLookup({
+            m.enumLookup({
                 name: 'fastmode',
                 lookup: {'Fast': 0, 'Ultra Fast': 1},
                 cluster: 'genPowerCfg',
