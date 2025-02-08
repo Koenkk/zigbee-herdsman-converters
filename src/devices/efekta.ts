@@ -2022,7 +2022,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['EFEKTA_PST_DUO_V1_LR'],
-        model: 'EFEKTA_PST_DUO_V1',
+        model: 'EFEKTA_PST_DUO_V1_LR',
         vendor: 'EFEKTA',
         description: 'Water, gas smart pressure monitor with two sensors and signal amplifier',
         extend: [
