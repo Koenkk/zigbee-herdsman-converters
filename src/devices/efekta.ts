@@ -1195,10 +1195,10 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-    zigbeeModel: ['EFEKTA_T8_POW'],
-    model: 'EFEKTA_T8_POW',
-    vendor: 'EfektaLab',
-    description: 'Temperature sensor with a signal amplifier, support up to 8 DS18B20',
+        zigbeeModel: ['EFEKTA_T8_POW'],
+        model: 'EFEKTA_T8_POW',
+        vendor: 'EfektaLab',
+        description: 'Temperature sensor with a signal amplifier, support up to 8 DS18B20',
         extend: [
             m.deviceEndpoints({
                 endpoints: {
