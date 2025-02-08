@@ -2286,6 +2286,33 @@ export const lumiModernExtend = {
             ],
         } satisfies ModernExtend;
     },
+    lumiMultiClick: (args?: Partial<modernExtend.BinaryArgs>) =>
+        modernExtend.binary({
+            name: 'multi_click',
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0286, type: 0x20},
+            valueOn: [true, 2],
+            valueOff: [false, 1],
+            description: 'Enable multi-click mode for the switch, otherwise single click',
+            access: 'ALL',
+            entityCategory: 'config',
+            zigbeeCommandOptions: {manufacturerCode},
+            ...args,
+        }),
+    lumiPreventLeave: (): ModernExtend => {
+        const onEvent: OnEvent = async (type, data, device) => {
+            if (type == 'message' && data.type == 'attributeReport' && data.cluster == 'manuSpecificLumi' && data.data[0x00fc] == false) {
+                const payload = {
+                    [0x00fc]: {
+                        value: true,
+                        type: 0x10,
+                    },
+                };
+                await device.getEndpoint(1).write('manuSpecificLumi', payload, {manufacturerCode});
+            }
+        };
+        return {onEvent, isModernExtend: true};
+    },
 };
 
 export {lumiModernExtend as modernExtend};
@@ -4664,12 +4691,12 @@ export const toZigbee = {
     lumi_vibration_sensitivity: {
         key: ['sensitivity'],
         convertSet: async (entity, key, value, meta) => {
-            assertString(value, key);
-            value = value.toLowerCase();
-            const lookup = {low: 0x15, medium: 0x0b, high: 0x01};
-
+            if (isString(value)) {
+                value = getFromLookup(value, {low: 0x15, medium: 0x0b, high: 0x01});
+            }
+            assertNumber(value);
             const options = {...manufacturerOptions.lumi, timeout: 35000};
-            await entity.write('genBasic', {0xff0d: {value: getFromLookup(value, lookup), type: 0x20}}, options);
+            await entity.write('genBasic', {0xff0d: {value, type: 0x20}}, options);
             return {state: {sensitivity: value}};
         },
     } satisfies Tz.Converter,

@@ -5,6 +5,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import * as m from '../lib/modernExtend';
+import * as namron from '../lib/namron';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as tuya from '../lib/tuya';
@@ -305,6 +306,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Namron',
         description: 'ZigBee LED dimmer',
         extend: [m.light({configureReporting: true}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
+        ota: true,
     },
     {
         zigbeeModel: ['4512702'],
@@ -1333,33 +1335,11 @@ const definitions: DefinitionWithExtend[] = [
         model: '4512768',
         vendor: 'Namron',
         description: 'Zigbee 2 channel switch',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-            e.power_on_behavior(['off', 'on', 'previous']),
-            e.energy(),
-            e.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
-            e.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),
-            e.numeric('current_l1', ea.STATE).withUnit('A').withDescription('Phase 1 current'),
-            e.numeric('current_l2', ea.STATE).withUnit('A').withDescription('Phase 2 current'),
-            e.numeric('power_l1', ea.STATE).withUnit('W').withDescription('Phase 1 power'),
-            e.numeric('power_l2', ea.STATE).withUnit('W').withDescription('Phase 2 power'),
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.onOff({endpointNames: ['l1', 'l2']}),
+            m.electricityMeter({endpointNames: ['l1', 'l2']}),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true, publishDuplicateTransaction: true, multiEndpointSkip: ['power', 'energy']},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            await reporting.onOff(endpoint2);
-            await reporting.currentSummDelivered(endpoint1);
-        },
     },
     {
         zigbeeModel: ['4512761'],
@@ -1517,6 +1497,141 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Namron',
         description: 'Zigbee smart plug dimmer 150W',
         extend: [m.light(), m.electricityMeter({cluster: 'electrical'})],
+    },
+    {
+        zigbeeModel: ['4512783', '4512784'],
+        model: '4512783/4512784',
+        vendor: 'Namron',
+        description: 'Namron edge termostat',
+        fromZigbee: [
+            fz.thermostat,
+            namron.fromZigbee.namron_edge_thermostat_holiday_temp,
+            namron.fromZigbee.namron_edge_thermostat_vacation_date,
+            fz.namron_hvac_user_interface,
+            fz.metering,
+            fz.electrical_measurement,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.namron_thermostat_child_lock,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_programming_operation_mode,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_running_state,
+            tz.thermostat_running_mode,
+            namron.toZigbee.namron_edge_thermostat_holiday_temp,
+            namron.toZigbee.namron_edge_thermostat_vacation_date,
+        ],
+        onEvent: async (type, data, device, options) => {
+            if (type === 'stop') {
+                try {
+                    const key = 'time_sync_value';
+                    clearInterval(globalStore.getValue(device, key));
+                    globalStore.clearValue(device, key);
+                } catch {
+                    /* Do nothing*/
+                }
+            }
+            if (!globalStore.hasValue(device, 'time_sync_value')) {
+                const hours24 = 1000 * 60 * 60 * 24;
+                const interval = setInterval(async () => {
+                    try {
+                        const endpoint = device.getEndpoint(1);
+                        // Device does not asks for the time with binding, therefore we write the time every 24 hours
+                        const time = new Date().getTime() / 1000;
+                        await endpoint.write('hvacThermostat', {
+                            [0x800b]: {
+                                value: time,
+                                type: Zcl.DataType.UINT32,
+                            },
+                        });
+                    } catch {
+                        /* Do nothing*/
+                    }
+                }, hours24);
+                globalStore.putValue(device, 'time_sync_value', interval);
+            }
+        },
+        configure: async (device, coordinatorEndpoint, _logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic',
+                'genIdentify',
+                'genOnOff',
+                'hvacThermostat',
+                'hvacUserInterfaceCfg',
+                'msRelativeHumidity',
+                'seMetering',
+                'haElectricalMeasurement',
+                'msOccupancySensing',
+            ];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, change: 50});
+            await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
+            await reporting.thermostatKeypadLockMode(endpoint);
+
+            // Initial read
+            await endpoint.read('hvacThermostat', ['systemMode', 'runningMode', 'occupiedHeatingSetpoint']);
+            await endpoint.read(
+                'hvacThermostat',
+                [0x8000, 0x8001, 0x8002, 0x8003, 0x8004, 0x801e, 0x8006, 0x8005, 0x8006, 0x8029, 0x8022, 0x8023, 0x8024, 0x8013],
+            );
+
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+        extend: [
+            m.electricityMeter({voltage: false}),
+            m.onOff({powerOnBehavior: false}),
+            namron.edgeThermostat.windowOpenDetection(),
+            namron.edgeThermostat.antiFrost(),
+            namron.edgeThermostat.summerWinterSwitch(),
+            namron.edgeThermostat.vacationMode(),
+            namron.edgeThermostat.timeSync(),
+            namron.edgeThermostat.autoTime(),
+            namron.edgeThermostat.displayActiveBacklight(),
+            namron.edgeThermostat.displayAutoOff(),
+            namron.edgeThermostat.regulatorPercentage(),
+            namron.edgeThermostat.regulationMode(),
+            namron.edgeThermostat.sensorMode(),
+            namron.edgeThermostat.boostTime(),
+            namron.edgeThermostat.readOnly.boostTimeRemaining(),
+            namron.edgeThermostat.systemMode(),
+            namron.edgeThermostat.deviceTime(),
+            namron.edgeThermostat.readOnly.windowState(),
+            namron.edgeThermostat.readOnly.deviceFault(),
+            namron.edgeThermostat.readOnly.workDays(),
+            m.humidity(),
+        ],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
+                .withSystemMode(['off', 'auto', 'cool', 'heat'], ea.ALL)
+                .withRunningState(['idle', 'heat', 'cool'])
+                .withLocalTemperatureCalibration(-10, 10, 0.5),
+            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit']).withLabel('Temperature Unit').withDescription('Select Unit'),
+            e.enum('operating_mode', ea.ALL, ['manual', 'program', 'eco']).withDescription('Selected program for thermostat'),
+            e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            e
+                .numeric('holiday_temp_set', ea.ALL)
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withUnit('°C')
+                .withLabel('Vacation temperature')
+                .withDescription('Vacation temperature setpoint'),
+            e
+                .text('vacation_start_date', ea.ALL)
+                .withDescription('Start date')
+                .withDescription("Supports dates starting with day or year with '. - /'"),
+            e.text('vacation_end_date', ea.ALL).withDescription('End date').withDescription("Supports dates starting with day or year with '. - /'"),
+        ],
     },
 ];
 

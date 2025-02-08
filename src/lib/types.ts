@@ -450,6 +450,7 @@ export namespace Ota {
         suppressElementImageParseFailure?: boolean;
     };
 }
+
 export namespace Reporting {
     export interface Override {
         min?: number;
@@ -457,3 +458,12 @@ export namespace Reporting {
         change?: number;
     }
 }
+
+export type LevelConfigFeatures = (
+    | 'on_off_transition_time'
+    | 'on_transition_time'
+    | 'off_transition_time'
+    | 'execute_if_off'
+    | 'on_level'
+    | 'current_level_startup'
+)[];

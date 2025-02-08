@@ -111,7 +111,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Legrand',
         description: 'Wireless shutter switch',
         ota: true,
-        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
         fromZigbee: [
             fz.identify,
             fz.ignore_basic_report,

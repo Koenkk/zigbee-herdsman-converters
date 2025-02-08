@@ -420,6 +420,17 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee 0-10V PWM dimmer',
         extend: [m.light()],
     },
+    {
+        zigbeeModel: ['ROB_200-001-0'],
+        model: 'ROB_200-001-0',
+        vendor: 'ROBB',
+        description: 'Door/window sensor',
+        extend: [
+            m.battery(),
+            m.ignoreClusterReport({cluster: 'genBinaryInput'}),
+            m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+        ],
+    },
 ];
 
 export default definitions;
