@@ -8,7 +8,7 @@ import {access, options, presets} from '../lib/exposes';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
+import {Configure, Expose, Fz, KeyValue, KeyValueAny, LevelConfigFeatures, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
 import {
     assertString,
     configureSetPowerSourceWhenUnknown,
@@ -80,7 +80,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
 
 export function ikeaLight(args?: Omit<m.LightArgs, 'colorTemp'> & {colorTemp?: true | {range: Range; viaColor: true}}) {
     const colorTemp: {range: Range} = args?.colorTemp ? (args.colorTemp === true ? {range: [250, 454]} : args.colorTemp) : undefined;
-    const levelConfig: {disabledFeatures?: string[]} = args?.levelConfig
+    const levelConfig: {disabledFeatures?: LevelConfigFeatures} = args?.levelConfig
         ? args.levelConfig
         : {disabledFeatures: ['on_off_transition_time', 'on_transition_time', 'off_transition_time', 'on_level']};
     const result = m.light({...args, colorTemp, levelConfig});

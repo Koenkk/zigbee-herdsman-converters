@@ -309,7 +309,7 @@ const definitions: DefinitionWithExtend[] = [
         model: '4058075729322',
         vendor: 'LEDVANCE',
         description: 'SMART+ Compact Outdoor Plug EU',
-        extend: [ledvanceOnOff({powerOnBehavior: false})],
+        extend: [ledvanceOnOff()],
     },
     {
         zigbeeModel: ['PLUG UK T'],
