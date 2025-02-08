@@ -845,8 +845,7 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 600,
                 cluster: 'pm25Measurement',
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
-                description: 'Setting the sensor report delay. Setting the time in seconds (6-600),\
-                    by default 15 seconds',
+                description: 'Setting the sensor report delay. Setting the time in seconds (6-600), by default 15 seconds',
                 access: 'STATE_SET',
             }),
             m.binary({
@@ -983,7 +982,8 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['EFEKTA_ePST_POW_E_LR'],
         model: 'EFEKTA_ePST_POW_E_LR',
         vendor: 'EFEKTA',
-        description: 'Smart water/gas pressure monitor with e-ink display.',
+        description:
+            'Smart water/gas pressure monitor with e-ink display.',
         extend: [
             m.pressure({
                 unit: 'kPa',
@@ -1102,7 +1102,8 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['EFEKTA_eTH_POW_E_LR'],
         model: 'EFEKTA_eTH_POW_E_LR',
         vendor: 'EFEKTA',
-        description: 'Temperature and humidity smart sensor with with e-ink display.',
+        description:
+            'Temperature and humidity smart sensor with with e-ink display.',
         extend: [
             m.temperature({
                 reporting: false,
