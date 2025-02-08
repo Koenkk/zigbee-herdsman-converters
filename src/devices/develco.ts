@@ -560,18 +560,18 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery_low()],
         ota: true,
         endpoint: (device) => {
-            return { default: 35 };
+            return {default: 35};
         },
         configure: async (device, coordinatorEndpoint, definition) => {
             /*
-            * BUGFIX: When adding a new WISZB-131 contact sensor to z2m, if the magnet is never brought close to it,
-            * genBinaryInput remains 'undiscovered'. This causes zstack to hang waiting for the sensor to discover
-            * that endpoint when z2m is restarted after the sensor's batteries are removed.
-            * 
-            * By forcing this discovery and patching the device database for already configured devices,
-            * the issue appears to be resolved. This configure function ensures the genBinaryInput cluster
-            * is properly registered even if the magnetic sensor was never triggered during initial setup.
-            */
+             * BUGFIX: When adding a new WISZB-131 contact sensor to z2m, if the magnet is never brought close to it,
+             * genBinaryInput remains 'undiscovered'. This causes zstack to hang waiting for the sensor to discover
+             * that endpoint when z2m is restarted after the sensor's batteries are removed.
+             *
+             * By forcing this discovery and patching the device database for already configured devices,
+             * the issue appears to be resolved. This configure function ensures the genBinaryInput cluster
+             * is properly registered even if the magnetic sensor was never triggered during initial setup.
+             */
             const ep = device.getEndpoint(35);
             try {
                 const data = await ep.read('genBinaryInput', ['description'], manufacturerOptions);
@@ -582,7 +582,7 @@ const definitions: DefinitionWithExtend[] = [
                 // In case of a read failure, we proceed to force the cluster value.
             }
             // Forcefully inject the genBinaryInput cluster with the default attribute
-            ep.clusters.genBinaryInput = { attributes: { description: 'Magnet Open' } };
+            ep.clusters.genBinaryInput = {attributes: {description: 'Magnet Open'}};
             device.save();
         },
         extend: [
@@ -590,7 +590,7 @@ const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
             m.battery({
-                voltageToPercentage: { min: 2500, max: 3000 },
+                voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
