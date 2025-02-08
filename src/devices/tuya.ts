@@ -986,7 +986,12 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: (device, options) => {
             const exps: Expose[] = [e.temperature(), e.humidity(), e.battery()];
-            if (!device || device.manufacturerName === '_TZE200_qyflbnbj' || device.manufacturerName === '_TZE204_qyflbnbj' || device.manufacturerName === '_TZE284_qyflbnbj') {
+            if (
+                !device ||
+                device.manufacturerName === '_TZE200_qyflbnbj' ||
+                device.manufacturerName === '_TZE204_qyflbnbj' ||
+                device.manufacturerName === '_TZE284_qyflbnbj'
+            ) {
                 exps.push(e.battery_low());
                 exps.push(e.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'));
             }
