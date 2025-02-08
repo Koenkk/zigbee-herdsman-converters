@@ -1894,7 +1894,7 @@ const definitions: DefinitionWithExtend[] = [
                 cluster: 'msPressureMeasurement',
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: 'Adjust first pressure sensor',
-				access: 'STATE_SET',
+                access: 'STATE_SET',
             }),
             m.numeric({
                 endpointNames: ['1'],
