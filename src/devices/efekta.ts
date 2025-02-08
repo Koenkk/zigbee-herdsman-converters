@@ -1066,7 +1066,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: 'tx_radio_power',
-                lookup: {'4': 4, '19': 19},
+                lookup: {'4dbm': 4, '19dbm': 19},
                 cluster: 'genPowerCfg',
                 attribute: {ID: 0x0236, type: Zcl.DataType.INT8},
                 description: 'Set TX Radio Power, dbm',
@@ -1091,7 +1091,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: 'fastmode',
-                lookup: {fast: 0, ultra_fast: 1},
+                lookup: {Fast: 0, 'Ultra Fast': 1},
                 cluster: 'genPowerCfg',
                 attribute: {ID: 0xf005, type: Zcl.DataType.UINT8},
                 description: 'Display refresh mode',
@@ -1142,7 +1142,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: 'tx_radio_power',
-                lookup: {'4': 4, '19': 19},
+                lookup: {'4dbm': 4, '19dbm': 19},
                 cluster: 'genPowerCfg',
                 attribute: {ID: 0x0236, type: Zcl.DataType.INT8},
                 description: 'Set TX Radio Power, dbm',
