@@ -4829,6 +4829,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE284_p3dbf6qs',
             '_TZE200_rxq4iti9',
             '_TZE204_ogx8u5z6',
+            '_TZE284_ogx8u5z6',
             '_TZE200_hvaxb2tc' /* model: 'TRV06', vendor: 'AVATTO' */,
             '_TZE284_o3x45p96' /* model: 'TRV06', vendor: 'AVATTO' */,
             '_TZE284_c6wv4xyo' /* model: 'AVATTO_TRV06', vendor: 'AVATTO_TRV06' */,
