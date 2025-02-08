@@ -1046,12 +1046,12 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
             m.battery({
-                access: 'STATE',
-                percentageReportingConfig: false,
+                percentage: true,
+				percentageReporting: false,
                 lowStatus: true,
-                voltage: false,
+				voltage: false,
                 voltageReporting: false,
-                voltageReportingConfig: false,
+				access: 'STATE',
             }),
             m.numeric({
                 name: 'reading_interval',
@@ -1123,12 +1123,12 @@ const definitions: DefinitionWithExtend[] = [
                 access: 'STATE',
             }),
             m.battery({
-                access: 'STATE',
-                percentageReportingConfig: false,
+                percentage: true,
+				percentageReporting: false,
                 lowStatus: true,
-                voltage: false,
+				voltage: false,
                 voltageReporting: false,
-                voltageReportingConfig: false,
+				access: 'STATE',
             }),
             m.numeric({
                 name: 'reading_interval',
