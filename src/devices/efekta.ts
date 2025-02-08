@@ -1173,6 +1173,25 @@ const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        zigbeeModel: ['EFEKTA_T1_Y_LR'],
+        model: 'EFEKTA_T1_Y_LR',
+        vendor: 'EFEKTA',
+        description: 'Temperature sensor DS18B20, AAA bsttery, signal amplifier, works in Tuya',
+        extend: [
+            m.temperature({
+                reporting: false,
+                access: 'STATE',
+            }),
+            m.battery({
+                percentage: true,
+                lowStatus: true,
+                voltage: true,
+                percentageReporting: false,
+                voltageReporting: false,
+            }),
+        ],
+    },
 ];
 
 export default definitions;
