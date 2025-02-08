@@ -1009,7 +1009,7 @@ const definitions: DefinitionWithExtend[] = [
     zigbeeModel: ["EFEKTA_ePST_POW_E_LR"],
     model: "EFEKTA_ePST_POW_E_LR",
     vendor: "EFEKTA",
-    description: "Water, gas smart pressure monitor with e-ink display.",
+    description: "Water, gas smart pressure monitor with e-ink display",
     extend: [
       m.pressure({
         unit: "kPa",
