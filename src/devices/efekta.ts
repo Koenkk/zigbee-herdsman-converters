@@ -1051,7 +1051,6 @@ const definitions: DefinitionWithExtend[] = [
                 lowStatus: true,
                 voltage: false,
                 voltageReporting: false,
-                access: 'STATE',
             }),
             m.numeric({
                 name: 'reading_interval',
@@ -1128,7 +1127,6 @@ const definitions: DefinitionWithExtend[] = [
                 lowStatus: true,
                 voltage: false,
                 voltageReporting: false,
-                access: 'STATE',
             }),
             m.numeric({
                 name: 'reading_interval',
