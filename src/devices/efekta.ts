@@ -2505,7 +2505,18 @@ const definitions: DefinitionWithExtend[] = [
     description: 'Temperature sensor with a signal amplifier, support up to 8 DS18B20 sensors \
 	    on one line. Two types of power supply',
             extend: [
-            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}}),
+            m.deviceEndpoints({
+                endpoints: {
+                    '1': 1,
+                    '2': 2,
+                    '3': 3,
+                    '4': 4,
+                    '5': 5,
+                    '6': 6,
+                    '7': 7,
+                    '8': 8,
+                },
+            }),
             m.temperature({
                 endpointNames: ['1'],
                 description: 'Measured value of the 1 temperature sensor',
