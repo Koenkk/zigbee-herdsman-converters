@@ -845,7 +845,8 @@ const definitions: DefinitionWithExtend[] = [
                 valueMax: 600,
                 cluster: 'pm25Measurement',
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
-                description: 'Setting the sensor report delay. Setting the time in seconds (6-600), by default 15 seconds',
+                description: 'Setting the sensor report delay. Setting the time in seconds (6-600),\
+                    by default 15 seconds',
                 access: 'STATE_SET',
             }),
             m.binary({
