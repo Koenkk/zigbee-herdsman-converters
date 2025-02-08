@@ -2596,6 +2596,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
+        ota: true,
     },
     {
         zigbeeModel: ['SML004'],
@@ -2624,8 +2625,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
-        // Temporary disable until OTA is available: https://github.com/Koenkk/zigbee2mqtt/issues/14923
-        // ota: true,
+        ota: true,
     },
     {
         zigbeeModel: ['LOM001'],
@@ -3912,6 +3912,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance Play Gradient Light Tube Compact',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ['929003822901'],
+        model: '929003822901',
+        vendor: 'Philips',
+        description: 'Hue Tento white ambiance 29,1cm',
+        extend: [philipsLight({colorTemp: {range: [153, 438]}})],
     },
     {
         zigbeeModel: ['929003823001'],

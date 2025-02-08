@@ -278,7 +278,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position(), e.battery()],
     },
     {
-        zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f'],
+        zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f', '71a0b275d9ba4895afdaf400bc7e3a0d', 'b7313321dbe74da384d136a2a3fa2005'],
         model: 'T40W1Z',
         vendor: 'ORVIBO',
         description: 'MixSwitch 1 gang',
@@ -293,13 +293,20 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['e8d667cb184b4a2880dd886c23d00976'],
-        model: 'T40W3Z',
+        model: 'T40W3Z_v1',
         vendor: 'ORVIBO',
         description: 'MixSwitch 3 gangs',
         extend: [m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), m.onOff({endpointNames: ['left', 'center', 'right']})],
     },
     {
-        zigbeeModel: ['20513b10079f4cc68cffb8b0dc6d3277'],
+        zigbeeModel: ['f3be30b8c43c44da85aac622e5b56111', 'f58591161f344ccea242688a6de7d25d'],
+        model: 'T40W3Z_v2',
+        vendor: 'ORVIBO',
+        description: 'MixSwitch 3 gangs',
+        extend: [m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}), m.onOff({endpointNames: ['right', 'center', 'left']})],
+    },
+    {
+        zigbeeModel: ['20513b10079f4cc68cffb8b0dc6d3277', 'c2ea8c76f9fe40e5a7de5e8fb8dfb765'],
         model: 'T40W4Z',
         vendor: 'ORVIBO',
         description: 'MixSwitch 4 gangs',
