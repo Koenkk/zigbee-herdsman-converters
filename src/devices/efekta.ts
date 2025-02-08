@@ -1089,7 +1089,7 @@ const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: 'fastmode',
-                lookup: {'Fast': 0, 'UltraFast': 1},
+                lookup: {'F': 0, 'UF': 1},
                 cluster: 'genPowerCfg',
                 attribute: {ID: 0xF005, type: Zcl.DataType.UINT8},
                 description: 'Display refresh mode',
