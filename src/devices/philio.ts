@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PAT04A-v1.1.5'],
         model: 'PAT04-A',
@@ -11,6 +11,3 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Evology', model: 'PAT04-A'}],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

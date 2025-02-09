@@ -1958,7 +1958,7 @@ const chunkedRead = async (endpoint: Zh.Endpoint, attributes: string[], cluster:
     }
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['VZM30-SN'],
         model: 'VZM30-SN',
@@ -2158,6 +2158,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

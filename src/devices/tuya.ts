@@ -790,7 +790,7 @@ const modernExtendLocal = {
     },
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TS0204'],
         model: 'TS0204',
@@ -14453,6 +14453,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.light()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

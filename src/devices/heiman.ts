@@ -10,7 +10,7 @@ import {DefinitionWithExtend, Reporting, Zh} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PIRILLSensor-EF-3.0'],
         model: 'HS1MIS-3.0',
@@ -767,6 +767,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

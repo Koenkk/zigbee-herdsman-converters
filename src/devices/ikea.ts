@@ -24,7 +24,7 @@ import {
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     // #region light
     // lights naming convention: type, light capabilities, form, diffuser type, brightness
     // #region E26/E27/B22
@@ -947,6 +947,3 @@ const definitions: DefinitionWithExtend[] = [
     },
     // #endregion sensors
 ];
-
-export default definitions;
-module.exports = definitions;

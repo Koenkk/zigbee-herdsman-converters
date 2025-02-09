@@ -10,7 +10,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0726', ['_TZ3000_kt6xxa4o']),
         model: 'QAT42Z3',
@@ -255,6 +255,3 @@ const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
     },
 ];
-
-export default definitions;
-module.exports = definitions;

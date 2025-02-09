@@ -8,7 +8,7 @@ import {DefinitionWithExtend, Zh} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['E-Ctrl', 'RPH E-Ctrl', 'RSS E-Ctrl'],
         model: 'E-Ctrl',
@@ -217,6 +217,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

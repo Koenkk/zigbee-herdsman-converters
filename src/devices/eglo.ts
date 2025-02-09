@@ -5,7 +5,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['EBF_RGB_Zm', 'EBF_RGB_Zm_CLP'],
         model: '900091',
@@ -92,6 +92,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.action(['on', 'brightness_move_to_level', 'color_temperature_move'])],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

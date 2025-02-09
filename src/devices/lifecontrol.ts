@@ -63,7 +63,7 @@ function electricityMeterPoll(): ModernExtend {
     return {configure, onEvent, isModernExtend: true};
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Leak_Sensor'],
         model: 'MCLH-07',
@@ -116,6 +116,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [airQuality(), m.battery({dontDividePercentage: true, percentageReporting: false})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

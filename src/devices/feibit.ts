@@ -8,7 +8,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['FB56-DOS06HM1.1'],
         model: 'FB56-DOS06HM1.1',
@@ -305,6 +305,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: false})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

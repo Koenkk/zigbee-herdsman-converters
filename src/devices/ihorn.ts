@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['LH09521'],
         model: 'LH-09521',
@@ -69,6 +69,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']}), m.battery()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

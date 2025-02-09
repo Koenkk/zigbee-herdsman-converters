@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: 'WSZ 98426061', manufacturerName: 'Nordtronic A/S'},
@@ -36,6 +36,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

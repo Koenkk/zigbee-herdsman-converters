@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['5j6ifxj', '5j6ifxj\u0000'],
         model: 'BW-IS3',
@@ -34,6 +34,3 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.TYZB01_on_off],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

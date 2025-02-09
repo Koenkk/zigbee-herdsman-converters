@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Halo_RL5601'],
         model: 'RL460WHZHA69', // The 4" CAN variant presents as 5/6" zigbeeModel.
@@ -10,6 +10,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [200, 370]}})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -8,7 +8,7 @@ const normalReporting = {min: 0, max: 3600, change: 0};
 const rareReporting = {min: 0, max: 21600, change: 0};
 const rarestReporting = {min: 0, max: 64800, change: 0};
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['EFEKTA_iAQ3'],
         model: 'EFEKTA_iAQ3',
@@ -1174,6 +1174,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

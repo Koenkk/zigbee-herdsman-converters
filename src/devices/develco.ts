@@ -216,7 +216,7 @@ const develco = {
     },
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SPLZB-131'],
         model: 'SPLZB-131',
@@ -1031,6 +1031,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

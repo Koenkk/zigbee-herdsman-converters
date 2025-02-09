@@ -23,7 +23,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['CK-BL702-ROUTER-01(7018)'],
         model: 'CK-BL702-ROUTER-01(7018)',
@@ -304,6 +304,3 @@ const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
 ];
-
-export default definitions;
-module.exports = definitions;

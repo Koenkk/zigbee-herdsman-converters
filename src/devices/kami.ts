@@ -4,7 +4,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Z3ContactSensor'],
         model: 'N20',
@@ -15,6 +15,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.action(['motion'])],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

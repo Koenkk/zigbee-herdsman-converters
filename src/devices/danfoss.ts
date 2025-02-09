@@ -19,7 +19,7 @@ const setTime = async (device: Zh.Device) => {
     await endpoint.write('genTime', values);
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
         // changing those two too.
@@ -865,6 +865,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

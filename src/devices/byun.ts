@@ -4,7 +4,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Windows switch  '],
         model: 'M415-6C',
@@ -24,6 +24,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.gas()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;
