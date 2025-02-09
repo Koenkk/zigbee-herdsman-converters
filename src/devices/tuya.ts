@@ -10008,6 +10008,7 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
+        options: [exposes.options.precision('ac_frequency')],
         exposes: [
             tuya.exposes.voltageWithPhase('a'),
             tuya.exposes.voltageWithPhase('b'),
@@ -10032,6 +10033,13 @@ const definitions: DefinitionWithExtend[] = [
             tuya.exposes.powerFactorWithPhase('a'),
             tuya.exposes.powerFactorWithPhase('b'),
             tuya.exposes.powerFactorWithPhase('c'),
+            e
+                .numeric('update_frequency', ea.STATE_SET)
+                .withUnit('s')
+                .withDescription('Update frequency')
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withPreset('default', 10, 'Default value'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -10040,6 +10048,7 @@ const definitions: DefinitionWithExtend[] = [
                 [29, 'power', tuya.valueConverter.raw],
                 [32, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [50, 'power_factor', tuya.valueConverter.raw],
+                [102, 'update_frequency', tuya.valueConverterBasic.divideBy(1)],
                 [103, 'voltage_a', tuya.valueConverter.divideBy10],
                 [104, 'current_a', tuya.valueConverter.divideBy1000],
                 [105, 'power_a', tuya.valueConverter.raw],
