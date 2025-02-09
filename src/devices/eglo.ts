@@ -4,6 +4,7 @@ import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 const definitions: DefinitionWithExtend[] = [
     {
@@ -73,6 +74,7 @@ const definitions: DefinitionWithExtend[] = [
                 'color_temperature_step_up',
                 'color_temperature_step_down',
             ]),
+            e.numeric('action_group', ea.STATE),
         ],
     },
     {
