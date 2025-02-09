@@ -6,7 +6,7 @@ import {Cluster} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
 import {logger} from './logger';
 import * as m from './modernExtend';
 import {philipsLight} from './philips';
-import {IndexedDefinition, ModernExtend, ResolvedDefinitionWithExtend, Zh} from './types';
+import {DefinitionWithExtend, ModernExtend, Zh} from './types';
 import {getClusterAttributeValue} from './utils';
 
 const NS = 'zhc:gendef';
@@ -50,16 +50,11 @@ class ExtendGenerator<T> implements GeneratedExtend {
 type ExtenderGenerator = (device: Zh.Device, endpoints: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
 type Extender = [string[], ExtenderGenerator];
 
-type IndexedDefinitionWithZigbeeModel = IndexedDefinition & {zigbeeModel: string[]};
+type DefinitionWithZigbeeModel = DefinitionWithExtend & {zigbeeModel: string[]};
 
-function generateSource(
-    definition: IndexedDefinitionWithZigbeeModel,
-    resolvedDefinition: ResolvedDefinitionWithExtend,
-    generatedExtend: GeneratedExtend[],
-): string {
+function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: GeneratedExtend[]): string {
     const imports = [...new Set(generatedExtend.map((e) => e.lib ?? 'modernExtend'))];
     const importsStr = imports.map((e) => `const ${e == 'modernExtend' ? 'm' : e} = require('zigbee-herdsman-converters/lib/${e}');`).join('\n');
-
     return `${importsStr}
 
 const definition = {
@@ -68,13 +63,13 @@ const definition = {
     vendor: '${definition.vendor}',
     description: 'Automatically generated definition',
     extend: [${generatedExtend.map((e) => `${e.lib ?? 'm'}.${e.getSource()}`).join(', ')}],
-    meta: ${JSON.stringify(resolvedDefinition.meta || {})},
+    meta: ${JSON.stringify(definition.meta || {})},
 };
 
 module.exports = definition;`;
 }
 
-export async function generateDefinition(device: Zh.Device): Promise<{externalDefinitionSource: string; definition: IndexedDefinition}> {
+export async function generateDefinition(device: Zh.Device): Promise<{externalDefinitionSource: string; definition: DefinitionWithExtend}> {
     // Map cluster to all endpoints that have this cluster.
     const mapClusters = (endpoint: ZHModels.Endpoint, clusters: Cluster[], clusterMap: Map<string, ZHModels.Endpoint[]>) => {
         for (const cluster of clusters) {
@@ -145,24 +140,20 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         extenders.unshift(generatedExtend[0].getExtend());
     }
 
-    const resolvedDefinition: ResolvedDefinitionWithExtend = {
-        extend: extenders,
-    };
-
-    if (multiEndpoint) {
-        resolvedDefinition.meta = {multiEndpoint};
-    }
-
-    const definition: IndexedDefinitionWithZigbeeModel = {
+    const definition: DefinitionWithExtend = {
         zigbeeModel: [device.modelID],
         model: device.modelID ?? '',
         vendor: device.manufacturerName ?? '',
         description: 'Automatically generated definition',
+        extend: extenders,
         generated: true,
-        resolve: () => resolvedDefinition,
     };
 
-    const externalDefinitionSource = generateSource(definition, resolvedDefinition, generatedExtend);
+    if (multiEndpoint) {
+        definition.meta = {multiEndpoint};
+    }
+
+    const externalDefinitionSource = generateSource(definition, generatedExtend);
     return {externalDefinitionSource, definition};
 }
 
