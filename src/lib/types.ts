@@ -285,15 +285,12 @@ type DefinitionFeatures = {
     exposes: DefinitionExposes;
 };
 
-export type ResolvedDefinition = DefinitionConfig & DefinitionFeatures;
+export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures;
 
-export type Definition = DefinitionMatcher & DefinitionBase & ResolvedDefinition;
-
-export type ResolvedDefinitionWithExtend = DefinitionConfig & (({extend: ModernExtend[]} & Partial<DefinitionFeatures>) | DefinitionFeatures);
-
-export type DefinitionWithExtend = DefinitionMatcher & DefinitionBase & ResolvedDefinitionWithExtend;
-
-export type IndexedDefinition = DefinitionMatcher & DefinitionBase & {resolve: () => ResolvedDefinitionWithExtend};
+export type DefinitionWithExtend = DefinitionMatcher &
+    DefinitionBase &
+    DefinitionConfig &
+    (({extend: ModernExtend[]} & Partial<DefinitionFeatures>) | DefinitionFeatures);
 
 export namespace Fz {
     export interface Message {

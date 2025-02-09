@@ -30,16 +30,15 @@ import {
     Definition,
     DefinitionExposes,
     DefinitionExposesFunction,
+    DefinitionWithExtend,
     Expose,
     Fingerprint,
-    IndexedDefinition,
     KeyValue,
     OnEvent,
     OnEventData,
     OnEventMeta,
     OnEventType,
     Option,
-    ResolvedDefinition,
     Tz,
     Zh,
 } from './lib/types';
@@ -54,7 +53,7 @@ const MODELS_INDEX = modelsIndexJson as unknown as Record<string, ModelIndex[]>;
 
 export type {Ota} from './lib/types';
 export {
-    IndexedDefinition as IndexedDefinition,
+    DefinitionWithExtend as DefinitionWithExtend,
     access as access,
     Definition as Definition,
     OnEventType as OnEventType,
@@ -83,8 +82,8 @@ export {setLogger} from './lib/logger';
 export const getConfigureKey = configureKey.getConfigureKey;
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
-const externalConvertersLookup = new Map<string, IndexedDefinition[]>();
-export const externalDefinitions: IndexedDefinition[] = [];
+const externalConvertersLookup = new Map<string, DefinitionWithExtend[]>();
+export const externalDefinitions: DefinitionWithExtend[] = [];
 
 // expected to be at the beginning of `definitions` array
 let externalDefinitionsCount = 0;
@@ -103,7 +102,7 @@ function arrayEquals<T>(as: T[], bs: T[]): boolean {
     return true;
 }
 
-function addToExternalConvertersLookup(zigbeeModel: string | undefined, definition: IndexedDefinition): void {
+function addToExternalConvertersLookup(zigbeeModel: string | undefined, definition: DefinitionWithExtend): void {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
 
     if (!externalConvertersLookup.has(lookupModel)) {
@@ -116,7 +115,7 @@ function addToExternalConvertersLookup(zigbeeModel: string | undefined, definiti
     }
 }
 
-function removeFromExternalConvertersLookup(zigbeeModel: string | undefined, definition: IndexedDefinition): void {
+function removeFromExternalConvertersLookup(zigbeeModel: string | undefined, definition: DefinitionWithExtend): void {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
 
     if (externalConvertersLookup.has(lookupModel)) {
@@ -132,7 +131,7 @@ function removeFromExternalConvertersLookup(zigbeeModel: string | undefined, def
     }
 }
 
-export function getFromExternalConvertersLookup(zigbeeModel: string | undefined): IndexedDefinition[] | undefined {
+export function getFromExternalConvertersLookup(zigbeeModel: string | undefined): DefinitionWithExtend[] | undefined {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
 
     if (externalConvertersLookup.has(lookupModel)) {
@@ -169,7 +168,7 @@ export function removeExternalDefinitions(converterName?: string): void {
     }
 }
 
-export function addDefinition(definition: IndexedDefinition): void {
+export function addDefinition(definition: DefinitionWithExtend): void {
     externalDefinitions.splice(0, 0, definition);
 
     if (definition.externalConverterName) {
@@ -189,15 +188,15 @@ export function addDefinition(definition: IndexedDefinition): void {
     }
 }
 
-async function getDefinitions(indexes: ModelIndex[]): Promise<IndexedDefinition[]> {
-    const indexedDefs: IndexedDefinition[] = [];
+async function getDefinitions(indexes: ModelIndex[]): Promise<DefinitionWithExtend[]> {
+    const indexedDefs: DefinitionWithExtend[] = [];
 
     for (const [module, index] of indexes) {
         logger.debug(`Loading module ${module} for index ${index}`, NS);
 
         // NOTE: modules are cached by nodejs until process is stopped
         // currently using `commonjs`, so strip `.js` file extension
-        const {definitions} = (await import(`./devices/${module.slice(0, -3)}`)) as {definitions: IndexedDefinition[]};
+        const {definitions} = (await import(`./devices/${module.slice(0, -3)}`)) as {definitions: DefinitionWithExtend[]};
 
         indexedDefs.push(definitions[index]);
     }
@@ -205,7 +204,7 @@ async function getDefinitions(indexes: ModelIndex[]): Promise<IndexedDefinition[
     return indexedDefs;
 }
 
-export async function getFromIndex(zigbeeModel: string | undefined): Promise<IndexedDefinition[] | undefined> {
+export async function getFromIndex(zigbeeModel: string | undefined): Promise<DefinitionWithExtend[] | undefined> {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
     let indexes = MODELS_INDEX[lookupModel];
 
@@ -244,11 +243,9 @@ function validateDefinition(definition: Definition): asserts definition is Defin
     assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
-function processExtensions(definition: IndexedDefinition): ResolvedDefinition {
-    const resolvedDefinition = definition.resolve();
-
-    if ('extend' in resolvedDefinition) {
-        if (!Array.isArray(resolvedDefinition.extend)) {
+function processExtensions(definition: DefinitionWithExtend): Definition {
+    if ('extend' in definition) {
+        if (!Array.isArray(definition.extend)) {
             assert.fail(`'${definition.model}' has legacy extend which is not supported anymore`);
         }
 
@@ -269,7 +266,7 @@ function processExtensions(definition: IndexedDefinition): ResolvedDefinition {
             onEvent: definitionOnEvent,
             // eslint-disable-next-line prefer-const
             ...definitionWithoutExtend
-        } = resolvedDefinition;
+        } = definition;
 
         // Exposes can be an Expose[] or DefinitionExposesFunction. In case it's only Expose[] we return an array
         // Otherwise return a DefinitionExposesFunction.
@@ -399,13 +396,11 @@ function processExtensions(definition: IndexedDefinition): ResolvedDefinition {
         return {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
     }
 
-    return resolvedDefinition;
+    return definition;
 }
 
-function prepareDefinition(definition: IndexedDefinition): Definition {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {resolve, ...base} = definition;
-    const finalDefinition = Object.assign({}, base, processExtensions(definition));
+function prepareDefinition(definition: DefinitionWithExtend): Definition {
+    const finalDefinition = processExtensions(definition);
 
     finalDefinition.toZigbee.push(
         toZigbee.scene_store,
@@ -509,7 +504,7 @@ export async function findByDevice(device: Zh.Device, generateForUnknown: boolea
     }
 }
 
-export async function findDefinition(device: Zh.Device, generateForUnknown: boolean = false): Promise<IndexedDefinition | undefined> {
+export async function findDefinition(device: Zh.Device, generateForUnknown: boolean = false): Promise<DefinitionWithExtend | undefined> {
     if (!device) {
         return undefined;
     }
@@ -535,7 +530,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown: bool
         logger.debug(() => `Candidates for ${device.ieeeAddr}/${device.modelID}: ${candidates.map((c) => `${c.model}/${c.vendor}`)}`, NS);
 
         // First try to match based on fingerprint, return the first matching one.
-        const fingerprintMatch: {priority?: number; definition?: IndexedDefinition} = {priority: undefined, definition: undefined};
+        const fingerprintMatch: {priority?: number; definition?: DefinitionWithExtend} = {priority: undefined, definition: undefined};
 
         for (const candidate of candidates) {
             if (candidate.fingerprint) {
@@ -616,22 +611,6 @@ function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device): boolea
 
     return match;
 }
-
-// TODO: needs complete refactoring, or use another way in tests? (affects 1 test in z2m too)
-// export function findByModel(model: string): Definition | undefined {
-//     /*
-//     Search device description by definition model name.
-//     Useful when redefining, expanding device descriptions in external converters.
-//     */
-//     model = model.toLowerCase();
-
-//     return externalDefinitions.find((definition) => {
-//         return (
-//             definition.model.toLowerCase() == model ||
-//             (definition.whiteLabel && definition.whiteLabel.find((dwl) => dwl.model.toLowerCase() === model))
-//         );
-//     });
-// }
 
 // Can be used to handle events for devices which are not fully paired yet (no modelID).
 // Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
