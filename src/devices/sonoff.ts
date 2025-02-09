@@ -1487,6 +1487,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee Smart one-channel wall switch (type 120).',
         exposes: [],
         ota: true,
+        fromZigbee: [fz.on_off, fz.command_toggle],
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1}}),
             m.commandsOnOff({commands: ['toggle'], endpointNames: ['l1']}),
@@ -1525,6 +1526,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee Smart two-channel wall switch (type 120).',
         exposes: [],
         ota: true,
+        fromZigbee: [fz.on_off, fz.command_toggle],
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.commandsOnOff({commands: ['toggle'], endpointNames: ['l1', 'l2']}),
@@ -1567,6 +1569,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Zigbee Smart three-channel wall switch (type 120).',
         exposes: [],
         ota: true,
+        fromZigbee: [fz.on_off, fz.command_toggle],
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             m.commandsOnOff({commands: ['toggle'], endpointNames: ['l1', 'l2', 'l3']}),
