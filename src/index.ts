@@ -189,28 +189,20 @@ export function addDefinition(definition: IndexedDefinition): void {
     }
 }
 
-let loadedModules: Record<string, IndexedDefinition[]> = {};
-
-export function purgeLoadedModules(): void {
-    loadedModules = {};
-}
-
 async function getDefinitions(indexes: ModelIndex[]): Promise<IndexedDefinition[]> {
-    const definitions: IndexedDefinition[] = [];
+    const indexedDefs: IndexedDefinition[] = [];
 
     for (const [module, index] of indexes) {
-        if (!loadedModules[module]) {
-            logger.debug(`Loading module ${module} for index ${index}`, NS);
+        logger.debug(`Loading module ${module} for index ${index}`, NS);
 
-            // currently using `commonjs`, so strip `.js` file extension
-            const {definitions} = await import(`./devices/${module.slice(0, -3)}`);
-            loadedModules[module] = definitions;
-        }
+        // NOTE: modules are cached by nodejs until process is stopped
+        // currently using `commonjs`, so strip `.js` file extension
+        const {definitions} = (await import(`./devices/${module.slice(0, -3)}`)) as {definitions: IndexedDefinition[]};
 
-        definitions.push(loadedModules[module][index]);
+        indexedDefs.push(definitions[index]);
     }
 
-    return definitions;
+    return indexedDefs;
 }
 
 export async function getFromIndex(zigbeeModel: string | undefined): Promise<IndexedDefinition[] | undefined> {
