@@ -1,5 +1,5 @@
 import {exec} from 'child_process';
-import {createReadStream, readdirSync, writeFileSync, rmSync} from 'fs';
+import {createReadStream, readdirSync, rmSync, writeFileSync} from 'fs';
 import path from 'path';
 import {createInterface} from 'readline';
 

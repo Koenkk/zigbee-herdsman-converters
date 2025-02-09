@@ -36,8 +36,9 @@
         "test:watch": "vitest watch --config ./test/vitest.config.mts",
         "clean": "rimraf --glob index* devices lib converters tsconfig.tsbuildinfo",
         "build": "rimraf --glob index* devices lib converters && tsc && cp -R dist/* .",
-        "build-watch": "tsc --watch",
-        "prepack": "pnpm run clean && pnpm run build",
+        "build:watch": "tsc --watch",
+        "build-index": "node build-models-index.mjs",
+        "prepack": "pnpm run clean && pnpm run build && pnpm run build-index",
         "prepare": "husky"
     },
     "author": "Koen Kanters",

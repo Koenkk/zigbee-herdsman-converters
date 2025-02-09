@@ -5,6 +5,8 @@
 import {cpSync, existsSync, readdirSync, writeFileSync} from 'fs';
 import path from 'path';
 
+import equal from 'fast-deep-equal';
+
 const SOURCE_DIR = 'devices';
 
 if (!existsSync(SOURCE_DIR)) {
@@ -30,6 +32,10 @@ function addToLookup(zigbeeModel, index) {
     }
 }
 
+const addedFingerprints = [];
+const addedZigbeeModels = [];
+const addedModels = [];
+
 for (const module of readdirSync(SOURCE_DIR)) {
     if (module === 'index.js' || !module.endsWith('.js')) {
         continue;
@@ -43,16 +49,48 @@ for (const module of readdirSync(SOURCE_DIR)) {
     for (let i = 0; i < definitions.length; i++) {
         const definition = definitions[i];
 
+        if (addedModels.includes(definition.model.toLowerCase())) {
+            throw new Error(`Duplicate model ${definition.model}`);
+        }
+
+        addedModels.push(definition.model.toLowerCase());
+
+        if (definition.whiteLabel) {
+            for (const whiteLabel of definition.whiteLabel) {
+                if (whiteLabel.fingerprint) {
+                    if (addedModels.includes(whiteLabel.model.toLowerCase())) {
+                        if (whiteLabel.vendor === definition.vendor) {
+                            throw new Error(`Duplicate whitelabel model ${whiteLabel.model}`);
+                        }
+                    } else {
+                        addedModels.push(whiteLabel.model.toLowerCase());
+                    }
+                }
+            }
+        }
+
         if (definition.fingerprint) {
             for (const fingerprint of definition.fingerprint) {
+                for (const addedFingerprint of addedFingerprints) {
+                    if (equal(addedFingerprint, fingerprint)) {
+                        throw new Error(`Duplicate fingerprint for ${definition.model}: ${JSON.stringify(fingerprint)}`);
+                    }
+                }
+
                 // type `modelID?: string;` means modelID can be undefined, ends up under index "null"
                 addToLookup(fingerprint.modelID, [module, i]);
+                addedFingerprints.push(fingerprint);
             }
         }
 
         if (definition.zigbeeModel) {
             for (const zigbeeModel of definition.zigbeeModel) {
+                if (addedZigbeeModels.includes(zigbeeModel.toLowerCase())) {
+                    throw new Error(`Duplicate zigbee model ${zigbeeModel}`);
+                }
+
                 addToLookup(zigbeeModel, [module, i]);
+                addedZigbeeModels.push(zigbeeModel.toLowerCase());
             }
         }
     }

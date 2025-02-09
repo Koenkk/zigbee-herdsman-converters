@@ -40,7 +40,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.sos(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FNB56-BOT06FB2.3', 'FNB56-BOT06FB2.8', 'FB56-BOT02HM1.2', 'FNB56-BOT06FB2.8'],
+        zigbeeModel: ['FNB56-BOT06FB2.3', 'FNB56-BOT06FB2.8', 'FB56-BOT02HM1.2'],
         model: 'SBM01ZB',
         vendor: 'Feibit',
         description: 'Human body movement sensor',
