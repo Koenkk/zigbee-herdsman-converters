@@ -2374,17 +2374,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             lumiVibration(),
             // lumiMiscellaneous(),
-            lumiBattery({ voltageToPercentage: { min: 2850, max: 3000 } }),
+            lumiBattery({voltageToPercentage: {min: 2850, max: 3000}}),
             lumiZigbeeOTA(),
             m.quirkCheckinInterval('1_HOUR'),
         ],
         exposes: [
-            e
-                .enum('sensitivity_adjustment', ea.SET, ['high', 'medium', 'low'])
-                .withDescription('Sensitivity adjustment'),
-            e
-                .enum('report_interval', ea.SET, ['1s', '5s', '10s'])
-                .withDescription('Reporting interval')  
+            e.enum('sensitivity_adjustment', ea.SET, ['high', 'medium', 'low']).withDescription('Sensitivity adjustment'),
+            e.enum('report_interval', ea.SET, ['1s', '5s', '10s']).withDescription('Reporting interval'),
         ],
     },
     {

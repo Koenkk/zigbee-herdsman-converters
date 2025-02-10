@@ -5260,15 +5260,8 @@ export const toZigbee = {
             const lookup = {high: 0x01, medium: 0x02, low: 0x03};
             assertString(value, key);
             value = value.toLowerCase();
-            await entity.write(
-                'manuSpecificLumi',
-                {0x010e: {value: getFromLookup(value, lookup), type: 0x20}},
-                manufacturerOptions.lumi,
-            );
+            await entity.write('manuSpecificLumi', {0x010e: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {sensitivity_adjustment: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x010e], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_report_interval: {
@@ -5277,15 +5270,8 @@ export const toZigbee = {
             const lookup = {'1s': 0x01, '5s': 0x02, '10s': 0x03};
             assertString(value, key);
             value = value.toLowerCase();
-            await entity.write(
-                'manuSpecificLumi',
-                {0x0110: {value: getFromLookup(value, lookup), type: 0x20}},
-                manufacturerOptions.lumi,
-            );
+            await entity.write('manuSpecificLumi', {0x0110: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {report_interval: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0110], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
 };
