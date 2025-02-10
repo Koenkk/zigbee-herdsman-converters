@@ -10008,7 +10008,6 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        options: [exposes.options.precision('ac_frequency')],
         exposes: [
             tuya.exposes.voltageWithPhase('a'),
             tuya.exposes.voltageWithPhase('b'),
