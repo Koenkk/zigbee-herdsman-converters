@@ -292,6 +292,8 @@ export type DefinitionWithExtend = DefinitionMatcher &
     DefinitionConfig &
     (({extend: ModernExtend[]} & Partial<DefinitionFeatures>) | DefinitionFeatures);
 
+export type ExternalDefinitionWithExtend = DefinitionWithExtend & {externalConverterName: string};
+
 export namespace Fz {
     export interface Message {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

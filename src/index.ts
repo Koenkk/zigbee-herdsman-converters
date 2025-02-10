@@ -32,6 +32,7 @@ import {
     DefinitionExposesFunction,
     DefinitionWithExtend,
     Expose,
+    ExternalDefinitionWithExtend,
     Fingerprint,
     KeyValue,
     OnEvent,
@@ -131,7 +132,7 @@ function removeFromExternalConvertersLookup(zigbeeModel: string | undefined, def
     }
 }
 
-export function getFromExternalConvertersLookup(zigbeeModel: string | undefined): DefinitionWithExtend[] | undefined {
+function getFromExternalConvertersLookup(zigbeeModel: string | undefined): DefinitionWithExtend[] | undefined {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
 
     if (externalConvertersLookup.has(lookupModel)) {
@@ -168,12 +169,9 @@ export function removeExternalDefinitions(converterName?: string): void {
     }
 }
 
-export function addDefinition(definition: DefinitionWithExtend): void {
+export function addExternalDefinition(definition: ExternalDefinitionWithExtend): void {
     externalDefinitions.splice(0, 0, definition);
-
-    if (definition.externalConverterName) {
-        externalDefinitionsCount++;
-    }
+    externalDefinitionsCount++;
 
     if (definition.fingerprint) {
         for (const fingerprint of definition.fingerprint) {
@@ -190,21 +188,27 @@ export function addDefinition(definition: DefinitionWithExtend): void {
 
 async function getDefinitions(indexes: ModelIndex[]): Promise<DefinitionWithExtend[]> {
     const indexedDefs: DefinitionWithExtend[] = [];
+    // local cache for models with lots of matches (tuya...)
+    const defs: Record<string, DefinitionWithExtend[]> = {};
 
     for (const [module, index] of indexes) {
-        logger.debug(`Loading module ${module} for index ${index}`, NS);
+        if (!defs[module]) {
+            logger.debug(`Loading module ${module}`, NS);
 
-        // NOTE: modules are cached by nodejs until process is stopped
-        // currently using `commonjs`, so strip `.js` file extension
-        const {definitions} = (await import(`./devices/${module.slice(0, -3)}`)) as {definitions: DefinitionWithExtend[]};
+            // NOTE: modules are cached by nodejs until process is stopped
+            // currently using `commonjs`, so strip `.js` file extension, XXX: creates a warning with vitest (expects static `.js`)
+            const {definitions} = (await import(`./devices/${module.slice(0, -3)}`)) as {definitions: DefinitionWithExtend[]};
 
-        indexedDefs.push(definitions[index]);
+            defs[module] = definitions;
+        }
+
+        indexedDefs.push(defs[module][index]);
     }
 
     return indexedDefs;
 }
 
-export async function getFromIndex(zigbeeModel: string | undefined): Promise<DefinitionWithExtend[] | undefined> {
+async function getFromIndex(zigbeeModel: string | undefined): Promise<DefinitionWithExtend[] | undefined> {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
     let indexes = MODELS_INDEX[lookupModel];
 
