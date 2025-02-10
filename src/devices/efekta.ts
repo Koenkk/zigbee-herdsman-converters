@@ -11,7 +11,7 @@ const threeReporting = {min: 30, max: 1800, change: 1};
 const fourReporting = {min: 30, max: 1800, change: 10};
 const sixReporting = {min: 3600, max: 21600, change: 1};
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['EFEKTA_iAQ3'],
         model: 'EFEKTA_iAQ3',
@@ -2597,6 +2597,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

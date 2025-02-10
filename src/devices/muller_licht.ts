@@ -14,7 +14,7 @@ function mullerLichtLight(args: m.LightArgs) {
     return result;
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['tint-Spotlights'],
         model: '404051',
@@ -299,6 +299,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

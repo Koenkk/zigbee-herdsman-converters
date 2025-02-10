@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['EasyCode903G2.1'],
         model: 'EasyCode903G2.1',
@@ -31,6 +31,3 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Datek Wireless', model: 'EasyCode903G2.1'}],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

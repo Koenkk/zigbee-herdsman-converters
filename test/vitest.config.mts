@@ -7,9 +7,7 @@ export default defineConfig({
         env: {
             VITEST_ZHC_TEST: 'true',
         },
-        exclude: [
-            './node_modules/**', // TODO: why is this being included?
-        ],
+        include: ['./test/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         onConsoleLog(log: string, type: 'stdout' | 'stderr'): boolean | void {
             return false;
@@ -17,7 +15,11 @@ export default defineConfig({
         coverage: {
             enabled: false,
             provider: 'v8',
-            include: ['src/lib/**'], // TODO: coverage (currently test:coverage does not enable coverage)
+            include: [
+                // TODO: and add `--coverage` in package.json `test:coverage`
+                // 'src/index.ts',
+                // 'src/lib/**',
+            ],
             extension: ['.ts', '.js'], // TODO: convert all to TS
             clean: true,
             cleanOnRerun: true,

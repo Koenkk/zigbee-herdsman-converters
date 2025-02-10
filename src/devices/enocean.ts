@@ -4,7 +4,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000017.....$/}],
         model: 'PTM 215Z',
@@ -113,6 +113,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

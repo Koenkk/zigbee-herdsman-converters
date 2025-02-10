@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['35938'],
         model: 'ZB3102',
@@ -26,6 +26,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff(), m.electricityMeter({cluster: 'metering'})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

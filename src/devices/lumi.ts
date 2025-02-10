@@ -60,7 +60,7 @@ const {
 const NS = 'zhc:lumi';
 const {manufacturerCode} = lumi;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['lumi.flood.acn001'],
         model: 'SJCGQ13LM',
@@ -4517,6 +4517,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

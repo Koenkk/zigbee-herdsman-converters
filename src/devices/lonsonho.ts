@@ -10,7 +10,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS130F', ['_TZ3000_vd43bbfq', '_TZ3000_fccpjz5z']),
         model: 'QS-Zigbee-C01',
@@ -251,6 +251,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

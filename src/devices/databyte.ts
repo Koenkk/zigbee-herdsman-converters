@@ -22,7 +22,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['DTB190502A1'],
         model: 'DTB190502A1',
@@ -55,6 +55,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

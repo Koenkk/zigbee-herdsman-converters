@@ -1,7 +1,7 @@
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'YSRSAI'}],
         zigbeeModel: ['ZB-CL03', 'FB56-ZCW20FB1.2'],
@@ -28,6 +28,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaLight()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -610,7 +610,7 @@ const ubisys = {
     },
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['S1 (5501)'],
         model: 'S1',
@@ -1346,6 +1346,3 @@ const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
 ];
-
-export default definitions;
-module.exports = definitions;

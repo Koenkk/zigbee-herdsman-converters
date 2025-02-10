@@ -1,6 +1,6 @@
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {
@@ -20,6 +20,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

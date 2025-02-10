@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {
@@ -230,6 +230,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 454]}})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

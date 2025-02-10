@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['HC-SLM-1'],
         model: 'HC-SLM-1',
@@ -153,6 +153,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.warning()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

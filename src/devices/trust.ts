@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'SmokeSensor-EM', manufacturerName: 'Trust'}],
         model: 'ZSDR-850',
@@ -143,6 +143,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

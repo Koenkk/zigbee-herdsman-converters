@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SPW35Z-D0'],
         model: 'ZHS-15',
@@ -69,6 +69,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

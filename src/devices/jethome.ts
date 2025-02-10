@@ -42,7 +42,7 @@ const jetHome = {
     },
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'WS7', manufacturerName: 'JetHome'}],
         model: 'WS7',
@@ -85,6 +85,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SCM-2_00.00.03.15', 'SCM-R_00.00.03.15TC', 'SCM_00.00.03.14TC', 'SCM_00.00.03.05TC'],
         model: 'SCM-S1',
@@ -27,6 +27,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

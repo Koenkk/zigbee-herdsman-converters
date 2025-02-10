@@ -2,7 +2,7 @@ import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['A60S TW'],
         model: '4058075208384',
@@ -333,5 +333,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [ledvanceOnOff({powerOnBehavior: false})],
     },
 ];
-
-export default definitions;

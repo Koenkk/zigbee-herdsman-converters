@@ -2298,7 +2298,7 @@ const YokisStatsExtend: ModernExtend[] = [
 
 // #endregion
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         // MTR500E-UP
         zigbeeModel: ['MTR500E-UP'],
@@ -2743,6 +2743,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

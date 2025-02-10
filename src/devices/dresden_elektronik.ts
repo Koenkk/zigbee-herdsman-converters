@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['FLS-PP3', 'FLS-PP3\u0000'],
         model: 'Mega23M12',
@@ -45,6 +45,3 @@ const definitions: DefinitionWithExtend[] = [
         meta: {disableDefaultResponse: true},
     },
 ];
-
-export default definitions;
-module.exports = definitions;

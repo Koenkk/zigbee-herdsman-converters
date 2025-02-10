@@ -35,7 +35,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['LDSENK08'],
         model: 'LDSENK08',
@@ -449,6 +449,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;
