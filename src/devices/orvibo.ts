@@ -1,3 +1,5 @@
+import {Zcl} from 'zigbee-herdsman';
+
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
@@ -310,7 +312,51 @@ const definitions: DefinitionWithExtend[] = [
         model: 'T40W4Z',
         vendor: 'ORVIBO',
         description: 'MixSwitch 4 gangs',
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l4: 3, l5: 5, l6: 6}}), m.onOff({endpointNames: ['l1', 'l2', 'l4', 'l5', 'l6']})],
+        extend: [
+            m.deviceAddCustomCluster('manuSpecificOrvibo', {
+                ID: 0x0017,
+                attributes: {},
+                commands: {
+                    setSwitchRelay: {
+                        // This command can be used to set switch to ON, OFF or TOGGLE particular relay.
+                        // Payload: {"data":[<SWITCH_ID>,0,0,<IEEE_REVERSED_ADDRESS>,<RELAY_ID>,4,1,6,0,1,<ACTION>]}
+                        // Where <SWITCH_ID> is integer 1-6
+                        // Where <IEEE_REVERSED_ADDRESS> is 8 bytes reversed device IEEE address
+                        // Where <RELAY_ID> is integer 1-4
+                        // Where <ACTION> is 0 for OFF, 1 for ON, and 2 for TOGGLE
+                        // Example for switch 3 toggling relay 2 for device with IEEE address 0x0131000029042388: {"data":[3,0,0,136,35,4,41,0,0,49,1,2,4,1,6,0,1,2]}
+                        ID: 0x00,
+                        parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.BUFFER}],
+                    },
+                    clearSwitchAction: {
+                        // This command can be used to clear any action particular switch was configured to execute
+                        // Payload {"data":[<SWITCH_ID>,0,0]}
+                        ID: 0x02,
+                        parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.BUFFER}],
+                    },
+                    setSwitchScene: {
+                        // This command can be used to set switch to recall a scene
+                        // Payload {"data":[<SWITCH_ID>,0,0,0,0,<SCENE_ID>]}
+
+                        // ADDING/REMOVING RELAYS FROM SCENE
+                        // Scene can be used to change state of any or all relays in this switch.
+                        // To ADD relay to a scene execute on relay endpoint (1-4) cluster 5 command 0 with payload { "groupid": 0, "sceneid": <SCENE_ID>, "transtime": 0, "scenename": "todo", "extensionfieldsets": [{"clstId": 6, "len": 1, "extField":[<ACTION>]}] }
+                        // Where <ACTION> is 0 for OFF and 1 for ON (TOGGLE not supported)
+                        // To REMOVE relay from a scene execute on relay endpoint (1-4) cluster 5 command 2 with payload { "groupid":0,"sceneid":<SCENE_ID> }
+
+                        // COMMANDING RELAY AND RECALLING A SCENE
+                        // It is possible to configure a switch to command a relay (see setSwitchRelay command) and recall a scene (this command). It is important to execute commands in the following order - clearSwitchAction, then setSwitchRelay and then setSwitchScene.
+                        // This can be useful for a scenario where you have blinds motor set-up on relay 1 and 2, and would like to have switch 1 toggle relay 1, but turn off relay 2. You would command relay 1 with TOGGLE action and recall scene set-up for relay 2 to turn it off.
+                        ID: 0x04,
+                        parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.BUFFER}],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            m.deviceEndpoints({endpoints: {left_up: 1, left_down: 2, center_up: 3, center_down: 4, right_up: 5, right_down: 6}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ['left_up', 'left_down', 'center_up', 'center_down', 'right_up', 'right_down']}),
+            m.commandsOnOff({endpointNames: ['left_up', 'left_down', 'center_up', 'center_down', 'right_up', 'right_down']}),
+        ],
     },
     {
         zigbeeModel: ['bcb949e87e8c4ea6bc2803052dd8fbf5'],
