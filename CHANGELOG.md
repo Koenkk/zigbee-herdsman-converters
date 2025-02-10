@@ -1,5 +1,19 @@
 # Changelog
 
+## [21.35.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.34.0...v21.35.0) (2025-02-10)
+
+
+### Features
+
+* **add:** 3RSMR01067Z ([#8786](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8786)) ([cea6699](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cea6699eda355e08d48993e3fec39e6c190f6bdd))
+
+
+### Bug Fixes
+
+* Add scene commands for SR-ZG2836D5 ([#8787](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8787)) ([c10e63c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c10e63c996d219fd85556721254dfbf716022014))
+* Expose `action_group` for EGLO 99099 ([#8785](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8785)) ([9c3b987](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c3b9876056c84a94ae7083a36bedc7b6aafe9ec))
+* Sonoff: improve inching control ([#8790](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8790)) ([a228c1c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a228c1ced713ec83abf983b1dbf3f7ab1434a7c7))
+
 ## [21.34.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.33.0...v21.34.0) (2025-02-09)
 
 
