@@ -1587,6 +1587,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.electricityMeter({voltage: false}),
             m.onOff({powerOnBehavior: false}),
+            namron.edgeThermostat.systemMode(),
             namron.edgeThermostat.windowOpenDetection(),
             namron.edgeThermostat.antiFrost(),
             namron.edgeThermostat.summerWinterSwitch(),
@@ -1600,7 +1601,6 @@ export const definitions: DefinitionWithExtend[] = [
             namron.edgeThermostat.sensorMode(),
             namron.edgeThermostat.boostTime(),
             namron.edgeThermostat.readOnly.boostTimeRemaining(),
-            namron.edgeThermostat.systemMode(),
             namron.edgeThermostat.deviceTime(),
             namron.edgeThermostat.readOnly.windowState(),
             namron.edgeThermostat.readOnly.deviceFault(),
@@ -1612,7 +1612,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
-                .withSystemMode(['off', 'auto', 'cool', 'heat'], ea.ALL)
                 .withRunningState(['idle', 'heat', 'cool'])
                 .withLocalTemperatureCalibration(-10, 10, 0.5),
             e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit']).withLabel('Temperature Unit').withDescription('Select Unit'),
