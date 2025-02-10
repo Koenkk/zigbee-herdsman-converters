@@ -1,5 +1,35 @@
 # Changelog
 
+## [21.34.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.33.0...v21.34.0) (2025-02-09)
+
+
+### Features
+
+* **add:** EFEKTA_PST_DUO_V1_LR, EFEKTA_PST_DUO_V1, EFEKTA_PST_V1, EFEKTA_PST_POW_V2_LR, EFEKTA_PST_POW_V1_LR, EFEKTA_PST_V1_LR, EFEKTA_T8_POW, EFEKTA_T1_Y_LR ([#8779](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8779)) ([f3e3173](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f3e317375c141874bbedfdbcceb662d787c46b14))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_qyflbnbj` as Tuya TS0601_temperature_humidity_sensor_1 ([#8777](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8777)) ([ccaaa7f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ccaaa7ff4c18557f76b445a39507c92edcee430d))
+* **ignore:** update dependencies ([#8781](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8781)) ([9e475c2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e475c252da3f3ea0a66bb5c6f22416c7719d755))
+* System mode in Namron thermostat ([#8753](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8753)) ([f44625f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f44625f2351ad90c2158762f4fc8d0452633dbef))
+
+## [21.33.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.32.0...v21.33.0) (2025-02-08)
+
+
+### Features
+
+* **add:** EFEKTA_ePST_POW_E_LR, EFEKTA_eTH_POW_E_LR ([#8773](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8773)) ([3be5204](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3be5204da05114f2f73f7fc27f9245538c1736ed))
+* Sonoff ZBM5 add toggle action ([#8772](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8772)) ([eb1013a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eb1013a21fcc3d975a03d58e621533ff5a867853))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_ogx8u5z6` as Tuya TS0601_thermostat_3 ([#8774](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8774)) ([e2b1ab2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e2b1ab294000b7758bc5c9506f01d39510b47208))
+* Fix 511.020 vendor name ([#8768](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8768)) ([3cc7e89](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3cc7e89985b4bfa938b51cc906a32cff6416c595))
+* Fix Illuminize 5144 series configure failing ([#8735](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8735)) ([5884112](https://github.com/Koenkk/zigbee-herdsman-converters/commit/58841121a0f472f119b5cd9479fb00438d91cc7e))
+* **ignore:** fix SLZB-06p10 fingerprint modelID https://github.com/Koenkk/zigbee-herdsman-converters/commit/bcb6b21caa30d067d38403662718027a672a33cf ([e51ca10](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e51ca10624525d9fb892022e9a61bb35494eda89))
+
 ## [21.32.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.31.0...v21.32.0) (2025-02-07)
 
 

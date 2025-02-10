@@ -13,21 +13,21 @@ const definitions: DefinitionWithExtend[] = [
         model: '5144.01',
         vendor: 'Iluminize',
         description: 'RGB CCT 3 in 1 Remote Controller',
-        extend: [m.battery(), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+        extend: [m.battery({percentageReporting: false}), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
     },
     {
         zigbeeModel: ['ZGRC-KEY-001'],
         model: '5144.11',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 wall dimmer with switches',
-        extend: [m.battery(), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl()],
+        extend: [m.battery({percentageReporting: false}), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl()],
     },
     {
         zigbeeModel: ['ZGRC-KEY-002'],
         model: '5144.21',
         vendor: 'Iluminize',
         description: 'Single color wall mounted push button remote',
-        extend: [m.battery(), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+        extend: [m.battery({percentageReporting: false}), m.identify(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
     },
     {
         zigbeeModel: ['5121.10'],
@@ -70,7 +70,7 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['511.020'],
         model: '511.020',
-        vendor: 'iluminize',
+        vendor: 'Iluminize',
         description: 'Zigbee 3.0 LED controller multi 4 - 5A, CCT WW/CW LED',
         extend: [m.light({colorTemp: {range: [155, 450]}})],
     },

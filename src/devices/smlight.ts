@@ -10,7 +10,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: 'SMLIGHT', model: 'SLZB-06', description: 'Router', fingerprint: [{modelID: 'SLZB-06'}]},
             {vendor: 'SMLIGHT', model: 'SLZB-06p7', description: 'Router', fingerprint: [{modelID: 'SLZB-06p7'}]},
-            {vendor: 'SMLIGHT', model: 'SLZB-06p10', description: 'Router', fingerprint: [{modelID: 'SLZB-06p10'}]},
+            {vendor: 'SMLIGHT', model: 'SLZB-06p10', description: 'Router', fingerprint: [{modelID: 'SLZB-06P10'}]},
             {vendor: 'SMLIGHT', model: 'SLZB-07', description: 'Router', fingerprint: [{modelID: 'SLZB-07'}]},
             {vendor: 'SMLIGHT', model: 'SLZB-0xp7', description: 'Router', fingerprint: [{modelID: 'SLZB-0xp7'}]},
             {vendor: 'SMLIGHT', model: 'SLZB-07Mg24', description: 'Router', fingerprint: [{modelID: 'SLZB-07Mg24'}]},

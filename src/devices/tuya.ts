@@ -977,6 +977,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE200_44af8vyi',
             '_TZE200_zl1kmjqx',
             '_TZE204_qyflbnbj',
+            '_TZE284_qyflbnbj',
         ]),
         model: 'TS0601_temperature_humidity_sensor_1',
         vendor: 'Tuya',
@@ -985,7 +986,12 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: (device, options) => {
             const exps: Expose[] = [e.temperature(), e.humidity(), e.battery()];
-            if (!device || device.manufacturerName === '_TZE200_qyflbnbj' || device.manufacturerName === '_TZE204_qyflbnbj') {
+            if (
+                !device ||
+                device.manufacturerName === '_TZE200_qyflbnbj' ||
+                device.manufacturerName === '_TZE204_qyflbnbj' ||
+                device.manufacturerName === '_TZE284_qyflbnbj'
+            ) {
                 exps.push(e.battery_low());
                 exps.push(e.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'));
             }
@@ -4829,6 +4835,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZE284_p3dbf6qs',
             '_TZE200_rxq4iti9',
             '_TZE204_ogx8u5z6',
+            '_TZE284_ogx8u5z6',
             '_TZE200_hvaxb2tc' /* model: 'TRV06', vendor: 'AVATTO' */,
             '_TZE284_o3x45p96' /* model: 'TRV06', vendor: 'AVATTO' */,
             '_TZE284_c6wv4xyo' /* model: 'AVATTO_TRV06', vendor: 'AVATTO_TRV06' */,
