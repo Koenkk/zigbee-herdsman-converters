@@ -456,12 +456,12 @@ const sonoffExtend = {
                     payloadValue[2] = value[totalNumber as keyof typeof value] & 0xff;
 
                     payloadValue[3] = (value[irrigationCapacity as keyof typeof value] >> 24) & 0xff;
-                    payloadValue[4] = (value[irrigationCapacity as keyof typeof value] >> 16) & 0xff;;
-                    payloadValue[5] = (value[irrigationCapacity as keyof typeof value] >> 8) & 0xff;;
+                    payloadValue[4] = (value[irrigationCapacity as keyof typeof value] >> 16) & 0xff;
+                    payloadValue[5] = (value[irrigationCapacity as keyof typeof value] >> 8) & 0xff;
                     payloadValue[6] = value[irrigationCapacity as keyof typeof value] & 0xff;
 
-                    payloadValue[7] = (value[irrigationInterval as keyof typeof value] >> 24) & 0xff;;
-                    payloadValue[8] = (value[irrigationInterval as keyof typeof value] >> 16) & 0xff;;
+                    payloadValue[7] = (value[irrigationInterval as keyof typeof value] >> 24) & 0xff;
+                    payloadValue[8] = (value[irrigationInterval as keyof typeof value] >> 16) & 0xff;
                     payloadValue[9] = (value[irrigationInterval as keyof typeof value] >> 8) & 0xff;
                     payloadValue[10] = value[irrigationInterval as keyof typeof value] & 0xff;
 
