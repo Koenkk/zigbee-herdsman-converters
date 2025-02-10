@@ -151,7 +151,7 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['3RSMR01067Z'],
         model: '3RSMR01067Z',
         vendor: 'Third Reality',
-        description: 'Smart Motion Sensor R1',
+        description: 'Smart motion sensor R1',
         ota: true,
         extend: [
             m.battery(),
