@@ -555,13 +555,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'WISZB-131',
         vendor: 'Develco',
         description: 'Contact sensor', // For door or window
-        fromZigbee: [fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery_low()],
         ota: true,
-        endpoint: (device) => {
-            return {default: 35};
-        },
         configure: async (device, coordinatorEndpoint, definition) => {
             /*
              * BUGFIX: When adding a new WISZB-131 contact sensor to z2m, if the magnet is never brought close to it,
@@ -586,6 +580,8 @@ const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
+            m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']}),
+            m.deviceEndpoints({endpoints: {default: 35}}),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
