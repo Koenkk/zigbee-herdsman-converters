@@ -477,7 +477,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG2836D5',
         vendor: 'Sunricher',
         description: 'Zigbee smart remote',
-        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsWindowCovering(), m.commandsColorCtrl()],
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsWindowCovering(), m.commandsColorCtrl(), m.commandsScenes()],
     },
     {
         zigbeeModel: ['ZG9032B'],
