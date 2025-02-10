@@ -148,6 +148,25 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ['3RSMR01067Z'],
+        model: '3RSMR01067Z',
+        vendor: 'Third Reality',
+        description: 'Smart motion sensor R1',
+        ota: true,
+        extend: [
+            m.battery(),
+            m.deviceAddCustomCluster('3rRadarSpecialCluster', {
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    coolDownTime: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
+    },
+    {
         zigbeeModel: ['3RDS17BZ'],
         model: '3RDS17BZ',
         vendor: 'Third Reality',
