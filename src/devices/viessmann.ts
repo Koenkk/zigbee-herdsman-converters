@@ -29,6 +29,15 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.temperature(), e.humidity()],
     },
     {
+        zigbeeModel: ['7963223'],
+        model: '7963223',
+        vendor: 'Viessmann',
+        description: 'ViCare climate sensor',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+    },
+    {
         zigbeeModel: ['7637434'],
         model: 'ZK03840',
         vendor: 'Viessmann',
