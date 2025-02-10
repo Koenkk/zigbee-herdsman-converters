@@ -2045,17 +2045,24 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiVibration: (): ModernExtend => {
-        const exposes: Expose[] = [e.action(['shake', 'triple_strike'])];
+        const exposes: Expose[] = [e.action(['triple_strike', 'movement'])];
 
         const fromZigbee: Fz.Converter[] = [
             {
-                cluster: 'ssIasZone',
+                cluster: 'genMultistateInput',
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data[45] !== undefined) {
-                        const zoneStatus = msg.data[45];
-                        const actionLookup: KeyValueNumberString = {1: 'shake', 2: 'triple_strike'};
-                        return {action: actionLookup[zoneStatus]};
+                    if (msg.data.presentValue !== undefined && msg.data.presentValue === 1) {
+                        return {action: 'triple_strike'};
+                    }
+                },
+            },
+            {
+                cluster: 'manuSpecificLumi',
+                type: ['attributeReport', 'readResponse'],
+                convert: function (model, msg, publish, options, meta) {
+                    if (msg.data[0x0118] !== undefined && msg.data[0x0118] === 1) {
+                        return {action: 'movement'};
                     }
                 },
             },
@@ -5245,6 +5252,40 @@ export const toZigbee = {
             } else {
                 throw new Error(`Not supported: '${key}'`);
             }
+        },
+    } satisfies Tz.Converter,
+    lumi_sensitivity_adjustment: {
+        key: ['sensitivity_adjustment'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {high: 0x01, medium: 0x02, low: 0x03};
+            assertString(value, key);
+            value = value.toLowerCase();
+            await entity.write(
+                'manuSpecificLumi',
+                {0x010e: {value: getFromLookup(value, lookup), type: 0x20}},
+                manufacturerOptions.lumi,
+            );
+            return {state: {sensitivity_adjustment: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x010e], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_report_interval: {
+        key: ['report_interval'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'1s': 0x01, '5s': 0x02, '10s': 0x03};
+            assertString(value, key);
+            value = value.toLowerCase();
+            await entity.write(
+                'manuSpecificLumi',
+                {0x0110: {value: getFromLookup(value, lookup), type: 0x20}},
+                manufacturerOptions.lumi,
+            );
+            return {state: {report_interval: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x0110], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
 };

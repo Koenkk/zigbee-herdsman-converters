@@ -2370,14 +2370,21 @@ const definitions: DefinitionWithExtend[] = [
         model: 'DJT12LM',
         vendor: 'Aqara',
         description: 'Vibration sensor T1',
+        toZigbee: [lumi.toZigbee.lumi_sensitivity_adjustment, lumi.toZigbee.lumi_report_interval],
         extend: [
             lumiVibration(),
-            // Doesn't seem to be working at all
-            // https://github.com/Koenkk/zigbee2mqtt/issues/21731
             // lumiMiscellaneous(),
-            m.battery({voltageToPercentage: {min: 2850, max: 3000}, voltage: true}),
+            lumiBattery({ voltageToPercentage: { min: 2850, max: 3000 } }),
             lumiZigbeeOTA(),
             m.quirkCheckinInterval('1_HOUR'),
+        ],
+        exposes: [
+            e
+                .enum('sensitivity_adjustment', ea.SET, ['high', 'medium', 'low'])
+                .withDescription('Sensitivity adjustment'),
+            e
+                .enum('report_interval', ea.SET, ['1s', '5s', '10s'])
+                .withDescription('Reporting interval')  
         ],
     },
     {
