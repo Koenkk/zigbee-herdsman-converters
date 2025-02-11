@@ -18,3 +18,4 @@ tsconfig.tsbuildinfo
 coverage/
 .jest-tmp/
 dist/
+.pnpm-store/
