@@ -37,7 +37,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Thermostatic radiator valve',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        whiteLabel: [tuya.whitelabel('GIRIER', 'ME168', 'Thermostatic radiator valve', ['_TZE200_cxakecfo'])],
+        whiteLabel: [tuya.whitelabel('Girier', 'ME168', 'Thermostatic radiator valve', ['_TZE200_cxakecfo'])],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         ota: true,
