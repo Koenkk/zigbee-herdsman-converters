@@ -616,7 +616,7 @@ const definitions: DefinitionWithExtend[] = [
             .withLocalTemperatureCalibration(-10, 10, 1, ea.STATE_SET)
             .withSystemMode(['off', 'heat'], ea.STATE_SET)
             .withRunningState(['idle', 'heat'], ea.STATE)
-            .withPreset(['manual', 'temporary manual', 'program', 'eco']),
+            .withPreset(['Manual', 'Temporary manual', 'Program', 'Eco']),
             //eco_temperature,
             new exposes.Numeric('eco_temperature', exposes.access.STATE_SET)
                 .withUnit('°C')
@@ -666,7 +666,7 @@ const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'system_mode', tuya.valueConverterBasic.lookup({'off': false,'heat': true})],
-                [2, 'preset', tuya.valueConverterBasic.lookup({'manual': 0, 'temporary manual': 1, 'program': 2, 'eco': 3})],
+                [2, 'preset', tuya.valueConverterBasic.lookup({'Manual': 0, 'Temporary manual': 1, 'Program': 2, 'Eco': 3})],
                 [16, 'local_temperature', tuya.valueConverter.divideBy10], 
                 [18, 'min_temperature_limit', tuya.valueConverter.divideBy10],
                 [32, 'sensor', tuya.valueConverterBasic.lookup({'Internal sensor (IN)':0,'Both (AL)':1,'External sensor (OU)':2})],
