@@ -34,7 +34,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint('TS0601', [
                     '_TZE200_ybsqljjg',
                     '_TZE200_cxakecfo' /* model: 'ME168', vendor: 'GIRIER' */,
-                ]),
+        ]),
         model: 'ME168',
         vendor: 'AVATTO',
         description: 'Thermostatic radiator valve',
