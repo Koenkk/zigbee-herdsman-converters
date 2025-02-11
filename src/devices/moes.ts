@@ -627,9 +627,28 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMax(30),
             e.child_lock(),
             e.deadzone_temperature().withValueMin(0.5).withValueMax(5).withValueStep(0.5),
-            e.max_temperature_limit().withValueMin(35).withValueMax(45).withValueStep(0.5),
-            e.min_temperature_limit().withValueMin(1).withValueMax(15).withValueStep(0.1),
+            e.max_temperature_limit().withValueMin(35).withValueMax(45),
+            e.min_temperature_limit().withValueMin(1).withValueMax(15),
             e.temperature_sensor_select(['Internal sensor (IN)','Both (AL)','External sensor (OU)']),
+            new exposes.Numeric('floor_temperature', exposes.access.STATE)
+                .withUnit('°C')
+                .withDescription(
+                    'Floor temperature',
+                ),
+            new exposes.Numeric('high_protect_temperature', exposes.access.STATE_SET)
+                .withUnit('°C')
+                .withDescription(
+                    'High protect temperature',
+                )
+                .withValueMin(10)
+                .withValueMax(70),
+                new exposes.Numeric('low_protect_temperature', exposes.access.STATE_SET)
+                .withUnit('°C')
+                .withDescription(
+                    'Low protect temperature',
+                )
+                .withValueMin(0)
+                .withValueMax(10),
             //backlight_brightness
             new exposes.Numeric('backlight_brightness', exposes.access.STATE_SET)
                 .withUnit('%')
@@ -637,8 +656,7 @@ const definitions: DefinitionWithExtend[] = [
                     'Backlight brightness',
                 )
                 .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1),
+                .withValueMax(100),
             //Screen time
             new exposes.Enum('screen_time', exposes.access.STATE_SET, [10,20,30,40,50,60].map((secs) => `${secs} seconds`))
                 .withDescription('Screen on time')
@@ -668,7 +686,7 @@ const definitions: DefinitionWithExtend[] = [
                 [109, 'floor_temperature', tuya.valueConverter.divideBy10],
                 [110, 'deadzone_temperature', tuya.valueConverter.divideBy10],
                 [111, 'high_protect_temperature', tuya.valueConverter.divideBy10],
-                [112, 'low_protection_temperature', tuya.valueConverter.divideBy10],
+                [112, 'low_protect_temperature', tuya.valueConverter.divideBy10],
                 [113, 'eco_temperature', tuya.valueConverter.divideBy10],
                 [114, 'screen_time', tuya.valueConverterBasic.lookup({'10 seconds': 0, '20 seconds': 1, '30 seconds': 2, '40 seconds': 3, '50 seconds': 4, '60 seconds': 5})],
                 [115, 'rbglight', tuya.valueConverterBasic.trueFalse(1)]
