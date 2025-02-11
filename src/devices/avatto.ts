@@ -31,18 +31,13 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', [
-                    '_TZE200_ybsqljjg',
-                    '_TZE200_cxakecfo' /* model: 'ME168', vendor: 'GIRIER' */,
-        ]),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ybsqljjg', '_TZE200_cxakecfo']),
         model: 'ME168',
         vendor: 'AVATTO',
         description: 'Thermostatic radiator valve',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        whiteLabel: [
-            tuya.whitelabel('GIRIER', 'ME168', 'Thermostatic radiator valve', ['_TZE200_cxakecfo']),
-        ],
+        whiteLabel: [tuya.whitelabel('GIRIER', 'ME168', 'Thermostatic radiator valve', ['_TZE200_cxakecfo'])],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         ota: true,
