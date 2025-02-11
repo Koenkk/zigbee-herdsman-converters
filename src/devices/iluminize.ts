@@ -185,12 +185,16 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Sunricher', model: 'ZG2819S-RGBW'}],
         description: 'Zigbee handheld remote RGBW 4 channels',
         extend: [
-            m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
+            m.deviceEndpoints({endpoints: {'ep1': 1, 'ep2': 2, 'ep3': 3, 'ep4': 4}}),
             m.battery(),
             m.identify(),
             m.commandsOnOff({commands: ['on', 'off']}),
-            m.commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down']}),
-            m.commandsColorCtrl({commands: ['color_temperature_move', 'color_move', 'hue_move', 'hue_stop']}),
+            m.commandsLevelCtrl({
+                commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down'],
+            }),
+            m.commandsColorCtrl({
+                commands: ['color_temperature_move', 'color_move', 'hue_move', 'hue_stop'],
+            }),
             m.commandsScenes({commands: ['recall']}),
         ],
         meta: {multiEndpoint: true},
