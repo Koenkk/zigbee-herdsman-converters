@@ -611,7 +611,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e
             .climate()
-            .withSetpoint('current_heating_setpoint', 1, 90, 0.5, ea.STATE_SET)
+            .withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
             .withLocalTemperature(ea.STATE)
             .withLocalTemperatureCalibration(-10, 10, 1, ea.STATE_SET)
             .withSystemMode(['off', 'heat'], ea.STATE_SET)
@@ -626,10 +626,10 @@ const definitions: DefinitionWithExtend[] = [
                 .withValueMin(10)
                 .withValueMax(30),
             e.child_lock(),
-            e.deadzone_temperature().withValueMin(1).withValueMax(10).withValueStep(0.5),
-            e.max_temperature_limit().withValueMin(35).withValueMax(45).withValueStep(0.1),
+            e.deadzone_temperature().withValueMin(0.5).withValueMax(5).withValueStep(0.5),
+            e.max_temperature_limit().withValueMin(35).withValueMax(45).withValueStep(0.5),
             e.min_temperature_limit().withValueMin(1).withValueMax(15).withValueStep(0.1),
-            e.temperature_sensor_select(['IN', 'AL', 'OU']),
+            e.temperature_sensor_select(['Internal sensor (IN)','Both (AL)','External sensor (OU)']),
             //backlight_brightness
             new exposes.Numeric('backlight_brightness', exposes.access.STATE_SET)
                 .withUnit('%')
@@ -638,7 +638,7 @@ const definitions: DefinitionWithExtend[] = [
                 )
                 .withValueMin(0)
                 .withValueMax(100)
-                .withValueStep(0.1),
+                .withValueStep(1),
             //Screen time
             new exposes.Enum('screen_time', exposes.access.STATE_SET, [10,20,30,40,50,60].map((secs) => `${secs} seconds`))
                 .withDescription('Screen on time')
@@ -651,12 +651,12 @@ const definitions: DefinitionWithExtend[] = [
                 [2, 'preset', tuya.valueConverterBasic.lookup({'manual': 0, 'temporary manual': 1, 'program': 2, 'eco': 3})],
                 [16, 'local_temperature', tuya.valueConverter.divideBy10], 
                 [18, 'min_temperature_limit', tuya.valueConverter.divideBy10],
-                [32, 'sensor', tuya.valueConverterBasic.lookup({'IN':0,'AL':1,'OU':2})],
+                [32, 'sensor', tuya.valueConverterBasic.lookup({'Internal sensor (IN)':0,'Both (AL)':1,'External sensor (OU)':2})],
                 [34, 'max_temperature_limit', tuya.valueConverter.divideBy10],
                 [39, 'child_lock', tuya.valueConverter.lockUnlock],
-                [47, 'running_state', tuya.valueConverterBasic.lookup({'idle':0,'heat':1})],
+                [47, 'running_state', tuya.valueConverterBasic.lookup({'heat':0,'idle':1})],
                 [48, 'backlight_brightness', tuya.valueConverter.raw],
-                [50, 'current_heating_setpoint', tuya.valueConverterBasic.divideBy(5)], 
+                [50, 'current_heating_setpoint', tuya.valueConverter.divideBy10], 
                 [101, 'local_temperature_calibration', tuya.valueConverter.raw],
                 [102, 'week_program_l3_1', tuya.valueConverter.raw],
                 [103, 'week_program_l3_2', tuya.valueConverter.raw],
@@ -666,7 +666,7 @@ const definitions: DefinitionWithExtend[] = [
                 [107, 'week_program_l3_6', tuya.valueConverter.raw],
                 [108, 'week_program_l3_7', tuya.valueConverter.raw],
                 [109, 'floor_temperature', tuya.valueConverter.divideBy10],
-                [110, 'deadzone_temperature', tuya.valueConverterBasic.divideBy(5)],
+                [110, 'deadzone_temperature', tuya.valueConverter.divideBy10],
                 [111, 'high_protect_temperature', tuya.valueConverter.divideBy10],
                 [112, 'low_protection_temperature', tuya.valueConverter.divideBy10],
                 [113, 'eco_temperature', tuya.valueConverter.divideBy10],
