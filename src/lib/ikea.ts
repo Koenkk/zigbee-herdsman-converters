@@ -555,6 +555,7 @@ export function tradfriCommandsOnOff(): ModernExtend {
             cluster: 'genOnOff',
             type: 'commandToggle',
             convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
                 return {action: postfixWithEndpointName('toggle', msg, model, meta)};
             },
         },
@@ -589,6 +590,7 @@ export function tradfriCommandsLevelCtrl(): ModernExtend {
                 'commandMoveToLevelWithOnOff',
             ],
             convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
                 return {action: actionLookup[msg.type]};
             },
         },
