@@ -104,7 +104,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: 'SPZB0001', manufacturerName: 'Eurotronic', dateCode: '20221110'}],
         model: 'COZB0001',
         vendor: 'Eurotronic',
-        description: 'Comet Zigbee Wireless Heater Thermostat',
+        description: 'Comet Zigbee wireless heater thermostat',
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fz.eurotronic_thermostat, fz.battery],
         toZigbee: [
