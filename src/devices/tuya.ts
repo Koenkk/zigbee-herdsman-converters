@@ -12390,7 +12390,7 @@ const definitions: DefinitionWithExtend[] = [
                 // data type 5. Was [0] but went [16] when high temperature protection went into alert mode
                 [130, 'error_status', tuya.valueConverter.raw],
             ],
-        }
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_tagezcph']),
