@@ -563,7 +563,7 @@ const definitions: DefinitionWithExtend[] = [
     // #region on/off controls
     {
         zigbeeModel: ['TRADFRI control outlet'],
-        model: 'E1603/E1702/E1708',
+        model: 'E1603/E1702/E1708/E1902',
         vendor: 'IKEA',
         description: 'TRADFRI control outlet',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify()],
@@ -592,7 +592,7 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['TRETAKT Smart plug'],
-        model: 'E2204',
+        model: 'E2204/E2214',
         vendor: 'IKEA',
         description: 'TRETAKT smart plug',
         extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify()],
