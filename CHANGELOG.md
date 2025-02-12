@@ -1,5 +1,22 @@
 # Changelog
 
+## [21.36.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.35.0...v21.36.0) (2025-02-12)
+
+
+### Features
+
+* **add:** BX82-TYZ1 ([#8791](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8791)) ([5c230bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5c230bba9032405587414d5c1d84181d0e528faa))
+* **add:** COZB0001 ([#8802](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8802)) ([b58349a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b58349a048714202ebfe17437940b7001b21477e))
+* **add:** ME168 ([#8799](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8799)) ([65abdb3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/65abdb3d033777d6e1a3c4451cdb11599c462cb6))
+* Improve Tuya BAB-1413_Pro integration ([#8800](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8800)) ([dc90fb3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dc90fb39cb6877af8e3b8be2a3f523f12c6e32d1))
+
+
+### Bug Fixes
+
+* Expose `update_frequency` for Tuya SDM01V1.5 ([#8792](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8792)) ([80e718a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/80e718abd30a73ed43a2284b313d6310817ecf18))
+* Expose more actions for 511.344 ([#8798](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8798)) ([38b1bd0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/38b1bd0c8ec1cad09160eb958de50d0c5bd7ef2d))
+* Fix duplicate actions for IKEA E1524/E1810 https://github.com/Koenkk/zigbee2mqtt/issues/26281 ([056bca6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/056bca65405459fdafd65776272ead6202dc972a))
+
 ## [21.35.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.34.0...v21.35.0) (2025-02-10)
 
 
