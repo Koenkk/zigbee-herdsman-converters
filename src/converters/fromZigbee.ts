@@ -5120,7 +5120,9 @@ const converters2 = {
                     // This seems broken... We need to write 0x20 to turn it off and 0x10 to set
                     // it to auto mode. However, when it reports the flag, it will report 0x10
                     //  when it's off, and nothing at all when it's in auto mode
-                    if ((msg.data[0x4008] & 0x10) != 0) {
+                    // the new Comet valve reports the off status on bit 5
+                    // if either bit 4 or 5 is set, off mode is active
+                    if ((msg.data[0x4008] & 0x30) != 0) {
                         // reports auto -> setting to force_off
                         result.system_mode = constants.thermostatSystemModes[0];
                     } else if ((msg.data[0x4008] & 0x04) != 0) {
