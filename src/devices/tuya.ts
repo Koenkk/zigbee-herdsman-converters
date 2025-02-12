@@ -4258,6 +4258,28 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_2rvvqjoa']),
+        model: 'BX82-TYZ1',
+        vendor: 'Manhot',
+        description: 'Cover motor',
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Set the motor direction'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({OPEN: tuya.enum(2), STOP: tuya.enum(1), CLOSE: tuya.enum(0)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'position', tuya.valueConverter.raw],
+                [5, 'motor_direction', tuya.valueConverterBasic.lookup({normal: tuya.enum(0), reversed: tuya.enum(1)})],
+            ],
+        },
+    },
+    {
         zigbeeModel: ['kud7u2l'],
         fingerprint: tuya.fingerprint('TS0601', [
             '_TZE200_ckud7u2l',
@@ -10032,6 +10054,13 @@ const definitions: DefinitionWithExtend[] = [
             tuya.exposes.powerFactorWithPhase('a'),
             tuya.exposes.powerFactorWithPhase('b'),
             tuya.exposes.powerFactorWithPhase('c'),
+            e
+                .numeric('update_frequency', ea.STATE_SET)
+                .withUnit('s')
+                .withDescription('Update frequency')
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withPreset('default', 10, 'Default value'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -10040,6 +10069,7 @@ const definitions: DefinitionWithExtend[] = [
                 [29, 'power', tuya.valueConverter.raw],
                 [32, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [50, 'power_factor', tuya.valueConverter.raw],
+                [102, 'update_frequency', tuya.valueConverterBasic.divideBy(1)],
                 [103, 'voltage_a', tuya.valueConverter.divideBy10],
                 [104, 'current_a', tuya.valueConverter.divideBy1000],
                 [105, 'power_a', tuya.valueConverter.raw],
