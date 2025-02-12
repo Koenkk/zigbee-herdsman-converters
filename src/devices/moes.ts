@@ -598,83 +598,73 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_lpedvtvr'},
-        ],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_lpedvtvr'}],
         model: 'ZHT-SR',
         vendor: 'Moes',
         description: 'Moes smart ring thermostat',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime, 
+        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e
-            .climate()
-            .withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
-            .withLocalTemperature(ea.STATE)
-            .withLocalTemperatureCalibration(-10, 10, 1, ea.STATE_SET)
-            .withSystemMode(['off', 'heat'], ea.STATE_SET)
-            .withRunningState(['idle', 'heat'], ea.STATE)
-            .withPreset(['Manual', 'Temporary manual', 'Program', 'Eco']),
+                .climate()
+                .withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-10, 10, 1, ea.STATE_SET)
+                .withSystemMode(['off', 'heat'], ea.STATE_SET)
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withPreset(['Manual', 'Temporary manual', 'Program', 'Eco']),
             //eco_temperature,
             new exposes.Numeric('eco_temperature', exposes.access.STATE_SET)
                 .withUnit('°C')
-                .withDescription(
-                    'Temperature for eco mode',
-                )
+                .withDescription('Temperature for eco mode')
                 .withValueMin(10)
                 .withValueMax(30),
             e.child_lock(),
             e.deadzone_temperature().withValueMin(0.5).withValueMax(5).withValueStep(0.5),
             e.max_temperature_limit().withValueMin(35).withValueMax(45),
             e.min_temperature_limit().withValueMin(1).withValueMax(15),
-            e.temperature_sensor_select(['Internal sensor (IN)','Both (AL)','External sensor (OU)']),
-            new exposes.Numeric('floor_temperature', exposes.access.STATE)
-                .withUnit('°C')
-                .withDescription(
-                    'Floor temperature',
-                ),
+            e.temperature_sensor_select(['Internal sensor (IN)', 'Both (AL)', 'External sensor (OU)']),
+            new exposes.Numeric('floor_temperature', exposes.access.STATE).withUnit('°C').withDescription('Floor temperature'),
             new exposes.Numeric('high_protect_temperature', exposes.access.STATE_SET)
                 .withUnit('°C')
-                .withDescription(
-                    'High protect temperature',
-                )
+                .withDescription('High protect temperature')
                 .withValueMin(10)
                 .withValueMax(70),
-                new exposes.Numeric('low_protect_temperature', exposes.access.STATE_SET)
+            new exposes.Numeric('low_protect_temperature', exposes.access.STATE_SET)
                 .withUnit('°C')
-                .withDescription(
-                    'Low protect temperature',
-                )
+                .withDescription('Low protect temperature')
                 .withValueMin(0)
                 .withValueMax(10),
             //backlight_brightness
             new exposes.Numeric('backlight_brightness', exposes.access.STATE_SET)
                 .withUnit('%')
-                .withDescription(
-                    'Backlight brightness',
-                )
+                .withDescription('Backlight brightness')
                 .withValueMin(0)
                 .withValueMax(100),
             //Screen time
-            new exposes.Enum('screen_time', exposes.access.STATE_SET, [10,20,30,40,50,60].map((secs) => `${secs} seconds`))
+            new exposes.Enum(
+                'screen_time',
+                exposes.access.STATE_SET,
+                [10, 20, 30, 40, 50, 60].map((secs) => `${secs} seconds`),
+            )
                 .withDescription('Screen on time')
                 .withCategory('config'),
-            e.binary('rgblight',exposes.access.STATE, true, false),
+            e.binary('rgblight', exposes.access.STATE, true, false),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'system_mode', tuya.valueConverterBasic.lookup({'off': false,'heat': true})],
-                [2, 'preset', tuya.valueConverterBasic.lookup({'Manual': 0, 'Temporary manual': 1, 'Program': 2, 'Eco': 3})],
-                [16, 'local_temperature', tuya.valueConverter.divideBy10], 
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({off: false, heat: true})],
+                [2, 'preset', tuya.valueConverterBasic.lookup({Manual: 0, 'Temporary manual': 1, Program: 2, Eco: 3})],
+                [16, 'local_temperature', tuya.valueConverter.divideBy10],
                 [18, 'min_temperature_limit', tuya.valueConverter.divideBy10],
-                [32, 'sensor', tuya.valueConverterBasic.lookup({'Internal sensor (IN)':0,'Both (AL)':1,'External sensor (OU)':2})],
+                [32, 'sensor', tuya.valueConverterBasic.lookup({'Internal sensor (IN)': 0, 'Both (AL)': 1, 'External sensor (OU)': 2})],
                 [34, 'max_temperature_limit', tuya.valueConverter.divideBy10],
                 [39, 'child_lock', tuya.valueConverter.lockUnlock],
-                [47, 'running_state', tuya.valueConverterBasic.lookup({'heat':0,'idle':1})],
+                [47, 'running_state', tuya.valueConverterBasic.lookup({heat: 0, idle: 1})],
                 [48, 'backlight_brightness', tuya.valueConverter.raw],
-                [50, 'current_heating_setpoint', tuya.valueConverter.divideBy10], 
+                [50, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [101, 'local_temperature_calibration', tuya.valueConverter.raw],
                 [102, 'week_program_l3_1', tuya.valueConverter.raw],
                 [103, 'week_program_l3_2', tuya.valueConverter.raw],
@@ -688,8 +678,19 @@ const definitions: DefinitionWithExtend[] = [
                 [111, 'high_protect_temperature', tuya.valueConverter.divideBy10],
                 [112, 'low_protect_temperature', tuya.valueConverter.divideBy10],
                 [113, 'eco_temperature', tuya.valueConverter.divideBy10],
-                [114, 'screen_time', tuya.valueConverterBasic.lookup({'10 seconds': 0, '20 seconds': 1, '30 seconds': 2, '40 seconds': 3, '50 seconds': 4, '60 seconds': 5})],
-                [115, 'rbglight', tuya.valueConverterBasic.trueFalse(1)]
+                [
+                    114,
+                    'screen_time',
+                    tuya.valueConverterBasic.lookup({
+                        '10 seconds': 0,
+                        '20 seconds': 1,
+                        '30 seconds': 2,
+                        '40 seconds': 3,
+                        '50 seconds': 4,
+                        '60 seconds': 5,
+                    }),
+                ],
+                [115, 'rbglight', tuya.valueConverterBasic.trueFalse(1)],
             ],
         },
         extend: [],
