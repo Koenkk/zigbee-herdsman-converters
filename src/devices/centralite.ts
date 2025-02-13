@@ -7,25 +7,40 @@ import * as exposes from '../lib/exposes';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Fz} from '../lib/types';
+import {DefinitionWithExtend, Fz, Tz} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const tzLocal = {
+    thermostat_3156105_hpm: {
+        key: ['heat_pump_mode'],
+        convertSet: async (_entity, key, value, meta) => {
+            // Store the setting in the Zigbee2MQTT state only (no device interaction)
+            meta.state[key] = value;
+            return {state: {[key]: value}};
+        },
+    } satisfies Tz.Converter,
+};
 
 const fzLocal = {
     thermostat_3156105: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.runningState !== undefined) {
-                if (msg.data['runningState'] == 1) {
-                    msg.data['runningState'] = 0;
-                } else if (msg.data['runningState'] == 5) {
-                    msg.data['runningState'] = 4;
-                } else if (msg.data['runningState'] == 7) {
-                    msg.data['runningState'] = 6;
-                } else if (msg.data['runningState'] == 13) {
-                    msg.data['runningState'] = 9;
+            // Default true so we don't break existing setups
+            const useTranslation = meta.state.heat_pump_mode ?? true;
+            if (useTranslation) {
+                if (msg.data.runningState !== undefined) {
+                    if (msg.data['runningState'] == 1) {
+                        msg.data['runningState'] = 0;
+                    } else if (msg.data['runningState'] == 5) {
+                        msg.data['runningState'] = 4;
+                    } else if (msg.data['runningState'] == 7) {
+                        msg.data['runningState'] = 6;
+                    } else if (msg.data['runningState'] == 13) {
+                        msg.data['runningState'] = 9;
+                    }
                 }
             }
             if (msg.data.ctrlSeqeOfOper !== undefined) {
@@ -288,6 +303,7 @@ const definitions: DefinitionWithExtend[] = [
             tz.fan_mode,
             tz.thermostat_running_state,
             tz.thermostat_temperature_setpoint_hold,
+            tzLocal.thermostat_3156105_hpm,
         ],
         exposes: [
             e.battery(),
@@ -302,6 +318,8 @@ const definitions: DefinitionWithExtend[] = [
                 .withRunningState(['idle', 'heat', 'cool', 'fan_only'])
                 .withFanMode(['auto', 'on'])
                 .withSetpoint('occupied_cooling_setpoint', 7, 30, 1),
+            e.binary('heat_pump_mode', ea.SET, true, false)
+                .withDescription('Default: True. Set this false if you are NOT using heat pump mode. This does not change the setting on the device.'),
         ],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint) => {
@@ -312,6 +330,8 @@ const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.fanMode(endpoint);
             await reporting.thermostatTemperatureSetpointHold(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
         },
     },
     {
