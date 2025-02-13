@@ -563,9 +563,17 @@ const definitions: DefinitionWithExtend[] = [
     // #region on/off controls
     {
         zigbeeModel: ['TRADFRI control outlet'],
-        model: 'E1603/E1702/E1708/E1902',
+        model: 'E160x/E170x/E190x',
         vendor: 'IKEA',
         description: 'TRADFRI control outlet',
+        whitelabel: [
+            {model: 'E1603', vendor: 'IKEA', description: 'E1603 (Type - F)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
+            {model: 'E1702/E1703', vendor: 'IKEA', description: 'E1702/E1703 (Type - E)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
+            {model: 'E1704', vendor: 'IKEA', description: 'E1704 (Type - G)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
+            {model: 'E1705', vendor: 'IKEA', description: 'E1705 (Type - L)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
+            {model: 'E1706/E1707/E1708/E1709/E1710', vendor: 'IKEA', description: 'E1706/E1707/E1708/E1709/E1710 (Type - B)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
+            {model: 'E1902', vendor: 'IKEA', description: 'E1902 (Type - J)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
+        ],
         extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify()],
         ota: true,
     },
@@ -592,9 +600,13 @@ const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['TRETAKT Smart plug'],
-        model: 'E2204/E2214',
+        model: 'E22x4',
         vendor: 'IKEA',
         description: 'TRETAKT smart plug',
+        whitelabel: [
+            {model: 'E2204', vendor: 'IKEA', description: 'E2204 (EU)', fingerprint: [{modelID: 'TRETAKT Smart plug'}]},
+            {model: 'E2214', vendor: 'IKEA', description: 'E2214 (CH)', fingerprint: [{modelID: 'TRETAKT Smart plug'}]},
+        ],
         extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify()],
         ota: true,
     },
