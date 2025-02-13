@@ -571,7 +571,12 @@ const definitions: DefinitionWithExtend[] = [
             {model: 'E1702/E1703', vendor: 'IKEA', description: 'E1702/E1703 (Type - E)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
             {model: 'E1704', vendor: 'IKEA', description: 'E1704 (Type - G)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
             {model: 'E1705', vendor: 'IKEA', description: 'E1705 (Type - L)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
-            {model: 'E1706/E1707/E1708/E1709/E1710', vendor: 'IKEA', description: 'E1706/E1707/E1708/E1709/E1710 (Type - B)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
+            {
+                model: 'E1706/E1707/E1708/E1709/E1710',
+                vendor: 'IKEA',
+                description: 'E1706/E1707/E1708/E1709/E1710 (Type - B)',
+                fingerprint: [{modelID: 'TRADFRI control outlet'}],
+            },
             {model: 'E1902', vendor: 'IKEA', description: 'E1902 (Type - J)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
         ],
         extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify()],
