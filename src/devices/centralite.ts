@@ -318,8 +318,11 @@ const definitions: DefinitionWithExtend[] = [
                 .withRunningState(['idle', 'heat', 'cool', 'fan_only'])
                 .withFanMode(['auto', 'on'])
                 .withSetpoint('occupied_cooling_setpoint', 7, 30, 1),
-            e.binary('heat_pump_mode', ea.SET, true, false)
-                .withDescription('Default: True. Set this false if you are NOT using heat pump mode. This does not change the setting on the device.'),
+            e
+                .binary('heat_pump_mode', ea.SET, true, false)
+                .withDescription(
+                    'Default: True. Set this false if you are NOT using heat pump mode. This does not change the setting on the device.',
+                ),
         ],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint) => {
