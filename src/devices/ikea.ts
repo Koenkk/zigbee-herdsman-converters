@@ -566,7 +566,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E160x/E170x/E190x',
         vendor: 'IKEA',
         description: 'TRADFRI control outlet',
-        whitelabel: [
+        whiteLabel: [
             {model: 'E1603', vendor: 'IKEA', description: 'E1603 (Type - F)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
             {model: 'E1702/E1703', vendor: 'IKEA', description: 'E1702/E1703 (Type - E)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
             {model: 'E1704', vendor: 'IKEA', description: 'E1704 (Type - G)', fingerprint: [{modelID: 'TRADFRI control outlet'}]},
@@ -603,7 +603,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'E22x4',
         vendor: 'IKEA',
         description: 'TRETAKT smart plug',
-        whitelabel: [
+        whiteLabel: [
             {model: 'E2204', vendor: 'IKEA', description: 'E2204 (EU)', fingerprint: [{modelID: 'TRETAKT Smart plug'}]},
             {model: 'E2214', vendor: 'IKEA', description: 'E2214 (CH)', fingerprint: [{modelID: 'TRETAKT Smart plug'}]},
         ],
