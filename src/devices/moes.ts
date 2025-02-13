@@ -651,7 +651,7 @@ const definitions: DefinitionWithExtend[] = [
             )
                 .withDescription('Screen on time')
                 .withCategory('config'),
-            e.binary('rgblight', exposes.access.STATE, true, false),
+            e.binary('rgb_light', exposes.access.STATE, true, false),
         ],
         meta: {
             tuyaDatapoints: [
@@ -666,13 +666,6 @@ const definitions: DefinitionWithExtend[] = [
                 [48, 'backlight_brightness', tuya.valueConverter.raw],
                 [50, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [101, 'local_temperature_calibration', tuya.valueConverter.raw],
-                [102, 'week_program_l3_1', tuya.valueConverter.raw],
-                [103, 'week_program_l3_2', tuya.valueConverter.raw],
-                [104, 'week_program_l3_3', tuya.valueConverter.raw],
-                [105, 'week_program_l3_4', tuya.valueConverter.raw],
-                [106, 'week_program_l3_5', tuya.valueConverter.raw],
-                [107, 'week_program_l3_6', tuya.valueConverter.raw],
-                [108, 'week_program_l3_7', tuya.valueConverter.raw],
                 [109, 'floor_temperature', tuya.valueConverter.divideBy10],
                 [110, 'deadzone_temperature', tuya.valueConverter.divideBy10],
                 [111, 'high_protect_temperature', tuya.valueConverter.divideBy10],
@@ -690,7 +683,7 @@ const definitions: DefinitionWithExtend[] = [
                         '60 seconds': 5,
                     }),
                 ],
-                [115, 'rbglight', tuya.valueConverterBasic.trueFalse(1)],
+                [115, 'rbg_light', tuya.valueConverterBasic.trueFalse(1)],
             ],
         },
         extend: [],
