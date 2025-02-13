@@ -9899,7 +9899,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dikb3dp6', '_TZE204_dikb3dp6']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dikb3dp6', '_TZE204_dikb3dp6', '_TZE284_dikb3dp6']),
         model: 'SPM02V3',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 3P+N system',
