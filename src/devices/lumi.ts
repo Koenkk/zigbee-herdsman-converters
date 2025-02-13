@@ -49,6 +49,8 @@ const {
     lumiSetEventMode,
     lumiSwitchMode,
     lumiVibration,
+    lumiReportInterval,
+    lumiSensitivityAdjustment,
     lumiKnobRotation,
     lumiCommandMode,
     lumiBattery,
@@ -2372,10 +2374,10 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Vibration sensor T1',
         extend: [
             lumiVibration(),
-            // Doesn't seem to be working at all
-            // https://github.com/Koenkk/zigbee2mqtt/issues/21731
             // lumiMiscellaneous(),
-            m.battery({voltageToPercentage: {min: 2850, max: 3000}, voltage: true}),
+            lumiReportInterval(),
+            lumiSensitivityAdjustment(),
+            lumiBattery({voltageToPercentage: {min: 2850, max: 3000}}),
             lumiZigbeeOTA(),
             m.quirkCheckinInterval('1_HOUR'),
         ],
