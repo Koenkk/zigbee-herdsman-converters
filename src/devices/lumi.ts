@@ -199,7 +199,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aqara',
         description: 'Opple MX480',
         meta: {turnsOffAtBrightness1: true},
-        extend: [lumiLight({colorTemp: true, powerOutageMemory: 'switch'}), lumiZigbeeOTA()],
+        extend: [lumiLight({colorTemp: true, powerOutageMemory: 'switch', colorTempRange: [175, 370]}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn01'],
