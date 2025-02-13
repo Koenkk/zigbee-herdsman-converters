@@ -1,5 +1,14 @@
 # Changelog
 
+## [21.36.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.36.0...v21.36.1) (2025-02-13)
+
+
+### Bug Fixes
+
+* Aqara XDD13LM: fix color temperature range ([#8804](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8804)) ([3f60c2f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f60c2f06873aff669af92a9ed67cc3ed2eaa9ec))
+* Centralite 3156105: add reporting for missing attributes & fix for non-heat pump configurations ([#8806](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8806)) ([f552c37](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f552c379fcaf77c4a89601b9bdb9cf067f75923f))
+* **detect:** Detect `_TZE284_dikb3dp6` as Tuya SPM02V3 ([#8805](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8805)) ([a29bc3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a29bc3f5373a90840fd9db1ec454b9a719194769))
+
 ## [21.36.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.35.0...v21.36.0) (2025-02-12)
 
 
