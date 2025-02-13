@@ -1434,7 +1434,7 @@ export const lumiModernExtend = {
         },
     ) => {
         args = {powerOutageCount: true, deviceTemperature: true, ...args};
-        const colorTemp: {range: Range; startup: boolean} = args.colorTemp ? {startup: false, range: args.colorTempRange || [153, 370]} : undefined;
+        const colorTemp: {range: Range; startup: boolean} = args.colorTemp ? {startup: false, range: args.colorTempRange ?? [153, 370]} : undefined;
         const result = modernExtend.light({effect: false, powerOnBehavior: false, ...args, colorTemp});
         result.fromZigbee.push(
             fromZigbee.lumi_bulb_interval,
