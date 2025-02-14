@@ -601,7 +601,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_lpedvtvr'}],
         model: 'ZHT-SR',
         vendor: 'Moes',
-        description: 'Moes smart ring thermostat',
+        description: 'Smart ring thermostat',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
@@ -686,7 +686,6 @@ const definitions: DefinitionWithExtend[] = [
                 [115, 'rbg_light', tuya.valueConverterBasic.trueFalse(1)],
             ],
         },
-        extend: [],
     },
 ];
 
