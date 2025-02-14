@@ -403,7 +403,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
     return definition;
 }
 
-function prepareDefinition(definition: DefinitionWithExtend): Definition {
+export function prepareDefinition(definition: DefinitionWithExtend): Definition {
     const finalDefinition = processExtensions(definition);
 
     finalDefinition.toZigbee.push(
