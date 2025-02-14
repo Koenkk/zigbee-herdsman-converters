@@ -2046,7 +2046,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiVibration: (): ModernExtend => {
-        const exposes: Expose[] = [e.action(['shake', 'triple_strike'])];
+        const exposes: Expose[] = [e.action(['shake', 'triple_strike', 'movement'])];
 
         const fromZigbee: Fz.Converter[] = [
             {
@@ -2060,10 +2060,52 @@ export const lumiModernExtend = {
                     }
                 },
             },
+            {
+                cluster: 'genMultistateInput',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.presentValue !== undefined && msg.data.presentValue === 1) {
+                        return {action: 'triple_strike'};
+                    }
+                },
+            },
+            {
+                cluster: 'manuSpecificLumi',
+                type: ['attributeReport', 'readResponse'],
+                convert: function (model, msg, publish, options, meta) {
+                    if (msg.data[0x0118] !== undefined && msg.data[0x0118] === 1) {
+                        return {action: 'movement'};
+                    }
+                },
+            },
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    lumiSensitivityAdjustment: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'sensitivity_adjustment',
+            lookup: {high: 1, medium: 2, low: 3},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x010e, type: 0x20},
+            description: 'Sensitivity adjustment for the device',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'SET',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiReportInterval: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'report_interval',
+            lookup: {'1s': 0x01, '5s': 0x02, '10s': 0x03},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0110, type: 0x20},
+            description: 'Reporting interval for the device',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'SET',
+            entityCategory: 'config',
+            ...args,
+        }),
     lumiMiscellaneous: (args?: {
         cluster: 'genBasic' | 'manuSpecificLumi';
         deviceTemperatureAttribute?: number;
