@@ -35,10 +35,9 @@
         "test:coverage": "vitest run --config ./test/vitest.config.mts",
         "test:watch": "vitest watch --config ./test/vitest.config.mts",
         "clean": "rimraf --glob index* coverage dist devices lib converters tsconfig.tsbuildinfo",
-        "build": "rimraf --glob index* coverage dist devices lib converters && tsc && mv dist/* .",
+        "build": "rimraf --glob index* coverage dist devices lib converters && tsc && mv dist/* . && node build-models-index.mjs",
         "build:watch": "tsc --watch",
-        "build-index": "node build-models-index.mjs",
-        "prepack": "pnpm run clean && pnpm run build && pnpm run build-index",
+        "prepack": "pnpm run clean && pnpm run build",
         "prepare": "husky"
     },
     "author": "Koen Kanters",
