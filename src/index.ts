@@ -83,7 +83,7 @@ export {setLogger} from './lib/logger';
 export const getConfigureKey = configureKey.getConfigureKey;
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
-const externalConvertersLookup = new Map<string, DefinitionWithExtend[]>();
+const externalDefinitionsLookup = new Map<string, DefinitionWithExtend[]>();
 export const externalDefinitions: DefinitionWithExtend[] = [];
 
 // expected to be at the beginning of `definitions` array
@@ -103,43 +103,43 @@ function arrayEquals<T>(as: T[], bs: T[]): boolean {
     return true;
 }
 
-function addToExternalConvertersLookup(zigbeeModel: string | undefined, definition: DefinitionWithExtend): void {
+function addToExternalDefinitionsLookup(zigbeeModel: string | undefined, definition: DefinitionWithExtend): void {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
 
-    if (!externalConvertersLookup.has(lookupModel)) {
-        externalConvertersLookup.set(lookupModel, []);
+    if (!externalDefinitionsLookup.has(lookupModel)) {
+        externalDefinitionsLookup.set(lookupModel, []);
     }
 
     // key created above
-    if (!externalConvertersLookup.get(lookupModel)!.includes(definition)) {
-        externalConvertersLookup.get(lookupModel)!.splice(0, 0, definition);
+    if (!externalDefinitionsLookup.get(lookupModel)!.includes(definition)) {
+        externalDefinitionsLookup.get(lookupModel)!.splice(0, 0, definition);
     }
 }
 
-function removeFromExternalConvertersLookup(zigbeeModel: string | undefined, definition: DefinitionWithExtend): void {
+function removeFromExternalDefinitionsLookup(zigbeeModel: string | undefined, definition: DefinitionWithExtend): void {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
 
-    if (externalConvertersLookup.has(lookupModel)) {
-        const i = externalConvertersLookup.get(lookupModel)!.indexOf(definition);
+    if (externalDefinitionsLookup.has(lookupModel)) {
+        const i = externalDefinitionsLookup.get(lookupModel)!.indexOf(definition);
 
         if (i > -1) {
-            externalConvertersLookup.get(lookupModel)!.splice(i, 1);
+            externalDefinitionsLookup.get(lookupModel)!.splice(i, 1);
         }
 
-        if (externalConvertersLookup.get(lookupModel)!.length === 0) {
-            externalConvertersLookup.delete(lookupModel);
+        if (externalDefinitionsLookup.get(lookupModel)!.length === 0) {
+            externalDefinitionsLookup.delete(lookupModel);
         }
     }
 }
 
-function getFromExternalConvertersLookup(zigbeeModel: string | undefined): DefinitionWithExtend[] | undefined {
+function getFromExternalDefinitionsLookup(zigbeeModel: string | undefined): DefinitionWithExtend[] | undefined {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
 
-    if (externalConvertersLookup.has(lookupModel)) {
-        return externalConvertersLookup.get(lookupModel);
+    if (externalDefinitionsLookup.has(lookupModel)) {
+        return externalDefinitionsLookup.get(lookupModel);
     }
 
-    return externalConvertersLookup.get(lookupModel.replace(/\0(.|\n)*$/g, '').trim());
+    return externalDefinitionsLookup.get(lookupModel.replace(/\0(.|\n)*$/g, '').trim());
 }
 
 export function removeExternalDefinitions(converterName?: string): void {
@@ -152,13 +152,13 @@ export function removeExternalDefinitions(converterName?: string): void {
 
         if (definition.zigbeeModel) {
             for (const zigbeeModel of definition.zigbeeModel) {
-                removeFromExternalConvertersLookup(zigbeeModel, definition);
+                removeFromExternalDefinitionsLookup(zigbeeModel, definition);
             }
         }
 
         if (definition.fingerprint) {
             for (const fingerprint of definition.fingerprint) {
-                removeFromExternalConvertersLookup(fingerprint.modelID, definition);
+                removeFromExternalDefinitionsLookup(fingerprint.modelID, definition);
             }
         }
 
@@ -175,13 +175,13 @@ export function addExternalDefinition(definition: ExternalDefinitionWithExtend):
 
     if (definition.fingerprint) {
         for (const fingerprint of definition.fingerprint) {
-            addToExternalConvertersLookup(fingerprint.modelID, definition);
+            addToExternalDefinitionsLookup(fingerprint.modelID, definition);
         }
     }
 
     if (definition.zigbeeModel) {
         for (const zigbeeModel of definition.zigbeeModel) {
-            addToExternalConvertersLookup(zigbeeModel, definition);
+            addToExternalDefinitionsLookup(zigbeeModel, definition);
         }
     }
 }
@@ -516,7 +516,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown: bool
     // hot path when no external converters present
     const candidates =
         externalDefinitionsCount > 0
-            ? getFromExternalConvertersLookup(device.modelID) || (await getFromIndex(device.modelID))
+            ? getFromExternalDefinitionsLookup(device.modelID) || (await getFromIndex(device.modelID))
             : await getFromIndex(device.modelID);
 
     if (!candidates) {
