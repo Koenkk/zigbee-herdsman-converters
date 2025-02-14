@@ -212,6 +212,21 @@ describe('ZHC', () => {
         expect(definition2.model).toStrictEqual('SNZB-02');
     });
 
+    it('finds in lots of definitions', async () => {
+        const device = mockDevice(
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_aoclfnxz',
+                endpoints: [],
+            },
+            'EndDevice',
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.vendor).toStrictEqual('Moes');
+        expect(definition.model).toStrictEqual('BHT-002/BHT-006');
+    });
+
     it('allows definition with both modern extend and exposes as function', async () => {
         const device = mockDevice({modelID: 'MOSZB-140', endpoints: []});
         const MOSZB140 = await findByDevice(device);

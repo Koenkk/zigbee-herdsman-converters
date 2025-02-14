@@ -34,6 +34,7 @@
         "test": "vitest run --config ./test/vitest.config.mts",
         "test:coverage": "vitest run --config ./test/vitest.config.mts",
         "test:watch": "vitest watch --config ./test/vitest.config.mts",
+        "bench": "vitest bench --run --config ./test/vitest.config.mts",
         "clean": "rimraf --glob index* coverage dist devices lib converters tsconfig.tsbuildinfo",
         "build": "rimraf --glob index* coverage dist devices lib converters && tsc && cp -R dist/* . && node build-models-index.mjs",
         "build:watch": "tsc --watch",
