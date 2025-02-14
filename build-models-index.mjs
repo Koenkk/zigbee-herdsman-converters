@@ -17,6 +17,20 @@ const OUT_FILENAME = 'models-index.json';
 // output in `src` by default (next to `index.ts`), provides access for uncompiled executions
 const OUT_FILEPATH = path.join('src', OUT_FILENAME);
 
+/**
+ * Format:
+ * Record<(zigbeeModel | fingerprint.modelID), [JS file name, index in `definitions` export][]>
+ *
+ * Note: `null` is a valid key (assigned for any `undefined` model).
+ *
+ * Example:
+ * ```json
+ * {
+ *     "vzm31-sn": [["inovelli.js", 1]],
+ *     "null": [["yale.js", 25], ["tuya.js", 172]]
+ * }
+ * ```
+ */
 const lookup = {};
 let totalDefinitions = 0;
 
