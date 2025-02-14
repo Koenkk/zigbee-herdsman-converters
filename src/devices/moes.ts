@@ -647,7 +647,7 @@ const definitions: DefinitionWithExtend[] = [
             new exposes.Enum(
                 'screen_time',
                 exposes.access.STATE_SET,
-                [10, 20, 30, 40, 50, 60].map((secs) => `${secs} seconds`),
+                [10, 20, 30, 40, 50, 60].map((secs) => `${secs}_seconds`),
             )
                 .withDescription('Screen on time')
                 .withCategory('config'),
@@ -675,12 +675,12 @@ const definitions: DefinitionWithExtend[] = [
                     114,
                     'screen_time',
                     tuya.valueConverterBasic.lookup({
-                        '10 seconds': 0,
-                        '20 seconds': 1,
-                        '30 seconds': 2,
-                        '40 seconds': 3,
-                        '50 seconds': 4,
-                        '60 seconds': 5,
+                        '10_seconds': 0,
+                        '20_seconds': 1,
+                        '30_seconds': 2,
+                        '40_seconds': 3,
+                        '50_seconds': 4,
+                        '60_seconds': 5,
                     }),
                 ],
                 [115, 'rbg_light', tuya.valueConverterBasic.trueFalse(1)],
