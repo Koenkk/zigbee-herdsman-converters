@@ -3,11 +3,15 @@ import {Zcl} from 'zigbee-herdsman';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
+import {logger} from '../lib/logger';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Tz} from '../lib/types';
+import {DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, OnEvent, Option, Tz} from '../lib/types';
+import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from '../lib/utils';
 
 const e = exposes.presets;
+const ea = exposes.access;
+const NS = 'zhc:orvibo';
 
 const tzLocal = {
     DD10Z_brightness: {
@@ -22,6 +26,173 @@ const tzLocal = {
             await entity.read('genLevelCtrl', ['currentLevel']);
         },
     } satisfies Tz.Converter,
+};
+
+const distinct = <T>(input: T[], toKey: (input: T) => string): T[] => {
+    const seen = new Set<string>();
+    return input.filter((item) => {
+        const key = toKey(item);
+        if (seen.has(key)) {
+            return false;
+        }
+        seen.add(key);
+        return true;
+    });
+};
+const hexToBytes = (hex: string): number[] => {
+    // Remove '0x' prefix if present
+    if (hex.startsWith('0x')) {
+        hex = hex.slice(2);
+    }
+
+    // Ensure even length
+    if (hex.length % 2 !== 0) {
+        hex = '0' + hex;
+    }
+
+    // Convert to byte array
+    const bytes: number[] = [];
+    for (let i = 0; i < hex.length; i += 2) {
+        bytes.push(parseInt(hex.substring(i, i + 2), 16));
+    }
+
+    return bytes;
+};
+export interface OrviboSwitchRewiringArgs {
+    endpointNames: string[];
+    endpoints: {[n: string]: number};
+    endpointIds: {[n: number]: string};
+}
+const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
+    const composite = e.composite('switch_actions', 'switch_actions', ea.SET);
+    for (const endpointName of args.endpointNames) {
+        composite.withFeature(
+            e
+                .composite(endpointName, endpointName, ea.SET)
+                .withDescription('Set which scene and/or relay switch press should execute')
+                .withFeature(
+                    e.numeric('sceneid', ea.SET).withValueMin(0).withValueMax(255).withDescription('Scene id to recall. Set to 0 to recall none.'),
+                )
+                .withFeature(
+                    e
+                        .numeric('sceneturnoffrelay', ea.SET)
+                        .withValueMin(0)
+                        .withValueMax(4)
+                        .withDescription(
+                            'Relay id which set sceneid will change to off when scene is recalled. Set to 0 if no relay is affected by the scene.',
+                        ),
+                ) // TODO: We should just use scenes, however we can not set them up yet via front-end as it does not support endpoints. [See feature request](https://github.com/nurikk/zigbee2mqtt-frontend/issues/2393).
+                .withFeature(
+                    e
+                        .numeric('relaynumber', ea.SET)
+                        .withValueMin(0)
+                        .withValueMax(4)
+                        .withDescription('Relay number to act on. Set to 0 to act on none.'),
+                )
+                .withFeature(
+                    e
+                        .numeric('relayaction', ea.SET)
+                        .withValueMin(0)
+                        .withValueMax(2)
+                        .withDescription('Relay operation to execute. 0 = OFF, 1 = ON, 2 = TOGGLE.'),
+                ),
+        );
+    }
+    composite.withFeature(
+        e
+            .binary('forceupdate', ea.SET, true, false)
+            .withDescription('Force of all switches update when applying changes. When turned off only changed switches will be affected.'),
+    );
+    const options: Option[] = [composite];
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'genScenes',
+            type: 'commandRecall',
+            options,
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const payload: KeyValueAny = {action: postfixWithEndpointName(`recall_${msg.data.sceneid}`, msg, model, meta)};
+                addActionGroup(payload, msg, model);
+
+                // Orvibo switch can be configured to both recall a scene and act on a relay. In this situation it does not publish new state (when scene is recalled), so here we are updating state accordingly.
+                const switch_actions = options.switch_actions as KeyValueAny;
+                if (!switch_actions) {
+                    return;
+                }
+                const affectedEndpointNames = args.endpointNames.filter((en) => switch_actions[en]?.sceneid === msg.data.sceneid);
+                const affectedRelays = affectedEndpointNames.map((en) => ({
+                    relaynumber: switch_actions[en]?.relaynumber,
+                    relayaction: switch_actions[en]?.relayaction,
+                }));
+                const distinctAffectedRelays = distinct(affectedRelays, (relay) => `${relay.relaynumber}_${relay.relayaction}`);
+                if (distinctAffectedRelays.length > 1) {
+                    logger.warning(
+                        'Switch has multiple endpoints set-up to recall same scene with different relay configurations. We are unable to figure out which relay state might have changed.',
+                        NS,
+                    );
+                } else if (distinctAffectedRelays.length === 0) {
+                    // Nothing to do...
+                } else {
+                    const {relaynumber, relayaction} = distinctAffectedRelays[0];
+                    const endpointName = args.endpointIds[relaynumber];
+                    payload[`state_${endpointName}`] =
+                        relayaction === 0 ? 'OFF' : relayaction === 1 ? 'ON' : meta.state[`state_${endpointName}`] === 'ON' ? 'OFF' : 'ON';
+                }
+                const turnOffRelay = affectedEndpointNames[0] ? switch_actions[affectedEndpointNames[0]]?.sceneturnoffrelay : undefined;
+                if (typeof turnOffRelay === 'number') {
+                    // Update relay state
+                    payload[`state_${args.endpointIds[turnOffRelay]}`] = 'OFF';
+                }
+                return payload;
+            },
+        },
+    ];
+
+    const onEvent: OnEvent = async (type, data, device, settings, state, meta) => {
+        if (type !== 'deviceOptionsChanged') {
+            return;
+        }
+        const endpointsOptionsFrom = (data as KeyValueAny)?.from?.switch_actions ?? {};
+        const endpointsOptionsTo = (data as KeyValueAny)?.to?.switch_actions ?? {};
+        if (!endpointsOptionsTo) {
+            return;
+        }
+        const forceUpdate = endpointsOptionsTo.forceupdate;
+        for (const endpointName of args.endpointNames) {
+            let from = endpointsOptionsFrom[endpointName];
+            let to = endpointsOptionsTo[endpointName];
+            if (!to && !from && !forceUpdate) {
+                return;
+            }
+
+            to = to ?? {};
+            to.sceneid = to.sceneid ? to.sceneid : 0;
+            to.relaynumber = to.relaynumber ? to.relaynumber : 0;
+            to.relayaction = to.relayaction ? to.relayaction : 0;
+            from = from ?? {};
+            if (from.sceneid !== to.sceneid || from.relaynumber !== to.relaynumber || from.relayaction !== to.relayaction || forceUpdate) {
+                const switchId = args.endpoints[endpointName];
+                await device.getEndpoint(7).command('manuSpecificOrvibo', 'clearSwitchAction', {data: [switchId, 0, 0]});
+                const {sceneid, relaynumber, relayaction} = to;
+                if (sceneid) {
+                    await device.getEndpoint(7).command('manuSpecificOrvibo', 'setSwitchScene', {data: [switchId, 0, 0, 0, 0, sceneid]});
+                }
+                if (relaynumber && device.ieeeAddr.length > 3) {
+                    const invertedAddress = hexToBytes(device.ieeeAddr).reverse();
+                    await device.getEndpoint(7).command('manuSpecificOrvibo', 'setSwitchRelay', {
+                        data: [switchId, 0, 0, ...invertedAddress, relaynumber, 4, 1, 6, 0, 1, relayaction],
+                    });
+                }
+            }
+        }
+    };
+
+    return {
+        onEvent,
+        fromZigbee,
+        isModernExtend: true,
+    };
 };
 
 const definitions: DefinitionWithExtend[] = [
@@ -355,7 +526,12 @@ const definitions: DefinitionWithExtend[] = [
             }),
             m.deviceEndpoints({endpoints: {left_up: 1, left_down: 2, center_up: 3, center_down: 4, right_up: 5, right_down: 6}}),
             m.onOff({powerOnBehavior: false, endpointNames: ['left_up', 'left_down', 'center_up', 'center_down', 'right_up', 'right_down']}),
-            m.commandsOnOff({endpointNames: ['left_up', 'left_down', 'center_up', 'center_down', 'right_up', 'right_down']}),
+            orviboSwitchRewiring({
+                endpointNames: ['left_up', 'left_down', 'center_up', 'center_down', 'right_up', 'right_down'],
+                endpoints: {left_up: 1, left_down: 2, center_up: 3, center_down: 4, right_up: 5, right_down: 6},
+                endpointIds: {1: 'left_up', 2: 'left_down', 3: 'center_up', 4: 'center_down', 5: 'right_up', 6: 'right_down'},
+            }),
+            m.commandsScenes(),
         ],
     },
     {
