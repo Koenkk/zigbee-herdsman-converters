@@ -2045,7 +2045,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiVibration: (): ModernExtend => {
-        const exposes: Expose[] = [e.action(['triple_strike', 'movement'])];
+        const exposes: Expose[] = [e.action(['shake', 'triple_strike', 'movement'])];
 
         const fromZigbee: Fz.Converter[] = [
             {
@@ -2054,7 +2054,7 @@ export const lumiModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data[45] !== undefined) {
                         const zoneStatus = msg.data[45];
-                        const actionLookup: KeyValueNumberString = {1: 'movement', 2: 'triple_strike'};
+                        const actionLookup: KeyValueNumberString = {1: 'shake', 2: 'triple_strike'};
                         return {action: actionLookup[zoneStatus]};
                     }
                 },
