@@ -94,7 +94,7 @@ const sonoffExtend = {
 
                     const tmpTime = Number(Math.round(Number((value[inchingTime as keyof typeof value] * 2).toFixed(1))).toFixed(1));
 
-                    const payloadValue = [];
+                    const payloadValue: Uint8Array = new Uint8Array(11);
                     payloadValue[0] = 0x01; // Cmd
                     payloadValue[1] = 0x17; // SubCmd
                     payloadValue[2] = 0x07; // Length
@@ -110,8 +110,8 @@ const sonoffExtend = {
 
                     payloadValue[5] = 0x00; // Channel
 
-                    payloadValue[6] = tmpTime; // Timeout
-                    payloadValue[7] = tmpTime >> 8;
+                    payloadValue[6] = tmpTime & 0xff; // Timeout
+                    payloadValue[7] = (tmpTime >> 8) & 0xff;
 
                     payloadValue[8] = 0x00; // Reserve
                     payloadValue[9] = 0x00;
@@ -338,20 +338,21 @@ const sonoffExtend = {
                     const irrigationInterval: string = 'irrigation_interval';
                     // logger.debug(`to zigbee cyclic_timed_irrigation ${value[irrigationInterval as keyof typeof value]}`, NS);
 
-                    const payloadValue = [];
+                    // const payloadValue = [];
+                    const payloadValue: Uint8Array = new Uint8Array(11);
                     payloadValue[0] = 0x0a;
                     payloadValue[1] = 0x00;
-                    payloadValue[2] = value[totalNumber as keyof typeof value];
+                    payloadValue[2] = value[totalNumber as keyof typeof value] & 0xff;
 
-                    payloadValue[3] = value[irrigationDuration as keyof typeof value] >> 24;
-                    payloadValue[4] = value[irrigationDuration as keyof typeof value] >> 16;
-                    payloadValue[5] = value[irrigationDuration as keyof typeof value] >> 8;
-                    payloadValue[6] = value[irrigationDuration as keyof typeof value];
+                    payloadValue[3] = (value[irrigationDuration as keyof typeof value] >> 24) & 0xff;
+                    payloadValue[4] = (value[irrigationDuration as keyof typeof value] >> 16) & 0xff;
+                    payloadValue[5] = (value[irrigationDuration as keyof typeof value] >> 8) & 0xff;
+                    payloadValue[6] = value[irrigationDuration as keyof typeof value] & 0xff;
 
-                    payloadValue[7] = value[irrigationInterval as keyof typeof value] >> 24;
-                    payloadValue[8] = value[irrigationInterval as keyof typeof value] >> 16;
-                    payloadValue[9] = value[irrigationInterval as keyof typeof value] >> 8;
-                    payloadValue[10] = value[irrigationInterval as keyof typeof value];
+                    payloadValue[7] = (value[irrigationInterval as keyof typeof value] >> 24) & 0xff;
+                    payloadValue[8] = (value[irrigationInterval as keyof typeof value] >> 16) & 0xff;
+                    payloadValue[9] = (value[irrigationInterval as keyof typeof value] >> 8) & 0xff;
+                    payloadValue[10] = value[irrigationInterval as keyof typeof value] & 0xff;
 
                     const payload = {[0x5008]: {value: payloadValue, type: 0x42}};
                     await entity.write('customClusterEwelink', payload, defaultResponseOptions);
@@ -449,20 +450,20 @@ const sonoffExtend = {
                     const irrigationInterval: string = 'irrigation_interval';
                     // logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[irrigationInterval as keyof typeof value]}`, NS);
 
-                    const payloadValue = [];
+                    const payloadValue: Uint8Array = new Uint8Array(11);
                     payloadValue[0] = 0x0a;
                     payloadValue[1] = 0x00;
-                    payloadValue[2] = value[totalNumber as keyof typeof value];
+                    payloadValue[2] = value[totalNumber as keyof typeof value] & 0xff;
 
-                    payloadValue[3] = value[irrigationCapacity as keyof typeof value] >> 24;
-                    payloadValue[4] = value[irrigationCapacity as keyof typeof value] >> 16;
-                    payloadValue[5] = value[irrigationCapacity as keyof typeof value] >> 8;
-                    payloadValue[6] = value[irrigationCapacity as keyof typeof value];
+                    payloadValue[3] = (value[irrigationCapacity as keyof typeof value] >> 24) & 0xff;
+                    payloadValue[4] = (value[irrigationCapacity as keyof typeof value] >> 16) & 0xff;
+                    payloadValue[5] = (value[irrigationCapacity as keyof typeof value] >> 8) & 0xff;
+                    payloadValue[6] = value[irrigationCapacity as keyof typeof value] & 0xff;
 
-                    payloadValue[7] = value[irrigationInterval as keyof typeof value] >> 24;
-                    payloadValue[8] = value[irrigationInterval as keyof typeof value] >> 16;
-                    payloadValue[9] = value[irrigationInterval as keyof typeof value] >> 8;
-                    payloadValue[10] = value[irrigationInterval as keyof typeof value];
+                    payloadValue[7] = (value[irrigationInterval as keyof typeof value] >> 24) & 0xff;
+                    payloadValue[8] = (value[irrigationInterval as keyof typeof value] >> 16) & 0xff;
+                    payloadValue[9] = (value[irrigationInterval as keyof typeof value] >> 8) & 0xff;
+                    payloadValue[10] = value[irrigationInterval as keyof typeof value] & 0xff;
 
                     const payload = {[0x5009]: {value: payloadValue, type: 0x42}};
                     await entity.write('customClusterEwelink', payload, defaultResponseOptions);

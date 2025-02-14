@@ -17,15 +17,19 @@ const fzLocal = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.runningState !== undefined) {
-                if (msg.data['runningState'] == 1) {
-                    msg.data['runningState'] = 0;
-                } else if (msg.data['runningState'] == 5) {
-                    msg.data['runningState'] = 4;
-                } else if (msg.data['runningState'] == 7) {
-                    msg.data['runningState'] = 6;
-                } else if (msg.data['runningState'] == 13) {
-                    msg.data['runningState'] = 9;
+            // Default true so we don't break existing setups
+            const useTranslation = !!options.heat_pump_mode;
+            if (useTranslation) {
+                if (msg.data.runningState !== undefined) {
+                    if (msg.data['runningState'] == 1) {
+                        msg.data['runningState'] = 0;
+                    } else if (msg.data['runningState'] == 5) {
+                        msg.data['runningState'] = 4;
+                    } else if (msg.data['runningState'] == 7) {
+                        msg.data['runningState'] = 6;
+                    } else if (msg.data['runningState'] == 13) {
+                        msg.data['runningState'] = 9;
+                    }
                 }
             }
             if (msg.data.ctrlSeqeOfOper !== undefined) {
@@ -303,6 +307,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withFanMode(['auto', 'on'])
                 .withSetpoint('occupied_cooling_setpoint', 7, 30, 1),
         ],
+        options: [
+            new exposes.Binary('heat_pump_mode', exposes.access.SET, true, false).withDescription(
+                'Set this false if you are NOT using heat pump mode (default true).',
+            ),
+        ],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -312,6 +321,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.fanMode(endpoint);
             await reporting.thermostatTemperatureSetpointHold(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
         },
     },
     {

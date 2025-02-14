@@ -4253,6 +4253,28 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_2rvvqjoa']),
+        model: 'BX82-TYZ1',
+        vendor: 'Manhot',
+        description: 'Cover motor',
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Set the motor direction'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({OPEN: tuya.enum(2), STOP: tuya.enum(1), CLOSE: tuya.enum(0)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'position', tuya.valueConverter.raw],
+                [5, 'motor_direction', tuya.valueConverterBasic.lookup({normal: tuya.enum(0), reversed: tuya.enum(1)})],
+            ],
+        },
+    },
+    {
         zigbeeModel: ['kud7u2l'],
         fingerprint: tuya.fingerprint('TS0601', [
             '_TZE200_ckud7u2l',
@@ -4363,22 +4385,35 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
+        ota: true,
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.max_temperature().withValueMin(15).withValueMax(45),
-            e.min_temperature().withValueMin(5).withValueMax(15),
+            e
+                .numeric('max_temperature_limit', ea.STATE_SET)
+                .withUnit('°C')
+                .withDescription('Max temperature limit')
+                .withValueMin(15)
+                .withValueMax(45)
+                .withValueStep(0.5),
+            e
+                .numeric('min_temperature_limit', ea.STATE_SET)
+                .withUnit('°C')
+                .withDescription('Min temperature limit')
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(0.5),
             e.window_detection(),
-            e.open_window_temperature().withValueMin(5).withValueMax(25),
+            e.open_window_temperature().withValueMin(5).withValueMax(30).withValueStep(0.5),
             e.comfort_temperature().withValueMin(5).withValueMax(35),
-            e.eco_temperature().withValueMin(5).withValueMax(35),
-            e.holiday_temperature().withValueMin(5).withValueMax(35),
+            e.eco_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e.holiday_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
             e
                 .climate()
                 .withPreset(['auto', 'manual', 'holiday', 'comfort'])
-                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET, 'Only for Homeassistant')
                 .withRunningState(['idle', 'heat'], ea.STATE_SET),
             tuya.exposes.frostProtection(
@@ -4386,33 +4421,18 @@ export const definitions: DefinitionWithExtend[] = [
                     'at 8 °C, the device display "AF".press the pair button to cancel.',
             ),
             e
-                .numeric('boost_timeset_countdown', ea.STATE_SET)
-                .withUnit('s')
-                .withDescription(
-                    'Setting ' +
-                        'minimum 0 - maximum 465 seconds boost time. The boost function is activated. The remaining ' +
-                        'time for the function will be counted down in seconds ( 465 to 0 ).',
-                )
+                .numeric('boost_time', ea.STATE_SET)
+                .withUnit('min')
+                .withDescription('Boost running time. Minimum 0 - maximum 24 hours')
                 .withValueMin(0)
-                .withValueMax(465),
-            e
-                .composite('schedule', 'schedule', ea.STATE_SET)
-                .withFeature(e.enum('week_day', ea.SET, ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']))
-                .withFeature(e.text('schedule', ea.SET))
-                .withDescription(
-                    'Schedule will work with "auto" preset. In this mode, the device executes ' +
-                        'a preset week programming temperature time and temperature. Before using these properties, check `working_day` ' +
-                        'property. Each day can contain up to 10 segments. At least 1 segment should be defined. Different count of segments ' +
-                        'can be defined for each day, e.g., 3 segments for Monday, 5 segments for Thursday, etc. It should be defined in the ' +
-                        'following format: `hours:minutes/temperature`. Minutes can be only tens, i.e., 00, 10, 20, 30, 40, 50. Segments should ' +
-                        'be divided by space symbol. Each day should end with the last segment of 24:00. Examples: `04:00/20 08:30/22 10:10/18 ' +
-                        '18:40/24 22:50/19.5`; `06:00/21.5 17:20/26 24:00/18`. The temperature will be set from the beginning/start of one ' +
-                        'period and until the next period, e.g., `04:00/20 24:00/22` means that from 00:00 to 04:00 temperature will be 20 ' +
-                        'degrees and from 04:00 to 00:00 temperature will be 22 degrees.',
-                ),
-            ...tuya.exposes.scheduleAllDays(ea.STATE, 'HH:MM/C'),
+                .withValueMax(1440)
+                .withValueStep(15)
+                .withCategory('config'),
+            e.numeric('boost_timeset_countdown', ea.STATE).withUnit('min').withDescription('Boost time remaining'),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, '06:00/21.5 17:20/26 20:00/21 24:00/18').map((text) => text.withCategory('config')),
             e.binary('valve', ea.STATE, 'CLOSED', 'OPEN'),
-            e.enum('factory_reset', ea.STATE_SET, ['SET']).withDescription('Remove limits'),
+            // e.enum('factory_reset', ea.STATE_SET, ['factory reset']).withLabel('Factory reset').withDescription('Reset all settings to factory ones'),
+            e.binary('factory_reset', ea.STATE_SET, 'ON', 'OFF').withDescription('Back to factory settings, USE WITH CAUTION'),
             tuya.exposes.errorStatus(),
         ],
         meta: {
@@ -4433,26 +4453,27 @@ export const definitions: DefinitionWithExtend[] = [
                 [14, 'window_detection', tuya.valueConverter.onOff],
                 [16, 'open_window_temperature', tuya.valueConverter.divideBy10],
                 [17, 'open_window_time', tuya.valueConverter.raw],
-                [18, 'backlight', tuya.valueConverter.raw],
-                [19, 'factory_reset', tuya.valueConverter.setLimit],
+                // [18, 'backlight', tuya.valueConverter.raw],
+                [19, 'factory_reset', tuya.valueConverter.onOff],
                 [21, 'holiday_temperature', tuya.valueConverter.raw],
                 [24, 'comfort_temperature', tuya.valueConverter.divideBy10],
                 [25, 'eco_temperature', tuya.valueConverter.divideBy10],
-                [28, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [29, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [30, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [31, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [35, 'error_status', tuya.valueConverter.raw],
+                [17, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [18, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [19, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [20, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [21, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [22, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [23, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                // [35, 'error_status', tuya.valueConverter.raw],
                 [36, 'frost_protection', tuya.valueConverter.onOff],
-                [37, 'boost_heating', tuya.valueConverter.onOff],
-                [38, 'boost_time', tuya.valueConverter.countdown],
-                [39, 'Switch Scale', tuya.valueConverter.raw],
-                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
-                [48, 'valve_testing', tuya.valueConverter.raw],
-                [49, 'valve', tuya.valueConverterBasic.lookup({OPEN: 1, CLOSE: 0})],
+                // [37, 'boost_time', tuya.valueConverter.raw],
+                // [38, 'boost_timeset_countdown', tuya.valueConverter.countdown],
+                // [39, 'Switch Scale', tuya.valueConverter.raw],
+                // Did not work properly from Smart life also
+                // [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                // [48, 'valve_testing', tuya.valueConverter.raw],
+                [49, 'valve', tuya.valueConverter.trueFalseEnum0],
             ],
         },
     },
@@ -9872,7 +9893,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dikb3dp6', '_TZE204_dikb3dp6']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dikb3dp6', '_TZE204_dikb3dp6', '_TZE284_dikb3dp6']),
         model: 'SPM02V3',
         vendor: 'Tuya',
         description: 'Smart energy monitor for 3P+N system',
@@ -10026,6 +10047,13 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.powerFactorWithPhase('a'),
             tuya.exposes.powerFactorWithPhase('b'),
             tuya.exposes.powerFactorWithPhase('c'),
+            e
+                .numeric('update_frequency', ea.STATE_SET)
+                .withUnit('s')
+                .withDescription('Update frequency')
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withPreset('default', 10, 'Default value'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -10034,6 +10062,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [29, 'power', tuya.valueConverter.raw],
                 [32, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [50, 'power_factor', tuya.valueConverter.raw],
+                [102, 'update_frequency', tuya.valueConverterBasic.divideBy(1)],
                 [103, 'voltage_a', tuya.valueConverter.divideBy10],
                 [104, 'current_a', tuya.valueConverter.divideBy1000],
                 [105, 'power_a', tuya.valueConverter.raw],
