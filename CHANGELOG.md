@@ -1,5 +1,25 @@
 # Changelog
 
+## [21.37.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.36.0...v21.37.0) (2025-02-14)
+
+
+### Features
+
+* **add:** ZHT-SR ([#8803](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8803)) ([f529ec7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f529ec7ba422c072cdd027be819ab990b8594e49))
+* Aqara DJT12LM: support more features ([#8788](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8788)) ([536f4d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/536f4d400dbd72296237ba4da8718ac8226c767a))
+* Orvibo T40W4Z: support more features ([#8789](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8789)) ([4b4ff8a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b4ff8af34d30808cace19705eddea44fae897d4))
+* Sunricher R-ZG9030F-PS : support indicatorLight, detectionArea, illuminanceThreshold ([#8810](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8810)) ([0063d6c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0063d6c1c29ba64e53dab1873af202fd9bf31721))
+
+
+### Bug Fixes
+
+* Aqara XDD13LM: fix color temperature range ([#8804](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8804)) ([3f60c2f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f60c2f06873aff669af92a9ed67cc3ed2eaa9ec))
+* Centralite 3156105: add reporting for missing attributes & fix for non-heat pump configurations ([#8806](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8806)) ([f552c37](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f552c379fcaf77c4a89601b9bdb9cf067f75923f))
+* **detect:** Detect `_TZE284_dikb3dp6` as Tuya SPM02V3 ([#8805](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8805)) ([a29bc3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a29bc3f5373a90840fd9db1ec454b9a719194769))
+* **detect:** Detect `SLZB-06P7` as SMLIGHT SLZB-06P7 https://github.com/Koenkk/zigbee2mqtt/issues/26228 ([738bbb7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/738bbb7924e14a79c6689ebf9ef4595e6fd76959))
+* Philips 8719514440937/8719514440999: fix duplicate actions https://github.com/Koenkk/zigbee2mqtt/issues/26341 ([69ce1dd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/69ce1dd16502ea8c35bfbdac684f62b832f8438c))
+* Rename E160x/E170x/E190x and E22x4 ([#8801](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8801)) ([9a33433](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9a33433b49d6753a78380bac7554003345d856c8))
+
 ## [21.36.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.35.0...v21.36.0) (2025-02-12)
 
 
