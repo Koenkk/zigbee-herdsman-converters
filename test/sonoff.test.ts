@@ -1,9 +1,8 @@
 import type {Mock} from 'vitest';
 
-import {findByDevice} from 'src';
-
 import {Models as ZHModels} from 'zigbee-herdsman';
 
+import {findByDevice} from '../src/index';
 import {Definition, Fz, KeyValueAny, Tz, Zh} from '../src/lib/types';
 import {mockDevice} from './utils';
 
