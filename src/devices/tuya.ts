@@ -1903,6 +1903,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZ3000_kxlmv9ag',
             '_TZ3000_wmlc9p9z',
             '_TZ3000_shopg9ss',
+            '_TZ3000_n0lphcok',
         ]),
         model: 'TS0207_repeater',
         vendor: 'Tuya',
