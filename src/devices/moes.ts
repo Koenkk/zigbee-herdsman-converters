@@ -665,7 +665,7 @@ const definitions: DefinitionWithExtend[] = [
                 [47, 'running_state', tuya.valueConverterBasic.lookup({heat: 0, idle: 1})],
                 [48, 'backlight_brightness', tuya.valueConverter.raw],
                 [50, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
-                [101, 'local_temperature_calibration', tuya.valueConverter.raw],
+                [101, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration_256],
                 [109, 'floor_temperature', tuya.valueConverter.divideBy10],
                 [110, 'deadzone_temperature', tuya.valueConverter.divideBy10],
                 [111, 'high_protect_temperature', tuya.valueConverter.divideBy10],
