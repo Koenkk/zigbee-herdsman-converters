@@ -4516,6 +4516,15 @@ const definitions: DefinitionWithExtend[] = [
             lumiLockRelay({description: 'Lock right switch', endpointName: 'right'}),
             lumiMultiClick({description: 'Multi-click mode for left down button', endpointName: 'left_down'}),
             lumiMultiClick({description: 'Multi-click mode for right down button', endpointName: 'right_down'}),
+    },
+    {
+         zigbeeModel: ['lumi.light.agl003'],
+         model: 'lumi.light.agl003',
+        vendor: 'Aqara',
+        description: 'Automatically generated definition',
+        extend: [m.deviceEndpoints({"endpoints":{"1":1,"21":21}}), m.light({"colorTemp":{"range":[111,500]},"color":true}), m.electricityMeter()],
+        meta: {"multiEndpoint":true},
+   };
         ],
     },
 ];
