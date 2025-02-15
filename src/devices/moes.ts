@@ -625,7 +625,11 @@ const definitions: DefinitionWithExtend[] = [
             e.deadzone_temperature().withValueMin(0.5).withValueMax(5).withValueStep(0.5),
             e.max_temperature_limit().withValueMin(35).withValueMax(45),
             e.min_temperature_limit().withValueMin(1).withValueMax(15),
-            e.temperature_sensor_select(['Internal sensor (IN)', 'Both (AL)', 'External sensor (OU)']),
+            e
+                .enum('sensor_mode', ea.STATE, ['IN', 'OU', 'AL'])
+                .withDescription(
+                    'IN - internal sensor, no heat protection. OU - external sensor, no heat protection. AL - internal sensor for room temperature, external for heat protection',
+                ),
             new exposes.Numeric('floor_temperature', exposes.access.STATE).withUnit('°C').withDescription('Floor temperature'),
             new exposes.Numeric('high_protect_temperature', exposes.access.STATE_SET)
                 .withUnit('°C')
@@ -659,13 +663,13 @@ const definitions: DefinitionWithExtend[] = [
                 [2, 'preset', tuya.valueConverterBasic.lookup({Manual: 0, 'Temporary manual': 1, Program: 2, Eco: 3})],
                 [16, 'local_temperature', tuya.valueConverter.divideBy10],
                 [18, 'min_temperature_limit', tuya.valueConverter.divideBy10],
-                [32, 'sensor', tuya.valueConverterBasic.lookup({'Internal sensor (IN)': 0, 'Both (AL)': 1, 'External sensor (OU)': 2})],
+                [32, 'sensor', tuya.valueConverterBasic.lookup({IN: 0, AL: 1, OU: 2})],
                 [34, 'max_temperature_limit', tuya.valueConverter.divideBy10],
                 [39, 'child_lock', tuya.valueConverter.lockUnlock],
                 [47, 'running_state', tuya.valueConverterBasic.lookup({heat: 0, idle: 1})],
                 [48, 'backlight_brightness', tuya.valueConverter.raw],
                 [50, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
-                [101, 'local_temperature_calibration', tuya.valueConverter.raw],
+                [101, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration_256],
                 [109, 'floor_temperature', tuya.valueConverter.divideBy10],
                 [110, 'deadzone_temperature', tuya.valueConverter.divideBy10],
                 [111, 'high_protect_temperature', tuya.valueConverter.divideBy10],
