@@ -68,7 +68,35 @@ describe('findByDevice', () => {
         noop(await findByDevice(device));
     });
 
-    bench('find in lots of definitions - index of size 250+', async () => {
+    bench('find by fingerprint - index of size 10+', async () => {
+        const device = mockDevice(
+            {
+                modelID: 'Dimmer-Switch-ZB3.0',
+                manufacturerName: 'Light Solutions',
+                endpoints: [],
+            },
+            'Router',
+        );
+
+        noop(await findByDevice(device));
+    });
+
+    bench('find by fingerprint - index of size 35+', async () => {
+        const device = mockDevice(
+            {
+                modelID: 'TS011F',
+                endpoints: [],
+            },
+            'Router',
+            {
+                softwareBuildID: '1.0.5\u0000',
+            },
+        );
+
+        noop(await findByDevice(device));
+    });
+
+    bench('find by fingerprint - index of size 250+', async () => {
         const device = mockDevice(
             {
                 modelID: 'TS0601',

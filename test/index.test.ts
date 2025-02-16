@@ -212,7 +212,39 @@ describe('ZHC', () => {
         expect(definition2.model).toStrictEqual('SNZB-02');
     });
 
-    it('finds in lots of definitions', async () => {
+    it('finds definition by fingerprint - index of size 10+', async () => {
+        const device = mockDevice(
+            {
+                modelID: 'Dimmer-Switch-ZB3.0',
+                manufacturerName: 'Light Solutions',
+                endpoints: [],
+            },
+            'Router',
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.vendor).toStrictEqual('Light Solutions');
+        expect(definition.model).toStrictEqual('3004482/3137308/3137309');
+    });
+
+    it('finds definition by fingerprint - index of size 35+', async () => {
+        const device = mockDevice(
+            {
+                modelID: 'TS011F',
+                endpoints: [],
+            },
+            'Router',
+            {
+                softwareBuildID: '1.0.5\u0000',
+            },
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.vendor).toStrictEqual('Tuya');
+        expect(definition.model).toStrictEqual('TS011F_plug_3');
+    });
+
+    it('finds definition by fingerprint - index of size 250+', async () => {
         const device = mockDevice(
             {
                 modelID: 'TS0601',
