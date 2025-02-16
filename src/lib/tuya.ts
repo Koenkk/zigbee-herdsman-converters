@@ -605,6 +605,10 @@ export const valueConverter = {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),
     },
+    localTemperatureCalibration_256: {
+        from: (value: number) => (value > 200 ? value - 256 : value),
+        to: (value: number) => (value < 0 ? 256 + value : value),
+    },
     setLimit: {
         to: (v: number) => {
             if (!v) throw new Error('Limit cannot be unset, use factory_reset');
