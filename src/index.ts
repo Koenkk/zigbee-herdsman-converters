@@ -1,5 +1,4 @@
 import assert from 'assert';
-import {readFileSync} from 'node:fs';
 
 import {Zcl} from 'zigbee-herdsman';
 
@@ -45,12 +44,14 @@ import {
     Zh,
 } from './lib/types';
 import * as utils from './lib/utils';
+// @ts-expect-error dynamically built
+import modelsIndexJson from './models-index.json';
 
 const NS = 'zhc';
 
 type ModelIndex = [module: string, index: number];
 
-const MODELS_INDEX = JSON.parse(readFileSync('models-index.json', 'utf8')) as Record<string, ModelIndex[]>;
+const MODELS_INDEX = modelsIndexJson as Record<string, ModelIndex[]>;
 
 export type {Ota} from './lib/types';
 export {
