@@ -1,4 +1,5 @@
 import assert from 'assert';
+import {readFileSync} from 'node:fs';
 
 import {Zcl} from 'zigbee-herdsman';
 
@@ -44,13 +45,12 @@ import {
     Zh,
 } from './lib/types';
 import * as utils from './lib/utils';
-import modelsIndexJson from './models-index.json';
 
 const NS = 'zhc';
 
 type ModelIndex = [module: string, index: number];
 
-const MODELS_INDEX = modelsIndexJson as unknown as Record<string, ModelIndex[]>;
+const MODELS_INDEX = JSON.parse(readFileSync('models-index.json', 'utf8')) as Record<string, ModelIndex[]>;
 
 export type {Ota} from './lib/types';
 export {
@@ -191,18 +191,18 @@ async function getDefinitions(indexes: ModelIndex[]): Promise<DefinitionWithExte
     // local cache for models with lots of matches (tuya...)
     const defs: Record<string, DefinitionWithExtend[]> = {};
 
-    for (const [module, index] of indexes) {
-        if (!defs[module]) {
-            logger.debug(`Loading module ${module}`, NS);
+    for (const [moduleName, index] of indexes) {
+        if (!defs[moduleName]) {
+            logger.debug(`Loading module ${moduleName}`, NS);
 
             // NOTE: modules are cached by nodejs until process is stopped
             // currently using `commonjs`, so strip `.js` file extension, XXX: creates a warning with vitest (expects static `.js`)
-            const {definitions} = (await import(`./devices/${module.slice(0, -3)}`)) as {definitions: DefinitionWithExtend[]};
+            const {definitions} = (await import(`./devices/${moduleName.slice(0, -3)}`)) as {definitions: DefinitionWithExtend[]};
 
-            defs[module] = definitions;
+            defs[moduleName] = definitions;
         }
 
-        indexedDefs.push(defs[module][index]);
+        indexedDefs.push(defs[moduleName][index]);
     }
 
     return indexedDefs;
