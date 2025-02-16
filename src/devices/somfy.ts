@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Sonesse Ultra 30 WF Li-Ion Rolle'],
         model: 'SOMFY-1241752',
@@ -48,6 +48,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.identify(), m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}), m.battery()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -9,7 +9,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: [' Light switch with neutral\u0000\u0000\u0000\u0000\u0000'],
         model: 'K4003C/L4003C/N4003C/NT4003C',
@@ -73,6 +73,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

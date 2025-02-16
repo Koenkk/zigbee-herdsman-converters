@@ -121,7 +121,7 @@ function setMetaOption(device: Zh.Device, key: string, enabled: boolean) {
     }
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['zigfred uno'],
         model: 'ZFU-1D-CH',
@@ -454,6 +454,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

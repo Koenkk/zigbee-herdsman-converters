@@ -250,7 +250,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['YRD446 BLE TSDB'],
         model: 'YRD426NRSC',
@@ -465,6 +465,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

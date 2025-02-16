@@ -74,7 +74,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0225', ['_TZ3218_awarhusb', '_TZ3218_t9ynfz4x']),
         model: 'ES1ZZ(TY)',
@@ -121,6 +121,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

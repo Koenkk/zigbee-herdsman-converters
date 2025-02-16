@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['E-Wand'],
         model: 'CP180335E-01',
@@ -24,6 +24,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.cover_tilt()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -467,7 +467,7 @@ async function syncTime(endpoint: Zh.Endpoint) {
     }
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['HK-SENSOR-SMO'],
         model: 'SR-ZG9070A-SS',
@@ -1673,6 +1673,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

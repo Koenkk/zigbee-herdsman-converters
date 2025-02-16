@@ -18,7 +18,7 @@ interface GeneratedExtend {
 }
 
 // Generator allows to define instances of GeneratedExtend that have typed arguments to extender.
-class Generator<T> implements GeneratedExtend {
+class ExtendGenerator<T> implements GeneratedExtend {
     extend: (a: T) => ModernExtend;
     args?: T;
     source: string;
@@ -47,8 +47,8 @@ class Generator<T> implements GeneratedExtend {
 
 // Device passed as the first argument mostly to check
 // if passed endpoint(if only one) is the first endpoint in the device.
-type ExtendGenerator = (device: Zh.Device, endpoints: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
-type Extender = [string[], ExtendGenerator];
+type ExtenderGenerator = (device: Zh.Device, endpoints: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
+type Extender = [string[], ExtenderGenerator];
 
 type DefinitionWithZigbeeModel = DefinitionWithExtend & {zigbeeModel: string[]};
 
@@ -129,13 +129,14 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
     // but this will be enough for now.
     const endpointsWithoutGreenPower = device.endpoints.filter((e) => e.ID !== 242);
     const multiEndpoint = endpointsWithoutGreenPower.length > 1;
+
     if (multiEndpoint) {
         const endpoints: {[n: string]: number} = {};
         for (const endpoint of endpointsWithoutGreenPower) {
             endpoints[endpoint.ID.toString()] = endpoint.ID;
         }
         // Add to beginning for better visibility.
-        generatedExtend.unshift(new Generator({extend: m.deviceEndpoints, args: {endpoints}, source: 'deviceEndpoints'}));
+        generatedExtend.unshift(new ExtendGenerator({extend: m.deviceEndpoints, args: {endpoints}, source: 'deviceEndpoints'}));
         extenders.unshift(generatedExtend[0].getExtend());
     }
 
@@ -184,24 +185,24 @@ function maybeEndpointArgs<T>(device: Zh.Device, endpoints: Zh.Endpoint[], toExt
 const inputExtenders: Extender[] = [
     [
         ['msTemperatureMeasurement'],
-        async (d, eps) => [new Generator({extend: m.temperature, args: maybeEndpointArgs(d, eps), source: 'temperature'})],
+        async (d, eps) => [new ExtendGenerator({extend: m.temperature, args: maybeEndpointArgs(d, eps), source: 'temperature'})],
     ],
-    [['msPressureMeasurement'], async (d, eps) => [new Generator({extend: m.pressure, args: maybeEndpointArgs(d, eps), source: 'pressure'})]],
-    [['msRelativeHumidity'], async (d, eps) => [new Generator({extend: m.humidity, args: maybeEndpointArgs(d, eps), source: 'humidity'})]],
-    [['msCO2'], async (d, eps) => [new Generator({extend: m.co2, args: maybeEndpointArgs(d, eps), source: 'co2'})]],
-    [['genPowerCfg'], async (d, eps) => [new Generator({extend: m.battery, source: 'battery'})]],
+    [['msPressureMeasurement'], async (d, eps) => [new ExtendGenerator({extend: m.pressure, args: maybeEndpointArgs(d, eps), source: 'pressure'})]],
+    [['msRelativeHumidity'], async (d, eps) => [new ExtendGenerator({extend: m.humidity, args: maybeEndpointArgs(d, eps), source: 'humidity'})]],
+    [['msCO2'], async (d, eps) => [new ExtendGenerator({extend: m.co2, args: maybeEndpointArgs(d, eps), source: 'co2'})]],
+    [['genPowerCfg'], async (d, eps) => [new ExtendGenerator({extend: m.battery, source: 'battery'})]],
     [['genOnOff', 'genLevelCtrl', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],
     [['closuresDoorLock'], extenderLock],
     [
         ['msIlluminanceMeasurement'],
-        async (d, eps) => [new Generator({extend: m.illuminance, args: maybeEndpointArgs(d, eps), source: 'illuminance'})],
+        async (d, eps) => [new ExtendGenerator({extend: m.illuminance, args: maybeEndpointArgs(d, eps), source: 'illuminance'})],
     ],
-    [['msOccupancySensing'], async (d, eps) => [new Generator({extend: m.occupancy, source: 'occupancy'})]],
+    [['msOccupancySensing'], async (d, eps) => [new ExtendGenerator({extend: m.occupancy, source: 'occupancy'})]],
     [
         ['ssIasZone'],
         async (d, eps) => [
-            new Generator({
+            new ExtendGenerator({
                 extend: m.iasZoneAlarm,
                 args: {
                     zoneType: 'generic',
@@ -211,35 +212,37 @@ const inputExtenders: Extender[] = [
             }),
         ],
     ],
-    [['ssIasWd'], async (d, eps) => [new Generator({extend: m.iasWarning, source: 'iasWarning'})]],
+    [['ssIasWd'], async (d, eps) => [new ExtendGenerator({extend: m.iasWarning, source: 'iasWarning'})]],
     [
         ['genDeviceTempCfg'],
-        async (d, eps) => [new Generator({extend: m.deviceTemperature, args: maybeEndpointArgs(d, eps), source: 'deviceTemperature'})],
+        async (d, eps) => [new ExtendGenerator({extend: m.deviceTemperature, args: maybeEndpointArgs(d, eps), source: 'deviceTemperature'})],
     ],
-    [['pm25Measurement'], async (d, eps) => [new Generator({extend: m.pm25, args: maybeEndpointArgs(d, eps), source: 'pm25'})]],
-    [['msFlowMeasurement'], async (d, eps) => [new Generator({extend: m.flow, args: maybeEndpointArgs(d, eps), source: 'flow'})]],
-    [['msSoilMoisture'], async (d, eps) => [new Generator({extend: m.soilMoisture, args: maybeEndpointArgs(d, eps), source: 'soilMoisture'})]],
+    [['pm25Measurement'], async (d, eps) => [new ExtendGenerator({extend: m.pm25, args: maybeEndpointArgs(d, eps), source: 'pm25'})]],
+    [['msFlowMeasurement'], async (d, eps) => [new ExtendGenerator({extend: m.flow, args: maybeEndpointArgs(d, eps), source: 'flow'})]],
+    [['msSoilMoisture'], async (d, eps) => [new ExtendGenerator({extend: m.soilMoisture, args: maybeEndpointArgs(d, eps), source: 'soilMoisture'})]],
     [
         ['closuresWindowCovering'],
-        async (d, eps) => [new Generator({extend: m.windowCovering, args: {controls: ['lift', 'tilt']}, source: 'windowCovering'})],
+        async (d, eps) => [new ExtendGenerator({extend: m.windowCovering, args: {controls: ['lift', 'tilt']}, source: 'windowCovering'})],
     ],
     [['genBinaryInput'], extenderBinaryInput],
     [['genBinaryOutput'], extenderBinaryOutput],
 ];
 
 const outputExtenders: Extender[] = [
-    [['genOnOff'], async (d, eps) => [new Generator({extend: m.commandsOnOff, args: maybeEndpointArgs(d, eps), source: 'commandsOnOff'})]],
+    [['genOnOff'], async (d, eps) => [new ExtendGenerator({extend: m.commandsOnOff, args: maybeEndpointArgs(d, eps), source: 'commandsOnOff'})]],
     [
         ['genLevelCtrl'],
-        async (d, eps) => [new Generator({extend: m.commandsLevelCtrl, args: maybeEndpointArgs(d, eps), source: 'commandsLevelCtrl'})],
+        async (d, eps) => [new ExtendGenerator({extend: m.commandsLevelCtrl, args: maybeEndpointArgs(d, eps), source: 'commandsLevelCtrl'})],
     ],
     [
         ['lightingColorCtrl'],
-        async (d, eps) => [new Generator({extend: m.commandsColorCtrl, args: maybeEndpointArgs(d, eps), source: 'commandsColorCtrl'})],
+        async (d, eps) => [new ExtendGenerator({extend: m.commandsColorCtrl, args: maybeEndpointArgs(d, eps), source: 'commandsColorCtrl'})],
     ],
     [
         ['closuresWindowCovering'],
-        async (d, eps) => [new Generator({extend: m.commandsWindowCovering, args: maybeEndpointArgs(d, eps), source: 'commandsWindowCovering'})],
+        async (d, eps) => [
+            new ExtendGenerator({extend: m.commandsWindowCovering, args: maybeEndpointArgs(d, eps), source: 'commandsWindowCovering'}),
+        ],
     ],
 ];
 
@@ -252,7 +255,7 @@ async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promis
     const endpoint = endpoints[0];
 
     const pinCodeCount = await getClusterAttributeValue<number>(endpoint, 'closuresDoorLock', 'numOfPinUsersSupported', 50);
-    return [new Generator({extend: m.lock, args: {pinCodeCount}, source: `lock`})];
+    return [new ExtendGenerator({extend: m.lock, args: {pinCodeCount}, source: `lock`})];
 }
 
 async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
@@ -266,7 +269,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         if (!onlyFirstDeviceEnpoint(device, endpoints)) {
             endpointNames = endpoints.map((e) => e.ID.toString());
         }
-        generated.push(new Generator({extend: m.onOff, args: {powerOnBehavior: false, endpointNames}, source: 'onOff'}));
+        generated.push(new ExtendGenerator({extend: m.onOff, args: {powerOnBehavior: false, endpointNames}, source: 'onOff'}));
     }
 
     for (const endpoint of lightEndpoints) {
@@ -297,9 +300,9 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         }
 
         if (endpoint.getDevice().manufacturerID === Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V) {
-            generated.push(new Generator({extend: philipsLight, args, source: `philipsLight`, lib: 'philips'}));
+            generated.push(new ExtendGenerator({extend: philipsLight, args, source: `philipsLight`, lib: 'philips'}));
         } else {
-            generated.push(new Generator({extend: m.light, args, source: `light`}));
+            generated.push(new ExtendGenerator({extend: m.light, args, source: `light`}));
         }
     }
 
@@ -320,7 +323,7 @@ async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoin
     if (!metering || !electricalMeasurements) {
         args.cluster = metering ? 'metering' : 'electrical';
     }
-    return [new Generator({extend: m.electricityMeter, args, source: `electricityMeter`})];
+    return [new ExtendGenerator({extend: m.electricityMeter, args, source: `electricityMeter`})];
 }
 
 async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
@@ -338,7 +341,7 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
             access: 'STATE_GET',
             endpointName: `${endpoint.ID}`,
         };
-        generated.push(new Generator({extend: m.binary, args, source: 'binary'}));
+        generated.push(new ExtendGenerator({extend: m.binary, args, source: 'binary'}));
     }
     return generated;
 }
@@ -358,7 +361,7 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
             access: 'ALL',
             endpointName: `${endpoint.ID}`,
         };
-        generated.push(new Generator({extend: m.binary, args, source: 'binary'}));
+        generated.push(new ExtendGenerator({extend: m.binary, args, source: 'binary'}));
     }
     return generated;
 }

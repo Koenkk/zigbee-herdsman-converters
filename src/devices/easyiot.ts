@@ -176,7 +176,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'ZB-IR01', manufacturerName: 'easyiot'}],
         model: 'ZB-IR01',
@@ -357,6 +357,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

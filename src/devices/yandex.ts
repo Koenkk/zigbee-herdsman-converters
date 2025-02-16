@@ -148,7 +148,7 @@ function reinterview(): ModernExtend {
     return {onEvent, configure, isModernExtend: true};
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['YNDX-00537'],
         model: 'YNDX_00537',
@@ -430,6 +430,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -1,3 +1,5 @@
+import type {DeviceType} from 'zigbee-herdsman/dist/controller/tstype';
+
 import {Device} from 'zigbee-herdsman/dist/controller/model';
 import {Clusters} from 'zigbee-herdsman/dist/zspec/zcl/definition/cluster';
 
@@ -8,8 +10,12 @@ import * as utils from '../src/lib/utils';
 
 interface MockEndpointArgs {
     ID?: number;
+    profileID?: number;
+    deviceID?: number;
     inputClusters?: string[];
     outputClusters?: string[];
+    inputClusterIDs?: number[];
+    outputClusterIDs?: number[];
     attributes?: {[s: string]: {[s: string]: unknown}};
 }
 
@@ -17,14 +23,20 @@ export function reportingItem(attribute: string, min: number, max: number, chang
     return {attribute: attribute, minimumReportInterval: min, maximumReportInterval: max, reportableChange: change};
 }
 
-export function mockDevice(args: {modelID: string; manufacturerID?: number; manufacturerName?: string; endpoints: MockEndpointArgs[]}): Zh.Device {
+export function mockDevice(
+    args: {modelID: string; manufacturerID?: number; manufacturerName?: string; endpoints: MockEndpointArgs[]},
+    type: DeviceType = 'Router',
+    extraArgs: Record<string, unknown> = {},
+): Zh.Device {
     const ieeeAddr = '0x12345678';
     const device: Zh.Device = {
         // @ts-expect-error ignore
         constructor: {name: 'Device'},
         ieeeAddr,
         save: vi.fn(),
+        type,
         ...args,
+        ...extraArgs,
     };
 
     const endpoints = args.endpoints.map((e) => mockEndpoint(e, device));
@@ -46,10 +58,12 @@ function getCluster(ID: string | number) {
 
 function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh.Endpoint {
     const attributes = args.attributes ?? {};
-    const inputClusters = (args.inputClusters ?? []).map((c) => getCluster(c).ID);
-    const outputClusters = (args.outputClusters ?? []).map((c) => getCluster(c).ID);
+    const inputClusters = args.inputClusterIDs ?? (args.inputClusters ?? []).map((c) => getCluster(c).ID);
+    const outputClusters = args.outputClusterIDs ?? (args.outputClusters ?? []).map((c) => getCluster(c).ID);
     return {
-        ID: args?.ID ?? 1,
+        ID: args.ID ?? 1,
+        profileID: args.profileID ?? 1,
+        deviceID: args.deviceID ?? 1,
         // @ts-expect-error ignore
         constructor: {name: 'Endpoint'},
         bind: vi.fn(),

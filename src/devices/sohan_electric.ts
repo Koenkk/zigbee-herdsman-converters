@@ -3,7 +3,7 @@ import * as m from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_bezfthwc']),
         model: 'RDCBC/Z',
@@ -13,6 +13,3 @@ const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_time_read],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

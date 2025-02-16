@@ -5,7 +5,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ICZB-IW11D'],
         model: 'ICZB-IW11D',
@@ -127,6 +127,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     // Tested working with firmware 2.5.3_r58: dimming, on/off, and effects give no
     // errors (although the stop effect and the finish effect do nothing).
     {
@@ -27,6 +27,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

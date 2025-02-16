@@ -108,7 +108,7 @@ const extend = {
     - Display
     - Comfort (Temperature / Humidity)
 */
-const definitions = [
+export const definitions = [
     {
         fingerprint: [
             {modelID: 'LYWSD03MMC-z', manufacturerName: 'Xiaomi'},
@@ -199,6 +199,3 @@ const definitions = [
         ota: true,
     },
 ];
-
-export default definitions;
-module.exports = definitions;

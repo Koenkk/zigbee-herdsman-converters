@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_6qoazbre', '_TZE200_fcooykb4']),
         model: 'WZ5_dim_1',
@@ -102,6 +102,3 @@ const definitions: DefinitionWithExtend[] = [
         meta: {separateWhite: true},
     },
 ];
-
-export default definitions;
-module.exports = definitions;

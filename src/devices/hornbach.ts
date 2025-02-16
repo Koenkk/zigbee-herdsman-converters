@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['VIYU-A60-806-RGBW-10011725'],
         model: '10011725',
@@ -101,6 +101,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

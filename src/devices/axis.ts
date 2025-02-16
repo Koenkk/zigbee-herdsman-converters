@@ -5,7 +5,7 @@ import * as reporting from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Gear'],
         model: 'GR-ZB01-W',
@@ -22,6 +22,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position(), e.battery()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;
