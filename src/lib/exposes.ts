@@ -63,6 +63,11 @@ export class Base {
         return this;
     }
 
+    withoutCategory() {
+        this.category = undefined;
+        return this;
+    }
+
     validateCategory() {
         switch (this.category) {
             case 'config':
