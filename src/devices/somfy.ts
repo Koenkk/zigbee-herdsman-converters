@@ -9,6 +9,23 @@ const e = exposes.presets;
 
 const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['Sonesse 28 WF Li-Ion Roller'],
+        model: 'Sonesse 28 WF Li-Ion Roller',
+        vendor: 'SOMFY',
+        description: 'Sonesse 28 WF Li-Ion Roller Shades',
+        fromZigbee: [fz.battery, fz.cover_position_tilt],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
+        },
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.battery(), e.cover_position()],
+    },
+    {
         zigbeeModel: ['Sonesse Ultra 30 WF Li-Ion Rolle'],
         model: 'SOMFY-1241752',
         vendor: 'SOMFY',
