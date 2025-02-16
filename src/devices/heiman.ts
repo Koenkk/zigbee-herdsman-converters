@@ -302,7 +302,13 @@ const definitions: DefinitionWithExtend[] = [
         },
         exposes: [
             e.battery(),
-            e.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Max duration of Siren'),
+            e
+                .numeric('max_duration', ea.ALL)
+                .withUnit('s')
+                .withValueMin(0)
+                .withValueMax(600)
+                .withDescription('Max duration of Siren')
+                .withCategory('config'),
             e
                 .warning()
                 .removeFeature('level')
