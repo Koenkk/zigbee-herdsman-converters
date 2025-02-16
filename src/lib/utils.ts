@@ -142,7 +142,7 @@ export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, I
 }
 
 export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
-    ac_frequency: 0,
+    ac_frequency: 2,
     temperature: 2,
     humidity: 2,
     pressure: 1,
