@@ -10632,6 +10632,7 @@ const definitions: DefinitionWithExtend[] = [
                 [16, 'backlight_mode', tuya.valueConverter.onOff],
             ],
         },
+        whiteLabel: [tuya.whitelabel('Nova Digital', 'FZB-4', 'Interruptor de 4 canais com backlight e neutro', ['TZE204_unsxl4ir'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nvodulvi']),
