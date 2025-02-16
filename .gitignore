@@ -19,3 +19,4 @@ coverage/
 .jest-tmp/
 dist/
 .pnpm-store/
+models-index.json
