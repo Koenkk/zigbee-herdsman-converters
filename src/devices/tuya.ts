@@ -4127,10 +4127,10 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [...tuya.fingerprint('TS0601', ['_TZE200_eegnwoyw']), ...tuya.fingerprint('TS0105', ['_TZE600_ogyg1y6b'])],
         model: 'TS0601_cover_2',
         vendor: 'Tuya',
-        description: 'Curtain motor fixed speed',
+        description: 'Curtain motor or roller blind motor with fixed speed',
         whiteLabel: [
-            {vendor: 'Zemismart', model: 'BCM100DB'},
-            {vendor: 'NovaDigital', model: 'ZBCMR-01'},
+            tuya.whitelabel('Zemismart', 'BCM100DB', 'Curtain Motor', ['_TZE200_eegnwoyw']),
+            tuya.whitelabel('NovaDigital', 'ZBCMR-01', 'Roller Blind Motor', ['_TZE600_ogyg1y6b']),
         ],
         fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.tuya_cover_control],
