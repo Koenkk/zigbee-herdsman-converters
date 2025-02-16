@@ -11,6 +11,7 @@ export default defineConfig({
         onConsoleLog(log: string, type: 'stdout' | 'stderr'): boolean | void {
             return false;
         },
+        globalSetup: ['./test/vitest-setup.ts'],
         coverage: {
             enabled: false,
             provider: 'v8',

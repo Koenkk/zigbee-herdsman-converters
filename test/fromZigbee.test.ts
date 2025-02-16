@@ -15,14 +15,16 @@ describe('converters/fromZigbee', () => {
                 ],
                 ['battery & unknown DP', [dpValueFromBool(255, false), dpValueFromIntValue(dataPoints.wlsBatteryPercentage, 75)], {battery: 75}],
             ])("Receives '%s' indication", (_name, dpValues, result) => {
-                expect(_fromZigbee.wls100z_water_leak.convert(
-                    null,
-                    // @ts-expect-error mock
-                    {data: {dpValues}},
-                    null,
-                    null,
-                    meta,
-                )).toEqual(result);
+                expect(
+                    _fromZigbee.wls100z_water_leak.convert(
+                        null,
+                        // @ts-expect-error mock
+                        {data: {dpValues}},
+                        null,
+                        null,
+                        meta,
+                    ),
+                ).toEqual(result);
             });
         });
         describe('tuya_smart_vibration_sensor', () => {
@@ -39,14 +41,16 @@ describe('converters/fromZigbee', () => {
                     {contact: false, battery: 97, vibration: true},
                 ],
             ])("Receives '%s' indication", (_name, dpValues, result) => {
-                expect(_fromZigbee.tuya_smart_vibration_sensor.convert(
-                    null,
-                    // @ts-expect-error mock
-                    {data: {dpValues}},
-                    null,
-                    null,
-                    meta,
-                )).toEqual(result);
+                expect(
+                    _fromZigbee.tuya_smart_vibration_sensor.convert(
+                        null,
+                        // @ts-expect-error mock
+                        {data: {dpValues}},
+                        null,
+                        null,
+                        meta,
+                    ),
+                ).toEqual(result);
             });
         });
     });

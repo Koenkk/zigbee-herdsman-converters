@@ -10,7 +10,7 @@ tmp
 # Eclipse project files
 .project
 .settings/
-/index.*
+/index*
 /converters/
 /devices/
 /lib/
