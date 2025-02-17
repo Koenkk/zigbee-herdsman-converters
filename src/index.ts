@@ -4,7 +4,6 @@ import {Zcl} from 'zigbee-herdsman';
 
 import fromZigbee from './converters/fromZigbee';
 import toZigbee from './converters/toZigbee';
-import * as configureKey from './lib/configureKey';
 import {
     access,
     Binary,
@@ -80,8 +79,7 @@ export {
 };
 export * as ota from './lib/ota';
 export {setLogger} from './lib/logger';
-
-export const getConfigureKey = configureKey.getConfigureKey;
+export {getConfigureKey} from './lib/configureKey';
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
 const externalDefinitionsLookup = new Map<string, DefinitionWithExtend[]>();
