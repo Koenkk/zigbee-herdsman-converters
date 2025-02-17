@@ -8435,6 +8435,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZ3290_rlkmy85q4pzoxobl',
             '_TZ3290_jxvzqatwgsaqzx1u',
             '_TZ3290_lypnqvlem5eq1ree',
+            '_TZ3290_uc8lwbi2',
         ]),
         model: 'ZS06',
         vendor: 'Tuya',
@@ -8452,6 +8453,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('Tuya', 'UFO-R4Z', 'Universal smart IR remote control', ['_TZ3290_rlkmy85q4pzoxobl']),
             tuya.whitelabel('QA', 'QAIRZPRO', 'Infrared hub pro', ['_TZ3290_jxvzqatwgsaqzx1u', '_TZ3290_lypnqvlem5eq1ree']),
+            tuya.whitelabel('Zemismart', 'ZM-18-USB', 'Universal Smart IR Remote Control', ['_TZ3290_uc8lwbi2']),
         ],
     },
     {
