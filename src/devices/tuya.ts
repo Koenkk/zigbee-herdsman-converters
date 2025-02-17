@@ -10592,7 +10592,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_k6jhsr0q']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_k6jhsr0q', '_TZE204_unsxl4ir']),
         model: 'ZS-TYG3-SM-41Z',
         vendor: 'Tuya',
         description: '4 gang smart switch with backlight and neutral wire',
@@ -10632,6 +10632,7 @@ const definitions: DefinitionWithExtend[] = [
                 [16, 'backlight_mode', tuya.valueConverter.onOff],
             ],
         },
+        whiteLabel: [tuya.whitelabel('Nova Digital', 'FZB-4', 'Interruptor de 4 canais com backlight e neutro', ['TZE204_unsxl4ir'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nvodulvi']),
