@@ -1,5 +1,12 @@
 # Changelog
 
+## [22.0.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v22.0.0...v22.0.1) (2025-02-18)
+
+
+### Bug Fixes
+
+* **ignore:** Export ExternalDefinitionWithExtend ([2c42233](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2c422336fc83e2f860627a338c62d5d02751f673))
+
 ## [22.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.38.0...v22.0.0) (2025-02-18)
 
 
