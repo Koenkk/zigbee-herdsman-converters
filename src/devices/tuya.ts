@@ -1509,7 +1509,7 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('ClickSmart+', 'CMA30036', '2 gang socket outlet', ['_TYZB01_hlla45kx']),
             tuya.whitelabel('Rylike', 'RY-WS02Z', '2 gang socket outlet AU', ['_TZ3000_rgpqqmbj', '_TZ3000_8nyaanzb', '_TZ3000_iy2c3n6p']),
-            tuya.whitelabel('Novadigital', 'NT-S2', '2 gang socket outlet BR', ['_TZ3000_sgb0xhwn']),
+            tuya.whitelabel('Nova Digital', 'NT-S2', '2 gang socket outlet BR', ['_TZ3000_sgb0xhwn']),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -2871,7 +2871,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'TS0601_switch_3_gang',
         vendor: 'Tuya',
         description: '3 gang switch',
-        whiteLabel: [{vendor: 'NOVADIGITAL', model: 'WS-US-ZB', description: 'Interruptor touch Zigbee 3 Teclas'}],
+        whiteLabel: [{vendor: 'Nova Digital', model: 'WS-US-ZB', description: 'Interruptor touch Zigbee 3 Teclas'}],
         exposes: [
             e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
@@ -4131,7 +4131,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Curtain motor or roller blind motor with fixed speed',
         whiteLabel: [
             tuya.whitelabel('Zemismart', 'BCM100DB', 'Curtain Motor', ['_TZE200_eegnwoyw']),
-            tuya.whitelabel('NovaDigital', 'ZBCMR-01', 'Roller Blind Motor', ['_TZE600_ogyg1y6b']),
+            tuya.whitelabel('Nova Digital', 'ZBCMR-01', 'Roller Blind Motor', ['_TZE600_ogyg1y6b']),
         ],
         fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.tuya_cover_control],
@@ -9432,8 +9432,8 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('Homeetec', '37022474_1', '3 Gang switch with backlight', ['_TZ3000_pv4puuxi']),
             tuya.whitelabel('RoomsAI', '37022474_2', '3 Gang switch with backlight', ['_TZ3000_avky2mvc']),
-            tuya.whitelabel('NovaDigital', 'WS-US-ZB', '3 Gang switch with backlight', ['_TZ3000_785olaiq']),
-            tuya.whitelabel('NovaDigital', 'FZB-3', '3 Gang physical switch with backlight', ['_TZ3000_qxcnwv26']),
+            tuya.whitelabel('Nova Digital', 'WS-US-ZB', '3 Gang switch with backlight', ['_TZ3000_785olaiq']),
+            tuya.whitelabel('Nova Digital', 'FZB-3', '3 Gang physical switch with backlight', ['_TZ3000_qxcnwv26']),
         ],
     },
     {
