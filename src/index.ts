@@ -55,6 +55,7 @@ const MODELS_INDEX = modelsIndexJson as Record<string, ModelIndex[]>;
 export type {Ota} from './lib/types';
 export {
     DefinitionWithExtend as DefinitionWithExtend,
+    ExternalDefinitionWithExtend as ExternalDefinitionWithExtend,
     access as access,
     Definition as Definition,
     OnEventType as OnEventType,
