@@ -9,10 +9,10 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_air9m6af', '_TZ3000_9djocypn', '_TZ3000_bppxj3sf']),
-        zigbeeModel: ['JZ-ZB-005', 'E220-KR5N0Z0-HA', 'E220-KR5N0Z0-HA'],
+        zigbeeModel: ['JZ-ZB-005', 'E220-KR5N0Z0-HA'],
         model: 'WP33-EU/WP34-EU',
         vendor: 'LELLKI',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
@@ -125,6 +125,3 @@ const definitions: DefinitionWithExtend[] = [
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options),
     },
 ];
-
-export default definitions;
-module.exports = definitions;

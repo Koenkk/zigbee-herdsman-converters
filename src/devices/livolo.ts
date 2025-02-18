@@ -17,7 +17,7 @@ const poll = async (device: Zh.Device) => {
     }
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TI0001          '],
         model: 'TI0001',
@@ -382,6 +382,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

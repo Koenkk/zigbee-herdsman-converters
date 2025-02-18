@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Dimmer_us'],
         model: 'B07CVL9SZF',
@@ -17,6 +17,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [150, 500]}, color: true, powerOnBehavior: false})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

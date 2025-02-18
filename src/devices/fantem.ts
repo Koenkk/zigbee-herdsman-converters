@@ -8,7 +8,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS110F', ['_TZ3210_lfbz816s', '_TZ3210_ebbfkvoy']),
         model: 'ZB006-X',
@@ -75,6 +75,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

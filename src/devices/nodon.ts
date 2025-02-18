@@ -140,7 +140,7 @@ const nodonModernExtend = {
         }),
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SDC-4-1-00'],
         model: 'SDC-4-1-00',
@@ -368,6 +368,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

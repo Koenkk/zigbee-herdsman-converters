@@ -8,7 +8,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PSS_00.00.00.15TC'],
         model: 'PSS-23ZBS',
@@ -141,6 +141,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.identify(), m.onOff(), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

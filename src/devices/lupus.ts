@@ -8,7 +8,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SCM_00.00.03.11TC'],
         model: '12031',
@@ -58,6 +58,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ['l1', 'l2'], powerOnBehavior: false, ota: true})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

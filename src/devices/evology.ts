@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PSE03-V1.1.0'],
         model: 'PSE03-V1.1.0',
@@ -24,6 +24,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.warning().removeFeature('strobe_level').removeFeature('strobe').removeFeature('strobe_duty_cycle')],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

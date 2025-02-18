@@ -4,7 +4,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const {tuyaMagicPacket, tuyaOnOffActionLegacy} = tuya.modernExtend;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('SM0202', ['_TYZB01_2jzbhomb']),
         model: 'SBDV-00029',
@@ -62,6 +62,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

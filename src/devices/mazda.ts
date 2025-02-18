@@ -9,7 +9,7 @@ interface KeyValueStringEnum {
     [s: string]: tuya.Enum;
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE284_k6rdmisz', '_TZE204_k6rdmisz']),
         model: 'TR-M2Z',
@@ -129,6 +129,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

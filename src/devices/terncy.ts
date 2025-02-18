@@ -8,7 +8,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TERNCY-WS01-S4'],
         model: 'TERNCY-WS01',
@@ -77,6 +77,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [50, 500]}, powerOnBehavior: false, effect: false})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

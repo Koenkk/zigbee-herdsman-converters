@@ -1741,7 +1741,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
 
     return myExpose;
 }
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZLinky_TIC', 'ZLinky_TIC\u0000'],
         model: 'ZLinky_TIC',
@@ -1945,6 +1945,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;
