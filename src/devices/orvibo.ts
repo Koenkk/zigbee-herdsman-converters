@@ -64,7 +64,7 @@ export interface OrviboSwitchRewiringArgs {
     endpointIds: {[n: number]: string};
 }
 const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
-    const composite = e.composite('switch_actions', 'switch_actions', ea.SET);
+    const composite = e.composite('switch_actions', 'switch_actions', ea.SET).withDescription('Switch actions');
     for (const endpointName of args.endpointNames) {
         composite.withFeature(
             e
