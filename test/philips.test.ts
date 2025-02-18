@@ -1,6 +1,6 @@
 import {decodeGradientColors, encodeGradientColors} from '../src/lib/philips';
 
-describe('lib/philips.js', () => {
+describe('lib/philips', () => {
     describe('decodeGradientColors', () => {
         test.each([
             ['4b0101b2875a25411350000000b3474def153e2ad42e98232c7483292800', true, ['#0c32ff', '#1137ff', '#2538ff', '#7951ff', '#ff77f8']],
