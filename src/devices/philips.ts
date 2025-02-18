@@ -3148,6 +3148,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929003809601'],
+        model: '929003809601',
+        vendor: 'Philips',
+        description: 'Hue Centura White and Color (with Bluetooth)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['RDM002'],
         model: '8719514440937/8719514440999',
         vendor: 'Philips',

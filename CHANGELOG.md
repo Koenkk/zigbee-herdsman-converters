@@ -1,5 +1,25 @@
 # Changelog
 
+## [21.38.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.37.0...v21.38.0) (2025-02-17)
+
+
+### Features
+
+* **add:** 929003809601 https://github.com/Koenkk/zigbee2mqtt/issues/26365 ([96f47ca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/96f47ca0cdf7aed39d1550e1277eb1401238e6b4))
+* **add:** FZB-4 ([#8817](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8817)) ([d9b5bef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d9b5bef4419f56e90bf775da0c16f2fbed0eac2d))
+* **add:** ZBCMR-01 ([#8813](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8813)) ([b7b98dd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b7b98dd8d434524c46f528cf5ac1671d2e24644e))
+
+
+### Bug Fixes
+
+* Aeotec ZGA004: fix state https://github.com/Koenkk/zigbee2mqtt/discussions/26289 ([97e7bc3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/97e7bc36066836c9adb43a6a5abf8258863c8a06))
+* **detect:** Detect `_TZ3000_n0lphcok` as Tuya TS0207_repeater https://github.com/Koenkk/zigbee2mqtt/issues/26361 ([a1c45fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a1c45fc1d3e75ce5b3c6caf1d3a3a5e2cb38fce5))
+* Fix duplicate action for Hue dimmer switch and wall switch https://github.com/Koenkk/zigbee2mqtt/issues/26374 ([184b536](https://github.com/Koenkk/zigbee-herdsman-converters/commit/184b5361a77bdd5e751175e046e0b73c4df4e770))
+* HS2WD-E: remove unsupported features from exposes ([#8820](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8820)) ([8412feb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8412febdab8d3f439a9928658f5334c0009c1146))
+* **ignore:** update dependencies ([#8814](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8814)) ([842e8e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/842e8e51d73fdd36b929be611f9e612de3cc0ec9))
+* Moes ZHT-SR: fix local temperature calibration ([#8811](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8811)) ([10cb52b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10cb52b2f83c7486621d38fd8096c17a51f64719))
+* Update default ac frequency precision ([#8816](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8816)) ([495ac22](https://github.com/Koenkk/zigbee-herdsman-converters/commit/495ac226f381fa4a33eb12c809f9bd3f09e1216f))
+
 ## [21.37.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.36.0...v21.37.0) (2025-02-14)
 
 

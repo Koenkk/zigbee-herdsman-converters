@@ -1903,6 +1903,7 @@ const definitions: DefinitionWithExtend[] = [
             '_TZ3000_kxlmv9ag',
             '_TZ3000_wmlc9p9z',
             '_TZ3000_shopg9ss',
+            '_TZ3000_n0lphcok',
         ]),
         model: 'TS0207_repeater',
         vendor: 'Tuya',
@@ -4124,11 +4125,14 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_eegnwoyw']),
+        fingerprint: [...tuya.fingerprint('TS0601', ['_TZE200_eegnwoyw']), ...tuya.fingerprint('TS0105', ['_TZE600_ogyg1y6b'])],
         model: 'TS0601_cover_2',
         vendor: 'Tuya',
-        description: 'Curtain motor fixed speed',
-        whiteLabel: [{vendor: 'Zemismart', model: 'BCM100DB'}],
+        description: 'Curtain motor or roller blind motor with fixed speed',
+        whiteLabel: [
+            tuya.whitelabel('Zemismart', 'BCM100DB', 'Curtain Motor', ['_TZE200_eegnwoyw']),
+            tuya.whitelabel('NovaDigital', 'ZBCMR-01', 'Roller Blind Motor', ['_TZE600_ogyg1y6b']),
+        ],
         fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.tuya_cover_control],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
@@ -10592,7 +10596,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_k6jhsr0q']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_k6jhsr0q', '_TZE204_unsxl4ir']),
         model: 'ZS-TYG3-SM-41Z',
         vendor: 'Tuya',
         description: '4 gang smart switch with backlight and neutral wire',
@@ -10632,6 +10636,7 @@ const definitions: DefinitionWithExtend[] = [
                 [16, 'backlight_mode', tuya.valueConverter.onOff],
             ],
         },
+        whiteLabel: [tuya.whitelabel('Nova Digital', 'FZB-4', 'Interruptor de 4 canais com backlight e neutro', ['TZE204_unsxl4ir'])],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nvodulvi']),

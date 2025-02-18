@@ -4281,6 +4281,7 @@ const converters1 = {
         cluster: 'manuSpecificPhilips',
         type: 'commandHueNotification',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const buttonLookup: KeyValueAny = {1: 'left', 2: 'right'};
             const button = buttonLookup[msg.data['button']];
             const typeLookup: KeyValueAny = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
@@ -4293,6 +4294,7 @@ const converters1 = {
         type: 'commandHueNotification',
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const buttonLookup: KeyValueAny = {1: 'on', 2: 'up', 3: 'down', 4: 'off'};
             const button = buttonLookup[msg.data['button']];
             const typeLookup: KeyValueAny = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
