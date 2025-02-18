@@ -10,7 +10,7 @@ const e = exposes.presets;
 const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Sonesse 28 WF Li-Ion Roller'],
-        model: 'Sonesse 28 WF Li-Ion Roller',
+        model: '1241755',
         vendor: 'SOMFY',
         description: 'Sonesse 28 WF Li-Ion Roller Shades',
         fromZigbee: [fz.battery, fz.cover_position_tilt],
