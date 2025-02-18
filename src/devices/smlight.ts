@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SLZB-06M', 'SLZB-06', 'SLZB-06P7', 'SLZB-06P10', 'SLZB-07', 'SLZB-0xp7', 'SLZB-07Mg24', 'SLZB-06Mg24'],
         model: 'SLZB-06M',
@@ -19,6 +19,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.linkQuality({reporting: true}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

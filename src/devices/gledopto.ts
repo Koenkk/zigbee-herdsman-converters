@@ -168,7 +168,7 @@ function gledoptoConfigureReadModelID(): ModernExtend {
     return {configure, isModernExtend: true};
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['GL-SD-003P'],
         model: 'GL-SD-003P',
@@ -1022,6 +1022,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZBT-DIMLight-GLS0800'],
         model: 'ZBT-DIMLight-GLS0800',
@@ -144,6 +144,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

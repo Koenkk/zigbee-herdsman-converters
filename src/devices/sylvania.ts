@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Contact Sensor-A'],
         model: '74388',
@@ -187,5 +187,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [ledvanceLight({})],
     },
 ];
-
-export default definitions;

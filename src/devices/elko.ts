@@ -10,7 +10,7 @@ import {assertString} from '../lib/utils';
 const ea = exposes.access;
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ElkoDimmerZHA'],
         model: '316GLEDRF',
@@ -204,6 +204,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

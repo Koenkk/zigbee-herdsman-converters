@@ -5,7 +5,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['3300'],
         model: '3300-P',
@@ -24,6 +24,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

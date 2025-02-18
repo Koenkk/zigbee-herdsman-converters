@@ -7,7 +7,7 @@ import * as tuya from '../lib/tuya';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e5hpkc6d', '_TZE200_4hbx5cvx', '_TZE200_e5hpkc6d']),
         model: 'TS0601_futurehome_thermostat',
@@ -92,6 +92,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

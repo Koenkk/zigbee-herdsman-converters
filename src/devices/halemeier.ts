@@ -8,7 +8,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['HA-ZM12/24-1K'],
         model: 'HA-ZM12/24-1K',
@@ -89,6 +89,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.action(['recall_*', 'on', 'off', 'brightness_move_up', 'brightness_move_down'])],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -6,7 +6,7 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS1201', ['_TZ3290_acv1iuslxi3shaaj']),
         model: 'ZXZIR-02',
@@ -24,6 +24,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

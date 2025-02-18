@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['GWA1201_TWO_WAY_SWITCH'],
         model: 'GWA1201_TWO_WAY_SWITCH',
@@ -46,6 +46,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

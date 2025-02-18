@@ -2,7 +2,7 @@ import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_majwnphg', '_TZ3000_6axxqqi2', '_TZ3000_zw7yf6yk']),
         model: 'JR-ZDS01',
@@ -14,6 +14,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

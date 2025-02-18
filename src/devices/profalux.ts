@@ -9,7 +9,7 @@ const NS = 'zhc:profalux';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['MAI-ZTS'],
         fingerprint: [
@@ -151,6 +151,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

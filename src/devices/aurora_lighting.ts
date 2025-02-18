@@ -87,7 +87,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
     }) satisfies OnEvent,
 });
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TWBulb51AU'],
         model: 'AU-A1GSZ9CX',
@@ -303,6 +303,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.identify(), m.light({powerOnBehavior: false})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;
