@@ -2,26 +2,25 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import type {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as globalStore from '../lib/store';
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Reporting, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-// XXX duplication of tz.warning
-// move to toZigbee, with meta / option ?
-import {logger} from '../lib/logger';
-import * as globalStore from '../lib/store';
-import * as utils from '../lib/utils';
-
-const NS='zhc:heiman';
+const NS = 'zhc:heiman';
 
 const tzlocal = {
+// XXX duplication of tz.warning
+// move to toZigbee, with meta / option ?
     warning: {
         key: ['warning'],
-                // @ts-expect-error ignore
+        // @ts-expect-error ignore
         convertSet: async (entity, key, value, meta) => {
             const mode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
             const level = {low: 0, medium: 1, high: 2, very_high: 3};
@@ -63,7 +62,7 @@ const tzlocal = {
                 const duration = Math.min(values.duration, 240);
                 const timer = setTimeout(() => {
                     // How to publish a state from here ?
-                    logger.debug('Siren should be OFF ',NS);
+                    logger.debug('Siren should be OFF ', NS);
                 }, duration * 1000);
                 globalStore.putValue(entity, 'state_timer', timer);
             }
