@@ -12,4 +12,11 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsWindowCovering({commands: ['open', 'close', 'stop']}),
         ],
     },
+    {
+        zigbeeModel: ['ZB-PM-01'],
+        model: 'ZB-PM-01',
+        vendor: 'Chacon',
+        description: 'On/Off lighting module',
+        extend: [m.onOff({powerOnBehavior: false})],
+    },
 ];
