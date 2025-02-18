@@ -1,5 +1,28 @@
 # Changelog
 
+## [22.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.38.0...v22.0.0) (2025-02-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* Load converters on-demand ([#8471](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8471))
+
+### Features
+
+* **add:** 1241755 ([#8818](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8818)) ([9baab2f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9baab2f30d53c580c7748d4e42784a8a3ddd2276))
+* **add:** ZB-PM-01 ([#8821](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8821)) ([6b5b74e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6b5b74eff37de47957daef3212c522ab8c03fb21))
+* **add:** ZM-18-USB ([#8827](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8827)) ([3a7fed4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a7fed430313ceca1db522b5da1a7cede7efaaf4))
+* Load converters on-demand ([#8471](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8471)) ([8fef2e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8fef2e44830a77e91b12eaea9b6940e9fa7ef849))
+
+
+### Bug Fixes
+
+* Fix duplicate linkquality sensor for some router devices https://github.com/Koenkk/zigbee-herdsman-converters/issues/8809 ([4a55fc6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4a55fc622da466b3573cbf4210c90aeb9a3957d2))
+* Fix multiple versions of the name Nova Digital ([#8826](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8826)) ([e04bd69](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e04bd69a9148e0d6082501c4f1003d46fb073223))
+* Fix Silabs GBL validation https://github.com/Koenkk/zigbee-OTA/issues/631 ([1f27210](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1f2721048b73fcc703aa44caaa82328ce3aa7129))
+* Fix Tuya `_TZE204_xnbkhhdr` inverted `preset` ([#8825](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8825)) ([0ccf1a9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0ccf1a9438217093502e27157671dc541d8400f1))
+* MAZDA TR-M2Z: fix deprecated window_detection exposes ([#8824](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8824)) ([54ad105](https://github.com/Koenkk/zigbee-herdsman-converters/commit/54ad105bc10ef96f7f1a0b33197bf6e40d42abc1))
+
 ## [21.38.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v21.37.0...v21.38.0) (2025-02-17)
 
 
