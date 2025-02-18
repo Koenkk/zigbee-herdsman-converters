@@ -48,9 +48,3 @@ export function clearValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: stri
 export function clear() {
     store = new Map();
 }
-
-exports.hasValue = hasValue;
-exports.getValue = getValue;
-exports.putValue = putValue;
-exports.clearValue = clearValue;
-exports.clear = clear;

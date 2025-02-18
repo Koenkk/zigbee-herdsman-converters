@@ -1290,30 +1290,14 @@ export const trv = {
     validateSchedule(schedule: TrvScheduleConfig): void {
         const eventCount = 4;
 
-        if (typeof schedule !== 'object') {
-            throw new Error('The provided value must be a schedule object');
-        }
-
-        if (schedule.days == null || !Array.isArray(schedule.days) || schedule.days.length === 0) {
-            throw new Error(`The schedule object must contain an array of days with at least one entry`);
-        }
-
         validateDaySelection(schedule.days);
 
-        if (schedule.events == null || !Array.isArray(schedule.events) || schedule.events.length !== eventCount) {
+        if (schedule.events.length !== eventCount) {
             throw new Error(`The schedule object must contain an array of ${eventCount} time/temperature events`);
         }
 
         schedule.events.forEach((event) => {
-            if (typeof event !== 'object') {
-                throw new Error('The provided time/temperature event must be an object');
-            }
-
             validateTime(event.time);
-
-            if (typeof event.temperature !== 'number') {
-                throw new Error(`The provided time/temperature entry must contain a numeric temperature`);
-            }
 
             if (event.temperature < 5 || event.temperature > 30) {
                 throw new Error(`The temperature must be between 5 and 30 °C`);
@@ -1418,7 +1402,7 @@ export const trv = {
     },
 };
 
-export const manufacturerCode = 0x115f;
+export const manufacturerCode = 0x115f; // TODO: from Zcl
 const manufacturerOptions = {
     lumi: {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
 };
@@ -5291,7 +5275,3 @@ export const toZigbee = {
         },
     } satisfies Tz.Converter,
 };
-
-exports.buffer2DataObject = buffer2DataObject;
-exports.numericAttributes2Payload = numericAttributes2Payload;
-exports.manufacturerCode = manufacturerCode;
