@@ -16,8 +16,8 @@ const ea = exposes.access;
 const NS = 'zhc:heiman';
 
 const tzlocal = {
-// XXX duplication of tz.warning
-// move to toZigbee, with meta / option ?
+    // XXX duplication of tz.warning
+    // move to toZigbee, with meta / option ?
     warning: {
         key: ['warning'],
         // @ts-expect-error ignore
