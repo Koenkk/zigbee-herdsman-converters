@@ -10,6 +10,69 @@ import type {DefinitionWithExtend, Reporting, Zh} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
+// XXX duplication of tz.warning
+// move to toZigbee, with meta / option ?
+import {logger} from '../lib/logger';
+import * as globalStore from '../lib/store';
+import * as utils from '../lib/utils';
+
+const NS='zhc:heiman';
+
+const tzlocal = {
+    warning: {
+        key: ['warning'],
+                // @ts-expect-error ignore
+        convertSet: async (entity, key, value, meta) => {
+            const mode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
+            const level = {low: 0, medium: 1, high: 2, very_high: 3};
+            const strobeLevel = {low: 0, medium: 1, high: 2, very_high: 3};
+
+            const values = {
+                mode: value.mode || 'emergency',
+                level: value.level || 'medium',
+                strobe: value.strobe !== undefined ? value.strobe : true,
+                duration: value.duration !== undefined ? value.duration : 10,
+                strobeDutyCycle: value.strobe_duty_cycle !== undefined ? value.strobe_duty_cycle * 10 : 0,
+                strobeLevel: value.strobe_level !== undefined ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
+            };
+
+            let info;
+            // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (['SIRZB-110', 'SRAC-23B-ZBSR', 'AV2010/29A', 'AV2010/24A'].includes(meta.mapped.model)) {
+                info = utils.getFromLookup(values.mode, mode) + ((values.strobe ? 1 : 0) << 4) + (utils.getFromLookup(values.level, level) << 6);
+            } else {
+                info = (utils.getFromLookup(values.mode, mode) << 4) + ((values.strobe ? 1 : 0) << 2) + utils.getFromLookup(values.level, level);
+            }
+
+            await entity.command(
+                'ssIasWd',
+                'startWarning',
+                {startwarninginfo: info, warningduration: values.duration, strobedutycycle: values.strobeDutyCycle, strobelevel: values.strobeLevel},
+                utils.getOptions(meta.mapped, entity),
+            );
+
+            // XXX Track and maintain a virtual state of the siren
+            // is on if duration set, and either strobe with dutycycle or alarm is set
+            const siren_on = values.duration > 0 && (values.mode != 'stop' || (values.strobe && value.strobe_duty_cycle > 0));
+
+            // Stop existing timer because we received a new siren command
+            clearTimeout(globalStore.getValue(entity, 'state_timer'));
+            globalStore.clearValue(entity, 'state_timer');
+            if (siren_on) {
+                const duration = Math.min(values.duration, 240);
+                const timer = setTimeout(() => {
+                    // How to publish a state from here ?
+                    logger.debug('Siren should be OFF ',NS);
+                }, duration * 1000);
+                globalStore.putValue(entity, 'state_timer', timer);
+            }
+
+            return {state: {siren_state: siren_on ? 'ON' : 'OFF'}};
+        },
+    },
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["PIRILLSensor-EF-3.0"],
@@ -292,7 +355,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "HEIMAN",
         description: "Smart siren",
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_wd],
-        toZigbee: [tz.warning, tz.ias_max_duration],
+        toZigbee: [tzlocal.warning, tz.ias_max_duration],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -301,6 +364,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("ssIasWd", ["maxDuration"]);
         },
         exposes: [
+            e.binary('siren_state', ea.STATE, 'ON', 'OFF').withDescription('Alarm state (Virtual)'),
             e.battery(),
             e
                 .numeric("max_duration", ea.ALL)
