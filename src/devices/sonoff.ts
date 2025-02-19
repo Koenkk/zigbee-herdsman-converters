@@ -733,7 +733,7 @@ const definitions: DefinitionWithExtend[] = [
                 endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]}],
             },
         ],
-        zigbeeModel: ['DS01', 'SNZB-04'],
+        zigbeeModel: ['DS01', 'SNZB-04', 'CK-TLSR8656-SS5-01(7003)'],
         model: 'SNZB-04',
         vendor: 'SONOFF',
         whiteLabel: [
@@ -743,13 +743,18 @@ const definitions: DefinitionWithExtend[] = [
                 model: 'SNZB-04',
                 fingerprint: [{modelID: 'SNZB-04', manufacturerName: 'eWeLink'}],
             },
+            {
+                vendor: 'eWeLink',
+                model: 'CK-TLSR8656-SS5-01(7003)',
+                fingerprint: [{modelID: 'CK-TLSR8656-SS5-01(7003)', manufacturerName: 'eWeLink'}],
+            },
             tuya.whitelabel('Tuya', 'WL-19DWZ', 'Contact sensor', ['_TZ3000_n2egfsli']),
         ],
         description: 'Contact sensor',
         extend: [ewelinkBattery(), m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
     },
     {
-        zigbeeModel: ['WB01', 'WB-01', 'SNZB-01'],
+        zigbeeModel: ['WB01', 'WB-01', 'SNZB-01', 'CK-TLSR8656-SS5-01(7000)'],
         model: 'SNZB-01',
         vendor: 'SONOFF',
         whiteLabel: [
@@ -758,6 +763,11 @@ const definitions: DefinitionWithExtend[] = [
                 vendor: 'eWeLink',
                 model: 'SNZB-01',
                 fingerprint: [{modelID: 'SNZB-01', manufacturerName: 'eWeLink'}],
+            },
+            {
+                vendor: 'eWeLink',
+                model: 'CK-TLSR8656-SS5-01(7000)',
+                fingerprint: [{modelID: 'CK-TLSR8656-SS5-01(7000)', manufacturerName: 'eWeLink'}],
             },
         ],
         description: 'Wireless button',
@@ -812,7 +822,7 @@ const definitions: DefinitionWithExtend[] = [
                 modelID: 'TH01',
             },
         ],
-        zigbeeModel: ['TH01', 'SNZB-02'],
+        zigbeeModel: ['TH01', 'SNZB-02', 'CK-TLSR8656-SS5-01(7014)'],
         model: 'SNZB-02',
         vendor: 'SONOFF',
         whiteLabel: [
@@ -821,6 +831,11 @@ const definitions: DefinitionWithExtend[] = [
                 vendor: 'eWeLink',
                 model: 'SNZB-02',
                 fingerprint: [{modelID: 'SNZB-02', manufacturerName: 'eWeLink'}],
+            },
+            {
+                vendor: 'eWeLink',
+                model: 'CK-TLSR8656-SS5-01(7014)',
+                fingerprint: [{modelID: 'CK-TLSR8656-SS5-01(7014)', manufacturerName: 'eWeLink'}],
             },
             {
                 vendor: 'Zbeacon',
@@ -975,7 +990,7 @@ const definitions: DefinitionWithExtend[] = [
                 endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1, 1280, 32], outputClusters: [25]}],
             },
         ],
-        zigbeeModel: ['MS01', 'MSO1', 'SNZB-03'],
+        zigbeeModel: ['MS01', 'MSO1', 'SNZB-03', 'CK-TLSR8656-SS5-01(7002)'],
         model: 'SNZB-03',
         vendor: 'SONOFF',
         whiteLabel: [
@@ -997,6 +1012,17 @@ const definitions: DefinitionWithExtend[] = [
                         manufacturerName: 'eWeLink',
                         modelID: 'SNZB-03',
                         endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1, 1280, 32], outputClusters: [25]}],
+                    },
+                ],
+            },
+            {
+                vendor: 'eWeLink',
+                model: 'CK-TLSR8656-SS5-01(7002)',
+                fingerprint: [
+                    {
+                        type: 'EndDevice',
+                        manufacturerName: 'eWeLink',
+                        modelID: 'CK-TLSR8656-SS5-01(7002)',
                     },
                 ],
             },

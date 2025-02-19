@@ -161,11 +161,24 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.rain()],
     },
     {
-        zigbeeModel: ['SNZB-05'],
+        zigbeeModel: ['SNZB-05', 'CK-TLSR8656-SS5-01(7019)'],
         model: 'SNZB-05',
         vendor: 'eWeLink',
         description: 'Zigbee water sensor',
         extend: [m.battery(), m.iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']})],
+        whiteLabel: [
+            {
+                vendor: 'eWeLink',
+                model: 'CK-TLSR8656-SS5-01(7019)',
+                fingerprint: [
+                    {
+                        type: 'EndDevice',
+                        manufacturerName: 'eWeLink',
+                        modelID: 'CK-TLSR8656-SS5-01(7019)',
+                    },
+                ],
+            },
+        ],
     },
     {
         zigbeeModel: ['CK-MG22-JLDJ-01(7015)', 'CK-MG22-Z310EE07DOOYA-01(7015)', 'MYDY25Z-1', 'Grandekor Smart Curtain Grandekor'],
