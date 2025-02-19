@@ -2,7 +2,7 @@ import fz from '../converters/fromZigbee';
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['WG001-Z01'],
         model: 'WG001',
@@ -48,7 +48,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aeotec',
         description: 'Pico shutter',
         extend: [
-            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}}),
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}, multiEndpointSkip: ['position', 'tilt', 'state']}),
             m.deviceTemperature(),
             m.identify(),
             m.windowCovering({controls: ['lift', 'tilt']}),
@@ -58,6 +58,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

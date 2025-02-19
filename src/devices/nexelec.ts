@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Air Quality Sensor Nexelec'],
         model: "Open'R",
@@ -10,6 +10,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.temperature(), m.humidity(), m.co2(), m.battery(), m.identify()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

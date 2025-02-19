@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZGRC-KEY-005'],
         model: '5144.01',
@@ -188,10 +188,16 @@ const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
             m.battery(),
             m.identify(),
-            m.commandsOnOff(),
-            m.commandsLevelCtrl(),
-            m.commandsColorCtrl(),
-            m.commandsScenes(),
+            m.commandsOnOff({
+                commands: ['on', 'off'],
+            }),
+            m.commandsLevelCtrl({
+                commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down'],
+            }),
+            m.commandsColorCtrl({
+                commands: ['color_temperature_move', 'color_move', 'hue_move', 'hue_stop'],
+            }),
+            m.commandsScenes({commands: ['recall']}),
         ],
         meta: {multiEndpoint: true},
     },
@@ -344,6 +350,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

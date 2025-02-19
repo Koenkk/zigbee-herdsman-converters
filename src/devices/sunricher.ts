@@ -313,7 +313,7 @@ function sunricherSRZG9002K16Pro(): ModernExtend {
 
     const fromZigbee: Fz.Converter[] = [
         {
-            cluster: 0xff03,
+            cluster,
             type: ['raw'],
             convert: (model, msg, publish, options, meta) => {
                 const bytes = [...msg.data];
@@ -368,6 +368,67 @@ function sunricherSRZG9002K16Pro(): ModernExtend {
     };
 }
 
+function sunricherIndicatorLight(): ModernExtend {
+    const cluster = 0xfc8b;
+    const attribute = 0xf001;
+    const data_type = 0x20;
+    const manufacturerCode = 0x120b;
+
+    const exposes: Expose[] = [
+        e.enum('indicator_light', ea.ALL, ['on', 'off']).withDescription('Enable/disable the LED indicator').withCategory('config'),
+    ];
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster,
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (!Object.prototype.hasOwnProperty.call(msg.data, attribute)) return;
+                const indicatorLight = msg.data[attribute];
+                const firstBit = indicatorLight & 0x01;
+                return {indicator_light: firstBit === 1 ? 'on' : 'off'};
+            },
+        } satisfies Fz.Converter,
+    ];
+
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ['indicator_light'],
+            convertSet: async (entity, key, value, meta) => {
+                const attributeRead = await entity.read(cluster, [attribute]);
+                if (attributeRead === undefined) return;
+
+                // @ts-expect-error ignore
+                const currentValue = attributeRead[attribute];
+                const newValue = value === 'on' ? currentValue | 0x01 : currentValue & ~0x01;
+
+                await entity.write(cluster, {[attribute]: {value: newValue, type: data_type}}, {manufacturerCode});
+
+                return {state: {indicator_light: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read(cluster, [attribute], {manufacturerCode});
+            },
+        },
+    ];
+
+    const configure: [Configure] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind(cluster, coordinatorEndpoint);
+            await endpoint.read(cluster, [attribute], {manufacturerCode});
+        },
+    ];
+
+    return {
+        exposes,
+        configure,
+        fromZigbee,
+        toZigbee,
+        isModernExtend: true,
+    };
+}
+
 const fzLocal = {
     sunricher_SRZGP2801K45C: {
         cluster: 'greenPower',
@@ -406,7 +467,7 @@ async function syncTime(endpoint: Zh.Endpoint) {
     }
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['HK-SENSOR-SMO'],
         model: 'SR-ZG9070A-SS',
@@ -419,7 +480,47 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG9030F-PS',
         vendor: 'Sunricher',
         description: 'Smart human presence sensor',
-        extend: [m.illuminance({scale: (value) => value}), m.occupancy(), m.commandsOnOff()],
+        extend: [
+            m.illuminance({scale: (value) => value}),
+            m.occupancy(),
+            m.commandsOnOff(),
+            m.deviceAddCustomCluster('sunricherSensor', {
+                ID: 0xfc8b,
+                manufacturerCode: 0x120b,
+                attributes: {
+                    indicatorLight: {ID: 0xf001, type: 0x20},
+                    detectionArea: {ID: 0xf002, type: 0x20},
+                    illuminanceThreshold: {ID: 0xf004, type: 0x20},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            sunricherIndicatorLight(),
+            m.numeric({
+                name: 'detection_area',
+                cluster: 'sunricherSensor',
+                attribute: 'detectionArea',
+                description: 'Detection area range (default: 50%)',
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                unit: '%',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.numeric({
+                name: 'illuminance_threshold',
+                cluster: 'sunricherSensor',
+                attribute: 'illuminanceThreshold',
+                description: 'Illuminance threshold for triggering (default: 100)',
+                valueMin: 10,
+                valueMax: 100,
+                valueStep: 1,
+                unit: 'lx',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+        ],
     },
     {
         zigbeeModel: ['HK-SENSOR-GAS'],
@@ -477,7 +578,7 @@ const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG2836D5',
         vendor: 'Sunricher',
         description: 'Zigbee smart remote',
-        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsWindowCovering(), m.commandsColorCtrl()],
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsWindowCovering(), m.commandsColorCtrl(), m.commandsScenes()],
     },
     {
         zigbeeModel: ['ZG9032B'],
@@ -1572,6 +1673,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

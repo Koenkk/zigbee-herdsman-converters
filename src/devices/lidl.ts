@@ -204,7 +204,7 @@ const valueConverterLocal = {
     }),
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {manufacturerName: '_TZ3000_kdi2o9m6'}, // EU
@@ -663,6 +663,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

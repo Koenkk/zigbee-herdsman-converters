@@ -5,7 +5,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'PS-SPRZMS-SLP3', manufacturerName: 'PLAID SYSTEMS'}],
         zigbeeModel: ['PS-SPRZMS-SLP3'],
@@ -25,6 +25,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

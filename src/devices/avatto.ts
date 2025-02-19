@@ -5,7 +5,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_s139roas']),
         model: 'ZWSH16',
@@ -31,12 +31,13 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ybsqljjg']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ybsqljjg', '_TZE200_cxakecfo']),
         model: 'ME168',
         vendor: 'AVATTO',
         description: 'Thermostatic radiator valve',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
+        whiteLabel: [tuya.whitelabel('Girier', 'ME168', 'Thermostatic radiator valve', ['_TZE200_cxakecfo'])],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         ota: true,
@@ -240,6 +241,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

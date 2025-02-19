@@ -388,6 +388,7 @@ export const philipsFz = {
         type: 'commandHueNotification',
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const buttonLookup: KeyValue = {1: 'button_1', 2: 'button_2', 3: 'button_3', 4: 'button_4', 20: 'dial'};
             const button = buttonLookup[msg.data['button']];
             const direction = msg.data['unknown2'] < 127 ? 'right' : 'left';

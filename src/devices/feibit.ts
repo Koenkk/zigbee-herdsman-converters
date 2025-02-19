@@ -8,7 +8,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['FB56-DOS06HM1.1'],
         model: 'FB56-DOS06HM1.1',
@@ -40,7 +40,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.sos(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FNB56-BOT06FB2.3', 'FNB56-BOT06FB2.8', 'FB56-BOT02HM1.2', 'FNB56-BOT06FB2.8'],
+        zigbeeModel: ['FNB56-BOT06FB2.3', 'FNB56-BOT06FB2.8', 'FB56-BOT02HM1.2'],
         model: 'SBM01ZB',
         vendor: 'Feibit',
         description: 'Human body movement sensor',
@@ -305,6 +305,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: false})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

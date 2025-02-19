@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['tdtqgwv'],
         model: 'ZSTY-SM-11ZG-US-W',
@@ -45,6 +45,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

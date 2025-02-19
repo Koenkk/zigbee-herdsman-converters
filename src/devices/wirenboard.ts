@@ -485,7 +485,7 @@ const {
     sprutIrBlaster,
 } = sprutModernExtend;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['WBMSW3'],
         model: 'WB-MSW-ZIGBEE v.3',
@@ -677,6 +677,3 @@ const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
 ];
-
-export default definitions;
-module.exports = definitions;

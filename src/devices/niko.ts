@@ -279,7 +279,7 @@ const local = {
     },
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['Connected socket outlet'],
         model: '170-33505/170-34605',
@@ -605,6 +605,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

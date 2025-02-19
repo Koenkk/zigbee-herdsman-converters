@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SoftWhite'],
         model: 'PSB19-SW27',
@@ -94,6 +94,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

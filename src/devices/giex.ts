@@ -34,7 +34,7 @@ const exportTemplates = {
     },
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     // _TZE200_sh1btabb uses minutes, timezone is GMT+8
     {
         ...exportTemplates.giexWaterValve,
@@ -83,6 +83,3 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_7ytb3h8u', '_TZE284_7ytb3h8u', '_TZE200_7ytb3h8u'])],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

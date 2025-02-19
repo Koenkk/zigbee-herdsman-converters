@@ -23,7 +23,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['CK-BL702-ROUTER-01(7018)'],
         model: 'CK-BL702-ROUTER-01(7018)',
@@ -172,7 +172,6 @@ const definitions: DefinitionWithExtend[] = [
         model: 'CK-MG22-JLDJ-01(7015)',
         vendor: 'eWeLink',
         whiteLabel: [
-            {fingerprint: [{modelID: 'CK-MG22-JLDJ-01(7015)'}], vendor: 'eWeLink', model: 'CK-MG22-JLDJ-01(7015)'},
             {fingerprint: [{modelID: 'CK-MG22-Z310EE07DOOYA-01(7015)'}], vendor: 'eWeLink', model: 'CK-MG22-Z310EE07DOOYA-01(7015)'},
             {fingerprint: [{modelID: 'MYDY25Z-1'}], vendor: 'eWeLink', model: 'MYDY25Z-1'},
             {fingerprint: [{modelID: 'Grandekor Smart Curtain Grandekor'}], vendor: 'eWeLink', model: 'Grandekor Smart Curtain Grandekor'},
@@ -227,7 +226,6 @@ const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['MYRX25Z-1'],
         model: 'MYRX25Z-1',
         vendor: 'eWeLink',
-        whiteLabel: [{fingerprint: [{modelID: 'MYRX25Z-1'}], vendor: 'eWeLink', model: 'MYRX25Z-1'}],
         description: 'Reax Curtain',
         extend: [
             m.deviceAddCustomCluster('customClusterEwelink', {
@@ -268,7 +266,6 @@ const definitions: DefinitionWithExtend[] = [
         model: 'AM25B-1-25-ES-E-Z',
         vendor: 'eWeLink',
         whiteLabel: [
-            {fingerprint: [{modelID: 'AM25B-1-25-ES-E-Z'}], vendor: 'eWeLink', model: 'AM25B-1-25-ES-E-Z'},
             {fingerprint: [{modelID: 'ZM25-EAZ'}], vendor: 'eWeLink', model: 'ZM25-EAZ'},
             {fingerprint: [{modelID: 'AM25C-1-25-ES-E-Z'}], vendor: 'eWeLink', model: 'AM25C-1-25-ES-E-Z'},
         ],
@@ -304,6 +301,3 @@ const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
 ];
-
-export default definitions;
-module.exports = definitions;

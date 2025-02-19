@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZBT-CCTfilament-D0001'],
         model: '8718801528204',
@@ -73,6 +73,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;
