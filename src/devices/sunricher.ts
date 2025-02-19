@@ -1,16 +1,20 @@
 import {Zcl} from 'zigbee-herdsman';
+import {Endpoint, Group} from 'zigbee-herdsman/dist/controller/model';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
+import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import {payload} from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as sunricher from '../lib/sunricher';
-import {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, Tz, Zh} from '../lib/types';
+import {Configure, DefinitionWithExtend, Expose, Fz, KeyValueAny, ModernExtend, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
+import {precisionRound} from '../lib/utils';
 
 const NS = 'zhc:sunricher';
 const e = exposes.presets;
@@ -429,6 +433,358 @@ function sunricherIndicatorLight(): ModernExtend {
     };
 }
 
+const sunricherExtend = {
+    thermostatWeeklySchedule: (): ModernExtend => {
+        const exposes = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].map((day) =>
+            e
+                .text(`schedule_${day}`, ea.ALL)
+                .withDescription(`Schedule for ${day.charAt(0).toUpperCase() + day.slice(1)}, example: "06:00/21.0 12:00/21.0 18:00/21.0 22:00/16.0"`)
+                .withCategory('config'),
+        );
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'hvacThermostat',
+                type: ['commandGetWeeklyScheduleRsp'],
+                convert: (model, msg, publish, options, meta) => {
+                    const day = Object.entries(constants.thermostatDayOfWeek).find((d) => msg.data.dayofweek & (1 << +d[0]))[1];
+
+                    const transitions = msg.data.transitions
+                        .map((t: {heatSetpoint: number; transitionTime: number}) => {
+                            const hours = Math.floor(t.transitionTime / 60);
+                            const minutes = t.transitionTime % 60;
+                            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}/${t.heatSetpoint / 100}`;
+                        })
+                        .sort()
+                        .join(' ');
+
+                    return {
+                        ...(meta.state.weekly_schedule as Record<string, string>[]),
+                        [`schedule_${day}`]: transitions,
+                    };
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [
+                    'schedule_sunday',
+                    'schedule_monday',
+                    'schedule_tuesday',
+                    'schedule_wednesday',
+                    'schedule_thursday',
+                    'schedule_friday',
+                    'schedule_saturday',
+                ],
+                convertSet: async (entity, key, value, meta) => {
+                    const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.\d+)?)$/;
+                    const dayOfWeekName = key.replace('schedule_', '');
+                    utils.assertString(value, dayOfWeekName);
+
+                    const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName.toLowerCase(), null);
+                    if (!dayKey) throw new Error(`Invalid schedule: invalid day name, found: ${dayOfWeekName}`);
+
+                    const transitions = value.split(' ').sort();
+                    if (transitions.length !== 4) {
+                        throw new Error('Invalid schedule: days must have exactly 4 transitions');
+                    }
+
+                    const payload = {
+                        dayofweek: 1 << Number(dayKey),
+                        numoftrans: transitions.length,
+                        mode: 1 << 0,
+                        transitions: transitions.map((transition) => {
+                            const matches = transition.match(transitionRegex);
+                            if (!matches) {
+                                throw new Error(
+                                    `Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
+                                );
+                            }
+
+                            const [, hours, minutes, temp] = matches;
+                            const temperature = parseFloat(temp);
+                            if (temperature < 4 || temperature > 35) {
+                                throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temperature}`);
+                            }
+
+                            return {
+                                transitionTime: parseInt(hours) * 60 + parseInt(minutes),
+                                heatSetpoint: Math.round(temperature * 100),
+                            };
+                        }),
+                    };
+
+                    await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
+                },
+                convertGet: async (entity, key, meta) => {
+                    const dayOfWeekName = key.replace('schedule_', '');
+                    const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName.toLowerCase(), null);
+                    await entity.command(
+                        'hvacThermostat',
+                        'getWeeklySchedule',
+                        {
+                            daystoreturn: dayKey !== null ? 1 << Number(dayKey) : 0xff,
+                            modetoreturn: 1,
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.command('hvacThermostat', 'getWeeklySchedule', {
+                    daystoreturn: 0xff,
+                    modetoreturn: 1,
+                });
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
+
+    thermostatChildLock: (): ModernExtend => {
+        const exposes = [e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device')];
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'hvacUserInterfaceCfg',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (Object.hasOwn(msg.data, 'keypadLockout')) {
+                        return {child_lock: msg.data.keypadLockout === 0 ? 'UNLOCK' : 'LOCK'};
+                    }
+                    return {};
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['child_lock'],
+                convertSet: async (entity, key, value, meta) => {
+                    const keypadLockout = Number(value === 'LOCK');
+                    await entity.write('hvacUserInterfaceCfg', {keypadLockout});
+                    return {state: {child_lock: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read('hvacUserInterfaceCfg', ['keypadLockout']);
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['hvacUserInterfaceCfg']);
+                await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
+                await reporting.thermostatKeypadLockMode(endpoint);
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
+
+    thermostatPreset: (): ModernExtend => {
+        const systemModeLookup = {
+            0: 'off',
+            1: 'auto',
+            3: 'cool',
+            4: 'manual',
+            5: 'emergency_heating',
+            6: 'precooling',
+            7: 'fan_only',
+            8: 'dry',
+            9: 'sleep',
+        };
+
+        const awayOrBoostModeLookup = {0: 'normal', 1: 'away', 2: 'forced'};
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'hvacThermostat',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!Object.hasOwn(msg.data, 'systemMode') && !Object.hasOwn(msg.data, 'awayOrBoostMode')) return;
+
+                    const systemMode = msg.data.systemMode ?? globalStore.getValue(msg.device, 'systemMode');
+                    const awayOrBoostMode = msg.data.awayOrBoostMode ?? globalStore.getValue(msg.device, 'awayOrBoostMode');
+
+                    globalStore.putValue(msg.device, 'systemMode', systemMode);
+                    globalStore.putValue(msg.device, 'awayOrBoostMode', awayOrBoostMode);
+
+                    const result: KeyValueAny = {};
+
+                    if (awayOrBoostMode !== undefined && awayOrBoostMode !== 0) {
+                        result.preset = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
+                        result.away_or_boost_mode = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
+                        if (systemMode !== undefined) {
+                            result.system_mode = constants.thermostatSystemModes[systemMode];
+                        }
+                    } else if (systemMode !== undefined) {
+                        result.preset = utils.getFromLookup(systemMode, systemModeLookup);
+                        result.system_mode = constants.thermostatSystemModes[systemMode];
+                        if (awayOrBoostMode !== undefined) {
+                            result.away_or_boost_mode = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
+                        }
+                    }
+
+                    return result;
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['preset'],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === 'away' || value === 'forced') {
+                        const awayOrBoostMode = value === 'away' ? 1 : 2;
+                        globalStore.putValue(entity, 'awayOrBoostMode', awayOrBoostMode);
+                        if (value === 'away') {
+                            await entity.read('hvacThermostat', ['unoccupiedHeatingSetpoint']);
+                        }
+                        await entity.write('hvacThermostat', {awayOrBoostMode});
+                        return {state: {preset: value, away_or_boost_mode: value}};
+                    } else {
+                        globalStore.putValue(entity, 'awayOrBoostMode', 0);
+                        const systemMode = utils.getKey(systemModeLookup, value, undefined, Number);
+                        await entity.write('hvacThermostat', {systemMode});
+
+                        if (typeof systemMode === 'number') {
+                            return {
+                                state: {
+                                    // @ts-expect-error ignore
+                                    preset: systemModeLookup[systemMode],
+                                    system_mode: constants.thermostatSystemModes[systemMode],
+                                },
+                            };
+                        }
+                    }
+                },
+            },
+            {
+                key: ['system_mode'],
+                convertSet: async (entity, key, value, meta) => {
+                    const systemMode = utils.getKey(constants.thermostatSystemModes, value, undefined, Number);
+                    if (systemMode === undefined || typeof systemMode !== 'number') {
+                        throw new Error(`Invalid system mode: ${value}`);
+                    }
+                    await entity.write('hvacThermostat', {systemMode});
+                    return {
+                        state: {
+                            // @ts-expect-error ignore
+                            preset: systemModeLookup[systemMode],
+                            system_mode: constants.thermostatSystemModes[systemMode],
+                        },
+                    };
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read('hvacThermostat', ['systemMode']);
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.read('hvacThermostat', ['systemMode']);
+                await endpoint.read('hvacThermostat', ['awayOrBoostMode']);
+
+                await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
+                await reporting.thermostatSystemMode(endpoint);
+                await endpoint.configureReporting('hvacThermostat', payload('awayOrBoostMode', 10, repInterval.HOUR, null));
+            },
+        ];
+
+        return {fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
+
+    thermostatCurrentHeatingSetpoint: (): ModernExtend => {
+        const getAwayOrBoostMode = async (entity: Endpoint | Group) => {
+            let result = globalStore.getValue(entity, 'awayOrBoostMode');
+            if (result === undefined) {
+                const attributeRead = await entity.read('hvacThermostat', ['awayOrBoostMode']);
+                // @ts-expect-error ignore
+                result = attributeRead['awayOrBoostMode'];
+                globalStore.putValue(entity, 'awayOrBoostMode', result);
+            }
+            return result;
+        };
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'hvacThermostat',
+                type: ['attributeReport', 'readResponse'],
+                convert: async (model, msg, publish, options, meta) => {
+                    const hasHeatingSetpoints =
+                        Object.hasOwn(msg.data, 'occupiedHeatingSetpoint') || Object.hasOwn(msg.data, 'unoccupiedHeatingSetpoint');
+                    if (!hasHeatingSetpoints) return;
+
+                    const processSetpoint = (value: number | undefined) => {
+                        if (value === undefined) return undefined;
+                        return precisionRound(value, 2) / 100;
+                    };
+
+                    const occupiedSetpoint = processSetpoint(msg.data.occupiedHeatingSetpoint);
+                    const unoccupiedSetpoint = processSetpoint(msg.data.unoccupiedHeatingSetpoint);
+
+                    const awayOrBoostMode = msg.data.awayOrBoostMode ?? (await getAwayOrBoostMode(msg.device.getEndpoint(1)));
+
+                    const result: KeyValueAny = {};
+
+                    if (awayOrBoostMode === 1 && unoccupiedSetpoint !== undefined) {
+                        result.current_heating_setpoint = unoccupiedSetpoint;
+                    } else if (occupiedSetpoint !== undefined) {
+                        result.current_heating_setpoint = occupiedSetpoint;
+                    }
+
+                    return result;
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['current_heating_setpoint'],
+                convertSet: async (entity, key, value: number, meta) => {
+                    utils.assertNumber(value, key);
+                    const awayOrBoostMode = await getAwayOrBoostMode(entity);
+
+                    let convertedValue: number;
+                    if (meta.options.thermostat_unit === 'fahrenheit') {
+                        convertedValue = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
+                    } else {
+                        convertedValue = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
+                    }
+
+                    const attribute = awayOrBoostMode === 1 ? 'unoccupiedHeatingSetpoint' : 'occupiedHeatingSetpoint';
+                    await entity.write('hvacThermostat', {[attribute]: convertedValue});
+                    return {state: {current_heating_setpoint: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read('hvacThermostat', ['occupiedHeatingSetpoint', 'unoccupiedHeatingSetpoint']);
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.read('hvacThermostat', ['occupiedHeatingSetpoint', 'unoccupiedHeatingSetpoint']);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
+                await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+                await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+            },
+        ];
+
+        return {fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
+};
+
 const fzLocal = {
     sunricher_SRZGP2801K45C: {
         cluster: 'greenPower',
@@ -467,7 +823,278 @@ async function syncTime(endpoint: Zh.Endpoint) {
     }
 }
 
+async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
+    try {
+        const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
+        const timeZone = new Date().getTimezoneOffset() * -1 * 60;
+        await endpoint.write('genTime', {time, timeZone});
+    } catch {
+        logger.error('Failed to sync time with time zone', NS);
+    }
+}
+
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['ZG9340'],
+        model: 'SR-ZG9093TRV',
+        vendor: 'Sunricher',
+        description: 'Zigbee thermostatic radiator valve',
+        extend: [
+            m.deviceAddCustomCluster('hvacThermostat', {
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    screenTimeout: {
+                        ID: 0x100d,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    antiFreezingTemp: {
+                        ID: 0x1005,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    temperatureDisplayMode: {
+                        ID: 0x1008,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    windowOpenCheck: {
+                        ID: 0x1009,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    hysteresis: {
+                        ID: 0x100a,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    windowOpenFlag: {
+                        ID: 0x100b,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    forcedHeatingTime: {
+                        ID: 0x100e,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    errorCode: {
+                        ID: 0x2003,
+                        type: Zcl.DataType.BITMAP8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    awayOrBoostMode: {
+                        ID: 0x2002,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            sunricherExtend.thermostatPreset(),
+            sunricherExtend.thermostatCurrentHeatingSetpoint(),
+            m.battery(),
+            m.identify(),
+            m.numeric({
+                name: 'screen_timeout',
+                cluster: 'hvacThermostat',
+                attribute: 'screenTimeout',
+                valueMin: 10,
+                valueMax: 30,
+                unit: 's',
+                description: 'Screen Timeout for Inactivity (excluding gateway config). Range: 10-30s, Default: 10s',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.numeric({
+                name: 'anti_freezing_temp',
+                cluster: 'hvacThermostat',
+                attribute: 'antiFreezingTemp',
+                valueMin: 0,
+                valueMax: 10,
+                unit: '°C',
+                description: 'Anti Freezing(Low Temp) Mode Configuration. 0: disabled, 5~10: temperature (5°C by default)',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.enumLookup({
+                name: 'temperature_display_mode',
+                cluster: 'hvacThermostat',
+                attribute: 'temperatureDisplayMode',
+                lookup: {
+                    set_temp: 1,
+                    room_temp: 2,
+                },
+                description: 'Temperature Display Mode. 1: displays set temp, 2: displays room temp (default)',
+                access: 'ALL',
+            }),
+            m.numeric({
+                name: 'window_open_check',
+                cluster: 'hvacThermostat',
+                attribute: 'windowOpenCheck',
+                valueMin: 0,
+                valueMax: 10,
+                unit: '°C',
+                description: 'The temperature threshold for Window Open Detect, value range 0~10, unit is 1°C, 0 means disabled, default value is 5',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.numeric({
+                name: 'hysteresis',
+                cluster: 'hvacThermostat',
+                attribute: 'hysteresis',
+                valueMin: 5,
+                valueMax: 20,
+                valueStep: 0.1,
+                unit: '°C',
+                description:
+                    'Control hysteresis setting, range is 5-20, unit is 0.1°C, default value is 10. Because the sensor accuracy is 0.5°C, it is recommended not to set this value below 1°C to avoid affecting the battery life.',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.binary({
+                name: 'window_open_flag',
+                cluster: 'hvacThermostat',
+                attribute: 'windowOpenFlag',
+                description: 'Window open flag',
+                valueOn: ['opened', 1],
+                valueOff: ['not_opened', 0],
+                access: 'STATE_GET',
+            }),
+            m.numeric({
+                name: 'forced_heating_time',
+                cluster: 'hvacThermostat',
+                attribute: 'forcedHeatingTime',
+                valueMin: 10,
+                valueMax: 90,
+                unit: '10s',
+                description: 'Forced heating time, range 10~90, unit is 10s, default value is 30(300s)',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.enumLookup({
+                name: 'error_code',
+                cluster: 'hvacThermostat',
+                attribute: 'errorCode',
+                lookup: {
+                    no_error: 0,
+                    motor_error: 4,
+                    motor_timeout: 5,
+                },
+                description:
+                    'Error code: 0=No hardware error, 4=Motor error (detected not running), 5=The motor runs exceeding the self-check time without finding the boundary',
+                access: 'STATE_GET',
+            }),
+            m.enumLookup({
+                name: 'temperature_display_unit',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: {ID: 0x0000, type: 0x30},
+                lookup: {
+                    celsius: 0x00,
+                    fahrenheit: 0x01,
+                },
+                description: 'The temperature unit shown on the display',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            sunricherExtend.thermostatWeeklySchedule(),
+            sunricherExtend.thermostatChildLock(),
+        ],
+        fromZigbee: [fz.thermostat],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_running_state,
+            tz.thermostat_temperature_display_mode,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE_GET)
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.1, ea.ALL)
+                .withLocalTemperatureCalibration(-30, 30, 0.5, ea.ALL)
+                .withPreset(
+                    ['off', 'auto', 'away', 'sleep', 'manual', 'forced'],
+                    'Preset of the thermostat. Manual: comfort temp (20°C), Auto: schedule temp (see schedule), ' +
+                        'Away: eco temp (6°C), Sleep: night temp (17°C), Forced: temporary heating with configurable duration (default 300s)',
+                )
+                .withSystemMode(['off', 'auto', 'heat', 'sleep'], ea.ALL)
+                .withRunningState(['idle', 'heat']),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg', 'genTime'];
+
+            const maxRetries = 3;
+            let retryCount = 0;
+            let bindSuccess = false;
+
+            while (retryCount < maxRetries) {
+                try {
+                    if (!bindSuccess) {
+                        await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+                        bindSuccess = true;
+                    }
+
+                    const configPromises = [
+                        reporting.thermostatTemperature(endpoint),
+                        reporting.thermostatOccupiedHeatingSetpoint(endpoint),
+                        reporting.thermostatUnoccupiedHeatingSetpoint(endpoint),
+                        reporting.thermostatRunningState(endpoint),
+                        reporting.batteryPercentageRemaining(endpoint),
+                        endpoint.configureReporting('hvacUserInterfaceCfg', payload('tempDisplayMode', 10, repInterval.MINUTE, null)),
+                    ];
+
+                    await Promise.all(configPromises);
+
+                    const customAttributes = [
+                        'screenTimeout',
+                        'antiFreezingTemp',
+                        'temperatureDisplayMode',
+                        'windowOpenCheck',
+                        'hysteresis',
+                        'windowOpenFlag',
+                        'forcedHeatingTime',
+                    ];
+
+                    await Promise.all(
+                        customAttributes.map((attr) => endpoint.configureReporting('hvacThermostat', payload(attr, 10, repInterval.MINUTE, null))),
+                    );
+
+                    const readPromises = [
+                        endpoint.read('hvacUserInterfaceCfg', ['tempDisplayMode']),
+                        endpoint.read('hvacThermostat', ['localTemp', 'runningState']),
+                        endpoint.read('hvacThermostat', [
+                            'screenTimeout',
+                            'antiFreezingTemp',
+                            'temperatureDisplayMode',
+                            'windowOpenCheck',
+                            'hysteresis',
+                            'windowOpenFlag',
+                            'forcedHeatingTime',
+                            'errorCode',
+                        ]),
+                    ];
+
+                    await Promise.all(readPromises);
+                    await syncTimeWithTimeZone(endpoint);
+
+                    break;
+                } catch (e) {
+                    retryCount++;
+                    logger.warning(`Configure attempt ${retryCount} failed: ${e}`, NS);
+
+                    if (retryCount === maxRetries) {
+                        logger.error(`Failed to configure device after ${maxRetries} attempts`, NS);
+                        throw e;
+                    }
+
+                    await new Promise((resolve) => setTimeout(resolve, 2000 * retryCount));
+                }
+            }
+        },
+    },
     {
         zigbeeModel: ['HK-SENSOR-SMO'],
         model: 'SR-ZG9070A-SS',
