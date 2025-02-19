@@ -9672,6 +9672,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.produced_energy().withDescription('Total reverse active energy'),
             e.power_factor().withUnit('%'),
             e.ac_frequency(),
+            e
+                .numeric('data_report_duration', ea.SET)
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withDescription(
+                    'WARNING: You must update device firmware to V3.1.3 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 5~3600 seconds)',
+                ),
         ],
         meta: {
             tuyaDatapoints: [
@@ -9680,6 +9687,46 @@ export const definitions: DefinitionWithExtend[] = [
                 // [6, null, tuya.valueConverter.phaseVariant3],
                 [15, 'power_factor', tuya.valueConverter.raw],
                 // [16, 'clear_energy', tuya.valueConverter.onOff],
+                [
+                    18,
+                    'data_report_duration',
+                    {
+                        to: (v: number) => {
+                            const value = Math.max(5, Math.min(3600, Math.round(v)));
+                            const byte1 = (value >> 8) & 0xff;
+                            const byte2 = value & 0xff;
+                            return [
+                                // Unknown what these bytes mean, possibly configures other settings of the device
+                                0x01,
+                                0x01,
+                                0x00,
+                                0x3c,
+                                0x03,
+                                0x01,
+                                0x00,
+                                0xfd,
+                                0x04,
+                                0x00,
+                                0x00,
+                                0xb4,
+                                0x07,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x08,
+                                0x01,
+                                // Report duration
+                                byte1,
+                                byte2,
+                                // Unknown what these bytes mean, possibly configures other settings of the device
+                                0x09,
+                                0x00,
+                                0x00,
+                                0x00,
+                            ];
+                        },
+                    },
+                ],
                 [101, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [102, 'voltage', tuya.valueConverter.divideBy10],
                 [103, 'current', tuya.valueConverter.divideBy1000],
