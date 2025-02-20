@@ -1179,8 +1179,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: 'Fan with valve',
         fromZigbee: [fz.on_off, fz.fan_speed],
         toZigbee: [tz.on_off, tz.fan_speed],
-        exposes: [
-            e.fan().withState().withSpeed(),
-        ],
+        exposes: [e.fan().withState().withSpeed()],
     },
 ];

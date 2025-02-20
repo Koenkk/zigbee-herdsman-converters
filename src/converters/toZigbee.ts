@@ -1564,12 +1564,7 @@ const converters2 = {
         key: ['speed'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
-            await entity.command(
-                'genLevelCtrl',
-                'moveToLevel',
-                {level: value.toString(), transtime: 0},
-                utils.getOptions(meta.mapped, entity),
-            );
+            await entity.command('genLevelCtrl', 'moveToLevel', {level: value.toString(), transtime: 0}, utils.getOptions(meta.mapped, entity));
             return {state: {speed: value}};
         },
         convertGet: async (entity, key, meta) => {

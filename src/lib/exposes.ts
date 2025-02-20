@@ -573,14 +573,16 @@ export class Fan extends Base {
     }
 
     withModes(modes: string[], access = a.ALL) {
-        assert(this.features.findIndex(f => f.name === 'speed') === -1, 'Fan can only be either mode or speed-controlled, not both');
+        assert(this.features.findIndex((f) => f.name === 'speed') === -1, 'Fan can only be either mode or speed-controlled, not both');
         this.addFeature(new Enum('mode', access, modes).withProperty('fan_mode').withDescription('Mode of this fan'));
         return this;
     }
 
     withSpeed(minSpeed = 1, maxSpeed = 254, access = a.ALL) {
-        assert(this.features.findIndex(f => f.name === 'mode') === -1, 'Fan can only be either mode or speed-controlled, not both');
-        this.addFeature(new Numeric('speed', access).withProperty('speed').withValueMin(minSpeed).withValueMax(maxSpeed).withDescription('Speed of this fan'));
+        assert(this.features.findIndex((f) => f.name === 'mode') === -1, 'Fan can only be either mode or speed-controlled, not both');
+        this.addFeature(
+            new Numeric('speed', access).withProperty('speed').withValueMin(minSpeed).withValueMax(maxSpeed).withDescription('Speed of this fan'),
+        );
         return this;
     }
 
