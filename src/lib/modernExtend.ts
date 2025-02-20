@@ -5,7 +5,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {logger} from '../lib/logger';
 import * as globalStore from '../lib/store';
-import {Cover, presets as e, access as ea, Numeric, options as opt} from './exposes';
+import {Cover, Numeric, presets as e, access as ea, options as opt} from './exposes';
 import {configure as lightConfigure} from './light';
 import {
     Access,

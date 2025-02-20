@@ -2,7 +2,7 @@ import {Zcl} from 'zigbee-herdsman';
 
 import {presets as e, access as ea} from './exposes';
 import {logger} from './logger';
-import {binary, BinaryArgs, deviceAddCustomCluster, numeric, NumericArgs, setupConfigureForReporting} from './modernExtend';
+import {BinaryArgs, NumericArgs, binary, deviceAddCustomCluster, numeric, setupConfigureForReporting} from './modernExtend';
 import {Configure, Fz, ModernExtend, Tz} from './types';
 
 const NS = 'zhc:ubisys';

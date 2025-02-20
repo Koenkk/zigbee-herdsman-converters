@@ -1,12 +1,12 @@
 import {
-    addExternalDefinition,
     Definition,
+    addExternalDefinition,
     findByDevice,
     getConfigureKey,
     postProcessConvertedFromZigbeeMessage,
     removeExternalDefinitions,
 } from '../src/index';
-import {access, Composite, Enum, List, Numeric, presets} from '../src/lib/exposes';
+import {Composite, Enum, List, Numeric, access, presets} from '../src/lib/exposes';
 import {mockDevice} from './utils';
 
 describe('ZHC', () => {

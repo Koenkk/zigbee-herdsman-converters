@@ -14,17 +14,17 @@ import {
     ImageBlockRequestPayload,
     ImageNotifyPayload,
     ImagePageRequestPayload,
-    isUpdateAvailable,
-    parseImage,
     QueryNextImageRequestPayload,
     QueryNextImageResponsePayload,
-    setConfiguration,
-    update,
-    UpdateEndRequestPayload,
     UPGRADE_FILE_IDENTIFIER,
+    UpdateEndRequestPayload,
     UpgradeEndResponsePayload,
     ZIGBEE_OTA_LATEST_URL,
     ZIGBEE_OTA_PREVIOUS_URL,
+    isUpdateAvailable,
+    parseImage,
+    setConfiguration,
+    update,
 } from '../src/lib/ota';
 import {sleep} from '../src/lib/utils';
 

@@ -926,7 +926,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
                 .withRunningState(['idle', 'heat']),
             // Namron proprietary stuff
-            e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            e
+                .binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK')
+                .withDescription('Enables/disables physical input on the device'),
             e
                 .numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
@@ -1215,7 +1217,9 @@ export const definitions: DefinitionWithExtend[] = [
                 //.withRunningMode(['off', 'cool','heat'])
                 .withRunningState(['idle', 'cool', 'heat']),
             //.withPiHeatingDemand()
-            e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            e
+                .binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK')
+                .withDescription('Enables/disables physical input on the device'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

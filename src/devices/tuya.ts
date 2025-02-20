@@ -4436,7 +4436,9 @@ export const definitions: DefinitionWithExtend[] = [
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, '06:00/21.5 17:20/26 20:00/21 24:00/18').map((text) => text.withCategory('config')),
             e.binary('valve', ea.STATE, 'CLOSED', 'OPEN'),
             // e.enum('factory_reset', ea.STATE_SET, ['factory reset']).withLabel('Factory reset').withDescription('Reset all settings to factory ones'),
-            e.binary('factory_reset', ea.STATE_SET, 'ON', 'OFF').withDescription('Back to factory settings, USE WITH CAUTION'),
+            e
+                .binary('factory_reset', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Back to factory settings, USE WITH CAUTION'),
             tuya.exposes.errorStatus(),
         ],
         meta: {
@@ -7131,7 +7133,9 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum('backlight_mode', ea.STATE_SET, ['off', 'low', 'medium', 'high']).withDescription('Intensity of the backlight'),
             e.enum('working_day', ea.STATE_SET, ['disabled', '6-1', '5-2', '7']).withDescription('Workday setting'),
             e.text('schedule_weekday', ea.STATE_SET).withDescription('Workdays (6 times `hh:mm/cc.c°C`)'),
-            e.text('schedule_holiday', ea.STATE_SET).withDescription('Holidays (2 times `hh:mm/cc.c°C)`'),
+            e
+                .text('schedule_holiday', ea.STATE_SET)
+                .withDescription('Holidays (2 times `hh:mm/cc.c°C)`'),
             // ============== exposes for found, but not functional datapoints:
             /*
             e.min_temperature_limit() // dp 16
@@ -9597,7 +9601,9 @@ export const definitions: DefinitionWithExtend[] = [
             e.power(),
             e.current(),
             // Change the description according to the specifications of the device
-            e.energy().withDescription('Total forward active energy'),
+            e
+                .energy()
+                .withDescription('Total forward active energy'),
             e.produced_energy().withDescription('Total reverse active energy'),
         ],
         meta: {
@@ -9643,7 +9649,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.currentWithPhase('Y'),
             tuya.exposes.currentWithPhase('Z'),
             // Change the description according to the specifications of the device
-            e.energy().withDescription('Total forward active energy'),
+            e
+                .energy()
+                .withDescription('Total forward active energy'),
             e.produced_energy().withDescription('Total reverse active energy'),
         ],
         meta: {
@@ -11407,7 +11415,9 @@ export const definitions: DefinitionWithExtend[] = [
             // but they indicate when the unsigned value of power_a and power_b
             // were received. They can be several seconds in the past if
             // the publication was delayed because of the late_energy_flow options.
-            e.numeric('timestamp_a', ea.STATE).withDescription('Timestamp at power measure (phase a)'),
+            e
+                .numeric('timestamp_a', ea.STATE)
+                .withDescription('Timestamp at power measure (phase a)'),
             e.numeric('timestamp_b', ea.STATE).withDescription('Timestamp at power measure (phase b)'),
         ],
         meta: {
@@ -11809,7 +11819,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription('Free Chlorine minimal value')
                 .withValueMin(0)
                 .withValueMax(15),
-            e.numeric('salinity', ea.STATE).withUnit('ppm').withDescription('Salt value'),
+            e
+                .numeric('salinity', ea.STATE)
+                .withUnit('ppm')
+                .withDescription('Salt value'),
             // e.numeric('backlightvalue', ea.STATE).withUnit('gg').withDescription('Backlight Value'),
         ],
         meta: {
@@ -13475,7 +13488,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(90),
             e.binary('switch_type', ea.STATE_SET, 'ON', 'OFF').withDescription('Enables/disables valve switch'),
-            e.numeric('position', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Position'), // set actually not working
+            e
+                .numeric('position', ea.STATE)
+                .withUnit('%')
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription('Position'), // set actually not working
             e.enum('screen_orientation', ea.STATE_SET, ['up', 'right', 'down', 'left']).withDescription('Screen orientation'),
         ],
         meta: {

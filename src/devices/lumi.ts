@@ -146,7 +146,10 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_outage_memory(),
             // When in rgbw mode, only one of color and colortemp will be valid, and l2 will be invalid
             // Do not control l2 in rgbw mode
-            e.light_brightness_colortemp_colorxy([153, 370]).removeFeature('color_temp_startup').withEndpoint('l1'),
+            e
+                .light_brightness_colortemp_colorxy([153, 370])
+                .removeFeature('color_temp_startup')
+                .withEndpoint('l1'),
             e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('l2'),
             e.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct']).withDescription('Switch between rgbw mode or dual color temperature mode'),
         ],

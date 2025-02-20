@@ -1,4 +1,4 @@
-import {fromZigbee, trv, TrvScheduleConfig} from '../src/lib/lumi';
+import {TrvScheduleConfig, fromZigbee, trv} from '../src/lib/lumi';
 
 describe('lib/lumi', () => {
     describe('trv', () => {

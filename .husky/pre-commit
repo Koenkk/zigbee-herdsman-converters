@@ -1,4 +1,3 @@
 pnpm run build
-pnpm run pretty:check
-pnpm run eslint
+pnpm run biome:check
 pnpm run test:coverage

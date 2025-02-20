@@ -5,7 +5,6 @@ import {Zcl} from 'zigbee-herdsman';
 import fromZigbee from './converters/fromZigbee';
 import toZigbee from './converters/toZigbee';
 import {
-    access,
     Binary,
     Climate,
     Composite,
@@ -20,6 +19,7 @@ import {
     Numeric,
     Switch,
     Text,
+    access,
 } from './lib/exposes';
 import * as exposesLib from './lib/exposes';
 import {generateDefinition} from './lib/generateDefinition';
