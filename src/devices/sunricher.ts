@@ -1,16 +1,20 @@
 import {Zcl} from 'zigbee-herdsman';
+import {Endpoint, Group} from 'zigbee-herdsman/dist/controller/model';
 
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
+import {repInterval} from '../lib/constants';
 import * as exposes from '../lib/exposes';
 import {logger} from '../lib/logger';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
+import {payload} from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as sunricher from '../lib/sunricher';
-import {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, Tz, Zh} from '../lib/types';
+import {Configure, DefinitionWithExtend, Expose, Fz, KeyValueAny, ModernExtend, Tz, Zh} from '../lib/types';
 import * as utils from '../lib/utils';
+import {precisionRound} from '../lib/utils';
 
 const NS = 'zhc:sunricher';
 const e = exposes.presets;
@@ -18,416 +22,774 @@ const ea = exposes.access;
 
 const sunricherManufacturerCode = 0x1224;
 
-function sunricherExternalSwitchType(): ModernExtend {
-    const attribute = 0x8803;
-    const data_type = 0x20;
-    const value_map: {[key: number]: string} = {
-        0: 'push_button',
-        1: 'normal_on_off',
-        2: 'three_way',
-    };
-    const value_lookup: {[key: string]: number} = {
-        push_button: 0,
-        normal_on_off: 1,
-        three_way: 2,
-    };
+const sunricherExtend = {
+    externalSwitchType: (): ModernExtend => {
+        const attribute = 0x8803;
+        const data_type = 0x20;
+        const value_map: {[key: number]: string} = {
+            0: 'push_button',
+            1: 'normal_on_off',
+            2: 'three_way',
+        };
+        const value_lookup: {[key: string]: number} = {
+            push_button: 0,
+            normal_on_off: 1,
+            three_way: 2,
+        };
 
-    const fromZigbee: Fz.Converter[] = [
-        {
-            cluster: 'genBasic',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
-                    const value = msg.data[attribute];
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'genBasic',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                        const value = msg.data[attribute];
+                        return {
+                            external_switch_type: value_map[value] || 'unknown',
+                            external_switch_type_numeric: value,
+                        };
+                    }
+                    return undefined;
+                },
+            } satisfies Fz.Converter,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['external_switch_type'],
+                convertSet: async (entity, key, value: string, meta) => {
+                    const numericValue = value_lookup[value] ?? parseInt(value, 10);
+                    await entity.write(
+                        'genBasic',
+                        {[attribute]: {value: numericValue, type: data_type}},
+                        {manufacturerCode: sunricherManufacturerCode},
+                    );
+                    return {state: {external_switch_type: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
+                },
+            } satisfies Tz.Converter,
+        ];
+
+        const exposes: Expose[] = [
+            e.enum('external_switch_type', ea.ALL, ['push_button', 'normal_on_off', 'three_way']).withLabel('External switch type'),
+        ];
+
+        const configure: [Configure] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                try {
+                    await endpoint.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
+                } catch (error) {
+                    console.warn(`Failed to read external switch type attribute: ${error}`);
+                }
+            },
+        ];
+
+        return {
+            fromZigbee,
+            toZigbee,
+            exposes,
+            configure,
+            isModernExtend: true,
+        };
+    },
+
+    minimumPWM: (): ModernExtend => {
+        const attribute = 0x7809;
+        const data_type = 0x20;
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'genBasic',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                        console.log(`from `, msg.data[attribute]);
+                        const value = Math.round(msg.data[attribute] / 5.1);
+                        return {
+                            minimum_pwm: value,
+                        };
+                    }
+                    return undefined;
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['minimum_pwm'],
+                convertSet: async (entity: Zh.Endpoint, key: string, value: number | string, meta) => {
+                    console.log(`to `, value);
+                    const numValue = typeof value === 'string' ? parseInt(value) : value;
+                    const zgValue = Math.round(numValue * 5.1);
+                    await entity.write('genBasic', {[attribute]: {value: zgValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
+                    return {state: {minimum_pwm: numValue}};
+                },
+                convertGet: async (entity: Zh.Endpoint, key: string, meta) => {
+                    await entity.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
+                },
+            },
+        ];
+
+        const exposes: Expose[] = [
+            e
+                .numeric('minimum_pwm', ea.ALL)
+                .withLabel('Minimum PWM')
+                .withDescription('Power off the device and wait for 3 seconds before reconnecting to apply the settings.')
+                .withValueMin(0)
+                .withValueMax(50)
+                .withUnit('%')
+                .withValueStep(1),
+        ];
+
+        const configure: [Configure] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                try {
+                    await endpoint.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
+                } catch (error) {
+                    console.warn(`Failed to read external switch type attribute: ${error}`);
+                }
+            },
+        ];
+
+        return {
+            fromZigbee,
+            toZigbee,
+            exposes,
+            configure,
+            isModernExtend: true,
+        };
+    },
+
+    SRZG9002KR12Pro: (): ModernExtend => {
+        const cluster = 0xff03;
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 0xff03,
+                type: ['raw'],
+                convert: (model, msg, publish, options, meta) => {
+                    const bytes = [...msg.data];
+                    const messageType = bytes[3];
+                    let action = 'unknown';
+
+                    if (messageType === 0x01) {
+                        const pressTypeMask: number = bytes[6];
+                        const pressTypeLookup: {[key: number]: string} = {
+                            0x01: 'short_press',
+                            0x02: 'double_press',
+                            0x03: 'hold',
+                            0x04: 'hold_released',
+                        };
+                        action = pressTypeLookup[pressTypeMask] || 'unknown';
+
+                        const buttonMask = (bytes[4] << 8) | bytes[5];
+                        const specialButtonMap: {[key: number]: string} = {
+                            9: 'knob',
+                            11: 'k9',
+                            12: 'k10',
+                            15: 'k11',
+                            16: 'k12',
+                        };
+
+                        const actionButtons: string[] = [];
+                        for (let i = 0; i < 16; i++) {
+                            if ((buttonMask >> i) & 1) {
+                                const button = i + 1;
+                                actionButtons.push(specialButtonMap[button] ?? `k${button}`);
+                            }
+                        }
+                        return {action, action_buttons: actionButtons};
+                    } else if (messageType === 0x03) {
+                        const directionMask = bytes[4];
+                        const actionSpeed = bytes[6];
+
+                        const directionMap: {[key: number]: string} = {
+                            0x01: 'clockwise',
+                            0x02: 'anti_clockwise',
+                        };
+                        const direction = directionMap[directionMask] || 'unknown';
+
+                        action = `${direction}_rotation`;
+                        return {action, action_speed: actionSpeed};
+                    }
+
+                    return {action};
+                },
+            },
+        ];
+
+        const exposes: Expose[] = [
+            e.action(['short_press', 'double_press', 'hold', 'hold_released', 'clockwise_rotation', 'anti_clockwise_rotation']),
+        ];
+
+        const configure: [Configure] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.bind(cluster, coordinatorEndpoint);
+            },
+        ];
+
+        return {
+            fromZigbee,
+            exposes,
+            configure,
+            isModernExtend: true,
+        };
+    },
+
+    SRZG2836D5Pro: (): ModernExtend => {
+        const cluster = 0xff03;
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 0xff03,
+                type: ['raw'],
+                convert: (model, msg, publish, options, meta) => {
+                    const bytes = [...msg.data];
+                    const messageType = bytes[3];
+                    let action = 'unknown';
+
+                    if (messageType === 0x01) {
+                        const pressTypeMask: number = bytes[6];
+                        const pressTypeLookup: {[key: number]: string} = {
+                            0x01: 'short_press',
+                            0x02: 'double_press',
+                            0x03: 'hold',
+                            0x04: 'hold_released',
+                        };
+                        action = pressTypeLookup[pressTypeMask] || 'unknown';
+
+                        const buttonMask = bytes[5];
+                        const specialButtonLookup: {[key: number]: string} = {
+                            0x01: 'top_left',
+                            0x02: 'top_right',
+                            0x03: 'bottom_left',
+                            0x04: 'bottom_right',
+                            0x05: 'center',
+                        };
+
+                        const actionButtons: string[] = [];
+                        for (let i = 0; i < 5; i++) {
+                            if ((buttonMask >> i) & 1) {
+                                const button = i + 1;
+                                actionButtons.push(specialButtonLookup[button] || `unknown_${button}`);
+                            }
+                        }
+                        return {action, action_buttons: actionButtons};
+                    } else if (messageType === 0x03) {
+                        const directionMask = bytes[4];
+                        const actionSpeed = bytes[6];
+                        const isStop = bytes[5] === 0x02;
+
+                        const directionMap: {[key: number]: string} = {
+                            0x01: 'clockwise',
+                            0x02: 'anti_clockwise',
+                        };
+                        const direction = isStop ? 'stop' : directionMap[directionMask] || 'unknown';
+
+                        action = `${direction}_rotation`;
+                        return {action, action_speed: actionSpeed};
+                    }
+
+                    return {action};
+                },
+            },
+        ];
+
+        const exposes: Expose[] = [
+            e.action(['short_press', 'double_press', 'hold', 'hold_released', 'clockwise_rotation', 'anti_clockwise_rotation', 'stop_rotation']),
+        ];
+
+        const configure: [Configure] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.bind(cluster, coordinatorEndpoint);
+            },
+        ];
+
+        return {
+            fromZigbee,
+            exposes,
+            configure,
+            isModernExtend: true,
+        };
+    },
+
+    SRZG9002K16Pro: (): ModernExtend => {
+        const cluster = 0xff03;
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster,
+                type: ['raw'],
+                convert: (model, msg, publish, options, meta) => {
+                    const bytes = [...msg.data];
+                    const messageType = bytes[3];
+                    let action = 'unknown';
+
+                    if (messageType === 0x01) {
+                        const pressTypeMask: number = bytes[6];
+                        const pressTypeLookup: {[key: number]: string} = {
+                            0x01: 'short_press',
+                            0x02: 'double_press',
+                            0x03: 'hold',
+                            0x04: 'hold_released',
+                        };
+                        action = pressTypeLookup[pressTypeMask] || 'unknown';
+
+                        const buttonMask = (bytes[4] << 8) | bytes[5];
+                        const getButtonNumber = (input: number) => {
+                            const row = Math.floor((input - 1) / 4);
+                            const col = (input - 1) % 4;
+                            return col * 4 + row + 1;
+                        };
+
+                        const actionButtons: string[] = [];
+                        for (let i = 0; i < 16; i++) {
+                            if ((buttonMask >> i) & 1) {
+                                const button = i + 1;
+                                actionButtons.push(`k${getButtonNumber(button)}`);
+                            }
+                        }
+                        return {action, action_buttons: actionButtons};
+                    }
+                    return {action};
+                },
+            },
+        ];
+
+        const exposes: Expose[] = [e.action(['short_press', 'double_press', 'hold', 'hold_released'])];
+
+        const configure: [Configure] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.bind(cluster, coordinatorEndpoint);
+            },
+        ];
+
+        return {
+            fromZigbee,
+            exposes,
+            configure,
+            isModernExtend: true,
+        };
+    },
+
+    indicatorLight(): ModernExtend {
+        const cluster = 0xfc8b;
+        const attribute = 0xf001;
+        const data_type = 0x20;
+        const manufacturerCode = 0x120b;
+
+        const exposes: Expose[] = [
+            e.enum('indicator_light', ea.ALL, ['on', 'off']).withDescription('Enable/disable the LED indicator').withCategory('config'),
+        ];
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster,
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!Object.prototype.hasOwnProperty.call(msg.data, attribute)) return;
+                    const indicatorLight = msg.data[attribute];
+                    const firstBit = indicatorLight & 0x01;
+                    return {indicator_light: firstBit === 1 ? 'on' : 'off'};
+                },
+            } satisfies Fz.Converter,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['indicator_light'],
+                convertSet: async (entity, key, value, meta) => {
+                    const attributeRead = await entity.read(cluster, [attribute]);
+                    if (attributeRead === undefined) return;
+
+                    // @ts-expect-error ignore
+                    const currentValue = attributeRead[attribute];
+                    const newValue = value === 'on' ? currentValue | 0x01 : currentValue & ~0x01;
+
+                    await entity.write(cluster, {[attribute]: {value: newValue, type: data_type}}, {manufacturerCode});
+
+                    return {state: {indicator_light: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read(cluster, [attribute], {manufacturerCode});
+                },
+            },
+        ];
+
+        const configure: [Configure] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.bind(cluster, coordinatorEndpoint);
+                await endpoint.read(cluster, [attribute], {manufacturerCode});
+            },
+        ];
+
+        return {
+            exposes,
+            configure,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+
+    thermostatWeeklySchedule: (): ModernExtend => {
+        const exposes = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].map((day) =>
+            e
+                .text(`schedule_${day}`, ea.ALL)
+                .withDescription(`Schedule for ${day.charAt(0).toUpperCase() + day.slice(1)}, example: "06:00/21.0 12:00/21.0 18:00/21.0 22:00/16.0"`)
+                .withCategory('config'),
+        );
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'hvacThermostat',
+                type: ['commandGetWeeklyScheduleRsp'],
+                convert: (model, msg, publish, options, meta) => {
+                    const day = Object.entries(constants.thermostatDayOfWeek).find((d) => msg.data.dayofweek & (1 << +d[0]))[1];
+
+                    const transitions = msg.data.transitions
+                        .map((t: {heatSetpoint: number; transitionTime: number}) => {
+                            const hours = Math.floor(t.transitionTime / 60);
+                            const minutes = t.transitionTime % 60;
+                            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}/${t.heatSetpoint / 100}`;
+                        })
+                        .sort()
+                        .join(' ');
+
                     return {
-                        external_switch_type: value_map[value] || 'unknown',
-                        external_switch_type_numeric: value,
+                        ...(meta.state.weekly_schedule as Record<string, string>[]),
+                        [`schedule_${day}`]: transitions,
                     };
-                }
-                return undefined;
+                },
             },
-        } satisfies Fz.Converter,
-    ];
+        ];
 
-    const toZigbee: Tz.Converter[] = [
-        {
-            key: ['external_switch_type'],
-            convertSet: async (entity, key, value: string, meta) => {
-                const numericValue = value_lookup[value] ?? parseInt(value, 10);
-                await entity.write('genBasic', {[attribute]: {value: numericValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
-                return {state: {external_switch_type: value}};
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [
+                    'schedule_sunday',
+                    'schedule_monday',
+                    'schedule_tuesday',
+                    'schedule_wednesday',
+                    'schedule_thursday',
+                    'schedule_friday',
+                    'schedule_saturday',
+                ],
+                convertSet: async (entity, key, value, meta) => {
+                    const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.\d+)?)$/;
+                    const dayOfWeekName = key.replace('schedule_', '');
+                    utils.assertString(value, dayOfWeekName);
+
+                    const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName.toLowerCase(), null);
+                    if (!dayKey) throw new Error(`Invalid schedule: invalid day name, found: ${dayOfWeekName}`);
+
+                    const transitions = value.split(' ').sort();
+                    if (transitions.length !== 4) {
+                        throw new Error('Invalid schedule: days must have exactly 4 transitions');
+                    }
+
+                    const payload = {
+                        dayofweek: 1 << Number(dayKey),
+                        numoftrans: transitions.length,
+                        mode: 1 << 0,
+                        transitions: transitions.map((transition) => {
+                            const matches = transition.match(transitionRegex);
+                            if (!matches) {
+                                throw new Error(
+                                    `Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
+                                );
+                            }
+
+                            const [, hours, minutes, temp] = matches;
+                            const temperature = parseFloat(temp);
+                            if (temperature < 4 || temperature > 35) {
+                                throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temperature}`);
+                            }
+
+                            return {
+                                transitionTime: parseInt(hours) * 60 + parseInt(minutes),
+                                heatSetpoint: Math.round(temperature * 100),
+                            };
+                        }),
+                    };
+
+                    await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
+                },
+                convertGet: async (entity, key, meta) => {
+                    const dayOfWeekName = key.replace('schedule_', '');
+                    const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName.toLowerCase(), null);
+                    await entity.command(
+                        'hvacThermostat',
+                        'getWeeklySchedule',
+                        {
+                            daystoreturn: dayKey !== null ? 1 << Number(dayKey) : 0xff,
+                            modetoreturn: 1,
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                },
             },
-            convertGet: async (entity, key, meta) => {
-                await entity.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.command('hvacThermostat', 'getWeeklySchedule', {
+                    daystoreturn: 0xff,
+                    modetoreturn: 1,
+                });
             },
-        } satisfies Tz.Converter,
-    ];
+        ];
 
-    const exposes: Expose[] = [
-        e.enum('external_switch_type', ea.ALL, ['push_button', 'normal_on_off', 'three_way']).withLabel('External switch type'),
-    ];
+        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
 
-    const configure: [Configure] = [
-        async (device, coordinatorEndpoint, definition) => {
-            const endpoint = device.getEndpoint(1);
-            try {
-                await endpoint.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
-            } catch (error) {
-                console.warn(`Failed to read external switch type attribute: ${error}`);
-            }
-        },
-    ];
+    thermostatChildLock: (): ModernExtend => {
+        const exposes = [e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device')];
 
-    return {
-        fromZigbee,
-        toZigbee,
-        exposes,
-        configure,
-        isModernExtend: true,
-    };
-}
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'hvacUserInterfaceCfg',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (Object.hasOwn(msg.data, 'keypadLockout')) {
+                        return {child_lock: msg.data.keypadLockout === 0 ? 'UNLOCK' : 'LOCK'};
+                    }
+                    return {};
+                },
+            },
+        ];
 
-function sunricherMinimumPWM(): ModernExtend {
-    const attribute = 0x7809;
-    const data_type = 0x20;
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['child_lock'],
+                convertSet: async (entity, key, value, meta) => {
+                    const keypadLockout = Number(value === 'LOCK');
+                    await entity.write('hvacUserInterfaceCfg', {keypadLockout});
+                    return {state: {child_lock: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read('hvacUserInterfaceCfg', ['keypadLockout']);
+                },
+            },
+        ];
 
-    const fromZigbee: Fz.Converter[] = [
-        {
-            cluster: 'genBasic',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
-                    console.log(`from `, msg.data[attribute]);
-                    const value = Math.round(msg.data[attribute] / 5.1);
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['hvacUserInterfaceCfg']);
+                await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
+                await reporting.thermostatKeypadLockMode(endpoint);
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
+
+    thermostatPreset: (): ModernExtend => {
+        const systemModeLookup = {
+            0: 'off',
+            1: 'auto',
+            3: 'cool',
+            4: 'manual',
+            5: 'emergency_heating',
+            6: 'precooling',
+            7: 'fan_only',
+            8: 'dry',
+            9: 'sleep',
+        };
+
+        const awayOrBoostModeLookup = {0: 'normal', 1: 'away', 2: 'forced'};
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'hvacThermostat',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!Object.hasOwn(msg.data, 'systemMode') && !Object.hasOwn(msg.data, 'awayOrBoostMode')) return;
+
+                    const systemMode = msg.data.systemMode ?? globalStore.getValue(msg.device, 'systemMode');
+                    const awayOrBoostMode = msg.data.awayOrBoostMode ?? globalStore.getValue(msg.device, 'awayOrBoostMode');
+
+                    globalStore.putValue(msg.device, 'systemMode', systemMode);
+                    globalStore.putValue(msg.device, 'awayOrBoostMode', awayOrBoostMode);
+
+                    const result: KeyValueAny = {};
+
+                    if (awayOrBoostMode !== undefined && awayOrBoostMode !== 0) {
+                        result.preset = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
+                        result.away_or_boost_mode = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
+                        if (systemMode !== undefined) {
+                            result.system_mode = constants.thermostatSystemModes[systemMode];
+                        }
+                    } else if (systemMode !== undefined) {
+                        result.preset = utils.getFromLookup(systemMode, systemModeLookup);
+                        result.system_mode = constants.thermostatSystemModes[systemMode];
+                        if (awayOrBoostMode !== undefined) {
+                            result.away_or_boost_mode = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
+                        }
+                    }
+
+                    return result;
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['preset'],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === 'away' || value === 'forced') {
+                        const awayOrBoostMode = value === 'away' ? 1 : 2;
+                        globalStore.putValue(entity, 'awayOrBoostMode', awayOrBoostMode);
+                        if (value === 'away') {
+                            await entity.read('hvacThermostat', ['unoccupiedHeatingSetpoint']);
+                        }
+                        await entity.write('hvacThermostat', {awayOrBoostMode});
+                        return {state: {preset: value, away_or_boost_mode: value}};
+                    } else {
+                        globalStore.putValue(entity, 'awayOrBoostMode', 0);
+                        const systemMode = utils.getKey(systemModeLookup, value, undefined, Number);
+                        await entity.write('hvacThermostat', {systemMode});
+
+                        if (typeof systemMode === 'number') {
+                            return {
+                                state: {
+                                    // @ts-expect-error ignore
+                                    preset: systemModeLookup[systemMode],
+                                    system_mode: constants.thermostatSystemModes[systemMode],
+                                },
+                            };
+                        }
+                    }
+                },
+            },
+            {
+                key: ['system_mode'],
+                convertSet: async (entity, key, value, meta) => {
+                    const systemMode = utils.getKey(constants.thermostatSystemModes, value, undefined, Number);
+                    if (systemMode === undefined || typeof systemMode !== 'number') {
+                        throw new Error(`Invalid system mode: ${value}`);
+                    }
+                    await entity.write('hvacThermostat', {systemMode});
                     return {
-                        minimum_pwm: value,
+                        state: {
+                            // @ts-expect-error ignore
+                            preset: systemModeLookup[systemMode],
+                            system_mode: constants.thermostatSystemModes[systemMode],
+                        },
                     };
-                }
-                return undefined;
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read('hvacThermostat', ['systemMode']);
+                },
             },
-        },
-    ];
+        ];
 
-    const toZigbee: Tz.Converter[] = [
-        {
-            key: ['minimum_pwm'],
-            convertSet: async (entity: Zh.Endpoint, key: string, value: number | string, meta) => {
-                console.log(`to `, value);
-                const numValue = typeof value === 'string' ? parseInt(value) : value;
-                const zgValue = Math.round(numValue * 5.1);
-                await entity.write('genBasic', {[attribute]: {value: zgValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
-                return {state: {minimum_pwm: numValue}};
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.read('hvacThermostat', ['systemMode']);
+                await endpoint.read('hvacThermostat', ['awayOrBoostMode']);
+
+                await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
+                await reporting.thermostatSystemMode(endpoint);
+                await endpoint.configureReporting('hvacThermostat', payload('awayOrBoostMode', 10, repInterval.HOUR, null));
             },
-            convertGet: async (entity: Zh.Endpoint, key: string, meta) => {
-                await entity.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
-            },
-        },
-    ];
+        ];
 
-    const exposes: Expose[] = [
-        e
-            .numeric('minimum_pwm', ea.ALL)
-            .withLabel('Minimum PWM')
-            .withDescription('Power off the device and wait for 3 seconds before reconnecting to apply the settings.')
-            .withValueMin(0)
-            .withValueMax(50)
-            .withUnit('%')
-            .withValueStep(1),
-    ];
+        return {fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
 
-    const configure: [Configure] = [
-        async (device, coordinatorEndpoint, definition) => {
-            const endpoint = device.getEndpoint(1);
-            try {
-                await endpoint.read('genBasic', [attribute], {manufacturerCode: sunricherManufacturerCode});
-            } catch (error) {
-                console.warn(`Failed to read external switch type attribute: ${error}`);
-            }
-        },
-    ];
-
-    return {
-        fromZigbee,
-        toZigbee,
-        exposes,
-        configure,
-        isModernExtend: true,
-    };
-}
-
-function sunricherSRZG9002KR12Pro(): ModernExtend {
-    const cluster = 0xff03;
-
-    const fromZigbee: Fz.Converter[] = [
-        {
-            cluster: 0xff03,
-            type: ['raw'],
-            convert: (model, msg, publish, options, meta) => {
-                const bytes = [...msg.data];
-                const messageType = bytes[3];
-                let action = 'unknown';
-
-                if (messageType === 0x01) {
-                    const pressTypeMask: number = bytes[6];
-                    const pressTypeLookup: {[key: number]: string} = {
-                        0x01: 'short_press',
-                        0x02: 'double_press',
-                        0x03: 'hold',
-                        0x04: 'hold_released',
-                    };
-                    action = pressTypeLookup[pressTypeMask] || 'unknown';
-
-                    const buttonMask = (bytes[4] << 8) | bytes[5];
-                    const specialButtonMap: {[key: number]: string} = {
-                        9: 'knob',
-                        11: 'k9',
-                        12: 'k10',
-                        15: 'k11',
-                        16: 'k12',
-                    };
-
-                    const actionButtons: string[] = [];
-                    for (let i = 0; i < 16; i++) {
-                        if ((buttonMask >> i) & 1) {
-                            const button = i + 1;
-                            actionButtons.push(specialButtonMap[button] ?? `k${button}`);
-                        }
-                    }
-                    return {action, action_buttons: actionButtons};
-                } else if (messageType === 0x03) {
-                    const directionMask = bytes[4];
-                    const actionSpeed = bytes[6];
-
-                    const directionMap: {[key: number]: string} = {
-                        0x01: 'clockwise',
-                        0x02: 'anti_clockwise',
-                    };
-                    const direction = directionMap[directionMask] || 'unknown';
-
-                    action = `${direction}_rotation`;
-                    return {action, action_speed: actionSpeed};
-                }
-
-                return {action};
-            },
-        },
-    ];
-
-    const exposes: Expose[] = [e.action(['short_press', 'double_press', 'hold', 'hold_released', 'clockwise_rotation', 'anti_clockwise_rotation'])];
-
-    const configure: [Configure] = [
-        async (device, coordinatorEndpoint, definition) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.bind(cluster, coordinatorEndpoint);
-        },
-    ];
-
-    return {
-        fromZigbee,
-        exposes,
-        configure,
-        isModernExtend: true,
-    };
-}
-
-function sunricherSRZG2836D5Pro(): ModernExtend {
-    const cluster = 0xff03;
-
-    const fromZigbee: Fz.Converter[] = [
-        {
-            cluster: 0xff03,
-            type: ['raw'],
-            convert: (model, msg, publish, options, meta) => {
-                const bytes = [...msg.data];
-                const messageType = bytes[3];
-                let action = 'unknown';
-
-                if (messageType === 0x01) {
-                    const pressTypeMask: number = bytes[6];
-                    const pressTypeLookup: {[key: number]: string} = {
-                        0x01: 'short_press',
-                        0x02: 'double_press',
-                        0x03: 'hold',
-                        0x04: 'hold_released',
-                    };
-                    action = pressTypeLookup[pressTypeMask] || 'unknown';
-
-                    const buttonMask = bytes[5];
-                    const specialButtonLookup: {[key: number]: string} = {
-                        0x01: 'top_left',
-                        0x02: 'top_right',
-                        0x03: 'bottom_left',
-                        0x04: 'bottom_right',
-                        0x05: 'center',
-                    };
-
-                    const actionButtons: string[] = [];
-                    for (let i = 0; i < 5; i++) {
-                        if ((buttonMask >> i) & 1) {
-                            const button = i + 1;
-                            actionButtons.push(specialButtonLookup[button] || `unknown_${button}`);
-                        }
-                    }
-                    return {action, action_buttons: actionButtons};
-                } else if (messageType === 0x03) {
-                    const directionMask = bytes[4];
-                    const actionSpeed = bytes[6];
-                    const isStop = bytes[5] === 0x02;
-
-                    const directionMap: {[key: number]: string} = {
-                        0x01: 'clockwise',
-                        0x02: 'anti_clockwise',
-                    };
-                    const direction = isStop ? 'stop' : directionMap[directionMask] || 'unknown';
-
-                    action = `${direction}_rotation`;
-                    return {action, action_speed: actionSpeed};
-                }
-
-                return {action};
-            },
-        },
-    ];
-
-    const exposes: Expose[] = [
-        e.action(['short_press', 'double_press', 'hold', 'hold_released', 'clockwise_rotation', 'anti_clockwise_rotation', 'stop_rotation']),
-    ];
-
-    const configure: [Configure] = [
-        async (device, coordinatorEndpoint, definition) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.bind(cluster, coordinatorEndpoint);
-        },
-    ];
-
-    return {
-        fromZigbee,
-        exposes,
-        configure,
-        isModernExtend: true,
-    };
-}
-
-function sunricherSRZG9002K16Pro(): ModernExtend {
-    const cluster = 0xff03;
-
-    const fromZigbee: Fz.Converter[] = [
-        {
-            cluster,
-            type: ['raw'],
-            convert: (model, msg, publish, options, meta) => {
-                const bytes = [...msg.data];
-                const messageType = bytes[3];
-                let action = 'unknown';
-
-                if (messageType === 0x01) {
-                    const pressTypeMask: number = bytes[6];
-                    const pressTypeLookup: {[key: number]: string} = {
-                        0x01: 'short_press',
-                        0x02: 'double_press',
-                        0x03: 'hold',
-                        0x04: 'hold_released',
-                    };
-                    action = pressTypeLookup[pressTypeMask] || 'unknown';
-
-                    const buttonMask = (bytes[4] << 8) | bytes[5];
-                    const getButtonNumber = (input: number) => {
-                        const row = Math.floor((input - 1) / 4);
-                        const col = (input - 1) % 4;
-                        return col * 4 + row + 1;
-                    };
-
-                    const actionButtons: string[] = [];
-                    for (let i = 0; i < 16; i++) {
-                        if ((buttonMask >> i) & 1) {
-                            const button = i + 1;
-                            actionButtons.push(`k${getButtonNumber(button)}`);
-                        }
-                    }
-                    return {action, action_buttons: actionButtons};
-                }
-                return {action};
-            },
-        },
-    ];
-
-    const exposes: Expose[] = [e.action(['short_press', 'double_press', 'hold', 'hold_released'])];
-
-    const configure: [Configure] = [
-        async (device, coordinatorEndpoint, definition) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.bind(cluster, coordinatorEndpoint);
-        },
-    ];
-
-    return {
-        fromZigbee,
-        exposes,
-        configure,
-        isModernExtend: true,
-    };
-}
-
-function sunricherIndicatorLight(): ModernExtend {
-    const cluster = 0xfc8b;
-    const attribute = 0xf001;
-    const data_type = 0x20;
-    const manufacturerCode = 0x120b;
-
-    const exposes: Expose[] = [
-        e.enum('indicator_light', ea.ALL, ['on', 'off']).withDescription('Enable/disable the LED indicator').withCategory('config'),
-    ];
-
-    const fromZigbee: Fz.Converter[] = [
-        {
-            cluster,
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                if (!Object.prototype.hasOwnProperty.call(msg.data, attribute)) return;
-                const indicatorLight = msg.data[attribute];
-                const firstBit = indicatorLight & 0x01;
-                return {indicator_light: firstBit === 1 ? 'on' : 'off'};
-            },
-        } satisfies Fz.Converter,
-    ];
-
-    const toZigbee: Tz.Converter[] = [
-        {
-            key: ['indicator_light'],
-            convertSet: async (entity, key, value, meta) => {
-                const attributeRead = await entity.read(cluster, [attribute]);
-                if (attributeRead === undefined) return;
-
+    thermostatCurrentHeatingSetpoint: (): ModernExtend => {
+        const getAwayOrBoostMode = async (entity: Endpoint | Group) => {
+            let result = globalStore.getValue(entity, 'awayOrBoostMode');
+            if (result === undefined) {
+                const attributeRead = await entity.read('hvacThermostat', ['awayOrBoostMode']);
                 // @ts-expect-error ignore
-                const currentValue = attributeRead[attribute];
-                const newValue = value === 'on' ? currentValue | 0x01 : currentValue & ~0x01;
+                result = attributeRead['awayOrBoostMode'];
+                globalStore.putValue(entity, 'awayOrBoostMode', result);
+            }
+            return result;
+        };
 
-                await entity.write(cluster, {[attribute]: {value: newValue, type: data_type}}, {manufacturerCode});
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'hvacThermostat',
+                type: ['attributeReport', 'readResponse'],
+                convert: async (model, msg, publish, options, meta) => {
+                    const hasHeatingSetpoints =
+                        Object.hasOwn(msg.data, 'occupiedHeatingSetpoint') || Object.hasOwn(msg.data, 'unoccupiedHeatingSetpoint');
+                    if (!hasHeatingSetpoints) return;
 
-                return {state: {indicator_light: value}};
+                    const processSetpoint = (value: number | undefined) => {
+                        if (value === undefined) return undefined;
+                        return precisionRound(value, 2) / 100;
+                    };
+
+                    const occupiedSetpoint = processSetpoint(msg.data.occupiedHeatingSetpoint);
+                    const unoccupiedSetpoint = processSetpoint(msg.data.unoccupiedHeatingSetpoint);
+
+                    const awayOrBoostMode = msg.data.awayOrBoostMode ?? (await getAwayOrBoostMode(msg.device.getEndpoint(1)));
+
+                    const result: KeyValueAny = {};
+
+                    if (awayOrBoostMode === 1 && unoccupiedSetpoint !== undefined) {
+                        result.current_heating_setpoint = unoccupiedSetpoint;
+                    } else if (occupiedSetpoint !== undefined) {
+                        result.current_heating_setpoint = occupiedSetpoint;
+                    }
+
+                    return result;
+                },
             },
-            convertGet: async (entity, key, meta) => {
-                await entity.read(cluster, [attribute], {manufacturerCode});
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ['current_heating_setpoint'],
+                convertSet: async (entity, key, value: number, meta) => {
+                    utils.assertNumber(value, key);
+                    const awayOrBoostMode = await getAwayOrBoostMode(entity);
+
+                    let convertedValue: number;
+                    if (meta.options.thermostat_unit === 'fahrenheit') {
+                        convertedValue = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
+                    } else {
+                        convertedValue = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
+                    }
+
+                    const attribute = awayOrBoostMode === 1 ? 'unoccupiedHeatingSetpoint' : 'occupiedHeatingSetpoint';
+                    await entity.write('hvacThermostat', {[attribute]: convertedValue});
+                    return {state: {current_heating_setpoint: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read('hvacThermostat', ['occupiedHeatingSetpoint', 'unoccupiedHeatingSetpoint']);
+                },
             },
-        },
-    ];
+        ];
 
-    const configure: [Configure] = [
-        async (device, coordinatorEndpoint, definition) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.bind(cluster, coordinatorEndpoint);
-            await endpoint.read(cluster, [attribute], {manufacturerCode});
-        },
-    ];
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.read('hvacThermostat', ['occupiedHeatingSetpoint', 'unoccupiedHeatingSetpoint']);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
+                await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+                await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+            },
+        ];
 
-    return {
-        exposes,
-        configure,
-        fromZigbee,
-        toZigbee,
-        isModernExtend: true,
-    };
-}
+        return {fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
+};
 
 const fzLocal = {
     sunricher_SRZGP2801K45C: {
@@ -467,7 +829,278 @@ async function syncTime(endpoint: Zh.Endpoint) {
     }
 }
 
+async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
+    try {
+        const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
+        const timeZone = new Date().getTimezoneOffset() * -1 * 60;
+        await endpoint.write('genTime', {time, timeZone});
+    } catch {
+        logger.error('Failed to sync time with time zone', NS);
+    }
+}
+
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['ZG9340'],
+        model: 'SR-ZG9093TRV',
+        vendor: 'Sunricher',
+        description: 'Zigbee thermostatic radiator valve',
+        extend: [
+            m.deviceAddCustomCluster('hvacThermostat', {
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    screenTimeout: {
+                        ID: 0x100d,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    antiFreezingTemp: {
+                        ID: 0x1005,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    temperatureDisplayMode: {
+                        ID: 0x1008,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    windowOpenCheck: {
+                        ID: 0x1009,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    hysteresis: {
+                        ID: 0x100a,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    windowOpenFlag: {
+                        ID: 0x100b,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    forcedHeatingTime: {
+                        ID: 0x100e,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    errorCode: {
+                        ID: 0x2003,
+                        type: Zcl.DataType.BITMAP8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                    awayOrBoostMode: {
+                        ID: 0x2002,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: sunricherManufacturerCode,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            sunricherExtend.thermostatPreset(),
+            sunricherExtend.thermostatCurrentHeatingSetpoint(),
+            m.battery(),
+            m.identify(),
+            m.numeric({
+                name: 'screen_timeout',
+                cluster: 'hvacThermostat',
+                attribute: 'screenTimeout',
+                valueMin: 10,
+                valueMax: 30,
+                unit: 's',
+                description: 'Screen Timeout for Inactivity (excluding gateway config). Range: 10-30s, Default: 10s',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.numeric({
+                name: 'anti_freezing_temp',
+                cluster: 'hvacThermostat',
+                attribute: 'antiFreezingTemp',
+                valueMin: 0,
+                valueMax: 10,
+                unit: '°C',
+                description: 'Anti Freezing(Low Temp) Mode Configuration. 0: disabled, 5~10: temperature (5°C by default)',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.enumLookup({
+                name: 'temperature_display_mode',
+                cluster: 'hvacThermostat',
+                attribute: 'temperatureDisplayMode',
+                lookup: {
+                    set_temp: 1,
+                    room_temp: 2,
+                },
+                description: 'Temperature Display Mode. 1: displays set temp, 2: displays room temp (default)',
+                access: 'ALL',
+            }),
+            m.numeric({
+                name: 'window_open_check',
+                cluster: 'hvacThermostat',
+                attribute: 'windowOpenCheck',
+                valueMin: 0,
+                valueMax: 10,
+                unit: '°C',
+                description: 'The temperature threshold for Window Open Detect, value range 0~10, unit is 1°C, 0 means disabled, default value is 5',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.numeric({
+                name: 'hysteresis',
+                cluster: 'hvacThermostat',
+                attribute: 'hysteresis',
+                valueMin: 5,
+                valueMax: 20,
+                valueStep: 0.1,
+                unit: '°C',
+                description:
+                    'Control hysteresis setting, range is 5-20, unit is 0.1°C, default value is 10. Because the sensor accuracy is 0.5°C, it is recommended not to set this value below 1°C to avoid affecting the battery life.',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.binary({
+                name: 'window_open_flag',
+                cluster: 'hvacThermostat',
+                attribute: 'windowOpenFlag',
+                description: 'Window open flag',
+                valueOn: ['opened', 1],
+                valueOff: ['not_opened', 0],
+                access: 'STATE_GET',
+            }),
+            m.numeric({
+                name: 'forced_heating_time',
+                cluster: 'hvacThermostat',
+                attribute: 'forcedHeatingTime',
+                valueMin: 10,
+                valueMax: 90,
+                unit: '10s',
+                description: 'Forced heating time, range 10~90, unit is 10s, default value is 30(300s)',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            m.enumLookup({
+                name: 'error_code',
+                cluster: 'hvacThermostat',
+                attribute: 'errorCode',
+                lookup: {
+                    no_error: 0,
+                    motor_error: 4,
+                    motor_timeout: 5,
+                },
+                description:
+                    'Error code: 0=No hardware error, 4=Motor error (detected not running), 5=The motor runs exceeding the self-check time without finding the boundary',
+                access: 'STATE_GET',
+            }),
+            m.enumLookup({
+                name: 'temperature_display_unit',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: {ID: 0x0000, type: 0x30},
+                lookup: {
+                    celsius: 0x00,
+                    fahrenheit: 0x01,
+                },
+                description: 'The temperature unit shown on the display',
+                access: 'ALL',
+                entityCategory: 'config',
+            }),
+            sunricherExtend.thermostatWeeklySchedule(),
+            sunricherExtend.thermostatChildLock(),
+        ],
+        fromZigbee: [fz.thermostat],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_running_state,
+            tz.thermostat_temperature_display_mode,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE_GET)
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.1, ea.ALL)
+                .withLocalTemperatureCalibration(-30, 30, 0.5, ea.ALL)
+                .withPreset(
+                    ['off', 'auto', 'away', 'sleep', 'manual', 'forced'],
+                    'Preset of the thermostat. Manual: comfort temp (20°C), Auto: schedule temp (see schedule), ' +
+                        'Away: eco temp (6°C), Sleep: night temp (17°C), Forced: temporary heating with configurable duration (default 300s)',
+                )
+                .withSystemMode(['off', 'auto', 'heat', 'sleep'], ea.ALL)
+                .withRunningState(['idle', 'heat']),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg', 'genTime'];
+
+            const maxRetries = 3;
+            let retryCount = 0;
+            let bindSuccess = false;
+
+            while (retryCount < maxRetries) {
+                try {
+                    if (!bindSuccess) {
+                        await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+                        bindSuccess = true;
+                    }
+
+                    const configPromises = [
+                        reporting.thermostatTemperature(endpoint),
+                        reporting.thermostatOccupiedHeatingSetpoint(endpoint),
+                        reporting.thermostatUnoccupiedHeatingSetpoint(endpoint),
+                        reporting.thermostatRunningState(endpoint),
+                        reporting.batteryPercentageRemaining(endpoint),
+                        endpoint.configureReporting('hvacUserInterfaceCfg', payload('tempDisplayMode', 10, repInterval.MINUTE, null)),
+                    ];
+
+                    await Promise.all(configPromises);
+
+                    const customAttributes = [
+                        'screenTimeout',
+                        'antiFreezingTemp',
+                        'temperatureDisplayMode',
+                        'windowOpenCheck',
+                        'hysteresis',
+                        'windowOpenFlag',
+                        'forcedHeatingTime',
+                    ];
+
+                    await Promise.all(
+                        customAttributes.map((attr) => endpoint.configureReporting('hvacThermostat', payload(attr, 10, repInterval.MINUTE, null))),
+                    );
+
+                    const readPromises = [
+                        endpoint.read('hvacUserInterfaceCfg', ['tempDisplayMode']),
+                        endpoint.read('hvacThermostat', ['localTemp', 'runningState']),
+                        endpoint.read('hvacThermostat', [
+                            'screenTimeout',
+                            'antiFreezingTemp',
+                            'temperatureDisplayMode',
+                            'windowOpenCheck',
+                            'hysteresis',
+                            'windowOpenFlag',
+                            'forcedHeatingTime',
+                            'errorCode',
+                        ]),
+                    ];
+
+                    await Promise.all(readPromises);
+                    await syncTimeWithTimeZone(endpoint);
+
+                    break;
+                } catch (e) {
+                    retryCount++;
+                    logger.warning(`Configure attempt ${retryCount} failed: ${e}`, NS);
+
+                    if (retryCount === maxRetries) {
+                        logger.error(`Failed to configure device after ${maxRetries} attempts`, NS);
+                        throw e;
+                    }
+
+                    await new Promise((resolve) => setTimeout(resolve, 2000 * retryCount));
+                }
+            }
+        },
+    },
     {
         zigbeeModel: ['HK-SENSOR-SMO'],
         model: 'SR-ZG9070A-SS',
@@ -495,7 +1128,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            sunricherIndicatorLight(),
+            sunricherExtend.indicatorLight(),
             m.numeric({
                 name: 'detection_area',
                 cluster: 'sunricherSensor',
@@ -564,7 +1197,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG2835RAC-UK',
         vendor: 'Sunricher',
         description: 'Push compatible zigBee knob smart dimmer',
-        extend: [m.light(), m.electricityMeter(), sunricherExternalSwitchType()],
+        extend: [m.light(), m.electricityMeter(), sunricherExtend.externalSwitchType()],
     },
     {
         zigbeeModel: ['ZG2837RAC-K4'],
@@ -640,7 +1273,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG9002K16-Pro',
         vendor: 'Sunricher',
         description: 'Zigbee smart wall panel remote',
-        extend: [m.battery(), sunricherSRZG9002K16Pro()],
+        extend: [m.battery(), sunricherExtend.SRZG9002K16Pro()],
     },
     {
         zigbeeModel: ['ZG9030A-MW'],
@@ -853,14 +1486,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG2836D5-Pro',
         vendor: 'Sunricher',
         description: 'Zigbee smart remote',
-        extend: [m.battery(), sunricherSRZG2836D5Pro()],
+        extend: [m.battery(), sunricherExtend.SRZG2836D5Pro()],
     },
     {
         zigbeeModel: ['HK-ZRC-K12&RS-E'],
         model: 'SR-ZG9002KR12-Pro',
         vendor: 'Sunricher',
         description: 'Zigbee smart wall panel remote',
-        extend: [m.battery(), sunricherSRZG9002KR12Pro()],
+        extend: [m.battery(), sunricherExtend.SRZG9002KR12Pro()],
     },
     {
         zigbeeModel: ['ZV9380A', 'ZG9380A'],
@@ -874,14 +1507,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG2835PAC-AU',
         vendor: 'Sunricher',
         description: 'Zigbee push button smart dimmer',
-        extend: [m.light({configureReporting: true}), sunricherExternalSwitchType(), m.electricityMeter()],
+        extend: [m.light({configureReporting: true}), sunricherExtend.externalSwitchType(), m.electricityMeter()],
     },
     {
         zigbeeModel: ['HK-SL-DIM-CLN'],
         model: 'SR-ZG9101SAC-HP-CLN',
         vendor: 'Sunricher',
         description: 'Zigbee micro smart dimmer',
-        extend: [m.light({configureReporting: true}), sunricherExternalSwitchType(), sunricherMinimumPWM()],
+        extend: [m.light({configureReporting: true}), sunricherExtend.externalSwitchType(), sunricherExtend.minimumPWM()],
     },
     {
         zigbeeModel: ['HK-SENSOR-CT-MINI'],
@@ -1144,7 +1777,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch',
-        extend: [m.onOff({powerOnBehavior: false}), sunricherExternalSwitchType()],
+        extend: [m.onOff({powerOnBehavior: false}), sunricherExtend.externalSwitchType()],
     },
     {
         zigbeeModel: ['Micro Smart Dimmer', 'SM311', 'HK-SL-RDIM-A', 'HK-SL-DIM-EU-A'],
@@ -1178,7 +1811,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: 'SR-ZG9040A/ZG9041A-D',
         vendor: 'Sunricher',
         description: 'Zigbee micro smart dimmer',
-        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricherExternalSwitchType(), sunricherMinimumPWM()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricherExtend.externalSwitchType(), sunricherExtend.minimumPWM()],
     },
     {
         zigbeeModel: ['HK-ZD-DIM-A'],
