@@ -7412,7 +7412,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_qeuvnohg', '_TZ3000_6l1pjfqe']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_qeuvnohg', '_TZ3000_6l1pjfqe', '_TZ3000_2iiimqs9']),
         model: 'TS011F_din_smart_relay_polling',
         description: 'Din smart relay (with power monitoring via polling)',
         vendor: 'Tuya',
@@ -7428,6 +7428,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('Tongou', 'TO-Q-SY1-JZT', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_qeuvnohg']),
             tuya.whitelabel('TOMZN', 'TOB9Z-63M', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_6l1pjfqe']),
+            tuya.whitelabel('Nous', 'D2Z', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_2iiimqs9']),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
