@@ -99,7 +99,7 @@ const inovelliExtend = {
                 quickStartTime: {ID: 0x0017, type: Zcl.DataType.UINT8},
                 quickStartLevel: {ID: 0x0018, type: Zcl.DataType.UINT8},
                 higherOutputInNonNeutral: {ID: 0x0019, type: Zcl.DataType.BOOLEAN},
-                dimmingMode: {ID: 0x001a, type: Zcl.DataType.BOOLEAN},
+                dimmingMode: {ID: 0x001a, type: Zcl.DataType.UINT8},
                 nonNeutralAuxMediumGear: {ID: 0x001e, type: Zcl.DataType.UINT8},
                 nonNeutralAuxLowGear: {ID: 0x001f, type: Zcl.DataType.UINT8},
                 internalTemperature: {ID: 0x0020, type: Zcl.DataType.UINT8},
@@ -1017,7 +1017,7 @@ const COMMON_DIMMABLE_LIGHT_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     dimmingMode: {
         ID: 26,
-        dataType: Zcl.DataType.BOOLEAN,
+        dataType: Zcl.DataType.UINT8,
         displayType: 'enum',
         values: {'Leading edge': 0, 'Trailing edge': 1},
         min: 0,
