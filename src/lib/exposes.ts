@@ -1354,14 +1354,28 @@ export const presets = {
     max_brightness: () => new Numeric('max_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Maximum light brightness'),
 };
 
-exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
-exports.climate = () => new Climate();
-exports.composite = (name: string, property: string, access: number) => new Composite(name, property, access);
-exports.cover = () => new Cover();
-exports.enum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
-exports.light = () => new Light();
-exports.numeric = (name: string, access: number) => new Numeric(name, access);
-exports.switch = () => new Switch();
-exports.text = (name: string, access: number) => new Text(name, access);
-exports.list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
-exports.lock = () => new Lock();
+const _binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
+const _climate = () => new Climate();
+const _composite = (name: string, property: string, access: number) => new Composite(name, property, access);
+const _cover = () => new Cover();
+const _enum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
+const _light = () => new Light();
+const _numeric = (name: string, access: number) => new Numeric(name, access);
+const _switch = () => new Switch();
+const _text = (name: string, access: number) => new Text(name, access);
+const _list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
+const _lock = () => new Lock();
+
+export {
+    _binary as binary,
+    _climate as climate,
+    _composite as composite,
+    _cover as cover,
+    _enum as enum,
+    _light as light,
+    _numeric as numeric,
+    _switch as switch,
+    _text as text,
+    _list as list,
+    _lock as lock,
+};

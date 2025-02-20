@@ -2586,23 +2586,3 @@ const tuyaClusters = {
 };
 
 export {tuyaClusters as clusters};
-
-exports.exposes = tuyaExposes;
-exports.modernExtend = tuyaModernExtend;
-exports.tz = tuyaTz;
-exports.fz = tuyaFz;
-exports.clusters = tuyaClusters;
-exports.enum = (value: number) => new Enum(value);
-exports.bitmap = (value: number) => new Bitmap(value);
-exports.valueConverter = valueConverter;
-exports.valueConverterBasic = valueConverterBasic;
-exports.sendDataPointBool = sendDataPointBool;
-exports.sendDataPointEnum = sendDataPointEnum;
-exports.onEventSetTime = onEventSetTime;
-exports.onEventSetLocalTime = onEventSetLocalTime;
-exports.onEventMeasurementPoll = onEventMeasurementPoll;
-exports.skip = skip;
-exports.configureMagicPacket = configureMagicPacket;
-exports.fingerprint = fingerprint;
-exports.whitelabel = whitelabel;
-exports.dataTypes = dataTypes;

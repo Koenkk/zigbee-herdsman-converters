@@ -4545,4 +4545,3 @@ const converters3 = {
 const converters = {...converters1, ...converters2, ...converters3};
 
 export default converters;
-module.exports = converters;

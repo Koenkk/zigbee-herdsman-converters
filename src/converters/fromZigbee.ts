@@ -5364,4 +5364,3 @@ const converters2 = {
 const converters = {...converters1, ...converters2};
 
 export default converters;
-module.exports = converters;

@@ -4,11 +4,11 @@ import * as utils from './utils';
 
 const NS = 'zhc:light';
 
-async function readColorCapabilities(endpoint: Zh.Endpoint) {
+export async function readColorCapabilities(endpoint: Zh.Endpoint) {
     await endpoint.read('lightingColorCtrl', ['colorCapabilities']);
 }
 
-async function readColorTempMinMax(endpoint: Zh.Endpoint) {
+export async function readColorTempMinMax(endpoint: Zh.Endpoint) {
     await endpoint.read('lightingColorCtrl', ['colorTempPhysicalMin', 'colorTempPhysicalMax']);
 }
 
@@ -106,10 +106,3 @@ export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpo
         }
     }
 }
-
-exports.readColorCapabilities = readColorCapabilities;
-exports.readColorTempMinMax = readColorTempMinMax;
-exports.readColorAttributes = readColorAttributes;
-exports.findColorTempRange = findColorTempRange;
-exports.clampColorTemp = clampColorTemp;
-exports.configure = configure;
