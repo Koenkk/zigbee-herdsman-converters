@@ -2,7 +2,7 @@ import tz from '../converters/toZigbee';
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZB-CL01'],
         model: 'ZB-CL01',
@@ -12,6 +12,3 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.on_off],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

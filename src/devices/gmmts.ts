@@ -1972,7 +1972,7 @@ function initConfig(device: ZHModels.Device, name: string, value: unknown) {
     return globalStore.getValue(device, name);
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['TICMeter'],
         model: 'TICMeter',
@@ -2332,6 +2332,3 @@ const definitions: DefinitionWithExtend[] = [
         ota: {manufacturerName: 'GammaTroniques'}, // TODO: not sure if it's set properly in device
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -45,7 +45,7 @@ export function sengledSwitchAction(): ModernExtend {
     return {exposes, fromZigbee, isModernExtend: true};
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['E13-N11'],
         model: 'E13-N11',
@@ -356,6 +356,3 @@ const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['HDC52EastwindFan', 'HBUniversalCFRemote'],
         model: '99432',
@@ -15,7 +15,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Universal wink enabled white ceiling fan premier remote control',
         fromZigbee: [fz.fan],
         toZigbee: [tz.fan_mode],
-        exposes: [e.fan().withModes(['low', 'medium', 'high', 'on', 'smart'])],
+        exposes: [e.fan().withState('fan_state').withModes(['low', 'medium', 'high', 'on', 'smart'])],
         meta: {disableDefaultResponse: true},
         extend: [m.light({configureReporting: true}), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
         configure: async (device, coordinatorEndpoint) => {
@@ -32,6 +32,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: undefined}})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

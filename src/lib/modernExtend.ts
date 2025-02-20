@@ -292,17 +292,11 @@ export interface LinkQualityArgs {
     reportingConfig?: ReportingConfigWithoutAttribute;
 }
 export function linkQuality(args?: LinkQualityArgs): ModernExtend {
-    args = {reporting: false, attribute: 'modelId', reportingConfig: {min: '1_HOUR', max: '4_HOURS', change: 0}, ...args};
+    args = {reporting: false, attribute: 'zclVersion', reportingConfig: {min: '1_HOUR', max: '4_HOURS', change: 0}, ...args};
 
-    const exposes: Expose[] = [
-        e
-            .numeric('linkquality', ea.STATE)
-            .withUnit('lqi')
-            .withDescription('Link quality (signal strength)')
-            .withValueMin(0)
-            .withValueMax(255)
-            .withCategory('diagnostic'),
-    ];
+    // Exposes is empty because the application (e.g. Z2M) adds a linkquality sensor
+    // for every device already.
+    const exposes: Expose[] = [];
 
     const fromZigbee: Fz.Converter[] = [
         {

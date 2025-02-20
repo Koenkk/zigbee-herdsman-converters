@@ -605,6 +605,10 @@ export const valueConverter = {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),
     },
+    localTemperatureCalibration_256: {
+        from: (value: number) => (value > 200 ? value - 256 : value),
+        to: (value: number) => (value < 0 ? 256 + value : value),
+    },
     setLimit: {
         to: (v: number) => {
             if (!v) throw new Error('Limit cannot be unset, use factory_reset');
@@ -2582,23 +2586,3 @@ const tuyaClusters = {
 };
 
 export {tuyaClusters as clusters};
-
-exports.exposes = tuyaExposes;
-exports.modernExtend = tuyaModernExtend;
-exports.tz = tuyaTz;
-exports.fz = tuyaFz;
-exports.clusters = tuyaClusters;
-exports.enum = (value: number) => new Enum(value);
-exports.bitmap = (value: number) => new Bitmap(value);
-exports.valueConverter = valueConverter;
-exports.valueConverterBasic = valueConverterBasic;
-exports.sendDataPointBool = sendDataPointBool;
-exports.sendDataPointEnum = sendDataPointEnum;
-exports.onEventSetTime = onEventSetTime;
-exports.onEventSetLocalTime = onEventSetLocalTime;
-exports.onEventMeasurementPoll = onEventMeasurementPoll;
-exports.skip = skip;
-exports.configureMagicPacket = configureMagicPacket;
-exports.fingerprint = fingerprint;
-exports.whitelabel = whitelabel;
-exports.dataTypes = dataTypes;

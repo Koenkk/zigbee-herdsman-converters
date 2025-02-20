@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['openlumi.gw_router.jn5169'],
         model: 'GWRJN5169',
@@ -22,6 +22,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.device_temperature()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

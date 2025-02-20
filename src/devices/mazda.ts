@@ -9,7 +9,7 @@ interface KeyValueStringEnum {
     [s: string]: tuya.Enum;
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE284_k6rdmisz', '_TZE204_k6rdmisz']),
         model: 'TR-M2Z',
@@ -22,7 +22,7 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.window_detection(),
+            e.window_detection_bool(),
             tuya.exposes.frostProtection(),
             e.binary('alarm_switch', ea.STATE, 'ON', 'OFF').withDescription('Thermostat in error state'),
             e.comfort_temperature().withValueMin(5).withValueMax(35).withDescription('Comfort mode temperature'),
@@ -129,6 +129,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

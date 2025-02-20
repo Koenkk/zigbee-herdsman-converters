@@ -1290,30 +1290,14 @@ export const trv = {
     validateSchedule(schedule: TrvScheduleConfig): void {
         const eventCount = 4;
 
-        if (typeof schedule !== 'object') {
-            throw new Error('The provided value must be a schedule object');
-        }
-
-        if (schedule.days == null || !Array.isArray(schedule.days) || schedule.days.length === 0) {
-            throw new Error(`The schedule object must contain an array of days with at least one entry`);
-        }
-
         validateDaySelection(schedule.days);
 
-        if (schedule.events == null || !Array.isArray(schedule.events) || schedule.events.length !== eventCount) {
+        if (schedule.events.length !== eventCount) {
             throw new Error(`The schedule object must contain an array of ${eventCount} time/temperature events`);
         }
 
         schedule.events.forEach((event) => {
-            if (typeof event !== 'object') {
-                throw new Error('The provided time/temperature event must be an object');
-            }
-
             validateTime(event.time);
-
-            if (typeof event.temperature !== 'number') {
-                throw new Error(`The provided time/temperature entry must contain a numeric temperature`);
-            }
 
             if (event.temperature < 5 || event.temperature > 30) {
                 throw new Error(`The temperature must be between 5 and 30 °C`);
@@ -1418,7 +1402,7 @@ export const trv = {
     },
 };
 
-export const manufacturerCode = 0x115f;
+export const manufacturerCode = 0x115f; // TODO: from Zcl
 const manufacturerOptions = {
     lumi: {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
 };
@@ -1427,13 +1411,14 @@ export const lumiModernExtend = {
     lumiLight: (
         args?: Omit<modernExtend.LightArgs, 'colorTemp'> & {
             colorTemp?: true;
+            colorTempRange?: Range;
             powerOutageMemory?: 'switch' | 'light' | 'enum';
             deviceTemperature?: boolean;
             powerOutageCount?: boolean;
         },
     ) => {
         args = {powerOutageCount: true, deviceTemperature: true, ...args};
-        const colorTemp: {range: Range; startup: boolean} = args.colorTemp ? {startup: false, range: [153, 370]} : undefined;
+        const colorTemp: {range: Range; startup: boolean} = args.colorTemp ? {startup: false, range: args.colorTempRange ?? [153, 370]} : undefined;
         const result = modernExtend.light({effect: false, powerOnBehavior: false, ...args, colorTemp});
         result.fromZigbee.push(
             fromZigbee.lumi_bulb_interval,
@@ -2045,7 +2030,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiVibration: (): ModernExtend => {
-        const exposes: Expose[] = [e.action(['shake', 'triple_strike'])];
+        const exposes: Expose[] = [e.action(['shake', 'triple_strike', 'movement'])];
 
         const fromZigbee: Fz.Converter[] = [
             {
@@ -2059,10 +2044,52 @@ export const lumiModernExtend = {
                     }
                 },
             },
+            {
+                cluster: 'genMultistateInput',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.presentValue !== undefined && msg.data.presentValue === 1) {
+                        return {action: 'triple_strike'};
+                    }
+                },
+            },
+            {
+                cluster: 'manuSpecificLumi',
+                type: ['attributeReport', 'readResponse'],
+                convert: function (model, msg, publish, options, meta) {
+                    if (msg.data[0x0118] !== undefined && msg.data[0x0118] === 1) {
+                        return {action: 'movement'};
+                    }
+                },
+            },
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    lumiSensitivityAdjustment: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'sensitivity_adjustment',
+            lookup: {high: 1, medium: 2, low: 3},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x010e, type: 0x20},
+            description: 'Sensitivity adjustment for the device',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'SET',
+            entityCategory: 'config',
+            ...args,
+        }),
+    lumiReportInterval: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        modernExtend.enumLookup({
+            name: 'report_interval',
+            lookup: {'1s': 0x01, '5s': 0x02, '10s': 0x03},
+            cluster: 'manuSpecificLumi',
+            attribute: {ID: 0x0110, type: 0x20},
+            description: 'Reporting interval for the device',
+            zigbeeCommandOptions: {manufacturerCode},
+            access: 'SET',
+            entityCategory: 'config',
+            ...args,
+        }),
     lumiMiscellaneous: (args?: {
         cluster: 'genBasic' | 'manuSpecificLumi';
         deviceTemperatureAttribute?: number;
@@ -5248,7 +5275,3 @@ export const toZigbee = {
         },
     } satisfies Tz.Converter,
 };
-
-exports.buffer2DataObject = buffer2DataObject;
-exports.numericAttributes2Payload = numericAttributes2Payload;
-exports.manufacturerCode = manufacturerCode;

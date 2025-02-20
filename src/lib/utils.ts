@@ -142,7 +142,7 @@ export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, I
 }
 
 export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
-    ac_frequency: 0,
+    ac_frequency: 2,
     temperature: 2,
     humidity: 2,
     pressure: 1,
@@ -736,40 +736,3 @@ export function splitArrayIntoChunks<T>(arr: T[], chunkSize: number): T[][] {
 
     return result;
 }
-
-exports.noOccupancySince = noOccupancySince;
-exports.getOptions = getOptions;
-exports.precisionRound = precisionRound;
-exports.toLocalISOString = toLocalISOString;
-exports.numberWithinRange = numberWithinRange;
-exports.mapNumberRange = mapNumberRange;
-exports.hasAlreadyProcessedMessage = hasAlreadyProcessedMessage;
-exports.calibrateAndPrecisionRoundOptions = calibrateAndPrecisionRoundOptions;
-exports.calibrateAndPrecisionRoundOptionsIsPercentual = calibrateAndPrecisionRoundOptionsIsPercentual;
-exports.calibrateAndPrecisionRoundOptionsDefaultPrecision = calibrateAndPrecisionRoundOptionsDefaultPrecision;
-exports.toPercentage = toPercentage;
-exports.addActionGroup = addActionGroup;
-exports.postfixWithEndpointName = postfixWithEndpointName;
-exports.enforceEndpoint = enforceEndpoint;
-exports.getKey = getKey;
-exports.getObjectProperty = getObjectProperty;
-exports.batteryVoltageToPercentage = batteryVoltageToPercentage;
-exports.getEntityOrFirstGroupMember = getEntityOrFirstGroupMember;
-exports.getTransition = getTransition;
-exports.getMetaValue = getMetaValue;
-exports.validateValue = validateValue;
-exports.hasEndpoints = hasEndpoints;
-exports.isInRange = isInRange;
-exports.filterObject = filterObject;
-exports.saveSceneState = saveSceneState;
-exports.sleep = sleep;
-exports.toSnakeCase = toSnakeCase;
-exports.toCamelCase = toCamelCase;
-exports.getLabelFromName = getLabelFromName;
-exports.normalizeCelsiusVersionOfFahrenheit = normalizeCelsiusVersionOfFahrenheit;
-exports.deleteSceneState = deleteSceneState;
-exports.getSceneState = getSceneState;
-exports.attachOutputCluster = attachOutputCluster;
-exports.printNumberAsHex = printNumberAsHex;
-exports.printNumbersAsHexSequence = printNumbersAsHexSequence;
-exports.getFromLookup = getFromLookup;

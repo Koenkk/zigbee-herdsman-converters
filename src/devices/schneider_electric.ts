@@ -548,7 +548,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PUCK/SHUTTER/1'],
         model: 'CCT5015-0001',
@@ -917,7 +917,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Wiser 40/300-Series Module AC Fan Controller',
         fromZigbee: [fz.fan],
         toZigbee: [tzLocal.fan_mode],
-        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
+        exposes: [e.fan().withState('fan_state').withModes(['off', 'low', 'medium', 'high', 'on'])],
         ota: true,
         extend: [fanIndicatorMode(), fanIndicatorOrientation()],
         configure: async (device, coordinatorEndpoint) => {
@@ -2204,6 +2204,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

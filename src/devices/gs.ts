@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['BRHM8E27W70-I1'],
         model: 'BRHM8E27W70-I1',
@@ -84,6 +84,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), m.battery({voltage: true})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

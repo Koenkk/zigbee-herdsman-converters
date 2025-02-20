@@ -34,6 +34,16 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
+    fan_speed: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.currentLevel !== undefined) {
+                const property = postfixWithEndpointName('speed', msg, model, meta);
+                return {[property]: msg.data['currentLevel']};
+            }
+        },
+    } satisfies Fz.Converter,
     thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -4281,6 +4291,7 @@ const converters1 = {
         cluster: 'manuSpecificPhilips',
         type: 'commandHueNotification',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const buttonLookup: KeyValueAny = {1: 'left', 2: 'right'};
             const button = buttonLookup[msg.data['button']];
             const typeLookup: KeyValueAny = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
@@ -4293,6 +4304,7 @@ const converters1 = {
         type: 'commandHueNotification',
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const buttonLookup: KeyValueAny = {1: 'on', 2: 'up', 3: 'down', 4: 'off'};
             const button = buttonLookup[msg.data['button']];
             const typeLookup: KeyValueAny = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
@@ -5120,7 +5132,9 @@ const converters2 = {
                     // This seems broken... We need to write 0x20 to turn it off and 0x10 to set
                     // it to auto mode. However, when it reports the flag, it will report 0x10
                     //  when it's off, and nothing at all when it's in auto mode
-                    if ((msg.data[0x4008] & 0x10) != 0) {
+                    // the new Comet valve reports the off status on bit 5
+                    // if either bit 4 or 5 is set, off mode is active
+                    if ((msg.data[0x4008] & 0x30) != 0) {
                         // reports auto -> setting to force_off
                         result.system_mode = constants.thermostatSystemModes[0];
                     } else if ((msg.data[0x4008] & 0x04) != 0) {
@@ -5350,4 +5364,3 @@ const converters2 = {
 const converters = {...converters1, ...converters2};
 
 export default converters;
-module.exports = converters;

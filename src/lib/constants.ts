@@ -301,37 +301,3 @@ export const wiserDimmerControlMode: KeyValueNumberString = {
     2: 'rl',
     3: 'rl_led',
 };
-
-exports.OneJanuary2000 = OneJanuary2000;
-exports.repInterval = repInterval;
-exports.defaultBindGroup = defaultBindGroup;
-exports.thermostatControlSequenceOfOperations = thermostatControlSequenceOfOperations;
-exports.thermostatProgrammingOperationModes = thermostatProgrammingOperationModes;
-exports.thermostatSystemModes = thermostatSystemModes;
-exports.thermostatRunningStates = thermostatRunningStates;
-exports.thermostatRunningMode = thermostatRunningMode;
-exports.thermostatAcLouverPositions = thermostatAcLouverPositions;
-exports.thermostatScheduleMode = thermostatScheduleMode;
-exports.thermostatDayOfWeek = thermostatDayOfWeek;
-exports.fanMode = fanMode;
-exports.temperatureDisplayMode = temperatureDisplayMode;
-exports.danfossAdaptionRunControl = danfossAdaptionRunControl;
-exports.danfossAdaptionRunStatus = danfossAdaptionRunStatus;
-exports.danfossWindowOpen = danfossWindowOpen;
-exports.danfossRoomStatusCode = danfossRoomStatusCode;
-exports.danfossRoomFloorSensorMode = danfossRoomFloorSensorMode;
-exports.danfossOutputStatus = danfossOutputStatus;
-exports.danfossSystemStatusWater = danfossSystemStatusWater;
-exports.danfossSystemStatusCode = danfossSystemStatusCode;
-exports.danfossMultimasterRole = danfossMultimasterRole;
-exports.develcoInterfaceMode = develcoInterfaceMode;
-exports.keypadLockoutMode = keypadLockoutMode;
-exports.lockSourceName = lockSourceName;
-exports.armMode = armMode;
-exports.armNotification = armNotification;
-exports.colorModeLookup = colorModeLookup;
-exports.ColorMode = ColorMode;
-exports.lockSoundVolume = lockSoundVolume;
-exports.lockUserStatus = lockUserStatus;
-exports.easyCodeTouchActions = easyCodeTouchActions;
-exports.wiserDimmerControlMode = wiserDimmerControlMode;

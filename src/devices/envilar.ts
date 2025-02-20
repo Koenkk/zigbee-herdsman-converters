@@ -5,7 +5,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZG_LED_DRIVER42CC'],
         model: 'ZG_LED_DRIVER42CC',
@@ -60,6 +60,3 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9101SAC-HP-SWITCH-B'}],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

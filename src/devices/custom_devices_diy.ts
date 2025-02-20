@@ -228,7 +228,7 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     }
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         /** @see https://github.com/Nerivec/silabs-firmware-builder/releases */
         fingerprint: [
@@ -1172,7 +1172,13 @@ const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        zigbeeModel: ['FanBee1', 'Fanbox2'],
+        model: 'FanBee',
+        vendor: 'Lorenz Brun',
+        description: 'Fan with valve',
+        fromZigbee: [fz.on_off, fz.fan_speed],
+        toZigbee: [tz.on_off, tz.fan_speed],
+        exposes: [e.fan().withState().withSpeed()],
+    },
 ];
-
-export default definitions;
-module.exports = definitions;
