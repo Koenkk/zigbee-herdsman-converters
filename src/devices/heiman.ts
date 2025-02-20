@@ -59,7 +59,7 @@ const tzlocal = {
             clearTimeout(globalStore.getValue(entity, 'state_timer'));
             globalStore.clearValue(entity, 'state_timer');
             if (siren_on) {
-                const duration = Math.min(values.duration, 240);
+                const duration = Math.min(values.duration, utils.getClusterAttributeValue(entity,'ssIasWd', 'maxDuration'));
                 const timer = setTimeout(() => {
                     // How to publish a state from here ?
                     logger.debug('Siren should be OFF ', NS);
