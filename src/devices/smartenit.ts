@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZBMLC30'],
         model: '4040B',
@@ -42,6 +42,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.temperature(), e.humidity()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

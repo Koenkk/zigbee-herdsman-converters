@@ -355,7 +355,7 @@ function zigusbBtnConfigExposes(epName: string) {
     return features;
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZigUSB'],
         model: 'ZigUSB',
@@ -500,6 +500,3 @@ const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
     },
 ];
-
-export default definitions;
-module.exports = definitions;

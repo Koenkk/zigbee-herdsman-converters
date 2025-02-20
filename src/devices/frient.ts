@@ -4,7 +4,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 // NOTE! Develco and Frient is the same company, therefore we use develco specific things in here.
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['EMIZB-141'],
         model: 'EMIZB-141',
@@ -38,6 +38,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.electricityMeter({threePhase: true})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

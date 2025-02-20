@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['DimmerSwitch-2Gang-ZB3.0'],
         model: 'D086-ZG',
@@ -66,6 +66,3 @@ const definitions: DefinitionWithExtend[] = [
         meta: {},
     },
 ];
-
-export default definitions;
-module.exports = definitions;

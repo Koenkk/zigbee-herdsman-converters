@@ -9,7 +9,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['SPE600'],
         model: 'SPE600',
@@ -186,6 +186,3 @@ const definitions: DefinitionWithExtend[] = [
         ota: {manufacturerName: 'SalusControls'},
     },
 ];
-
-export default definitions;
-module.exports = definitions;

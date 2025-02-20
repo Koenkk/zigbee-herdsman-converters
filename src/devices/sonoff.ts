@@ -644,7 +644,7 @@ const sonoffExtend = {
     },
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['NSPanelP-Router'],
         model: 'NSPanelP-Router',
@@ -1634,6 +1634,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;
