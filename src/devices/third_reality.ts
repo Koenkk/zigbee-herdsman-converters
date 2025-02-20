@@ -281,16 +281,21 @@ export const definitions: DefinitionWithExtend[] = [
         model: '3RSB22BZ',
         vendor: 'Third Reality',
         description: 'Smart button',
-        fromZigbee: [fz.battery, fz.itcmdr_clicks],
-        toZigbee: [],
+        fromZigbee: [fz.itcmdr_clicks],
         ota: true,
-        exposes: [e.battery(), e.battery_low(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
-            device.powerSource = 'Battery';
-            device.save();
-        },
+        exposes: [e.action(['single', 'double', 'long'])],
+        extend: [
+            m.battery(),
+            m.deviceAddCustomCluster('3rButtonSpecialCluster', {
+                ID: 0xff01,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    cancelDoubleClick: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
     {
         zigbeeModel: ['3RTHS24BZ'],

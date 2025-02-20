@@ -1560,6 +1560,17 @@ const converters2 = {
             await entity.read('hvacFanCtrl', ['fanMode']);
         },
     } satisfies Tz.Converter,
+    fan_speed: {
+        key: ['speed'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            await entity.command('genLevelCtrl', 'moveToLevel', {level: value.toString(), transtime: 0}, utils.getOptions(meta.mapped, entity));
+            return {state: {speed: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['currentLevel']);
+        },
+    } satisfies Tz.Converter,
     thermostat_local_temperature: {
         key: ['local_temperature'],
         convertGet: async (entity, key, meta) => {
@@ -4529,4 +4540,3 @@ const converters3 = {
 const converters = {...converters1, ...converters2, ...converters3};
 
 export default converters;
-module.exports = converters;

@@ -34,6 +34,16 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
+    fan_speed: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.currentLevel !== undefined) {
+                const property = postfixWithEndpointName('speed', msg, model, meta);
+                return {[property]: msg.data['currentLevel']};
+            }
+        },
+    } satisfies Fz.Converter,
     thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -5354,4 +5364,3 @@ const converters2 = {
 const converters = {...converters1, ...converters2};
 
 export default converters;
-module.exports = converters;

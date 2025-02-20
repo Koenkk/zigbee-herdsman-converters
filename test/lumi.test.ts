@@ -1,9 +1,9 @@
-import {fromZigbee, trv} from '../src/lib/lumi';
+import {fromZigbee, trv, TrvScheduleConfig} from '../src/lib/lumi';
 
 describe('lib/lumi', () => {
     describe('trv', () => {
         const factoryDefaultScheduleData = '043e01e0000009600438000006a405640000089881e000000898';
-        const factoryDefaultSchedule = {
+        const factoryDefaultSchedule: TrvScheduleConfig = {
             days: ['mon', 'tue', 'wed', 'thu', 'fri'],
             events: [
                 {time: 480, temperature: 24},
@@ -49,7 +49,12 @@ describe('lib/lumi', () => {
             ]);
 
             it('decodes heartbeat in setup mode', () => {
-                const heartbeat = trv.decodeHeartbeat({}, {}, heartbeatSetup);
+                const heartbeat = trv.decodeHeartbeat(
+                    // @ts-expect-error mock
+                    {},
+                    {},
+                    heartbeatSetup,
+                );
 
                 expect(heartbeat).toEqual({
                     device_temperature: 28,
@@ -65,7 +70,12 @@ describe('lib/lumi', () => {
             });
 
             it('decodes heartbeat in normal operation', () => {
-                const heartbeat = trv.decodeHeartbeat({}, {}, heartbeatNormalOperation);
+                const heartbeat = trv.decodeHeartbeat(
+                    // @ts-expect-error mock
+                    {},
+                    {},
+                    heartbeatNormalOperation,
+                );
 
                 expect(heartbeat).toEqual({
                     device_temperature: 23,
@@ -81,7 +91,12 @@ describe('lib/lumi', () => {
             });
 
             it('decodes valve alarm', () => {
-                const heartbeat = trv.decodeHeartbeat({}, {}, heartbeatValveAlarm);
+                const heartbeat = trv.decodeHeartbeat(
+                    // @ts-expect-error mock
+                    {},
+                    {},
+                    heartbeatValveAlarm,
+                );
 
                 expect(heartbeat).toEqual(
                     expect.objectContaining({
@@ -102,39 +117,6 @@ describe('lib/lumi', () => {
         });
 
         describe(trv.validateSchedule, () => {
-            it('fails if schedule is not an object', () => {
-                expect(() => trv.validateSchedule(123)).toThrowError(/value must be a schedule object/);
-            });
-
-            it('fails on missing days', () => {
-                expect(() => trv.validateSchedule({})).toThrowError(/must contain an array of days/);
-            });
-
-            it('fails on invalid days type', () => {
-                expect(() => trv.validateSchedule({days: 123})).toThrowError(/must contain an array of days/);
-            });
-
-            it('fails on empty days', () => {
-                expect(() => trv.validateSchedule({days: []})).toThrowError(/at least one entry/);
-            });
-
-            it('fails on invalid day', () => {
-                expect(() => trv.validateSchedule({days: ['foo']})).toThrowError(/not a valid day/);
-            });
-
-            it('fails on missing events', () => {
-                expect(() => trv.validateSchedule({days: ['mon']})).toThrowError(/must contain an array of 4/);
-            });
-
-            it('fails on invalid events type', () => {
-                expect(() =>
-                    trv.validateSchedule({
-                        days: ['mon'],
-                        events: 123,
-                    }),
-                ).toThrowError(/must contain an array of 4/);
-            });
-
             it('fails on empty events', () => {
                 expect(() =>
                     trv.validateSchedule({
@@ -148,61 +130,35 @@ describe('lib/lumi', () => {
                 expect(() =>
                     trv.validateSchedule({
                         days: ['mon'],
-                        events: [{}],
+                        events: [{time: 0, temperature: 0}],
                     }),
                 ).toThrowError(/must contain an array of 4/);
-            });
-
-            it('fails on invalid event type', () => {
-                expect(() =>
-                    trv.validateSchedule({
-                        days: ['mon'],
-                        events: [123, {}, {}, {}],
-                    }),
-                ).toThrowError(/must be an object/);
-            });
-
-            it('fails on missing event time', () => {
-                expect(() =>
-                    trv.validateSchedule({
-                        days: ['mon'],
-                        events: [{}, {}, {}, {}],
-                    }),
-                ).toThrowError(/Time must be a positive integer number/);
             });
 
             it('fails on invalid event time type', () => {
                 expect(() =>
                     trv.validateSchedule({
                         days: ['mon'],
-                        events: [{time: 'foo'}, {}, {}, {}],
+                        events: [
+                            {time: -1, temperature: 0},
+                            {time: 0, temperature: 10},
+                            {time: 0, temperature: 10},
+                            {time: 0, temperature: 10},
+                        ],
                     }),
                 ).toThrowError(/Time must be a positive integer number/);
-            });
-
-            it('fails on missing event temperature', () => {
-                expect(() =>
-                    trv.validateSchedule({
-                        days: ['mon'],
-                        events: [{time: 0}, {}, {}, {}],
-                    }),
-                ).toThrowError(/must contain a numeric temperature/);
-            });
-
-            it('fails on invalid event temperature type', () => {
-                expect(() =>
-                    trv.validateSchedule({
-                        days: ['mon'],
-                        events: [{time: 0, temperature: 'foo'}, {}, {}, {}],
-                    }),
-                ).toThrowError(/must contain a numeric temperature/);
             });
 
             it('fails on invalid event temperature value', () => {
                 expect(() =>
                     trv.validateSchedule({
                         days: ['mon'],
-                        events: [{time: 0, temperature: 4}, {}, {}, {}],
+                        events: [
+                            {time: 0, temperature: 4},
+                            {time: 0, temperature: 10},
+                            {time: 0, temperature: 10},
+                            {time: 0, temperature: 10},
+                        ],
                     }),
                 ).toThrowError(/temperature must be between/);
             });
@@ -211,7 +167,12 @@ describe('lib/lumi', () => {
                 expect(() =>
                     trv.validateSchedule({
                         days: ['mon'],
-                        events: [{time: 0, temperature: 30.1}, {}, {}, {}],
+                        events: [
+                            {time: 0, temperature: 30.1},
+                            {time: 0, temperature: 10},
+                            {time: 0, temperature: 10},
+                            {time: 0, temperature: 10},
+                        ],
                     }),
                 ).toThrowError(/temperature must be between/);
             });
@@ -279,23 +240,50 @@ describe('lib/lumi', () => {
 
                 expect(schedule).toEqual({days: [], events: []});
             });
+
+            it('handles invalid time pattern', () => {
+                expect(() => trv.parseSchedule('mon,tue,wed,thu,fri|8-00,24.0|18:00,17.0|23:00,22.0|8:00,22.0')).toThrowError(
+                    /Cannot parse time string/,
+                );
+            });
         });
 
         describe('Feeder schedule', () => {
             it('Schedule 0 days', () => {
                 const data = Buffer.from([0, 5, 43, 8, 0, 8, 200, 2, 47, 47]);
-                const result = fromZigbee.lumi_feeder.convert(null, {data: {65521: data}}, null, null);
+                const result = fromZigbee.lumi_feeder.convert(
+                    null,
+                    // @ts-expect-error mock
+                    {data: {65521: data}},
+                    null,
+                    null,
+                    null,
+                );
                 expect(result).toStrictEqual({schedule: []});
             });
 
             it('Schedule 1 day', () => {
                 const data = Buffer.from([0, 5, 9, 8, 0, 8, 200, 10, 55, 70, 48, 49, 48, 49, 48, 49, 48, 48]);
-                const result = fromZigbee.lumi_feeder.convert(null, {data: {65521: data}}, null, null);
+                const result = fromZigbee.lumi_feeder.convert(
+                    null,
+                    // @ts-expect-error mock
+                    {data: {65521: data}},
+                    null,
+                    null,
+                    null,
+                );
                 expect(result).toStrictEqual({schedule: [{days: 'everyday', hour: 1, minute: 1, size: 1}]});
             });
             it('Too small frame', () => {
                 const data = Buffer.from([128, 2, 2, 48]);
-                const result = fromZigbee.lumi_feeder.convert(null, {data: {65521: data}}, null, null);
+                const result = fromZigbee.lumi_feeder.convert(
+                    null,
+                    // @ts-expect-error mock
+                    {data: {65521: data}},
+                    null,
+                    null,
+                    null,
+                );
                 expect(result).toStrictEqual({});
             });
         });

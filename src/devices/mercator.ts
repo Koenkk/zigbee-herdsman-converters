@@ -170,7 +170,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: 'AC fan controller',
         fromZigbee: [fz.on_off, fz.fan],
         toZigbee: [tz.fan_mode, tz.on_off],
-        exposes: [e.switch(), e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
+        exposes: [e.switch(), e.fan().withState('fan_state').withModes(['off', 'low', 'medium', 'high', 'on'])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOta', 'genTime', 'genGroups', 'genScenes']);
