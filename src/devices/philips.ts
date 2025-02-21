@@ -4025,7 +4025,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: '046677584719',
         vendor: 'Philips',
         description: 'Hue White ambiance GU10 - smart spotlight ',
-        extend: [philipsLight({"colorTemp":{"range":[153,454]}})],
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
-    
 ];
