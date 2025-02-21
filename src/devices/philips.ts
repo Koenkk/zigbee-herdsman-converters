@@ -4022,7 +4022,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ['LTG006'],
-        model: 'LTG006',
+        model: '046677584719',
         vendor: 'Philips',
         description: 'Hue White ambiance GU10 - smart spotlight ',
         extend: [philipsLight({"colorTemp":{"range":[153,454]}})],
