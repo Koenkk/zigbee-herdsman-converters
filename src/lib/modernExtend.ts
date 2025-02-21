@@ -1982,7 +1982,7 @@ export interface GasMeterArgs {
     fzMetering?: Fz.Converter;
 }
 export function gasMeter(args?: GasMeterArgs): ModernExtend {
-	args = {
+    args = {
         configureReporting: true,
         ...args,
     };
@@ -1993,28 +1993,28 @@ export function gasMeter(args?: GasMeterArgs): ModernExtend {
         seMetering: {
             // Report change with every m³/h change
             power: {
-                attribute: 'instantaneousDemand', 
-                divisor: 'divisor', 
-                multiplier: 'multiplier', 
-                forced: args.power, 
-                change: 0.005
+                attribute: 'instantaneousDemand',
+                divisor: 'divisor',
+                multiplier: 'multiplier',
+                forced: args.power,
+                change: 0.005,
             },
             // Report change with every m³ change
             energy: {
-                attribute: 'currentSummDelivered', 
-                divisor: 'divisor', 
-                multiplier: 'multiplier', 
-                forced: args.energy, 
-                change: 0.1
+                attribute: 'currentSummDelivered',
+                divisor: 'divisor',
+                multiplier: 'multiplier',
+                forced: args.energy,
+                change: 0.1,
             },
             status: {
-                attribute: 'status', 
-                change: 1
+                attribute: 'status',
+                change: 1,
             },
             extended_status: {
-                attribute: 'extendedStatus', 
-                change: 1
-            }
+                attribute: 'extendedStatus',
+                change: 1,
+            },
         },
     };
 
@@ -2035,7 +2035,22 @@ export function gasMeter(args?: GasMeterArgs): ModernExtend {
         delete configureLookup.seMetering.extended_status;
     }
     const fromZigbee = [fz.gas_metering, fz.battery];
-    const toZigbee = [tz.currentsummdelivered, tz.metering_power, tz.metering_status, tz.metering_extended_status];
+    const toZigbee = [
+        {
+            key: ['energy'],
+            convertGet: async (entity, key, meta) => {
+                const ep = determineEndpoint(entity, meta, 'seMetering');
+                await ep.read('seMetering', ['currentSummDelivered']);
+            },
+            convertSet: async (entity, key, value: number, meta) => {
+                await entity.write('seMetering', {currentSummDelivered: Math.round(value * 100)});
+                return {state: {energy: value}};
+            },
+        } satisfies Tz.Converter,
+        tz.metering_power,
+        tz.metering_status,
+        tz.metering_extended_status,
+    ];
 
     if (args.endpointNames) {
         exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
@@ -2093,7 +2108,7 @@ export function gasMeter(args?: GasMeterArgs): ModernExtend {
                         }
                     }
                 }
-            }
+            },
         ];
     }
 
