@@ -57,10 +57,10 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const runningModeStateMap: KeyValue = {0: 0, 3: 2, 4: 5};
             // override mode "idle" - not a supported running mode
-            if (msg.data["runningMode"] == 0x10) msg.data["runningMode"] = 0;
+            if (msg.data.runningMode === 0x10) msg.data.runningMode = 0;
             // map running *mode* to *state*, as that's what used
             // in homeAssistant climate ui card (red background)
-            if (msg.data["runningMode"] !== undefined) msg.data["runningState"] = runningModeStateMap[msg.data["runningMode"]];
+            if (msg.data.runningMode !== undefined) msg.data.runningState = runningModeStateMap[msg.data.runningMode];
             return fz.thermostat.convert(model, msg, publish, options, meta); // as KeyValue;
         },
     } satisfies Fz.Converter,

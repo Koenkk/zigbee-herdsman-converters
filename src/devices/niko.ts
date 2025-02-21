@@ -52,7 +52,7 @@ const local = {
                 const state: KeyValue = {};
                 if (msg.data.switchOperationMode !== undefined) {
                     const operationModeMap = {2: "control_relay", 1: "decoupled", 0: "unknown"};
-                    state["operation_mode"] = utils.getFromLookup(msg.data.switchOperationMode, operationModeMap);
+                    state.operation_mode = utils.getFromLookup(msg.data.switchOperationMode, operationModeMap);
                 }
                 return state;
             },
@@ -65,7 +65,7 @@ const local = {
 
                 if (msg.data.switchActionReporting !== undefined) {
                     const actionReportingMap: KeyValue = {0: false, 31: true};
-                    state["action_reporting"] = utils.getFromLookup(msg.data.switchActionReporting, actionReportingMap);
+                    state.action_reporting = utils.getFromLookup(msg.data.switchActionReporting, actionReportingMap);
                 }
                 if (msg.data.switchAction !== undefined) {
                     // NOTE: a single press = two separate values reported, 16 followed by 64
@@ -73,7 +73,7 @@ const local = {
 
                     // https://github.com/Koenkk/zigbee2mqtt/issues/13737#issuecomment-1520002786
                     const buttonShift: {[key: string]: number} =
-                        model.model == "552-721X1"
+                        model.model === "552-721X1"
                             ? {
                                   "": 4,
                                   ext: 8,
@@ -93,8 +93,8 @@ const local = {
                     for (const button in buttonShift) {
                         const shiftedValue = (msg.data.switchAction >> buttonShift[button]) & 0xf;
                         for (const action in actions) {
-                            if (shiftedValue == actions[action]) {
-                                const buttonPostFix = button === "" ? "" : "_" + button;
+                            if (shiftedValue === actions[action]) {
+                                const buttonPostFix = button === "" ? "" : `_${button}`;
                                 const value = action + buttonPostFix;
                                 publish({action: value});
                             }
@@ -109,11 +109,11 @@ const local = {
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
                 if (msg.data.outletLedState !== undefined) {
-                    state["led_enable"] = msg.data["outletLedState"] == 1;
+                    state.led_enable = msg.data.outletLedState === 1;
                 }
                 if (msg.data.outletLedColor !== undefined) {
                     const ledStateMap: KeyValue = {0: "OFF", 255: "ON", 65280: "Blue", 16711680: "Red", 16777215: "Purple"};
-                    state["led_state"] = utils.getFromLookup(msg.data.outletLedColor, ledStateMap);
+                    state.led_state = utils.getFromLookup(msg.data.outletLedColor, ledStateMap);
                 }
                 if (msg.data.ledSyncMode !== undefined) {
                     const ledSyncMap: {[key: number]: string} = {0: "Off", 1: "On", 2: "Inverted"};
@@ -123,10 +123,10 @@ const local = {
                             const shift = endpointOffsetMap[ep] * 4;
                             const mask = 0xf << shift;
                             const result = (msg.data.ledSyncMode & mask) >> shift;
-                            state["led_sync_mode_" + ep] = utils.getFromLookup(result, ledSyncMap);
+                            state[`led_sync_mode_${ep}`] = utils.getFromLookup(result, ledSyncMap);
                         }
                     } else {
-                        state["led_sync_mode"] = utils.getFromLookup(msg.data.ledSyncMode, ledSyncMap);
+                        state.led_sync_mode = utils.getFromLookup(msg.data.ledSyncMode, ledSyncMap);
                     }
                 }
                 return state;
@@ -138,10 +138,10 @@ const local = {
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
                 if (msg.data.outletChildLock !== undefined) {
-                    state["child_lock"] = msg.data["outletChildLock"] == 0 ? "LOCK" : "UNLOCK";
+                    state.child_lock = msg.data.outletChildLock === 0 ? "LOCK" : "UNLOCK";
                 }
                 if (msg.data.outletLedState !== undefined) {
-                    state["led_enable"] = msg.data["outletLedState"] == 1;
+                    state.led_enable = msg.data.outletLedState === 1;
                 }
                 return state;
             },
@@ -158,15 +158,14 @@ const local = {
                 // @ts-expect-error ignore
                 if (operationModeLookup[value] === undefined) {
                     throw new Error(`operation_mode was called with an invalid value (${value})`);
-                } else {
-                    await utils.enforceEndpoint(entity, key, meta).write(
-                        "manuSpecificNikoConfig",
-                        // @ts-expect-error ignore
-                        {switchOperationMode: operationModeLookup[value]},
-                    );
-                    // @ts-expect-error ignore
-                    return {state: {operation_mode: value.toLowerCase()}};
                 }
+                await utils.enforceEndpoint(entity, key, meta).write(
+                    "manuSpecificNikoConfig",
+                    // @ts-expect-error ignore
+                    {switchOperationMode: operationModeLookup[value]},
+                );
+                // @ts-expect-error ignore
+                return {state: {operation_mode: value.toLowerCase()}};
             },
             convertGet: async (entity, key, meta) => {
                 utils.assertEndpoint(entity);
@@ -180,14 +179,13 @@ const local = {
                 // @ts-expect-error ignore
                 if (actionReportingMap[value] === undefined) {
                     throw new Error(`action_reporting was called with an invalid value (${value})`);
-                } else {
-                    await entity.write(
-                        "manuSpecificNikoState",
-                        // @ts-expect-error ignore
-                        {switchActionReporting: actionReportingMap[value]},
-                    );
-                    return {state: {action_reporting: value}};
                 }
+                await entity.write(
+                    "manuSpecificNikoState",
+                    // @ts-expect-error ignore
+                    {switchActionReporting: actionReportingMap[value]},
+                );
+                return {state: {action_reporting: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read("manuSpecificNikoState", ["switchActionReporting"]);
@@ -198,7 +196,7 @@ const local = {
             convertSet: async (entity, key, value, meta) => {
                 await entity.write("manuSpecificNikoConfig", {outletLedState: value ? 1 : 0});
                 await entity.read("manuSpecificNikoConfig", ["outletLedColor"]);
-                return {state: {led_enable: value ? true : false}};
+                return {state: {led_enable: !!value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read("manuSpecificNikoConfig", ["outletLedState"]);
@@ -211,14 +209,13 @@ const local = {
                 // @ts-expect-error ignore
                 if (ledStateMap[value] === undefined) {
                     throw new Error(`led_state was called with an invalid value (${value})`);
-                } else {
-                    await entity.write(
-                        "manuSpecificNikoConfig",
-                        // @ts-expect-error ignore
-                        {outletLedColor: ledStateMap[value]},
-                    );
-                    return {state: {led_state: value}};
                 }
+                await entity.write(
+                    "manuSpecificNikoConfig",
+                    // @ts-expect-error ignore
+                    {outletLedColor: ledStateMap[value]},
+                );
+                return {state: {led_state: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read("manuSpecificNikoConfig", ["outletLedColor"]);
@@ -238,7 +235,7 @@ const local = {
                     // combine states of all endpoints into single value to write to device
                     for (const ep in endpointOffsetMap) {
                         // @ts-expect-error ignore
-                        const endpointState: number = ep === meta.endpoint_name ? value : meta.state["led_sync_mode_" + ep];
+                        const endpointState: number = ep === meta.endpoint_name ? value : meta.state[`led_sync_mode_${ep}`];
                         // @ts-expect-error ignore
                         const endpointValue = ledSyncMap[endpointState] === undefined ? ledSyncMap[value] : ledSyncMap[endpointState];
                         const shiftedValue = endpointValue << (endpointOffsetMap[ep] * 4);
@@ -270,7 +267,7 @@ const local = {
             key: ["led_enable"],
             convertSet: async (entity, key, value, meta) => {
                 await entity.write("manuSpecificNikoConfig", {outletLedState: value ? 1 : 0});
-                return {state: {led_enable: value ? true : false}};
+                return {state: {led_enable: !!value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read("manuSpecificNikoConfig", ["outletLedState"]);

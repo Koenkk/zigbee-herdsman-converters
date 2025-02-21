@@ -16,7 +16,7 @@ const ea = exposes.access;
 function indicatorMode(endpoint?: string) {
     let description = "Set Indicator Mode.";
     if (endpoint) {
-        description = "Set Indicator Mode for " + endpoint + " switch.";
+        description = `Set Indicator Mode for ${endpoint} switch.`;
     }
     return m.enumLookup({
         name: "indicator_mode",
@@ -82,7 +82,7 @@ function fanIndicatorOrientation() {
 function switchActions(endpoint?: string) {
     let description = "Set Switch Action.";
     if (endpoint) {
-        description = "Set Switch Action for " + endpoint + " Button.";
+        description = `Set Switch Action for ${endpoint} Button.`;
     }
     return m.enumLookup({
         name: "switch_actions",
@@ -177,7 +177,7 @@ const schneiderElectricExtend = {
         const description = `Set motor type for channel ${channel || ""}`;
 
         return m.enumLookup({
-            name: "motor_type" + (channel ? `_${channel}` : ""),
+            name: `motor_type${channel ? `_${channel}` : ""}`,
             lookup: {
                 ac_motor: 0,
                 pulse_motor: 1,
@@ -193,7 +193,7 @@ const schneiderElectricExtend = {
 
         return m.enumLookup({
             access: "STATE",
-            name: "curtain_status" + (channel ? `_${channel}` : ""),
+            name: `curtain_status${channel ? `_${channel}` : ""}`,
             lookup: {
                 stop: 0,
                 opening: 1,
@@ -212,8 +212,8 @@ const schneiderElectricExtend = {
                     cluster: "genLevelCtrl",
                     type: ["attributeReport", "readResponse"],
                     convert: (model, msg, publish, options, meta) => {
-                        const onOffTransitionTime = Number(msg.data["onOffTransitionTime"]) / 10;
-                        const currentLevel = utils.mapNumberRange(Number(msg.data["currentLevel"]), 0, 255, 0, 100);
+                        const onOffTransitionTime = Number(msg.data.onOffTransitionTime) / 10;
+                        const currentLevel = utils.mapNumberRange(Number(msg.data.currentLevel), 0, 255, 0, 100);
 
                         const transition = postfixWithEndpointName("transition", msg, model, meta);
                         const position = postfixWithEndpointName("position", msg, model, meta);
@@ -348,10 +348,9 @@ const schneiderElectricExtend = {
 
         const luxScale: m.ScaleFunction = (value: number, type: "from" | "to") => {
             if (type === "from") {
-                return Math.round(Math.pow(10, (value - 1) / 10000));
-            } else {
-                return Math.round(10000 * Math.log10(value) + 1);
+                return Math.round(10 ** ((value - 1) / 10000));
             }
+            return Math.round(10000 * Math.log10(value) + 1);
         };
 
         const luxThresholdExtend = m.numeric({
@@ -416,98 +415,98 @@ const fzLocal = {
                     switch (clusterID) {
                         case 2820: {
                             // haElectricalMeasurement
-                            const acCurrentDivisor = attr["acCurrentDivisor"];
-                            const acVoltageDivisor = attr["acVoltageDivisor"];
-                            const acFrequencyDivisor = attr["acFrequencyDivisor"];
-                            const powerDivisor = attr["powerDivisor"];
+                            const acCurrentDivisor = attr.acCurrentDivisor;
+                            const acVoltageDivisor = attr.acVoltageDivisor;
+                            const acFrequencyDivisor = attr.acFrequencyDivisor;
+                            const powerDivisor = attr.powerDivisor;
 
                             if (attr.rmsVoltage !== undefined) {
-                                ret["voltage_phase_a"] = attr["rmsVoltage"] / acVoltageDivisor;
+                                ret.voltage_phase_a = attr.rmsVoltage / acVoltageDivisor;
                             }
 
                             if (attr.rmsVoltagePhB !== undefined) {
-                                ret["voltage_phase_b"] = attr["rmsVoltagePhB"] / acVoltageDivisor;
+                                ret.voltage_phase_b = attr.rmsVoltagePhB / acVoltageDivisor;
                             }
 
                             if (attr.rmsVoltagePhC !== undefined) {
-                                ret["voltage_phase_c"] = attr["rmsVoltagePhC"] / acVoltageDivisor;
+                                ret.voltage_phase_c = attr.rmsVoltagePhC / acVoltageDivisor;
                             }
 
                             if (attr["19200"] !== undefined) {
-                                ret["voltage_phase_ab"] = attr["19200"] / acVoltageDivisor;
+                                ret.voltage_phase_ab = attr["19200"] / acVoltageDivisor;
                             }
 
                             if (attr["19456"] !== undefined) {
-                                ret["voltage_phase_bc"] = attr["19456"] / acVoltageDivisor;
+                                ret.voltage_phase_bc = attr["19456"] / acVoltageDivisor;
                             }
 
                             if (attr["19712"] !== undefined) {
-                                ret["voltage_phase_ca"] = attr["19712"] / acVoltageDivisor;
+                                ret.voltage_phase_ca = attr["19712"] / acVoltageDivisor;
                             }
 
                             if (attr.rmsCurrent !== undefined) {
-                                ret["current_phase_a"] = attr["rmsCurrent"] / acCurrentDivisor;
+                                ret.current_phase_a = attr.rmsCurrent / acCurrentDivisor;
                             }
 
                             if (attr.rmsCurrentPhB !== undefined) {
-                                ret["current_phase_b"] = attr["rmsCurrentPhB"] / acCurrentDivisor;
+                                ret.current_phase_b = attr.rmsCurrentPhB / acCurrentDivisor;
                             }
 
                             if (attr.rmsCurrentPhC !== undefined) {
-                                ret["current_phase_c"] = attr["rmsCurrentPhC"] / acCurrentDivisor;
+                                ret.current_phase_c = attr.rmsCurrentPhC / acCurrentDivisor;
                             }
 
                             if (attr.totalActivePower !== undefined) {
-                                ret["power"] = (attr["totalActivePower"] * 1000) / powerDivisor;
+                                ret.power = (attr.totalActivePower * 1000) / powerDivisor;
                             }
 
                             if (attr.totalApparentPower !== undefined) {
-                                ret["power_apparent"] = (attr["totalApparentPower"] * 1000) / powerDivisor;
+                                ret.power_apparent = (attr.totalApparentPower * 1000) / powerDivisor;
                             }
 
                             if (attr.acFrequency !== undefined) {
-                                ret["ac_frequency"] = attr["acFrequency"] / acFrequencyDivisor;
+                                ret.ac_frequency = attr.acFrequency / acFrequencyDivisor;
                             }
 
                             if (attr.activePower !== undefined) {
-                                ret["power_phase_a"] = (attr["activePower"] * 1000) / powerDivisor;
+                                ret.power_phase_a = (attr.activePower * 1000) / powerDivisor;
                             }
 
                             if (attr.activePowerPhB !== undefined) {
-                                ret["power_phase_b"] = (attr["activePowerPhB"] * 1000) / powerDivisor;
+                                ret.power_phase_b = (attr.activePowerPhB * 1000) / powerDivisor;
                             }
 
                             if (attr.activePowerPhC !== undefined) {
-                                ret["power_phase_c"] = (attr["activePowerPhC"] * 1000) / powerDivisor;
+                                ret.power_phase_c = (attr.activePowerPhC * 1000) / powerDivisor;
                             }
                             break;
                         }
                         case 1794: {
                             // seMetering
-                            const divisor = attr["divisor"];
+                            const divisor = attr.divisor;
 
                             if (attr.currentSummDelivered !== undefined) {
-                                const val = attr["currentSummDelivered"];
-                                ret["energy"] = val / divisor;
+                                const val = attr.currentSummDelivered;
+                                ret.energy = val / divisor;
                             }
 
                             if (attr["16652"] !== undefined) {
                                 const val = attr["16652"];
-                                ret["energy_phase_a"] = val / divisor;
+                                ret.energy_phase_a = val / divisor;
                             }
 
                             if (attr["16908"] !== undefined) {
                                 const val = attr["16908"];
-                                ret["energy_phase_b"] = val / divisor;
+                                ret.energy_phase_b = val / divisor;
                             }
 
                             if (attr["17164"] !== undefined) {
                                 const val = attr["17164"];
-                                ret["energy_phase_c"] = val / divisor;
+                                ret.energy_phase_c = val / divisor;
                             }
 
                             if (attr.powerFactor !== undefined) {
-                                ret["power_factor"] = attr["powerFactor"];
+                                ret.power_factor = attr.powerFactor;
                             }
 
                             break;

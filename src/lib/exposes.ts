@@ -1,4 +1,4 @@
-import assert from "assert";
+import assert from "node:assert";
 
 import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
@@ -804,28 +804,28 @@ export const options = {
                 `Number of digits after decimal point for ${name}, takes into effect on next report of device. This option can only decrease the precision, not increase it.`,
             ),
     invert_cover: () =>
-        new Binary(`invert_cover`, access.SET, true, false).withDescription(
-            `Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).`,
+        new Binary("invert_cover", access.SET, true, false).withDescription(
+            "Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).",
         ),
-    illuminance_raw: () => new Binary(`illuminance_raw`, access.SET, true, false).withDescription(`Expose the raw illuminance value.`),
+    illuminance_raw: () => new Binary("illuminance_raw", access.SET, true, false).withDescription("Expose the raw illuminance value."),
     color_sync: () =>
-        new Binary(`color_sync`, access.SET, true, false).withDescription(
-            `When enabled colors will be synced, e.g. if the light supports both color x/y and color temperature a conversion from color x/y to color temperature will be done when setting the x/y color (default true).`,
+        new Binary("color_sync", access.SET, true, false).withDescription(
+            "When enabled colors will be synced, e.g. if the light supports both color x/y and color temperature a conversion from color x/y to color temperature will be done when setting the x/y color (default true).",
         ),
     thermostat_unit: () =>
         new Enum("thermostat_unit", access.SET, ["celsius", "fahrenheit"]).withDescription(
             "Controls the temperature unit of the thermostat (default celsius).",
         ),
     expose_pin: () =>
-        new Binary(`expose_pin`, access.SET, true, false)
+        new Binary("expose_pin", access.SET, true, false)
             .withLabel("Expose PIN")
-            .withDescription(`Expose pin of this lock in the published payload (default false).`),
+            .withDescription("Expose pin of this lock in the published payload (default false)."),
     occupancy_timeout: () =>
-        new Numeric(`occupancy_timeout`, access.SET)
+        new Numeric("occupancy_timeout", access.SET)
             .withValueMin(0)
             .withDescription("Time in seconds after which occupancy is cleared after detecting it (default 90 seconds)."),
     occupancy_timeout_2: () =>
-        new Numeric(`occupancy_timeout`, access.SET)
+        new Numeric("occupancy_timeout", access.SET)
             .withValueMin(0)
             .withValueStep(0.1)
             .withUnit("s")
@@ -833,26 +833,26 @@ export const options = {
                 'Time in seconds after which occupancy is cleared after detecting it (default is "detection_interval" + 2 seconds). The value must be equal to or greater than "detection_interval", and it can also be a fraction.',
             ),
     vibration_timeout: () =>
-        new Numeric(`vibration_timeout`, access.SET)
+        new Numeric("vibration_timeout", access.SET)
             .withValueMin(0)
             .withDescription("Time in seconds after which vibration is cleared after detecting it (default 90 seconds)."),
     simulated_brightness: () =>
         new Composite("simulated_brightness", "simulated_brightness", access.SET)
             .withDescription(
-                `Simulate a brightness value. If this device provides a brightness_move_up or brightness_move_down action it is possible to specify the update interval and delta. The action_brightness_delta indicates the delta for each interval.`,
+                "Simulate a brightness value. If this device provides a brightness_move_up or brightness_move_down action it is possible to specify the update interval and delta. The action_brightness_delta indicates the delta for each interval.",
             )
             .withFeature(new Numeric("delta", access.SET).withValueMin(0).withDescription("Delta per interval, 20 by default"))
             .withFeature(new Numeric("interval", access.SET).withValueMin(0).withUnit("ms").withDescription("Interval duration")),
     no_occupancy_since_true: () =>
-        new List(`no_occupancy_since`, access.SET, new Numeric("time", access.STATE_SET)).withDescription(
+        new List("no_occupancy_since", access.SET, new Numeric("time", access.STATE_SET)).withDescription(
             'Sends a message the last time occupancy (occupancy: true) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be send after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
         ),
     no_occupancy_since_false: () =>
-        new List(`no_occupancy_since`, access.SET, new Numeric("time", access.STATE_SET)).withDescription(
+        new List("no_occupancy_since", access.SET, new Numeric("time", access.STATE_SET)).withDescription(
             'Sends a message after the last time no occupancy (occupancy: false) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be send after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
         ),
     presence_timeout: () =>
-        new Numeric(`presence_timeout`, access.SET)
+        new Numeric("presence_timeout", access.SET)
             .withValueMin(0)
             .withDescription("Time in seconds after which presence is cleared after detecting it (default 100 seconds)."),
     no_position_support: () =>
@@ -860,23 +860,23 @@ export const options = {
             "Set to true when your device only reports position 0, 100 and 50 (in this case your device has an older firmware) (default false).",
         ),
     transition: () =>
-        new Numeric(`transition`, access.SET)
+        new Numeric("transition", access.SET)
             .withValueMin(0)
             .withDescription(
                 "Controls the transition time (in seconds) of on/off, brightness, color temperature (if applicable) and color (if applicable) changes. Defaults to `0` (no transition).",
             ),
     measurement_poll_interval: (extraNote = "") =>
-        new Numeric(`measurement_poll_interval`, access.SET)
+        new Numeric("measurement_poll_interval", access.SET)
             .withValueMin(-1)
             .withDescription(
                 `This device does not support reporting electric measurements so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.${extraNote}`,
             ),
     illuminance_below_threshold_check: () =>
-        new Binary(`illuminance_below_threshold_check`, access.SET, true, false).withDescription(
-            `Set to false to also send messages when illuminance is above threshold in night mode (default true).`,
+        new Binary("illuminance_below_threshold_check", access.SET, true, false).withDescription(
+            "Set to false to also send messages when illuminance is above threshold in night mode (default true).",
         ),
     state_action: () =>
-        new Binary(`state_action`, access.SET, true, false).withDescription(
+        new Binary("state_action", access.SET, true, false).withDescription(
             `State actions will also be published as 'action' when true (default false).`,
         ),
     identify_timeout: () =>
@@ -887,13 +887,13 @@ export const options = {
             .withValueMin(1)
             .withValueMax(30),
     cover_position_tilt_disable_report: () =>
-        new Binary(`cover_position_tilt_disable_report`, access.SET, true, false).withDescription(
+        new Binary("cover_position_tilt_disable_report", access.SET, true, false).withDescription(
             `Do not publish set cover target position as a normal 'position' value (default false).`,
         ),
     local_temperature_based_on_sensor: () =>
-        new Binary(`local_temperature_based_on_sensor`, access.SET, true, false)
+        new Binary("local_temperature_based_on_sensor", access.SET, true, false)
             .withLabel("Local temperature sensor reporting")
-            .withDescription(`Base local temperature on sensor choice (default false).`),
+            .withDescription("Base local temperature on sensor choice (default false)."),
 };
 
 export const presets = {
@@ -1208,7 +1208,7 @@ export const presets = {
             .withCategory("config"),
     power_outage_count: (resetsWhenPairing = true) =>
         new Numeric("power_outage_count", access.STATE)
-            .withDescription("Number of power outages" + (resetsWhenPairing ? " (since last pairing)" : ""))
+            .withDescription(`Number of power outages${resetsWhenPairing ? " (since last pairing)" : ""}`)
             .withCategory("diagnostic"),
     power_outage_memory: () =>
         new Binary("power_outage_memory", access.ALL, true, false)
@@ -1262,7 +1262,7 @@ export const presets = {
     test: () => new Binary("test", access.STATE, true, false).withDescription("Indicates whether the device is being tested"),
     trigger_count: (sinceScheduledReport = true) =>
         new Numeric("trigger_count", access.STATE)
-            .withDescription("Indicates how many times the sensor was triggered" + (sinceScheduledReport ? " (since last scheduled report)" : ""))
+            .withDescription(`Indicates how many times the sensor was triggered${sinceScheduledReport ? " (since last scheduled report)" : ""}`)
             .withCategory("diagnostic"),
     trigger_indicator: () =>
         new Binary("trigger_indicator", access.ALL, true, false).withDescription("Enables trigger indication").withCategory("config"),

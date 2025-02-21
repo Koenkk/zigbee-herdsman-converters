@@ -17,7 +17,7 @@ const fzLocal = {
         type: "commandStatusChangeNotification",
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-            if (msg.endpoint.ID != 1) return;
+            if (msg.endpoint.ID !== 1) return;
             return {rain: (zoneStatus & 1) > 0};
         },
     } satisfies Fz.Converter,

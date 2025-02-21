@@ -62,7 +62,7 @@ const fzLocal = {
         type: ["commandAlarm"],
         convert: async (model, msg, publish, options, meta) => {
             let result: ZHTypes.KeyValue = {};
-            if (msg.data.clusterid == 64512) {
+            if (msg.data.clusterid === 64512) {
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
                     9: {state: "UNLOCKED", lock_state: "not_fully_locked", alarm: "deadbolt_jammed"},
@@ -100,7 +100,7 @@ const fzLocal = {
             try {
                 await msg.endpoint.read("manuSpecificAssaDoorLock", ["batteryLevel"]);
             } catch {
-                logger.warning(`Failed to read lock attributes`, NS);
+                logger.warning("Failed to read lock attributes", NS);
             }
             return result;
         },
@@ -129,10 +129,10 @@ const fzLocal = {
             }
             if (data["21"]) {
                 result.battery = data["21"];
-                result.battery_low = data["21"] <= 15 ? true : false;
+                result.battery_low = data["21"] <= 15;
             }
             if (data["22"]) {
-                result.inside_escutcheon_led = data["22"] == 1 ? true : false;
+                result.inside_escutcheon_led = data["22"] === 1;
             }
             if (data["23"]) {
                 const lookup = {
@@ -187,7 +187,7 @@ const fzLocal = {
         type: ["commandAlarm"],
         convert: async (model, msg, publish, options, meta) => {
             let result: ZHTypes.KeyValue = {};
-            if (msg.data.clusterid == 64512) {
+            if (msg.data.clusterid === 64512) {
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
                     9: {action: "error_jammed", state: "UNLOCK", lock_state: "not_fully_locked"},
@@ -204,7 +204,7 @@ const fzLocal = {
                     try {
                         await msg.endpoint.read("closuresDoorLock", ["lockState"]);
                     } catch {
-                        logger.warning(`Failed to read lock state`, NS);
+                        logger.warning("Failed to read lock state", NS);
                     }
                 } else {
                     result = getFromLookup(alarmcode, lookup);

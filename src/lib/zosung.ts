@@ -13,7 +13,7 @@ function nextSeq(entity: Zh.Endpoint | Zh.Group) {
 
 function messagesGet(entity: Zh.Endpoint | Zh.Group, seq: number) {
     const info = globalStore.getValue(entity, "irMessageInfo");
-    const expected = (info && info.seq) || 0;
+    const expected = info?.seq || 0;
     if (expected !== seq) {
         throw new Error(`Unexpected sequence value (expected: ${expected} current: ${seq}).`);
     }
@@ -25,7 +25,7 @@ function messagesSet(entity: Zh.Endpoint | Zh.Group, seq: number, data: unknown)
 
 function messagesClear(entity: Zh.Endpoint | Zh.Group, seq: number) {
     const info = globalStore.getValue(entity, "irMessageInfo");
-    const expected = (info && info.seq) || 0;
+    const expected = info?.seq || 0;
     if (expected !== seq) {
         throw new Error(`Unexpected sequence value (expected: ${expected} current: ${seq}).`);
     }
@@ -144,11 +144,11 @@ export const fzZosung = {
             logger.debug(`"IR-Message-Code03" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
             const rcv = messagesGet(msg.endpoint, seq);
-            if (rcv.position == msg.data.position) {
+            if (rcv.position === msg.data.position) {
                 const rcvMsgPart = msg.data.msgpart;
                 const sum = calcArrayCrc(rcvMsgPart);
                 const expectedPartCrc = msg.data.msgpartcrc;
-                if (sum == expectedPartCrc) {
+                if (sum === expectedPartCrc) {
                     const position = rcvMsgPart.copy(rcv.buf, rcv.position);
                     rcv.position += position;
                     if (rcv.position < rcv.buf.length) {
@@ -213,7 +213,7 @@ export const tzZosung = {
         key: ["ir_code_to_send"],
         convertSet: async (entity, key, value, meta) => {
             if (!value) {
-                logger.error(`There is no IR code to send`, NS);
+                logger.error("There is no IR code to send", NS);
                 return;
             }
             const irMsg = JSON.stringify({
@@ -243,13 +243,13 @@ export const tzZosung = {
                 },
                 {disableDefaultResponse: true},
             );
-            logger.debug(`Sending IR code initiated.`, NS);
+            logger.debug("Sending IR code initiated.", NS);
         },
     } satisfies Tz.Converter,
     zosung_learn_ir_code: {
         key: ["learn_ir_code"],
         convertSet: async (entity, key, value, meta) => {
-            logger.debug(`Starting IR Code Learning...`, NS);
+            logger.debug("Starting IR Code Learning...", NS);
             await entity.command(
                 "zosungIRControl",
                 "zosungControlIRCommand00",
@@ -258,7 +258,7 @@ export const tzZosung = {
                 },
                 {disableDefaultResponse: true},
             );
-            logger.debug(`IR Code Learning started.`, NS);
+            logger.debug("IR Code Learning started.", NS);
         },
     } satisfies Tz.Converter,
 };

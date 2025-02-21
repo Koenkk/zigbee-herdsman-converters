@@ -26,7 +26,7 @@ const fzLocal = {
         cluster: "genBinaryOutput",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            return {state: msg.data.presentValue == 1 ? msg.data.activeText : msg.data.inactiveText};
+            return {state: msg.data.presentValue === 1 ? msg.data.activeText : msg.data.inactiveText};
         },
     } satisfies Fz.Converter,
 };

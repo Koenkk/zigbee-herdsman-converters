@@ -2398,7 +2398,7 @@ export const definitions: DefinitionWithExtend[] = [
                 data.type === "attributeReport" &&
                 data.cluster === "genBasic" &&
                 data.data["1028"] !== undefined &&
-                data.data["1028"] == 0
+                data.data["1028"] === 0
             ) {
                 // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
                 // Might need to add delay, seems to be working without one but needs more tests.
@@ -2543,7 +2543,7 @@ export const definitions: DefinitionWithExtend[] = [
                 data.type === "attributeReport" &&
                 data.cluster === "genMultistateOutput" &&
                 data.data.presentValue !== undefined &&
-                data.data["presentValue"] > 1
+                data.data.presentValue > 1
             ) {
                 // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
                 // Might need to add delay, seems to be working without one but needs more tests.

@@ -35,9 +35,8 @@ export function sengledSwitchAction(): ModernExtend {
                     // Append '_long' to the end of the action so the user knows it was a long press.
                     // This only applies to the up and down action
                     return {action: `${lookup[msg.data[5]]}_long`};
-                } else {
-                    return {action: lookup[msg.data[5]]}; // Just output the data from the above lookup list
                 }
+                return {action: lookup[msg.data[5]]}; // Just output the data from the above lookup list
             },
         },
     ];

@@ -19,9 +19,9 @@ export const ewelinkToZigbee = {
         key: ["motor_direction"],
         convertSet: async (entity, key, value, meta) => {
             let windowCoveringMode;
-            if (value == "forward") {
+            if (value === "forward") {
                 windowCoveringMode = 0x00;
-            } else if (value == "reverse") {
+            } else if (value === "reverse") {
                 windowCoveringMode = 0x01;
             }
             await entity.write("closuresWindowCovering", {windowCoveringMode}, utils.getOptions(meta.mapped, entity));
@@ -39,7 +39,7 @@ export const ewelinkFromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (typeof msg.data === "object" && Object.prototype.hasOwnProperty.call(msg.data, "windowCoveringMode")) {
-                result["motor_direction"] = (msg.data.windowCoveringMode & (1 << 0)) > 0 == true ? "reverse" : "forward";
+                result.motor_direction = (msg.data.windowCoveringMode & (1 << 0)) > 0 === true ? "reverse" : "forward";
             }
             return result;
         },
@@ -144,7 +144,8 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                             return {
                                 motor_clb_position_result,
                             };
-                        } else if (payload[0] === deletedPrivateCmd && payload[1] === deletedPrivateSubCmd) {
+                        }
+                        if (payload[0] === deletedPrivateCmd && payload[1] === deletedPrivateSubCmd) {
                             if (payload[2] === protocol.dooya.mapping.clear) {
                                 const motor_clb_position_result = {
                                     open: "uncalibrated",
@@ -170,19 +171,18 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                                 return {
                                     motor_clb_position_result,
                                 };
-                            } else {
-                                const entities = Object.entries(protocol.ak.mapping);
-                                const motor_clb_position_result: {[key: string]: string} = {};
-                                for (const entity of entities) {
-                                    if (entity[1] === payload[6]) {
-                                        motor_clb_position_result[entity[0] as string] = "calibrated";
-                                        break;
-                                    }
-                                }
-                                return {
-                                    motor_clb_position_result,
-                                };
                             }
+                            const entities = Object.entries(protocol.ak.mapping);
+                            const motor_clb_position_result: {[key: string]: string} = {};
+                            for (const entity of entities) {
+                                if (entity[1] === payload[6]) {
+                                    motor_clb_position_result[entity[0] as string] = "calibrated";
+                                    break;
+                                }
+                            }
+                            return {
+                                motor_clb_position_result,
+                            };
                         }
                     }
                 }
@@ -601,7 +601,8 @@ function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: 
                             return {
                                 motor_speed: payload[2], // If the gear position is 255, it means the device does not support speed adjustment.
                             };
-                        } else if (payload[0] === updatedMaxMotorSpeedCommand.privateCmd && payload[1] === updatedMaxMotorSpeedCommand.subCmd) {
+                        }
+                        if (payload[0] === updatedMaxMotorSpeedCommand.privateCmd && payload[1] === updatedMaxMotorSpeedCommand.subCmd) {
                             const supportedMax = payload[2];
                             if (supportedMax === 0 || supportedMax === undefined) {
                                 return {

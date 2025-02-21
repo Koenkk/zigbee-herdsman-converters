@@ -62,14 +62,15 @@ export function onEventPoll(
 
 export function precisionRound(number: number, precision: number): number {
     if (typeof precision === "number") {
-        const factor = Math.pow(10, precision);
+        const factor = 10 ** precision;
         return Math.round(number * factor) / factor;
-    } else if (typeof precision === "object") {
+    }
+    if (typeof precision === "object") {
         const thresholds = Object.keys(precision)
             .map(Number)
             .sort((a, b) => b - a);
         for (const t of thresholds) {
-            if (!isNaN(t) && number >= t) {
+            if (!Number.isNaN(t) && number >= t) {
                 return precisionRound(number, precision[t]);
             }
         }
@@ -85,33 +86,17 @@ export function toLocalISOString(dDate: Date) {
         return (norm < 10 ? "0" : "") + norm;
     };
 
-    return (
-        dDate.getFullYear() +
-        "-" +
-        pad(dDate.getMonth() + 1) +
-        "-" +
-        pad(dDate.getDate()) +
-        "T" +
-        pad(dDate.getHours()) +
-        ":" +
-        pad(dDate.getMinutes()) +
-        ":" +
-        pad(dDate.getSeconds()) +
-        plusOrMinus +
-        pad(tzOffset / 60) +
-        ":" +
-        pad(tzOffset % 60)
-    );
+    return `${dDate.getFullYear()}-${pad(dDate.getMonth() + 1)}-${pad(dDate.getDate())}T${pad(dDate.getHours())}:${pad(dDate.getMinutes())}:${pad(dDate.getSeconds())}${plusOrMinus}${pad(tzOffset / 60)}:${pad(tzOffset % 60)}`;
 }
 
 export function numberWithinRange(number: number, min: number, max: number) {
     if (number > max) {
         return max;
-    } else if (number < min) {
-        return min;
-    } else {
-        return number;
     }
+    if (number < min) {
+        return min;
+    }
+    return number;
 }
 
 /**
@@ -132,9 +117,9 @@ export function mapNumberRange(value: number, fromLow: number, fromHigh: number,
 
 const transactionStore: {[s: string]: number[]} = {};
 export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number = null, key: string = null) {
-    if (model.meta && model.meta.publishDuplicateTransaction) return false;
+    if (model.meta?.publishDuplicateTransaction) return false;
     const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
-    key = key || msg.device.ieeeAddr + "-" + msg.endpoint.ID;
+    key = key || `${msg.device.ieeeAddr}-${msg.endpoint.ID}`;
     if (transactionStore[key]?.includes(currentID)) return true;
     // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
     transactionStore[key] = [currentID, ...(transactionStore[key] ?? [])].slice(0, 5);
@@ -204,7 +189,7 @@ export function toPercentage(value: number, min: number, max: number) {
 }
 
 export function addActionGroup(payload: KeyValue, msg: Fz.Message, definition: Definition) {
-    const disableActionGroup = definition.meta && definition.meta.disableActionGroup;
+    const disableActionGroup = definition.meta?.disableActionGroup;
     if (!disableActionGroup && msg.groupID) {
         payload.action_group = msg.groupID;
     }
@@ -220,16 +205,12 @@ export function getEndpointName(msg: Fz.Message, definition: Definition, meta: F
 export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
-        logger.warning(`No meta passed to postfixWithEndpointName, update your external converter!`, NS);
+        logger.warning("No meta passed to postfixWithEndpointName, update your external converter!", NS);
         // @ts-expect-error ignore
         meta = {device: null};
     }
 
-    if (
-        definition.meta &&
-        definition.meta.multiEndpoint &&
-        (!definition.meta.multiEndpointSkip || !definition.meta.multiEndpointSkip.includes(value))
-    ) {
+    if (definition.meta?.multiEndpoint && (!definition.meta.multiEndpointSkip || !definition.meta.multiEndpointSkip.includes(value))) {
         const endpointName = definition.endpoint !== undefined ? getKey(definition.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
 
         // NOTE: endpointName can be undefined if we have a definition.endpoint and the endpoint is
@@ -281,18 +262,19 @@ export function batteryVoltageToPercentage(voltage: number, option: BatteryNonLi
         }
 
         return Math.round(percentage);
-    } else if (option === "3V_1500_2800") {
+    }
+    if (option === "3V_1500_2800") {
         const percentage = 235 - 370000 / (voltage + 1);
 
         return Math.round(Math.min(Math.max(percentage, 0), 100));
-    } else if (typeof option === "object") {
+    }
+    if (typeof option === "object") {
         // Generic converter that expects an option object with min and max values
         // I.E. meta: {battery: {voltageToPercentage: {min: 1900, max: 3000}}}
         return toPercentage(voltage + (option.vOffset ?? 0), option.min, option.max);
-    } else {
-        // only to cover case where a BatteryVoltage is missing in this switch
-        throw new Error(`Unhandled battery voltage to percentage option: ${option}`);
     }
+    // only to cover case where a BatteryVoltage is missing in this switch
+    throw new Error(`Unhandled battery voltage to percentage option: ${option}`);
 }
 
 // groupStrategy: allEqual: return only if all members in the groups have the same meta property value
@@ -314,7 +296,8 @@ export function getMetaValue<T>(
                 const value = typeof memberMetaMeta[key] === "function" ? memberMetaMeta[key](entity.members[i]) : memberMetaMeta[key];
                 if (groupStrategy === "first") {
                     return value;
-                } else if (typeof groupStrategy === "object" && value === groupStrategy.atLeastOnce) {
+                }
+                if (typeof groupStrategy === "object" && value === groupStrategy.atLeastOnce) {
                     return groupStrategy.atLeastOnce;
                 }
 
@@ -398,12 +381,11 @@ export function toSnakeCase(value: string | KeyValueAny) {
             }
         }
         return value;
-    } else {
-        return value
-            .replace(/\.?([A-Z])/g, (x, y) => "_" + y.toLowerCase())
-            .replace(/^_/, "")
-            .replace("_i_d", "_id");
     }
+    return value
+        .replace(/\.?([A-Z])/g, (x, y) => `_${y.toLowerCase()}`)
+        .replace(/^_/, "")
+        .replace("_i_d", "_id");
 }
 
 export function toCamelCase(value: KeyValueAny | string) {
@@ -417,9 +399,8 @@ export function toCamelCase(value: KeyValueAny | string) {
             }
         }
         return value;
-    } else {
-        return value.replace(/_([a-z])/g, (x, y) => y.toUpperCase());
     }
+    return value.replace(/_([a-z])/g, (x, y) => y.toUpperCase());
 }
 
 export function getLabelFromName(name: string) {
@@ -461,9 +442,8 @@ export function getSceneState(entity: Zh.Group | Zh.Endpoint, sceneID: number, g
 export function getEntityOrFirstGroupMember(entity: Zh.Group | Zh.Endpoint) {
     if (isGroup(entity)) {
         return entity.members.length > 0 ? entity.members[0] : null;
-    } else {
-        return entity;
     }
+    return entity;
 }
 
 export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) {
@@ -491,12 +471,12 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
     if (message.transition !== undefined) {
         const time = toNumber(message.transition, "transition");
         return {time: time * 10, specified: true};
-    } else if (options.transition !== undefined && options.transition !== "") {
+    }
+    if (options.transition !== undefined && options.transition !== "") {
         const transition = toNumber(options.transition, "transition");
         return {time: transition * 10, specified: true};
-    } else {
-        return {time: 0, specified: false};
     }
+    return {time: 0, specified: false};
 }
 
 export function getOptions(definition: Definition | Definition[], entity: Zh.Endpoint | Zh.Group, options = {}) {
@@ -507,7 +487,7 @@ export function getOptions(definition: Definition | Definition[], entity: Zh.End
 export function getMetaValues(definitions: Definition | Definition[], entity: Zh.Endpoint | Zh.Group, allowed?: string[], options = {}) {
     const result: KeyValue = {...options};
     for (const definition of Array.isArray(definitions) ? definitions : [definitions]) {
-        if (definition && definition.meta) {
+        if (definition?.meta) {
             for (const key of Object.keys(definition.meta)) {
                 if (allowed == null || allowed.includes(key)) {
                     // @ts-expect-error ignore
@@ -555,8 +535,8 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
 }
 
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: "start" | "stop") {
-    if (options && options.no_occupancy_since) {
-        if (action == "start") {
+    if (options?.no_occupancy_since) {
+        if (action === "start") {
             globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
 

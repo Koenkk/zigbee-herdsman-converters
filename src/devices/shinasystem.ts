@@ -49,7 +49,7 @@ const fzLocal = {
             if (msg.data.onOff !== undefined) {
                 const endpoint = meta.device.getEndpoint(1);
                 await endpoint.read("genOnOff", [0x9007]); // for update : close_remain_timeout
-                return {gas_valve_state: msg.data["onOff"] === 1 ? "OPEN" : "CLOSE"};
+                return {gas_valve_state: msg.data.onOff === 1 ? "OPEN" : "CLOSE"};
             }
         },
     } satisfies Fz.Converter,
@@ -71,7 +71,8 @@ const tzLocal = {
                         payload = {presentValue: 82};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {counting_freeze: "ON"}};
-                    } else if (value.toLowerCase() === "off") {
+                    }
+                    if (value.toLowerCase() === "off") {
                         payload = {presentValue: 84};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {counting_freeze: "OFF"}};
@@ -85,7 +86,8 @@ const tzLocal = {
                         payload = {presentValue: 86};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {led_state: "enable"}};
-                    } else if (value === "disable") {
+                    }
+                    if (value === "disable") {
                         payload = {presentValue: 87};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {led_state: "disable"}};
@@ -96,7 +98,8 @@ const tzLocal = {
                         payload = {presentValue: 88};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {rf_state: "enable"}};
-                    } else if (value === "disable") {
+                    }
+                    if (value === "disable") {
                         payload = {presentValue: 89};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {rf_state: "disable"}};
@@ -107,23 +110,28 @@ const tzLocal = {
                         payload = {presentValue: 90};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {transaction: "0ms"}};
-                    } else if (value === "200ms") {
+                    }
+                    if (value === "200ms") {
                         payload = {presentValue: 91};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {transaction: "200ms"}};
-                    } else if (value === "400ms") {
+                    }
+                    if (value === "400ms") {
                         payload = {presentValue: 92};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {transaction: "400ms"}};
-                    } else if (value === "600ms") {
+                    }
+                    if (value === "600ms") {
                         payload = {presentValue: 93};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {transaction: "600ms"}};
-                    } else if (value === "800ms") {
+                    }
+                    if (value === "800ms") {
                         payload = {presentValue: 94};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {transaction: "800ms"}};
-                    } else if (value === "1,000ms") {
+                    }
+                    if (value === "1,000ms") {
                         payload = {presentValue: 95};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {transaction: "1,000ms"}};
@@ -134,7 +142,8 @@ const tzLocal = {
                         payload = {presentValue: 96};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {fast_in: "enable"}};
-                    } else if (value === "disable") {
+                    }
+                    if (value === "disable") {
                         payload = {presentValue: 97};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {fast_in: "disable"}};
@@ -145,7 +154,8 @@ const tzLocal = {
                         payload = {presentValue: 98};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {fast_out: "enable"}};
-                    } else if (value === "disable") {
+                    }
+                    if (value === "disable") {
                         payload = {presentValue: 99};
                         await endpoint.write("genAnalogInput", payload);
                         return {state: {fast_out: "disable"}};
@@ -160,7 +170,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {CLOSE: "off"}; // open is not supported.
             const state = utils.getFromLookup(value, lookup);
-            if (state != "off") value = "CLOSE";
+            if (state !== "off") value = "CLOSE";
             else await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
             return {state: {[key]: value}};
         },

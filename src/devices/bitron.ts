@@ -248,7 +248,7 @@ export const definitions: DefinitionWithExtend[] = [
             if (typeof ctrlSeqeOfOper === "string") ctrlSeqeOfOper = Number.parseInt(ctrlSeqeOfOper) ?? null;
 
             // NOTE: ctrlSeqeOfOper defaults to 2 for this device (according to the manual)
-            if (ctrlSeqeOfOper === null || isNaN(ctrlSeqeOfOper)) ctrlSeqeOfOper = 2;
+            if (ctrlSeqeOfOper === null || Number.isNaN(ctrlSeqeOfOper)) ctrlSeqeOfOper = 2;
 
             // NOTE: set cool and/or heat support based on ctrlSeqeOfOper (see lib/constants -> thermostatControlSequenceOfOperations)
             // WARN: a restart of zigbee2mqtt is required after changing ctrlSeqeOfOper for expose data to be re-calculated

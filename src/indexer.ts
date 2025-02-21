@@ -2,8 +2,8 @@
  * This module's only purpose is to build the models index for zigbee-herdsman-converters.
  */
 
-import {readdirSync, writeFileSync} from "fs";
-import path from "path";
+import {readdirSync, writeFileSync} from "node:fs";
+import path from "node:path";
 
 import equal from "fast-deep-equal";
 

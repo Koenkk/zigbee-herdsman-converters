@@ -37,7 +37,7 @@ const pilotWireConfig = (configureReporting: boolean): ModernExtend => {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const payload: KeyValueAny = {};
-                    const mode = msg.data["mode"];
+                    const mode = msg.data.mode;
 
                     if (mode === 0x00) payload.pilot_wire_mode = "off";
                     else if (mode === 0x01) payload.pilot_wire_mode = "comfort";

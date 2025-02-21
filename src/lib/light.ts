@@ -23,7 +23,7 @@ export function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Met
      * Additionally when we get a "get payload", only request the fields included.
      */
     const attributes = ["colorMode"];
-    if (meta && meta.message) {
+    if (meta?.message) {
         if (!meta.message.color || (utils.isObject(meta.message.color) && meta.message.color.x !== undefined)) {
             attributes.push("currentX");
         }

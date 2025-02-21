@@ -50,9 +50,8 @@ const converters1 = {
                 if (state === "toggle") {
                     const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
                     return currentState ? {state: {state: currentState === "OFF" ? "ON" : "OFF"}} : {};
-                } else {
-                    return {state: {state: state.toUpperCase()}};
                 }
+                return {state: {state: state.toUpperCase()}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -75,7 +74,8 @@ const converters1 = {
             if (newColor.isHSV() && !supportsHueAndSaturation) {
                 // The color we got is HSV but the bulb does not support Hue/Saturation mode
                 throw new Error("This light does not support Hue/Saturation, please use X/Y instead.");
-            } else if (newColor.isRGB() || newColor.isXY()) {
+            }
+            if (newColor.isRGB() || newColor.isXY()) {
                 // Convert RGB to XY color mode because Zigbee doesn't support RGB (only x/y and hue/saturation)
                 const xy = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
 
@@ -83,7 +83,7 @@ const converters1 = {
                 // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
                 // If we slightly modify these values the bulb will respond.
                 // https://github.com/home-assistant/home-assistant/issues/31094
-                if (utils.getMetaValue(entity, meta.mapped, "applyRedFix", "allEqual", false) && xy.x == 0.701 && xy.y === 0.299) {
+                if (utils.getMetaValue(entity, meta.mapped, "applyRedFix", "allEqual", false) && xy.x === 0.701 && xy.y === 0.299) {
                     xy.x = 0.7006;
                     xy.y = 0.2993;
                 }
@@ -252,7 +252,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
             utils.assertObject(value, key);
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             const isNotification = value.transaction !== undefined;
             const modeSrc = isNotification ? constants.armNotification : constants.armMode;
             const mode = utils.getKey(modeSrc, value.mode, undefined, Number);
@@ -381,14 +381,14 @@ const converters2 = {
             const userType = value.user_type || "unrestricted";
             const userEnabled = value.user_enabled !== undefined ? value.user_enabled : true;
             const pinCode = value.pin_code;
-            if (isNaN(user)) throw new Error("user must be numbers");
+            if (Number.isNaN(user)) throw new Error("user must be numbers");
             const pinCodeCount = utils.getMetaValue<number>(entity, meta.mapped, "pinCodeCount");
             if (!utils.isInRange(0, pinCodeCount - 1, user)) throw new Error("user must be in range for device");
 
             if (pinCode == null) {
                 await entity.command("closuresDoorLock", "clearPinCode", {userid: user}, utils.getOptions(meta.mapped, entity));
             } else {
-                if (isNaN(pinCode)) throw new Error("pinCode must be a number");
+                if (Number.isNaN(pinCode)) throw new Error("pinCode must be a number");
                 const typeLookup = {unrestricted: 0, year_day_schedule: 1, week_day_schedule: 2, master: 3, non_access: 4};
                 const payload = {
                     userid: user,
@@ -401,7 +401,7 @@ const converters2 = {
         },
         convertGet: async (entity, key, meta) => {
             // @ts-expect-error ignore
-            const user = meta && meta.message && meta.message.pin_code ? meta.message.pin_code.user : undefined;
+            const user = meta?.message?.pin_code ? meta.message.pin_code.user : undefined;
             if (user === undefined) {
                 const max = utils.getMetaValue<number>(entity, meta.mapped, "pinCodeCount");
                 // Get all
@@ -410,7 +410,7 @@ const converters2 = {
                     await entity.command("closuresDoorLock", "getPinCode", {userid: i}, options);
                 }
             } else {
-                if (isNaN(user)) {
+                if (Number.isNaN(user)) {
                     throw new Error("user must be numbers");
                 }
                 const pinCodeCount = utils.getMetaValue<number>(entity, meta.mapped, "pinCodeCount");
@@ -427,7 +427,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertObject(value, key);
             const user = value.user;
-            if (isNaN(user)) {
+            if (Number.isNaN(user)) {
                 throw new Error("user must be numbers");
             }
             const pinCodeCount = utils.getMetaValue<number>(entity, meta.mapped, "pinCodeCount");
@@ -453,7 +453,7 @@ const converters2 = {
         },
         convertGet: async (entity, key, meta) => {
             // @ts-expect-error ignore
-            const user = meta && meta.message && meta.message.user_status ? meta.message.user_status.user : undefined;
+            const user = meta?.message?.user_status ? meta.message.user_status.user : undefined;
             const pinCodeCount = utils.getMetaValue<number>(entity, meta.mapped, "pinCodeCount");
             if (user === undefined) {
                 const max = pinCodeCount;
@@ -463,7 +463,7 @@ const converters2 = {
                     await entity.command("closuresDoorLock", "getUserStatus", {userid: i}, options);
                 }
             } else {
-                if (isNaN(user)) {
+                if (Number.isNaN(user)) {
                     throw new Error("user must be numbers");
                 }
                 if (!utils.isInRange(0, pinCodeCount - 1, user)) {
@@ -531,7 +531,7 @@ const converters2 = {
 
             let info;
             // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (["SIRZB-110", "SRAC-23B-ZBSR", "AV2010/29A", "AV2010/24A"].includes(meta.mapped.model)) {
                 info = utils.getFromLookup(values.mode, mode) + ((values.strobe ? 1 : 0) << 4) + (utils.getFromLookup(values.level, level) << 6);
             } else {
@@ -563,7 +563,7 @@ const converters2 = {
 
             let info;
             // For Develco SMSZB-120 and HESZB-120, introduced change in fw 4.0.5, tested backward with 4.0.4
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (["SMSZB-120", "HESZB-120"].includes(meta.mapped.model)) {
                 info = (alarmState << 7) + (alarmState << 6);
             } else {
@@ -627,9 +627,8 @@ const converters2 = {
             );
             if (disableReport) {
                 return;
-            } else {
-                return {state: {[isPosition ? "position" : "tilt"]: value}};
             }
+            return {state: {[isPosition ? "position" : "tilt"]: value}};
         },
         convertGet: async (entity, key, meta) => {
             const isPosition = key === "position";
@@ -694,7 +693,7 @@ const converters2 = {
             //                    0xffff = use onOffTransitionTime
             if (value.on_transition_time !== undefined) {
                 let onTransitionTimeValue = value.on_transition_time;
-                if (typeof onTransitionTimeValue === "string" && onTransitionTimeValue.toLowerCase() == "disabled") {
+                if (typeof onTransitionTimeValue === "string" && onTransitionTimeValue.toLowerCase() === "disabled") {
                     onTransitionTimeValue = 65535;
                 } else {
                     onTransitionTimeValue = Number(onTransitionTimeValue);
@@ -705,7 +704,7 @@ const converters2 = {
                 await entity.write("genLevelCtrl", {onTransitionTime: onTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
 
                 // reverse translate number -> preset
-                if (onTransitionTimeValue == 65535) {
+                if (onTransitionTimeValue === 65535) {
                     onTransitionTimeValue = "disabled";
                 }
                 Object.assign(state, {on_transition_time: onTransitionTimeValue});
@@ -715,7 +714,7 @@ const converters2 = {
             //                    0xffff = use onOffTransitionTime
             if (value.off_transition_time !== undefined) {
                 let offTransitionTimeValue = value.off_transition_time;
-                if (typeof offTransitionTimeValue === "string" && offTransitionTimeValue.toLowerCase() == "disabled") {
+                if (typeof offTransitionTimeValue === "string" && offTransitionTimeValue.toLowerCase() === "disabled") {
                     offTransitionTimeValue = 65535;
                 } else {
                     offTransitionTimeValue = Number(offTransitionTimeValue);
@@ -726,7 +725,7 @@ const converters2 = {
                 await entity.write("genLevelCtrl", {offTransitionTime: offTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
 
                 // reverse translate number -> preset
-                if (offTransitionTimeValue == 65535) {
+                if (offTransitionTimeValue === 65535) {
                     offTransitionTimeValue = "disabled";
                 }
                 Object.assign(state, {off_transition_time: offTransitionTimeValue});
@@ -737,9 +736,9 @@ const converters2 = {
             //                       0xff = return to previous previous
             if (value.current_level_startup !== undefined) {
                 let startUpCurrentLevelValue = value.current_level_startup;
-                if (typeof startUpCurrentLevelValue === "string" && startUpCurrentLevelValue.toLowerCase() == "previous") {
+                if (typeof startUpCurrentLevelValue === "string" && startUpCurrentLevelValue.toLowerCase() === "previous") {
                     startUpCurrentLevelValue = 255;
-                } else if (typeof startUpCurrentLevelValue === "string" && startUpCurrentLevelValue.toLowerCase() == "minimum") {
+                } else if (typeof startUpCurrentLevelValue === "string" && startUpCurrentLevelValue.toLowerCase() === "minimum") {
                     startUpCurrentLevelValue = 0;
                 } else {
                     startUpCurrentLevelValue = Number(startUpCurrentLevelValue);
@@ -750,10 +749,10 @@ const converters2 = {
                 await entity.write("genLevelCtrl", {startUpCurrentLevel: startUpCurrentLevelValue}, utils.getOptions(meta.mapped, entity));
 
                 // reverse translate number -> preset
-                if (startUpCurrentLevelValue == 255) {
+                if (startUpCurrentLevelValue === 255) {
                     startUpCurrentLevelValue = "previous";
                 }
-                if (startUpCurrentLevelValue == 0) {
+                if (startUpCurrentLevelValue === 0) {
                     startUpCurrentLevelValue = "minimum";
                 }
                 Object.assign(state, {current_level_startup: startUpCurrentLevelValue});
@@ -763,7 +762,7 @@ const converters2 = {
             //           Any value outside of MinLevel to MaxLevel, including 0xff and 0x00, is interpreted as "previous".
             if (value.on_level !== undefined) {
                 let onLevel = value.on_level;
-                if (typeof onLevel === "string" && onLevel.toLowerCase() == "previous") {
+                if (typeof onLevel === "string" && onLevel.toLowerCase() === "previous") {
                     onLevel = 255;
                 } else {
                     onLevel = Number(onLevel);
@@ -771,7 +770,7 @@ const converters2 = {
                 if (onLevel > 255) onLevel = 254;
                 if (onLevel < 1) onLevel = 1;
                 await entity.write("genLevelCtrl", {onLevel}, utils.getOptions(meta.mapped, entity));
-                Object.assign(state, {on_level: onLevel == 255 ? "previous" : onLevel});
+                Object.assign(state, {on_level: onLevel === 255 ? "previous" : onLevel});
             }
 
             // options - 8-bit map
@@ -902,13 +901,12 @@ const converters2 = {
                 const onOff = (await target.read("genOnOff", ["onOff"])).onOff;
                 const brightness = (await target.read("genLevelCtrl", ["currentLevel"])).currentLevel;
                 return {state: {brightness, state: onOff === 1 ? "ON" : "OFF"}};
-            } else {
-                value = Number(value);
-                utils.assertNumber(value, key);
-                const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
-                const command = key.endsWith("onoff") ? "moveWithOnOff" : "move";
-                await entity.command("genLevelCtrl", command, payload, utils.getOptions(meta.mapped, entity));
             }
+            value = Number(value);
+            utils.assertNumber(value, key);
+            const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
+            const command = key.endsWith("onoff") ? "moveWithOnOff" : "move";
+            await entity.command("genLevelCtrl", command, payload, utils.getOptions(meta.mapped, entity));
         },
     } satisfies Tz.Converter,
     light_colortemp_step: {
@@ -980,9 +978,10 @@ const converters2 = {
         key: ["color", "color_temp", "color_temp_percent"],
         options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            if (key == "color") {
+            if (key === "color") {
                 return await converters1.light_color.convertSet(entity, key, value, meta);
-            } else if (key == "color_temp" || key == "color_temp_percent") {
+            }
+            if (key === "color_temp" || key === "color_temp_percent") {
                 utils.assertNumber(value);
                 const xy = libColor.ColorXY.fromMireds(value);
                 const payload = {
@@ -1074,7 +1073,7 @@ const converters2 = {
                 brightness = 254;
             }
 
-            if (brightness !== undefined && (isNaN(brightness) || brightness < 0 || brightness > 254)) {
+            if (brightness !== undefined && (Number.isNaN(brightness) || brightness < 0 || brightness > 254)) {
                 throw new Error(`Brightness value of message: '${JSON.stringify(message)}' invalid, must be a number >= 0 and =< 254`);
             }
 
@@ -1108,7 +1107,7 @@ const converters2 = {
                     meta.state.state === "OFF" &&
                     utils.getMetaValue(entity, meta.mapped, "noOffTransitionWhenOff", {atLeastOnce: true}, false)
                 ) {
-                    logger.debug(`Supressing OFF transition since entity is OFF and has noOffTransitionWhenOff=true`, NS);
+                    logger.debug("Supressing OFF transition since entity is OFF and has noOffTransitionWhenOff=true", NS);
                     brightness = undefined;
                 }
                 if (meta.state.brightness !== undefined && meta.state.state === "ON") {
@@ -1135,7 +1134,7 @@ const converters2 = {
                             const attributeRead = await entity.read("genLevelCtrl", ["onLevel"]);
                             if (attributeRead !== undefined) {
                                 // @ts-expect-error ignore
-                                onLevel = attributeRead["onLevel"];
+                                onLevel = attributeRead.onLevel;
                             }
                         } catch {
                             // OnLevel not supported
@@ -1217,7 +1216,7 @@ const converters2 = {
 
             // ensure value within range
             // we do allow one exception for 0xffff, which is to restore the previous value
-            if (value != 65535) {
+            if (value !== 65535) {
                 value = light.clampColorTemp(value, colorTempMin, colorTempMax);
             }
 
@@ -1244,10 +1243,11 @@ const converters2 = {
         key: ["color", "color_temp", "color_temp_percent"],
         options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            if (key == "color") {
+            if (key === "color") {
                 const result = await converters1.light_color.convertSet(entity, key, value, meta);
                 return result;
-            } else if (key == "color_temp" || key == "color_temp_percent") {
+            }
+            if (key === "color_temp" || key === "color_temp_percent") {
                 const result = await converters1.light_colortemp.convertSet(entity, key, value, meta);
                 return result;
             }
@@ -1337,8 +1337,7 @@ const converters2 = {
                 // calculate numoftrans
                 if (typeof value.numoftrans !== "undefined") {
                     logger.warning(
-                        `weekly_schedule: ignoring provided numoftrans value (${JSON.stringify(value.numoftrans)}), ` +
-                            "this is now calculated automatically",
+                        `weekly_schedule: ignoring provided numoftrans value (${JSON.stringify(value.numoftrans)}), this is now calculated automatically`,
                         NS,
                     );
                 }
@@ -1347,7 +1346,7 @@ const converters2 = {
                 // mode is calculated below
                 if (typeof value.mode !== "undefined") {
                     logger.warning(
-                        `weekly_schedule: ignoring provided mode value (${JSON.stringify(value.mode)}), ` + "this is now calculated automatically",
+                        `weekly_schedule: ignoring provided mode value (${JSON.stringify(value.mode)}), this is now calculated automatically`,
                         NS,
                     );
                 }
@@ -1364,40 +1363,37 @@ const converters2 = {
                     }
 
                     // transform setpoint values if numeric
-                    if (typeof elem["heatSetpoint"] === "number") {
-                        elem["heatSetpoint"] = Math.round(elem["heatSetpoint"] * 100);
+                    if (typeof elem.heatSetpoint === "number") {
+                        elem.heatSetpoint = Math.round(elem.heatSetpoint * 100);
                     }
-                    if (typeof elem["coolSetpoint"] === "number") {
-                        elem["coolSetpoint"] = Math.round(elem["coolSetpoint"] * 100);
+                    if (typeof elem.coolSetpoint === "number") {
+                        elem.coolSetpoint = Math.round(elem.coolSetpoint * 100);
                     }
 
                     // accept 24h time notation (e.g. 19:30)
-                    if (typeof elem["transitionTime"] === "string") {
-                        const time = elem["transitionTime"].split(":");
+                    if (typeof elem.transitionTime === "string") {
+                        const time = elem.transitionTime.split(":");
                         const timeHour = Number.parseInt(time[0]) * 60;
                         const timeMinute = Number.parseInt(time[1]);
 
-                        if (time.length != 2 || isNaN(timeHour) || isNaN(timeMinute)) {
-                            logger.warning(`weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem["transitionTime"]}'!`, NS);
+                        if (time.length !== 2 || Number.isNaN(timeHour) || Number.isNaN(timeMinute)) {
+                            logger.warning(`weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem.transitionTime}'!`, NS);
                         } else {
-                            elem["transitionTime"] = timeHour + timeMinute;
+                            elem.transitionTime = timeHour + timeMinute;
                         }
-                    } else if (typeof elem["transitionTime"] === "object") {
-                        if (elem["transitionTime"].hour === undefined || elem["transitionTime"].minute === undefined) {
+                    } else if (typeof elem.transitionTime === "object") {
+                        if (elem.transitionTime.hour === undefined || elem.transitionTime.minute === undefined) {
                             throw new Error(
-                                'weekly_schedule: expected 24h time object (e.g. {"hour": 19, "minute": 30}), ' +
-                                    `but got '${JSON.stringify(elem["transitionTime"])}'!`,
+                                `weekly_schedule: expected 24h time object (e.g. {"hour": 19, "minute": 30}), but got '${JSON.stringify(elem.transitionTime)}'!`,
                             );
-                        } else if (isNaN(elem["transitionTime"]["hour"])) {
-                            throw new Error("weekly_schedule: expected time.hour to be a number, " + `but got '${elem["transitionTime"]["hour"]}'!`);
-                        } else if (isNaN(elem["transitionTime"]["minute"])) {
-                            throw new Error(
-                                "weekly_schedule: expected time.minute to be a number, " + `but got '${elem["transitionTime"]["minute"]}'!`,
-                            );
-                        } else {
-                            elem["transitionTime"] =
-                                Number.parseInt(elem["transitionTime"]["hour"]) * 60 + Number.parseInt(elem["transitionTime"]["minute"]);
                         }
+                        if (Number.isNaN(elem.transitionTime.hour)) {
+                            throw new Error(`weekly_schedule: expected time.hour to be a number, but got '${elem.transitionTime.hour}'!`);
+                        }
+                        if (Number.isNaN(elem.transitionTime.minute)) {
+                            throw new Error(`weekly_schedule: expected time.minute to be a number, but got '${elem.transitionTime.minute}'!`);
+                        }
+                        elem.transitionTime = Number.parseInt(elem.transitionTime.hour) * 60 + Number.parseInt(elem.transitionTime.minute);
                     }
                 }
             } else {
@@ -1421,9 +1417,7 @@ const converters2 = {
                 for (let d of payload.dayofweek) {
                     if (typeof d === "object") {
                         if (d.day === undefined) {
-                            throw new Error(
-                                'weekly_schedule: expected dayofweek to be string or {"day": "str"}, ' + `but got '${JSON.stringify(d)}'!`,
-                            );
+                            throw new Error(`weekly_schedule: expected dayofweek to be string or {"day": "str"}, but got '${JSON.stringify(d)}'!`);
                         }
                         d = d.day;
                     }
@@ -1497,7 +1491,7 @@ const converters2 = {
             const val = utils.getKey(constants.thermostatProgrammingOperationModes, value, undefined, Number);
             if (val === undefined) {
                 throw new Error(
-                    "Programming operation mode invalid, must be one of: " + Object.values(constants.thermostatProgrammingOperationModes).join(", "),
+                    `Programming operation mode invalid, must be one of: ${Object.values(constants.thermostatProgrammingOperationModes).join(", ")}`,
                 );
             }
             await entity.write("hvacThermostat", {programingOperMode: val});
@@ -1984,7 +1978,8 @@ const converters2 = {
                     transactionSequenceNumber: 0xe9,
                 });
                 return {state: {state: value.toUpperCase()}};
-            } else if (postfix === "right") {
+            }
+            if (postfix === "right") {
                 channel = 2.0;
                 await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: oldstate, transtime: channel});
                 await entity.write("genPowerCfg", state === "on" ? payloadOnRight : payloadOffRight, {
@@ -1996,7 +1991,8 @@ const converters2 = {
                     transactionSequenceNumber: 0xe9,
                 });
                 return {state: {state: value.toUpperCase()}};
-            } else if (postfix === "bottom_right") {
+            }
+            if (postfix === "bottom_right") {
                 await entity.write("genPowerCfg", state === "on" ? payloadOnBottomRight : payloadOffBottomRight, {
                     manufacturerCode: 0x1ad2,
                     disableDefaultResponse: true,
@@ -2006,7 +2002,8 @@ const converters2 = {
                     transactionSequenceNumber: 0xe9,
                 });
                 return {state: {state: value.toUpperCase()}};
-            } else if (postfix === "bottom_left") {
+            }
+            if (postfix === "bottom_left") {
                 await entity.write("genPowerCfg", state === "on" ? payloadOnBottomLeft : payloadOffBottomLeft, {
                     manufacturerCode: 0x1ad2,
                     disableDefaultResponse: true,
@@ -2247,16 +2244,14 @@ const converters2 = {
             if (value === "toggle") {
                 if (meta.state.state === undefined) {
                     throw new Error("Cannot toggle, state not known yet");
-                } else {
-                    const payload = {85: {value: meta.state.state === "OFF" ? 0x01 : 0x00, type: 0x10}};
-                    await entity.write("genBinaryOutput", payload, options);
-                    return {state: {state: meta.state.state === "OFF" ? "ON" : "OFF"}};
                 }
-            } else {
-                const payload = {85: {value: value.toUpperCase() === "OFF" ? 0x00 : 0x01, type: 0x10}};
+                const payload = {85: {value: meta.state.state === "OFF" ? 0x01 : 0x00, type: 0x10}};
                 await entity.write("genBinaryOutput", payload, options);
-                return {state: {state: value.toUpperCase()}};
+                return {state: {state: meta.state.state === "OFF" ? "ON" : "OFF"}};
             }
+            const payload = {85: {value: value.toUpperCase() === "OFF" ? 0x00 : 0x01, type: 0x10}};
+            await entity.write("genBinaryOutput", payload, options);
+            return {state: {state: value.toUpperCase()}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genBinaryOutput", ["presentValue"]);
@@ -2578,9 +2573,9 @@ const converters2 = {
                 };
 
                 const oldPosition = meta.state.position;
-                if (value == 100) {
+                if (value === 100) {
                     await entity.command("closuresWindowCovering", "upOpen", {}, utils.getOptions(meta.mapped, entity));
-                } else if (value == 0) {
+                } else if (value === 0) {
                     await entity.command("closuresWindowCovering", "downClose", {}, utils.getOptions(meta.mapped, entity));
                 } else {
                     if (utils.isNumber(oldPosition) && oldPosition > value) {
@@ -2757,7 +2752,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             if (
                 key === "brightness" &&
-                meta.state.color_mode == constants.colorModeLookup[2] &&
+                meta.state.color_mode === constants.colorModeLookup[2] &&
                 meta.message.color === undefined &&
                 meta.message.color_temp === undefined
             ) {
@@ -2891,7 +2886,8 @@ const converters2 = {
                     await entity.command("genLevelCtrl", "moveToLevelWithOnOff", payload, utils.getOptions(meta.mapped, entity));
                 }
                 return {state: {state: value.toUpperCase()}};
-            } else if (key === "color") {
+            }
+            if (key === "color") {
                 const hue: KeyValueAny = {};
                 const saturation: KeyValueAny = {};
 
@@ -2951,20 +2947,20 @@ const converters2 = {
             await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
             // calculate bit value
             let bitValue = 0x01; // bit 0 always 1
-            if (meta.state.mirror_display == "ON") {
+            if (meta.state.mirror_display === "ON") {
                 bitValue |= 0x02;
             }
-            if (value == constants.thermostatSystemModes[0]) {
+            if (value === constants.thermostatSystemModes[0]) {
                 // off
                 bitValue |= 0x20;
-            } else if (value == constants.thermostatSystemModes[4]) {
+            } else if (value === constants.thermostatSystemModes[4]) {
                 // "heat"
                 bitValue |= 0x04;
             } else {
                 // auto
                 bitValue |= 0x10;
             }
-            if (meta.state.child_lock == "LOCK") {
+            if (meta.state.child_lock === "LOCK") {
                 bitValue |= 0x80;
             }
             value = bitValue;
@@ -3022,20 +3018,20 @@ const converters2 = {
             await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
             // calculate bit value
             let bitValue = 0x01; // bit 0 always 1
-            if (meta.state.mirror_display == "ON") {
+            if (meta.state.mirror_display === "ON") {
                 bitValue |= 0x02;
             }
-            if (meta.state.system_mode == constants.thermostatSystemModes[0]) {
+            if (meta.state.system_mode === constants.thermostatSystemModes[0]) {
                 // off
                 bitValue |= 0x20;
-            } else if (meta.state.system_mode == constants.thermostatSystemModes[4]) {
+            } else if (meta.state.system_mode === constants.thermostatSystemModes[4]) {
                 // "heat"
                 bitValue |= 0x04;
             } else {
                 // auto
                 bitValue |= 0x10;
             }
-            if (value == "LOCK") {
+            if (value === "LOCK") {
                 bitValue |= 0x80;
             }
             const origValue = value;
@@ -3051,20 +3047,20 @@ const converters2 = {
             await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
             // calculate bit value
             let bitValue = 0x01; // bit 0 always 1
-            if (value == "ON") {
+            if (value === "ON") {
                 bitValue |= 0x02;
             }
-            if (meta.state.system_mode == constants.thermostatSystemModes[0]) {
+            if (meta.state.system_mode === constants.thermostatSystemModes[0]) {
                 // off
                 bitValue |= 0x20;
-            } else if (meta.state.system_mode == constants.thermostatSystemModes[4]) {
+            } else if (meta.state.system_mode === constants.thermostatSystemModes[4]) {
                 // "heat"
                 bitValue |= 0x04;
             } else {
                 // auto
                 bitValue |= 0x10;
             }
-            if (meta.state.child_lock == "LOCK") {
+            if (meta.state.child_lock === "LOCK") {
                 bitValue |= 0x80;
             }
             const origValue = value;
@@ -3099,7 +3095,7 @@ const converters2 = {
             value = utils.getFromLookup(value, lookup);
             // Check for valid data
             utils.assertNumber(value, key);
-            if ((value >= 0 && value < 2) == false) value = 0;
+            if ((value >= 0 && value < 2) === false) value = 0;
 
             const payload = {
                 16400: {
@@ -3163,7 +3159,7 @@ const converters2 = {
                 let cluster = "genLevelCtrl";
                 if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
                     const value2 = Number(value);
-                    if (isNaN(value2)) {
+                    if (Number.isNaN(value2)) {
                         return;
                     }
                     const payload = {currentLevel: value2};
@@ -3174,7 +3170,7 @@ const converters2 = {
                 cluster = "genAnalogInput";
                 if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
                     const value2 = Number(value);
-                    if (isNaN(value2)) {
+                    if (Number.isNaN(value2)) {
                         return;
                     }
                     const payload = {presentValue: value2};
@@ -3238,7 +3234,7 @@ const converters2 = {
                 {percentageliftvalue: newPosition},
                 utils.getOptions(meta.mapped, entity),
             );
-            return {state: {["position"]: position}};
+            return {state: {position: position}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("closuresWindowCovering", ["currentPositionLiftPercentage"]);
@@ -3293,7 +3289,7 @@ const converters2 = {
     legrand_power_alarm: {
         key: ["power_alarm"],
         convertSet: async (entity, key, value, meta) => {
-            const enableAlarm = value === "DISABLE" || value === false ? false : true;
+            const enableAlarm = !(value === "DISABLE" || value === false);
             const payloadBolean = {61441: {value: enableAlarm ? 0x01 : 0x00, type: 0x10}};
             const payloadValue = {61442: {value: value, type: 0x29}};
             await entity.write("haElectricalMeasurement", payloadValue);
@@ -3392,7 +3388,7 @@ const converters2 = {
 
             let value = utils.getFromLookup(rawValue, lookup, Number(rawValue));
 
-            if (key == "sensors_type") {
+            if (key === "sensors_type") {
                 // @ts-expect-error ignore
                 value = utils.getFromLookup(rawValue, sensorsTypeLookup, Number(rawValue));
             }
@@ -3461,7 +3457,7 @@ const converters2 = {
             const lookup: KeyValueAny = {OFF: 0x00, ON: 0x01};
             const modeOpenLookup = {never: "0", once: "1", always: "2", drop: "3"};
             let value = utils.getFromLookup(rawValue, lookup, Number(rawValue));
-            if (key == "mode") {
+            if (key === "mode") {
                 // @ts-expect-error ignore
                 value = utils.getFromLookup(rawValue, modeOpenLookup, Number(rawValue));
             }
@@ -3538,19 +3534,19 @@ const converters2 = {
             switch (key) {
                 case "send_key":
                     utils.assertObject(value);
-                    await entity.command("heimanSpecificInfraRedRemote", "sendKey", {id: value["id"], keyCode: value["key_code"]}, options);
+                    await entity.command("heimanSpecificInfraRedRemote", "sendKey", {id: value.id, keyCode: value.key_code}, options);
                     break;
                 case "create":
                     utils.assertObject(value);
-                    await entity.command("heimanSpecificInfraRedRemote", "createId", {modelType: value["model_type"]}, options);
+                    await entity.command("heimanSpecificInfraRedRemote", "createId", {modelType: value.model_type}, options);
                     break;
                 case "learn":
                     utils.assertObject(value);
-                    await entity.command("heimanSpecificInfraRedRemote", "studyKey", {id: value["id"], keyCode: value["key_code"]}, options);
+                    await entity.command("heimanSpecificInfraRedRemote", "studyKey", {id: value.id, keyCode: value.key_code}, options);
                     break;
                 case "delete":
                     utils.assertObject(value);
-                    await entity.command("heimanSpecificInfraRedRemote", "deleteKey", {id: value["id"], keyCode: value["key_code"]}, options);
+                    await entity.command("heimanSpecificInfraRedRemote", "deleteKey", {id: value.id, keyCode: value.key_code}, options);
                     break;
                 case "get_list":
                     await entity.command("heimanSpecificInfraRedRemote", "getIdAndKeyCodeList", {}, options);
@@ -3564,7 +3560,7 @@ const converters2 = {
         key: ["scene_store"],
         convertSet: async (entity, key, value: KeyValueAny, meta) => {
             const isGroup = utils.isGroup(entity);
-            const groupid = isGroup ? entity.groupID : value.group_id != undefined ? value.group_id : 0;
+            const groupid = isGroup ? entity.groupID : value.group_id !== undefined ? value.group_id : 0;
             let sceneid = value;
             let scenename = null;
             if (typeof value === "object") {
@@ -3640,22 +3636,20 @@ const converters2 = {
                 }
                 logger.info("Successfully recalled group scene", NS);
                 return {membersState};
-            } else {
-                let recalledState = utils.getSceneState(entity, sceneid, groupid);
-                if (recalledState) {
-                    // add color_mode if saved state does not contain it
-                    if (recalledState.color_mode === undefined) {
-                        recalledState = addColorMode(recalledState);
-                    }
-
-                    Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, entity, meta.options));
-                    logger.info("Successfully recalled scene", NS);
-                    return {state: recalledState};
-                } else {
-                    logger.warning(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`, NS);
-                    return {state: {}};
-                }
             }
+            let recalledState = utils.getSceneState(entity, sceneid, groupid);
+            if (recalledState) {
+                // add color_mode if saved state does not contain it
+                if (recalledState.color_mode === undefined) {
+                    recalledState = addColorMode(recalledState);
+                }
+
+                Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, entity, meta.options));
+                logger.info("Successfully recalled scene", NS);
+                return {state: recalledState};
+            }
+            logger.warning(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`, NS);
+            return {state: {}};
         },
     } satisfies Tz.Converter,
     scene_add: {
@@ -3664,15 +3658,15 @@ const converters2 = {
             utils.assertObject(value);
             utils.assertNumber(value.ID, "ID");
 
-            if (value.color_temp != undefined && value.color != undefined) {
+            if (value.color_temp !== undefined && value.color !== undefined) {
                 throw new Error(`Don't specify both 'color_temp' and 'color'`);
             }
 
             const isGroup = utils.isGroup(entity);
-            const groupid = isGroup ? entity.groupID : value.group_id != undefined ? value.group_id : 0;
+            const groupid = isGroup ? entity.groupID : value.group_id !== undefined ? value.group_id : 0;
             const sceneid = value.ID;
             const scenename = value.name;
-            const transtime = value.transition != undefined ? value.transition : 0;
+            const transtime = value.transition !== undefined ? value.transition : 0;
 
             if (groupid === 0 && sceneid === 0) {
                 // From Zigbee spec:
@@ -3686,16 +3680,16 @@ const converters2 = {
                 let val = value[attribute];
                 if (attribute === "state") {
                     extensionfieldsets.push({clstId: 6, len: 1, extField: [val.toLowerCase() === "on" ? 1 : 0]});
-                    state["state"] = val.toUpperCase();
+                    state.state = val.toUpperCase();
                 } else if (attribute === "brightness") {
                     extensionfieldsets.push({clstId: 8, len: 1, extField: [val]});
-                    state["brightness"] = val;
+                    state.brightness = val;
                 } else if (attribute === "position") {
                     const invert = utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
                         ? !meta.options.invert_cover
                         : meta.options.invert_cover;
                     extensionfieldsets.push({clstId: 258, len: 1, extField: [invert ? 100 - val : val]});
-                    state["position"] = val;
+                    state.position = val;
                 } else if (attribute === "color_temp") {
                     /*
                      * ZCL version 7 added support for ColorTemperatureMireds
@@ -3717,8 +3711,8 @@ const converters2 = {
                     const xScaled = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
                     const yScaled = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
                     extensionfieldsets.push({clstId: 768, len: 4, extField: [xScaled, yScaled]});
-                    state["color_mode"] = constants.colorModeLookup[2];
-                    state["color_temp"] = val;
+                    state.color_mode = constants.colorModeLookup[2];
+                    state.color_temp = val;
                 } else if (attribute === "color") {
                     try {
                         val = JSON.parse(val);
@@ -3735,8 +3729,8 @@ const converters2 = {
                             len: 4,
                             extField: [xScaled, yScaled],
                         });
-                        state["color_mode"] = constants.colorModeLookup[1];
-                        state["color"] = newColor.xy.toObject();
+                        state.color_mode = constants.colorModeLookup[1];
+                        state.color = newColor.xy.toObject();
                     } else if (newColor.isHSV()) {
                         const hsvCorrected = newColor.hsv.colorCorrected(meta);
                         if (utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", true)) {
@@ -3759,8 +3753,8 @@ const converters2 = {
                                 extField: [xScaled, yScaled],
                             });
                         }
-                        state["color_mode"] = constants.colorModeLookup[0];
-                        state["color"] = newColor.hsv.toObject(false, false);
+                        state.color_mode = constants.colorModeLookup[0];
+                        state.color = newColor.hsv.toObject(false, false);
                     }
                 }
             }
@@ -3776,7 +3770,7 @@ const converters2 = {
              */
             const removeresp = await entity.command("genScenes", "remove", {groupid, sceneid}, utils.getOptions(meta.mapped, entity));
 
-            if (isGroup || (utils.isObject(removeresp) && (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139))) {
+            if (isGroup || (utils.isObject(removeresp) && (removeresp.status === 0 || removeresp.status === 133 || removeresp.status === 139))) {
                 const addSceneCommand = Number.isInteger(transtime) ? "add" : "enhancedAdd";
                 const commandTransitionTime = addSceneCommand === "enhancedAdd" ? Math.floor(transtime * 10) : transtime;
 
@@ -3874,7 +3868,7 @@ const converters2 = {
             } else {
                 const state = utils.getSceneState(entity, sceneid, groupid);
                 if (!state) {
-                    throw new Error(`No such scene in device meta data`);
+                    throw new Error("No such scene in device meta data");
                 }
                 utils.saveSceneState(entity, sceneid, groupid, state, scenename);
             }
@@ -4025,9 +4019,8 @@ const converters2 = {
             if (typeof value === "boolean") {
                 await entity.write("hvacThermostat", {viessmannWindowOpenForce: value}, manufacturerOptions.viessmann);
                 return {state: {window_open_force: value}};
-            } else {
-                logger.error("window_open_force must be a boolean!", NS);
             }
+            logger.error("window_open_force must be a boolean!", NS);
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", ["viessmannWindowOpenForce"], manufacturerOptions.viessmann);
@@ -4402,17 +4395,15 @@ const converters3 = {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
                 return await converters2.light_onoff_brightness.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error("OnOff and LevelControl not supported on this RM01 device.");
             }
+            throw new Error("OnOff and LevelControl not supported on this RM01 device.");
         },
         convertGet: async (entity, key, meta) => {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
                 return await converters2.light_onoff_brightness.convertGet(endpoint, key, meta);
-            } else {
-                throw new Error("OnOff and LevelControl not supported on this RM01 device.");
             }
+            throw new Error("OnOff and LevelControl not supported on this RM01 device.");
         },
     } satisfies Tz.Converter,
     RM01_light_brightness_step: {
@@ -4422,9 +4413,8 @@ const converters3 = {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
                 return await converters2.light_brightness_step.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error("LevelControl not supported on this RM01 device.");
             }
+            throw new Error("LevelControl not supported on this RM01 device.");
         },
     } satisfies Tz.Converter,
     RM01_light_brightness_move: {
@@ -4433,9 +4423,8 @@ const converters3 = {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
                 return await converters2.light_brightness_move.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error("LevelControl not supported on this RM01 device.");
             }
+            throw new Error("LevelControl not supported on this RM01 device.");
         },
     } satisfies Tz.Converter,
     ptvo_switch_light_brightness: {
@@ -4460,25 +4449,23 @@ const converters3 = {
                     message.brightness = 1;
                 }
                 return await converters2.light_onoff_brightness.convertSet(entity, key, value, meta);
-            } else {
-                throw new Error("LevelControl not supported on this endpoint.");
             }
+            throw new Error("LevelControl not supported on this endpoint.");
         },
         convertGet: async (entity, key, meta) => {
             const cluster = "genLevelCtrl";
             utils.assertEndpoint(entity);
             if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
                 return await converters2.light_onoff_brightness.convertGet(entity, key, meta);
-            } else {
-                throw new Error("LevelControl not supported on this endpoint.");
             }
+            throw new Error("LevelControl not supported on this endpoint.");
         },
     } satisfies Tz.Converter,
     TS110E_options: {
         key: ["min_brightness", "max_brightness", "light_type", "switch_type"],
         convertSet: async (entity, key, value, meta) => {
             let payload = null;
-            if (key === "min_brightness" || key == "max_brightness") {
+            if (key === "min_brightness" || key === "max_brightness") {
                 const id = key === "min_brightness" ? 64515 : 64516;
                 payload = {[id]: {value: utils.mapNumberRange(utils.toNumber(value, key), 1, 255, 0, 1000), type: 0x21}};
             } else if (key === "light_type" || key === "switch_type") {
@@ -4503,7 +4490,8 @@ const converters3 = {
             const {message, state} = meta;
             if (message.state === "OFF" || (message.state !== undefined && message.brightness === undefined)) {
                 return await converters1.on_off.convertSet(entity, key, value, meta);
-            } else if (message.brightness !== undefined) {
+            }
+            if (message.brightness !== undefined) {
                 // set brightness
                 if (state.state === "OFF") {
                     await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));

@@ -413,7 +413,7 @@ const tuyaExposes = {
     switchType: () => e.enum("switch_type", ea.ALL, ["toggle", "state", "momentary"]).withDescription("Type of the switch"),
     backlightModeLowMediumHigh: () => e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight"),
     backlightModeOffNormalInverted: () => e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight"),
-    backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription(`Mode of the backlight`),
+    backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight"),
     indicatorMode: () => e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off", "on"]).withDescription("LED indicator mode"),
     indicatorModeNoneRelayPos: () => e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Mode of the indicator light"),
     powerOutageMemory: () => e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
@@ -448,15 +448,15 @@ const tuyaExposes = {
             x.withFeature(
                 e
                     .binary("inching_control", ea.SET, "ENABLE", "DISABLE")
-                    .withDescription("Enable/disable inching function for endpoint " + i + ".")
-                    .withLabel("Inching for Endpoint " + i)
-                    .withProperty("inching_control_" + i),
+                    .withDescription(`Enable/disable inching function for endpoint ${i}.`)
+                    .withLabel(`Inching for Endpoint ${i}`)
+                    .withProperty(`inching_control_${i}`),
             ).withFeature(
                 e
                     .numeric("inching_time", ea.SET)
-                    .withDescription("Delay time for executing a inching action for endpoint " + i + ".")
-                    .withLabel("Inching time for endpoint " + i)
-                    .withProperty("inching_time_" + i)
+                    .withDescription(`Delay time for executing a inching action for endpoint ${i}.`)
+                    .withLabel(`Inching time for endpoint ${i}`)
+                    .withProperty(`inching_time_${i}`)
                     .withUnit("seconds")
                     .withValueMin(1)
                     .withValueMax(65535)
@@ -519,19 +519,11 @@ class Base {
     }
 }
 
-export class Enum extends Base {
-    constructor(value: number) {
-        super(value);
-    }
-}
+export class Enum extends Base {}
 const enumConstructor = (value: number) => new Enum(value);
 export {enumConstructor as enum};
 
-export class Bitmap extends Base {
-    constructor(value: number) {
-        super(value);
-    }
-}
+export class Bitmap extends Base {}
 
 type LookupMap = {[s: string]: number | boolean | Enum | string};
 export const valueConverterBasic = {
@@ -718,7 +710,7 @@ export const valueConverter = {
             const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
 
             if (meta.message.overload_breaker) {
-                const threshold = meta.state["overload_threshold"];
+                const threshold = meta.state.overload_threshold;
                 const buf = Buffer.from([
                     3,
                     utils.getFromLookup(meta.message.overload_breaker, onOffLookup),
@@ -727,7 +719,7 @@ export const valueConverter = {
                 ]);
                 await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
             } else if (meta.message.overload_threshold) {
-                const state = meta.state["overload_breaker"];
+                const state = meta.state.overload_breaker;
                 const buf = Buffer.from([
                     3,
                     utils.getFromLookup(state, onOffLookup),
@@ -736,28 +728,28 @@ export const valueConverter = {
                 ]);
                 await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
             } else if (meta.message.leakage_threshold) {
-                const state = meta.state["leakage_breaker"];
+                const state = meta.state.leakage_breaker;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(4, 4);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(meta.message.leakage_threshold, "leakage_threshold"), 6);
                 await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
             } else if (meta.message.leakage_breaker) {
-                const threshold = meta.state["leakage_threshold"];
+                const threshold = meta.state.leakage_threshold;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(4, 4);
                 buf.writeUInt8(utils.getFromLookup(meta.message.leakage_breaker, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(threshold, "leakage_threshold"), 6);
                 await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
             } else if (meta.message.high_temperature_threshold) {
-                const state = meta.state["high_temperature_breaker"];
+                const state = meta.state.high_temperature_breaker;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(5, 8);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 9);
                 buf.writeUInt16BE(utils.toNumber(meta.message.high_temperature_threshold, "high_temperature_threshold"), 10);
                 await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
             } else if (meta.message.high_temperature_breaker) {
-                const threshold = meta.state["high_temperature_threshold"];
+                const threshold = meta.state.high_temperature_threshold;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(5, 8);
                 buf.writeUInt8(utils.getFromLookup(meta.message.high_temperature_breaker, onOffLookup), 9);
@@ -793,7 +785,7 @@ export const valueConverter = {
             const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
 
             if (meta.message.over_current_threshold) {
-                const state = meta.state["over_current_breaker"];
+                const state = meta.state.over_current_breaker;
                 const buf = Buffer.from([
                     1,
                     utils.getFromLookup(state, onOffLookup),
@@ -802,7 +794,7 @@ export const valueConverter = {
                 ]);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.over_current_breaker) {
-                const threshold = meta.state["over_current_threshold"];
+                const threshold = meta.state.over_current_threshold;
                 const buf = Buffer.from([
                     1,
                     utils.getFromLookup(meta.message.over_current_breaker, onOffLookup),
@@ -811,42 +803,42 @@ export const valueConverter = {
                 ]);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.over_voltage_threshold) {
-                const state = meta.state["over_voltage_breaker"];
+                const state = meta.state.over_voltage_breaker;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(3, 4);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(meta.message.over_voltage_threshold, "over_voltage_threshold"), 6);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.over_voltage_breaker) {
-                const threshold = meta.state["over_voltage_threshold"];
+                const threshold = meta.state.over_voltage_threshold;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(3, 4);
                 buf.writeUInt8(utils.getFromLookup(meta.message.over_voltage_breaker, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(threshold, "over_voltage_threshold"), 6);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.under_voltage_threshold) {
-                const state = meta.state["under_voltage_breaker"];
+                const state = meta.state.under_voltage_breaker;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(4, 8);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 9);
                 buf.writeUInt16BE(utils.toNumber(meta.message.under_voltage_threshold, "under_voltage_threshold"), 10);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.under_voltage_breaker) {
-                const threshold = meta.state["under_voltage_threshold"];
+                const threshold = meta.state.under_voltage_threshold;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(4, 8);
                 buf.writeUInt8(utils.getFromLookup(meta.message.under_voltage_breaker, onOffLookup), 9);
                 buf.writeUInt16BE(utils.toNumber(threshold, "under_voltage_threshold"), 10);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.insufficient_balance_threshold) {
-                const state = meta.state["insufficient_balance_breaker"];
+                const state = meta.state.insufficient_balance_breaker;
                 const buf = Buffer.alloc(16);
                 buf.writeUInt8(8, 12);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 13);
                 buf.writeUInt16BE(utils.toNumber(meta.message.insufficient_balance_threshold, "insufficient_balance_threshold"), 14);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.insufficient_balance_breaker) {
-                const threshold = meta.state["insufficient_balance_threshold"];
+                const threshold = meta.state.insufficient_balance_threshold;
                 const buf = Buffer.alloc(16);
                 buf.writeUInt8(8, 12);
                 buf.writeUInt8(utils.getFromLookup(meta.message.insufficient_balance_breaker, onOffLookup), 13);
@@ -970,10 +962,10 @@ export const valueConverter = {
             const weekDay = v.week_day;
             utils.assertString(weekDay, "week_day");
             if (Object.keys(dayByte).indexOf(weekDay) === -1) {
-                throw new Error('Invalid "week_day" property value: ' + weekDay);
+                throw new Error(`Invalid "week_day" property value: ${weekDay}`);
             }
             let weekScheduleType = "separate";
-            if (meta.state && meta.state.working_day) {
+            if (meta.state?.working_day) {
                 weekScheduleType = String(meta.state.working_day);
             }
             const payload = [];
@@ -1001,8 +993,8 @@ export const valueConverter = {
             utils.assertString(v.schedule, "schedule");
             const schedule = v.schedule.split(" ");
             const schedulePeriods = schedule.length;
-            if (schedulePeriods > 10) throw new Error("There cannot be more than 10 periods in the schedule: " + v);
-            if (schedulePeriods < 2) throw new Error("There cannot be less than 2 periods in the schedule: " + v);
+            if (schedulePeriods > 10) throw new Error(`There cannot be more than 10 periods in the schedule: ${v}`);
+            if (schedulePeriods < 2) throw new Error(`There cannot be less than 2 periods in the schedule: ${v}`);
             let prevHour;
 
             for (const period of schedule) {
@@ -1012,8 +1004,9 @@ export const valueConverter = {
                 const m = Number.parseInt(hm[1]);
                 const temp = Number.parseFloat(timeTemp[1]);
                 if (h < 0 || h > 24 || m < 0 || m >= 60 || m % 10 !== 0 || temp < 5 || temp > 30 || temp % 0.5 !== 0) {
-                    throw new Error("Invalid hour, minute or temperature of: " + period);
-                } else if (prevHour > h) {
+                    throw new Error(`Invalid hour, minute or temperature of: ${period}`);
+                }
+                if (prevHour > h) {
                     throw new Error(`The hour of the next segment can't be less than the previous one: ${prevHour} > ${h}`);
                 }
                 prevHour = h;
@@ -1041,12 +1034,7 @@ export const valueConverter = {
                 const schedule = [];
                 for (let index = 1; index < transitionCount * 4 - 1; index = index + 4) {
                     schedule.push(
-                        String(Number.parseInt(v[index + 0])).padStart(2, "0") +
-                            ":" +
-                            String(Number.parseInt(v[index + 1])).padStart(2, "0") +
-                            "/" +
-                            // @ts-expect-error ignore
-                            (Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1),
+                        `${String(Number.parseInt(v[index + 0])).padStart(2, "0")}:${String(Number.parseInt(v[index + 1])).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1)}`,
                     );
                 }
                 return schedule.join(" ");
@@ -1054,20 +1042,20 @@ export const valueConverter = {
             to: (v: string) => {
                 const payload = [0];
                 const transitions = v.split(" ");
-                if (transitions.length != transitionCount) {
+                if (transitions.length !== transitionCount) {
                     throw new Error(`Invalid schedule: there should be ${transitionCount} transitions`);
                 }
                 for (const transition of transitions) {
                     const timeTemp = transition.split("/");
-                    if (timeTemp.length != 2) {
-                        throw new Error("Invalid schedule: wrong transition format: " + transition);
+                    if (timeTemp.length !== 2) {
+                        throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                     }
                     const hourMin = timeTemp[0].split(":");
                     const hour = Number.parseInt(hourMin[0]);
                     const min = Number.parseInt(hourMin[1]);
                     const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
                     if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 350) {
-                        throw new Error("Invalid hour, minute or temperature of: " + transition);
+                        throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
                     }
                     payload.push(hour, min, (temperature & 0xff00) >> 8, temperature & 0xff);
                 }
@@ -1098,11 +1086,7 @@ export const valueConverter = {
                 const minutes = minutesSinceMidnight % 60;
 
                 schedule.push(
-                    String(hour).padStart(2, "0") +
-                        ":" +
-                        String(minutes).padStart(2, "0") +
-                        "/" +
-                        (Number.parseFloat(v[index + 3]) / 10.0).toFixed(1),
+                    `${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}/${(Number.parseFloat(v[index + 3]) / 10.0).toFixed(1)}`,
                 );
             }
             return schedule.join(" ");
@@ -1110,20 +1094,20 @@ export const valueConverter = {
         to: (v: string) => {
             const payload = [];
             const transitions = v.split(" ");
-            if (transitions.length != 6) {
+            if (transitions.length !== 6) {
                 throw new Error("Invalid schedule: there should be 6 transitions");
             }
             for (const transition of transitions) {
                 const timeTemp = transition.split("/");
-                if (timeTemp.length != 2) {
-                    throw new Error("Invalid schedule: wrong transition format: " + transition);
+                if (timeTemp.length !== 2) {
+                    throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                 }
                 const hourMin = timeTemp[0].split(":");
                 const hour = Number.parseInt(hourMin[0]);
                 const min = Number.parseInt(hourMin[1]);
                 const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
                 if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
-                    throw new Error("Invalid hour, minute or temperature of: " + transition);
+                    throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
                 }
 
                 const minutesSinceMidnight = hour * 60 + min;
@@ -1150,17 +1134,18 @@ export const valueConverter = {
         return {
             from: (v: number) => {
                 if (v === 0) return "auto";
-                else if (v === 1) return "manual";
-                else return "holiday"; // 2 and 3 are holiday
+                if (v === 1) return "manual";
+                return "holiday"; // 2 and 3 are holiday
             },
             to: (v: string, meta: Tz.Meta) => {
                 if (v === "auto") return new Enum(0);
-                else if (v === "manual") return new Enum(1);
-                else if (v === "holiday") {
+                if (v === "manual") return new Enum(1);
+                if (v === "holiday") {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/20486
                     if (meta.device.manufacturerName === "_TZE200_mudxchsu") return new Enum(2);
-                    else return new Enum(3);
-                } else throw new Error(`Unsupported preset '${v}'`);
+                    return new Enum(3);
+                }
+                throw new Error(`Unsupported preset '${v}'`);
             },
         };
     },
@@ -1188,10 +1173,10 @@ export const valueConverter = {
             for (let i = 0; i < 8; i++) {
                 const start = i * 4;
 
-                const time = value[start].toString().padStart(2, "0") + ":" + value[start + 1].toString().padStart(2, "0");
+                const time = `${value[start].toString().padStart(2, "0")}:${value[start + 1].toString().padStart(2, "0")}`;
                 const temp = (value[start + 2] * 256 + value[start + 3]) / 10;
-                const tempStr = temp.toFixed(1) + "°C";
-                programmingMode.push(time + "/" + tempStr);
+                const tempStr = `${temp.toFixed(1)}°C`;
+                programmingMode.push(`${time}/${tempStr}`);
             }
             return {
                 schedule_weekday: programmingMode.slice(0, 6).join(" "),
@@ -1206,51 +1191,46 @@ export const valueConverter = {
 
             if (meta.message.schedule_weekday !== undefined) {
                 weekdayFormat = v;
-                holidayFormat = meta.state["schedule_holiday"] as string;
+                holidayFormat = meta.state.schedule_holiday as string;
             } else {
-                weekdayFormat = meta.state["schedule_weekday"] as string;
+                weekdayFormat = meta.state.schedule_weekday as string;
                 holidayFormat = v;
             }
 
             function scheduleToRaw(key: string, input: string, number: number, payload: number[], meta: Tz.Meta) {
                 const items = input.trim().split(/\s+/);
 
-                if (items.length != number) {
-                    throw new Error("Wrong number of items for " + key + " :" + items.length);
-                } else {
-                    for (let i = 0; i < number; i++) {
-                        const timeTemperature = items[i].split("/");
-                        if (timeTemperature.length != 2) {
-                            throw new Error("Invalid schedule: wrong transition format: " + items[i]);
-                        }
-                        const hourMinute = timeTemperature[0].split(":", 2);
-                        const hour = Number.parseInt(hourMinute[0]);
-                        const minute = Number.parseInt(hourMinute[1]);
-                        const temperature = Number.parseFloat(timeTemperature[1]);
-
-                        if (
-                            !utils.isNumber(hour) ||
-                            !utils.isNumber(temperature) ||
-                            !utils.isNumber(minute) ||
-                            hour < 0 ||
-                            hour >= 24 ||
-                            minute < 0 ||
-                            minute >= 60 ||
-                            temperature < 5 ||
-                            temperature >= 35
-                        ) {
-                            throw new Error(
-                                "Invalid hour, minute or temperature (5<t<35) in " +
-                                    key +
-                                    " of: `" +
-                                    items[i] +
-                                    "`; Format is `hh:m/cc.c` or `hh:mm/cc.c°C`",
-                            );
-                        }
-                        const temperature10 = Math.round(temperature * 10);
-
-                        payload.push(hour, minute, (temperature10 >> 8) & 0xff, temperature10 & 0xff);
+                if (items.length !== number) {
+                    throw new Error(`Wrong number of items for ${key} :${items.length}`);
+                }
+                for (let i = 0; i < number; i++) {
+                    const timeTemperature = items[i].split("/");
+                    if (timeTemperature.length !== 2) {
+                        throw new Error(`Invalid schedule: wrong transition format: ${items[i]}`);
                     }
+                    const hourMinute = timeTemperature[0].split(":", 2);
+                    const hour = Number.parseInt(hourMinute[0]);
+                    const minute = Number.parseInt(hourMinute[1]);
+                    const temperature = Number.parseFloat(timeTemperature[1]);
+
+                    if (
+                        !utils.isNumber(hour) ||
+                        !utils.isNumber(temperature) ||
+                        !utils.isNumber(minute) ||
+                        hour < 0 ||
+                        hour >= 24 ||
+                        minute < 0 ||
+                        minute >= 60 ||
+                        temperature < 5 ||
+                        temperature >= 35
+                    ) {
+                        throw new Error(
+                            `Invalid hour, minute or temperature (5<t<35) in ${key} of: \`${items[i]}\`; Format is \`hh:m/cc.c\` or \`hh:mm/cc.c°C\``,
+                        );
+                    }
+                    const temperature10 = Math.round(temperature * 10);
+
+                    payload.push(hour, minute, (temperature10 >> 8) & 0xff, temperature10 & 0xff);
                 }
                 return;
             }
@@ -1364,7 +1344,7 @@ export const valueConverter = {
             if (endMin) logger.warning("The end date minutes will be ignore.", NS);
 
             if (diffHours > 255) throw new Error("You cannot set an interval superior at 255 hours.");
-            else if (startDate.getTime() > endDate.getTime()) throw new Error("You cannot set a negative interval.");
+            if (startDate.getTime() > endDate.getTime()) throw new Error("You cannot set a negative interval.");
 
             payload.push(
                 Number.parseInt(startYear.slice(2)),
@@ -1380,7 +1360,7 @@ export const valueConverter = {
             return payload;
         },
         from: (v: number[]) => {
-            const startYear = "2" + v[0].toString().padStart(3, "0");
+            const startYear = `2${v[0].toString().padStart(3, "0")}`;
             const startMonth = v[1].toString().padStart(2, "0");
             const startDay = v[2].toString().padStart(2, "0");
             const startHours = v[3].toString().padStart(2, "0");
@@ -1463,14 +1443,14 @@ export const valueConverter = {
         to: (value: KeyValueAny) => {
             let result = "";
             for (let i = 1; i <= 6; i++) {
-                if (value["inching_control_" + i] == undefined || value["inching_time_" + i] == undefined) continue;
+                if (value[`inching_control_${i}`] === undefined || value[`inching_time_${i}`] === undefined) continue;
 
-                let state = value["inching_control_" + i] == "ENABLE" ? 1 : 0;
-                if (i != 1) {
+                let state = value[`inching_control_${i}`] === "ENABLE" ? 1 : 0;
+                if (i !== 1) {
                     // Second endpoint onwards base number is determined by 2 powered by endpoint number less 1
                     state += 2 ** (i - 1);
                 }
-                const secs: number = Number.parseInt(value["inching_time_" + i]);
+                const secs: number = Number.parseInt(value[`inching_time_${i}`]);
                 const byte1 = secs >> 8; // Equivalent to Math.truc(secs / 256)
                 const byte2 = secs % 256;
                 const ascii = String.fromCharCode(state, byte1, byte2);
@@ -1494,19 +1474,19 @@ export const valueConverter = {
                 // 0-1 - 1st endpoint, 2-3 - 2nd endpoint, ...
                 switch (cca0) {
                     case 0:
-                        data["inching_control_1"] = "DISABLE";
-                        data["inching_time_1"] = (cca1 << 8) + cca2;
+                        data.inching_control_1 = "DISABLE";
+                        data.inching_time_1 = (cca1 << 8) + cca2;
                         break;
                     case 1:
-                        data["inching_control_1"] = "ENABLE";
-                        data["inching_time_1"] = (cca1 << 8) + cca2;
+                        data.inching_control_1 = "ENABLE";
+                        data.inching_time_1 = (cca1 << 8) + cca2;
                         break;
                     default:
                         // endpoint #
                         tmp = Math.trunc(Math.log2(cca0)) + 1;
                         status = cca0 % 2 ? "ENABLE" : "DISABLE";
-                        data["inching_control_" + tmp] = status;
-                        data["inching_time_" + tmp] = (cca1 << 8) + cca2;
+                        data[`inching_control_${tmp}`] = status;
+                        data[`inching_time_${tmp}`] = (cca1 << 8) + cca2;
                 }
             }
             return data;
@@ -1605,7 +1585,7 @@ const tuyaTz = {
     min_brightness_attribute: {
         key: ["min_brightness"],
         convertSet: async (entity, key, value, meta) => {
-            const number = utils.toNumber(value, `min_brightness`);
+            const number = utils.toNumber(value, "min_brightness");
             const minValueHex = number.toString(16);
             const maxValueHex = "ff";
             const minMaxValue = Number.parseInt(`${minValueHex}${maxValueHex}`, 16);
@@ -1643,7 +1623,7 @@ const tuyaTz = {
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
             const state: KeyValue = {};
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             const datapoints = meta.mapped.meta?.tuyaDatapoints;
             if (!datapoints) throw new Error("No datapoints map defined");
             for (const [attr, value] of Object.entries(meta.message)) {
@@ -1653,7 +1633,7 @@ const tuyaTz = {
                 if (!dpEntry?.[1] || !dpEntry?.[2].to) {
                     throw new Error(`No datapoint defined for '${attr}'`);
                 }
-                if (dpEntry[3] && dpEntry[3].skip && dpEntry[3].skip(meta)) continue;
+                if (dpEntry[3]?.skip?.(meta)) continue;
                 const dpId = dpEntry[0];
                 const convertedValue = await dpEntry[2].to(value, meta);
                 const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
@@ -1736,9 +1716,9 @@ const tuyaTz = {
             return {state: result};
         },
         convertGet: async (entity, key, meta) => {
-            if (key == "state") {
+            if (key === "state") {
                 await entity.read("genOnOff", ["onOff"]);
-            } else if (key == "countdown") {
+            } else if (key === "countdown") {
                 await entity.read("genOnOff", ["onTime"]);
             }
         },
@@ -1787,7 +1767,7 @@ const tuyaFz = {
             if (msg.data.moesStartUpOnOff !== undefined) {
                 const lookup: KeyValue = {0: "off", 1: "on", 2: "previous"};
                 const property = utils.postfixWithEndpointName("power_on_behavior", msg, model, meta);
-                return {[property]: lookup[msg.data["moesStartUpOnOff"]]};
+                return {[property]: lookup[msg.data.moesStartUpOnOff]};
             }
         },
     } satisfies Fz.Converter,
@@ -1810,7 +1790,7 @@ const tuyaFz = {
             if (msg.data.moesStartUpOnOff !== undefined) {
                 const lookup: KeyValue = {0: "off", 1: "on", 2: "restore"};
                 const property = utils.postfixWithEndpointName("power_outage_memory", msg, model, meta);
-                return {[property]: lookup[msg.data["moesStartUpOnOff"]]};
+                return {[property]: lookup[msg.data.moesStartUpOnOff]};
             }
         },
     } satisfies Fz.Converter,
@@ -1820,7 +1800,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.switchType !== undefined) {
                 const lookup: KeyValue = {0: "toggle", 1: "state", 2: "momentary"};
-                return {switch_type: lookup[msg.data["switchType"]]};
+                return {switch_type: lookup[msg.data.switchType]};
             }
         },
     } satisfies Fz.Converter,
@@ -1829,7 +1809,7 @@ const tuyaFz = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.tuyaBacklightMode !== undefined) {
-                const value = msg.data["tuyaBacklightMode"];
+                const value = msg.data.tuyaBacklightMode;
                 const backlightLookup: KeyValue = {0: "low", 1: "medium", 2: "high"};
                 return {backlight_mode: backlightLookup[value]};
             }
@@ -1840,7 +1820,7 @@ const tuyaFz = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.tuyaBacklightMode !== undefined) {
-                return {backlight_mode: utils.getFromLookup(msg.data["tuyaBacklightMode"], {0: "off", 1: "normal", 2: "inverted"})};
+                return {backlight_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "off", 1: "normal", 2: "inverted"})};
             }
         },
     } satisfies Fz.Converter,
@@ -1849,7 +1829,7 @@ const tuyaFz = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.tuyaBacklightSwitch !== undefined) {
-                return {backlight_mode: utils.getFromLookup(msg.data["tuyaBacklightSwitch"], {0: "OFF", 1: "ON"})};
+                return {backlight_mode: utils.getFromLookup(msg.data.tuyaBacklightSwitch, {0: "OFF", 1: "ON"})};
             }
         },
     } satisfies Fz.Converter,
@@ -1858,7 +1838,7 @@ const tuyaFz = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.tuyaBacklightMode !== undefined) {
-                return {indicator_mode: utils.getFromLookup(msg.data["tuyaBacklightMode"], {0: "off", 1: "off/on", 2: "on/off", 3: "on"})};
+                return {indicator_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "off", 1: "off/on", 2: "on/off", 3: "on"})};
             }
         },
     } satisfies Fz.Converter,
@@ -1917,7 +1897,7 @@ const tuyaFz = {
             const buttonMapping: KeyValueNumberString = {1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8"};
             // TS004F has single endpoint, TS0041A/TS0041 can have multiple but have just one button
             const button =
-                msg.device.endpoints.length == 1 || ["TS0041A", "TS0041"].includes(msg.device.modelID) ? "" : `${buttonMapping[msg.endpoint.ID]}_`;
+                msg.device.endpoints.length === 1 || ["TS0041A", "TS0041"].includes(msg.device.modelID) ? "" : `${buttonMapping[msg.endpoint.ID]}_`;
             return {action: `${button}${clickMapping[msg.data.value]}`};
         },
     } satisfies Fz.Converter,
@@ -1931,7 +1911,7 @@ const tuyaFz = {
             if (msg.data.onTime !== undefined) {
                 const payload: KeyValue = {};
                 const property = utils.postfixWithEndpointName("countdown", msg, model, meta);
-                const countdown = msg.data["onTime"];
+                const countdown = msg.data.onTime;
                 payload[property] = countdown;
                 return payload;
             }
@@ -1943,8 +1923,8 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.inching !== undefined) {
                 const payload: KeyValue = {};
-                const value = valueConverter.inchingSwitch.from(msg.data["inching"]);
-                payload["inching_control_set"] = value;
+                const value = valueConverter.inchingSwitch.from(msg.data.inching);
+                payload.inching_control_set = value;
                 return payload;
             }
         },
@@ -1985,15 +1965,15 @@ export function getHandlersForDP(
                   convertSet: async (entity, key, value, meta) => {
                       // A set converter is only called once; therefore we need to loop
                       const state: KeyValue = {};
-                      if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+                      if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
                       for (const [attr, value] of Object.entries(meta.message)) {
                           const convertedKey: string =
-                              meta.mapped.meta && meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`)
+                              meta.mapped.meta?.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`)
                                   ? `${attr}_${meta.endpoint_name}`
                                   : attr;
                           // logger.debug(`key: ${key}, convertedKey: ${convertedKey}, keyName: ${keyName}`);
                           if (convertedKey !== keyName) continue;
-                          if (skip && skip(meta)) continue;
+                          if (skip?.(meta)) continue;
 
                           const convertedValue = await converter.to(value, meta);
                           const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
@@ -2002,17 +1982,17 @@ export function getHandlersForDP(
 
                           if (convertedValue === undefined) {
                               // conversion done inside converter, ignore.
-                          } else if (type == dataTypes.bool) {
+                          } else if (type === dataTypes.bool) {
                               await sendDataPointBool(entity, dp, convertedValue as boolean, sendCommand, seq);
-                          } else if (type == dataTypes.number) {
+                          } else if (type === dataTypes.number) {
                               await sendDataPointValue(entity, dp, convertedValue as number, sendCommand, seq);
-                          } else if (type == dataTypes.string) {
+                          } else if (type === dataTypes.string) {
                               await sendDataPointStringBuffer(entity, dp, convertedValue as string, sendCommand, seq);
-                          } else if (type == dataTypes.raw) {
+                          } else if (type === dataTypes.raw) {
                               await sendDataPointRaw(entity, dp, convertedValue as number[], sendCommand, seq);
-                          } else if (type == dataTypes.enum) {
+                          } else if (type === dataTypes.enum) {
                               await sendDataPointEnum(entity, dp, convertedValue as number, sendCommand, seq);
-                          } else if (type == dataTypes.bitmap) {
+                          } else if (type === dataTypes.bitmap) {
                               await sendDataPointBitmap(entity, dp, convertedValue as number, sendCommand, seq);
                           } else {
                               throw new Error(`Don't know how to send type '${typeof convertedValue}'`);

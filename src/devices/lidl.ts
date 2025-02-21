@@ -79,7 +79,7 @@ const valueConverterLocal = {
                     Date.now() > ts.timeslot_end_timestamp - 5000 ||
                     // scheduling was interrupted by turning watering on manually
                     // @ts-expect-error ignore
-                    (result.state === "ON" && result.state != meta.state.state && meta.state.time_left > 0)
+                    (result.state === "ON" && result.state !== meta.state.state && meta.state.time_left > 0)
                 ) {
                     // reporting is no longer necessary
                     clearInterval(ts.iteration_inverval);
@@ -185,7 +185,7 @@ const valueConverterLocal = {
             if (!utils.isInRange(1, 599, duratonInMin)) throw new Error(`Invalid timer value: ${duratonInMin} (expected ${1} to ${599})`);
             if (!utils.isInRange(1, 9, iterations)) throw new Error(`Invalid iterations value: ${iterations} (expected ${1} to ${9})`);
             if (!utils.isInRange(0, 599, pauseInMin)) throw new Error(`Invalid pause value: ${pauseInMin} (expected ${0} to ${599})`);
-            if (iterations > 1 && pauseInMin === 0) throw new Error(`Pause value must be at least 1 minute when using multiple iterations`);
+            if (iterations > 1 && pauseInMin === 0) throw new Error("Pause value must be at least 1 minute when using multiple iterations");
 
             return [
                 // @ts-expect-error ignore

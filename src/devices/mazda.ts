@@ -75,7 +75,7 @@ export const definitions: DefinitionWithExtend[] = [
                             };
                             // Update system_mode when preset changes
                             if (meta) {
-                                meta.state["system_mode"] = v === "off" ? "off" : "heat";
+                                meta.state.system_mode = v === "off" ? "off" : "heat";
                             }
                             return utils.getFromLookup(v, lookup);
                         },
@@ -90,12 +90,13 @@ export const definitions: DefinitionWithExtend[] = [
                         },
                         to: (v: string, meta: Tz.Meta) => {
                             if (meta) {
-                                const currentPreset = meta.state["preset"];
+                                const currentPreset = meta.state.preset;
                                 if (v === "heat" && currentPreset === "off") {
-                                    meta.state["preset"] = "manual";
+                                    meta.state.preset = "manual";
                                     return tuya.enum(0);
-                                } else if (v === "off") {
-                                    meta.state["preset"] = "off";
+                                }
+                                if (v === "off") {
+                                    meta.state.preset = "off";
                                     return tuya.enum(6);
                                 }
                             }

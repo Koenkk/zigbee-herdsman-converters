@@ -50,7 +50,8 @@ const coverAndLightToZigbee: Tz.Converter = {
         if (isCover) {
             if (key === "state") {
                 return await tz.cover_state.convertSet(entity, key, value, meta);
-            } else if (key === "position" || key === "tilt") {
+            }
+            if (key === "position" || key === "tilt") {
                 return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
             }
         } else {
@@ -94,7 +95,8 @@ function checkOption(device: Zh.Device, options: KeyValue, key: string) {
     if (options != null && options[key] !== undefined) {
         if (options[key] === "true") {
             return true;
-        } else if (options[key] === "false") {
+        }
+        if (options[key] === "false") {
             return false;
         }
     }
@@ -107,9 +109,8 @@ function checkMetaOption(device: Zh.Device, key: string) {
         const enabled = device.meta[key];
         if (enabled === undefined) {
             return false;
-        } else {
-            return !!enabled;
         }
+        return !!enabled;
     }
 
     return false;
@@ -128,10 +129,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Siglis",
         description: "zigfred uno smart in-wall switch",
         options: [
-            e.enum(`front_surface_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Front Surface LED enabled"),
-            e.enum(`relay_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Relay enabled"),
-            e.enum(`dimmer_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Dimmer enabled"),
-            e.enum(`dimmer_dimming_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Dimmer dimmable"),
+            e.enum("front_surface_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Front Surface LED enabled"),
+            e.enum("relay_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Relay enabled"),
+            e.enum("dimmer_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Dimmer enabled"),
+            e.enum("dimmer_dimming_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Dimmer dimmable"),
         ],
         exposes: (device, options) => {
             const expose = [];
@@ -227,19 +228,19 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Siglis",
         description: "zigfred plus smart in-wall switch",
         options: [
-            e.enum(`front_surface_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Front Surface LED enabled"),
-            e.enum(`dimmer_1_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 1 enabled"),
-            e.enum(`dimmer_1_dimming_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 1 dimmable"),
-            e.enum(`dimmer_2_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 2 enabled"),
-            e.enum(`dimmer_2_dimming_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 2 dimmable"),
-            e.enum(`dimmer_3_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 3 enabled"),
-            e.enum(`dimmer_3_dimming_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 3 dimmable"),
-            e.enum(`dimmer_4_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 4 enabled"),
-            e.enum(`dimmer_4_dimming_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 4 dimmable"),
-            e.enum(`cover_1_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Cover 1 enabled"),
-            e.enum(`cover_1_tilt_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Cover 1 tiltable"),
-            e.enum(`cover_2_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Cover 2 enabled"),
-            e.enum(`cover_2_tilt_enabled`, ea.SET, ["auto", "true", "false"]).withDescription("Cover 2 tiltable"),
+            e.enum("front_surface_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Front Surface LED enabled"),
+            e.enum("dimmer_1_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 1 enabled"),
+            e.enum("dimmer_1_dimming_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 1 dimmable"),
+            e.enum("dimmer_2_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 2 enabled"),
+            e.enum("dimmer_2_dimming_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 2 dimmable"),
+            e.enum("dimmer_3_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 3 enabled"),
+            e.enum("dimmer_3_dimming_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 3 dimmable"),
+            e.enum("dimmer_4_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 4 enabled"),
+            e.enum("dimmer_4_dimming_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 4 dimmable"),
+            e.enum("cover_1_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Cover 1 enabled"),
+            e.enum("cover_1_tilt_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Cover 1 tiltable"),
+            e.enum("cover_2_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Cover 2 enabled"),
+            e.enum("cover_2_tilt_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Cover 2 tiltable"),
         ],
         exposes: (device, options) => {
             const expose = [];

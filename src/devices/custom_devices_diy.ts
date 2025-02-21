@@ -61,7 +61,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {linkquality: msg.linkquality};
-            if (msg.data["4919"]) result["transmit_power"] = msg.data["4919"];
+            if (msg.data["4919"]) result.transmit_power = msg.data["4919"];
             return result;
         },
     } satisfies Fz.Converter,
@@ -70,14 +70,14 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.humidity'
-            let humidity = Number.parseFloat(msg.data["measuredValue"]) / 100.0;
+            let humidity = Number.parseFloat(msg.data.measuredValue) / 100.0;
             humidity = calibrateAndPrecisionRoundOptions(humidity, options, "humidity");
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
             // Sometimes the sensor publishes non-realistic vales, it should only publish message
             // in the 0 - 100 range, don't produce messages beyond these values.
             if (humidity >= 0 && humidity <= 100) {
-                const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
+                const multiEndpoint = model.meta?.multiEndpoint;
                 const property = multiEndpoint ? postfixWithEndpointName("humidity", msg, model, meta) : "humidity";
                 return {[property]: humidity};
             }
@@ -88,10 +88,10 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.illuminance'
-            const illuminance = msg.data["measuredValue"];
-            let illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
+            const illuminance = msg.data.measuredValue;
+            let illuminanceLux = illuminance === 0 ? 0 : 10 ** ((illuminance - 1) / 10000);
             illuminanceLux = calibrateAndPrecisionRoundOptions(illuminanceLux, options, "illuminance");
-            const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
+            const multiEndpoint = model.meta?.multiEndpoint;
             const property1 = multiEndpoint ? postfixWithEndpointName("illuminance", msg, model, meta) : "illuminance";
             return {[property1]: illuminanceLux};
         },
@@ -104,12 +104,12 @@ const fzLocal = {
             let pressure = 0;
             if (msg.data.scaledValue !== undefined) {
                 const scale = msg.endpoint.getClusterAttributeValue("msPressureMeasurement", "scale") as number;
-                pressure = msg.data["scaledValue"] / Math.pow(10, scale) / 100.0; // convert to hPa
+                pressure = msg.data.scaledValue / 10 ** scale / 100.0; // convert to hPa
             } else {
-                pressure = Number.parseFloat(msg.data["measuredValue"]);
+                pressure = Number.parseFloat(msg.data.measuredValue);
             }
             pressure = calibrateAndPrecisionRoundOptions(pressure, options, "pressure");
-            const multiEndpoint = model.meta && model.meta.multiEndpoint !== undefined && model.meta.multiEndpoint;
+            const multiEndpoint = model.meta?.multiEndpoint;
             const property = multiEndpoint ? postfixWithEndpointName("pressure", msg, model, meta) : "pressure";
             return {[property]: pressure};
         },
@@ -118,7 +118,7 @@ const fzLocal = {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const voltage = msg.data["batteryVoltage"] * 100;
+            const voltage = msg.data.batteryVoltage * 100;
             const battery = (voltage - 2200) / 8;
             return {battery: battery > 100 ? 100 : battery, voltage: voltage};
         },
@@ -129,9 +129,9 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const button = getKey(model.endpoint?.(msg.device) ?? {}, msg.endpoint.ID);
             const actionLookup: {[key: number]: string} = {0: "release", 1: "single", 2: "double", 3: "triple", 4: "hold"};
-            const value = msg.data["presentValue"];
+            const value = msg.data.presentValue;
             const action = actionLookup[value];
-            return {action: button + "_" + action};
+            return {action: `${button}_${action}`};
         },
     } satisfies Fz.Converter,
     multi_zig_sw_switch_config: {
@@ -150,9 +150,8 @@ function ptvoGetMetaOption(device: Zh.Device, key: string, defaultValue: unknown
         const value = device.meta[key];
         if (value === undefined) {
             return defaultValue;
-        } else {
-            return value;
         }
+        return value;
     }
 
     return defaultValue;
@@ -169,23 +168,23 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     const epName = `l${epId}`;
     if (endpoint.supportsInputCluster("lightingColorCtrl")) {
         expose.push(e.light_brightness_colorxy().withEndpoint(epName));
-        options["exposed_onoff"] = true;
-        options["exposed_analog"] = true;
-        options["exposed_colorcontrol"] = true;
+        options.exposed_onoff = true;
+        options.exposed_analog = true;
+        options.exposed_colorcontrol = true;
     } else if (endpoint.supportsInputCluster("genLevelCtrl")) {
         expose.push(e.light_brightness().withEndpoint(epName));
-        options["exposed_onoff"] = true;
-        options["exposed_analog"] = true;
-        options["exposed_levelcontrol"] = true;
+        options.exposed_onoff = true;
+        options.exposed_analog = true;
+        options.exposed_levelcontrol = true;
     }
     if (endpoint.supportsInputCluster("genOnOff")) {
-        if (!options["exposed_onoff"]) {
+        if (!options.exposed_onoff) {
             expose.push(e.switch().withEndpoint(epName));
         }
     }
     if (endpoint.supportsInputCluster("genAnalogInput") || endpoint.supportsOutputCluster("genAnalogInput")) {
-        if (!options["exposed_analog"]) {
-            options["exposed_analog"] = true;
+        if (!options.exposed_analog) {
+            options.exposed_analog = true;
             expose.push(e.text(epName, ea.ALL).withEndpoint(epName).withProperty(epName).withDescription("State or sensor value"));
         }
     }
@@ -209,22 +208,22 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     }
     if (endpoint.supportsInputCluster("haElectricalMeasurement")) {
         // haElectricalMeasurement may expose only one value defined explicitly
-        if (!(options["exposed_voltage"] || options["exposed_current"] || options["exposed_power"])) {
+        if (!(options.exposed_voltage || options.exposed_current || options.exposed_power)) {
             expose.push(e.voltage().withEndpoint(epName));
             expose.push(e.current().withEndpoint(epName));
             expose.push(e.power().withEndpoint(epName));
         }
     }
     if (endpoint.supportsInputCluster("seMetering")) {
-        if (!options["exposed_energy"]) {
+        if (!options.exposed_energy) {
             expose.push(e.energy().withEndpoint(epName));
         }
     }
     if (endpoint.supportsInputCluster("genPowerCfg")) {
-        deviceOptions["expose_battery"] = true;
+        deviceOptions.expose_battery = true;
     }
     if (endpoint.supportsInputCluster("genMultistateInput") || endpoint.supportsOutputCluster("genMultistateInput")) {
-        deviceOptions["expose_action"] = true;
+        deviceOptions.expose_action = true;
     }
 }
 
@@ -342,7 +341,7 @@ export const definitions: DefinitionWithExtend[] = [
             const exposeDeviceOptions: KeyValue = {};
             const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
             if (deviceConfig === "") {
-                if (device != null && device.endpoints) {
+                if (device?.endpoints) {
                     for (const endpoint of device.endpoints) {
                         const exposeEpOptions: KeyValue = {};
                         ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
@@ -364,11 +363,11 @@ export const definitions: DefinitionWithExtend[] = [
                 for (let i = 0; i < deviceConfigArray.length; i++) {
                     epConfig = deviceConfigArray[i];
                     const matches = epConfig.match(/^([0-9A-F]+)/);
-                    if (!matches || matches.length == 0) {
+                    if (!matches || matches.length === 0) {
                         continue;
                     }
                     const epId = Number.parseInt(matches[0], 16);
-                    const epId2 = epId < 10 ? "0" + epId : epId;
+                    const epId2 = epId < 10 ? `0${epId}` : epId;
                     epConfig = epConfig.replace(/^[0-9A-F]+/, epId2);
                     allEndpoints[epId] = "1";
                     allEndpointsSorted.push(epConfig);
@@ -380,7 +379,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                     epConfig = endpoint.ID.toString();
                     if (endpoint.ID < 10) {
-                        epConfig = "0" + epConfig;
+                        epConfig = `0${epConfig}`;
                     }
                     allEndpointsSorted.push(epConfig);
                 }
@@ -404,11 +403,11 @@ export const definitions: DefinitionWithExtend[] = [
                     const exposeEpOptions: KeyValueAny = exposeDeviceOptions[epName];
                     if (valueId === "*") {
                         // GPIO output (Generic)
-                        exposeEpOptions["exposed_onoff"] = true;
+                        exposeEpOptions.exposed_onoff = true;
                         expose.push(e.switch().withEndpoint(epName));
                     } else if (valueId === "#") {
                         // GPIO state (contact, gas, noise, occupancy, presence, smoke, sos, tamper, vibration, water leak)
-                        exposeEpOptions["exposed_onoff"] = true;
+                        exposeEpOptions.exposed_onoff = true;
                         let exposeObj = undefined;
                         switch (valueDescription) {
                             case "g":
@@ -476,13 +475,13 @@ export const definitions: DefinitionWithExtend[] = [
                         valueName = valueName !== undefined ? valueName : infoLookup[valueId];
 
                         if (valueName === undefined && valueNumIndex) {
-                            valueName = "val" + valueNumIndex;
+                            valueName = `val${valueNumIndex}`;
                         }
                         if (valueName) {
-                            exposeEpOptions["exposed_" + valueName] = true;
+                            exposeEpOptions[`exposed_${valueName}`] = true;
                         }
 
-                        valueName = valueName === undefined ? epName : valueName + "_" + epName;
+                        valueName = valueName === undefined ? epName : `${valueName}_${epName}`;
 
                         if (valueDescription === undefined || valueDescription === "") {
                             if (infoLookup[valueId]) {
@@ -495,14 +494,14 @@ export const definitions: DefinitionWithExtend[] = [
                         valueDescription = valueDescription.substring(0, 1).toUpperCase() + valueDescription.substring(1);
 
                         if (valueNumIndex) {
-                            valueDescription = valueDescription + " " + valueNumIndex;
+                            valueDescription = `${valueDescription} ${valueNumIndex}`;
                         }
 
                         if ((valueUnit === undefined || valueUnit === "") && infoLookup[valueId]) {
                             valueUnit = valueId;
                         }
 
-                        exposeEpOptions["exposed_analog"] = true;
+                        exposeEpOptions.exposed_analog = true;
                         expose.push(
                             e
                                 .numeric(valueName, epStateType)
@@ -525,10 +524,10 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                 }
             }
-            if (exposeDeviceOptions["expose_action"]) {
+            if (exposeDeviceOptions.expose_action) {
                 expose.push(e.action(["single", "double", "triple", "hold", "release"]));
             }
-            if (exposeDeviceOptions["expose_battery"]) {
+            if (exposeDeviceOptions.expose_battery) {
                 expose.push(e.battery());
             }
 
@@ -540,7 +539,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpointList: any = [];
             const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
             if (deviceConfig === "") {
-                if (device != null && device.endpoints) {
+                if (device?.endpoints) {
                     for (const endpoint of device.endpoints) {
                         const epId = endpoint.ID;
                         const epName = `l${epId}`;
@@ -564,7 +563,7 @@ export const definitions: DefinitionWithExtend[] = [
                     endpointList[epName] = epId;
                 }
             }
-            endpointList["action"] = 1;
+            endpointList.action = 1;
             return endpointList;
         },
         configure: async (device, coordinatorEndpoint) => {

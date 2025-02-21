@@ -125,10 +125,9 @@ const tzLocal = {
                     await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
                     const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
                     return currentState ? {state: {state: currentState === "OFF" ? "OFF" : "ON"}} : {};
-                } else {
-                    await entity.command("genOnOff", state === "off" ? "on" : "off", {}, utils.getOptions(meta.mapped, entity));
-                    return {state: {state: state === "off" ? "OFF" : "ON"}};
                 }
+                await entity.command("genOnOff", state === "off" ? "on" : "off", {}, utils.getOptions(meta.mapped, entity));
+                return {state: {state: state === "off" ? "OFF" : "ON"}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -143,7 +142,8 @@ const tzLocal = {
             if (key === "restart") {
                 await entity.command("genOnOff", "onWithTimedOff", {ctrlbits: 0, ontime: Math.round(value * 10), offwaittime: 0});
                 return {state: {[key]: value}};
-            } else if (key === "interval") {
+            }
+            if (key === "interval") {
                 await entity.configureReporting("genOnOff", [
                     {
                         attribute: "onOff",
@@ -162,7 +162,7 @@ const tzLocal = {
             const epId = 2;
             const endpoint = meta.device.getEndpoint(epId);
             const value2 = Number.parseInt(value.toString());
-            if (!isNaN(value2) && value2 > 0) {
+            if (!Number.isNaN(value2) && value2 > 0) {
                 await endpoint.configureReporting("genOnOff", [
                     {
                         attribute: "onOff",
@@ -225,11 +225,11 @@ const fzLocal = {
             const payload: KeyValueAny = {};
             const channel = msg.endpoint.ID;
             const name = `l${channel}`;
-            payload[name] = utils.precisionRound(msg.data["presentValue"], 3);
+            payload[name] = utils.precisionRound(msg.data.presentValue, 3);
             if (channel === 5) {
-                payload[`uptime_${name}`] = utils.precisionRound(msg.data["presentValue"], 3);
+                payload[`uptime_${name}`] = utils.precisionRound(msg.data.presentValue, 3);
             } else if (msg.data.description !== undefined) {
-                const data1 = msg.data["description"];
+                const data1 = msg.data.description;
                 if (data1) {
                     const data2 = data1.split(",");
                     const devid = data2[1];
@@ -238,7 +238,7 @@ const fzLocal = {
                         payload[`device_${name}`] = devid;
                     }
 
-                    const valRaw = msg.data["presentValue"];
+                    const valRaw = msg.data.presentValue;
                     if (unit) {
                         let val = utils.precisionRound(valRaw, 1);
 
@@ -261,13 +261,13 @@ const fzLocal = {
 
                         if (nameAlt === undefined) {
                             const valueIndex = Number.parseInt(unit, 10);
-                            if (!isNaN(valueIndex)) {
-                                nameAlt = "val" + unit;
+                            if (!Number.isNaN(valueIndex)) {
+                                nameAlt = `val${unit}`;
                             }
                         }
 
                         if (nameAlt !== undefined) {
-                            payload[nameAlt + "_" + name] = val;
+                            payload[`${nameAlt}_${name}`] = val;
                         }
                     }
                 }
@@ -282,7 +282,7 @@ const fzLocal = {
             if (msg.data.onOff !== undefined) {
                 const payload: KeyValueAny = {};
                 const endpointName = model.endpoint !== undefined ? utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
-                const state = msg.data["onOff"] === 1 ? "OFF" : "ON";
+                const state = msg.data.onOff === 1 ? "OFF" : "ON";
                 payload[`state_${endpointName}`] = state;
                 return payload;
             }
@@ -308,7 +308,7 @@ const fzLocal = {
                 const suffix = `_ch${baseCh + ch - 1}`;
                 const otherKey = alt + suffix;
                 const otherValue = meta.state[otherKey] as number;
-                const value = msg.data["presentValue"] * (isCurrent ? 30 : 1);
+                const value = msg.data.presentValue * (isCurrent ? 30 : 1);
                 const power = value * otherValue;
 
                 payload[`power${suffix}`] = power;
@@ -325,7 +325,7 @@ const fzLocal = {
             const channel = msg.endpoint.ID;
 
             if (channel === 1) {
-                payload["uptime"] = msg.data["presentValue"];
+                payload.uptime = msg.data.presentValue;
             }
 
             return payload;

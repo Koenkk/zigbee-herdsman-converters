@@ -40,10 +40,10 @@ const fzLocal = {
                 const secondOctet = hex.substring(2, 4);
                 const thirdOctet = hex.substring(4, 8);
                 result.last_action_user = Number.parseInt(thirdOctet, 16);
-                if (secondOctet == "01") {
+                if (secondOctet === "01") {
                     attributes.last_lock_user = result.last_action_user;
                     attributes.last_lock_source = result.last_action_source;
-                } else if (secondOctet == "02") {
+                } else if (secondOctet === "02") {
                     attributes.last_unlock_user = result.last_action_user;
                     attributes.last_unlock_source = result.last_action_source;
                 }

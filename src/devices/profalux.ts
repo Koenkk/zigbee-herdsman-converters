@@ -55,11 +55,10 @@ export const definitions: DefinitionWithExtend[] = [
             //  1: cover using tilt (aka BSO) : 2xF Stop + Up
             //  2: soft cover (aka store)     : 2xF Stop + Down
 
-            if ((device == null && options == null) || endpoint.getClusterAttributeValue("manuSpecificProfalux1", "motorCoverType") == 1) {
+            if ((device == null && options == null) || endpoint.getClusterAttributeValue("manuSpecificProfalux1", "motorCoverType") === 1) {
                 return [e.cover_position_tilt()];
-            } else {
-                return [e.cover_position()];
             }
+            return [e.cover_position()];
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -70,7 +69,7 @@ export const definitions: DefinitionWithExtend[] = [
             // logger.debug(`Profalux '${device.ieeeAddr}' setup as cover type '${coverType)}'`, NS);
             await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
             await reporting.currentPositionLiftPercentage(endpoint);
-            if (coverType == 1) {
+            if (coverType === 1) {
                 await reporting.currentPositionTiltPercentage(endpoint);
             }
         },

@@ -41,7 +41,7 @@ class ExtendGenerator<T> implements GeneratedExtend {
             jsonArgs = "";
         }
 
-        return this.source + "(" + jsonArgs + ")";
+        return `${this.source}(${jsonArgs})`;
     }
 }
 
@@ -54,7 +54,7 @@ type DefinitionWithZigbeeModel = DefinitionWithExtend & {zigbeeModel: string[]};
 
 function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: GeneratedExtend[]): string {
     const imports = [...new Set(generatedExtend.map((e) => e.lib ?? "modernExtend"))];
-    const importsStr = imports.map((e) => `const ${e == "modernExtend" ? "m" : e} = require('zigbee-herdsman-converters/lib/${e}');`).join("\n");
+    const importsStr = imports.map((e) => `const ${e === "modernExtend" ? "m" : e} = require('zigbee-herdsman-converters/lib/${e}');`).join("\n");
     return `${importsStr}
 
 const definition = {
@@ -255,7 +255,7 @@ async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promis
     const endpoint = endpoints[0];
 
     const pinCodeCount = await getClusterAttributeValue<number>(endpoint, "closuresDoorLock", "numOfPinUsersSupported", 50);
-    return [new ExtendGenerator({extend: m.lock, args: {pinCodeCount}, source: `lock`})];
+    return [new ExtendGenerator({extend: m.lock, args: {pinCodeCount}, source: "lock"})];
 }
 
 async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
@@ -300,9 +300,9 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         }
 
         if (endpoint.getDevice().manufacturerID === Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V) {
-            generated.push(new ExtendGenerator({extend: philipsLight, args, source: `philipsLight`, lib: "philips"}));
+            generated.push(new ExtendGenerator({extend: philipsLight, args, source: "philipsLight", lib: "philips"}));
         } else {
-            generated.push(new ExtendGenerator({extend: m.light, args, source: `light`}));
+            generated.push(new ExtendGenerator({extend: m.light, args, source: "light"}));
         }
     }
 
@@ -323,7 +323,7 @@ async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoin
     if (!metering || !electricalMeasurements) {
         args.cluster = metering ? "metering" : "electrical";
     }
-    return [new ExtendGenerator({extend: m.electricityMeter, args, source: `electricityMeter`})];
+    return [new ExtendGenerator({extend: m.electricityMeter, args, source: "electricityMeter"})];
 }
 
 async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {

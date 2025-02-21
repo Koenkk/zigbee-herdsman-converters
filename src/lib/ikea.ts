@@ -65,7 +65,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
         if (levelConfig?.on_level !== undefined) {
             const onLevelRaw = levelConfig.on_level;
             let onLevel: number;
-            if (typeof onLevelRaw === "string" && onLevelRaw.toLowerCase() == "previous") {
+            if (typeof onLevelRaw === "string" && onLevelRaw.toLowerCase() === "previous") {
                 onLevel = 255;
             } else {
                 onLevel = Number(onLevelRaw);
@@ -127,7 +127,7 @@ export function ikeaBattery(): ModernExtend {
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const payload: KeyValue = {};
-                if (msg.data.batteryPercentageRemaining !== undefined && msg.data["batteryPercentageRemaining"] < 255) {
+                if (msg.data.batteryPercentageRemaining !== undefined && msg.data.batteryPercentageRemaining < 255) {
                     // Some devices do not comply to the ZCL and report a
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                     let dividePercentage = true;
@@ -145,7 +145,7 @@ export function ikeaBattery(): ModernExtend {
                         }
                     }
 
-                    let percentage = msg.data["batteryPercentageRemaining"];
+                    let percentage = msg.data.batteryPercentageRemaining;
                     percentage = dividePercentage ? percentage / 2 : percentage;
                     payload.battery = precisionRound(percentage, 2);
                 }
@@ -198,7 +198,7 @@ export function ikeaConfigureRemote(): ModernExtend {
                 const endpoint = device.getEndpoint(1);
                 const version = device.softwareBuildID.split(".").map((n) => Number(n));
                 const bindTarget =
-                    version[0] > 2 || (version[0] == 2 && version[1] > 3) || (version[0] == 2 && version[1] == 3 && version[2] >= 75)
+                    version[0] > 2 || (version[0] === 2 && version[1] > 3) || (version[0] === 2 && version[1] === 3 && version[2] >= 75)
                         ? coordinatorEndpoint
                         : constants.defaultBindGroup;
                 await endpoint.bind("genOnOff", bindTarget);
@@ -250,7 +250,7 @@ export function ikeaAirPurifier(): ModernExtend {
 
                 if (msg.data.particulateMatter25Measurement !== undefined) {
                     const pm25Property = postfixWithEndpointName("pm25", msg, model, meta);
-                    let pm25 = Number.parseFloat(msg.data["particulateMatter25Measurement"]);
+                    let pm25 = Number.parseFloat(msg.data.particulateMatter25Measurement);
 
                     // Air Quality
                     // Scale based on EU AQI (https://www.eea.europa.eu/themes/air/air-quality-index)
@@ -275,7 +275,7 @@ export function ikeaAirPurifier(): ModernExtend {
                         airQuality = "unknown";
                     }
 
-                    pm25 = pm25 == 65535 ? -1 : pm25;
+                    pm25 = pm25 === 65535 ? -1 : pm25;
 
                     state[pm25Property] = pm25;
                     state[airQualityProperty] = airQuality;
@@ -283,45 +283,45 @@ export function ikeaAirPurifier(): ModernExtend {
 
                 if (msg.data.filterRunTime !== undefined) {
                     // Filter needs to be replaced after 6 months
-                    state["replace_filter"] = Number.parseInt(msg.data["filterRunTime"]) >= 259200;
-                    state["filter_age"] = Number.parseInt(msg.data["filterRunTime"]);
+                    state.replace_filter = Number.parseInt(msg.data.filterRunTime) >= 259200;
+                    state.filter_age = Number.parseInt(msg.data.filterRunTime);
                 }
 
                 if (msg.data.deviceRunTime !== undefined) {
-                    state["device_age"] = Number.parseInt(msg.data["deviceRunTime"]);
+                    state.device_age = Number.parseInt(msg.data.deviceRunTime);
                 }
 
                 if (msg.data.controlPanelLight !== undefined) {
-                    state["led_enable"] = msg.data["controlPanelLight"] == 0;
+                    state.led_enable = msg.data.controlPanelLight === 0;
                 }
 
                 if (msg.data.childLock !== undefined) {
-                    state["child_lock"] = msg.data["childLock"] == 0 ? "UNLOCK" : "LOCK";
+                    state.child_lock = msg.data.childLock === 0 ? "UNLOCK" : "LOCK";
                 }
 
                 if (msg.data.fanSpeed !== undefined) {
-                    let fanSpeed = msg.data["fanSpeed"];
+                    let fanSpeed = msg.data.fanSpeed;
                     if (fanSpeed >= 10) {
                         fanSpeed = ((fanSpeed - 5) * 2) / 10;
                     } else {
                         fanSpeed = 0;
                     }
 
-                    state["fan_speed"] = fanSpeed;
+                    state.fan_speed = fanSpeed;
                 }
 
                 if (msg.data.fanMode !== undefined) {
-                    let fanMode = msg.data["fanMode"];
+                    let fanMode = msg.data.fanMode;
                     if (fanMode >= 10) {
                         fanMode = (((fanMode - 5) * 2) / 10).toString();
-                    } else if (fanMode == 1) {
+                    } else if (fanMode === 1) {
                         fanMode = "auto";
                     } else {
                         fanMode = "off";
                     }
 
-                    state["fan_mode"] = fanMode;
-                    state["fan_state"] = fanMode === "off" ? "OFF" : "ON";
+                    state.fan_mode = fanMode;
+                    state.fan_state = fanMode === "off" ? "OFF" : "ON";
                 }
 
                 return state;
@@ -333,7 +333,7 @@ export function ikeaAirPurifier(): ModernExtend {
         {
             key: ["fan_mode", "fan_state"],
             convertSet: async (entity, key, value, meta) => {
-                if (key == "fan_state" && typeof value === "string" && value.toLowerCase() == "on") {
+                if (key === "fan_state" && typeof value === "string" && value.toLowerCase() === "on") {
                     value = "auto";
                 } else {
                     value = value.toString().toLowerCase();
@@ -397,7 +397,7 @@ export function ikeaAirPurifier(): ModernExtend {
             key: ["led_enable"],
             convertSet: async (entity, key, value, meta) => {
                 await entity.write("manuSpecificIkeaAirPurifier", {controlPanelLight: value ? 0 : 1}, manufacturerOptions);
-                return {state: {led_enable: value ? true : false}};
+                return {state: {led_enable: !!value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read("manuSpecificIkeaAirPurifier", ["controlPanelLight"]);
@@ -494,7 +494,7 @@ export function tradfriOccupancy(): ModernExtend {
             type: "commandOnWithTimedOff",
             options: [options.occupancy_timeout(), options.illuminance_below_threshold_check()],
             convert: (model, msg, publish, options, meta) => {
-                const onlyWhenOnFlag = (msg.data.ctrlbits & 1) != 0;
+                const onlyWhenOnFlag = (msg.data.ctrlbits & 1) !== 0;
                 if (
                     onlyWhenOnFlag &&
                     (!options || options.illuminance_below_threshold_check === undefined || options.illuminance_below_threshold_check) &&

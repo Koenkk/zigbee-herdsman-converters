@@ -246,7 +246,7 @@ describe("Sonoff TRVZB", () => {
                         endpoint,
                         "weekly_schedule",
                         {
-                            notaday: `00:00/5`,
+                            notaday: "00:00/5",
                         },
                         meta,
                     ),
@@ -258,7 +258,7 @@ describe("Sonoff TRVZB", () => {
                     endpoint,
                     "weekly_schedule",
                     {
-                        sunday: `00:00/5 06:30/10.5 12:00/15 18:30/20 20:45/15.5 23:00/4`,
+                        sunday: "00:00/5 06:30/10.5 12:00/15 18:30/20 20:45/15.5 23:00/4",
                     },
                     meta,
                 );
@@ -306,7 +306,7 @@ describe("Sonoff TRVZB", () => {
                     endpoint,
                     "weekly_schedule",
                     {
-                        sunday: `00:00/5 12:00/15 06:30/10.5`,
+                        sunday: "00:00/5 12:00/15 06:30/10.5",
                     },
                     meta,
                 );
@@ -342,9 +342,9 @@ describe("Sonoff TRVZB", () => {
                     endpoint,
                     "weekly_schedule",
                     {
-                        sunday: `00:00/5`,
-                        monday: `00:00/10`,
-                        tuesday: `00:00/15`,
+                        sunday: "00:00/5",
+                        monday: "00:00/10",
+                        tuesday: "00:00/15",
                     },
                     meta,
                 );

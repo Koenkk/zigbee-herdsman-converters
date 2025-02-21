@@ -33,7 +33,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             // @ts-expect-error ignore
-            delete msg["running_state"];
+            delete msg.running_state;
             const result: KeyValue = {};
             const occupancyLookup = {0: "unoccupied", 1: "occupied"};
             const cycleOutputLookup = {15: "15_sec", 300: "5_min", 600: "10_min", 900: "15_min", 1200: "20_min", 1800: "30_min", 65535: "off"};
@@ -42,13 +42,13 @@ const fzLocal = {
                 result.thermostat_occupancy = utils.getFromLookup(msg.data["1024"], occupancyLookup);
             }
             if (msg.data.SinopeOccupancy !== undefined) {
-                result.thermostat_occupancy = utils.getFromLookup(msg.data["SinopeOccupancy"], occupancyLookup);
+                result.thermostat_occupancy = utils.getFromLookup(msg.data.SinopeOccupancy, occupancyLookup);
             }
             if (msg.data["1025"] !== undefined) {
                 result.main_cycle_output = utils.getFromLookup(msg.data["1025"], cycleOutputLookup);
             }
             if (msg.data.SinopeMainCycleOutput !== undefined) {
-                result.main_cycle_output = utils.getFromLookup(msg.data["SinopeMainCycleOutput"], cycleOutputLookup);
+                result.main_cycle_output = utils.getFromLookup(msg.data.SinopeMainCycleOutput, cycleOutputLookup);
             }
             if (msg.data["1026"] !== undefined) {
                 const lookup = {0: "on_demand", 1: "sensing"};
@@ -56,55 +56,55 @@ const fzLocal = {
             }
             if (msg.data.SinopeBacklight !== undefined) {
                 const lookup = {0: "on_demand", 1: "sensing"};
-                result.backlight_auto_dim = utils.getFromLookup(msg.data["SinopeBacklight"], lookup);
+                result.backlight_auto_dim = utils.getFromLookup(msg.data.SinopeBacklight, lookup);
             }
             if (msg.data["1028"] !== undefined) {
                 result.aux_cycle_output = utils.getFromLookup(msg.data["1028"], cycleOutputLookup);
             }
             if (msg.data.localTemp !== undefined) {
-                result.local_temperature = precisionRound(msg.data["localTemp"], 2) / 100;
+                result.local_temperature = precisionRound(msg.data.localTemp, 2) / 100;
             }
             if (msg.data.localTemperatureCalibration !== undefined) {
-                result.local_temperature_calibration = precisionRound(msg.data["localTemperatureCalibration"], 2) / 10;
+                result.local_temperature_calibration = precisionRound(msg.data.localTemperatureCalibration, 2) / 10;
             }
             if (msg.data.outdoorTemp !== undefined) {
-                result.outdoor_temperature = precisionRound(msg.data["outdoorTemp"], 2) / 100;
+                result.outdoor_temperature = precisionRound(msg.data.outdoorTemp, 2) / 100;
             }
             if (msg.data.occupiedHeatingSetpoint !== undefined) {
-                result.occupied_heating_setpoint = precisionRound(msg.data["occupiedHeatingSetpoint"], 2) / 100;
+                result.occupied_heating_setpoint = precisionRound(msg.data.occupiedHeatingSetpoint, 2) / 100;
             }
             if (msg.data.unoccupiedHeatingSetpoint !== undefined) {
-                result.unoccupied_heating_setpoint = precisionRound(msg.data["unoccupiedHeatingSetpoint"], 2) / 100;
+                result.unoccupied_heating_setpoint = precisionRound(msg.data.unoccupiedHeatingSetpoint, 2) / 100;
             }
             if (msg.data.occupiedCoolingSetpoint !== undefined) {
-                result.occupied_cooling_setpoint = precisionRound(msg.data["occupiedCoolingSetpoint"], 2) / 100;
+                result.occupied_cooling_setpoint = precisionRound(msg.data.occupiedCoolingSetpoint, 2) / 100;
             }
             if (msg.data.unoccupiedCoolingSetpoint !== undefined) {
-                result.unoccupied_cooling_setpoint = precisionRound(msg.data["unoccupiedCoolingSetpoint"], 2) / 100;
+                result.unoccupied_cooling_setpoint = precisionRound(msg.data.unoccupiedCoolingSetpoint, 2) / 100;
             }
             if (msg.data.ctrlSeqeOfOper !== undefined) {
-                result.control_sequence_of_operation = constants.thermostatControlSequenceOfOperations[msg.data["ctrlSeqeOfOper"]];
+                result.control_sequence_of_operation = constants.thermostatControlSequenceOfOperations[msg.data.ctrlSeqeOfOper];
             }
             if (msg.data.systemMode !== undefined) {
-                result.system_mode = constants.thermostatSystemModes[msg.data["systemMode"]];
+                result.system_mode = constants.thermostatSystemModes[msg.data.systemMode];
             }
             if (msg.data.pIHeatingDemand !== undefined) {
-                result.pi_heating_demand = precisionRound(msg.data["pIHeatingDemand"], 0);
+                result.pi_heating_demand = precisionRound(msg.data.pIHeatingDemand, 0);
             }
             if (msg.data.minHeatSetpointLimit !== undefined) {
-                result.min_heat_setpoint_limit = precisionRound(msg.data["minHeatSetpointLimit"], 2) / 100;
+                result.min_heat_setpoint_limit = precisionRound(msg.data.minHeatSetpointLimit, 2) / 100;
             }
             if (msg.data.maxHeatSetpointLimit !== undefined) {
-                result.max_heat_setpoint_limit = precisionRound(msg.data["maxHeatSetpointLimit"], 2) / 100;
+                result.max_heat_setpoint_limit = precisionRound(msg.data.maxHeatSetpointLimit, 2) / 100;
             }
             if (msg.data.absMinHeatSetpointLimit !== undefined) {
-                result.abs_min_heat_setpoint_limit = precisionRound(msg.data["absMinHeatSetpointLimit"], 2) / 100;
+                result.abs_min_heat_setpoint_limit = precisionRound(msg.data.absMinHeatSetpointLimit, 2) / 100;
             }
             if (msg.data.absMaxHeatSetpointLimit !== undefined) {
-                result.abs_max_heat_setpoint_limit = precisionRound(msg.data["absMaxHeatSetpointLimit"], 2) / 100;
+                result.abs_max_heat_setpoint_limit = precisionRound(msg.data.absMaxHeatSetpointLimit, 2) / 100;
             }
             if (msg.data.pIHeatingDemand !== undefined) {
-                result.running_state = msg.data["pIHeatingDemand"] >= 10 ? "heat" : "idle";
+                result.running_state = msg.data.pIHeatingDemand >= 10 ? "heat" : "idle";
             }
             return result;
         },
@@ -115,8 +115,8 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.presentValue !== undefined) {
-                let x = msg.data["presentValue"];
-                if (x == -1) {
+                let x = msg.data.presentValue;
+                if (x === -1) {
                     result.tank_level = 0;
                 } else {
                     const xMin = 110;
@@ -147,80 +147,80 @@ const fzLocal = {
             const result: KeyValue = {};
             if (msg.data.GFCiStatus !== undefined) {
                 const lookup = {0: "off", 1: "on"};
-                result.gfci_status = utils.getFromLookup(msg.data["GFCiStatus"], lookup);
+                result.gfci_status = utils.getFromLookup(msg.data.GFCiStatus, lookup);
             }
             if (msg.data.floorLimitStatus !== undefined) {
                 const lookup = {0: "off", 1: "on"};
-                result.floor_limit_status = utils.getFromLookup(msg.data["floorLimitStatus"], lookup);
+                result.floor_limit_status = utils.getFromLookup(msg.data.floorLimitStatus, lookup);
             }
             if (msg.data.secondScreenBehavior !== undefined) {
                 const lookup = {0: "auto", 1: "setpoint", 2: "outdoor temp"};
-                result.second_display_mode = utils.getFromLookup(msg.data["secondScreenBehavior"], lookup);
+                result.second_display_mode = utils.getFromLookup(msg.data.secondScreenBehavior, lookup);
             }
             if (msg.data.outdoorTempToDisplayTimeout !== undefined) {
-                result.outdoor_temperature_timeout = msg.data["outdoorTempToDisplayTimeout"];
+                result.outdoor_temperature_timeout = msg.data.outdoorTempToDisplayTimeout;
                 // DEPRECATED: Use Second Display Mode or control via set outdoorTempToDisplayTimeout
-                result.enable_outdoor_temperature = msg.data["outdoorTempToDisplayTimeout"] === 12 ? "OFF" : "ON";
+                result.enable_outdoor_temperature = msg.data.outdoorTempToDisplayTimeout === 12 ? "OFF" : "ON";
             }
             if (msg.data.outdoorTempToDisplay !== undefined) {
-                result.thermostat_outdoor_temperature = precisionRound(msg.data["outdoorTempToDisplay"], 2) / 100;
+                result.thermostat_outdoor_temperature = precisionRound(msg.data.outdoorTempToDisplay, 2) / 100;
             }
             if (msg.data.currentTimeToDisplay !== undefined) {
-                result.current_time_to_display = msg.data["currentTimeToDisplay"];
+                result.current_time_to_display = msg.data.currentTimeToDisplay;
             }
             if (msg.data.floorControlMode !== undefined) {
                 const lookup = {1: "ambiant", 2: "floor"};
-                result.floor_control_mode = utils.getFromLookup(msg.data["floorControlMode"], lookup);
+                result.floor_control_mode = utils.getFromLookup(msg.data.floorControlMode, lookup);
             }
             if (msg.data.ambiantMaxHeatSetpointLimit !== undefined) {
-                result.ambiant_max_heat_setpoint = msg.data["ambiantMaxHeatSetpointLimit"] / 100.0;
+                result.ambiant_max_heat_setpoint = msg.data.ambiantMaxHeatSetpointLimit / 100.0;
                 if (result.ambiant_max_heat_setpoint === -327.68) {
                     result.ambiant_max_heat_setpoint = "off";
                 }
             }
             if (msg.data.floorMinHeatSetpointLimit !== undefined) {
-                result.floor_min_heat_setpoint = msg.data["floorMinHeatSetpointLimit"] / 100.0;
+                result.floor_min_heat_setpoint = msg.data.floorMinHeatSetpointLimit / 100.0;
                 if (result.floor_min_heat_setpoint === -327.68) {
                     result.floor_min_heat_setpoint = "off";
                 }
             }
             if (msg.data.floorMaxHeatSetpointLimit !== undefined) {
-                result.floor_max_heat_setpoint = msg.data["floorMaxHeatSetpointLimit"] / 100.0;
+                result.floor_max_heat_setpoint = msg.data.floorMaxHeatSetpointLimit / 100.0;
                 if (result.floor_max_heat_setpoint === -327.68) {
                     result.floor_max_heat_setpoint = "off";
                 }
             }
             if (msg.data.temperatureSensor !== undefined) {
                 const lookup = {0: "10k", 1: "12k"};
-                result.floor_temperature_sensor = utils.getFromLookup(msg.data["temperatureSensor"], lookup);
+                result.floor_temperature_sensor = utils.getFromLookup(msg.data.temperatureSensor, lookup);
             }
             if (msg.data.timeFormatToDisplay !== undefined) {
                 const lookup = {0: "24h", 1: "12h"};
-                result.time_format = utils.getFromLookup(msg.data["timeFormatToDisplay"], lookup);
+                result.time_format = utils.getFromLookup(msg.data.timeFormatToDisplay, lookup);
             }
             if (msg.data.connectedLoad !== undefined) {
-                result.connected_load = msg.data["connectedLoad"];
+                result.connected_load = msg.data.connectedLoad;
             }
             if (msg.data.auxConnectedLoad !== undefined) {
-                result.aux_connected_load = msg.data["auxConnectedLoad"];
-                if (result.aux_connected_load == 65535) {
+                result.aux_connected_load = msg.data.auxConnectedLoad;
+                if (result.aux_connected_load === 65535) {
                     result.aux_connected_load = "disabled";
                 }
             }
             if (msg.data.pumpProtection !== undefined) {
-                result.pump_protection = msg.data["pumpProtection"] == 1 ? "ON" : "OFF";
+                result.pump_protection = msg.data.pumpProtection === 1 ? "ON" : "OFF";
             }
             if (msg.data.dimmerTimmer !== undefined) {
-                result.timer_seconds = msg.data["dimmerTimmer"];
+                result.timer_seconds = msg.data.dimmerTimmer;
             }
             if (msg.data.ledIntensityOn !== undefined) {
-                result.led_intensity_on = msg.data["ledIntensityOn"];
+                result.led_intensity_on = msg.data.ledIntensityOn;
             }
             if (msg.data.ledIntensityOff !== undefined) {
-                result.led_intensity_off = msg.data["ledIntensityOff"];
+                result.led_intensity_off = msg.data.ledIntensityOff;
             }
             if (msg.data.minimumBrightness !== undefined) {
-                result.minimum_brightness = msg.data["minimumBrightness"];
+                result.minimum_brightness = msg.data.minimumBrightness;
             }
             if (msg.data.actionReport !== undefined) {
                 const lookup = {
@@ -233,14 +233,14 @@ const fzLocal = {
                     19: "down_hold",
                     20: "down_double",
                 };
-                result.action = utils.getFromLookup(msg.data["actionReport"], lookup);
+                result.action = utils.getFromLookup(msg.data.actionReport, lookup);
             }
             if (msg.data.keypadLockout !== undefined) {
                 const lookup = {0: "unlock", 1: "lock"};
-                result.keypad_lockout = utils.getFromLookup(msg.data["keypadLockout"], lookup);
+                result.keypad_lockout = utils.getFromLookup(msg.data.keypadLockout, lookup);
             }
             if (msg.data.drConfigWaterTempMin !== undefined) {
-                result.low_water_temp_protection = msg.data["drConfigWaterTempMin"];
+                result.low_water_temp_protection = msg.data.drConfigWaterTempMin;
             }
             return result;
         },
@@ -299,9 +299,9 @@ const tzLocal = {
         key: ["enable_outdoor_temperature"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
-            if (value.toLowerCase() == "on") {
+            if (value.toLowerCase() === "on") {
                 await entity.write("manuSpecificSinope", {outdoorTempToDisplayTimeout: 10800}, manuSinope);
-            } else if (value.toLowerCase() == "off") {
+            } else if (value.toLowerCase() === "off") {
                 // set timer to 12 sec in order to disable outdoor temperature
                 await entity.write("manuSpecificSinope", {outdoorTempToDisplayTimeout: 12}, manuSinope);
             }
@@ -386,9 +386,9 @@ const tzLocal = {
         key: ["ambiant_max_heat_setpoint"],
         convertSet: async (entity, key, value, meta) => {
             // @ts-expect-error ignore
-            if ((value >= 5 && value <= 36) || value == "off") {
+            if ((value >= 5 && value <= 36) || value === "off") {
                 // @ts-expect-error ignore
-                await entity.write("manuSpecificSinope", {ambiantMaxHeatSetpointLimit: value == "off" ? -32768 : value * 100});
+                await entity.write("manuSpecificSinope", {ambiantMaxHeatSetpointLimit: value === "off" ? -32768 : value * 100});
                 return {state: {ambiant_max_heat_setpoint: value}};
             }
         },
@@ -401,9 +401,9 @@ const tzLocal = {
         key: ["floor_min_heat_setpoint"],
         convertSet: async (entity, key, value, meta) => {
             // @ts-expect-error ignore
-            if ((value >= 5 && value <= 34) || value == "off") {
+            if ((value >= 5 && value <= 34) || value === "off") {
                 // @ts-expect-error ignore
-                await entity.write("manuSpecificSinope", {floorMinHeatSetpointLimit: value == "off" ? -32768 : value * 100});
+                await entity.write("manuSpecificSinope", {floorMinHeatSetpointLimit: value === "off" ? -32768 : value * 100});
                 return {state: {floor_min_heat_setpoint: value}};
             }
         },
@@ -416,9 +416,9 @@ const tzLocal = {
         key: ["floor_max_heat_setpoint"],
         convertSet: async (entity, key, value, meta) => {
             // @ts-expect-error ignore
-            if ((value >= 7 && value <= 36) || value == "off") {
+            if ((value >= 7 && value <= 36) || value === "off") {
                 // @ts-expect-error ignore
-                await entity.write("manuSpecificSinope", {floorMaxHeatSetpointLimit: value == "off" ? -32768 : value * 100});
+                await entity.write("manuSpecificSinope", {floorMaxHeatSetpointLimit: value === "off" ? -32768 : value * 100});
                 return {state: {floor_max_heat_setpoint: value}};
             }
         },
@@ -482,9 +482,9 @@ const tzLocal = {
         key: ["pump_protection"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
-            if (value.toLowerCase() == "on") {
+            if (value.toLowerCase() === "on") {
                 await entity.write("manuSpecificSinope", {pumpProtection: 1});
-            } else if (value.toLowerCase() == "off") {
+            } else if (value.toLowerCase() === "off") {
                 await entity.write("manuSpecificSinope", {pumpProtection: 255});
             }
             return {state: {pump_protection: value}};

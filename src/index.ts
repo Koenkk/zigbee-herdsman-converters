@@ -1,4 +1,4 @@
-import assert from "assert";
+import assert from "node:assert";
 
 import {Zcl} from "zigbee-herdsman";
 
@@ -316,7 +316,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
             // Filter `undefined` configures, e.g. returned by setupConfigureForReporting.
             if (ext.configure) {
-                configures.push(...ext.configure.filter((c) => c != undefined));
+                configures.push(...ext.configure.filter((c) => c !== undefined));
             }
 
             if (ext.onEvent) {
@@ -528,39 +528,36 @@ export async function findDefinition(device: Zh.Device, generateForUnknown = fal
         const {definition} = await generateDefinition(device);
 
         return definition;
-    } else if (candidates.length === 1 && candidates[0].zigbeeModel) {
+    }
+    if (candidates.length === 1 && candidates[0].zigbeeModel) {
         return candidates[0];
-    } else {
-        logger.debug(() => `Candidates for ${device.ieeeAddr}/${device.modelID}: ${candidates.map((c) => `${c.model}/${c.vendor}`)}`, NS);
+    }
+    logger.debug(() => `Candidates for ${device.ieeeAddr}/${device.modelID}: ${candidates.map((c) => `${c.model}/${c.vendor}`)}`, NS);
 
-        // First try to match based on fingerprint, return the first matching one.
-        const fingerprintMatch: {priority?: number; definition?: DefinitionWithExtend} = {priority: undefined, definition: undefined};
+    // First try to match based on fingerprint, return the first matching one.
+    const fingerprintMatch: {priority?: number; definition?: DefinitionWithExtend} = {priority: undefined, definition: undefined};
 
-        for (const candidate of candidates) {
-            if (candidate.fingerprint) {
-                for (const fingerprint of candidate.fingerprint) {
-                    const priority = fingerprint.priority ?? 0;
+    for (const candidate of candidates) {
+        if (candidate.fingerprint) {
+            for (const fingerprint of candidate.fingerprint) {
+                const priority = fingerprint.priority ?? 0;
 
-                    if (
-                        isFingerprintMatch(fingerprint, device) &&
-                        (fingerprintMatch.priority === undefined || priority > fingerprintMatch.priority)
-                    ) {
-                        fingerprintMatch.definition = candidate;
-                        fingerprintMatch.priority = priority;
-                    }
+                if (isFingerprintMatch(fingerprint, device) && (fingerprintMatch.priority === undefined || priority > fingerprintMatch.priority)) {
+                    fingerprintMatch.definition = candidate;
+                    fingerprintMatch.priority = priority;
                 }
             }
         }
+    }
 
-        if (fingerprintMatch.definition) {
-            return fingerprintMatch.definition;
-        }
+    if (fingerprintMatch.definition) {
+        return fingerprintMatch.definition;
+    }
 
-        // Match based on fingerprint failed, return first matching definition based on zigbeeModel
-        for (const candidate of candidates) {
-            if (candidate.zigbeeModel && device.modelID && candidate.zigbeeModel.includes(device.modelID)) {
-                return candidate;
-            }
+    // Match based on fingerprint failed, return first matching definition based on zigbeeModel
+    for (const candidate of candidates) {
+        if (candidate.zigbeeModel && device.modelID && candidate.zigbeeModel.includes(device.modelID)) {
+            return candidate;
         }
     }
 

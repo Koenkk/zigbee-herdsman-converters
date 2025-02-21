@@ -1,6 +1,6 @@
 // In the root of this repo, execute: `npx ts-node scripts/refactor.ts`
 
-import {assert} from "console";
+import {assert} from "node:console";
 
 import {ArrayLiteralExpression, Project, QuoteKind, SyntaxKind} from "ts-morph";
 
@@ -57,7 +57,7 @@ project.getSourceFiles().forEach((sourceFile) => {
             }
 
             if (match) {
-                if (Object.keys(lookup).length == 1) {
+                if (Object.keys(lookup).length === 1) {
                     const key = Object.keys(lookup)[0];
                     fingerprintArray.replaceWithText(`tuya.fingerprint(${key}, [${[...lookup[key]]}])`);
                 } else {
@@ -65,7 +65,7 @@ project.getSourceFiles().forEach((sourceFile) => {
                     for (const [modelID, manufacturers] of Object.entries(lookup)) {
                         txt.push(`...tuya.fingerprint(${modelID}, [${[...manufacturers]}])`);
                     }
-                    fingerprintArray.replaceWithText(`[` + txt.join(", ") + `]`);
+                    fingerprintArray.replaceWithText(`[${txt.join(", ")}]`);
                 }
                 save = true;
             }

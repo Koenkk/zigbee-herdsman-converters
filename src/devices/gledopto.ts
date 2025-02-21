@@ -91,7 +91,7 @@ const tzLocal = {
         key: ["color", "color_temp", "color_temp_percent"],
         options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            if (key == "color") {
+            if (key === "color") {
                 const result = await tzLocal1.gledopto_light_color.convertSet(entity, key, value, meta);
                 utils.assertObject(result);
                 if (result.state && result.state.color.x !== undefined && result.state.color.y !== undefined) {
@@ -99,7 +99,8 @@ const tzLocal = {
                 }
 
                 return result;
-            } else if (key == "color_temp" || key == "color_temp_percent") {
+            }
+            if (key === "color_temp" || key === "color_temp_percent") {
                 const result = await tzLocal1.gledopto_light_colortemp.convertSet(entity, key, value, meta);
                 utils.assertObject(result);
                 result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).rounded(4).toObject();
@@ -160,7 +161,7 @@ function gledoptoConfigureReadModelID(): ModernExtend {
             const endpoint = device.endpoints[0];
             const oldModel = device.modelID;
             const newModel = (await endpoint.read("genBasic", ["modelId"])).modelId;
-            if (oldModel != newModel) {
+            if (oldModel !== newModel) {
                 logger.info(`Detected Gledopto device mode change, from '${oldModel}' to '${newModel}'`, NS);
             }
         },
@@ -335,11 +336,11 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             if (device.getEndpoint(10) && device.getEndpoint(11) && device.getEndpoint(13)) {
                 return {rgb: 11, white: 10};
-            } else if (device.getEndpoint(11) && device.getEndpoint(12) && device.getEndpoint(13)) {
-                return {rgb: 11, white: 12};
-            } else {
-                return {rgb: 11, white: 15};
             }
+            if (device.getEndpoint(11) && device.getEndpoint(12) && device.getEndpoint(13)) {
+                return {rgb: 11, white: 12};
+            }
+            return {rgb: 11, white: 15};
         },
     },
     {
@@ -554,7 +555,7 @@ export const definitions: DefinitionWithExtend[] = [
             // https://github.com/Koenkk/zigbee2mqtt/issues/5169
             if (device.getEndpoint(12)) return {default: 12};
             // https://github.com/Koenkk/zigbee2mqtt/issues/5681
-            else return {default: 11};
+            return {default: 11};
         },
     },
     {

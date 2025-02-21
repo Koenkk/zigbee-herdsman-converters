@@ -206,7 +206,7 @@ export const philipsTz = {
                 utils.assertEndpoint(entity);
                 if (entity.supportsInputCluster("lightingColorCtrl")) {
                     if (meta.message.hue_power_on_color_temperature !== undefined && meta.message.hue_power_on_color !== undefined) {
-                        logger.error(`Provide either color temperature or color, not both`, NS);
+                        logger.error("Provide either color temperature or color, not both", NS);
                     } else if (meta.message.hue_power_on_color_temperature !== undefined) {
                         const colortemp = meta.message.hue_power_on_color_temperature;
                         await entity.write("lightingColorCtrl", {16400: {value: colortemp, type: 0x21}});
@@ -378,8 +378,9 @@ export const philipsFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.type === "commandOff" || msg.type === "commandOn") {
                 return {contact: msg.type === "commandOff"};
-            } else if (msg.data.onOff !== undefined) {
-                return {contact: msg.data["onOff"] === 0};
+            }
+            if (msg.data.onOff !== undefined) {
+                return {contact: msg.data.onOff === 0};
             }
         },
     } satisfies Fz.Converter,
@@ -390,9 +391,9 @@ export const philipsFz = {
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const buttonLookup: KeyValue = {1: "button_1", 2: "button_2", 3: "button_3", 4: "button_4", 20: "dial"};
-            const button = buttonLookup[msg.data["button"]];
-            const direction = msg.data["unknown2"] < 127 ? "right" : "left";
-            const time = msg.data["time"];
+            const button = buttonLookup[msg.data.button];
+            const direction = msg.data.unknown2 < 127 ? "right" : "left";
+            const time = msg.data.time;
             const payload: KeyValue = {};
 
             if (button === "dial") {
@@ -403,7 +404,7 @@ export const philipsFz = {
 
                 // extra raw info about dial turning
                 const typeLookup: KeyValue = {1: "step", 2: "rotate"};
-                const type = typeLookup[msg.data["type"]];
+                const type = typeLookup[msg.data.type];
                 payload.action_time = adjustedTime;
                 payload.action_direction = direction;
                 payload.action_type = type;
@@ -420,7 +421,7 @@ export const philipsFz = {
                 }
             } else {
                 const typeLookup: KeyValue = {0: "press", 1: "hold", 2: "press_release", 3: "hold_release"};
-                const type = typeLookup[msg.data["type"]];
+                const type = typeLookup[msg.data.type];
                 payload.action = `${button}_${type}`;
                 // duration
                 if (type === "press") globalStore.putValue(msg.endpoint, "press_start", Date.now());
@@ -436,7 +437,7 @@ export const philipsFz = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data && msg.data.state !== undefined) {
-                const input = msg.data["state"].toString("hex");
+                const input = msg.data.state.toString("hex");
                 const decoded = decodeGradientColors(input, {reverse: true});
                 if (decoded.color_mode === "gradient") {
                     return {gradient: decoded.colors};
@@ -531,7 +532,7 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
         // Offset (2 bytes)
         const offset = Number.parseInt(input.slice(0, 2), 16) >> 3;
 
-        if (opts && opts.reverse) {
+        if (opts?.reverse) {
             colors.reverse();
         }
 
@@ -543,7 +544,8 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
             brightness,
             on,
         };
-    } else if (mode === COLOR_MODE_COLOR_XY || mode === COLOR_MODE_EFFECT) {
+    }
+    if (mode === COLOR_MODE_COLOR_XY || mode === COLOR_MODE_EFFECT) {
         // XY Color mode
         const xLow = Number.parseInt(input.slice(0, 2), 16);
         input = input.slice(2);
@@ -579,7 +581,8 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
             on,
             name,
         };
-    } else if (mode === COLOR_MODE_COLOR_TEMP) {
+    }
+    if (mode === COLOR_MODE_COLOR_TEMP) {
         // Color temperature mode
         const low = Number.parseInt(input.slice(0, 2), 16);
         input = input.slice(2);
@@ -594,7 +597,8 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
             brightness,
             on,
         };
-    } else if (mode === COLOR_MODE_BRIGHTNESS) {
+    }
+    if (mode === COLOR_MODE_BRIGHTNESS) {
         return {
             brightness,
             on,
@@ -611,7 +615,7 @@ export function encodeGradientColors(value: string[], opts: KeyValueAny) {
         throw new Error(`Expected up to 9 colors, got ${value.length}`);
     }
     if (value.length < 1) {
-        throw new Error(`Expected at least 1 color, got 0`);
+        throw new Error("Expected at least 1 color, got 0");
     }
 
     // For devices where it makes more sense to specify the colors in reverse

@@ -198,7 +198,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 break;
             case "1":
                 payload.voltage = value;
-                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                if (model.meta?.battery?.voltageToPercentage) {
                     assertNumber(value);
                     payload.battery = batteryVoltageToPercentage(value, model.meta.battery.voltageToPercentage);
                 }
@@ -787,7 +787,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 } else {
                     // next values update only when curtain finished initial setup and knows current position
                     // @ts-expect-error ignore
-                    payload.options = {...payload.options, reverse_direction: value[2] == "\u0001", hand_open: value[5] == "\u0000"};
+                    payload.options = {...payload.options, reverse_direction: value[2] === "\u0001", hand_open: value[5] === "\u0000"};
                 }
                 break;
             case "1028":
@@ -840,7 +840,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                         options.invert_cover ? {0: "opening", 1: "closing", 2: "stopped"} : {0: "closing", 1: "opening", 2: "stopped"},
                     );
                     assertNumber(value);
-                    payload.running = value < 2 ? true : false;
+                    payload.running = value < 2;
                 }
                 break;
             case "1061":
@@ -894,7 +894,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 // occupancy sensor, so we ignore it at this moment
                 // @ts-expect-error ignore
                 payload.voltage = value[1].elmVal;
-                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                if (model.meta?.battery?.voltageToPercentage) {
                     assertNumber(payload.voltage);
                     payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
                 }
@@ -1145,11 +1145,11 @@ function validateTime(time: number): void {
     const isPositiveInteger = (value: number) => typeof value === "number" && Number.isInteger(value) && value >= 0;
 
     if (!isPositiveInteger(time)) {
-        throw new Error(`Time must be a positive integer number`);
+        throw new Error("Time must be a positive integer number");
     }
 
     if (time >= 24 * 60) {
-        throw new Error(`Time must be between 00:00 and 23:59`);
+        throw new Error("Time must be between 00:00 and 23:59");
     }
 }
 
@@ -1300,7 +1300,7 @@ export const trv = {
             validateTime(event.time);
 
             if (event.temperature < 5 || event.temperature > 30) {
-                throw new Error(`The temperature must be between 5 and 30 °C`);
+                throw new Error("The temperature must be between 5 and 30 °C");
             }
         });
 
@@ -1318,9 +1318,8 @@ export const trv = {
 
                 if (isNextDay) {
                     return fullDay - previousTime + time;
-                } else {
-                    return time - previousTime;
                 }
+                return time - previousTime;
             })
             // Remove first entry which is not a duration
             .slice(1);
@@ -1329,7 +1328,7 @@ export const trv = {
         const hasInvalidDurations = durations.some((duration) => duration < minDuration);
 
         if (hasInvalidDurations) {
-            throw new Error(`The individual times must be at least 1 hour apart`);
+            throw new Error("The individual times must be at least 1 hour apart");
         }
 
         const maxTotalDuration = 24 * 60;
@@ -1337,7 +1336,7 @@ export const trv = {
 
         if (totalDuration > maxTotalDuration) {
             // this implicitly also makes sure that there is at most one "next day" switch
-            throw new Error(`The start and end times must be at most 24 hours apart`);
+            throw new Error("The start and end times must be at most 24 hours apart");
         }
     },
 
@@ -1465,7 +1464,7 @@ export const lumiModernExtend = {
             if (args.endpointNames) {
                 args.endpointNames.forEach((ep) => {
                     const epExtend = lumiModernExtend.lumiOperationMode({
-                        description: "Decoupled mode for " + ep.toString() + " button",
+                        description: `Decoupled mode for ${ep.toString()} button`,
                         endpointName: ep,
                     });
                     result.toZigbee.push(...epExtend.toZigbee);
@@ -1481,7 +1480,7 @@ export const lumiModernExtend = {
             if (args.endpointNames) {
                 args.endpointNames.forEach((ep) => {
                     const epExtend = lumiModernExtend.lumiLockRelay({
-                        description: "Locks " + ep.toString() + " relay and prevents it from operating",
+                        description: `Locks ${ep.toString()} relay and prevents it from operating`,
                         endpointName: ep,
                     });
                     result.toZigbee.push(...epExtend.toZigbee);
@@ -2111,12 +2110,12 @@ export const lumiModernExtend = {
                     if (msg.data[args.deviceTemperatureAttribute] !== undefined) {
                         const value = msg.data[args.deviceTemperatureAttribute];
                         assertNumber(value);
-                        payload["device_temperature"] = value;
+                        payload.device_temperature = value;
                     }
                     if (msg.data[args.powerOutageCountAttribute] !== undefined) {
                         const value = msg.data[args.powerOutageCountAttribute];
                         assertNumber(value);
-                        payload["power_outage_count"] = value - 1;
+                        payload.power_outage_count = value - 1;
                     }
                     return payload;
                 },
@@ -2331,7 +2330,7 @@ export const lumiModernExtend = {
         }),
     lumiPreventLeave: (): ModernExtend => {
         const onEvent: OnEvent = async (type, data, device) => {
-            if (type == "message" && data.type == "attributeReport" && data.cluster == "manuSpecificLumi" && data.data[0x00fc] == false) {
+            if (type === "message" && data.type === "attributeReport" && data.cluster === "manuSpecificLumi" && data.data[0x00fc] === false) {
                 const payload = {
                     [0x00fc]: {
                         value: true,
@@ -2401,8 +2400,8 @@ export const fromZigbee = {
         cluster: "pm25Measurement",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data["measuredValue"]) {
-                return {pm25: msg.data["measuredValue"]};
+            if (msg.data.measuredValue) {
+                return {pm25: msg.data.measuredValue};
             }
         },
     } satisfies Fz.Converter,
@@ -2410,14 +2409,14 @@ export const fromZigbee = {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            return {contact: msg.data["onOff"] === 0};
+            return {contact: msg.data.onOff === 0};
         },
     } satisfies Fz.Converter,
     lumi_power: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            return {power: msg.data["presentValue"]};
+            return {power: msg.data.presentValue};
         },
     } satisfies Fz.Converter,
     lumi_action: {
@@ -2454,8 +2453,8 @@ export const fromZigbee = {
                 ? {0: "hold", 1: "release", 2: "double"}
                 : {0: "single", 1: "single"};
 
-            const action = actionLookup[msg.data["onOff"]];
-            const button = mapping && mapping[msg.endpoint.ID] ? `_${mapping[msg.endpoint.ID]}` : "";
+            const action = actionLookup[msg.data.onOff];
+            const button = mapping?.[msg.endpoint.ID] ? `_${mapping[msg.endpoint.ID]}` : "";
 
             if (action === "release") {
                 const anotherAction = globalStore.getValue(msg.endpoint, "hold", false) ? "hold_release" : "single";
@@ -2494,7 +2493,7 @@ export const fromZigbee = {
                 presentValue = x + 256 = push/slide cube while side x is on top
                 presentValue = x + 512 = double tap while side x is on top
                 */
-                const value = msg.data["presentValue"];
+                const value = msg.data.presentValue;
                 let result = null;
 
                 if (value === 0) result = {action: "shake"};
@@ -2519,7 +2518,7 @@ export const fromZigbee = {
                 return result ? result : null;
             }
             if (model.model === "CTP-R01") {
-                const value = msg.data["presentValue"];
+                const value = msg.data.presentValue;
                 let payload;
                 if (value === 0) payload = {action: "shake"};
                 else if (value === 1) payload = {action: "throw"};
@@ -2592,7 +2591,7 @@ export const fromZigbee = {
                 buttonLookup = {41: "top", 42: "bottom", 51: "both"};
             }
 
-            const action = actionLookup[msg.data["presentValue"]];
+            const action = actionLookup[msg.data.presentValue];
 
             if (["WXKG04LM", "WXCJKG11LM", "WXCJKG12LM", "WXCJKG13LM"].includes(model.model)) {
                 clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
@@ -2626,7 +2625,7 @@ export const fromZigbee = {
                 Source: https://github.com/kirovilya/ioBroker.zigbee
                 presentValue = rotation angle left < 0, right > 0
                 */
-                const value = msg.data["presentValue"];
+                const value = msg.data.presentValue;
                 const result: KeyValueAny = {
                     action: value < 0 ? "rotate_left" : "rotate_right",
                     angle: Math.floor(value * 100) / 100,
@@ -2636,7 +2635,7 @@ export const fromZigbee = {
                 return result;
             }
             if (model.model === "CTP-R01") {
-                const value = msg.data["presentValue"];
+                const value = msg.data.presentValue;
                 return {
                     action: value < 0 ? "rotate_left" : "rotate_right",
                     action_angle: Math.floor(value * 100) / 100,
@@ -2648,7 +2647,7 @@ export const fromZigbee = {
         cluster: "msTemperatureMeasurement",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const temperature = Number.parseFloat(msg.data["measuredValue"]) / 100.0;
+            const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
             // Sometimes the sensor publishes non-realistic vales.
@@ -2690,23 +2689,23 @@ export const fromZigbee = {
                         const val = value.slice(8, 8 + len);
                         switch (attr.readInt32BE()) {
                             case 0x04150055: // feeding
-                                result["feed"] = "";
+                                result.feed = "";
                                 break;
                             case 0x041502bc: {
                                 // feeding report
                                 const report = val.toString();
-                                result["feeding_source"] = {0: "schedule", 1: "manual", 2: "remote"}[Number.parseInt(report.slice(0, 2))];
-                                result["feeding_size"] = Number.parseInt(report.slice(3, 4));
+                                result.feeding_source = {0: "schedule", 1: "manual", 2: "remote"}[Number.parseInt(report.slice(0, 2))];
+                                result.feeding_size = Number.parseInt(report.slice(3, 4));
                                 break;
                             }
                             case 0x0d680055: // portions per day
-                                result["portions_per_day"] = val.readUInt16BE();
+                                result.portions_per_day = val.readUInt16BE();
                                 break;
                             case 0x0d690055: // weight per day
-                                result["weight_per_day"] = val.readUInt32BE();
+                                result.weight_per_day = val.readUInt32BE();
                                 break;
                             case 0x0d0b0055: // error ?
-                                result["error"] = getFromLookup(val.readUInt8(), {1: true, 0: false});
+                                result.error = getFromLookup(val.readUInt8(), {1: true, 0: false});
                                 break;
                             case 0x080008c8: {
                                 // schedule string
@@ -2724,23 +2723,23 @@ export const fromZigbee = {
                                         });
                                     }
                                 });
-                                result["schedule"] = schedule;
+                                result.schedule = schedule;
                                 break;
                             }
                             case 0x04170055: // indicator
-                                result["led_indicator"] = getFromLookup(val.readUInt8(), {1: "ON", 0: "OFF"});
+                                result.led_indicator = getFromLookup(val.readUInt8(), {1: "ON", 0: "OFF"});
                                 break;
                             case 0x04160055: // child lock
-                                result["child_lock"] = getFromLookup(val.readUInt8(), {1: "LOCK", 0: "UNLOCK"});
+                                result.child_lock = getFromLookup(val.readUInt8(), {1: "LOCK", 0: "UNLOCK"});
                                 break;
                             case 0x04180055: // mode
-                                result["mode"] = getFromLookup(val.readUInt8(), {1: "schedule", 0: "manual"});
+                                result.mode = getFromLookup(val.readUInt8(), {1: "schedule", 0: "manual"});
                                 break;
                             case 0x0e5c0055: // serving size
-                                result["serving_size"] = val.readUInt8();
+                                result.serving_size = val.readUInt8();
                                 break;
                             case 0x0e5f0055: // portion weight
-                                result["portion_weight"] = val.readUInt8();
+                                result.portion_weight = val.readUInt8();
                                 break;
                             case 0x080007d1: // ? 64
                             case 0x0d090055: // ? 00
@@ -2771,39 +2770,39 @@ export const fromZigbee = {
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (Number.parseInt(key)) {
                     case 0x0271:
-                        result["system_mode"] = getFromLookup(value, {1: "heat", 0: "off"});
+                        result.system_mode = getFromLookup(value, {1: "heat", 0: "off"});
                         break;
                     case 0x0272:
                         // @ts-expect-error ignore
                         Object.assign(result, trv.decodePreset(value));
                         break;
                     case 0x0273:
-                        result["window_detection"] = getFromLookup(value, {1: true, 0: false});
+                        result.window_detection = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x0274:
-                        result["valve_detection"] = getFromLookup(value, {1: true, 0: false});
+                        result.valve_detection = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x0277:
-                        result["child_lock"] = getFromLookup(value, {1: "LOCK", 0: "UNLOCK"});
+                        result.child_lock = getFromLookup(value, {1: "LOCK", 0: "UNLOCK"});
                         break;
                     case 0x0279:
                         assertNumber(value);
-                        result["away_preset_temperature"] = (value / 100).toFixed(1);
+                        result.away_preset_temperature = (value / 100).toFixed(1);
                         break;
                     case 0x027b:
-                        result["calibrated"] = getFromLookup(value, {1: true, 0: false});
+                        result.calibrated = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x027e:
-                        result["sensor"] = getFromLookup(value, {1: "external", 0: "internal"});
+                        result.sensor = getFromLookup(value, {1: "external", 0: "internal"});
                         break;
                     case 0x040a:
-                        result["battery"] = value;
+                        result.battery = value;
                         break;
                     case 0x027a:
-                        result["window_open"] = getFromLookup(value, {1: true, 0: false});
+                        result.window_open = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x0275:
-                        result["valve_alarm"] = getFromLookup(value, {1: true, 0: false, 4: true});
+                        result.valve_alarm = getFromLookup(value, {1: true, 0: false, 4: true});
                         break;
                     case 247: {
                         // @ts-expect-error ignore
@@ -2826,7 +2825,7 @@ export const fromZigbee = {
                         break;
                     }
                     case 0x027d:
-                        result["schedule"] = getFromLookup(value, {1: true, 0: false});
+                        result.schedule = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x0276: {
                         const buffer = value as Buffer;
@@ -2834,7 +2833,7 @@ export const fromZigbee = {
                         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/7128
                         if (buffer.length) {
                             const schedule = trv.decodeSchedule(buffer);
-                            result["schedule_settings"] = trv.stringifySchedule(schedule);
+                            result.schedule_settings = trv.stringifySchedule(schedule);
                         }
                         break;
                     }
@@ -2911,25 +2910,25 @@ export const fromZigbee = {
                 const state = Number(data.substring(2, 4));
                 const action = Number(data.substring(4, 6));
                 const keynum = Number(data.substring(6, 8));
-                if (state == 11) {
-                    if (action == 1) {
+                if (state === 11) {
+                    if (action === 1) {
                         // unknown key
                         return {keyerror: true, inserted: "unknown"};
                     }
-                    if (action == 3) {
+                    if (action === 3) {
                         // explicitly disabled key (i.e. reported lost)
                         return {keyerror: true, inserted: keynum};
                     }
-                    if (action == 7) {
+                    if (action === 7) {
                         // strange object introduced into the cylinder (e.g. a lock pick)
                         return {keyerror: true, inserted: "strange"};
                     }
                 }
-                if (state == 12) {
-                    if (action == 1) {
+                if (state === 12) {
+                    if (action === 1) {
                         return {inserted: keynum};
                     }
-                    if (action == 11) {
+                    if (action === 11) {
                         return {forgotten: keynum};
                     }
                 }
@@ -2971,7 +2970,7 @@ export const fromZigbee = {
 
                 // Sometimes RTCGQ14LM reports high illuminance values in the dark
                 // https://github.com/Koenkk/zigbee2mqtt/issues/12596
-                const illuminance = msg.data["illuminance"] > 130536 ? 0 : msg.data["illuminance"] - 65536;
+                const illuminance = msg.data.illuminance > 130536 ? 0 : msg.data.illuminance - 65536;
 
                 const payload = {occupancy: true, illuminance};
                 noOccupancySince(msg.endpoint, options, publish, "start");
@@ -2984,13 +2983,13 @@ export const fromZigbee = {
         type: ["attributeReport", "readResponse"],
         options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
-            if (model.model === "ZNCLDJ12LM" && msg.type === "attributeReport" && [0, 2].includes(msg.data["presentValue"])) {
+            if (model.model === "ZNCLDJ12LM" && msg.type === "attributeReport" && [0, 2].includes(msg.data.presentValue)) {
                 // Incorrect reports from the device, ignore (re-read by onEvent of ZNCLDJ12LM)
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1427#issuecomment-663862724
                 return;
             }
 
-            let position = precisionRound(msg.data["presentValue"], 2);
+            let position = precisionRound(msg.data.presentValue, 2);
             position = options.invert_cover ? 100 - position : position;
             const closed = options.invert_cover ? position === 100 : position === 0;
             return {position, state: closed ? "CLOSE" : "OPEN"};
@@ -3002,16 +3001,16 @@ export const fromZigbee = {
         options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data["currentPositionLiftPercentage"] <= 100) {
-                const value = msg.data["currentPositionLiftPercentage"];
+            const invert = model.meta?.coverInverted ? !options.invert_cover : options.invert_cover;
+            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage <= 100) {
+                const value = msg.data.currentPositionLiftPercentage;
                 const position = invert ? 100 - value : value;
                 const state = invert ? (position > 0 ? "CLOSE" : "OPEN") : position > 0 ? "OPEN" : "CLOSE";
                 result[postfixWithEndpointName("position", msg, model, meta)] = position;
                 result[postfixWithEndpointName("state", msg, model, meta)] = state;
             }
-            if (msg.data.currentPositionTiltPercentage !== undefined && msg.data["currentPositionTiltPercentage"] <= 100) {
-                const value = msg.data["currentPositionTiltPercentage"];
+            if (msg.data.currentPositionTiltPercentage !== undefined && msg.data.currentPositionTiltPercentage <= 100) {
+                const value = msg.data.currentPositionTiltPercentage;
                 result[postfixWithEndpointName("tilt", msg, model, meta)] = invert ? 100 - value : value;
             }
             return result;
@@ -3063,7 +3062,7 @@ export const fromZigbee = {
             // Lumi wall switches use endpoint 4, 5 or 6 to indicate an action on the button so we have to skip that.
             if (msg.data.onOff !== undefined && ![4, 5, 6].includes(msg.endpoint.ID)) {
                 const property = postfixWithEndpointName("state", msg, model, meta);
-                return {[property]: msg.data["onOff"] === 1 ? "ON" : "OFF"};
+                return {[property]: msg.data.onOff === 1 ? "ON" : "OFF"};
             }
         },
     } satisfies Fz.Converter,
@@ -3081,7 +3080,7 @@ export const fromZigbee = {
             if (["ZNJLBL01LM"].includes(model.model)) lookup = {0: "closing", 1: "opening", 2: "stopped", 3: "blocked"};
 
             if (data && data.presentValue !== undefined) {
-                const value = data["presentValue"];
+                const value = data.presentValue;
                 if (value < 2) {
                     running = true;
                 }
@@ -3097,11 +3096,13 @@ export const fromZigbee = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.curtainHandOpen !== undefined) {
-                return {hand_open: msg.data["curtainHandOpen"] === 0};
-            } else if (msg.data.curtainReverse !== undefined) {
-                return {reverse_direction: msg.data["curtainReverse"] === 1};
-            } else if (msg.data.curtainCalibrated !== undefined) {
-                return {limits_calibration: msg.data["curtainCalibrated"] === 1 ? "calibrated" : "recalibrate"};
+                return {hand_open: msg.data.curtainHandOpen === 0};
+            }
+            if (msg.data.curtainReverse !== undefined) {
+                return {reverse_direction: msg.data.curtainReverse === 1};
+            }
+            if (msg.data.curtainCalibrated !== undefined) {
+                return {limits_calibration: msg.data.curtainCalibrated === 1 ? "calibrated" : "recalibrate"};
             }
         },
     } satisfies Fz.Converter,
@@ -3197,7 +3198,7 @@ export const fromZigbee = {
             msg.data.occupancy = 1;
             const payload = fz.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (payload) {
-                const illuminance = msg.data["measuredValue"];
+                const illuminance = msg.data.measuredValue;
                 payload.illuminance = illuminance;
             }
             return payload;
@@ -3256,7 +3257,7 @@ export const fromZigbee = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const data = msg.data;
-            if (data && data["65281"]) {
+            if (data?.["65281"]) {
                 const basicAttrs = data["65281"];
                 if (basicAttrs["100"] !== undefined) {
                     return {gas_density: basicAttrs["100"]};
@@ -3273,7 +3274,7 @@ export const fromZigbee = {
 
             if (data && data["65520"] !== undefined) {
                 const value = data["65520"];
-                if (value && value.startsWith("0x020")) {
+                if (value?.startsWith("0x020")) {
                     return {
                         sensitivity: lookup[value.charAt(5)],
                     };
@@ -3286,7 +3287,7 @@ export const fromZigbee = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.batteryAlarmMask !== undefined) {
-                return {battery_low: msg.data["batteryAlarmMask"] === 1};
+                return {battery_low: msg.data.batteryAlarmMask === 1};
             }
         },
     } satisfies Fz.Converter,
@@ -3323,11 +3324,9 @@ export const fromZigbee = {
                     const userId = data.substr(5, 2);
                     const userType = data.substr(1, 1); // 1 admin, 2 user
                     result.data = data;
-                    result.action =
-                        lockStatusLookup[14 + Number.parseInt(command, 16)] +
-                        (userType === "1" ? "_admin" : "_user") +
-                        "_id" +
-                        Number.parseInt(userId, 16).toString();
+                    result.action = `${
+                        lockStatusLookup[14 + Number.parseInt(command, 16)] + (userType === "1" ? "_admin" : "_user")
+                    }_id${Number.parseInt(userId, 16).toString()}`;
                     result.action_user = Number.parseInt(userId, 16);
                 } else if (msg.data["65297"]) {
                     // finger, password failed or bell
@@ -3344,7 +3343,7 @@ export const fromZigbee = {
                     } else if (type === "00") {
                         result.action = lockStatusLookup[13];
                     }
-                } else if (msg.data["65281"] && msg.data["65281"]["1"]) {
+                } else if (msg.data["65281"]?.["1"]) {
                     // user added/delete
                     const data = msg.data["65281"]["1"].toString(16);
                     const command = data.substr(0, 1); // 1 add, 2 delete
@@ -3427,11 +3426,9 @@ export const fromZigbee = {
                     const command = data.substr(6, 2); // 1 finger open, 2 password open
                     const userId = data.substr(12, 2);
                     const userType = data.substr(8, 1); // 1 admin, 2 user
-                    result.action =
-                        lockStatusLookup[14 + Number.parseInt(command, 16)] +
-                        (userType === "1" ? "_admin" : "_user") +
-                        "_id" +
-                        Number.parseInt(userId, 16).toString();
+                    result.action = `${
+                        lockStatusLookup[14 + Number.parseInt(command, 16)] + (userType === "1" ? "_admin" : "_user")
+                    }_id${Number.parseInt(userId, 16).toString()}`;
                     result.action_user = Number.parseInt(userId, 16);
                 } else if (msg.data["65297"]) {
                     // finger, password failed or bell
@@ -3560,23 +3557,23 @@ export const fromZigbee = {
                 .numeric("hold_timeout", ea.SET)
                 .withValueMin(0)
                 .withDescription(
-                    `The WXKG01LM only reports a button press and release.` +
-                        `By default, a hold action is published when there is at least 1000 ms between both events. It could be that due to ` +
-                        `delays in the network the release message is received late. This causes a single click to be identified as a hold ` +
-                        `action. If you are experiencing this you can try experimenting with this option (e.g. set it to 2000) (value is in ms).`,
+                    "The WXKG01LM only reports a button press and release." +
+                        "By default, a hold action is published when there is at least 1000 ms between both events. It could be that due to " +
+                        "delays in the network the release message is received late. This causes a single click to be identified as a hold " +
+                        "action. If you are experiencing this you can try experimenting with this option (e.g. set it to 2000) (value is in ms).",
                 ),
             e
                 .numeric("hold_timeout_expire", ea.SET)
                 .withValueMin(0)
                 .withDescription(
-                    `Sometimes it happens that the button does not send a ` +
-                        `release. To avoid problems a release is automatically send after a timeout. The default timeout is 4000 ms, you can ` +
-                        `increase it with this option (value is in ms).`,
+                    "Sometimes it happens that the button does not send a " +
+                        "release. To avoid problems a release is automatically send after a timeout. The default timeout is 4000 ms, you can " +
+                        "increase it with this option (value is in ms).",
                 ),
         ],
         convert: (model, msg, publish, options: KeyValueAny, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const state = msg.data["onOff"];
+            const state = msg.data.onOff;
 
             // 0 = click down, 1 = click up, else = multiple clicks
             if (state === 0) {
@@ -3625,7 +3622,7 @@ export const fromZigbee = {
                 result.screen_saver_style = lookup[msg.data[0x0214]];
             }
             if (msg.data[0x0213] !== undefined) {
-                result.standby_enabled = msg.data[0x0213] & 1 ? true : false;
+                result.standby_enabled = !!(msg.data[0x0213] & 1);
             }
             if (msg.data[0x0212] !== undefined) {
                 const lookup: KeyValueAny = {0: "mute", 1: "low", 2: "medium", 3: "high"};
@@ -3654,10 +3651,10 @@ export const fromZigbee = {
                 result.standby_time = msg.data[0x216];
             }
             if (msg.data[0x218] !== undefined) {
-                result.lcd_auto_brightness_enabled = msg.data[0x218] & 1 ? true : false;
+                result.lcd_auto_brightness_enabled = !!(msg.data[0x218] & 1);
             }
             if (msg.data[0x221] !== undefined) {
-                result.screen_saver_enabled = msg.data[0x221] & 1 ? true : false;
+                result.screen_saver_enabled = !!(msg.data[0x221] & 1);
             }
             if (msg.data[0x222] !== undefined) {
                 result.standby_lcd_brightness = msg.data[0x222];
@@ -3697,7 +3694,7 @@ export const toZigbee = {
     lumi_led_disabled_night: {
         key: ["led_disabled_night"],
         convertSet: async (entity, key, value, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (
                 [
                     "ZNCZ04LM",
@@ -3748,7 +3745,7 @@ export const toZigbee = {
             return {state: {led_disabled_night: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (
                 [
                     "ZNCZ04LM",
@@ -4059,7 +4056,7 @@ export const toZigbee = {
                     break;
                 }
                 case "external_temperature_input":
-                    if (meta.state["sensor"] === "external") {
+                    if (meta.state.sensor === "external") {
                         const temperatureBuf = Buffer.alloc(4);
                         const number = toNumber(value);
                         temperatureBuf.writeFloatBE(Math.round(number * 100));
@@ -4246,13 +4243,13 @@ export const toZigbee = {
         key: ["operation_mode"],
         convertSet: async (entity, key, value, meta) => {
             assertEndpoint(entity);
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             let targetValue = isObject(value) && value.state !== undefined ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
             let attrId;
             let attrValue: number;
-            if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
+            if (meta.mapped.meta?.multiEndpoint) {
                 attrId = {left: 0xff22, right: 0xff23}[meta.endpoint_name];
                 // Allow usage of control_relay for 2 gang switches by mapping it to the default side.
                 if (targetValue === "control_relay") {
@@ -4281,8 +4278,8 @@ export const toZigbee = {
         },
         convertGet: async (entity, key, meta) => {
             let attrId;
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
+            if (meta.mapped.meta?.multiEndpoint) {
                 attrId = {left: 0xff22, right: 0xff23}[meta.endpoint_name];
                 if (attrId == null) {
                     throw new Error(`Unsupported endpoint ${meta.endpoint_name} for getting operation_mode.`);
@@ -4407,7 +4404,7 @@ export const toZigbee = {
     lumi_switch_power_outage_memory: {
         key: ["power_outage_memory"],
         convertSet: async (entity, key, value, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (
                 [
                     "SP-EUC01",
@@ -4497,7 +4494,7 @@ export const toZigbee = {
             return {state: {power_outage_memory: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (
                 [
                     "SP-EUC01",
@@ -4572,7 +4569,7 @@ export const toZigbee = {
     lumi_auto_off: {
         key: ["auto_off"],
         convertSet: async (entity, key, value, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (["ZNCZ04LM", "ZNCZ12LM", "SP-EUC01"].includes(meta.mapped.model)) {
                 await entity.write("manuSpecificLumi", {514: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
             } else if (["ZNCZ11LM"].includes(meta.mapped.model)) {
@@ -4587,7 +4584,7 @@ export const toZigbee = {
             return {state: {auto_off: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (["ZNCZ04LM", "ZNCZ12LM", "SP-EUC01"].includes(meta.mapped.model)) {
                 await entity.read("manuSpecificLumi", [0x0202], manufacturerOptions.lumi);
             } else {
@@ -4661,7 +4658,7 @@ export const toZigbee = {
     lumi_switch_click_mode: {
         key: ["click_mode"],
         convertSet: async (entity, key, value, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (["ZNQBKG38LM", "ZNQBKG39LM", "ZNQBKG40LM", "ZNQBKG41LM"].includes(meta.mapped.model)) {
                 await entity.write(
                     "manuSpecificLumi",
@@ -4669,17 +4666,16 @@ export const toZigbee = {
                     manufacturerOptions.lumi,
                 );
                 return {state: {click_mode: value}};
-            } else {
-                await entity.write(
-                    "manuSpecificLumi",
-                    {293: {value: getFromLookup(value, {fast: 0x1, multi: 0x02}), type: 0x20}},
-                    manufacturerOptions.lumi,
-                );
-                return {state: {click_mode: value}};
             }
+            await entity.write(
+                "manuSpecificLumi",
+                {293: {value: getFromLookup(value, {fast: 0x1, multi: 0x02}), type: 0x20}},
+                manufacturerOptions.lumi,
+            );
+            return {state: {click_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (["ZNQBKG38LM", "ZNQBKG39LM", "ZNQBKG40LM", "ZNQBKG41LM"].includes(meta.mapped.model)) {
                 await entity.read("manuSpecificLumi", [0x0286], manufacturerOptions.lumi);
             } else {
@@ -4741,7 +4737,7 @@ export const toZigbee = {
         key: ["options"],
         convertSet: async (entity, key, value, meta) => {
             assertObject(value);
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             const opts = {
                 reverse_direction: false,
                 hand_open: true,
@@ -4786,7 +4782,7 @@ export const toZigbee = {
             return {state: {options: opts}};
         },
         convertGet: async (entity, key, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (meta.mapped.model === "ZNCLDJ11LM") {
                 await entity.read("genBasic", [0x0401], manufacturerOptions.lumi);
             } else {
@@ -4798,7 +4794,7 @@ export const toZigbee = {
         key: ["state", "position"],
         options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (key === "state" && typeof value === "string" && value.toLowerCase() === "stop") {
                 if (["ZNJLBL01LM", "ZNCLDJ14LM"].includes(meta.mapped.model)) {
                     const payload = {presentValue: 2};
@@ -4846,7 +4842,7 @@ export const toZigbee = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            if (!Array.isArray(meta.mapped) && "ZNJLBL01LM" == meta.mapped.model) {
+            if (!Array.isArray(meta.mapped) && "ZNJLBL01LM" === meta.mapped.model) {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/23056
                 logger.debug(`Not reading position of ZNJLBL01LM since device doesn't support it`, NS);
             } else if (!Array.isArray(meta.mapped) && ["ZNCLBL01LM"].includes(meta.mapped.model)) {
@@ -4859,7 +4855,7 @@ export const toZigbee = {
     lumi_curtain_battery_voltage: {
         key: ["voltage"],
         convertGet: async (entity, key, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             switch (meta.mapped.model) {
                 case "ZNCLBL01LM":
                     await entity.read("manuSpecificLumi", [0x040b], manufacturerOptions.lumi);
@@ -5043,7 +5039,7 @@ export const toZigbee = {
         key: ["buzzer"],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, key);
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             const attribute = ["JY-GZ-01AQ"].includes(meta.mapped.model) ? 0x013e : 0x013f;
             value = value.toLowerCase() === "alarm" ? 15361 : 15360;
             await entity.write("manuSpecificLumi", {[`${attribute}`]: {value: [`${value}`], type: 0x23}}, manufacturerOptions.lumi);
@@ -5074,7 +5070,7 @@ export const toZigbee = {
     lumi_selftest: {
         key: ["selftest"],
         convertSet: async (entity, key, value, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (["JTYJ-GD-01LM/BW", "JTQJ-BF-01LM/BW"].includes(meta.mapped.model)) {
                 // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
                 const options = {...manufacturerOptions.lumi, timeout: 35000};
@@ -5164,49 +5160,62 @@ export const toZigbee = {
                 const lookup = {classic: 0, concise: 1};
                 await entity.write("manuSpecificLumi", {533: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {theme: value}};
-            } else if (key === "standby_enabled") {
+            }
+            if (key === "standby_enabled") {
                 await entity.write("manuSpecificLumi", {531: {value: value, type: 0x10}}, manufacturerOptions.lumi);
                 return {state: {standby_enabled: value}};
-            } else if (key === "beep_volume") {
+            }
+            if (key === "beep_volume") {
                 const lookup = {mute: 0, low: 1, medium: 2, high: 3};
                 await entity.write("manuSpecificLumi", {530: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {beep_volume: value}};
-            } else if (key === "lcd_brightness") {
+            }
+            if (key === "lcd_brightness") {
                 await entity.write("manuSpecificLumi", {529: {value: value, type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {lcd_brightness: value}};
-            } else if (key === "language") {
+            }
+            if (key === "language") {
                 const lookup = {chinese: 0, english: 1};
                 await entity.write("manuSpecificLumi", {528: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {language: value}};
-            } else if (key === "screen_saver_style") {
+            }
+            if (key === "screen_saver_style") {
                 const lookup = {classic: 1, "analog clock": 2};
                 await entity.write("manuSpecificLumi", {532: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {screen_saver_style: value}};
-            } else if (key === "standby_time") {
+            }
+            if (key === "standby_time") {
                 await entity.write("manuSpecificLumi", {534: {value: value, type: 0x23}}, manufacturerOptions.lumi);
                 return {state: {standby_time: value}};
-            } else if (key === "font_size") {
+            }
+            if (key === "font_size") {
                 const lookup = {small: 3, medium: 4, large: 5};
                 await entity.write("manuSpecificLumi", {535: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {font_size: value}};
-            } else if (key === "lcd_auto_brightness_enabled") {
+            }
+            if (key === "lcd_auto_brightness_enabled") {
                 await entity.write("manuSpecificLumi", {536: {value: value, type: 0x10}}, manufacturerOptions.lumi);
                 return {state: {lcd_auto_brightness_enabled: value}};
-            } else if (key === "homepage") {
+            }
+            if (key === "homepage") {
                 const lookup = {scene: 0, feel: 1, thermostat: 2, switch: 3};
                 await entity.write("manuSpecificLumi", {537: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {homepage: value}};
-            } else if (key === "screen_saver_enabled") {
+            }
+            if (key === "screen_saver_enabled") {
                 await entity.write("manuSpecificLumi", {545: {value: value, type: 0x10}}, manufacturerOptions.lumi);
                 return {state: {screen_saver_enabled: value}};
-            } else if (key === "standby_lcd_brightness") {
+            }
+            if (key === "standby_lcd_brightness") {
                 await entity.write("manuSpecificLumi", {546: {value: value, type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {standby_lcd_brightness: value}};
-            } else if (key === "available_switches") {
+            }
+            if (key === "available_switches") {
                 const lookup = {none: 0, "1": 1, "2": 2, "1 and 2": 3, "3": 4, "1 and 3": 5, "2 and 3": 6, all: 7};
                 await entity.write("manuSpecificLumi", {555: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {available_switches: value}};
-            } else if (key === "switch_1_text_icon") {
+            }
+            if (key === "switch_1_text_icon") {
                 const lookup = {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "11": 11};
                 const payload = [];
                 const statearr: KeyValue = {};
@@ -5228,7 +5237,8 @@ export const toZigbee = {
                 }
                 await entity.write("manuSpecificLumi", {547: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
                 return {state: statearr};
-            } else if (key === "switch_2_text_icon") {
+            }
+            if (key === "switch_2_text_icon") {
                 const lookup = {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "11": 11};
                 const payload = [];
                 const statearr: KeyValue = {};
@@ -5250,7 +5260,8 @@ export const toZigbee = {
                 }
                 await entity.write("manuSpecificLumi", {548: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
                 return {state: statearr};
-            } else if (key === "switch_3_text_icon") {
+            }
+            if (key === "switch_3_text_icon") {
                 const lookup = {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "11": 11};
                 const payload = [];
                 const statearr: KeyValue = {};
@@ -5272,9 +5283,8 @@ export const toZigbee = {
                 }
                 await entity.write("manuSpecificLumi", {549: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
                 return {state: statearr};
-            } else {
-                throw new Error(`Not supported: '${key}'`);
             }
+            throw new Error(`Not supported: '${key}'`);
         },
     } satisfies Tz.Converter,
 };

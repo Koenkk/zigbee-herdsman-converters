@@ -34,7 +34,7 @@ const jetHome = {
                     1027: "triple",
                     1028: "hold",
                 };
-                const value = msg.data["presentValue"];
+                const value = msg.data.presentValue;
                 const action = utils.getFromLookup(value, actionLookup);
                 return {action: utils.postfixWithEndpointName(action, msg, model, meta)};
             },

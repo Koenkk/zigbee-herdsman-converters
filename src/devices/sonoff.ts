@@ -30,7 +30,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.currentLevel !== undefined) {
-                result.light_indicator_level = msg.data["currentLevel"];
+                result.light_indicator_level = msg.data.currentLevel;
             }
         },
     } satisfies Fz.Converter,
@@ -101,10 +101,10 @@ const sonoffExtend = {
                     payloadValue[3] = 0x80; // SeqNum
 
                     payloadValue[4] = 0x00; // Mode
-                    if (value[inchingControl as keyof typeof value] != "DISABLE") {
+                    if (value[inchingControl as keyof typeof value] !== "DISABLE") {
                         payloadValue[4] |= 0x80;
                     }
-                    if (value[inchingMode as keyof typeof value] != "OFF") {
+                    if (value[inchingMode as keyof typeof value] !== "OFF") {
                         payloadValue[4] |= 0x01;
                     }
 
@@ -224,7 +224,7 @@ const sonoffExtend = {
 
                             if (!matches) {
                                 throw new Error(
-                                    "Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: " + transition,
+                                    `Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
                                 );
                             }
 
@@ -502,13 +502,13 @@ const sonoffExtend = {
                     if (msg.data.externalTriggerMode !== undefined) {
                         let switchType = "edge";
                         for (const name in lookup) {
-                            if (lookup[name] === msg.data["externalTriggerMode"]) {
+                            if (lookup[name] === msg.data.externalTriggerMode) {
                                 switchType = name;
                                 break;
                             }
                         }
                         // logger.debug(`form zigbee switchType ${switchType}`, NS);
-                        return {["external_trigger_mode"]: switchType};
+                        return {external_trigger_mode: switchType};
                     }
                 },
             },
@@ -540,7 +540,7 @@ const sonoffExtend = {
         const clusterName = "customClusterEwelink";
         const attributeName = "detachRelayMode2";
         const exposes = e.composite("detach_relay_mode", "detach_relay_mode", ea.ALL);
-        if (1 == relayCount) {
+        if (1 === relayCount) {
             exposes
                 .withDescription(
                     "Relay separation mode. Can be used when the load is a smart device (such as smart light), " +
@@ -548,7 +548,7 @@ const sonoffExtend = {
                         "a scene command to control the smart light on or off, then we can enable the relay separation mode.",
                 )
                 .withFeature(e.binary("detach_relay_outlet1", ea.SET, "ENABLE", "DISABLE").withDescription("Enable/disable detach relay."));
-        } else if (2 == relayCount) {
+        } else if (2 === relayCount) {
             exposes
                 .withDescription(
                     "Relay separation mode. Can be used when the load is a smart device (such as smart light), " +
@@ -557,7 +557,7 @@ const sonoffExtend = {
                 )
                 .withFeature(e.binary("detach_relay_outlet1", ea.SET, "ENABLE", "DISABLE").withDescription("Enable/disable detach relay."))
                 .withFeature(e.binary("detach_relay_outlet2", ea.SET, "ENABLE", "DISABLE").withDescription("Enable/disable detach relay."));
-        } else if (3 == relayCount) {
+        } else if (3 === relayCount) {
             exposes
                 .withDescription(
                     "Relay separation mode. Can be used when the load is a smart device (such as smart light), " +
@@ -575,7 +575,7 @@ const sonoffExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.detachRelayMode2 !== undefined) {
-                        const detachMode = msg.data["detachRelayMode2"];
+                        const detachMode = msg.data.detachRelayMode2;
                         logger.debug(`form zigbee detachRelayMode2 ${detachMode}`, NS);
 
                         const datachRelayStatus = {
@@ -585,13 +585,13 @@ const sonoffExtend = {
                         };
 
                         if ((detachMode & 0x01) !== 0) {
-                            datachRelayStatus["detach_relay_outlet1"] = "ENABLE";
+                            datachRelayStatus.detach_relay_outlet1 = "ENABLE";
                         }
                         if ((detachMode & 0x02) !== 0) {
-                            datachRelayStatus["detach_relay_outlet2"] = "ENABLE";
+                            datachRelayStatus.detach_relay_outlet2 = "ENABLE";
                         }
                         if ((detachMode & 0x04) !== 0) {
-                            datachRelayStatus["detach_relay_outlet3"] = "ENABLE";
+                            datachRelayStatus.detach_relay_outlet3 = "ENABLE";
                         }
                         return {detach_relay_mode: datachRelayStatus};
                     }
@@ -611,17 +611,17 @@ const sonoffExtend = {
                     // logger.debug(`from zigbee detachRelay3: ${value[detachRelay3 as keyof typeof value]}`, NS);
                     let detachRelayMask = 0;
 
-                    if (value[detachRelay1 as keyof typeof value] == "ENABLE") {
+                    if (value[detachRelay1 as keyof typeof value] === "ENABLE") {
                         detachRelayMask |= 0x01;
                     } else {
                         detachRelayMask &= ~0x01;
                     }
-                    if (value[detachRelay2 as keyof typeof value] == "ENABLE") {
+                    if (value[detachRelay2 as keyof typeof value] === "ENABLE") {
                         detachRelayMask |= 0x02;
                     } else {
                         detachRelayMask &= ~0x02;
                     }
-                    if (value[detachRelay3 as keyof typeof value] == "ENABLE") {
+                    if (value[detachRelay3 as keyof typeof value] === "ENABLE") {
                         detachRelayMask |= 0x04;
                     } else {
                         detachRelayMask &= ~0x04;

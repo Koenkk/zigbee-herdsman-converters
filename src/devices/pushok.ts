@@ -36,7 +36,7 @@ const pushokExtend = {
                 cluster: "msTemperatureMeasurement",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data["measuredValue"] !== undefined) {
+                    if (msg.data.measuredValue !== undefined) {
                         let temperature = msg.data.measuredValue / 100.0;
 
                         if (msg.data[0xf001] !== undefined) {

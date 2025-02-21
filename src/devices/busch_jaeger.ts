@@ -93,7 +93,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             // The total number of bindings seems to be severely limited with some of these devices.
             // In order to be able to toggle groups, we need to remove the scenes cluster from RM01.
-            const dropScenesCluster = device.modelID == "RM01";
+            const dropScenesCluster = device.modelID === "RM01";
 
             const endpoint11 = device.getEndpoint(0x0b);
             if (endpoint11 != null) {
@@ -132,7 +132,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("state_poll_interval", ea.SET)
                 .withValueMin(-1)
                 .withDescription(
-                    `This device does not support state reporting so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.`,
+                    "This device does not support state reporting so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.",
                 ),
         ],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],

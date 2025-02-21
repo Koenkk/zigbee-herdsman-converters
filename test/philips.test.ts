@@ -17,7 +17,7 @@ describe("lib/philips", () => {
             ["0b00015c05b1ec4e", [0.6915, 0.3083]], // Red (#ff0500)
             ["0b00015c842b32b3", [0.17, 0.7]], // Green (#00ff0e)
             ["0b00011d37272c0c", [0.1532, 0.0475]], // Blue (#0a00ff)
-        ])(`xy(%s) should be %s`, (input, expected) => {
+        ])("xy(%s) should be %s", (input, expected) => {
             const ret = decodeGradientColors(input, {});
             expect([ret.x, ret.y]).toStrictEqual(expected);
         });
@@ -67,7 +67,7 @@ describe("lib/philips", () => {
             ["0f00011dfa0094611b61", 250],
             ["0f00011d7201ab751969", 370],
             ["0f00015cf401d486ce69", 500],
-        ])(`colorTemperature(%s) should be %s`, (input, expected) => {
+        ])("colorTemperature(%s) should be %s", (input, expected) => {
             const ret = decodeGradientColors(input, {});
             expect(ret.color_temp).toBe(expected);
         });
@@ -77,7 +77,7 @@ describe("lib/philips", () => {
             ["0b00015c842b32b3", "xy"],
             ["4b010164ee2df18f1350000000e8b3aac7589f2dba903f4a7720ba602800", "gradient"],
             ["ab000153df7e446a0180", "xy"],
-        ])(`color_mode(%s) should be %s`, (input, expected) => {
+        ])("color_mode(%s) should be %s", (input, expected) => {
             const ret = decodeGradientColors(input, {});
             expect(ret.color_mode).toBe(expected);
         });

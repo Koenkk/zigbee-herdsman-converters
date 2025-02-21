@@ -31,20 +31,20 @@ const fzLocal = {
             const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValue;
 
             // Reports pIHeatingDemand between 0 and 100 already
-            if (typeof msg.data["pIHeatingDemand"] == "number") {
-                result.pi_heating_demand = utils.precisionRound(msg.data["pIHeatingDemand"], 0);
+            if (typeof msg.data.pIHeatingDemand === "number") {
+                result.pi_heating_demand = utils.precisionRound(msg.data.pIHeatingDemand, 0);
             }
 
-            if (typeof msg.data[0x4003] == "number") {
+            if (typeof msg.data[0x4003] === "number") {
                 result.current_heating_setpoint = utils.precisionRound(msg.data[0x4003], 2) / 100;
             }
-            if (typeof msg.data[0x4008] == "number") {
+            if (typeof msg.data[0x4008] === "number") {
                 result.plugwise_t_diff = msg.data[0x4008];
             }
-            if (typeof msg.data[0x4002] == "number") {
+            if (typeof msg.data[0x4002] === "number") {
                 result.error_status = msg.data[0x4002];
             }
-            if (typeof msg.data[0x4001] == "number") {
+            if (typeof msg.data[0x4001] === "number") {
                 result.valve_position = msg.data[0x4001];
             }
             return result;

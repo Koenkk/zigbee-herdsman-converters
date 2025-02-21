@@ -132,7 +132,7 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
 
     utils.assertArray(definition.exposes);
     const expectedExposes = definition.exposes
-        ?.map((e) => e.name ?? `${e.type}${e.endpoint ? "_" + e.endpoint : ""}(${e.features?.map((f) => f.name).join(",")})`)
+        ?.map((e) => e.name ?? `${e.type}${e.endpoint ? `_${e.endpoint}` : ""}(${e.features?.map((f) => f.name).join(",")})`)
         .sort();
     logIfNotEqual(expectedExposes, args.exposes);
     expect(expectedExposes).toEqual(args.exposes);

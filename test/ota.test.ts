@@ -1,9 +1,9 @@
 import type {KeyValueAny, Ota, Zh} from "../src/lib/types";
 
-import crypto from "crypto";
-import {existsSync, readFileSync} from "fs";
-import path from "path";
-import {EventEmitter} from "stream";
+import crypto from "node:crypto";
+import {existsSync, readFileSync} from "node:fs";
+import path from "node:path";
+import {EventEmitter} from "node:stream";
 
 import {Zcl} from "zigbee-herdsman";
 import ZclTransactionSequenceNumber from "zigbee-herdsman/dist/controller/helpers/zclTransactionSequenceNumber";
@@ -135,22 +135,22 @@ describe("OTA", () => {
                 body: fetchReturnedStatus.body,
                 json: mockGetLatestManifest,
             };
-        } else if (urlStr === ZIGBEE_OTA_PREVIOUS_URL) {
+        }
+        if (urlStr === ZIGBEE_OTA_PREVIOUS_URL) {
             return {
                 ok: fetchReturnedStatus.ok,
                 status: fetchReturnedStatus.status,
                 body: fetchReturnedStatus.body,
                 json: mockGetPreviousManifest,
             };
-        } else {
-            // firmware file
-            return {
-                ok: fetchReturnedStatus.ok,
-                status: fetchReturnedStatus.status,
-                body: fetchReturnedStatus.body,
-                arrayBuffer: () => mockGetFirmwareFile(urlStr as string),
-            };
         }
+        // firmware file
+        return {
+            ok: fetchReturnedStatus.ok,
+            status: fetchReturnedStatus.status,
+            body: fetchReturnedStatus.body,
+            arrayBuffer: () => mockGetFirmwareFile(urlStr as string),
+        };
     };
     let fetchSpy = vi.spyOn(global, "fetch").mockImplementation(
         // @ts-expect-error mocked as needed
@@ -200,7 +200,7 @@ describe("OTA", () => {
                 switch (commandKey) {
                     case "imageNotify": {
                         if (failQueryNextImageRequest) {
-                            console.warn(`failQueryNextImageRequest`);
+                            console.warn("failQueryNextImageRequest");
 
                             // not a reject here, let waitress timeout QueryNextImageRequestPayload
                             return await Promise.resolve();
@@ -225,7 +225,7 @@ describe("OTA", () => {
                         if (failQueryNextImageResponse) {
                             failQueryNextImageResponse = false;
 
-                            throw new Error(`failQueryNextImageResponse`);
+                            throw new Error("failQueryNextImageResponse");
                         }
 
                         // trigger first `imageBlockRequest`
@@ -267,11 +267,11 @@ describe("OTA", () => {
                         if (failImageBlockResponse) {
                             failImageBlockResponse = false;
 
-                            throw new Error(`failImageBlockResponse`);
+                            throw new Error("failImageBlockResponse");
                         }
 
                         if (stopRequestingBlocks) {
-                            console.warn(`stopRequestingBlocks`);
+                            console.warn("stopRequestingBlocks");
 
                             // not a reject here, let waitress timeout ImageBlockRequestPayload | ImagePageRequestPayload
                             return await Promise.resolve();
@@ -323,7 +323,7 @@ describe("OTA", () => {
                         if (failUpgradeEndResponse) {
                             failUpgradeEndResponse = false;
 
-                            throw new Error(`failUpgradeEndResponse`);
+                            throw new Error("failUpgradeEndResponse");
                         }
 
                         // trigger deviceAnnounce event / timeout 2min
@@ -504,7 +504,7 @@ describe("OTA", () => {
     it("fails when parsing invalid OTA file", async () => {
         expect(() => {
             parseImage(Buffer.alloc(128, 0xff));
-        }).toThrow(`Not a valid OTA file`);
+        }).toThrow("Not a valid OTA file");
     });
 
     describe("Checking", () => {
@@ -541,7 +541,7 @@ describe("OTA", () => {
             await expect(async () => {
                 await isUpdateAvailable(device as unknown as Zh.Device, {}, undefined, false);
             }).rejects.toThrow(
-                expect.objectContaining({message: expect.stringContaining(`Failed to find an endpoint which supports the OTA cluster`)}),
+                expect.objectContaining({message: expect.stringContaining("Failed to find an endpoint which supports the OTA cluster")}),
             );
         });
 
@@ -1139,7 +1139,7 @@ describe("OTA", () => {
 
             await vi.runAllTimersAsync();
 
-            await expect(result).rejects.toThrow(`No new image available`);
+            await expect(result).rejects.toThrow("No new image available");
             expect(mockEndpointWrite).toHaveBeenCalledTimes(1);
             expect(mockEndpointWrite).toHaveBeenCalledWith("genScenes", {currentGroup: 49502});
         });
@@ -1359,7 +1359,7 @@ describe("OTA", () => {
 
                 await expect(resultP).rejects.toThrow(
                     expect.objectContaining({
-                        message: expect.stringContaining(`Timeout. Device did not start/finish firmware download after being notified`),
+                        message: expect.stringContaining("Timeout. Device did not start/finish firmware download after being notified"),
                     }),
                 );
             }, 60000);
@@ -1374,7 +1374,7 @@ describe("OTA", () => {
                 // avoids having to mock re-sending a request "from device", if this error is reached, it means it bypassed the commandResponse error
                 await expect(resultP).rejects.toThrow(
                     expect.objectContaining({
-                        message: expect.stringContaining(`Timeout. Device did not start/finish firmware download after being notified`),
+                        message: expect.stringContaining("Timeout. Device did not start/finish firmware download after being notified"),
                     }),
                 );
             }, 60000);
@@ -1398,7 +1398,7 @@ describe("OTA", () => {
                 // avoids having to mock re-sending a request "from device", if this error is reached, it means it bypassed the commandResponse error
                 await expect(resultP).rejects.toThrow(
                     expect.objectContaining({
-                        message: expect.stringContaining(`Timeout. Device did not start/finish firmware download after being notified`),
+                        message: expect.stringContaining("Timeout. Device did not start/finish firmware download after being notified"),
                     }),
                 );
                 expect(failed).toStrictEqual(true); // just to be sure
@@ -1426,7 +1426,7 @@ describe("OTA", () => {
                 await vi.runAllTimersAsync();
 
                 // this image will eventually fail GBL validation, but tested codepath was covered by then
-                await expect(resultP).rejects.toThrow(`Not a valid GBL image`);
+                await expect(resultP).rejects.toThrow("Not a valid GBL image");
             }, 60000);
 
             it("fails on OTA file element parse failure without extra meta", async () => {
@@ -1448,7 +1448,7 @@ describe("OTA", () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining(`out of range`)}));
+                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining("out of range")}));
             }, 60000);
 
             it("fails file checksum validation", async () => {
@@ -1460,7 +1460,7 @@ describe("OTA", () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`File checksum validation failed`);
+                await expect(resultP).rejects.toThrow("File checksum validation failed");
             });
 
             it("fails to find an image", async () => {
@@ -1470,7 +1470,7 @@ describe("OTA", () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining(`No image currently available`)}));
+                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining("No image currently available")}));
             });
 
             it("fails to find an upgrade image", async () => {
@@ -1480,7 +1480,7 @@ describe("OTA", () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`No new image available`);
+                await expect(resultP).rejects.toThrow("No new image available");
             });
 
             it("fails to find a downgrade image", async () => {
@@ -1490,7 +1490,7 @@ describe("OTA", () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`No previous image available`);
+                await expect(resultP).rejects.toThrow("No previous image available");
             });
 
             it("fails to find an image due to hardware version restrictions unmet", async () => {
@@ -1501,7 +1501,7 @@ describe("OTA", () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining(`No image currently available`)}));
+                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining("No image currently available")}));
             });
 
             it("fails due to hardware version restrictions unmet - with manifest missing info", async () => {
@@ -1521,7 +1521,7 @@ describe("OTA", () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining(`Hardware version mismatch`)}));
+                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining("Hardware version mismatch")}));
             });
 
             it("fails queryNextImageRequest", async () => {
@@ -1544,7 +1544,7 @@ describe("OTA", () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`Update failed with reason: FAILURE`);
+                await expect(resultP).rejects.toThrow("Update failed with reason: FAILURE");
                 expect(otaEndpoint.defaultResponse).toHaveBeenCalledTimes(1);
                 expect(otaEndpoint.defaultResponse).toHaveBeenCalledWith(
                     Zcl.Clusters.genOta.commands.upgradeEndRequest.ID,
@@ -1565,7 +1565,7 @@ describe("OTA", () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`Update failed with reason: FAILURE`);
+                await expect(resultP).rejects.toThrow("Update failed with reason: FAILURE");
                 expect(otaEndpoint.defaultResponse).toHaveBeenCalledTimes(1);
                 expect(otaEndpoint.defaultResponse).toHaveBeenCalledWith(
                     Zcl.Clusters.genOta.commands.upgradeEndRequest.ID,
@@ -1583,7 +1583,7 @@ describe("OTA", () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`Upgrade end response failed: failUpgradeEndResponse`);
+                await expect(resultP).rejects.toThrow("Upgrade end response failed: failUpgradeEndResponse");
             }, 60000);
         });
     });

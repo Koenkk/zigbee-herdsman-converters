@@ -37,7 +37,7 @@ export const ledvanceTz = {
                     const payload = {18: {value: transition, type: 0x21}, 19: {value: transition, type: 0x21}};
                     await entity.write("genLevelCtrl", payload);
                 }
-            } else if (key == "osram_remember_state" || key == "remember_state") {
+            } else if (key === "osram_remember_state" || key === "remember_state") {
                 if (value === true) {
                     await entity.command("manuSpecificOsram", "saveStartupParams", {}, manufacturerOptions);
                 } else if (value === false) {

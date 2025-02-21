@@ -801,7 +801,7 @@ export const definitions: DefinitionWithExtend[] = [
             for (let i = 1; i <= 15; i++) {
                 const endpoint = device.getEndpoint(i);
 
-                if (typeof endpoint == "undefined") {
+                if (typeof endpoint === "undefined") {
                     continue;
                 }
 
@@ -833,7 +833,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await endpoint.read("msRelativeHumidity", ["measuredValue"]);
 
                 // Different attributes depending on if it's Main Сontroller or a single thermostat
-                if (typeof mainController == "undefined") {
+                if (typeof mainController === "undefined") {
                     await endpoint.read("genBasic", ["modelId", "powerSource"]);
                 } else {
                     await endpoint.configureReporting(
@@ -855,7 +855,7 @@ export const definitions: DefinitionWithExtend[] = [
             }
 
             // Danfoss Icon2 Main Controller Specific
-            if (typeof mainController != "undefined") {
+            if (typeof mainController !== "undefined") {
                 await reporting.bind(mainController, coordinatorEndpoint, ["genBasic", "haDiagnostic"]);
 
                 await mainController.read("genBasic", ["modelId", "powerSource", "appVersion", "stackVersion", "hwVersion", "dateCode"]);

@@ -43,7 +43,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const buffer = msg.data;
             const measuredValue = Number(buffer[7]) * 256 + Number(buffer[6]);
-            return {illuminance: measuredValue === 0 ? 0 : Math.round(Math.pow(10, (measuredValue - 1) / 10000))};
+            return {illuminance: measuredValue === 0 ? 0 : Math.round(10 ** ((measuredValue - 1) / 10000))};
         },
     } satisfies Fz.Converter,
     TS0225: {
@@ -52,22 +52,22 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data["57354"] !== undefined) {
-                result["target_distance"] = msg.data["57354"];
+                result.target_distance = msg.data["57354"];
             }
             if (msg.data["57355"] !== undefined) {
-                result["motion_detection_distance"] = msg.data["57355"];
+                result.motion_detection_distance = msg.data["57355"];
             }
             if (msg.data["57348"] !== undefined) {
-                result["motion_detection_sensitivity"] = msg.data["57348"];
+                result.motion_detection_sensitivity = msg.data["57348"];
             }
             if (msg.data["57349"] !== undefined) {
-                result["static_detection_sensitivity"] = msg.data["57349"];
+                result.static_detection_sensitivity = msg.data["57349"];
             }
             if (msg.data["57345"] !== undefined) {
-                result["presence_keep_time"] = msg.data["57345"];
+                result.presence_keep_time = msg.data["57345"];
             }
             if (msg.data["57353"] !== undefined) {
-                result["led_indicator"] = msg.data["57353"] === 1 ? true : false;
+                result.led_indicator = msg.data["57353"] === 1;
             }
             return result;
         },

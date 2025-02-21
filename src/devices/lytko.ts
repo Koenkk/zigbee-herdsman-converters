@@ -23,14 +23,14 @@ const fzLocal = {
             const result: KeyValue = {};
 
             if (msg.data.minSetpointDeadBand !== undefined) {
-                result[postfixWithEndpointName("min_setpoint_deadband", msg, model, meta)] = precisionRound(msg.data["minSetpointDeadBand"], 2) / 10;
+                result[postfixWithEndpointName("min_setpoint_deadband", msg, model, meta)] = precisionRound(msg.data.minSetpointDeadBand, 2) / 10;
             }
             // sensor type
             if (msg.data["30464"] !== undefined) {
                 result[`sensor_type_${ep}`] = sensorTypes[toNumber(msg.data["30464"])];
             }
             if (msg.data["30465"] !== undefined) {
-                result[postfixWithEndpointName("target_temp_first", msg, model, meta)] = msg.data["30465"] == 1;
+                result[postfixWithEndpointName("target_temp_first", msg, model, meta)] = msg.data["30465"] === 1;
             }
             return result;
         },
@@ -48,7 +48,7 @@ const fzLocal = {
             }
             if (msg.data.keypadLockout !== undefined) {
                 result[postfixWithEndpointName("keypad_lockout", msg, model, meta)] = getFromLookup(
-                    msg.data["keypadLockout"],
+                    msg.data.keypadLockout,
                     constants.keypadLockoutMode,
                 );
             }

@@ -329,7 +329,7 @@ export namespace Tz {
         endpoint_name: string | undefined;
         membersState?: {[s: string]: KeyValue};
     }
-    export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | void;
+    export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | undefined;
     export interface Converter {
         key?: string[];
         options?: Option[] | ((definition: Definition) => Option[]);

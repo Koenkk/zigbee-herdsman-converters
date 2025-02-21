@@ -224,25 +224,25 @@ export const fzLegrand = {
             const payload: KeyValueAny = {};
             if (msg.data.tuyaMovingState !== undefined) {
                 if ((0, utils.hasAlreadyProcessedMessage)(msg, model)) return;
-                if (msg.data["tuyaMovingState"] === 0) {
+                if (msg.data.tuyaMovingState === 0) {
                     // return {
                     // action: 'open',
                     // };
-                    payload["action"] = (0, utils.postfixWithEndpointName)("OPEN", msg, model, meta);
+                    payload.action = (0, utils.postfixWithEndpointName)("OPEN", msg, model, meta);
                     (0, utils.addActionGroup)(payload, msg, model);
                 }
-                if (msg.data["tuyaMovingState"] === 100) {
+                if (msg.data.tuyaMovingState === 100) {
                     // return {
                     // action: 'closed',
                     // };
-                    payload["action"] = (0, utils.postfixWithEndpointName)("CLOSE", msg, model, meta);
+                    payload.action = (0, utils.postfixWithEndpointName)("CLOSE", msg, model, meta);
                     (0, utils.addActionGroup)(payload, msg, model);
                 }
-                if (msg.data["tuyaMovingState"] >= 1 && msg.data["tuyaMovingState"] < 100) {
+                if (msg.data.tuyaMovingState >= 1 && msg.data.tuyaMovingState < 100) {
                     // return {
                     // action: 'stop',
                     // };
-                    payload["action"] = (0, utils.postfixWithEndpointName)("STOP", msg, model, meta);
+                    payload.action = (0, utils.postfixWithEndpointName)("STOP", msg, model, meta);
                     (0, utils.addActionGroup)(payload, msg, model);
                 }
             }

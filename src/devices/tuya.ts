@@ -92,42 +92,42 @@ const storeLocal = {
                 recompute_power_ab: function (result: KeyValueAny) {
                     let modified = false;
                     if ("power_a" in result) {
-                        this.pub_power_a = result.power_a * (result.energy_flow_a == "producing" ? -1 : 1);
+                        this.pub_power_a = result.power_a * (result.energy_flow_a === "producing" ? -1 : 1);
                         modified = true;
                     }
                     if ("power_b" in result) {
-                        this.pub_power_b = result.power_b * (result.energy_flow_b == "producing" ? -1 : 1);
+                        this.pub_power_b = result.power_b * (result.energy_flow_b === "producing" ? -1 : 1);
                         modified = true;
                     }
                     if (modified) {
                         if (this.pub_power_a !== null && this.pub_power_b !== null) {
                             // Cancel and reapply the scaling by 10 to avoid floating-point rounding errors
                             // such as 79.8 - 37.1 = 42.699999999999996
-                            result["power_ab"] = Math.round(10 * this.pub_power_a + 10 * this.pub_power_b) / 10;
+                            result.power_ab = Math.round(10 * this.pub_power_a + 10 * this.pub_power_b) / 10;
                         }
                     }
                 },
 
                 flush: function (result: KeyValueAny, channel: string, options: KeyValue) {
-                    const sign = this["sign_" + channel];
-                    const power = this["power_" + channel];
-                    const current = this["current_" + channel];
-                    const powerFactor = this["power_factor_" + channel];
-                    this["sign_" + channel] = this["power_" + channel] = this["current_" + channel] = this["power_factor_" + channel] = null;
+                    const sign = this[`sign_${channel}`];
+                    const power = this[`power_${channel}`];
+                    const current = this[`current_${channel}`];
+                    const powerFactor = this[`power_factor_${channel}`];
+                    this[`sign_${channel}`] = this[`power_${channel}`] = this[`current_${channel}`] = this[`power_factor_${channel}`] = null;
                     // Only publish if the set is complete otherwise discard everything.
                     if (sign !== null && power !== null && current !== null && powerFactor !== null) {
-                        const signedPowerKey = "signed_power_" + channel;
+                        const signedPowerKey = `signed_power_${channel}`;
                         const signedPower = options[signedPowerKey] !== undefined ? options[signedPowerKey] : false;
                         if (signedPower) {
-                            result["power_" + channel] = sign * power;
-                            result["energy_flow_" + channel] = "sign";
+                            result[`power_${channel}`] = sign * power;
+                            result[`energy_flow_${channel}`] = "sign";
                         } else {
-                            result["power_" + channel] = power;
-                            result["energy_flow_" + channel] = sign > 0 ? "consuming" : "producing";
+                            result[`power_${channel}`] = power;
+                            result[`energy_flow_${channel}`] = sign > 0 ? "consuming" : "producing";
                         }
-                        result["timestamp_" + channel] = this["timestamp_" + channel];
-                        result["current_" + channel] = current;
-                        result["power_factor_" + channel] = powerFactor;
+                        result[`timestamp_${channel}`] = this[`timestamp_${channel}`];
+                        result[`current_${channel}`] = current;
+                        result[`power_factor_${channel}`] = powerFactor;
                         this.recompute_power_ab(result);
                         return true;
                     }
@@ -144,11 +144,11 @@ const storeLocal = {
                 // Also, the publication of a zero energy state is not delayed
                 // when option late_energy_flow_a|b is set.
                 flushZero: function (result: KeyValueAny, channel: string, options: KeyValue) {
-                    this["sign_" + channel] = +1;
-                    this["power_" + channel] = 0;
-                    this["timestamp_" + channel] = new Date().toISOString();
-                    this["current_" + channel] = 0;
-                    this["power_factor_" + channel] = 100;
+                    this[`sign_${channel}`] = +1;
+                    this[`power_${channel}`] = 0;
+                    this[`timestamp_${channel}`] = new Date().toISOString();
+                    this[`current_${channel}`] = 0;
+                    this[`power_factor_${channel}`] = 100;
                     this.flush(result, channel, options);
                 },
 
@@ -175,8 +175,8 @@ const convLocal = {
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
                 const priv = storeLocal.getPrivatePJ1203A(meta.device);
                 const result = {};
-                priv["sign_" + channel] = v == 1 ? -1 : +1;
-                const lateEnergyFlowKey = "late_energy_flow_" + channel;
+                priv[`sign_${channel}`] = v === 1 ? -1 : +1;
+                const lateEnergyFlowKey = `late_energy_flow_${channel}`;
                 const lateEnergyFlow = options[lateEnergyFlowKey] !== undefined ? options[lateEnergyFlowKey] : false;
                 if (lateEnergyFlow) {
                     priv.flush(result, channel, options);
@@ -191,9 +191,9 @@ const convLocal = {
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
                 const priv = storeLocal.getPrivatePJ1203A(meta.device);
                 const result = {};
-                priv["power_" + channel] = v / 10;
-                priv["timestamp_" + channel] = new Date().toISOString();
-                if (v == 0) {
+                priv[`power_${channel}`] = v / 10;
+                priv[`timestamp_${channel}`] = new Date().toISOString();
+                if (v === 0) {
                     priv.flushZero(result, channel, options);
                     return result;
                 }
@@ -207,8 +207,8 @@ const convLocal = {
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
                 const priv = storeLocal.getPrivatePJ1203A(meta.device);
                 const result = {};
-                priv["current_" + channel] = v / 1000;
-                if (v == 0) {
+                priv[`current_${channel}`] = v / 1000;
+                if (v === 0) {
                     priv.flushZero(result, channel, options);
                     return result;
                 }
@@ -222,8 +222,8 @@ const convLocal = {
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
                 const priv = storeLocal.getPrivatePJ1203A(meta.device);
                 const result = {};
-                priv["power_factor_" + channel] = v;
-                const lateEnergyFlowKey = "late_energy_flow_" + channel;
+                priv[`power_factor_${channel}`] = v;
+                const lateEnergyFlowKey = `late_energy_flow_${channel}`;
                 const lateEnergyFlow = options[lateEnergyFlowKey] !== undefined ? options[lateEnergyFlowKey] : false;
                 if (!lateEnergyFlow) {
                     priv.flush(result, channel, options);
@@ -272,11 +272,11 @@ const tzLocal = {
             if ("color_temp" in meta.message) colorMode = colorModeLookup[ColorMode.ColorTemp];
             if ("color" in meta.message) colorMode = colorModeLookup[ColorMode.HS];
 
-            if (colorMode != meta.state.color_mode) {
+            if (colorMode !== meta.state.color_mode) {
                 newState.color_mode = colorMode;
 
                 // To switch between white mode and color mode, we have to send a special command:
-                const rgbMode = colorMode == colorModeLookup[ColorMode.HS];
+                const rgbMode = colorMode === colorModeLookup[ColorMode.HS];
                 await entity.command("lightingColorCtrl", "tuyaRgbMode", {enable: rgbMode});
             }
 
@@ -284,7 +284,7 @@ const tzLocal = {
             // transition time, so for "no transition" we use 1 (tenth of a second).
             const transtime = typeof meta.message.transition === "number" ? meta.message.transition * 10 : 0.1;
 
-            if (colorMode == colorModeLookup[ColorMode.ColorTemp]) {
+            if (colorMode === colorModeLookup[ColorMode.ColorTemp]) {
                 if ("brightness" in meta.message) {
                     const zclData = {level: Number(meta.message.brightness), transtime};
                     await entity.command("genLevelCtrl", "moveToLevel", zclData, utils.getOptions(meta.mapped, entity));
@@ -296,7 +296,7 @@ const tzLocal = {
                     await entity.command("lightingColorCtrl", "moveToColorTemp", zclData, utils.getOptions(meta.mapped, entity));
                     newState.color_temp = meta.message.color_temp;
                 }
-            } else if (colorMode == colorModeLookup[ColorMode.HS]) {
+            } else if (colorMode === colorModeLookup[ColorMode.HS]) {
                 if ("brightness" in meta.message || "color" in meta.message) {
                     // We ignore the brightness of the color and instead use the overall brightness setting of the lamp
                     // for the brightness because I think that's the expected behavior and also because the color
@@ -307,9 +307,9 @@ const tzLocal = {
                     const newSettings = {
                         brightness: meta.state.brightness ?? 254, //      full brightness
                         // @ts-expect-error ignore
-                        hue: (meta.state.color ?? {}).hue ?? 0, //          red
+                        hue: meta.state.color?.hue ?? 0, //          red
                         // @ts-expect-error ignore
-                        saturation: (meta.state.color ?? {}).saturation ?? 100, // full saturation
+                        saturation: meta.state.color?.saturation ?? 100, // full saturation
                     };
 
                     // Apply changes
@@ -384,9 +384,8 @@ const tzLocal = {
                     newState.color = color.rgb.gammaCorrected().toXY().rounded(4);
                 }
                 return {state: libColor.syncColorState(newState, meta.state, entity, meta.options) as KeyValue};
-            } else {
-                return await tz.light_color.convertSet(entity, key, value, meta);
             }
+            return await tz.light_color.convertSet(entity, key, value, meta);
         },
         convertGet: tz.light_color.convertGet,
     } satisfies Tz.Converter,
@@ -440,46 +439,46 @@ const tzLocal = {
             const onOffLookup = {on: 1, off: 0};
             switch (key) {
                 case "temperature_threshold": {
-                    const state = meta.state["temperature_breaker"];
+                    const state = meta.state.temperature_breaker;
                     const buf = Buffer.from([5, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "temperature_threshold")]);
                     await entity.command("manuSpecificTuya_3", "setOptions2", {data: buf});
                     break;
                 }
                 case "temperature_breaker": {
-                    const threshold = meta.state["temperature_threshold"];
+                    const threshold = meta.state.temperature_threshold;
                     const number = utils.toNumber(threshold, "temperature_threshold");
                     const buf = Buffer.from([5, utils.getFromLookup(value, onOffLookup), 0, number]);
                     await entity.command("manuSpecificTuya_3", "setOptions2", {data: buf});
                     break;
                 }
                 case "power_threshold": {
-                    const state = meta.state["power_breaker"];
+                    const state = meta.state.power_breaker;
                     const buf = Buffer.from([7, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "power_breaker")]);
                     await entity.command("manuSpecificTuya_3", "setOptions2", {data: buf});
                     break;
                 }
                 case "power_breaker": {
-                    const threshold = meta.state["power_threshold"];
+                    const threshold = meta.state.power_threshold;
                     const number = utils.toNumber(threshold, "power_breaker");
                     const buf = Buffer.from([7, utils.getFromLookup(value, onOffLookup), 0, number]);
                     await entity.command("manuSpecificTuya_3", "setOptions2", {data: buf});
                     break;
                 }
                 case "over_current_threshold": {
-                    const state = meta.state["over_current_breaker"];
+                    const state = meta.state.over_current_breaker;
                     const buf = Buffer.from([1, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "over_current_threshold")]);
                     await entity.command("manuSpecificTuya_3", "setOptions3", {data: buf});
                     break;
                 }
                 case "over_current_breaker": {
-                    const threshold = meta.state["over_current_threshold"];
+                    const threshold = meta.state.over_current_threshold;
                     const number = utils.toNumber(threshold, "over_current_threshold");
                     const buf = Buffer.from([1, utils.getFromLookup(value, onOffLookup), 0, number]);
                     await entity.command("manuSpecificTuya_3", "setOptions3", {data: buf});
                     break;
                 }
                 case "over_voltage_threshold": {
-                    const state = meta.state["over_voltage_breaker"];
+                    const state = meta.state.over_voltage_breaker;
                     const buf = Buffer.alloc(4);
                     buf.writeUInt8(3, 0);
                     buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 1);
@@ -488,20 +487,20 @@ const tzLocal = {
                     break;
                 }
                 case "over_voltage_breaker": {
-                    const threshold = meta.state["over_voltage_threshold"];
+                    const threshold = meta.state.over_voltage_threshold;
                     const number = utils.toNumber(threshold, "over_voltage_threshold");
                     const buf = Buffer.from([3, utils.getFromLookup(value, onOffLookup), 0, number]);
                     await entity.command("manuSpecificTuya_3", "setOptions3", {data: buf});
                     break;
                 }
                 case "under_voltage_threshold": {
-                    const state = meta.state["under_voltage_breaker"];
+                    const state = meta.state.under_voltage_breaker;
                     const buf = Buffer.from([4, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "under_voltage_threshold")]);
                     await entity.command("manuSpecificTuya_3", "setOptions3", {data: buf});
                     break;
                 }
                 case "under_voltage_breaker": {
-                    const threshold = meta.state["under_voltage_threshold"];
+                    const threshold = meta.state.under_voltage_threshold;
                     const number = utils.toNumber(threshold, "under_voltage_breaker");
                     const buf = Buffer.from([4, utils.getFromLookup(value, onOffLookup), 0, number]);
                     await entity.command("manuSpecificTuya_3", "setOptions3", {data: buf});
@@ -555,7 +554,7 @@ const fzLocal = {
             // https://github.com/Koenkk/zigbee2mqtt/issues/11470
             // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8246
             if (
-                msg.data.batteryPercentageRemaining == 200 &&
+                msg.data.batteryPercentageRemaining === 200 &&
                 msg.data.batteryVoltage < 30 &&
                 !["_TZ3000_lqmvrwa2"].includes(meta.device.manufacturerName)
             )
@@ -567,7 +566,7 @@ const fzLocal = {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
             if (["_TZ3210_ncw88jfq", "_TZ3000_ywagc4rj"].includes(meta.device.manufacturerName)) {
-                msg.data["measuredValue"] *= 10;
+                msg.data.measuredValue *= 10;
             }
             return fz.humidity.convert(model, msg, publish, options, meta);
         },
@@ -576,7 +575,7 @@ const fzLocal = {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const humidity = Number.parseFloat(msg.data["measuredValue"]) / 10.0;
+            const humidity = Number.parseFloat(msg.data.measuredValue) / 10.0;
             if (humidity >= 0 && humidity <= 100) {
                 return {humidity};
             }
@@ -657,7 +656,7 @@ const fzLocal = {
             const lookup: KeyValue = {0: "OFF", 1: "ON"};
             const command = msg.data[2];
             const data = msg.data.slice(3);
-            if (command == 0xe6) {
+            if (command === 0xe6) {
                 const value = splitToAttributes(data);
                 const result: KeyValue = {};
                 if (0x05 in value) {
@@ -670,7 +669,7 @@ const fzLocal = {
                 }
                 return result;
             }
-            if (command == 0xe7) {
+            if (command === 0xe7) {
                 const value = splitToAttributes(data);
                 return {
                     over_current_threshold: value[0x01][1],
@@ -699,7 +698,7 @@ const fzLocal = {
             const priv = storeLocal.getPrivatePJ1203A(meta.device);
             // Detect missing or re-ordered messages but allow duplicate messages (should we?).
             const expectedSeq = (priv.last_seq + priv.seq_inc) & 0xffff;
-            if (msg.data.seq != expectedSeq && msg.data.seq != priv.last_seq) {
+            if (msg.data.seq !== expectedSeq && msg.data.seq !== priv.last_seq) {
                 logger.debug(`[PJ1203A] Missing or re-ordered message detected: Got seq=${msg.data.seq}, expected ${priv.next_seq}`, NS);
                 priv.clear();
             }
@@ -768,9 +767,9 @@ const modernExtendLocal = {
                 let result = "";
                 if (value.enabled !== "none") {
                     const enabled = utils.getFromLookup(value.enabled, {on: 0x00, off: 0x80});
-                    const gr = value.temp_greater_then == "none" ? 0xff : 0x00;
+                    const gr = value.temp_greater_then === "none" ? 0xff : 0x00;
                     const grAction = utils.getFromLookup(value.temp_greater_then, {on: 0x01, off: 0x00, none: 0x00});
-                    const lo = value.temp_lower_then == "none" ? 0xff : 0x00;
+                    const lo = value.temp_lower_then === "none" ? 0xff : 0x00;
                     const loAction = utils.getFromLookup(value.temp_lower_then, {on: 0x01, off: 0x00, none: 0x00});
                     const buf = Buffer.alloc(13);
                     buf.writeUInt8(enabled, 0);
@@ -3563,7 +3562,7 @@ export const definitions: DefinitionWithExtend[] = [
                                 const regex = /((?<h>[01][0-9]|2[0-3]):(?<m>[0-5][0-9])\/(?<t>[0-3][0-9](\.[0,5]|)))/gm;
                                 const matches = [...value.matchAll(regex)];
 
-                                if (matches.length == 4) {
+                                if (matches.length === 4) {
                                     return matches.reduce((arr, m) => {
                                         arr.push(Number.parseInt(m.groups.h));
                                         arr.push(Number.parseInt(m.groups.m));
@@ -3575,7 +3574,7 @@ export const definitions: DefinitionWithExtend[] = [
                                 logger.warning("Ignoring invalid or incomplete schedule", NS);
                             };
 
-                            const schedule = [...periods(v["weekdays"]), ...periods(v["saturday"]), ...periods(v["sunday"])];
+                            const schedule = [...periods(v.weekdays), ...periods(v.saturday), ...periods(v.sunday)];
 
                             return schedule;
                         },
@@ -7164,9 +7163,8 @@ export const definitions: DefinitionWithExtend[] = [
                         // https://github.com/Koenkk/zigbee2mqtt/issues/21353#issuecomment-1938328429
                         if (["_TZE204_lzriup1j", "_TZE204_xnbkhhdr"].indexOf(device.manufacturerName) !== -1) {
                             return {auto: tuya.enum(1), manual: tuya.enum(0), temporary_manual: tuya.enum(2)};
-                        } else {
-                            return {auto: tuya.enum(0), manual: tuya.enum(1), temporary_manual: tuya.enum(2)};
                         }
+                        return {auto: tuya.enum(0), manual: tuya.enum(1), temporary_manual: tuya.enum(2)};
                     }),
                 ],
                 [9, "child_lock", tuya.valueConverter.lockUnlock],
@@ -7183,9 +7181,8 @@ export const definitions: DefinitionWithExtend[] = [
                         // https://github.com/Koenkk/zigbee2mqtt/issues/23979
                         if (device.manufacturerName === "_TZE200_viy9ihs7") {
                             return {disabled: tuya.enum(0), "6-1": tuya.enum(1), "5-2": tuya.enum(2), "7": tuya.enum(3)};
-                        } else {
-                            return {disabled: tuya.enum(0), "6-1": tuya.enum(2), "5-2": tuya.enum(1), "7": tuya.enum(3)};
                         }
+                        return {disabled: tuya.enum(0), "6-1": tuya.enum(2), "5-2": tuya.enum(1), "7": tuya.enum(3)};
                     }),
                 ],
                 [106, "sensor", tuya.valueConverterBasic.lookup({internal: tuya.enum(0), external: tuya.enum(1), both: tuya.enum(2)})],
@@ -8423,7 +8420,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("top_limit", ea.STATE_SET, ["SET", "CLEAR"]).withDescription("Setup or clear top limit"),
             e.enum("bottom_limit", ea.STATE_SET, ["SET", "CLEAR"]).withDescription("Setup or clear bottom limit"),
             e.numeric("favorite_position", ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription("Favorite position of this cover"),
-            e.binary(`reverse_direction`, ea.STATE_SET, true, false).withDescription(`Inverts the cover direction`),
+            e.binary("reverse_direction", ea.STATE_SET, true, false).withDescription("Inverts the cover direction"),
             e.text("motor_type", ea.STATE),
             e.enum("report", ea.SET, [""]),
         ],
@@ -11115,27 +11112,28 @@ export const definitions: DefinitionWithExtend[] = [
                     null,
                     {
                         from: (v, meta) => {
-                            if (v == 0) {
-                                return {
-                                    state: "none",
-                                    presence: false,
-                                };
-                            } else if (v == 1) {
-                                return {
-                                    state: "presence",
-                                    presence: true,
-                                };
-                            } else if (v == 2) {
-                                return {
-                                    state: "move",
-                                    presence: true,
-                                };
-                            } else {
+                            if (v === 0) {
                                 return {
                                     state: "none",
                                     presence: false,
                                 };
                             }
+                            if (v === 1) {
+                                return {
+                                    state: "presence",
+                                    presence: true,
+                                };
+                            }
+                            if (v === 2) {
+                                return {
+                                    state: "move",
+                                    presence: true,
+                                };
+                            }
+                            return {
+                                state: "none",
+                                presence: false,
+                            };
                         },
                     },
                 ],
@@ -11325,9 +11323,9 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("sensor", ea.STATE_SET, ["on", "off", "occupied", "unoccupied"])
                 .withDescription(
-                    `The radar sensor can be set in four states: on, off, occupied and unoccupied. For example, if set to occupied, ` +
-                        `it will continue to maintain presence regardless of whether someone is present or not. If set to unoccupied, the unoccupied ` +
-                        `state will be maintained permanently.`,
+                    "The radar sensor can be set in four states: on, off, occupied and unoccupied. For example, if set to occupied, " +
+                        "it will continue to maintain presence regardless of whether someone is present or not. If set to unoccupied, the unoccupied " +
+                        "state will be maintained permanently.",
                 ),
         ],
         meta: {
@@ -11377,16 +11375,16 @@ export const definitions: DefinitionWithExtend[] = [
         options: [
             e
                 .binary("late_energy_flow_a", ea.SET, true, false)
-                .withDescription(`Delay channel A publication until the next energy flow update (default false).`),
+                .withDescription("Delay channel A publication until the next energy flow update (default false)."),
             e
                 .binary("late_energy_flow_b", ea.SET, true, false)
-                .withDescription(`Delay channel B publication until the next energy flow update (default false).`),
+                .withDescription("Delay channel B publication until the next energy flow update (default false)."),
             e
                 .binary("signed_power_a", ea.SET, true, false)
-                .withDescription(`Report energy flow direction for channel A using signed power (default false).`),
+                .withDescription("Report energy flow direction for channel A using signed power (default false)."),
             e
                 .binary("signed_power_b", ea.SET, true, false)
-                .withDescription(`Report energy flow direction for channel B using signed power (default false).`),
+                .withDescription("Report energy flow direction for channel B using signed power (default false)."),
         ],
         exposes: [
             e.ac_frequency(),
@@ -12845,7 +12843,7 @@ export const definitions: DefinitionWithExtend[] = [
                             };
                             const presenceState = Object.entries(lookup).find((i) => i[1].valueOf() === v)[0];
                             return {
-                                presence: presenceState != "none",
+                                presence: presenceState !== "none",
                                 presence_state: presenceState,
                             };
                         },
@@ -13938,9 +13936,9 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("sensor", ea.STATE_SET, ["on", "occupied", "unoccupied"])
                 .withDescription(
-                    `The radar sensor can be set in three states: on, occupied and unoccupied. For example, if set to occupied, ` +
-                        `it will continue to maintain presence regardless of whether someone is present or not. If set to unoccupied, the unoccupied ` +
-                        `state will be maintained permanently.`,
+                    "The radar sensor can be set in three states: on, occupied and unoccupied. For example, if set to occupied, " +
+                        "it will continue to maintain presence regardless of whether someone is present or not. If set to unoccupied, the unoccupied " +
+                        "state will be maintained permanently.",
                 ),
             e
                 .enum("scene_preset", ea.STATE_SET, [
@@ -13953,13 +13951,13 @@ export const definitions: DefinitionWithExtend[] = [
                     "Meetingroom",
                     "Factory default",
                 ])
-                .withDescription(`Presets`),
+                .withDescription("Presets"),
             e
                 .enum("distance_report_mode", ea.STATE_SET, ["Normal", "Occupancy detection"])
                 .withDescription("Indicator light will turn on when human presence is detected"),
             e
                 .enum("debug_mode", ea.STATE_SET, ["OFF", "ON"])
-                .withDescription(`In debug mode, radar will report more information, can be used to identify interference`),
+                .withDescription("In debug mode, radar will report more information, can be used to identify interference"),
             e.numeric("debug_distance", ea.STATE).withDescription("Real time distance to target").withUnit("m"),
             e.numeric("debug_countdown", ea.STATE).withDescription("Time before the target disappears").withUnit("s"),
         ],

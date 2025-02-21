@@ -50,11 +50,11 @@ const develco = {
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.totalActivePower !== undefined && msg.data["totalActivePower"] !== -0x80000000) {
-                    result[utils.postfixWithEndpointName("power", msg, model, meta)] = msg.data["totalActivePower"];
+                if (msg.data.totalActivePower !== undefined && msg.data.totalActivePower !== -0x80000000) {
+                    result[utils.postfixWithEndpointName("power", msg, model, meta)] = msg.data.totalActivePower;
                 }
-                if (msg.data.totalReactivePower !== undefined && msg.data["totalReactivePower"] !== -0x80000000) {
-                    result[utils.postfixWithEndpointName("power_reactive", msg, model, meta)] = msg.data["totalReactivePower"];
+                if (msg.data.totalReactivePower !== undefined && msg.data.totalReactivePower !== -0x80000000) {
+                    result[utils.postfixWithEndpointName("power_reactive", msg, model, meta)] = msg.data.totalReactivePower;
                 }
                 return result;
             },
@@ -73,7 +73,7 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
                 if (msg.data.develcoPulseConfiguration !== undefined) {
-                    result[utils.postfixWithEndpointName("pulse_configuration", msg, model, meta)] = msg.data["develcoPulseConfiguration"];
+                    result[utils.postfixWithEndpointName("pulse_configuration", msg, model, meta)] = msg.data.develcoPulseConfiguration;
                 }
 
                 return result;
@@ -86,13 +86,13 @@ const develco = {
                 const result: KeyValue = {};
                 if (msg.data.develcoInterfaceMode !== undefined) {
                     result[utils.postfixWithEndpointName("interface_mode", msg, model, meta)] =
-                        constants.develcoInterfaceMode[msg.data["develcoInterfaceMode"]] !== undefined
-                            ? constants.develcoInterfaceMode[msg.data["develcoInterfaceMode"]]
-                            : msg.data["develcoInterfaceMode"];
+                        constants.develcoInterfaceMode[msg.data.develcoInterfaceMode] !== undefined
+                            ? constants.develcoInterfaceMode[msg.data.develcoInterfaceMode]
+                            : msg.data.develcoInterfaceMode;
                 }
                 if (msg.data.status !== undefined) {
-                    result["battery_low"] = (msg.data.status & 2) > 0;
-                    result["check_meter"] = (msg.data.status & 1) > 0;
+                    result.battery_low = (msg.data.status & 2) > 0;
+                    result.check_meter = (msg.data.status & 1) > 0;
                 }
 
                 return result;
@@ -105,10 +105,10 @@ const develco = {
                 const result: KeyValue = {};
                 if (msg.data.reliability !== undefined) {
                     const lookup = {0: "no_fault_detected", 7: "unreliable_other", 8: "process_error"};
-                    result.reliability = utils.getFromLookup(msg.data["reliability"], lookup);
+                    result.reliability = utils.getFromLookup(msg.data.reliability, lookup);
                 }
                 if (msg.data.statusFlags !== undefined) {
-                    result.fault = msg.data["statusFlags"] === 1;
+                    result.fault = msg.data.statusFlags === 1;
                 }
                 return result;
             },
@@ -120,7 +120,7 @@ const develco = {
                 const state: KeyValue = {};
 
                 if (msg.data.develcoLedControl !== undefined) {
-                    state["led_control"] = utils.getFromLookup(msg.data["develcoLedControl"], develcoLedControlMap);
+                    state.led_control = utils.getFromLookup(msg.data.develcoLedControl, develcoLedControlMap);
                 }
 
                 return state;
@@ -133,7 +133,7 @@ const develco = {
                 const state: KeyValue = {};
 
                 if (msg.data.develcoAlarmOffDelay !== undefined) {
-                    state["occupancy_timeout"] = msg.data["develcoAlarmOffDelay"];
+                    state.occupancy_timeout = msg.data.develcoAlarmOffDelay;
                 }
 
                 return state;
@@ -145,8 +145,8 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
                 if (msg.data.presentValue !== undefined) {
-                    const value = msg.data["presentValue"];
-                    result[utils.postfixWithEndpointName("input", msg, model, meta)] = value == 1;
+                    const value = msg.data.presentValue;
+                    result[utils.postfixWithEndpointName("input", msg, model, meta)] = value === 1;
                 }
                 return result;
             },
@@ -361,7 +361,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.voltage_phase_c(),
         ],
         onEvent: async (type, data, device) => {
-            if (type === "message" && data.type === "attributeReport" && data.cluster === "seMetering" && data.data["divisor"]) {
+            if (type === "message" && data.type === "attributeReport" && data.cluster === "seMetering" && data.data.divisor) {
                 // Device sends wrong divisor (512) while it should be fixed to 1000
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
                 data.endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
@@ -710,7 +710,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            if (device && device.softwareBuildID && Number(device.softwareBuildID.split(".")[0]) >= 2) {
+            if (device?.softwareBuildID && Number(device.softwareBuildID.split(".")[0]) >= 2) {
                 const endpoint35 = device.getEndpoint(35);
                 await endpoint35.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
                 await endpoint35.read("genBasic", ["develcoLedControl"], manufacturerOptions);

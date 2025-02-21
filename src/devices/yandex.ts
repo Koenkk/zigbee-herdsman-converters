@@ -126,7 +126,7 @@ function reinterview(): ModernExtend {
         },
     ];
     const onEvent: OnEvent = async (type, data, device, settings, state, meta) => {
-        if (type == "deviceAnnounce") {
+        if (type === "deviceAnnounce") {
             // reinterview
             try {
                 await device.interview(true);

@@ -35,7 +35,7 @@ function handleKmpcilPresence(model: DefinitionWithExtend, msg: Fz.Message, publ
     const useOptionsTimeoutDc = options && options.presence_timeout_dc !== undefined;
     const timeoutDc = useOptionsTimeoutDc ? options.presence_timeout_dc : 60;
 
-    const mode = meta.state ? meta.state["power_state"] : false;
+    const mode = meta.state ? meta.state.power_state : false;
 
     const timeout = Number(mode ? timeoutDc : timeoutBattery);
     // Stop existing timer because motion is detected and set a new one.
@@ -53,7 +53,7 @@ const kmpcilConverters = {
         convert: (model, msg, publish, options, meta) => {
             const payload = handleKmpcilPresence(model, msg, publish, options, meta);
             if (msg.data.presentValue !== undefined) {
-                const presentValue = msg.data["presentValue"];
+                const presentValue = msg.data.presentValue;
                 payload.power_state = (presentValue & 0x01) > 0;
                 payload.occupancy = (presentValue & 0x04) > 0;
                 payload.vibration = (presentValue & 0x02) > 0;
@@ -68,8 +68,8 @@ const kmpcilConverters = {
         convert: (model, msg, publish, options, meta) => {
             const payload = handleKmpcilPresence(model, msg, publish, options, meta);
             if (msg.data.batteryVoltage !== undefined) {
-                payload.voltage = msg.data["batteryVoltage"] * 100;
-                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                payload.voltage = msg.data.batteryVoltage * 100;
+                if (model.meta?.battery?.voltageToPercentage) {
                     // @ts-expect-error ignore
                     payload.battery = utils.batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
                 }

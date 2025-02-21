@@ -55,7 +55,7 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.programingOperMode !== undefined) {
-                result.operating_mode = utils.getFromLookup(msg.data["programingOperMode"], {0: "manual", 1: "program", 5: "eco"});
+                result.operating_mode = utils.getFromLookup(msg.data.programingOperMode, {0: "manual", 1: "program", 5: "eco"});
             }
             if (msg.data[0x8013] !== undefined) {
                 result.holiday_temp_set = Number.parseInt(msg.data[0x8013]) / 100;

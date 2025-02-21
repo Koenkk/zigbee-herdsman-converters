@@ -231,7 +231,7 @@ const boschExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
                     if (msg.data.valveAdaptStatus !== undefined) {
-                        if (msg.data["valveAdaptStatus"] === adaptationStatus.calibration_in_progress) {
+                        if (msg.data.valveAdaptStatus === adaptationStatus.calibration_in_progress) {
                             result.valve_adapt_process = true;
                         } else {
                             result.valve_adapt_process = false;
@@ -245,7 +245,7 @@ const boschExtend = {
             {
                 key: ["valve_adapt_process"],
                 convertSet: async (entity, key, value, meta) => {
-                    if (value == true) {
+                    if (value === true) {
                         const adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, adaptationStatus);
                         switch (adaptStatus) {
                             case adaptationStatus.ready_to_calibrate:
@@ -278,7 +278,7 @@ const boschExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
                     if (msg.data.heatingDemand !== undefined) {
-                        const demand = msg.data["heatingDemand"] as number;
+                        const demand = msg.data.heatingDemand as number;
                         result.pi_heating_demand = demand;
                         result.running_state = demand > 0 ? "heat" : "idle";
                     }
@@ -572,7 +572,7 @@ const boschExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
                     if (msg.data.sensitivity !== undefined) {
-                        result.sensitivity = Object.keys(smokeSensitivity)[msg.data["sensitivity"]];
+                        result.sensitivity = Object.keys(smokeSensitivity)[msg.data.sensitivity];
                     }
                     return result;
                 },
@@ -583,13 +583,13 @@ const boschExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
                     if (msg.data.humidity !== undefined) {
-                        const humidity = utils.toNumber(msg.data["humidity"]) / 100.0;
+                        const humidity = utils.toNumber(msg.data.humidity) / 100.0;
                         if (utils.isInRange(0, 100, humidity)) {
                             result.humidity = humidity;
                         }
                     }
                     if (msg.data.airpurity !== undefined) {
-                        const iaq = utils.toNumber(msg.data["airpurity"]);
+                        const iaq = utils.toNumber(msg.data.airpurity);
                         result.aqi = iaq;
                         let factorVoc = 6;
                         let factorCo2 = 2;
@@ -613,13 +613,13 @@ const boschExtend = {
                         result.co2 = iaq * factorCo2 + 400;
                     }
                     if (msg.data.temperature !== undefined) {
-                        result.temperature = utils.toNumber(msg.data["temperature"]) / 100.0;
+                        result.temperature = utils.toNumber(msg.data.temperature) / 100.0;
                     }
                     if (msg.data.illuminance !== undefined) {
-                        result.illuminance = utils.precisionRound(msg.data["illuminance"] / 2, 2);
+                        result.illuminance = utils.precisionRound(msg.data.illuminance / 2, 2);
                     }
                     if (msg.data.battery !== undefined) {
-                        result.battery = utils.precisionRound(msg.data["battery"] / 2, 2);
+                        result.battery = utils.precisionRound(msg.data.battery / 2, 2);
                     }
                     return result;
                 },
@@ -630,7 +630,7 @@ const boschExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
                     if (msg.data.pre_alarm !== undefined) {
-                        result.pre_alarm = Object.keys(stateOffOn)[msg.data["pre_alarm"]];
+                        result.pre_alarm = Object.keys(stateOffOn)[msg.data.pre_alarm];
                     }
                     return result;
                 },
@@ -641,7 +641,7 @@ const boschExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
                     if (msg.data.heartbeat !== undefined) {
-                        result.heartbeat = Object.keys(stateOffOn)[msg.data["heartbeat"]];
+                        result.heartbeat = Object.keys(stateOffOn)[msg.data.heartbeat];
                     }
                     return result;
                 },
@@ -660,9 +660,9 @@ const boschExtend = {
                         2097216: "silenced",
                     };
                     if (msg.data.alarm_status !== undefined) {
-                        result.self_test = (msg.data["alarm_status"] & (1 << 24)) > 0;
-                        result.smoke = (msg.data["alarm_status"] & (1 << 7)) > 0;
-                        result.siren_state = lookup[msg.data["alarm_status"]];
+                        result.self_test = (msg.data.alarm_status & (1 << 24)) > 0;
+                        result.smoke = (msg.data.alarm_status & (1 << 7)) > 0;
+                        result.siren_state = lookup[msg.data.alarm_status];
                     }
                     return result;
                 },
@@ -679,7 +679,7 @@ const boschExtend = {
                         22: "silenced",
                     };
                     result.siren_state = lookup[msg.data.alarmcode];
-                    if (msg.data.alarmcode == 0x10 || msg.data.alarmcode == 0x11) {
+                    if (msg.data.alarmcode === 0x10 || msg.data.alarmcode === 0x11) {
                         await msg.endpoint.commandResponse("genAlarms", "alarm", {alarmcode: msg.data.alarmcode, clusterid: 0xe000}, {direction: 1});
                     }
                     return result;
@@ -715,17 +715,17 @@ const boschExtend = {
                         const endpoint = meta.device.getEndpoint(12);
                         const index = utils.getFromLookup(value, sirenState);
                         utils.assertEndpoint(entity);
-                        if (index == 0x00) {
+                        if (index === 0x00) {
                             await entity.commandResponse("genAlarms", "alarm", {alarmcode: 0x16, clusterid: 0xe000}, {direction: 1});
                             await entity.commandResponse("genAlarms", "alarm", {alarmcode: 0x14, clusterid: 0xe000}, {direction: 1});
                             await endpoint.command("twinguardAlarm", "burglarAlarm", {data: 0x00}, manufacturerOptions);
-                        } else if (index == 0x01) {
+                        } else if (index === 0x01) {
                             await entity.commandResponse("genAlarms", "alarm", {alarmcode: 0x11, clusterid: 0xe000}, {direction: 1});
                             return {state: {siren_state: "pre_alarm"}};
-                        } else if (index == 0x02) {
+                        } else if (index === 0x02) {
                             await entity.commandResponse("genAlarms", "alarm", {alarmcode: 0x10, clusterid: 0xe000}, {direction: 1});
                             return {state: {siren_state: "fire"}};
-                        } else if (index == 0x03) {
+                        } else if (index === 0x03) {
                             await endpoint.command("twinguardAlarm", "burglarAlarm", {data: 0x01}, manufacturerOptions);
                         }
                     }
@@ -790,34 +790,34 @@ const boschExtend = {
                     const result: KeyValue = {};
                     const data = msg.data;
                     if (data.deviceMode !== undefined) {
-                        result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data["deviceMode"]);
-                        const deviceMode = msg.data["deviceMode"];
+                        result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data.deviceMode);
+                        const deviceMode = msg.data.deviceMode;
                         if (deviceMode !== meta.device.meta.deviceMode) {
                             meta.device.meta.deviceMode = deviceMode;
                             meta.deviceExposesChanged();
                         }
                     }
                     if (data.switchType !== undefined) {
-                        result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data["switchType"]);
+                        result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data.switchType);
                     }
                     if (data.calibrationOpeningTime !== undefined) {
-                        result.calibration_opening_time = msg.data["calibrationOpeningTime"] / 10;
+                        result.calibration_opening_time = msg.data.calibrationOpeningTime / 10;
                     }
                     if (data.calibrationClosingTime !== undefined) {
-                        result.calibration_closing_time = msg.data["calibrationClosingTime"] / 10;
+                        result.calibration_closing_time = msg.data.calibrationClosingTime / 10;
                     }
                     if (data.calibrationButtonHoldTime !== undefined) {
-                        result.calibration_button_hold_time = msg.data["calibrationButtonHoldTime"] / 10;
+                        result.calibration_button_hold_time = msg.data.calibrationButtonHoldTime / 10;
                     }
                     if (data.calibrationMotorStartDelay !== undefined) {
-                        result.calibration_motor_start_delay = msg.data["calibrationMotorStartDelay"] / 10;
+                        result.calibration_motor_start_delay = msg.data.calibrationMotorStartDelay / 10;
                     }
                     if (data.childLock !== undefined) {
                         const property = utils.postfixWithEndpointName("child_lock", msg, model, meta);
-                        result[property] = msg.data["childLock"] === 1 ? "ON" : "OFF";
+                        result[property] = msg.data.childLock === 1 ? "ON" : "OFF";
                     }
                     if (data.motorState !== undefined) {
-                        result.motor_state = Object.keys(stateMotor).find((key) => stateMotor[key] === msg.data["motorState"]);
+                        result.motor_state = Object.keys(stateMotor).find((key) => stateMotor[key] === msg.data.motorState);
                     }
                     return result;
                 },
@@ -978,13 +978,12 @@ const tzLocal = {
             if (key === "alarm_state") {
                 const endpoint = meta.device.getEndpoint(1);
                 const index = utils.getFromLookup(value, outdoorSirenState);
-                if (index == 0) {
+                if (index === 0) {
                     await endpoint.command(0x0502, 0xf0, {data: 0}, manufacturerOptions);
                     return {state: {alarm_state: value}};
-                } else {
-                    await endpoint.command(0x0502, 0xf0, {data: 7}, manufacturerOptions);
-                    return {state: {alarm_state: value}};
                 }
+                await endpoint.command(0x0502, 0xf0, {data: 7}, manufacturerOptions);
+                return {state: {alarm_state: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -1078,9 +1077,8 @@ const fzLocal = {
                     msg.endpoint.command("boschSpecific", "confirmButtonPressed", {data: buffer}, {sendPolicy: "immediate"}).catch((error) => {});
                 }
                 return {action: `button_${buttons[buttonId]}_${command}`};
-            } else {
-                logger.error(`Received message with unknown command ID ${buttonId}. Data: 0x${msg.data.toString("hex")}`, NS);
             }
+            logger.error(`Received message with unknown command ID ${buttonId}. Data: 0x${msg.data.toString("hex")}`, NS);
         },
     } satisfies Fz.Converter,
     bhius_config: {
@@ -1346,11 +1344,11 @@ export const definitions: DefinitionWithExtend[] = [
                 if (payload.mode_command_topic?.endsWith("/system_mode")) {
                     payload.mode_command_topic = payload.mode_command_topic.substring(0, payload.mode_command_topic.lastIndexOf("/system_mode"));
                     payload.mode_command_template =
-                        `{% set values = ` +
+                        "{% set values = " +
                         `{ 'auto':'schedule','heat':'manual','off':'pause'} %}` +
                         `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}`;
                     payload.mode_state_template =
-                        `{% set values = ` +
+                        "{% set values = " +
                         `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
                         `{% set value = value_json.operating_mode %}{{ values[value] if value in values.keys() else 'off' }}`;
                     payload.modes = ["off", "heat", "auto"];
@@ -1930,7 +1928,8 @@ export const definitions: DefinitionWithExtend[] = [
 
                 if (deviceMode === "light") {
                     return [...commonExposes, ...lightExposes];
-                } else if (deviceMode === "shutter") {
+                }
+                if (deviceMode === "shutter") {
                     return [...commonExposes, ...coverExposes];
                 }
             }

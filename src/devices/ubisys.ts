@@ -52,11 +52,11 @@ const ubisys = {
                     const configurableCurve = (capabilities & 0x40) >>> 6;
                     const overloadDetection = (capabilities & 0x80) >>> 7;
                     return {
-                        capabilities_forward_phase_control: forwardPhaseControl ? true : false,
-                        capabilities_reverse_phase_control: reversePhaseControl ? true : false,
-                        capabilities_reactance_discriminator: reactanceDiscriminator ? true : false,
-                        capabilities_configurable_curve: configurableCurve ? true : false,
-                        capabilities_overload_detection: overloadDetection ? true : false,
+                        capabilities_forward_phase_control: !!forwardPhaseControl,
+                        capabilities_reverse_phase_control: !!reversePhaseControl,
+                        capabilities_reactance_discriminator: !!reactanceDiscriminator,
+                        capabilities_configurable_curve: !!configurableCurve,
+                        capabilities_overload_detection: !!overloadDetection,
                     };
                 }
                 if (msg.data.status !== undefined) {
@@ -67,11 +67,11 @@ const ubisys = {
                     const capacitiveLoad = (status & 0x40) >>> 6;
                     const inductiveLoad = (status & 0x80) >>> 7;
                     return {
-                        status_forward_phase_control: forwardPhaseControl ? true : false,
-                        status_reverse_phase_control: reversePhaseControl ? true : false,
-                        status_overload: overload ? true : false,
-                        status_capacitive_load: capacitiveLoad ? true : false,
-                        status_inductive_load: inductiveLoad ? true : false,
+                        status_forward_phase_control: !!forwardPhaseControl,
+                        status_reverse_phase_control: !!reversePhaseControl,
+                        status_overload: !!overload,
+                        status_capacitive_load: !!capacitiveLoad,
+                        status_inductive_load: !!inductiveLoad,
                     };
                 }
                 if (msg.data.mode !== undefined) {
@@ -98,11 +98,11 @@ const ubisys = {
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const result = (meta.state.configure_device_setup !== undefined ? meta.state.configure_device_setup : {}) as KeyValue;
-                if (msg.data["inputConfigurations"] != null) {
-                    result["input_configurations"] = msg.data["inputConfigurations"];
+                if (msg.data.inputConfigurations != null) {
+                    result.input_configurations = msg.data.inputConfigurations;
                 }
-                if (msg.data["inputActions"] != null) {
-                    result["input_actions"] = msg.data["inputActions"].map((el: KeyValue) => Object.values(el));
+                if (msg.data.inputActions != null) {
+                    result.input_actions = msg.data.inputActions.map((el: KeyValue) => Object.values(el));
                 }
                 return {configure_device_setup: result};
             },
@@ -125,7 +125,7 @@ const ubisys = {
                         const response = await entity.read("closuresWindowCovering", ["operationalStatus"]);
                         // @ts-expect-error ignore
                         operationalStatus = response.operationalStatus;
-                    } while (operationalStatus != 0);
+                    } while (operationalStatus !== 0);
                     await sleepSeconds(2);
                 };
                 const writeAttrFromJson = async (
@@ -166,7 +166,7 @@ const ubisys = {
                 await writeAttrFromJson("configStatus", undefined, undefined, 2);
                 // @ts-expect-error ignore
                 if (await writeAttrFromJson("windowCoveringMode", undefined, undefined, 2)) {
-                    mode = value["windowCoveringMode"];
+                    mode = value.windowCoveringMode;
                 }
                 if (hasCalibrate) {
                     log("Cover calibration starting...");
@@ -340,7 +340,7 @@ const ubisys = {
                 // ubisys switched to writeStructure a while ago, change log only goes back to 1.9.x
                 // and it happened before that but to be safe we will only use writeStrucutre on 1.9.0 and up
                 let useWriteStruct = false;
-                if (meta.device.softwareBuildID != undefined) {
+                if (meta.device.softwareBuildID !== undefined) {
                     useWriteStruct = semver.gte(meta.device.softwareBuildID, "1.9.0", true);
                 }
                 if (useWriteStruct) {
@@ -506,7 +506,7 @@ const ubisys = {
                     // first input
                     let input = 0;
                     // first client endpoint - depends on actual device
-                    if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+                    if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
                     let endpoint = {S1: 2, S2: 3, D1: 2, J1: 2, C4: 1}[meta.mapped.model];
                     // default group id
                     let groupId = 0;
@@ -569,7 +569,7 @@ const ubisys = {
                         endpoint += 1;
                     }
 
-                    logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendly_name}': ` + JSON.stringify(resultingInputActions), NS);
+                    logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendly_name}': ${JSON.stringify(resultingInputActions)}`, NS);
                     if (useWriteStruct) {
                         await devMgmtEp.writeStructured(
                             "manuSpecificUbisysDeviceSetup",
@@ -994,7 +994,6 @@ export const definitions: DefinitionWithExtend[] = [
                 case 7: // Tilt Blind, Tilt only
                     coverExpose.withTilt();
                     break;
-                case 8: // Tilt Blind, Lift & Tilt
                 default:
                     coverExpose.withPosition().withTilt();
                     break;

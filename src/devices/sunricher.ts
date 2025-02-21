@@ -106,7 +106,7 @@ const sunricherExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
-                        console.log(`from `, msg.data[attribute]);
+                        console.log("from ", msg.data[attribute]);
                         const value = Math.round(msg.data[attribute] / 5.1);
                         return {
                             minimum_pwm: value,
@@ -121,7 +121,7 @@ const sunricherExtend = {
             {
                 key: ["minimum_pwm"],
                 convertSet: async (entity: Zh.Endpoint, key: string, value: number | string, meta) => {
-                    console.log(`to `, value);
+                    console.log("to ", value);
                     const numValue = typeof value === "string" ? Number.parseInt(value) : value;
                     const zgValue = Math.round(numValue * 5.1);
                     await entity.write("genBasic", {[attribute]: {value: zgValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
@@ -203,7 +203,8 @@ const sunricherExtend = {
                             }
                         }
                         return {action, action_buttons: actionButtons};
-                    } else if (messageType === 0x03) {
+                    }
+                    if (messageType === 0x03) {
                         const directionMask = bytes[4];
                         const actionSpeed = bytes[6];
 
@@ -280,7 +281,8 @@ const sunricherExtend = {
                             }
                         }
                         return {action, action_buttons: actionButtons};
-                    } else if (messageType === 0x03) {
+                    }
+                    if (messageType === 0x03) {
                         const directionMask = bytes[4];
                         const actionSpeed = bytes[6];
                         const isStop = bytes[5] === 0x02;
@@ -655,20 +657,19 @@ const sunricherExtend = {
                         }
                         await entity.write("hvacThermostat", {awayOrBoostMode});
                         return {state: {preset: value, away_or_boost_mode: value}};
-                    } else {
-                        globalStore.putValue(entity, "awayOrBoostMode", 0);
-                        const systemMode = utils.getKey(systemModeLookup, value, undefined, Number);
-                        await entity.write("hvacThermostat", {systemMode});
+                    }
+                    globalStore.putValue(entity, "awayOrBoostMode", 0);
+                    const systemMode = utils.getKey(systemModeLookup, value, undefined, Number);
+                    await entity.write("hvacThermostat", {systemMode});
 
-                        if (typeof systemMode === "number") {
-                            return {
-                                state: {
-                                    // @ts-expect-error ignore
-                                    preset: systemModeLookup[systemMode],
-                                    system_mode: constants.thermostatSystemModes[systemMode],
-                                },
-                            };
-                        }
+                    if (typeof systemMode === "number") {
+                        return {
+                            state: {
+                                // @ts-expect-error ignore
+                                preset: systemModeLookup[systemMode],
+                                system_mode: constants.thermostatSystemModes[systemMode],
+                            },
+                        };
                     }
                 },
             },
@@ -715,7 +716,7 @@ const sunricherExtend = {
             if (result === undefined) {
                 const attributeRead = await entity.read("hvacThermostat", ["awayOrBoostMode"]);
                 // @ts-expect-error ignore
-                result = attributeRead["awayOrBoostMode"];
+                result = attributeRead.awayOrBoostMode;
                 globalStore.putValue(entity, "awayOrBoostMode", result);
             }
             return result;
@@ -2074,7 +2075,7 @@ export const definitions: DefinitionWithExtend[] = [
             } catch {
                 // Fails for some
                 // https://github.com/Koenkk/zigbee2mqtt/issues/15025
-                logger.debug(`Failed to setup keypadLockout reporting`, NS);
+                logger.debug("Failed to setup keypadLockout reporting", NS);
             }
 
             await endpoint.configureReporting("hvacThermostat", [

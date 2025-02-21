@@ -512,11 +512,11 @@ const YokisClustersDefinition: {
 const yokisExtendChecks = {
     parseResetInput: (input: string) => {
         if (!input) {
-            throw new Error(`MISSING_INPUT`);
+            throw new Error("MISSING_INPUT");
         }
 
         if (!Object.keys(resetActionEnum).includes(input)) {
-            throw new Error(`INVALID_RESET_ACTION`);
+            throw new Error("INVALID_RESET_ACTION");
         }
 
         return {
@@ -527,11 +527,11 @@ const yokisExtendChecks = {
     },
     parseOpenNetworkInput: (input: KeyValueAny) => {
         if (!input || typeof input !== "object") {
-            throw new Error(`NOT_OBJECT`);
+            throw new Error("NOT_OBJECT");
         }
 
         if (!("opening_time" in input) || !utils.isNumber(input.opening_time)) {
-            throw new Error(`INVALID_OPENNETWORK_OPENINGTIME`);
+            throw new Error("INVALID_OPENNETWORK_OPENINGTIME");
         }
 
         return {
@@ -542,11 +542,11 @@ const yokisExtendChecks = {
     },
     parseInputModeInput: (input: KeyValueAny) => {
         if (!input || typeof input !== "object") {
-            throw new Error(`NOT_OBJECT`);
+            throw new Error("NOT_OBJECT");
         }
 
         if (!("select_input_mode" in input) || !Object.keys(inputModeEnum).includes(input.select_input_mode)) {
-            throw new Error(`INVALID_INPUTMODE`);
+            throw new Error("INVALID_INPUTMODE");
         }
 
         return {
@@ -557,35 +557,35 @@ const yokisExtendChecks = {
     },
     parseMoveToPositionInput: (input: KeyValueAny) => {
         if (!input || typeof input !== "object") {
-            throw new Error(`NOT_OBJECT`);
+            throw new Error("NOT_OBJECT");
         }
 
         if (!("brightness_start" in input) || !utils.isNumber(input.brightness_start)) {
-            throw new Error(`INVALID_MOVE_BRIGHTNESSSTART`);
+            throw new Error("INVALID_MOVE_BRIGHTNESSSTART");
         }
 
         if (!("brightness_end" in input) || !utils.isNumber(input.brightness_end)) {
-            throw new Error(`INVALID_MOVE_BRIGHTNESSEND`);
+            throw new Error("INVALID_MOVE_BRIGHTNESSEND");
         }
 
         if (!("pre_timer_value" in input) || !utils.isNumber(input.pre_timer_value)) {
-            throw new Error(`INVALID_MOVE_PRETIMERVALUE`);
+            throw new Error("INVALID_MOVE_PRETIMERVALUE");
         }
 
         if (!("enable_pre_timer" in input) || !utils.isBoolean(input.enable_pre_timer)) {
-            throw new Error(`INVALID_MOVE_PRETIMERENABLE`);
+            throw new Error("INVALID_MOVE_PRETIMERENABLE");
         }
 
         if (!("timer_value" in input) || !utils.isNumber(input.timer_value)) {
-            throw new Error(`INVALID_MOVE_TIMERVALUE`);
+            throw new Error("INVALID_MOVE_TIMERVALUE");
         }
 
         if (!("enable_timer" in input) || !utils.isBoolean(input.enable_timer)) {
-            throw new Error(`INVALID_MOVE_TIMERENABLE`);
+            throw new Error("INVALID_MOVE_TIMERENABLE");
         }
 
         if (!("transition_time" in input) || !utils.isNumber(input.transition_time)) {
-            throw new Error(`INVALID_MOVE_TRANSITIONTIME`);
+            throw new Error("INVALID_MOVE_TRANSITIONTIME");
         }
 
         return {
@@ -602,27 +602,27 @@ const yokisExtendChecks = {
     },
     parseBlinkInput: (input: KeyValueAny) => {
         if (!input || typeof input !== "object") {
-            throw new Error(`NOT_OBJECT`);
+            throw new Error("NOT_OBJECT");
         }
 
         if (!("blink_amount" in input) || !utils.isNumber(input.blink_amount)) {
-            throw new Error(`INVALID_BLINK_BLINKAMOUNT`);
+            throw new Error("INVALID_BLINK_BLINKAMOUNT");
         }
 
         if (!("blink_on_period" in input) || !utils.isNumber(input.blink_on_period)) {
-            throw new Error(`INVALID_BLINK_BLINKONPERIOD`);
+            throw new Error("INVALID_BLINK_BLINKONPERIOD");
         }
 
         if (!("blink_off_period" in input) || !utils.isNumber(input.blink_off_period)) {
-            throw new Error(`INVALID_BLINK_BLINKOFFPERIOD`);
+            throw new Error("INVALID_BLINK_BLINKOFFPERIOD");
         }
 
         if (!("state_after_sequence" in input) || !Object.keys(stateAfterBlinkEnum).includes(input.state_after_sequence)) {
-            throw new Error(`MISSING_BLINK_STATEAFTERSEQUENCE`);
+            throw new Error("MISSING_BLINK_STATEAFTERSEQUENCE");
         }
 
         if (!("do_periodic_cycle" in input) || !utils.isBoolean(input.do_periodic_cycle)) {
-            throw new Error(`INVALID_BLINK_DOPERIODICYCLE`);
+            throw new Error("INVALID_BLINK_DOPERIODICYCLE");
         }
 
         return {
@@ -637,11 +637,11 @@ const yokisExtendChecks = {
     },
     parsePulseInput: (input: KeyValueAny) => {
         if (!input || typeof input !== "object") {
-            throw new Error(`NOT_OBJECT`);
+            throw new Error("NOT_OBJECT");
         }
 
         if (!("pulse_length" in input) || !utils.isNumber(input.pulse_length)) {
-            throw new Error(`INVALID_PULSE_PULSELENGTH`);
+            throw new Error("INVALID_PULSE_PULSELENGTH");
         }
 
         return {
@@ -652,19 +652,19 @@ const yokisExtendChecks = {
     },
     parseDeafBlinkPropInput: (input: KeyValueAny) => {
         if (!input || typeof input !== "object") {
-            throw new Error(`NOT_OBJECT`);
+            throw new Error("NOT_OBJECT");
         }
 
         if (!("blink_amount" in input) || !utils.isNumber(input.blink_amount)) {
-            throw new Error(`INVALID_BLINK_AMOUNT`);
+            throw new Error("INVALID_BLINK_AMOUNT");
         }
 
         if (!("blink_on_time" in input) || !utils.isNumber(input.blink_on_time)) {
-            throw new Error(`INVALID_BLINK_ONTIME`);
+            throw new Error("INVALID_BLINK_ONTIME");
         }
 
         if (!("sequence_amount" in input) || !utils.isNumber(input.sequence_amount)) {
-            throw new Error(`INVALID_SEQUENCE_AMOUNT`);
+            throw new Error("INVALID_SEQUENCE_AMOUNT");
         }
 
         if (input.sequence_of_blinks && Array.isArray(input.sequence_of_blinks)) {
@@ -685,11 +685,11 @@ const yokisExtendChecks = {
             // Updating number of elements
             input.sequence_amount = input.sequence_of_blinks.length;
         } else {
-            throw new Error(`INVALID_TUC_BLINKAMOUNT`);
+            throw new Error("INVALID_TUC_BLINKAMOUNT");
         }
 
         if (!("uc_BlinkAmount" in input) || !utils.isNumber(input.uc_SequenceAmount)) {
-            throw new Error(`INVALID_SEQUENCE_AMOUNT`);
+            throw new Error("INVALID_SEQUENCE_AMOUNT");
         }
 
         return {
@@ -702,10 +702,11 @@ const yokisExtendChecks = {
         };
     },
     parseDim: (input: KeyValueAny) => {
-        let _ul_RampContinuousDuration, _uc_StepContinuous;
+        let _ul_RampContinuousDuration;
+        let _uc_StepContinuous;
 
         if (!input || typeof input !== "object") {
-            throw new Error(`NOT_OBJECT`);
+            throw new Error("NOT_OBJECT");
         }
 
         if (!("ramp_continuous_duration" in input) || !utils.isNumber(input.ramp_continuous_duration)) {
@@ -724,10 +725,11 @@ const yokisExtendChecks = {
         };
     },
     parseDimMinMax: (input: KeyValueAny) => {
-        let _ul_TransitionTime, _action;
+        let _ul_TransitionTime;
+        let _action;
 
         if (!input || typeof input !== "object") {
-            throw new Error(`NOT_OBJECT`);
+            throw new Error("NOT_OBJECT");
         }
 
         if (!("transition_time" in input) || !utils.isNumber(input.transition_time)) {
@@ -735,10 +737,9 @@ const yokisExtendChecks = {
         } else _ul_TransitionTime = input.transition_time;
 
         if (!("action" in input)) {
-            throw new Error(`MISSING_ACTION`);
-        } else {
-            _action = input.action;
+            throw new Error("MISSING_ACTION");
         }
+        _action = input.action;
 
         return {
             action: _action,
@@ -748,15 +749,15 @@ const yokisExtendChecks = {
         };
     },
     parseStartNightLightMode: (input: KeyValueAny) => {
-        let _ul_ChildModeStartingDelay,
-            _uc_ChildModeBrightnessStart,
-            _uc_ChildModeBrightnessEnd,
-            _ul_ChildModeRampDuration,
-            _ul_ChildModeOnDuration,
-            _uc_ChildStep;
+        let _ul_ChildModeStartingDelay;
+        let _uc_ChildModeBrightnessStart;
+        let _uc_ChildModeBrightnessEnd;
+        let _ul_ChildModeRampDuration;
+        let _ul_ChildModeOnDuration;
+        let _uc_ChildStep;
 
         if (!input || typeof input !== "object") {
-            throw new Error(`NOT_OBJECT`);
+            throw new Error("NOT_OBJECT");
         }
 
         if (!("childmode_starting_delay" in input) || !utils.isNumber(input.childmode_starting_delay)) {
@@ -796,8 +797,8 @@ const yokisExtendChecks = {
     },
     log: (key: string, value: KeyValueAny | string, payload?: KeyValueAny) => {
         logger.debug(`Invoked converter with key: '${key}'`, NS);
-        logger.debug("Invoked converter with values:" + JSON.stringify(value), NS);
-        if (payload) logger.debug("Invoked converter with payload:" + JSON.stringify(payload), NS);
+        logger.debug(`Invoked converter with values:${JSON.stringify(value)}`, NS);
+        if (payload) logger.debug(`Invoked converter with payload:${JSON.stringify(payload)}`, NS);
     },
 };
 
@@ -2306,13 +2307,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Remote power switch with timer 500W",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition["manuSpecificYokisEntryConfigurator"]),
-            m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition["manuSpecificYokisSubSystem"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLoadManager", YokisClustersDefinition["manuSpecificYokisLoadManager"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition["manuSpecificYokisStats"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition.manuSpecificYokisEntryConfigurator),
+            m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition.manuSpecificYokisSubSystem),
+            m.deviceAddCustomCluster("manuSpecificYokisLoadManager", YokisClustersDefinition.manuSpecificYokisLoadManager), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition.manuSpecificYokisStats), // Pending implementation
             YokisOnOff({powerOnBehavior: false}), // StartupOnOff is not supported
             m.identify(),
             ...YokisSubSystemExtend,
@@ -2339,13 +2340,13 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition["manuSpecificYokisEntryConfigurator"]),
-            m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition["manuSpecificYokisSubSystem"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLoadManager", YokisClustersDefinition["manuSpecificYokisLoadManager"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition["manuSpecificYokisStats"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition.manuSpecificYokisEntryConfigurator),
+            m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition.manuSpecificYokisSubSystem),
+            m.deviceAddCustomCluster("manuSpecificYokisLoadManager", YokisClustersDefinition.manuSpecificYokisLoadManager), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition.manuSpecificYokisStats), // Pending implementation
             YokisOnOff({powerOnBehavior: false}), // StartupOnOff is not supported
             m.identify(),
             ...YokisSubSystemExtend,
@@ -2364,13 +2365,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Remote power switch with timer 2000W",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition["manuSpecificYokisEntryConfigurator"]),
-            m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition["manuSpecificYokisSubSystem"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLoadManager", YokisClustersDefinition["manuSpecificYokisLoadManager"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition["manuSpecificYokisStats"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition.manuSpecificYokisEntryConfigurator),
+            m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition.manuSpecificYokisSubSystem),
+            m.deviceAddCustomCluster("manuSpecificYokisLoadManager", YokisClustersDefinition.manuSpecificYokisLoadManager), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition.manuSpecificYokisStats), // Pending implementation
             YokisOnOff({powerOnBehavior: false}), // StartupOnOff is not supported
             m.identify(),
             ...YokisSubSystemExtend,
@@ -2389,14 +2390,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Remote dimmer with timer 300W",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition["manuSpecificYokisEntryConfigurator"]),
-            m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition["manuSpecificYokisSubSystem"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLoadManager", YokisClustersDefinition["manuSpecificYokisLoadManager"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition["manuSpecificYokisStats"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition.manuSpecificYokisEntryConfigurator),
+            m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition.manuSpecificYokisSubSystem),
+            m.deviceAddCustomCluster("manuSpecificYokisLoadManager", YokisClustersDefinition.manuSpecificYokisLoadManager), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition.manuSpecificYokisStats), // Pending implementation
             m.light({
                 effect: false, // related to the identify cluster
                 configureReporting: true,
@@ -2420,13 +2421,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Roller shutter module 500W",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition["manuSpecificYokisEntryConfigurator"]),
-            m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition["manuSpecificYokisSubSystem"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLoadManager", YokisClustersDefinition["manuSpecificYokisLoadManager"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]),
-            m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition["manuSpecificYokisStats"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition.manuSpecificYokisEntryConfigurator),
+            m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition.manuSpecificYokisSubSystem),
+            m.deviceAddCustomCluster("manuSpecificYokisLoadManager", YokisClustersDefinition.manuSpecificYokisLoadManager), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering),
+            m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition.manuSpecificYokisStats), // Pending implementation
             m.identify(),
             m.windowCovering({controls: ["lift"]}),
             m.commandsWindowCovering(),
@@ -2446,13 +2447,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Flush-mounted independent 2-channel transmitter",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
             m.identify(),
             m.commandsOnOff(),
@@ -2471,13 +2472,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Flush-mounted independent 2-channel transmitter (main powered)",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
             m.identify(),
             m.commandsOnOff(),
@@ -2496,13 +2497,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Flush-mounted independent 4-channel transmitter",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.identify(),
             m.commandsOnOff(),
@@ -2521,13 +2522,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Flush-mounted independent 4-channel transmitter (with antenna)",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.identify(),
             m.commandsOnOff(),
@@ -2546,14 +2547,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Tabletop Design series 1-button remote control",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition["manuSpecificYokisTemperatureMeasurement"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition.manuSpecificYokisTemperatureMeasurement), // Pending implementation
             m.identify(),
             m.commandsOnOff(),
             m.commandsLevelCtrl(),
@@ -2571,13 +2572,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Keyring Design series 2-button remote control",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
             m.identify(),
             m.commandsOnOff(),
@@ -2596,13 +2597,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Keyring Design series 4-button remote control",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.identify(),
             m.commandsOnOff(),
@@ -2621,13 +2622,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Keyring Design series 8-button remote control",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8}}),
             m.identify(),
             m.commandsOnOff(),
@@ -2646,14 +2647,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Wall-mounted 1-button transmitter",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition["manuSpecificYokisTemperatureMeasurement"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition.manuSpecificYokisTemperatureMeasurement), // Pending implementation
             m.identify(),
             m.commandsOnOff(),
             m.commandsLevelCtrl(),
@@ -2671,14 +2672,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Wall-mounted 2-button transmitter",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition["manuSpecificYokisTemperatureMeasurement"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition.manuSpecificYokisTemperatureMeasurement), // Pending implementation
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
             m.identify(),
             m.commandsOnOff(),
@@ -2697,14 +2698,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "Wall-mounted 4-button transmitter",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition["manuSpecificYokisTemperatureMeasurement"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition.manuSpecificYokisTemperatureMeasurement), // Pending implementation
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.identify(),
             m.commandsOnOff(),
@@ -2723,14 +2724,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "YOKIS",
         description: "4-button remote control",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition["manuSpecificYokisDevice"]),
-            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition["manuSpecificYokisInput"]),
-            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition["manuSpecificYokisLightControl"]),
-            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition["manuSpecificYokisDimmer"]),
-            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition["manuSpecificYokisWindowCovering"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition["manuSpecificYokisChannel"]),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition["manuSpecificYokisPilotWire"]), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition["manuSpecificYokisTemperatureMeasurement"]), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
+            m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
+            m.deviceAddCustomCluster("manuSpecificYokisLightControl", YokisClustersDefinition.manuSpecificYokisLightControl),
+            m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
+            m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition.manuSpecificYokisTemperatureMeasurement), // Pending implementation
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.identify(),
             m.commandsOnOff(),

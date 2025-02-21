@@ -20,7 +20,7 @@ const fzLocal = {
             const result: KeyValue = {};
             const data = msg.data;
             if (data.onOff !== undefined) {
-                result.device_enabled = data["onOff"] ? "ON" : "OFF";
+                result.device_enabled = data.onOff ? "ON" : "OFF";
             }
 
             return result;
@@ -104,7 +104,7 @@ const fzLocal = {
             }
             if (data.elkoLoad !== undefined) {
                 // Load
-                result.load = data["elkoLoad"];
+                result.load = data.elkoLoad;
             }
             if (data[0x0402] !== undefined) {
                 // Display text
@@ -112,7 +112,7 @@ const fzLocal = {
             }
             if (data.elkoDisplayText !== undefined) {
                 // Display text
-                result.display_text = data["elkoDisplayText"];
+                result.display_text = data.elkoDisplayText;
             }
             if (data[0x0403] !== undefined) {
                 // Sensor
@@ -138,7 +138,7 @@ const fzLocal = {
                     5: "mv_external",
                     6: "mv_regulator",
                 };
-                result.sensor = utils.getFromLookup(data["elkoSensor"], sensorModeLookup);
+                result.sensor = utils.getFromLookup(data.elkoSensor, sensorModeLookup);
             }
             if (data[0x0405] !== undefined) {
                 // Regulator mode
@@ -146,7 +146,7 @@ const fzLocal = {
             }
             if (data.elkoRegulatorMode !== undefined) {
                 // Regulator mode
-                result.regulator_mode = data["elkoRegulatorMode"] ? "regulator" : "thermostat";
+                result.regulator_mode = data.elkoRegulatorMode ? "regulator" : "thermostat";
             }
             if (data[0x0406] !== undefined) {
                 // Power status
@@ -154,7 +154,7 @@ const fzLocal = {
             }
             if (data.elkoPowerStatus !== undefined) {
                 // Power status
-                result.power_status = data["elkoPowerStatus"] ? "ON" : "OFF";
+                result.power_status = data.elkoPowerStatus ? "ON" : "OFF";
             }
             if (data[0x0408] !== undefined) {
                 // Mean power
@@ -162,7 +162,7 @@ const fzLocal = {
             }
             if (data.elkoMeanPower !== undefined) {
                 // Mean power
-                result.mean_power = data["elkoMeanPower"];
+                result.mean_power = data.elkoMeanPower;
             }
             if (data[0x0409] !== undefined) {
                 // Floor temp
@@ -170,7 +170,7 @@ const fzLocal = {
             }
             if (data.elkoExternalTemp !== undefined) {
                 // External temp (floor)
-                result.floor_temp = utils.precisionRound(data["elkoExternalTemp"], 2) / 100;
+                result.floor_temp = utils.precisionRound(data.elkoExternalTemp, 2) / 100;
             }
             if (data[0x0411] !== undefined) {
                 // Night switching
@@ -178,7 +178,7 @@ const fzLocal = {
             }
             if (data.elkoNightSwitching !== undefined) {
                 // Night switching
-                result.night_switching = data["elkoNightSwitching"] ? "ON" : "OFF";
+                result.night_switching = data.elkoNightSwitching ? "ON" : "OFF";
             }
             if (data[0x0412] !== undefined) {
                 // Frost guard
@@ -186,7 +186,7 @@ const fzLocal = {
             }
             if (data.elkoFrostGuard !== undefined) {
                 // Frost guard
-                result.frost_guard = data["elkoFrostGuard"] ? "ON" : "OFF";
+                result.frost_guard = data.elkoFrostGuard ? "ON" : "OFF";
             }
             if (data[0x0413] !== undefined) {
                 // Child lock
@@ -194,7 +194,7 @@ const fzLocal = {
             }
             if (data.elkoChildLock !== undefined) {
                 // Child lock
-                result.child_lock = data["elkoChildLock"] ? "LOCK" : "UNLOCK";
+                result.child_lock = data.elkoChildLock ? "LOCK" : "UNLOCK";
             }
             if (data[0x0414] !== undefined) {
                 // Max floor temp
@@ -202,7 +202,7 @@ const fzLocal = {
             }
             if (data.elkoMaxFloorTemp !== undefined) {
                 // Max floor temp
-                result.max_floor_temp = data["elkoMaxFloorTemp"];
+                result.max_floor_temp = data.elkoMaxFloorTemp;
             }
             if (data[0x0415] !== undefined) {
                 // Running_state
@@ -210,7 +210,7 @@ const fzLocal = {
             }
             if (data.elkoRelayState !== undefined) {
                 // Running_state
-                result.running_state = data["elkoRelayState"] ? "heat" : "idle";
+                result.running_state = data.elkoRelayState ? "heat" : "idle";
             }
             if (data[0x0420] !== undefined) {
                 // Regulator setpoint
@@ -298,7 +298,7 @@ const fzLocal = {
             }
             if (data[0x0002] !== undefined) {
                 // Change battery
-                result.battery_low = data[0x0002] ? true : false;
+                result.battery_low = !!data[0x0002];
             }
             if (data[0x0003] !== undefined) {
                 // Stove temperature
@@ -310,7 +310,7 @@ const fzLocal = {
             }
             if (data[0x0005] !== undefined) {
                 // Active
-                result.active = data[0x0005] ? true : false;
+                result.active = !!data[0x0005];
             }
             if (data[0x0006] !== undefined) {
                 // Runtime

@@ -175,7 +175,7 @@ export const definitions: DefinitionWithExtend[] = [
                 data.cluster === "closuresDoorLock" &&
                 data.data &&
                 data.data.userid !== undefined &&
-                (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] != "rf")
+                (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] !== "rf")
             ) {
                 await device.endpoints[0].command("closuresDoorLock", "getPinCode", {userid: data.data.userid}, {});
             }

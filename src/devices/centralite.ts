@@ -21,20 +21,20 @@ const fzLocal = {
             const useTranslation = !!options.heat_pump_mode;
             if (useTranslation) {
                 if (msg.data.runningState !== undefined) {
-                    if (msg.data["runningState"] == 1) {
-                        msg.data["runningState"] = 0;
-                    } else if (msg.data["runningState"] == 5) {
-                        msg.data["runningState"] = 4;
-                    } else if (msg.data["runningState"] == 7) {
-                        msg.data["runningState"] = 6;
-                    } else if (msg.data["runningState"] == 13) {
-                        msg.data["runningState"] = 9;
+                    if (msg.data.runningState === 1) {
+                        msg.data.runningState = 0;
+                    } else if (msg.data.runningState === 5) {
+                        msg.data.runningState = 4;
+                    } else if (msg.data.runningState === 7) {
+                        msg.data.runningState = 6;
+                    } else if (msg.data.runningState === 13) {
+                        msg.data.runningState = 9;
                     }
                 }
             }
             if (msg.data.ctrlSeqeOfOper !== undefined) {
-                if (msg.data["ctrlSeqeOfOper"] == 6) {
-                    msg.data["ctrlSeqeOfOper"] = 4;
+                if (msg.data.ctrlSeqeOfOper === 6) {
+                    msg.data.ctrlSeqeOfOper = 4;
                 }
             }
             return fz.thermostat.convert(model, msg, publish, options, meta);

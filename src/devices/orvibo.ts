@@ -47,7 +47,7 @@ const hexToBytes = (hex: string): number[] => {
 
     // Ensure even length
     if (hex.length % 2 !== 0) {
-        hex = "0" + hex;
+        hex = `0${hex}`;
     }
 
     // Convert to byte array

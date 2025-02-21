@@ -355,7 +355,7 @@ describe("ModernExtend", () => {
         });
     });
 
-    test(`onOff({endpoints: {top: 1, bottom: 2}})`, async () => {
+    test("onOff({endpoints: {top: 1, bottom: 2}})", async () => {
         await assertDefintion({
             device: mockDevice({
                 modelID: "PM-S240R-ZB",
@@ -384,7 +384,7 @@ describe("ModernExtend", () => {
         });
     });
 
-    test(`VOCKQJK11LM`, async () => {
+    test("VOCKQJK11LM", async () => {
         await assertDefintion({
             device: mockDevice({modelID: "lumi.airmonitor.acn01", endpoints: [{ID: 1, inputClusters: []}]}),
             meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},

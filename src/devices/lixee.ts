@@ -1,4 +1,4 @@
-import {Buffer} from "buffer";
+import {Buffer} from "node:buffer";
 
 import fz from "../converters/fromZigbee";
 import {repInterval} from "../lib/constants";
@@ -42,11 +42,10 @@ const tzSeMetering: Tz.Converter = {
             await entity.write("seMetering", payload);
             await entity.read("seMetering", [key]);
             return {state: {unitOfMeasure: value}};
-        } else {
-            await entity.write("seMetering", {
-                [key]: value,
-            });
         }
+        await entity.write("seMetering", {
+            [key]: value,
+        });
 
         return {state: {[key]: value}};
     },
@@ -61,14 +60,14 @@ const fzZiPulses: Fz.Converter = {
     convert: (model, msg, publish, options, meta) => {
         const payload: KeyValue = {};
         if (msg.data.multiplier !== undefined) {
-            payload["multiplier"] = msg.data["multiplier"];
+            payload.multiplier = msg.data.multiplier;
         }
         if (msg.data.divisor !== undefined) {
-            payload["divisor"] = msg.data["divisor"];
+            payload.divisor = msg.data.divisor;
         }
         if (msg.data.unitOfMeasure !== undefined) {
-            const val = msg.data["unitOfMeasure"];
-            payload["unitOfMeasure"] = unitsZiPulses[val];
+            const val = msg.data.unitOfMeasure;
+            payload.unitOfMeasure = unitsZiPulses[val];
         }
 
         return payload;
@@ -170,7 +169,7 @@ const fzLocal = {
                 /* 0x0227 */ "daysProfileCurrentCalendar",
                 /* 0x0228 */ "daysProfileNextCalendar",
             ];
-            const kWh_p = options && options.kWh_precision ? options.kWh_precision : 0;
+            const kWh_p = options?.kWh_precision ? options.kWh_precision : 0;
             for (const at of elements) {
                 const at_snake = at
                     .split(/(?=[A-Z])/)
@@ -213,147 +212,147 @@ const fzLocal = {
                             for (let i = 0; i < 8; i++) {
                                 relais_breakout[at_snake + (i + 1)] = (val & (1 << i)) >>> i;
                             }
-                            result[at_snake + "_breakout"] = relais_breakout;
+                            result[`${at_snake}_breakout`] = relais_breakout;
                             break;
                         }
                         case "statusRegister": {
                             // val is a String representing hex.
                             // Must convert
-                            const valhex = Number("0x" + val);
+                            const valhex = Number(`0x${val}`);
                             const statusRegister_breakout: KeyValue = {};
                             // contact sec
-                            statusRegister_breakout["contact_sec"] = (valhex & 0x1) == 1 ? "ouvert" : "ferme";
+                            statusRegister_breakout.contact_sec = (valhex & 0x1) === 1 ? "ouvert" : "ferme";
                             // organe de coupure
                             switch ((valhex >>> 1) & 0x7) {
                                 case 0:
-                                    statusRegister_breakout["organe_coupure"] = "ferme";
+                                    statusRegister_breakout.organe_coupure = "ferme";
                                     break;
                                 case 1:
-                                    statusRegister_breakout["organe_coupure"] = "surpuissance";
+                                    statusRegister_breakout.organe_coupure = "surpuissance";
                                     break;
                                 case 2:
-                                    statusRegister_breakout["organe_coupure"] = "surtension";
+                                    statusRegister_breakout.organe_coupure = "surtension";
                                     break;
                                 case 3:
-                                    statusRegister_breakout["organe_coupure"] = "delestage";
+                                    statusRegister_breakout.organe_coupure = "delestage";
                                     break;
                                 case 4:
-                                    statusRegister_breakout["organe_coupure"] = "ordre_CPL_Euridis";
+                                    statusRegister_breakout.organe_coupure = "ordre_CPL_Euridis";
                                     break;
                                 case 5:
-                                    statusRegister_breakout["organe_coupure"] = "surchauffe_surcourant";
+                                    statusRegister_breakout.organe_coupure = "surchauffe_surcourant";
                                     break;
                                 case 6:
-                                    statusRegister_breakout["organe_coupure"] = "surchauffe_simple";
+                                    statusRegister_breakout.organe_coupure = "surchauffe_simple";
                                     break;
                             }
                             // etat cache borne distributeur
-                            statusRegister_breakout["cache_borne_dist"] = ((valhex >>> 4) & 0x1) == 0 ? "ferme" : "ouvert";
+                            statusRegister_breakout.cache_borne_dist = ((valhex >>> 4) & 0x1) === 0 ? "ferme" : "ouvert";
                             // bit 5 inutilise
                             // surtension sur une des phases
-                            statusRegister_breakout["surtension_phase"] = (valhex >>> 6) & 0x1;
+                            statusRegister_breakout.surtension_phase = (valhex >>> 6) & 0x1;
                             // depassement puissance de reference
-                            statusRegister_breakout["depassement_ref_pow"] = (valhex >>> 7) & 0x1;
+                            statusRegister_breakout.depassement_ref_pow = (valhex >>> 7) & 0x1;
                             // consommateur ou producteur
-                            statusRegister_breakout["producteur"] = (valhex >>> 8) & 0x1;
+                            statusRegister_breakout.producteur = (valhex >>> 8) & 0x1;
                             // sens de l'energie active
-                            statusRegister_breakout["sens_energie_active"] = ((valhex >>> 9) & 0x1) == 0 ? "positive" : "negative";
+                            statusRegister_breakout.sens_energie_active = ((valhex >>> 9) & 0x1) === 0 ? "positive" : "negative";
                             // tarif en cours sur le contrat fourniture
-                            statusRegister_breakout["tarif_four"] = "index_" + (((valhex >>> 10) & 0xf) + 1);
+                            statusRegister_breakout.tarif_four = `index_${((valhex >>> 10) & 0xf) + 1}`;
                             // tarif en cours sur le contrat distributeur
-                            statusRegister_breakout["tarif_dist"] = "index_" + (((valhex >>> 14) & 0x3) + 1);
+                            statusRegister_breakout.tarif_dist = `index_${((valhex >>> 14) & 0x3) + 1}`;
                             // mode degrade de l'horloge
-                            statusRegister_breakout["horloge"] = ((valhex >>> 16) & 0x1) == 0 ? "correcte" : "degradee";
+                            statusRegister_breakout.horloge = ((valhex >>> 16) & 0x1) === 0 ? "correcte" : "degradee";
                             // TIC historique ou standard
-                            statusRegister_breakout["type_tic"] = ((valhex >>> 17) & 0x1) == 0 ? "historique" : "standard";
+                            statusRegister_breakout.type_tic = ((valhex >>> 17) & 0x1) === 0 ? "historique" : "standard";
                             // bit 18 inutilise
                             // etat sortie communicateur Euridis
                             switch ((valhex >>> 19) & 0x3) {
                                 case 0:
-                                    statusRegister_breakout["comm_euridis"] = "desactivee";
+                                    statusRegister_breakout.comm_euridis = "desactivee";
                                     break;
                                 case 1:
-                                    statusRegister_breakout["comm_euridis"] = "activee sans securite";
+                                    statusRegister_breakout.comm_euridis = "activee sans securite";
                                     break;
                                 case 3:
-                                    statusRegister_breakout["comm_euridis"] = "activee avec securite";
+                                    statusRegister_breakout.comm_euridis = "activee avec securite";
                                     break;
                             }
                             // etat CPL
                             switch ((valhex >>> 21) & 0x3) {
                                 case 0:
-                                    statusRegister_breakout["etat_cpl"] = "nouveau_deverrouille";
+                                    statusRegister_breakout.etat_cpl = "nouveau_deverrouille";
                                     break;
                                 case 1:
-                                    statusRegister_breakout["etat_cpl"] = "nouveau_verrouille";
+                                    statusRegister_breakout.etat_cpl = "nouveau_verrouille";
                                     break;
                                 case 2:
-                                    statusRegister_breakout["etat_cpl"] = "enregistre";
+                                    statusRegister_breakout.etat_cpl = "enregistre";
                                     break;
                             }
                             // synchronisation CPL
-                            statusRegister_breakout["sync_cpl"] = ((valhex >>> 23) & 0x1) == 0 ? "non_synchronise" : "synchronise";
+                            statusRegister_breakout.sync_cpl = ((valhex >>> 23) & 0x1) === 0 ? "non_synchronise" : "synchronise";
                             // couleur du jour contrat TEMPO historique
                             switch ((valhex >>> 24) & 0x3) {
                                 case 0:
-                                    statusRegister_breakout["tempo_jour"] = "UNDEF";
+                                    statusRegister_breakout.tempo_jour = "UNDEF";
                                     break;
                                 case 1:
-                                    statusRegister_breakout["tempo_jour"] = "BLEU";
+                                    statusRegister_breakout.tempo_jour = "BLEU";
                                     break;
                                 case 2:
-                                    statusRegister_breakout["tempo_jour"] = "BLANC";
+                                    statusRegister_breakout.tempo_jour = "BLANC";
                                     break;
                                 case 3:
-                                    statusRegister_breakout["tempo_jour"] = "ROUGE";
+                                    statusRegister_breakout.tempo_jour = "ROUGE";
                                     break;
                             }
                             // couleur demain contrat TEMPO historique
                             switch ((valhex >>> 26) & 0x3) {
                                 case 0:
-                                    statusRegister_breakout["tempo_demain"] = "UNDEF";
+                                    statusRegister_breakout.tempo_demain = "UNDEF";
                                     break;
                                 case 1:
-                                    statusRegister_breakout["tempo_demain"] = "BLEU";
+                                    statusRegister_breakout.tempo_demain = "BLEU";
                                     break;
                                 case 2:
-                                    statusRegister_breakout["tempo_demain"] = "BLANC";
+                                    statusRegister_breakout.tempo_demain = "BLANC";
                                     break;
                                 case 3:
-                                    statusRegister_breakout["tempo_demain"] = "ROUGE";
+                                    statusRegister_breakout.tempo_demain = "ROUGE";
                                     break;
                             }
                             // preavis pointe mobile
                             switch ((valhex >>> 28) & 0x3) {
                                 case 0:
-                                    statusRegister_breakout["preavis_pointe_mobile"] = "AUCUN";
+                                    statusRegister_breakout.preavis_pointe_mobile = "AUCUN";
                                     break;
                                 case 1:
-                                    statusRegister_breakout["preavis_pointe_mobile"] = "PM1";
+                                    statusRegister_breakout.preavis_pointe_mobile = "PM1";
                                     break;
                                 case 2:
-                                    statusRegister_breakout["preavis_pointe_mobile"] = "PM2";
+                                    statusRegister_breakout.preavis_pointe_mobile = "PM2";
                                     break;
                                 case 3:
-                                    statusRegister_breakout["preavis_pointe_mobile"] = "PM3";
+                                    statusRegister_breakout.preavis_pointe_mobile = "PM3";
                                     break;
                             }
                             // pointe mobile
                             switch ((valhex >>> 30) & 0x3) {
                                 case 0:
-                                    statusRegister_breakout["pointe_mobile"] = "AUCUN";
+                                    statusRegister_breakout.pointe_mobile = "AUCUN";
                                     break;
                                 case 1:
-                                    statusRegister_breakout["pointe_mobile"] = "PM1";
+                                    statusRegister_breakout.pointe_mobile = "PM1";
                                     break;
                                 case 2:
-                                    statusRegister_breakout["pointe_mobile"] = "PM2";
+                                    statusRegister_breakout.pointe_mobile = "PM2";
                                     break;
                                 case 3:
-                                    statusRegister_breakout["pointe_mobile"] = "PM3";
+                                    statusRegister_breakout.pointe_mobile = "PM3";
                                     break;
                             }
-                            result[at_snake + "_breakout"] = statusRegister_breakout;
+                            result[`${at_snake}_breakout`] = statusRegister_breakout;
                         }
                     }
                     result[at_snake] = val;
@@ -384,7 +383,7 @@ const fzLocal = {
                 /* 0x0307 */ "siteId",
                 /* 0x0308 */ "meterSerialNumber",
             ];
-            const kWh_p = options && options.kWh_precision ? options.kWh_precision : 0;
+            const kWh_p = options?.kWh_precision ? options.kWh_precision : 0;
             for (const at of elements) {
                 const at_snake = at
                     .split(/(?=[A-Z])/)
@@ -421,12 +420,12 @@ const fzLocal = {
             }
             // TODO: Check if all tarifs which doesn't publish "currentSummDelivered" use just Tier1 & Tier2
             if (
-                result["current_summ_delivered"] == 0 &&
+                result.current_summ_delivered === 0 &&
                 // @ts-expect-error ignore
-                (result["current_tier1_summ_delivered"] > 0 || result["current_tier2_summ_delivered"] > 0)
+                (result.current_tier1_summ_delivered > 0 || result.current_tier2_summ_delivered > 0)
             ) {
                 // @ts-expect-error ignore
-                result["current_summ_delivered"] = result["current_tier1_summ_delivered"] + result["current_tier2_summ_delivered"];
+                result.current_summ_delivered = result.current_tier1_summ_delivered + result.current_tier2_summ_delivered;
             }
             return result;
         },
@@ -1631,7 +1630,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     // @ts-expect-error ignore
     function getConfig(targetOption, bitLinkyMode, valueTrue, valueFalse) {
         const valueDefault = valueFalse;
-        if (options && options[targetOption] !== undefined && options[targetOption] != "auto") {
+        if (options && options[targetOption] !== undefined && options[targetOption] !== "auto") {
             if (options[targetOption] === "true" || options[targetOption] === "false") {
                 return options[targetOption] === "true"; // special case for production
             }
@@ -1640,14 +1639,14 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
 
         let lMode;
         try {
-            lMode = endpoint.clusters[clustersDef._0xFF66].attributes["linkyMode"];
+            lMode = endpoint.clusters[clustersDef._0xFF66].attributes.linkyMode;
             // @ts-expect-error ignore
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             lMode.raiseError; // raise if undefined
             // @ts-expect-error ignore
-            return ((lMode >> bitLinkyMode) & 1) == 1 ? valueTrue : valueFalse;
+            return ((lMode >> bitLinkyMode) & 1) === 1 ? valueTrue : valueFalse;
         } catch {
-            logger.warning(`Was not able to detect the Linky ` + targetOption + `. Default to ` + valueDefault, NS);
+            logger.warning(`Was not able to detect the Linky ${targetOption}. Default to ${valueDefault}`, NS);
             return valueDefault; // default value in the worst case
         }
     }
@@ -1658,20 +1657,21 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
 
     let linkyProduction = false; // In historique we can't be producer
 
-    if (linkyMode == linkyModeDef.standard) {
+    if (linkyMode === linkyModeDef.standard) {
         linkyProduction = getConfig("production", 2, true, false);
     }
 
     // Main filter
     let myExpose = exposedData.filter(
-        (e) => e.linkyMode == linkyMode && (e.linkyPhase == linkyPhase || e.linkyPhase == linkyPhaseDef.all) && (linkyProduction || !e.onlyProducer),
+        (e) =>
+            e.linkyMode === linkyMode && (e.linkyPhase === linkyPhase || e.linkyPhase === linkyPhaseDef.all) && (linkyProduction || !e.onlyProducer),
     );
 
     // Filter even more, based on our current tarif
     let currentTarf = "";
 
-    if (options && options.tarif !== undefined && options["tarif"] != "auto") {
-        currentTarf = Object.entries(tarifsDef).find(([k, v]) => v.fname == options["tarif"])[1].currentTarf;
+    if (options && options.tarif !== undefined && options.tarif !== "auto") {
+        currentTarf = Object.entries(tarifsDef).find(([k, v]) => v.fname === options.tarif)[1].currentTarf;
     } else {
         try {
             const lixAtts = endpoint.clusters[clustersDef._0xFF66].attributes;
@@ -1680,48 +1680,48 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
             // @ts-expect-error ignore
             currentTarf = fzLocal.lixee_private_fz.convert({}, {data: lixAtts}).current_tarif;
         } catch {
-            logger.warning(`Not able to detect the current tarif. Not filtering any expose...`, NS);
+            logger.warning("Not able to detect the current tarif. Not filtering any expose...", NS);
         }
     }
 
-    logger.debug(`zlinky config: ` + linkyMode + `, ` + linkyPhase + `, ` + linkyProduction.toString() + `, ` + currentTarf, NS);
+    logger.debug(`zlinky config: ${linkyMode}, ${linkyPhase}, ${linkyProduction.toString()}, ${currentTarf}`, NS);
 
     switch (currentTarf) {
-        case linkyMode == linkyModeDef.legacy && tarifsDef.histo_BASE.currentTarf:
+        case linkyMode === linkyModeDef.legacy && tarifsDef.histo_BASE.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.histo_BASE.excluded.includes(a.exposes.name));
             break;
-        case linkyMode == linkyModeDef.legacy && tarifsDef.histo_HCHP.currentTarf:
+        case linkyMode === linkyModeDef.legacy && tarifsDef.histo_HCHP.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.histo_HCHP.excluded.includes(a.exposes.name));
             break;
-        case linkyMode == linkyModeDef.legacy && tarifsDef.histo_EJP.currentTarf:
+        case linkyMode === linkyModeDef.legacy && tarifsDef.histo_EJP.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.histo_EJP.excluded.includes(a.exposes.name));
             break;
         // @ts-expect-error ignore
-        case linkyMode == linkyModeDef.legacy && currentTarf && currentTarf.startsWith(tarifsDef.histo_BBR.currentTarf):
+        case linkyMode === linkyModeDef.legacy && currentTarf && currentTarf.startsWith(tarifsDef.histo_BBR.currentTarf):
             myExpose = myExpose.filter((a) => !tarifsDef.histo_BBR.excluded.includes(a.exposes.name));
             break;
-        case linkyMode == linkyModeDef.standard && tarifsDef.stand_SEM_WE_LUNDI.currentTarf:
+        case linkyMode === linkyModeDef.standard && tarifsDef.stand_SEM_WE_LUNDI.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.stand_SEM_WE_LUNDI.excluded.includes(a.exposes.name));
             break;
-        case linkyMode == linkyModeDef.standard && tarifsDef.stand_SEM_WE_MERCR.currentTarf:
+        case linkyMode === linkyModeDef.standard && tarifsDef.stand_SEM_WE_MERCR.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.stand_SEM_WE_MERCR.excluded.includes(a.exposes.name));
             break;
-        case linkyMode == linkyModeDef.standard && tarifsDef.stand_SEM_WE_VENDR.currentTarf:
+        case linkyMode === linkyModeDef.standard && tarifsDef.stand_SEM_WE_VENDR.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.stand_SEM_WE_VENDR.excluded.includes(a.exposes.name));
             break;
-        case linkyMode == linkyModeDef.standard && tarifsDef.stand_HPHC.currentTarf:
+        case linkyMode === linkyModeDef.standard && tarifsDef.stand_HPHC.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.stand_HPHC.excluded.includes(a.exposes.name));
             break;
-        case linkyMode == linkyModeDef.standard && tarifsDef.stand_BASE.currentTarf:
+        case linkyMode === linkyModeDef.standard && tarifsDef.stand_BASE.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.stand_BASE.excluded.includes(a.exposes.name));
             break;
-        case linkyMode == linkyModeDef.standard && tarifsDef.stand_H_SUPER_CREUSES.currentTarf:
+        case linkyMode === linkyModeDef.standard && tarifsDef.stand_H_SUPER_CREUSES.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.stand_H_SUPER_CREUSES.excluded.includes(a.exposes.name));
             break;
-        case linkyMode == linkyModeDef.standard && tarifsDef.stand_TEMPO.currentTarf:
+        case linkyMode === linkyModeDef.standard && tarifsDef.stand_TEMPO.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.stand_TEMPO.excluded.includes(a.exposes.name));
             break;
-        case linkyMode == linkyModeDef.standard && tarifsDef.stand_ZEN_FLEX.currentTarf:
+        case linkyMode === linkyModeDef.standard && tarifsDef.stand_ZEN_FLEX.currentTarf:
             myExpose = myExpose.filter((a) => !tarifsDef.stand_ZEN_FLEX.excluded.includes(a.exposes.name));
             break;
         default:
@@ -1731,7 +1731,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     // Filter exposed attributes with user whitelist
     if (options && options.tic_command_whitelist !== undefined) {
         // @ts-expect-error ignore
-        const tic_commands_str = options["tic_command_whitelist"].toUpperCase();
+        const tic_commands_str = options.tic_command_whitelist.toUpperCase();
         if (tic_commands_str !== "ALL") {
             // @ts-expect-error ignore
             const tic_commands = tic_commands_str.split(",").map((a) => a.trim());
@@ -1771,29 +1771,29 @@ export const definitions: DefinitionWithExtend[] = [
         options: [
             exposes.options.measurement_poll_interval(),
             e
-                .enum(`linky_mode`, ea.SET, ["auto", linkyModeDef.legacy, linkyModeDef.standard])
-                .withDescription(`Counter with TIC in mode standard or historique. May require restart (default: auto)`),
+                .enum("linky_mode", ea.SET, ["auto", linkyModeDef.legacy, linkyModeDef.standard])
+                .withDescription("Counter with TIC in mode standard or historique. May require restart (default: auto)"),
             e
-                .enum(`energy_phase`, ea.SET, ["auto", linkyPhaseDef.single, linkyPhaseDef.three])
-                .withDescription(`Power with single or three phase. May require restart (default: auto)`),
+                .enum("energy_phase", ea.SET, ["auto", linkyPhaseDef.single, linkyPhaseDef.three])
+                .withDescription("Power with single or three phase. May require restart (default: auto)"),
             e
-                .enum(`production`, ea.SET, ["auto", "true", "false"])
+                .enum("production", ea.SET, ["auto", "true", "false"])
                 .withDescription(`If you produce energy back to the grid (works ONLY when linky_mode: ${linkyModeDef.standard}, default: auto)`),
             e
-                .enum(`tarif`, ea.SET, [...Object.entries(tarifsDef).map(([k, v]) => v.fname), "auto"])
+                .enum("tarif", ea.SET, [...Object.entries(tarifsDef).map(([k, v]) => v.fname), "auto"])
                 .withDescription(
-                    `Overrides the automatic current tarif. This option will exclude unnecessary attributes. Open a issue to support more of them. Default: auto`,
+                    "Overrides the automatic current tarif. This option will exclude unnecessary attributes. Open a issue to support more of them. Default: auto",
                 ),
-            exposes.options.precision(`kWh`),
+            exposes.options.precision("kWh"),
             e
-                .numeric(`measurement_poll_chunk`, ea.SET)
+                .numeric("measurement_poll_chunk", ea.SET)
                 .withValueMin(1)
                 .withDescription(
-                    `During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 1`,
+                    "During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 1",
                 ),
             e
-                .text(`tic_command_whitelist`, ea.SET)
-                .withDescription(`List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all`),
+                .text("tic_command_whitelist", ea.SET)
+                .withDescription("List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1814,7 +1814,7 @@ export const definitions: DefinitionWithExtend[] = [
             const suscribeNew = getCurrentConfig(device, {}).filter((e) => e.reportable);
 
             const unsuscribe = endpoint.configuredReportings.filter(
-                (e) => !suscribeNew.some((r) => e.cluster.name == r.cluster && e.attribute.name == r.att),
+                (e) => !suscribeNew.some((r) => e.cluster.name === r.cluster && e.attribute.name === r.att),
             );
             // Unsuscribe reports that doesn't correspond with the current config
             (
@@ -1828,7 +1828,7 @@ export const definitions: DefinitionWithExtend[] = [
                     ),
                 )
             )
-                .filter((e) => e.status == "rejected")
+                .filter((e) => e.status === "rejected")
                 .forEach((e) => {
                     throw e.reason;
                 });
@@ -1853,7 +1853,7 @@ export const definitions: DefinitionWithExtend[] = [
                 );
             }
             (await Promise.allSettled(configReportings))
-                .filter((e) => e.status == "rejected")
+                .filter((e) => e.status === "rejected")
                 .forEach((e) => {
                     throw e.reason;
                 });
@@ -1870,23 +1870,23 @@ export const definitions: DefinitionWithExtend[] = [
                 clearInterval(globalStore.getValue(device, "interval"));
                 globalStore.clearValue(device, "interval");
             } else if (!globalStore.hasValue(device, "interval")) {
-                const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 600;
+                const seconds = options?.measurement_poll_interval ? options.measurement_poll_interval : 600;
                 utils.assertNumber(seconds);
-                const measurement_poll_chunk = options && options.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
+                const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
                 utils.assertNumber(measurement_poll_chunk);
 
                 const setTimer = () => {
                     const timer = setTimeout(async () => {
                         try {
                             const currentExposes = getCurrentConfig(device, options).filter(
-                                (e) => !endpoint.configuredReportings.some((r) => r.cluster.name == e.cluster && r.attribute.name == e.att),
+                                (e) => !endpoint.configuredReportings.some((r) => r.cluster.name === e.cluster && r.attribute.name === e.att),
                             );
 
                             for (const key in clustersDef) {
                                 if (Object.hasOwnProperty.call(clustersDef, key)) {
                                     // @ts-expect-error ignore
                                     const cluster = clustersDef[key];
-                                    const targ = currentExposes.filter((e) => e.cluster == cluster).map((e) => e.att);
+                                    const targ = currentExposes.filter((e) => e.cluster === cluster).map((e) => e.att);
                                     if (targ.length) {
                                         let i;
                                         let j;

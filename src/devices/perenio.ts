@@ -35,10 +35,10 @@ const fzPerenio = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.lastMessageLqi !== undefined) {
-                result["last_message_lqi"] = msg.data["lastMessageLqi"];
+                result.last_message_lqi = msg.data.lastMessageLqi;
             }
             if (msg.data.lastMessageRssi !== undefined) {
-                result["last_message_rssi"] = msg.data["lastMessageRssi"];
+                result.last_message_rssi = msg.data.lastMessageRssi;
             }
             return result;
         },
@@ -57,7 +57,7 @@ const fzPerenio = {
             };
             if (msg.data.presentValue !== undefined) {
                 const property = utils.postfixWithEndpointName("switch_type", msg, model, meta);
-                result[property] = switchTypeLookup[msg.data["presentValue"]];
+                result[property] = switchTypeLookup[msg.data.presentValue];
             }
             return result;
         },
@@ -68,31 +68,31 @@ const fzPerenio = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data[2] !== undefined) {
-                result["rms_current"] = msg.data[2];
+                result.rms_current = msg.data[2];
             }
             if (msg.data[3] !== undefined) {
-                result["rms_voltage"] = msg.data[3];
+                result.rms_voltage = msg.data[3];
             }
             if (msg.data[4] !== undefined) {
-                result["voltage_min"] = msg.data[4];
+                result.voltage_min = msg.data[4];
             }
             if (msg.data[5] !== undefined) {
-                result["voltage_max"] = msg.data[5];
+                result.voltage_max = msg.data[5];
             }
             if (msg.data[10] !== undefined) {
-                result["active_power"] = msg.data[10];
+                result.active_power = msg.data[10];
             }
             if (msg.data[11] !== undefined) {
-                result["power_max"] = msg.data[11];
+                result.power_max = msg.data[11];
             }
             if (msg.data[14] !== undefined) {
-                result["consumed_energy"] = msg.data[14];
+                result.consumed_energy = msg.data[14];
             }
             if (msg.data[15] !== undefined) {
-                result["consumed_energy_limit"] = msg.data[15];
+                result.consumed_energy_limit = msg.data[15];
             }
             if (msg.data[24] !== undefined) {
-                result["rssi"] = msg.data[24];
+                result.rssi = msg.data[24];
             }
             const powerOnStateLookup = {
                 0: "off",
@@ -101,26 +101,26 @@ const fzPerenio = {
             };
             if (msg.data[0] !== undefined) {
                 // @ts-expect-error ignore
-                result["default_on_off_state"] = powerOnStateLookup[msg.data[0]];
+                result.default_on_off_state = powerOnStateLookup[msg.data[0]];
             }
             if (msg.data[1] !== undefined) {
-                if (msg.data[1] == 0) {
-                    result["alarm_voltage_min"] = false;
-                    result["alarm_voltage_max"] = false;
-                    result["alarm_power_max"] = false;
-                    result["alarm_consumed_energy"] = false;
+                if (msg.data[1] === 0) {
+                    result.alarm_voltage_min = false;
+                    result.alarm_voltage_max = false;
+                    result.alarm_power_max = false;
+                    result.alarm_consumed_energy = false;
                 } else {
                     if (msg.data[1] & 1) {
-                        result["alarm_voltage_min"] = true;
+                        result.alarm_voltage_min = true;
                     }
                     if (msg.data[1] & 2) {
-                        result["alarm_voltage_max"] = true;
+                        result.alarm_voltage_max = true;
                     }
                     if (msg.data[1] & 4) {
-                        result["alarm_power_max"] = true;
+                        result.alarm_power_max = true;
                     }
                     if (msg.data[1] & 8) {
-                        result["alarm_consumed_energy"] = true;
+                        result.alarm_consumed_energy = true;
                     }
                 }
             }
@@ -240,9 +240,8 @@ const tzPerenio = {
                 if (state === "toggle") {
                     const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
                     return currentState ? {state: {state: currentState === "OFF" ? "ON" : "OFF"}} : {};
-                } else {
-                    return {state: {state: state.toUpperCase()}};
                 }
+                return {state: {state: state.toUpperCase()}};
             }
         },
         convertGet: async (entity, key, meta) => {

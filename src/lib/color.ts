@@ -146,8 +146,8 @@ export class ColorRGB {
         const Z = this.red * 0.000088 + this.green * 0.07231 + this.blue * 0.986039;
         const sum = X + Y + Z;
 
-        const retX = sum == 0 ? 0 : X / sum;
-        const retY = sum == 0 ? 0 : Y / sum;
+        const retX = sum === 0 ? 0 : X / sum;
+        const retY = sum === 0 ? 0 : Y / sum;
 
         return new ColorXY(retX, retY);
     }
@@ -158,7 +158,7 @@ export class ColorRGB {
      */
     gammaCorrected(): ColorRGB {
         function transform(v: number) {
-            return v > 0.04045 ? Math.pow((v + 0.055) / (1.0 + 0.055), 2.4) : v / 12.92;
+            return v > 0.04045 ? ((v + 0.055) / (1.0 + 0.055)) ** 2.4 : v / 12.92;
         }
         return new ColorRGB(transform(this.red), transform(this.green), transform(this.blue));
     }
@@ -169,7 +169,7 @@ export class ColorRGB {
      */
     gammaUncorrected(): ColorRGB {
         function transform(v: number) {
-            return v <= 0.0031308 ? 12.92 * v : (1.0 + 0.055) * Math.pow(v, 1.0 / 2.4) - 0.055;
+            return v <= 0.0031308 ? 12.92 * v : (1.0 + 0.055) * v ** (1.0 / 2.4) - 0.055;
         }
         return new ColorRGB(transform(this.red), transform(this.green), transform(this.blue));
     }
@@ -179,18 +179,13 @@ export class ColorRGB {
      * @returns hex hex encoded RGB color
      */
     toHEX(): string {
-        return (
-            "#" +
-            Number.parseInt((this.red * 255).toFixed(0))
-                .toString(16)
-                .padStart(2, "0") +
-            Number.parseInt((this.green * 255).toFixed(0))
-                .toString(16)
-                .padStart(2, "0") +
-            Number.parseInt((this.blue * 255).toFixed(0))
-                .toString(16)
-                .padStart(2, "0")
-        );
+        return `#${Number.parseInt((this.red * 255).toFixed(0))
+            .toString(16)
+            .padStart(2, "0")}${Number.parseInt((this.green * 255).toFixed(0))
+            .toString(16)
+            .padStart(2, "0")}${Number.parseInt((this.blue * 255).toFixed(0))
+            .toString(16)
+            .padStart(2, "0")}`;
     }
 }
 
@@ -241,7 +236,7 @@ export class ColorXY {
      */
     toMireds(): number {
         const n = (this.x - 0.332) / (0.1858 - this.y);
-        const kelvin = Math.abs(437 * Math.pow(n, 3) + 3601 * Math.pow(n, 2) + 6861 * n + 5517);
+        const kelvin = Math.abs(437 * n ** 3 + 3601 * n ** 2 + 6861 * n + 5517);
         return kelvinToMireds(kelvin);
     }
 
@@ -279,9 +274,9 @@ export class ColorXY {
         }
 
         // This fixes situation when due to computational errors value get slightly below 0, or NaN in case of zero-division.
-        red = isNaN(red) || red < 0 ? 0 : red;
-        green = isNaN(green) || green < 0 ? 0 : green;
-        blue = isNaN(blue) || blue < 0 ? 0 : blue;
+        red = Number.isNaN(red) || red < 0 ? 0 : red;
+        green = Number.isNaN(green) || green < 0 ? 0 : green;
+        blue = Number.isNaN(blue) || blue < 0 ? 0 : blue;
 
         return new ColorRGB(red, green, blue);
     }
@@ -517,10 +512,9 @@ export class ColorHSV {
         const {options} = meta;
         if (options.hue_correction !== undefined) {
             // @ts-expect-error ignore
-            return this.interpolateHue(hue, options.hue_correction);
-        } else {
-            return hue;
+            return ColorHSV.interpolateHue(hue, options.hue_correction);
         }
+        return hue;
     }
 
     /**
@@ -555,9 +549,10 @@ export class Color {
      */
     constructor(hsv: ColorHSV, rgb: ColorRGB, xy: ColorXY) {
         // @ts-expect-error ignore
-        if ((hsv !== null) + (rgb !== null) + (xy !== null) != 1) {
+        if ((hsv !== null) + (rgb !== null) + (xy !== null) !== 1) {
             throw new Error("Color object should have exactly only one of hsv, rgb or xy properties");
-        } else if (hsv !== null) {
+        }
+        if (hsv !== null) {
             if (!(hsv instanceof ColorHSV)) {
                 throw new Error("hsv argument must be an instance of ColorHSV class");
             }
@@ -585,55 +580,68 @@ export class Color {
         if (value.x !== undefined && value.y !== undefined) {
             const xy = ColorXY.fromObject(value);
             return new Color(null, null, xy);
-        } else if (value.r !== undefined && value.g !== undefined && value.b !== undefined) {
+        }
+        if (value.r !== undefined && value.g !== undefined && value.b !== undefined) {
             const rgb = new ColorRGB(value.r / 255, value.g / 255, value.b / 255);
             return new Color(null, rgb, null);
-        } else if (value.rgb !== undefined) {
+        }
+        if (value.rgb !== undefined) {
             const [r, g, b] = value.rgb.split(",").map((i: string) => Number.parseInt(i));
             const rgb = new ColorRGB(r / 255, g / 255, b / 255);
             return new Color(null, rgb, null);
-        } else if (value.hex !== undefined) {
+        }
+        if (value.hex !== undefined) {
             const rgb = ColorRGB.fromHex(value.hex);
             return new Color(null, rgb, null);
-        } else if (typeof value === "string" && value.startsWith("#")) {
+        }
+        if (typeof value === "string" && value.startsWith("#")) {
             const rgb = ColorRGB.fromHex(value);
             return new Color(null, rgb, null);
-        } else if (value.h !== undefined && value.s !== undefined && value.l !== undefined) {
+        }
+        if (value.h !== undefined && value.s !== undefined && value.l !== undefined) {
             const hsv = ColorHSV.fromHSL({hue: value.h, saturation: value.s, lightness: value.l});
             return new Color(hsv, null, null);
-        } else if (value.hsl !== undefined) {
+        }
+        if (value.hsl !== undefined) {
             const [h, s, l] = value.hsl.split(",").map((i: string) => Number.parseInt(i));
             const hsv = ColorHSV.fromHSL({hue: h, saturation: s, lightness: l});
             return new Color(hsv, null, null);
-        } else if (value.h !== undefined && value.s !== undefined && value.b !== undefined) {
+        }
+        if (value.h !== undefined && value.s !== undefined && value.b !== undefined) {
             const hsv = new ColorHSV(value.h, value.s, value.b);
             return new Color(hsv, null, null);
-        } else if (value.hsb !== undefined) {
+        }
+        if (value.hsb !== undefined) {
             const [h, s, b] = value.hsb.split(",").map((i: string) => Number.parseInt(i));
             const hsv = new ColorHSV(h, s, b);
             return new Color(hsv, null, null);
-        } else if (value.h !== undefined && value.s !== undefined && value.v !== undefined) {
+        }
+        if (value.h !== undefined && value.s !== undefined && value.v !== undefined) {
             const hsv = new ColorHSV(value.h, value.s, value.v);
             return new Color(hsv, null, null);
-        } else if (value.hsv !== undefined) {
+        }
+        if (value.hsv !== undefined) {
             const [h, s, v] = value.hsv.split(",").map((i: string) => Number.parseInt(i));
             const hsv = new ColorHSV(h, s, v);
             return new Color(hsv, null, null);
-        } else if (value.h !== undefined && value.s !== undefined) {
+        }
+        if (value.h !== undefined && value.s !== undefined) {
             const hsv = new ColorHSV(value.h, value.s);
             return new Color(hsv, null, null);
-        } else if (value.h !== undefined) {
+        }
+        if (value.h !== undefined) {
             const hsv = new ColorHSV(value.h);
             return new Color(hsv, null, null);
-        } else if (value.s !== undefined) {
+        }
+        if (value.s !== undefined) {
             const hsv = new ColorHSV(null, value.s);
             return new Color(hsv, null, null);
-        } else if (value.hue !== undefined || value.saturation !== undefined) {
+        }
+        if (value.hue !== undefined || value.saturation !== undefined) {
             const hsv = ColorHSV.fromObject(value);
             return new Color(hsv, null, null);
-        } else {
-            throw new Error("Value does not contain valid color definition");
         }
+        throw new Error("Value does not contain valid color definition");
     }
 
     /**

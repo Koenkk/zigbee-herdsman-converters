@@ -1,7 +1,7 @@
-import assert from "assert";
-import crypto from "crypto";
-import {readFileSync} from "fs";
-import path from "path";
+import assert from "node:assert";
+import crypto from "node:crypto";
+import {readFileSync} from "node:fs";
+import path from "node:path";
 
 import crc32 from "buffer-crc32";
 
@@ -236,7 +236,7 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure = fa
     const raw = buffer.subarray(0, header.totalImageSize);
 
     // Note: in the context of this file, this can never assert, since both callers of `parseImage` already subarray to `UPGRADE_FILE_IDENTIFIER`
-    assert(UPGRADE_FILE_IDENTIFIER.equals(header.otaUpgradeFileIdentifier), `Not a valid OTA file`);
+    assert(UPGRADE_FILE_IDENTIFIER.equals(header.otaUpgradeFileIdentifier), "Not a valid OTA file");
 
     let position = header.otaHeaderLength;
     const elements = [];
@@ -258,7 +258,7 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure = fa
     }
 
     if (!didSuppressElementImageParseFailure) {
-        assert(position === header.totalImageSize, `Size mismatch`);
+        assert(position === header.totalImageSize, "Size mismatch");
     }
 
     return {header, elements, raw};
@@ -298,25 +298,25 @@ function validateSilabsEbl(data: Buffer): void {
         }
 
         for (let position2 = position; position2 < dataLength; position2++) {
-            assert(data.readUInt8(position2) === EBL_PADDING, `Image padding contains invalid bytes`);
+            assert(data.readUInt8(position2) === EBL_PADDING, "Image padding contains invalid bytes");
         }
 
         const calculatedCrc32 = crc32.unsigned(data.subarray(0, position));
 
-        assert(calculatedCrc32 === VALID_SILABS_CRC, `Image CRC-32 is invalid`);
+        assert(calculatedCrc32 === VALID_SILABS_CRC, "Image CRC-32 is invalid");
 
         return;
     }
 
-    throw new Error(`Image is truncated, not long enough to contain a valid tag`);
+    throw new Error("Image is truncated, not long enough to contain a valid tag");
 }
 
 function validateSilabsGbl(data: Buffer): void {
-    assert(data.indexOf(GBL_HEADER_TAG) === 0, `Not a valid GBL image`);
+    assert(data.indexOf(GBL_HEADER_TAG) === 0, "Not a valid GBL image");
 
     const gblEndTagIndex = data.lastIndexOf(GBL_END_TAG);
 
-    assert(gblEndTagIndex > 16, `Not a valid GBL image`); // after HEADER, just because...
+    assert(gblEndTagIndex > 16, "Not a valid GBL image"); // after HEADER, just because...
 
     const gblEnd = gblEndTagIndex + 12; // tag + length + crc32 (4*3)
     // TODO: nodejs >= v20.15.0, remove dep buffer-crc32
@@ -325,7 +325,7 @@ function validateSilabsGbl(data: Buffer): void {
     // ignore possible padding
     const calculatedCrc32 = crc32.unsigned(data.subarray(0, gblEnd));
 
-    assert(calculatedCrc32 === VALID_SILABS_CRC, `Image CRC-32 is invalid`);
+    assert(calculatedCrc32 === VALID_SILABS_CRC, "Image CRC-32 is invalid");
 }
 
 function fillImageInfo(meta: Ota.ZigbeeOTAImageMeta): Ota.ZigbeeOTAImageMeta {
@@ -343,7 +343,7 @@ function fillImageInfo(meta: Ota.ZigbeeOTAImageMeta): Ota.ZigbeeOTAImageMeta {
     const imageFile = readLocalFile(meta.url);
     const otaIdentifier = imageFile.indexOf(UPGRADE_FILE_IDENTIFIER);
 
-    assert(otaIdentifier != -1, `Not a valid OTA file`);
+    assert(otaIdentifier !== -1, "Not a valid OTA file");
 
     // allow bypass non-spec Ledvance OTA files if proper manufacturer set
     const image = parseImage(imageFile.subarray(otaIdentifier), meta.manufacturerCode === Zcl.ManufacturerCode.LEDVANCE_GMBH);
@@ -367,7 +367,7 @@ function fillImageInfo(meta: Ota.ZigbeeOTAImageMeta): Ota.ZigbeeOTAImageMeta {
 async function getIndex(previous: boolean): Promise<Ota.ZigbeeOTAImageMeta[]> {
     const mainIndex = await getJson<Ota.ZigbeeOTAImageMeta[]>(previous ? ZIGBEE_OTA_PREVIOUS_URL : ZIGBEE_OTA_LATEST_URL);
 
-    logger.debug(`Downloaded main index`, NS);
+    logger.debug("Downloaded main index", NS);
 
     if (overrideIndexFileName) {
         logger.debug(`Loading override index '${overrideIndexFileName}'`, NS);
@@ -451,7 +451,8 @@ function getInitialMaximumDataSize(imageBlockRequest: CommandResult<ImageBlockRe
     if (imageBlockRequest.payload.manufacturerCode === Zcl.ManufacturerCode.INSTA_GMBH) {
         // Insta devices, OTA only works for data sizes 40 and smaller (= manufacturerCode 4474).
         return 40;
-    } else if (imageBlockRequest.payload.manufacturerCode === Zcl.ManufacturerCode.LEGRAND_GROUP) {
+    }
+    if (imageBlockRequest.payload.manufacturerCode === Zcl.ManufacturerCode.LEGRAND_GROUP) {
         // Legrand devices (newer firmware) require up to 64 bytes (= manufacturerCode 4129).
         return Number.POSITIVE_INFINITY;
     }
@@ -532,9 +533,8 @@ function callOnProgress(
         onProgress(percentage, remaining === Number.POSITIVE_INFINITY ? undefined : remaining);
 
         return now;
-    } else {
-        return lastUpdate;
     }
+    return lastUpdate;
 }
 
 async function getImageMeta(
@@ -553,20 +553,20 @@ async function getImageMeta(
         (i) =>
             i.imageType === current.imageType &&
             i.manufacturerCode === current.manufacturerCode &&
-            (i.minFileVersion == undefined || current.fileVersion >= i.minFileVersion) &&
-            (i.maxFileVersion == undefined || current.fileVersion <= i.maxFileVersion) &&
+            (i.minFileVersion === undefined || current.fileVersion >= i.minFileVersion) &&
+            (i.maxFileVersion === undefined || current.fileVersion <= i.maxFileVersion) &&
             // let extra metas override the match from device.modelID, same for manufacturerName
             (!i.modelId || i.modelId === device.modelID || i.modelId === extraMetas.modelId) &&
             (!i.manufacturerName ||
                 i.manufacturerName.includes(device.manufacturerName!) ||
                 i.manufacturerName.includes(extraMetas.manufacturerName!)) &&
             (!extraMetas.otaHeaderString || i.otaHeaderString === extraMetas.otaHeaderString) &&
-            (i.hardwareVersionMin == undefined ||
-                (device.hardwareVersion != undefined && device.hardwareVersion >= i.hardwareVersionMin) ||
-                (extraMetas.hardwareVersionMin != undefined && extraMetas.hardwareVersionMin >= i.hardwareVersionMin)) &&
-            (i.hardwareVersionMax == undefined ||
-                (device.hardwareVersion != undefined && device.hardwareVersion <= i.hardwareVersionMax) ||
-                (extraMetas.hardwareVersionMax != undefined && extraMetas.hardwareVersionMax <= i.hardwareVersionMax)),
+            (i.hardwareVersionMin === undefined ||
+                (device.hardwareVersion !== undefined && device.hardwareVersion >= i.hardwareVersionMin) ||
+                (extraMetas.hardwareVersionMin !== undefined && extraMetas.hardwareVersionMin >= i.hardwareVersionMin)) &&
+            (i.hardwareVersionMax === undefined ||
+                (device.hardwareVersion !== undefined && device.hardwareVersion <= i.hardwareVersionMax) ||
+                (extraMetas.hardwareVersionMax !== undefined && extraMetas.hardwareVersionMax <= i.hardwareVersionMax)),
     );
 }
 
@@ -632,9 +632,9 @@ async function getImage(current: Ota.ImageInfo, device: Zh.Device, extraMetas: O
     logger.info(() => `${deviceLogString(device)} Getting ${imageSet} image, meta: ${JSON.stringify(meta)}`, NS);
 
     if (previous) {
-        assert(meta.fileVersion < current.fileVersion || meta.force, `No previous image available`);
+        assert(meta.fileVersion < current.fileVersion || meta.force, "No previous image available");
     } else {
-        assert(meta.fileVersion > current.fileVersion || meta.force, `No new image available`);
+        assert(meta.fileVersion > current.fileVersion || meta.force, "No new image available");
     }
 
     const downloadedFile = await getFirmwareFile(meta);
@@ -643,22 +643,22 @@ async function getImage(current: Ota.ImageInfo, device: Zh.Device, extraMetas: O
         const hash = crypto.createHash("sha512");
         hash.update(downloadedFile);
 
-        assert(hash.digest("hex") === meta.sha512, `File checksum validation failed`);
+        assert(hash.digest("hex") === meta.sha512, "File checksum validation failed");
         logger.debug(() => `${deviceLogString(device)} Image checksum validation succeeded.`, NS);
     }
 
     const otaIdentifier = downloadedFile.indexOf(UPGRADE_FILE_IDENTIFIER);
 
-    assert(otaIdentifier != -1, `Not a valid OTA file`);
+    assert(otaIdentifier !== -1, "Not a valid OTA file");
 
     const image = parseImage(downloadedFile.subarray(otaIdentifier), extraMetas.suppressElementImageParseFailure || false);
 
     logger.debug(() => `${deviceLogString(device)} Got ${imageSet} image, header: ${JSON.stringify(image.header)}`, NS);
 
-    assert(image.header.fileVersion === meta.fileVersion, `File version mismatch`);
-    assert(!meta.fileSize || image.header.totalImageSize === meta.fileSize, `Image size mismatch`);
-    assert(image.header.manufacturerCode === current.manufacturerCode, `Manufacturer code mismatch`);
-    assert(image.header.imageType === current.imageType, `Image type mismatch`);
+    assert(image.header.fileVersion === meta.fileVersion, "File version mismatch");
+    assert(!meta.fileSize || image.header.totalImageSize === meta.fileSize, "Image size mismatch");
+    assert(image.header.manufacturerCode === current.manufacturerCode, "Manufacturer code mismatch");
+    assert(image.header.imageType === current.imageType, "Image type mismatch");
 
     // this is only reachable if manifest is missing hardwareVersionMin/Max
     if (
@@ -667,10 +667,10 @@ async function getImage(current: Ota.ImageInfo, device: Zh.Device, extraMetas: O
         "maximumHardwareVersion" in image.header &&
         image.header.maximumHardwareVersion !== undefined
     ) {
-        assert(device.hardwareVersion != undefined, "Hardware version required");
+        assert(device.hardwareVersion !== undefined, "Hardware version required");
         assert(
             image.header.minimumHardwareVersion <= device.hardwareVersion && device.hardwareVersion <= image.header.maximumHardwareVersion,
-            `Hardware version mismatch`,
+            "Hardware version mismatch",
         );
     }
 
@@ -734,14 +734,14 @@ export async function isUpdateAvailable(
 function getImageBlockOrPageRequestTimeoutMs(requestPayload: Ota.ImageInfo): number {
     // increase the upgradeEndReq wait time to solve the problem of OTA timeout failure of Sonoff Devices
     // (https://github.com/Koenkk/zigbee-herdsman-converters/issues/6657)
-    if (requestPayload.manufacturerCode === Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD && requestPayload.imageType == 8199) {
+    if (requestPayload.manufacturerCode === Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD && requestPayload.imageType === 8199) {
         return 3600000;
     }
 
     // Bosch transmits the firmware updates in the background in their native implementation.
     // According to the app, this can take up to 2 days. Therefore, we assume to get at least
     // one package request per hour from the device here.
-    if (requestPayload.manufacturerCode == Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH) {
+    if (requestPayload.manufacturerCode === Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH) {
         return 60 * 60 * 1000;
     }
 

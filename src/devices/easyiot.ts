@@ -40,7 +40,7 @@ const fzLocal = {
             logger.debug(`"easyiot_tts_recv_status" received (msg:${JSON.stringify(msg.data)})`, NS);
             const hexString = msg.data.data.toString("hex");
             logger.debug(`"easyiot_tts_recv_status" received status ${hexString}`, NS);
-            if (msg.data.data[0] == 0x80 && msg.data.data[1] == 0) {
+            if (msg.data.data[0] === 0x80 && msg.data.data[1] === 0) {
                 const result = msg.data.data[4];
                 return {last_received_status: result};
             }
@@ -74,7 +74,7 @@ const tzLocal = {
         key: ["send_command"],
         convertSet: async (entity, key, value, meta) => {
             if (!value) {
-                throw new Error(`There is no IR code to send`);
+                throw new Error("There is no IR code to send");
             }
 
             logger.debug(`Sending IR code: ${value}`, NS);
@@ -87,7 +87,7 @@ const tzLocal = {
                 },
                 {disableDefaultResponse: true},
             );
-            logger.debug(`Sending IR command success.`, NS);
+            logger.debug("Sending IR command success.", NS);
         },
     } satisfies Tz.Converter,
 
@@ -95,7 +95,7 @@ const tzLocal = {
         key: ["send_tts"],
         convertSet: async (entity, key, value, meta) => {
             if (!value) {
-                throw new Error(`There is no text to send`);
+                throw new Error("There is no text to send");
             }
 
             logger.debug(`Sending IR code: ${value}`, NS);
@@ -117,14 +117,14 @@ const tzLocal = {
                 },
                 {disableDefaultResponse: true},
             );
-            logger.debug(`Sending IR command success.`, NS);
+            logger.debug("Sending IR command success.", NS);
         },
     } satisfies Tz.Converter,
     easyiot_sp1000_play_voice: {
         key: ["play_voice"],
         convertSet: async (entity, key, value, meta) => {
             if (!value) {
-                throw new Error(`There is no text to send`);
+                throw new Error("There is no text to send");
             }
 
             logger.debug(`Sending IR code: ${value}`, NS);
@@ -144,14 +144,14 @@ const tzLocal = {
                 },
                 {disableDefaultResponse: true},
             );
-            logger.debug(`Sending IR command success.`, NS);
+            logger.debug("Sending IR command success.", NS);
         },
     } satisfies Tz.Converter,
     easyiot_sp1000_set_volume: {
         key: ["set_volume"],
         convertSet: async (entity, key, value, meta) => {
             if (!value) {
-                throw new Error(`There is no text to send`);
+                throw new Error("There is no text to send");
             }
 
             logger.debug(`Sending IR code: ${value}`, NS);
@@ -171,7 +171,7 @@ const tzLocal = {
                 },
                 {disableDefaultResponse: true},
             );
-            logger.debug(`Sending IR command success.`, NS);
+            logger.debug("Sending IR command success.", NS);
         },
     } satisfies Tz.Converter,
 };

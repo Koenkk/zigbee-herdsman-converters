@@ -165,7 +165,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint1);
             await reporting.onOff(endpoint2);
-            if (device && device.softwareBuildID == "2.9.2_r3") {
+            if (device && device.softwareBuildID === "2.9.2_r3") {
                 // newer firmware version power reports are on endpoint 11
                 const endpoint11 = device.getEndpoint(11);
                 await reporting.bind(endpoint11, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
@@ -174,7 +174,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.rmsCurrent(endpoint11, {min: 10, change: 10});
                 await reporting.rmsVoltage(endpoint11, {min: 10});
                 await reporting.readMeteringMultiplierDivisor(endpoint11);
-            } else if (device && device.softwareBuildID == "2.5.3_r2") {
+            } else if (device && device.softwareBuildID === "2.5.3_r2") {
                 // older firmware version power reports are on endpoint 1
                 await reporting.bind(endpoint1, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
                 await reporting.readEletricalMeasurementMultiplierDivisors(endpoint1);

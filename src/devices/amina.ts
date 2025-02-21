@@ -56,7 +56,7 @@ const fzLocal = {
 
             if (msg.data.evStatus !== undefined) {
                 let statusText = "Not Connected";
-                const evStatus = msg.data["evStatus"];
+                const evStatus = msg.data.evStatus;
 
                 result.ev_connected = (evStatus & (1 << 0)) !== 0;
                 result.charging = (evStatus & (1 << 2)) !== 0;
@@ -85,8 +85,8 @@ const fzLocal = {
             if (msg.data.alarms !== undefined) {
                 result.alarm_active = false;
 
-                if (msg.data["alarms"] !== 0) {
-                    result.alarms = aminaAlarmsEnum.values.filter((_, i) => (msg.data["alarms"] & (1 << i)) !== 0);
+                if (msg.data.alarms !== 0) {
+                    result.alarms = aminaAlarmsEnum.values.filter((_, i) => (msg.data.alarms & (1 << i)) !== 0);
                     result.alarm_active = true;
                 }
 
@@ -354,19 +354,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
 
         onEvent: async (type, data, device) => {
-            if (
-                type === "message" &&
-                data.type === "attributeReport" &&
-                data.cluster === "haElectricalMeasurement" &&
-                data.data["totalActivePower"]
-            ) {
+            if (type === "message" && data.type === "attributeReport" && data.cluster === "haElectricalMeasurement" && data.data.totalActivePower) {
                 // Device does not support reporting of energy attributes, so we poll them manually when power is updated
                 await data.endpoint.read("aminaControlCluster", ["totalActiveEnergy"]);
             }
 
-            if (type === "message" && data.type === "attributeReport" && data.cluster === "aminaControlCluster" && data.data["evStatus"]) {
+            if (type === "message" && data.type === "attributeReport" && data.cluster === "aminaControlCluster" && data.data.evStatus) {
                 // Device does not support reporting of energy attributes, so we poll them manually when charging is stopped
-                if ((data.data["evStatus"] & (1 << 2)) === 0) {
+                if ((data.data.evStatus & (1 << 2)) === 0) {
                     await data.endpoint.read("aminaControlCluster", ["totalActiveEnergy", "lastSessionEnergy"]);
                 }
             }

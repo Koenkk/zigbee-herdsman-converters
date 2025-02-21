@@ -1,6 +1,6 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
 
-import {Buffer} from "buffer";
+import {Buffer} from "node:buffer";
 
 import {Zcl} from "zigbee-herdsman";
 
@@ -112,7 +112,7 @@ const ticmeterOptionsFRTr: Translations = {
 };
 
 const ticmeterOptions = [
-    e.numeric(`refresh_rate`, ea.SET).withValueMin(60).withDescription(ticmeterOptionsFRTr[0].descEN).withValueMin(60).withValueMax(3600),
+    e.numeric("refresh_rate", ea.SET).withValueMin(60).withDescription(ticmeterOptionsFRTr[0].descEN).withValueMin(60).withValueMax(3600),
     e.enum("tic_mode", ea.SET, modeTICEnum).withDescription(ticmeterOptionsFRTr[1].descEN),
     e.enum("contract_type", ea.SET, modeContractEnum).withDescription(ticmeterOptionsFRTr[2].descEN),
     e.enum("linky_elec", ea.SET, modeElecEnum).withDescription(ticmeterOptionsFRTr[3].descEN),
@@ -1811,7 +1811,7 @@ function ticmeterConverter(msg: Fz.Message) {
     const result: KeyValue = {};
     const keys = Object.keys(msg.data);
     keys.forEach((key) => {
-        const found = ticmeterDatas.find((x) => x.attr == key);
+        const found = ticmeterDatas.find((x) => x.attr === key);
         if (found) {
             let value;
             switch (found.type) {
@@ -1834,7 +1834,7 @@ function ticmeterConverter(msg: Fz.Message) {
                     break;
             }
 
-            if (found.attr == "uptime") {
+            if (found.attr === "uptime") {
                 value = value / 1000; // convert ms to s
             }
 
@@ -1882,7 +1882,7 @@ function genereateTzLocal() {
                 await entity.read(item.clust, [item.attr]);
             },
         } satisfies Tz.Converter;
-        if (item.type == NUM_RW) {
+        if (item.type === NUM_RW) {
             tz.convertSet = async (entity, key, value: unknown, meta) => {
                 if (Number(value) < 0 || Number(value) > 65535) {
                     throw new Error("Value must be between 0 and 65535");
@@ -1917,10 +1917,10 @@ async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
     for (const item of ticmeterDatas) {
         if (
             item.poll &&
-            (item.tic == currentTIC || item.tic == T.ANY) &&
-            (item.contract == currentContract || item.contract == C.ANY) &&
-            (item.elec == currentElec || item.elec == E.ANY) &&
-            (item.prod == currentProducer || item.prod == false)
+            (item.tic === currentTIC || item.tic === T.ANY) &&
+            (item.contract === currentContract || item.contract === C.ANY) &&
+            (item.elec === currentElec || item.elec === E.ANY) &&
+            (item.prod === currentProducer || item.prod === false)
         ) {
             toRead.push(item);
         }
@@ -2000,25 +2000,25 @@ export const definitions: DefinitionWithExtend[] = [
                 logger.warning("Exposes: No endpoint", "TICMeter");
             }
 
-            if (endpoint != null && endpoint.clusters !== undefined && endpoint.clusters[CLUSTER_TIC] != undefined) {
-                if (endpoint.clusters[CLUSTER_TIC].attributes !== undefined && endpoint.clusters[CLUSTER_TIC].attributes != undefined) {
+            if (endpoint != null && endpoint.clusters !== undefined && endpoint.clusters[CLUSTER_TIC] !== undefined) {
+                if (endpoint.clusters[CLUSTER_TIC].attributes !== undefined && endpoint.clusters[CLUSTER_TIC].attributes !== undefined) {
                     const attr = endpoint.clusters[CLUSTER_TIC].attributes;
 
-                    if (globalStore.getValue(device, "tic_mode") == undefined) {
+                    if (globalStore.getValue(device, "tic_mode") === undefined) {
                         if (attr.ticMode !== undefined && attr.ticMode != null) {
                             logger.debug(`Load ticMode: ${attr.ticMode}`, "TICMeter");
                             globalStore.putValue(device, "tic_mode", modeTICEnum[Number(attr.ticMode)]);
                         }
                     }
 
-                    if (globalStore.getValue(device, "elec_mode") == undefined) {
+                    if (globalStore.getValue(device, "elec_mode") === undefined) {
                         if (attr.elecMode !== undefined && attr.elecMode != null) {
                             logger.debug(`Load elecMode: ${attr.elecMode}`, "TICMeter");
                             globalStore.putValue(device, "elec_mode", modeElecEnum[Number(attr.elecMode)]);
                         }
                     }
 
-                    if (globalStore.getValue(device, "contract_type") == undefined) {
+                    if (globalStore.getValue(device, "contract_type") === undefined) {
                         if (attr.contractType !== undefined && attr.contractType != null) {
                             let string = attr.contractType;
                             if (Buffer.isBuffer(string)) {
@@ -2036,48 +2036,48 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.contract_type !== undefined && options.contract_type != "AUTO") {
+            if (options && options.contract_type !== undefined && options.contract_type !== "AUTO") {
                 currentContract = String(options.contract_type);
                 logger.debug(`contract: ${currentContract}`, "TICMeter");
             } else {
                 currentContract = globalStore.getValue(device, "contract_type");
                 logger.debug(`contract: ${currentContract}`, "TICMeter");
-                if (currentContract == undefined) {
+                if (currentContract === undefined) {
                     logger.debug("TICMeter: Force contract to AUTO", "TICMeter");
                     currentContract = "AUTO";
                 }
             }
 
-            if (options && options.linky_elec !== undefined && options.linky_elec != "AUTO") {
+            if (options && options.linky_elec !== undefined && options.linky_elec !== "AUTO") {
                 currentElec = String(options.linky_elec);
                 logger.debug(`Manual elec: ${currentElec}`, "TICMeter");
             } else {
                 currentElec = globalStore.getValue(device, "elec_mode");
                 logger.debug(`AUTO elec: ${currentElec}`, "TICMeter");
-                if (currentElec == undefined) {
+                if (currentElec === undefined) {
                     logger.debug("TICMeter: Force elec to AUTO", "TICMeter");
                     currentElec = "AUTO";
                 }
             }
 
-            if (options && options.tic_mode !== undefined && options.tic_mode != "AUTO") {
+            if (options && options.tic_mode !== undefined && options.tic_mode !== "AUTO") {
                 currentTIC = String(options.tic_mode);
                 logger.debug(`Manual tic: ${currentTIC}`, "TICMeter");
             } else {
                 currentTIC = globalStore.getValue(device, "tic_mode", "TICMeter");
                 logger.debug(`TIC: ${currentTIC}`, "TICMeter");
-                if (currentTIC == undefined) {
+                if (currentTIC === undefined) {
                     logger.debug("TICMeter: Force TIC to AUTO", "TICMeter");
                     currentTIC = "AUTO";
                 }
             }
 
-            if (options && options.producer !== undefined && options.producer != "AUTO") {
+            if (options && options.producer !== undefined && options.producer !== "AUTO") {
                 currentProducer = String(options.producer);
                 logger.debug(`Manual producer: ${currentProducer}`, "TICMeter");
             } else {
                 currentProducer = globalStore.getValue(device, "producer");
-                if (currentProducer == undefined) {
+                if (currentProducer === undefined) {
                     logger.debug("Force producer to AUTO", "TICMeter");
                     currentProducer = "OFF";
                 }
@@ -2101,7 +2101,7 @@ export const definitions: DefinitionWithExtend[] = [
                 let ticOK = false;
                 let producerOK = true;
                 if (item.contract !== undefined) {
-                    if (item["contract"] == currentContract || item["contract"] == C.ANY) {
+                    if (item.contract === currentContract || item.contract === C.ANY) {
                         contractOK = true;
                     }
                 } else {
@@ -2109,7 +2109,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
 
                 if (item.elec !== undefined) {
-                    if (item["elec"] == currentElec || item["elec"] == E.ANY) {
+                    if (item.elec === currentElec || item.elec === E.ANY) {
                         elecOK = true;
                     }
                 } else {
@@ -2117,7 +2117,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
 
                 if (item.tic !== undefined) {
-                    if (item["tic"] == currentTIC || item["tic"] == T.ANY) {
+                    if (item.tic === currentTIC || item.tic === T.ANY) {
                         ticOK = true;
                     }
                 } else {
@@ -2125,7 +2125,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
 
                 if (item.prod !== undefined) {
-                    if (item["prod"] == true && currentProducer == "OFF") {
+                    if (item.prod === true && currentProducer === "OFF") {
                         producerOK = false;
                     }
                 } else {
@@ -2139,7 +2139,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                     let name = item.name;
                     let desc = item.desc;
-                    if (translation == TRANSLATION_FR) {
+                    if (translation === TRANSLATION_FR) {
                         name = ticmeterDatasFRTranslation[item.id].nameFR;
                         desc = ticmeterDatasFRTranslation[item.id].descFR;
                     }
@@ -2214,10 +2214,10 @@ export const definitions: DefinitionWithExtend[] = [
             for (const item of ticmeterDatas) {
                 if (
                     !item.poll &&
-                    (item.tic == TICMode || item.tic == T.ANY) &&
-                    (item.contract == contractType || item.contract == C.ANY) &&
-                    (item.elec == elecMode || item.elec == E.ANY) &&
-                    (item.prod == producer || item.prod == false)
+                    (item.tic === TICMode || item.tic === T.ANY) &&
+                    (item.contract === contractType || item.contract === C.ANY) &&
+                    (item.elec === elecMode || item.elec === E.ANY) &&
+                    (item.prod === producer || item.prod === false)
                 ) {
                     wanted.push(item);
                 }
@@ -2295,7 +2295,7 @@ export const definitions: DefinitionWithExtend[] = [
                 globalStore.clearValue(device, "interval");
             } else if (!intervalDefined) {
                 // periodic scan for non-reportable attributs
-                const seconds: number = options && options.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
+                const seconds: number = options?.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
                 const interval = setInterval(async () => {
                     try {
                         await poll(endpoint, device);
@@ -2312,9 +2312,9 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             } else {
                 if (intervalDefined) {
-                    const seconds: number = options && options.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
+                    const seconds: number = options?.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
                     const definedSeconds = globalStore.getValue(device, "refresh_rate");
-                    if (seconds != definedSeconds) {
+                    if (seconds !== definedSeconds) {
                         clearInterval(globalStore.getValue(device, "interval"));
                         const interval = setInterval(async () => {
                             try {

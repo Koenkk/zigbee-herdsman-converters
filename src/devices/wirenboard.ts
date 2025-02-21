@@ -25,7 +25,7 @@ const fzLocal = {
         cluster: "msTemperatureMeasurement",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const temperature = Number.parseFloat(msg.data["measuredValue"]) / 100.0;
+            const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
             return {temperature};
         },
     } satisfies Fz.Converter,
@@ -34,7 +34,7 @@ const fzLocal = {
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.sprutOccupancyLevel !== undefined) {
-                return {occupancy_level: msg.data["sprutOccupancyLevel"]};
+                return {occupancy_level: msg.data.sprutOccupancyLevel};
             }
         },
     } satisfies Fz.Converter,
@@ -43,7 +43,7 @@ const fzLocal = {
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.voc !== undefined) {
-                return {voc: msg.data["voc"]};
+                return {voc: msg.data.voc};
             }
         },
     } satisfies Fz.Converter,
@@ -52,7 +52,7 @@ const fzLocal = {
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.noise !== undefined) {
-                return {noise: msg.data["noise"].toFixed(2)};
+                return {noise: msg.data.noise.toFixed(2)};
             }
         },
     } satisfies Fz.Converter,
@@ -61,7 +61,7 @@ const fzLocal = {
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.noiseDetected !== undefined) {
-                return {noise_detected: msg.data["noiseDetected"] === 1};
+                return {noise_detected: msg.data.noiseDetected === 1};
             }
         },
     } satisfies Fz.Converter,
@@ -69,28 +69,28 @@ const fzLocal = {
         cluster: "msOccupancySensing",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
-            return {occupancy_timeout: msg.data["pirOToUDelay"]};
+            return {occupancy_timeout: msg.data.pirOToUDelay};
         },
     } satisfies Fz.Converter,
     noise_timeout: {
         cluster: "sprutNoise",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
-            return {noise_timeout: msg.data["noiseAfterDetectDelay"]};
+            return {noise_timeout: msg.data.noiseAfterDetectDelay};
         },
     } satisfies Fz.Converter,
     occupancy_sensitivity: {
         cluster: "msOccupancySensing",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
-            return {occupancy_sensitivity: msg.data["sprutOccupancySensitivity"]};
+            return {occupancy_sensitivity: msg.data.sprutOccupancySensitivity};
         },
     } satisfies Fz.Converter,
     noise_detect_level: {
         cluster: "sprutNoise",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
-            return {noise_detect_level: msg.data["noiseDetectLevel"]};
+            return {noise_detect_level: msg.data.noiseDetectLevel};
         },
     } satisfies Fz.Converter,
     co2_mh_z19b_config: {
@@ -98,10 +98,10 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.sprutCO2AutoCalibration !== undefined) {
-                return {co2_autocalibration: switchActionValues[msg.data["sprutCO2AutoCalibration"]]};
+                return {co2_autocalibration: switchActionValues[msg.data.sprutCO2AutoCalibration]};
             }
             if (msg.data.sprutCO2Calibration !== undefined) {
-                return {co2_manual_calibration: switchActionValues[msg.data["sprutCO2Calibration"]]};
+                return {co2_manual_calibration: switchActionValues[msg.data.sprutCO2Calibration]};
             }
         },
     } satisfies Fz.Converter,
@@ -110,7 +110,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.sprutHeater !== undefined) {
-                return {th_heater: switchActionValues[msg.data["sprutHeater"]]};
+                return {th_heater: switchActionValues[msg.data.sprutHeater]};
             }
         },
     } satisfies Fz.Converter,
@@ -134,13 +134,13 @@ const tzLocal = {
 
             switch (key) {
                 case "play_store":
-                    await entity.command("sprutIrBlaster", "playStore", {param: value["rom"]}, options);
+                    await entity.command("sprutIrBlaster", "playStore", {param: value.rom}, options);
                     break;
                 case "learn_start":
-                    await entity.command("sprutIrBlaster", "learnStart", {value: value["rom"]}, options);
+                    await entity.command("sprutIrBlaster", "learnStart", {value: value.rom}, options);
                     break;
                 case "learn_stop":
-                    await entity.command("sprutIrBlaster", "learnStop", {value: value["rom"]}, options);
+                    await entity.command("sprutIrBlaster", "learnStop", {value: value.rom}, options);
                     break;
                 case "clear_store":
                     await entity.command("sprutIrBlaster", "clearStore", {}, options);
@@ -439,13 +439,13 @@ const sprutModernExtend = {
 
                     switch (key) {
                         case "play_store":
-                            await entity.command("sprutIrBlaster", "playStore", {param: value["rom"]}, options);
+                            await entity.command("sprutIrBlaster", "playStore", {param: value.rom}, options);
                             break;
                         case "learn_start":
-                            await entity.command("sprutIrBlaster", "learnStart", {value: value["rom"]}, options);
+                            await entity.command("sprutIrBlaster", "learnStart", {value: value.rom}, options);
                             break;
                         case "learn_stop":
-                            await entity.command("sprutIrBlaster", "learnStop", {value: value["rom"]}, options);
+                            await entity.command("sprutIrBlaster", "learnStop", {value: value.rom}, options);
                             break;
                         case "clear_store":
                             await entity.command("sprutIrBlaster", "clearStore", {}, options);

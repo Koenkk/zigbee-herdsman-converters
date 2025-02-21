@@ -25,92 +25,92 @@ const fzLocal = {
             const factor = 0.001;
             const payload: KeyValue = {};
             if (msg.data.owonL1Energy !== undefined) {
-                const value = msg.data["owonL1Energy"];
+                const value = msg.data.owonL1Energy;
                 payload.energy_l1 = value * factor;
             }
             if (msg.data.owonL2Energy !== undefined) {
-                const value = msg.data["owonL2Energy"];
+                const value = msg.data.owonL2Energy;
                 payload.energy_l2 = value * factor;
             }
             if (msg.data.owonL3Energy !== undefined) {
-                const value = msg.data["owonL3Energy"];
+                const value = msg.data.owonL3Energy;
                 payload.energy_l3 = value * factor;
             }
             if (msg.data.owonL1ReactiveEnergy !== undefined) {
-                const value = msg.data["owonL1ReactiveEnergy"];
+                const value = msg.data.owonL1ReactiveEnergy;
                 payload.reactive_energy_l1 = value * factor;
             }
             if (msg.data.owonL2ReactiveEnergy !== undefined) {
-                const value = msg.data["owonL2ReactiveEnergy"];
+                const value = msg.data.owonL2ReactiveEnergy;
                 payload.reactive_energy_l2 = value * factor;
             }
             if (msg.data.owonL3ReactiveEnergy !== undefined) {
-                const value = msg.data["owonL3ReactiveEnergy"];
+                const value = msg.data.owonL3ReactiveEnergy;
                 payload.reactive_energy_l3 = value / 1000;
             }
             if (msg.data.owonL1PhasePower !== undefined) {
-                payload.power_l1 = msg.data["owonL1PhasePower"];
+                payload.power_l1 = msg.data.owonL1PhasePower;
             }
             if (msg.data.owonL2PhasePower !== undefined) {
-                payload.power_l2 = msg.data["owonL2PhasePower"];
+                payload.power_l2 = msg.data.owonL2PhasePower;
             }
             if (msg.data.owonL3PhasePower !== undefined) {
-                payload.power_l3 = msg.data["owonL3PhasePower"];
+                payload.power_l3 = msg.data.owonL3PhasePower;
             }
             if (msg.data.owonL1PhaseReactivePower !== undefined) {
-                payload.reactive_power_l1 = msg.data["owonL1PhaseReactivePower"];
+                payload.reactive_power_l1 = msg.data.owonL1PhaseReactivePower;
             }
             if (msg.data.owonL2PhaseReactivePower !== undefined) {
-                payload.reactive_power_l2 = msg.data["owonL2PhaseReactivePower"];
+                payload.reactive_power_l2 = msg.data.owonL2PhaseReactivePower;
             }
             if (msg.data.owonL3PhaseReactivePower !== undefined) {
-                payload.reactive_power_l3 = msg.data["owonL3PhaseReactivePower"];
+                payload.reactive_power_l3 = msg.data.owonL3PhaseReactivePower;
             }
             if (msg.data.owonL1PhaseVoltage !== undefined) {
-                payload.voltage_l1 = msg.data["owonL1PhaseVoltage"] / 10.0;
+                payload.voltage_l1 = msg.data.owonL1PhaseVoltage / 10.0;
             }
             if (msg.data.owonL2PhaseVoltage !== undefined) {
-                payload.voltage_l2 = msg.data["owonL2PhaseVoltage"] / 10.0;
+                payload.voltage_l2 = msg.data.owonL2PhaseVoltage / 10.0;
             }
             if (msg.data.owonL3PhaseVoltage !== undefined) {
-                payload.voltage_l3 = msg.data["owonL3PhaseVoltage"] / 10.0;
+                payload.voltage_l3 = msg.data.owonL3PhaseVoltage / 10.0;
             }
             if (msg.data.owonL1PhaseCurrent !== undefined) {
-                payload.current_l1 = msg.data["owonL1PhaseCurrent"] * factor;
+                payload.current_l1 = msg.data.owonL1PhaseCurrent * factor;
             }
             if (msg.data.owonL2PhaseCurrent !== undefined) {
-                payload.current_l2 = msg.data["owonL2PhaseCurrent"] * factor;
+                payload.current_l2 = msg.data.owonL2PhaseCurrent * factor;
             }
             if (msg.data.owonL3PhaseCurrent !== undefined) {
-                payload.current_l3 = msg.data["owonL3PhaseCurrent"] * factor;
+                payload.current_l3 = msg.data.owonL3PhaseCurrent * factor;
             }
             if (msg.data.owonFrequency !== undefined) {
-                payload.frequency = msg.data["owonFrequency"];
+                payload.frequency = msg.data.owonFrequency;
             }
             // Issue #20719 summation manufacturer attributes are not well parsed
             if (msg.data.owonReactivePowerSum !== undefined || msg.data["8451"] !== undefined) {
                 // 0x2103 -> 8451
-                const value = msg.data["owonReactiveEnergySum"] || msg.data["8451"];
+                const value = msg.data.owonReactiveEnergySum || msg.data["8451"];
                 payload.power_reactive = value;
             }
             if (msg.data.owonCurrentSum !== undefined || msg.data["12547"] !== undefined) {
                 // 0x3103 -> 12547
-                const data = msg.data["owonCurrentSum"] || msg.data["12547"] * factor;
+                const data = msg.data.owonCurrentSum || msg.data["12547"] * factor;
                 payload.current = data;
             }
             if (msg.data.owonReactiveEnergySum !== undefined || msg.data["16643"] !== undefined) {
                 // 0x4103 -> 16643
-                const value = msg.data["owonReactiveEnergySum"] || msg.data["16643"];
+                const value = msg.data.owonReactiveEnergySum || msg.data["16643"];
                 payload.reactive_energy = value * factor;
             }
             if (msg.data.owonL1PowerFactor !== undefined) {
-                payload.power_factor_l1 = msg.data["owonL1PowerFactor"] / 100;
+                payload.power_factor_l1 = msg.data.owonL1PowerFactor / 100;
             }
             if (msg.data.owonL2PowerFactor !== undefined) {
-                payload.power_factor_l2 = msg.data["owonL2PowerFactor"] / 100;
+                payload.power_factor_l2 = msg.data.owonL2PowerFactor / 100;
             }
             if (msg.data.owonL3PowerFactor !== undefined) {
-                payload.power_factor_l3 = msg.data["owonL3PowerFactor"] / 100;
+                payload.power_factor_l3 = msg.data.owonL3PowerFactor / 100;
             }
 
             return payload;
@@ -168,7 +168,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
-            if (device.modelID == "PIR313") {
+            if (device.modelID === "PIR313") {
                 await reporting.bind(endpoint3, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity"]);
             } else {
                 await reporting.bind(endpoint2, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity"]);

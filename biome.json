@@ -6,5 +6,15 @@
         "indentWidth": 4,
         "lineWidth": 150,
         "bracketSpacing": false
+    },
+    "linter": {
+        "rules": {
+            "style": {
+                "noNonNullAssertion": "off"
+            },
+            "performance": {
+                "noDelete": "off"
+            }
+        }
     }
 }

@@ -231,10 +231,10 @@ const intToFanMode = (value: number) => {
     if (value >= fanModes.high) {
         selectedMode = "high";
     }
-    if (value == 4) {
+    if (value === 4) {
         selectedMode = "smart";
     }
-    if (value == 0) {
+    if (value === 0) {
         selectedMode = "off";
     }
     return selectedMode;
@@ -1407,7 +1407,7 @@ const tzLocal = {
                 brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
             }
 
-            if (brightness !== undefined && (isNaN(brightness) || brightness < 0 || brightness > 255)) {
+            if (brightness !== undefined && (Number.isNaN(brightness) || brightness < 0 || brightness > 255)) {
                 // Allow 255 value, changing this to 254 would be a breaking change.
                 throw new Error(`Brightness value of message: '${JSON.stringify(message)}' invalid, must be a number >= 0 and =< 254`);
             }
@@ -1444,46 +1444,44 @@ const tzLocal = {
                     // @ts-expect-error ignore
                     if (state === "on") result.state.brightness = level;
                     return result;
-                } else {
-                    // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
-                    // with transition.
-                    if (meta.state.brightness !== undefined && state === "off") {
-                        globalStore.putValue(entity, "brightness", meta.state.brightness);
-                        globalStore.putValue(entity, "turnedOffWithTransition", true);
-                    }
-
-                    const result = await inovelliOnOffConvertSet(entity, "state", state, meta);
-                    if (result.state && result.state.state === "ON" && meta.state.brightness === 0) {
-                        // @ts-expect-error ignore
-                        result.state.brightness = 1;
-                    }
-
-                    return result;
                 }
-            } else {
-                brightness = Math.min(254, brightness);
-                if (brightness === 1 && turnsOffAtBrightness1) {
-                    brightness = 2;
+                // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
+                // with transition.
+                if (meta.state.brightness !== undefined && state === "off") {
+                    globalStore.putValue(entity, "brightness", meta.state.brightness);
+                    globalStore.putValue(entity, "turnedOffWithTransition", true);
                 }
 
-                globalStore.putValue(entity, "brightness", brightness);
-                await entity.command(
-                    "genLevelCtrl",
-                    "moveToLevelWithOnOff",
-                    {
-                        level: Number(brightness),
-                        transtime: !transition.specified ? 0xffff : transition.time,
-                    },
-                    utils.getOptions(meta.mapped, entity),
-                );
+                const result = await inovelliOnOffConvertSet(entity, "state", state, meta);
+                if (result.state && result.state.state === "ON" && meta.state.brightness === 0) {
+                    // @ts-expect-error ignore
+                    result.state.brightness = 1;
+                }
 
-                return {
-                    state: {
-                        state: brightness === 0 ? "OFF" : "ON",
-                        brightness: Number(brightness),
-                    },
-                };
+                return result;
             }
+            brightness = Math.min(254, brightness);
+            if (brightness === 1 && turnsOffAtBrightness1) {
+                brightness = 2;
+            }
+
+            globalStore.putValue(entity, "brightness", brightness);
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevelWithOnOff",
+                {
+                    level: Number(brightness),
+                    transtime: !transition.specified ? 0xffff : transition.time,
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
+
+            return {
+                state: {
+                    state: brightness === 0 ? "OFF" : "ON",
+                    brightness: Number(brightness),
+                },
+            };
         },
         convertGet: async (entity, key, meta) => {
             if (key === "brightness") {
@@ -1510,7 +1508,7 @@ const tzLocal = {
 
                 meta.state[key] = value;
 
-                if (endpointId == 2) {
+                if (endpointId === 2) {
                     return {
                         state: {
                             [key]: value,
@@ -1541,9 +1539,8 @@ const tzLocal = {
             if (state === "toggle") {
                 const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
                 return currentState ? {state: {fan_state: currentState === "OFF" ? "ON" : "OFF"}} : {};
-            } else {
-                return {state: {fan_state: state.toString().toUpperCase()}};
             }
+            return {state: {fan_state: state.toString().toUpperCase()}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genOnOff", ["onOff"]);
@@ -1582,9 +1579,8 @@ const tzLocal = {
                 if (state === "toggle") {
                     const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
                     return currentState ? {state: {fan_state: currentState === "OFF" ? "ON" : "OFF"}} : {};
-                } else {
-                    return {state: {fan_state: state.toUpperCase()}};
                 }
+                return {state: {fan_state: state.toUpperCase()}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -1681,9 +1677,8 @@ const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: stri
         if (state === "toggle") {
             const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
             return currentState ? {state: {state: currentState === "OFF" ? "ON" : "OFF"}} : {};
-        } else {
-            return {state: {state: state.toUpperCase()}};
         }
+        return {state: {state: state.toUpperCase()}};
     }
 };
 
@@ -1693,7 +1688,7 @@ const fzLocal = {
             cluster: cluster,
             type: ["raw", "readResponse", "commandQueryNextImageRequest"],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.type === "raw" && msg.endpoint.ID == 2 && msg.data[4] === 0x00) {
+                if (msg.type === "raw" && msg.endpoint.ID === 2 && msg.data[4] === 0x00) {
                     // Scene Event
                     // # byte 1 - msg.data[6]
                     // # 0 - pressed
@@ -1712,7 +1707,8 @@ const fzLocal = {
                     const button = buttonLookup[msg.data[5]];
                     const action = clickLookup[msg.data[6]];
                     return {action: `${button}_${action}`};
-                } else if (msg.type === "readResponse") {
+                }
+                if (msg.type === "readResponse") {
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
                         if (ATTRIBUTES[key] && ATTRIBUTES[key].displayType === "enum") {
@@ -1723,9 +1719,8 @@ const fzLocal = {
                         }
                         return {...p, [key]: msg.data[c]};
                     }, {});
-                } else {
-                    return msg.data;
                 }
+                return msg.data;
             },
         }) satisfies Fz.Converter,
     fan_mode: (endpointId: number) =>
@@ -1733,9 +1728,9 @@ const fzLocal = {
             cluster: "genLevelCtrl",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.endpoint.ID == endpointId) {
+                if (msg.endpoint.ID === endpointId) {
                     if (msg.data.currentLevel !== undefined) {
-                        const mode = intToFanMode(msg.data["currentLevel"] || 1);
+                        const mode = intToFanMode(msg.data.currentLevel || 1);
                         return {
                             fan_mode: mode,
                         };
@@ -1749,7 +1744,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.onOff !== undefined) {
-                return {fan_state: msg.data["onOff"] === 1 ? "ON" : "OFF"};
+                return {fan_state: msg.data.onOff === 1 ? "ON" : "OFF"};
             }
             return msg.data;
         },
@@ -1758,9 +1753,9 @@ const fzLocal = {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID == 1) {
+            if (msg.endpoint.ID === 1) {
                 if (msg.data.currentLevel !== undefined) {
-                    return {brightness: msg.data["currentLevel"]};
+                    return {brightness: msg.data.currentLevel};
                 }
             }
         },
@@ -1782,10 +1777,10 @@ const fzLocal = {
             cluster: INOVELLI_CLUSTER_NAME,
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.endpoint.ID == endpointId) {
+                if (msg.endpoint.ID === endpointId) {
                     if (msg.data.breeze_mode !== undefined) {
                         const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
-                        const raw = msg.data["breeze_mode"];
+                        const raw = msg.data.breeze_mode;
                         const s1 = breezemodes[raw & bitmasks[0]];
                         const s2 = breezemodes[(raw & bitmasks[2]) / 64];
                         const s3 = breezemodes[(raw & bitmasks[4]) / 4096];
@@ -1822,11 +1817,11 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID === 1) {
                 if (msg.data.onOff !== undefined) {
-                    return {state: msg.data["onOff"] === 1 ? "ON" : "OFF"};
+                    return {state: msg.data.onOff === 1 ? "ON" : "OFF"};
                 }
             } else if (msg.endpoint.ID === 2) {
                 if (msg.data.onOff !== undefined) {
-                    return {fan_state: msg.data["onOff"] === 1 ? "ON" : "OFF"};
+                    return {fan_state: msg.data.onOff === 1 ? "ON" : "OFF"};
                 }
             } else {
                 return msg.data;
@@ -2133,7 +2128,7 @@ export const definitions: DefinitionWithExtend[] = [
                 Object.keys(VZM36_ATTRIBUTES).flatMap((key) => {
                     const keysplit = key.split("_");
                     if (keysplit.length === 2) {
-                        if (Number(keysplit[1]) == 1) {
+                        if (Number(keysplit[1]) === 1) {
                             return [keysplit[0]];
                         }
                         return [];
@@ -2152,7 +2147,7 @@ export const definitions: DefinitionWithExtend[] = [
                 Object.keys(VZM36_ATTRIBUTES).flatMap((key) => {
                     const keysplit = key.split("_");
                     if (keysplit.length === 2) {
-                        if (Number(keysplit[1]) == 2) {
+                        if (Number(keysplit[1]) === 2) {
                             return [keysplit[0]];
                         }
                     }

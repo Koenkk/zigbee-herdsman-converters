@@ -51,7 +51,7 @@ import {
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: "input" | "output") {
     if (!device.endpoints) {
-        throw new Error(device.ieeeAddr + " " + device.endpoints);
+        throw new Error(`${device.ieeeAddr} ${device.endpoints}`);
     }
     const endpoints =
         type === "input"
@@ -130,9 +130,8 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
     if (isString(time)) {
         if (!(time in TIME_LOOKUP)) throw new Error(`Reporting time '${time}' is unknown`);
         return TIME_LOOKUP[time];
-    } else {
-        return time;
     }
+    return time;
 }
 
 export async function setupAttributes(
@@ -210,9 +209,8 @@ export function setupConfigureForReporting(
             }
         };
         return configure;
-    } else {
-        return undefined;
     }
+    return undefined;
 }
 
 export function setupConfigureForBinding(cluster: string | number, clusterType: "input" | "output", endpointNames?: string[]) {
@@ -258,10 +256,9 @@ export function determineEndpoint(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta,
     if (endpoint_name !== undefined) {
         // In case an explicit endpoint is given, always send it to that endpoint
         return entity;
-    } else {
-        // In case no endpoint is given, match the first endpoint which support the cluster.
-        return device.endpoints.find((e) => e.supportsInputCluster(cluster)) ?? device.endpoints[0];
     }
+    // In case no endpoint is given, match the first endpoint which support the cluster.
+    return device.endpoints.find((e) => e.supportsInputCluster(cluster)) ?? device.endpoints[0];
 }
 
 // #region General
@@ -369,18 +366,18 @@ export function battery(args?: BatteryArgs): ModernExtend {
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const payload: KeyValueAny = {};
-                if (msg.data.batteryPercentageRemaining !== undefined && msg.data["batteryPercentageRemaining"] < 255) {
+                if (msg.data.batteryPercentageRemaining !== undefined && msg.data.batteryPercentageRemaining < 255) {
                     // Some devices do not comply to the ZCL and report a
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                     const dontDividePercentage = args.dontDividePercentage;
-                    let percentage = msg.data["batteryPercentageRemaining"];
+                    let percentage = msg.data.batteryPercentageRemaining;
                     percentage = dontDividePercentage ? percentage : percentage / 2;
                     if (args.percentage) payload.battery = precisionRound(percentage, 2);
                 }
 
-                if (msg.data.batteryVoltage !== undefined && msg.data["batteryVoltage"] < 255) {
+                if (msg.data.batteryVoltage !== undefined && msg.data.batteryVoltage < 255) {
                     // Deprecated: voltage is = mV now but should be V
-                    if (args.voltage) payload.voltage = msg.data["batteryVoltage"] * 100;
+                    if (args.voltage) payload.voltage = msg.data.batteryVoltage * 100;
 
                     if (args.voltageToPercentage) {
                         payload.battery = batteryVoltageToPercentage(payload.voltage, args.voltageToPercentage);
@@ -642,7 +639,7 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
     const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
         let result = value;
         if (type === "from") {
-            result = Math.pow(10, (result - 1) / 10000);
+            result = 10 ** ((result - 1) / 10000);
         }
         return result;
     };
@@ -665,7 +662,7 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
         options: [opt.illuminance_raw()],
         convert: (model, msg, publish, options, meta) => {
             if (options.illuminance_raw) {
-                return {illuminance_raw: msg.data["measuredValue"]};
+                return {illuminance_raw: msg.data.measuredValue};
             }
         },
     } satisfies Fz.Converter;
@@ -772,7 +769,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             convert: (model, msg, publish, options, meta) => {
                 if ("occupancy" in msg.data && (!args.endpointNames || args.endpointNames.includes(getEndpointName(msg, model, meta).toString()))) {
                     const propertyName = postfixWithEndpointName("occupancy", msg, model, meta);
-                    const payload = {[propertyName]: (msg.data["occupancy"] & 1) > 0};
+                    const payload = {[propertyName]: (msg.data.occupancy & 1) > 0};
                     noOccupancySince(msg.endpoint, options, publish, payload[propertyName] ? "stop" : "start");
                     return payload;
                 }
@@ -1457,16 +1454,16 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         if (bothAlarms) {
             exposes.push(
                 e
-                    .binary(args.zoneType + "_alarm_1", ea.STATE, true, false)
-                    .withDescription(IAS_EXPOSE_LOOKUP[args.zoneType].description + " (alarm_1)"),
+                    .binary(`${args.zoneType}_alarm_1`, ea.STATE, true, false)
+                    .withDescription(`${IAS_EXPOSE_LOOKUP[args.zoneType].description} (alarm_1)`),
             );
-            alarm1Name = args.zoneType + "_alarm_1";
+            alarm1Name = `${args.zoneType}_alarm_1`;
             exposes.push(
                 e
-                    .binary(args.zoneType + "_alarm_2", ea.STATE, true, false)
-                    .withDescription(IAS_EXPOSE_LOOKUP[args.zoneType].description + " (alarm_2)"),
+                    .binary(`${args.zoneType}_alarm_2`, ea.STATE, true, false)
+                    .withDescription(`${IAS_EXPOSE_LOOKUP[args.zoneType].description} (alarm_2)`),
             );
-            alarm2Name = args.zoneType + "_alarm_2";
+            alarm2Name = `${args.zoneType}_alarm_2`;
         } else {
             exposes.push(IAS_EXPOSE_LOOKUP[args.zoneType]);
             alarm1Name = args.zoneType;
@@ -2166,7 +2163,7 @@ export function numeric(args: NumericArgs): ModernExtend {
                     let value = msg.data[attributeKey];
                     assertNumber(value);
 
-                    if (valueIgnore && valueIgnore.includes(value)) return;
+                    if (valueIgnore?.includes(value)) return;
 
                     if (scale !== undefined) {
                         value = typeof scale === "number" ? value / scale : scale(value, "from");
@@ -2400,7 +2397,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
         async (device, coordinatorEndpoint, definition) => {
             const endpoint = device.getEndpoint(endpointID);
 
-            if (endpoint == undefined) {
+            if (endpoint === undefined) {
                 logger.error(`Quirk: cannot add clusters to endpoint ${endpointID}, endpoint does not exist!`, "zhc:quirkaddendpointcluster");
                 return;
             }
@@ -2433,7 +2430,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
 export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP): ModernExtend {
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
-            device.checkinInterval = typeof timeout == "number" ? timeout : TIME_LOOKUP[timeout];
+            device.checkinInterval = typeof timeout === "number" ? timeout : TIME_LOOKUP[timeout];
             device.save();
         },
     ];
